@@ -1,0 +1,621 @@
+/* ============================================================
+   AI Академія — кастомні стилі поверх Tailwind
+   Тут лише те, чого Tailwind-утиліти не покривають зручно:
+   стрімінг-каретка, скролбари, reveal-анімації, бейджі.
+   ============================================================ */
+
+/* --- Доступність: посилання-пропуск до вмісту --- */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: #D97757;
+  color: #141312;
+  padding: 0.6rem 1.1rem;
+  border-radius: 0 0 0.5rem 0;
+  font-weight: 500;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+/* --- Видимий фокус для клавіатурної навігації --- */
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid #D97757;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* --- Виділення тексту у фірмовому кольорі --- */
+::selection {
+  background: rgba(217, 119, 87, 0.35);
+  color: #F0EEE6;
+}
+
+/* --- Тонкі теплі скролбари --- */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #3A342E transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #332E29;
+  border-radius: 8px;
+  border: 2px solid #141312;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #57504A;
+}
+
+/* --- М'який теплий відблиск у hero --- */
+.hero-glow {
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 70%;
+  background: radial-gradient(55% 75% at 28% 0%, rgba(217, 119, 87, 0.09), transparent 70%);
+  pointer-events: none;
+}
+
+/* ============================================================
+   Стрімінг заголовка «токен за токеном»
+   Поки JS не запустився (html без .js) — текст видно одразу,
+   тож сторінка лишається читабельною без скриптів.
+   ============================================================ */
+.js [data-stream] {
+  visibility: hidden;
+}
+.js [data-stream].is-streaming,
+.js [data-stream].is-done {
+  visibility: visible;
+}
+
+.caret {
+  display: inline-block;
+  width: 0.5em;
+  height: 0.92em;
+  margin-left: 0.1em;
+  border-radius: 2px;
+  background: #D97757;
+  vertical-align: -0.06em;
+  animation: caret-blink 1.05s steps(1) infinite;
+}
+.caret.is-gone {
+  transition: opacity 0.6s ease;
+  opacity: 0;
+}
+@keyframes caret-blink {
+  50% { opacity: 0; }
+}
+
+/* ============================================================
+   Поява блоків при скролі (елементи з класом .reveal)
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ============================================================
+   Бейджі статусів модулів (вставляються з js/config.js)
+   ============================================================ */
+.badge {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: 1px solid;
+  border-radius: 999px;
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+.badge-ready {
+  color: #D97757;
+  border-color: rgba(217, 119, 87, 0.45);
+}
+.badge-soon {
+  color: #7A7164;
+  border-color: #3A342E;
+}
+.badge-done {
+  color: #E8DCC3;
+  border-color: rgba(232, 220, 195, 0.4);
+}
+
+/* ============================================================
+   Повага до prefers-reduced-motion:
+   вимикаємо плавний скрол, появи і блимання каретки
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .caret {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   СТОРІНКИ МОДУЛІВ
+   ============================================================ */
+
+/* --- Типографіка навчального контенту (.prose-aia) --- */
+.prose-aia {
+  color: #CFC9BF;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+.prose-aia p { margin: 1.1em 0; }
+.prose-aia h2 {
+  font-family: Literata, Georgia, serif;
+  font-size: 1.75rem;
+  line-height: 1.3;
+  color: #F0EEE6;
+  margin: 2.4em 0 0.7em;
+}
+.prose-aia h3 {
+  font-family: Literata, Georgia, serif;
+  font-size: 1.25rem;
+  color: #F0EEE6;
+  margin: 1.9em 0 0.55em;
+}
+.prose-aia strong { color: #F0EEE6; font-weight: 600; }
+.prose-aia a {
+  color: #D97757;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.prose-aia a:hover { color: #E8DCC3; }
+.prose-aia ul, .prose-aia ol {
+  margin: 1.1em 0;
+  padding-left: 1.4em;
+  display: grid;
+  gap: 0.45em;
+}
+.prose-aia li::marker { color: #D97757; }
+.prose-aia code {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.9em;
+  background: #1E1B18;
+  border: 1px solid #3A342E;
+  border-radius: 6px;
+  padding: 0.1em 0.4em;
+  color: #E8DCC3;
+}
+.prose-aia table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.4em 0;
+  font-size: 0.95rem;
+}
+.prose-aia th {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #7A7164;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #3A342E;
+}
+.prose-aia td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid rgba(58, 52, 46, 0.5);
+  vertical-align: top;
+}
+.prose-aia td:first-child { color: #F0EEE6; font-weight: 500; }
+.prose-aia hr { border: 0; border-top: 1px solid #3A342E; margin: 3em 0; }
+
+.lesson-no {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.62em;
+  color: #D97757;
+  letter-spacing: 0.05em;
+  margin-right: 0.5rem;
+  vertical-align: 0.18em;
+}
+
+/* --- Callout-блоки (аналогії, ключові думки) --- */
+.callout {
+  margin: 1.6em 0;
+  border: 1px solid #3A342E;
+  border-left: 3px solid #D97757;
+  background: #1B1916;
+  border-radius: 0 0.75rem 0.75rem 0;
+  padding: 1rem 1.25rem;
+}
+.callout p { margin: 0.4em 0; font-size: 0.97rem; }
+.callout-title {
+  display: block;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #D97757;
+  margin-bottom: 0.45rem;
+}
+.callout-sand { border-left-color: #E8DCC3; }
+.callout-sand .callout-title { color: #E8DCC3; }
+
+/* --- Візуалізація токенів (статичні «чипи») --- */
+.tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 1.4em 0;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.95rem;
+}
+.tokens span {
+  padding: 0.3rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid #3A342E;
+  background: #1E1B18;
+  color: #E8DCC3;
+}
+.tokens span:nth-child(odd) { border-color: rgba(217, 119, 87, 0.5); }
+
+/* --- Обгортка діаграм Mermaid --- */
+.diagram {
+  margin: 1.8em 0;
+  border: 1px solid #3A342E;
+  background: #1B1916;
+  border-radius: 0.9rem;
+  padding: 1.25rem;
+  overflow-x: auto;
+}
+.diagram .mermaid {
+  display: flex;
+  justify-content: center;
+  min-height: 60px;
+  color: #57504A; /* колір сирого коду до рендеру */
+}
+.diagram-caption {
+  margin-top: 0.8rem;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px;
+  color: #7A7164;
+  text-align: center;
+}
+
+/* --- Сайдбар модуля: шторка на мобільних, sticky на десктопі --- */
+.module-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 50;
+  width: 300px;
+  max-width: 85vw;
+  background: #171513;
+  border-right: 1px solid #3A342E;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+  overflow-y: auto;
+  padding: 1.25rem 1rem 2rem;
+}
+.module-sidebar.is-open { transform: translateX(0); }
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: rgba(10, 9, 8, 0.6);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.sidebar-overlay.is-open { opacity: 1; pointer-events: auto; }
+
+@media (min-width: 1024px) {
+  .module-sidebar {
+    position: sticky;
+    top: 5rem;
+    height: calc(100vh - 6rem);
+    width: auto;
+    max-width: none;
+    background: transparent;
+    border-right: 1px solid rgba(58, 52, 46, 0.6);
+    transform: none;
+    padding: 0 1.25rem 2rem 0;
+  }
+  .sidebar-overlay { display: none; }
+}
+
+/* --- Навігація сайдбара --- */
+.snav-home {
+  display: inline-block;
+  font-size: 0.85rem;
+  color: #A8A095;
+  text-decoration: none;
+  margin-bottom: 1rem;
+}
+.snav-home:hover { color: #E8DCC3; }
+
+.snav-progressbar {
+  height: 4px;
+  background: #272320;
+  border-radius: 99px;
+  overflow: hidden;
+}
+.snav-progressbar > span {
+  display: block;
+  height: 100%;
+  background: #D97757;
+  transition: width 0.3s ease;
+}
+.snav-count {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: #7A7164;
+  margin-top: 0.4rem;
+}
+
+.snav-track {
+  margin: 1.4rem 0 0.45rem;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: #7A7164;
+}
+.snav-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  margin-bottom: 2px;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  color: #A8A095;
+  text-decoration: none;
+}
+a.snav-item:hover { background: #1E1B18; color: #F0EEE6; }
+.snav-item .no {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: #7A7164;
+  min-width: 1.5em;
+}
+.snav-item.is-current {
+  background: #1E1B18;
+  color: #F0EEE6;
+  box-shadow: inset 2px 0 0 #D97757;
+}
+.snav-item.is-soon { opacity: 0.5; cursor: default; }
+.snav-item .soon {
+  margin-left: auto;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #57504A;
+}
+.snav-check { color: #D97757; font-size: 0.85em; }
+
+.snav-lessons {
+  margin: 0.3rem 0 0.6rem;
+  padding-left: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.snav-lesson {
+  display: block;
+  font-size: 0.8rem;
+  color: #7A7164;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.4rem;
+  text-decoration: none;
+}
+.snav-lesson:hover { color: #E8DCC3; }
+.snav-lesson.is-active { color: #D97757; }
+
+/* --- Навігація «попередній / наступний модуль» --- */
+.mnav {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.3rem;
+  min-height: 84px;
+  border: 1px solid #3A342E;
+  background: #1B1916;
+  border-radius: 0.8rem;
+  padding: 1rem 1.1rem;
+  text-decoration: none;
+}
+a.mnav:hover { border-color: rgba(217, 119, 87, 0.55); }
+a.mnav:hover .mnav-label { color: #D97757; }
+.mnav-label {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7A7164;
+}
+.mnav-title { color: #F0EEE6; font-weight: 500; line-height: 1.4; }
+.mnav-next { text-align: right; align-items: flex-end; }
+.mnav.is-soon { opacity: 0.55; }
+
+/* --- Квіз --- */
+.quiz-status {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.8rem;
+  color: #7A7164;
+  margin: 0.25rem 0 1.25rem;
+}
+.quiz-q {
+  border: 1px solid #3A342E;
+  background: #1B1916;
+  border-radius: 0.9rem;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+.quiz-num {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #7A7164;
+  margin-bottom: 0.5rem;
+}
+.quiz-text {
+  color: #F0EEE6;
+  font-weight: 500;
+  line-height: 1.55;
+  margin-bottom: 1rem;
+}
+.quiz-opts { display: grid; gap: 0.5rem; }
+.quiz-opt {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 1px solid #3A342E;
+  background: #141312;
+  border-radius: 0.6rem;
+  padding: 0.65rem 0.9rem;
+  color: #CFC9BF;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.quiz-opt:hover:not([data-locked]) {
+  border-color: rgba(217, 119, 87, 0.55);
+  color: #F0EEE6;
+}
+.quiz-q.is-answered .quiz-opt { cursor: default; opacity: 0.65; }
+.quiz-opt.is-correct {
+  border-color: rgba(143, 166, 107, 0.7);
+  color: #C2D3A7;
+  opacity: 1 !important;
+}
+.quiz-opt.is-wrong {
+  border-color: rgba(192, 86, 79, 0.7);
+  color: #E0938B;
+  opacity: 1 !important;
+}
+.quiz-explain {
+  margin-top: 1rem;
+  border-left: 3px solid;
+  border-radius: 0 0.5rem 0.5rem 0;
+  background: #141312;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #CFC9BF;
+}
+.quiz-explain .verdict { display: block; font-weight: 600; margin-bottom: 0.25rem; }
+.quiz-explain.ok { border-color: #8FA66B; }
+.quiz-explain.ok .verdict { color: #C2D3A7; }
+.quiz-explain.bad { border-color: #C0564F; }
+.quiz-explain.bad .verdict { color: #E0938B; }
+
+.quiz-summary {
+  border: 1px solid rgba(217, 119, 87, 0.45);
+  background: rgba(217, 119, 87, 0.08);
+  border-radius: 0.9rem;
+  padding: 1.25rem;
+  margin-top: 1.25rem;
+  font-size: 0.97rem;
+  line-height: 1.6;
+}
+.quiz-score {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-weight: 600;
+  color: #E8DCC3;
+  margin-bottom: 0.4rem;
+}
+.quiz-restart {
+  margin-top: 0.9rem;
+  border: 1px solid rgba(217, 119, 87, 0.55);
+  border-radius: 0.55rem;
+  background: transparent;
+  color: #D97757;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.quiz-restart:hover { background: rgba(217, 119, 87, 0.12); }
+
+/* ============================================================
+   Приклади промптів і відповідей (компонент .example)
+   Використання:
+     <div class="example">
+       <div class="example-head"><span class="tag-user">Промпт</span></div>
+       <pre>текст промпта</pre>
+       <div class="example-head"><span class="tag-model">Відповідь</span></div>
+       <pre>текст відповіді</pre>
+     </div>
+   ============================================================ */
+.example {
+  margin: 1.6em 0;
+  border: 1px solid #3A342E;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: #171513;
+}
+.example-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 1.1rem;
+  border-bottom: 1px solid #3A342E;
+  background: #1B1916;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7A7164;
+}
+.example-head + pre { border-top: 0; }
+.example pre + .example-head { border-top: 1px solid #3A342E; }
+.tag-user { color: #D97757; }
+.tag-model { color: #E8DCC3; }
+
+/* Блоки <pre> у навчальному тексті (промпти, код, зразки відповідей) */
+.prose-aia pre,
+.example pre {
+  margin: 1.4em 0;
+  border: 1px solid #3A342E;
+  background: #171513;
+  border-radius: 0.75rem;
+  padding: 1rem 1.2rem;
+  overflow-x: auto;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: #E8DCC3;
+  white-space: pre-wrap;   /* промпти — текст: нехай переноситься, а не скролиться */
+  word-break: break-word;
+}
+.example pre {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.prose-aia pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}

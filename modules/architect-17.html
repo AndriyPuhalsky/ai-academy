@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../architect.config.json">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 17 · Деплой: робимо продукт живим — AI Architect</title>
+  <meta name="description" content="Від localhost до публічної адреси 24/7: що таке деплой, підготовка, як працює хостинг, крок за кроком, змінні оточення, фронтенд і налагодження." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#BD5F40",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="a17" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../index.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIA</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Architect</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 17</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../index.html" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">На головну</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>architect.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза D · Продакшн</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Деплой: робимо продукт живим</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Продакшн · 8 уроків · ≈ 90 хв</p>
+        <p class="mt-6 text-lg">
+          Твій бекенд працює — але лише на твоєму комп'ютері. Якщо вимкнути термінал, усе зникає. У цьому
+          модулі ми <strong>задеплоїмо</strong> продукт: розмістимо його в інтернеті, щоб він мав постійну
+          адресу й працював 24/7, навіть коли твій комп'ютер вимкнено. Підемо крок за кроком, з перевірками.
+        </p>
+
+        <div class="callout">
+          <p><strong>Чесно про інтерфейси хостингів.</strong> Кнопки й назви на платформах деплою час від
+          часу змінюються. Тому я даю <em>стабільну послідовність дій</em> і принципи, а точні кроки під
+          конкретну платформу завжди звіряй у її офіційній документації. Це нормальна щоденна практика
+          інженера — і Claude Code теж допоможе з налаштуванням деплою, якщо попросиш.</p>
+        </div>
+
+        <hr />
+
+        <!-- УРОК 17.1 -->
+        <section id="l1" data-lesson="17.1 Що таке деплой" class="scroll-mt-24">
+          <h2><span class="lesson-no">17.1</span>Що таке деплой</h2>
+          <p>
+            <strong>Деплой</strong> (deployment) — це розміщення твого коду на сервері в інтернеті, щоб він
+            працював постійно й мав публічну адресу (URL), за якою до нього може звернутися будь-хто.
+          </p>
+          <p>
+            <strong>Аналогія.</strong> Локальний запуск (<code>uvicorn</code> на твоєму комп'ютері) — це
+            ресторан у тебе вдома: відчинений, лише поки ти там, і адреси ні в кого немає. Деплой —
+            це відкрити ресторан у місті з вивіскою й адресою: він працює цілодобово, і гості приходять
+            самі, навіть коли тебе немає.
+          </p>
+          <p>Що дає жива адреса:</p>
+          <ul>
+            <li><strong>Доступ для інших:</strong> клієнт, колега чи замовник відкриває URL — і користується.</li>
+            <li><strong>Робота 24/7:</strong> сервіс живе незалежно від твого комп'ютера.</li>
+            <li><strong>Портфоліо:</strong> жива демка, яку можна показати роботодавцю чи клієнту, — сильніша за код у репозиторії.</li>
+          </ul>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 17.2 -->
+        <section id="l2" data-lesson="17.2 Що потрібно перед деплоєм" class="scroll-mt-24">
+          <h2><span class="lesson-no">17.2</span>Що потрібно перед деплоєм</h2>
+          <p>Деплой пройде гладко, якщо підготувати чотири речі (усі ти вже вмієш):</p>
+          <ul>
+            <li><strong>Код на GitHub.</strong> Платформи деплою беруть код прямо з твого репозиторію
+              (Модуль 5). Переконайся, що <code>main.py</code> та <code>index.html</code> запушені.</li>
+            <li><strong><code>requirements.txt</code></strong> — список бібліотек (Модуль 16), щоб сервер
+              знав, що встановити. Має містити: <code>fastapi</code>, <code>uvicorn</code>,
+              <code>anthropic</code>, <code>python-dotenv</code>.</li>
+            <li><strong>Команда запуску</strong> — як сервер має стартувати твій бекенд (розберемо в 17.4).</li>
+            <li><strong>План для ключа.</strong> Ключ НЕ їде в Git (Модуль 7) — на хості його задають окремо,
+              як змінну оточення (урок 17.6).</li>
+          </ul>
+          <div class="callout">
+            <p><strong>Найважливіше нагадування.</strong> Перевір, що <code>.env</code> у
+            <code>.gitignore</code> і його <em>немає</em> на GitHub (Модуль 7). Ключ ми додамо на хост
+            окремо й безпечно. Якщо ключ колись потрапив у Git — відклич його в консолі й створи новий.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 17.3 -->
+        <section id="l3" data-lesson="17.3 Як працює хостинг" class="scroll-mt-24">
+          <h2><span class="lesson-no">17.3</span>Як працює хостинг (концепція)</h2>
+          <p>
+            Сучасні платформи деплою роблять усе майже автоматично. Загальна схема однакова майже всюди:
+          </p>
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart LR
+  GH[("GitHub<br/>(твій код)")] --> P["Платформа хостингу"]
+  P --> B["Будує:<br/>ставить requirements"]
+  B --> R["Запускає:<br/>команда старту"]
+  R --> URL["Жива адреса<br/>(публічний URL)"]
+  style URL fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">Платформа бере код із GitHub, ставить бібліотеки, запускає бекенд і дає URL</p>
+          </div>
+          <p>
+            Тобто: ти під'єднуєш свій GitHub-репозиторій → платформа сама завантажує код, встановлює
+            бібліотеки з <code>requirements.txt</code>, запускає твою команду старту — і видає публічну
+            адресу. Після цього кожен <code>git push</code> зазвичай автоматично оновлює живий сервіс.
+          </p>
+          <div class="callout">
+            <p><strong>Приклади платформ.</strong> Для Python-бекенду популярні, зокрема, Render, Railway,
+            Fly.io (є й інші). Багато з них мають безкоштовний або дешевий стартовий тариф, якого вистачить
+            для навчання й демо. Обери одну й далі дій за нашою послідовністю + її актуальними доксами —
+            принцип скрізь однаковий.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 17.4 -->
+        <section id="l4" data-lesson="17.4 Готуємо бекенд" class="scroll-mt-24">
+          <h2><span class="lesson-no">17.4</span>Готуємо бекенд до деплою</h2>
+          <p>
+            На сервері запуск трохи відрізняється від локального. Команда старту для FastAPI на більшості
+            платформ виглядає так:
+          </p>
+          <pre><code>uvicorn main:app --host 0.0.0.0 --port $PORT</code></pre>
+          <div class="callout">
+            <p><strong>Розбір.</strong> <code>--host 0.0.0.0</code> каже серверу «приймай запити ззовні» (на
+            твоєму комп'ютері цього не треба, а на хості — обов'язково). <code>$PORT</code> — це
+            <em>змінна оточення</em>: платформа сама призначає порт і передає його через неї, а ми просто
+            підставляємо. Локально ми писали фіксований порт, тут — динамічний від хоста.</p>
+          </div>
+          <p>
+            Цю команду ти або вкажеш у налаштуваннях платформи (поле «Start Command»), або покладеш у
+            спеціальний файл (наприклад, <code>Procfile</code> чи конфіг платформи — залежить від неї,
+            дивись її докси). А <code>requirements.txt</code> має лежати в корені репозиторію:
+          </p>
+          <pre><code># requirements.txt
+fastapi
+uvicorn
+anthropic
+python-dotenv</code></pre>
+          <div class="callout">
+            <p><strong>Підказка.</strong> Не пам'ятаєш точний вміст <code>requirements.txt</code> чи який
+            конфіг-файл потрібен платформі? Попроси Claude Code: «підготуй мій FastAPI-проєкт до деплою на
+            [назва платформи]» — він згенерує потрібні файли й команду старту й пояснить кроки.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 17.5 -->
+        <section id="l5" data-lesson="17.5 Деплоїмо крок за кроком" class="scroll-mt-24">
+          <h2><span class="lesson-no">17.5</span>Деплоїмо крок за кроком</h2>
+          <p>
+            Послідовність на типовій платформі (точні назви кнопок звіряй у її доксах, але кроки ті самі):
+          </p>
+          <ol>
+            <li>Зареєструйся на обраній платформі (зазвичай можна увійти через GitHub).</li>
+            <li>Натисни щось на кшталт «New» → «Web Service» (новий вебсервіс).</li>
+            <li>Під'єднай свій GitHub-репозиторій із проєктом.</li>
+            <li>Платформа спитає налаштування. Вкажи:
+              <ul>
+                <li><strong>Build Command</strong> (як ставити залежності): <code>pip install -r requirements.txt</code>;</li>
+                <li><strong>Start Command</strong> (як запускати): <code>uvicorn main:app --host 0.0.0.0 --port $PORT</code>.</li>
+              </ul>
+            </li>
+            <li>Додай змінну оточення з ключем (наступний урок) — <strong>до</strong> першого запуску.</li>
+            <li>Натисни «Deploy» (запустити деплой) і дочекайся завершення збірки.</li>
+          </ol>
+          <div class="callout">
+            <p><strong>Що ти маєш побачити.</strong> Платформа покаже журнал збірки (рядки про встановлення
+            бібліотек), потім — повідомлення про успіх (наприклад, «Live» / «Deploy succeeded») і
+            <strong>публічну адресу</strong> виду <code>https://твій-сервіс.onrender.com</code> (домен
+            залежить від платформи). Це і є жива адреса твого бекенду.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 17.6 -->
+        <section id="l6" data-lesson="17.6 Змінні оточення на хості" class="scroll-mt-24">
+          <h2><span class="lesson-no">17.6</span>Змінні оточення на хості (ключ)</h2>
+          <p>
+            Найважливіший крок із погляду безпеки. Локально ключ лежав у <code>.env</code>. На сервері
+            файлу <code>.env</code> немає (і не має бути!) — натомість платформа дає розділ
+            <strong>Environment Variables</strong> (змінні оточення), куди ти безпечно вписуєш ключ.
+          </p>
+          <ol>
+            <li>У налаштуваннях сервісу знайди розділ «Environment» / «Environment Variables».</li>
+            <li>Додай змінну: ім'я <code>ANTHROPIC_API_KEY</code>, значення — твій справжній ключ.</li>
+            <li>Збережи й перезапусти сервіс, якщо потрібно.</li>
+          </ol>
+          <div class="callout">
+            <p><strong>Чому код міняти не треба.</strong> Згадай Модуль 7: ми читаємо ключ через
+            <code>os.getenv("ANTHROPIC_API_KEY")</code>. Ця команда бере значення зі змінних оточення —
+            байдуже, чи вони з локального <code>.env</code>, чи задані на хості. Тому той самий код працює і
+            локально, і в проді. Це й була причина від початку не вписувати ключ у код.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Критично.</strong> Ключ задається <em>лише</em> в цьому розділі платформи. Ніколи не
+            клади його в код, не коміть у Git і не показуй у фронтенді (Модуль 16). Якщо ключ десь
+            «засвітився» — відклич його в консолі Anthropic і створи новий.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 17.7 -->
+        <section id="l7" data-lesson="17.7 Перевіряємо й фронтенд" class="scroll-mt-24">
+          <h2><span class="lesson-no">17.7</span>Перевіряємо живий продукт і фронтенд</h2>
+          <p>
+            Відкрий свою живу адресу з доданим <code>/docs</code> (наприклад,
+            <code>https://твій-сервіс.onrender.com/docs</code>) і протестуй ендпоінт <code>/ask</code>, як
+            робив локально (Модуль 16).
+          </p>
+          <div class="callout">
+            <p><strong>Що ти маєш побачити.</strong> Та сама сторінка документації, що й локально, але вже
+            за публічною адресою. Виклик <code>/ask</code> повертає відповідь моделі. Вітаю — твій AI живе в
+            інтернеті 24/7! Поділись адресою з другом — він зможе відкрити її зі свого пристрою.</p>
+          </div>
+          <p>Тепер під'єднаємо фронтенд. У файлі <code>index.html</code> заміни локальну адресу бекенду на живу:</p>
+          <pre><code>// було (локально):
+const res = await fetch("http://127.0.0.1:8000/ask", { ... });
+
+// стане (жива адреса твого бекенду):
+const res = await fetch("https://твій-сервіс.onrender.com/ask", { ... });</code></pre>
+          <p>Фронтенд (статичний <code>index.html</code>) можна розмістити двома шляхами:</p>
+          <ul>
+            <li><strong>На статичному хостингу</strong> (наприклад, Netlify, Vercel, GitHub Pages) — просто
+              для HTML-сторінок, часто безкоштовно.</li>
+            <li><strong>Прямо з бекенду</strong> — щоб був один деплой. FastAPI вміє віддавати статичні файли:</li>
+          </ul>
+          <pre><code>from fastapi.staticfiles import StaticFiles
+# після оголошення ендпоінтів:
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
+# поклади index.html у папку static/ — і бекенд віддаватиме його на головній адресі</code></pre>
+          <div class="callout">
+            <p><strong>Не забудь про CORS.</strong> Якщо фронтенд на окремому домені, додай його в дозволені
+            у <code>CORSMiddleware</code> замість <code>"*"</code> (Модуль 16) — у проді це безпечніше, ніж
+            «дозволити всім».</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 17.8 -->
+        <section id="l8" data-lesson="17.8 Вартість, сон, налагодження" class="scroll-mt-24">
+          <h2><span class="lesson-no">17.8</span>Вартість, «сон», домен і налагодження</h2>
+          <ul>
+            <li><strong>Безкоштовні тарифи «засинають».</strong> Багато платформ на free-тарифі присипляють
+              сервіс після простою — перший запит після паузи буде повільним (сервіс «прокидається»). Для
+              демо це ок; для бойового продукту беруть платний тариф, що не засинає.</li>
+            <li><strong>Дві статті витрат.</strong> Не плутай: окремо платиш платформі за хостинг (за тариф)
+              і окремо Anthropic за виклики моделі (за токени, Модуль 8). Слідкуй за обома.</li>
+            <li><strong>Власний домен.</strong> Замість <code>...onrender.com</code> можна під'єднати свій
+              домен (наприклад, <code>myapp.com</code>) у налаштуваннях платформи — для солідного вигляду.</li>
+            <li><strong>Логи деплою — твій друг.</strong> Якщо сервіс не стартував, відкрий журнал (Logs) на
+              платформі: там видно причину (немає бібліотеки, помилка в команді старту, відсутній ключ).</li>
+          </ul>
+          <div class="callout">
+            <p><strong>Типові помилки деплою.</strong> «Build failed» — частіше неповний
+            <code>requirements.txt</code> (додай бракуючу бібліотеку). Сервіс стартував, але
+            <code>/ask</code> повертає помилку ключа — не додав <code>ANTHROPIC_API_KEY</code> у змінні
+            оточення (урок 17.6). Фронтенд не отримує відповідь — перевір, що оновив адресу у
+            <code>fetch</code> і налаштував CORS. Лог платформи майже завжди підкаже, що саме не так.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Підсумок модуля.</strong> Ти задеплоїв бекенд із GitHub на хостинг, безпечно задав
+            ключ через змінні оточення, перевірив живий ендпоінт, під'єднав фронтенд і знаєш про вартість,
+            «сон», домен і де шукати причини збоїв. Твій AI-продукт тепер справді живий в інтернеті — це
+            величезна віха. Наступний модуль — LLMOps: як тримати живий продукт під контролем (вартість,
+            логи, версії промптів, надійність).</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>Сім питань без дедлайнів. Обирай відповідь — і одразу бачиш пояснення.</p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Що таке деплой?",
+            "options": [
+              "Запуск коду лише на своєму комп'ютері",
+              "Розміщення коду на сервері в інтернеті, щоб він працював 24/7 і мав публічну адресу",
+              "Видалення проєкту",
+              "Інша назва для Git"
+            ],
+            "answer": 1,
+            "explain": "Деплой робить твій сервіс доступним за публічним URL цілодобово, незалежно від твого комп'ютера."
+          },
+          {
+            "q": "Звідки платформи деплою зазвичай беруть твій код?",
+            "options": [
+              "З електронної пошти",
+              "З твого репозиторію на GitHub",
+              "З флешки",
+              "З браузера"
+            ],
+            "answer": 1,
+            "explain": "Ти під'єднуєш GitHub-репозиторій; платформа завантажує код, ставить залежності й запускає його. Тому код має бути запушений (Модуль 5)."
+          },
+          {
+            "q": "Навіщо у команді старту --host 0.0.0.0 і $PORT?",
+            "options": [
+              "Для краси",
+              "0.0.0.0 — приймати запити ззовні; $PORT — порт, який призначає й передає платформа",
+              "Щоб приховати ключ",
+              "Щоб пришвидшити модель"
+            ],
+            "answer": 1,
+            "explain": "На сервері треба слухати зовнішні запити (0.0.0.0) і використовувати порт від хоста ($PORT), а не фіксований локальний."
+          },
+          {
+            "q": "Навіщо потрібен requirements.txt при деплої?",
+            "options": [
+              "Щоб зашифрувати код",
+              "Щоб сервер знав, які бібліотеки встановити (fastapi, uvicorn, anthropic тощо)",
+              "Це файл з паролями",
+              "Він не потрібен"
+            ],
+            "answer": 1,
+            "explain": "requirements.txt — список залежностей. Платформа ставить їх під час збірки. Неповний список — найчастіша причина «Build failed»."
+          },
+          {
+            "q": "Як правильно задати ключ ANTHROPIC_API_KEY на хості?",
+            "options": [
+              "Вписати прямо в код перед деплоєм",
+              "Додати у розділ Environment Variables (змінні оточення) платформи",
+              "Залити .env у Git",
+              "Показати у фронтенді"
+            ],
+            "answer": 1,
+            "explain": "На сервері ключ задають у змінних оточення платформи. Код читає його через os.getenv — тому міняти код не треба (Модуль 7)."
+          },
+          {
+            "q": "Чому той самий код працює і локально, і в проді без змін для ключа?",
+            "options": [
+              "Бо ключ зашитий у код",
+              "Бо os.getenv бере значення зі змінних оточення — байдуже, з .env локально чи з налаштувань хоста",
+              "Бо деплой змінює код",
+              "Це випадковість"
+            ],
+            "answer": 1,
+            "explain": "os.getenv читає змінні оточення незалежно від джерела. Саме тому ми від початку не вписували ключ у код."
+          },
+          {
+            "q": "Сервіс на безкоштовному тарифі повільно відповідає після простою. Чому?",
+            "options": [
+              "Зламався код",
+              "Free-тариф присипляє сервіс при простої — перший запит «будить» його; платний тариф не засинає",
+              "Закінчився ключ",
+              "Проблема з Git"
+            ],
+            "answer": 1,
+            "explain": "Багато безкоштовних тарифів присипляють сервіс. Для демо це прийнятно; для бойового продукту беруть тариф, що працює без сну."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Продукт живий в інтернеті?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач модуль завершеним — і відкриється Модуль 18: LLMOps — тримаємо живий продукт під контролем.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../architect.config.json">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 11 · RAG: знання з твоїх документів — AI Architect</title>
+  <meta name="description" content="Як дати моделі знання з твоїх файлів: проблема й ідея RAG, ембедінги, чанкінг, пошук за схожістю, повна збірка бота-відповідача й якість." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#BD5F40",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="a11" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../index.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIA</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Architect</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 11</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../index.html" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">На головну</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>architect.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза B · Будуємо з LLM</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">RAG: знання з твоїх документів</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Практика · 6 уроків · ≈ 80 хв</p>
+        <p class="mt-6 text-lg">
+          Це найважливіша тема фази — і трохи складніша, тому йтимемо повільно, з аналогіями й наскрізним
+          прикладом. Не поспішай: дочитуй кожен урок до кінця, і наприкінці все складеться в одну ясну
+          картину. Жодної магії — лише прості ідеї, складені в ланцюжок, який ти збереш у код.
+        </p>
+
+        <div class="callout">
+          <p><strong>Наскрізний приклад.</strong> Уяви, що робимо чат-бота підтримки для інтернет-магазину.
+          У магазину є інструкції: умови повернення, доставка, гарантія. Завдання — щоб бот відповідав на
+          питання клієнтів <em>на основі цих інструкцій</em>, а не вигадував. Цей приклад проведемо крізь
+          увесь модуль.</p>
+        </div>
+
+        <hr />
+
+        <!-- УРОК 11.1 -->
+        <section id="l1" data-lesson="11.1 Проблема й ідея" class="scroll-mt-24">
+          <h2><span class="lesson-no">11.1</span>Проблема, яку розв'язує RAG</h2>
+          <p>Claude дуже розумний, але є дві стіни, об які розбивається будь-який реальний продукт:</p>
+          <ul>
+            <li><strong>Модель не знає твоїх даних.</strong> Вона не читала інструкцій саме твого магазину,
+              твоєї бази, твоїх внутрішніх документів. Спитаєш «яка у нас гарантія?» — або чесно не знатиме,
+              або, гірше, <em>вигадає</em> (галюцинація).</li>
+            <li><strong>Не можна просто «вкласти все».</strong> «Засунемо всі документи прямо в промпт!» —
+              спокусливо. Але пам'ятаєш із Модуля 8: за кожен токен платимо, і є межа розміру запиту. Тисячі
+              сторінок щоразу — дорого, повільно й часто не влізе.</li>
+          </ul>
+          <p>
+            <strong>Аналогія.</strong> Уяви геніального консультанта, який знає все, крім внутрішніх правил
+            саме твоєї компанії. Що ти зробиш перед тим, як він відповість клієнту? Не змусиш зазубрити 500
+            сторінок інструкцій. Ти просто <em>знайдеш потрібні 2 абзаци й покладеш йому на стіл</em>:
+            «відповідай ось на основі цього». Саме це й робить RAG.
+          </p>
+          <div class="callout">
+            <p><strong>Що означає абревіатура.</strong> RAG = Retrieval-Augmented Generation: «генерація,
+            підсилена пошуком». Перед тим, як модель згенерує відповідь, ми спершу <strong>знаходимо</strong>
+            релевантні шматки твоїх даних і <strong>додаємо</strong> їх у промпт. Решта модуля — як технічно
+            реалізувати оце «знайти потрібні 2 абзаци».</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 11.2 -->
+        <section id="l2" data-lesson="11.2 Велика картина" class="scroll-mt-24">
+          <h2><span class="lesson-no">11.2</span>Велика картина: дві фази</h2>
+          <p>Втримай у голові загальну схему. RAG складається з двох фаз, і їх важливо не плутати:</p>
+          <ul>
+            <li><strong>Фаза 1 — Індексація</strong> (готуємо дані, <em>один раз</em> наперед): беремо
+              документи, ріжемо на шматки, перетворюємо кожен на «числовий відбиток сенсу» і складаємо у
+              спеціальну базу.</li>
+            <li><strong>Фаза 2 — Запит</strong> (<em>щоразу</em>, коли користувач питає): перетворюємо
+              питання на такий самий «відбиток», шукаємо найсхожіші шматки, кладемо їх у промпт — і модель
+              відповідає.</li>
+          </ul>
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TB
+  subgraph IDX["Фаза 1 · Індексація (один раз)"]
+    D["Документи"] --> CH["Розрізати на шматки"]
+    CH --> E1["Ембедінг кожного шматка"]
+    E1 --> DB[("Векторна база")]
+  end
+  subgraph QRY["Фаза 2 · Запит (щоразу)"]
+    Q["Питання"] --> E2["Ембедінг питання"]
+    E2 --> S["Пошук схожих"]
+    S --> CTX["Топ-3 шматки"]
+    CTX --> P["Промпт: питання + шматки"]
+    P --> A["Відповідь"]
+  end
+  DB -.-> S
+  style A fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">Дві фази RAG. Незнайомі слова («ембедінг», «векторна база») розберемо далі</p>
+          </div>
+          <p>
+            Якщо слова «ембедінг» і «векторна база» поки нічого не означають — нормально, саме їх ми
+            пояснимо. Головне зараз — відчути ритм: <strong>підготували дані → на запит знайшли потрібне →
+            віддали моделі</strong>.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 11.3 -->
+        <section id="l3" data-lesson="11.3 Ембедінги" class="scroll-mt-24">
+          <h2><span class="lesson-no">11.3</span>Ембедінги: сенс, записаний числами</h2>
+          <p>
+            Центральна ідея, на якій тримається все. Комп'ютер не розуміє слів — він розуміє числа.
+            <strong>Ембедінг</strong> — це спосіб перетворити шматок тексту на список чисел (його ще звуть
+            <em>вектор</em>) так, щоб <strong>близькі за змістом тексти давали близькі числа</strong>.
+          </p>
+          <p>
+            <strong>Аналогія з картою.</strong> Уяви, що кожен текст ми ставимо точкою на величезній карті
+            сенсів. Тексти про повернення товару опиняться в одному «районі», про доставку — в іншому, а
+            рецепт борщу — на іншому кінці карти. Ембедінг — це і є координати точки. Близькі координати =
+            схожий зміст.
+          </p>
+          <pre><code># Спрощено, ембедінг тексту виглядає як довгий список чисел:
+"Повернення протягом 14 днів"  ->  [0.12, -0.83, 0.45, ... ]   # сотні чисел
+"Як повернути товар?"          ->  [0.14, -0.79, 0.48, ... ]   # дуже близько!
+"Рецепт борщу"                 ->  [-0.66, 0.20, -0.91, ... ]  # геть далеко</code></pre>
+          <p>
+            Помітив головне? Питання «Як повернути товар?» і фраза з інструкції «Повернення протягом 14
+            днів» — <strong>різні слова, але близькі числа</strong>, бо близький зміст. Тому RAG знаходить
+            потрібне, навіть коли користувач формулює інакше, ніж написано в документі. Звичайний пошук «по
+            словах» цього не вміє — ембедінги шукають <em>за змістом</em>.
+          </p>
+          <pre><code># Самі числа рахує окрема модель-ембедер (не Claude напряму).
+# Для нас це просто функція «текст -> вектор». Умовно:
+def embed(text):
+    # ...виклик моделі-ембедера, повертає список чисел...
+    return vector
+
+# Точний виклик залежить від обраного провайдера ембедінгів —
+# дивись його документацію. Нам зараз важлива сама ІДЕЯ.</code></pre>
+          <div class="callout">
+            <p><strong>Не лякайся «вектора».</strong> Вектор тут — просто список чисел (як
+            <code>[0.12, -0.83, ...]</code>), пам'ятаєш списки з Модуля 6. Вищої математики від тебе не
+            треба: модель-ембедер сама перетворює текст на числа, а ми лише порівнюємо, наскільки два такі
+            списки близькі. Як саме — наступні уроки.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 11.4 -->
+        <section id="l4" data-lesson="11.4 Чанкінг" class="scroll-mt-24">
+          <h2><span class="lesson-no">11.4</span>Чанкінг: ріжемо документи на шматки</h2>
+          <p>
+            Чому не зробити один ембедінг на весь документ? Бо «відбиток» вийде розмитим: документ про 10
+            тем дасть один усереднений вектор, що не відповідає чітко жодному питанню. І в промпт ми потім
+            вкладемо весь документ — дорого. Тому документи ріжуть на невеликі шматки — <strong>чанки</strong>
+            (chunk = шматок) — і ембедять кожен окремо.
+          </p>
+          <p>
+            <strong>Аналогія.</strong> Це як зміст книги з посиланнями на сторінки: замість «ось тобі вся
+            книга» — «ось конкретний абзац про твоє питання». Дрібніше й точніше.
+          </p>
+          <p>Два головні параметри:</p>
+          <ul>
+            <li><strong>Розмір</strong> — скільки тексту в одному шматку (наприклад, ~500 символів). Завеликі
+              — розмиті й дорогі; замалі — втрачають контекст.</li>
+            <li><strong>Перекриття</strong> (overlap) — сусідні шматки трохи накладаються (наприклад, останні
+              50 символів одного = початок наступного). Навіщо? Щоб думка, розрізана на межі шматків, не
+              загубилася.</li>
+          </ul>
+          <pre><code># Найпростіший чанкінг: ріжемо на шматки по size символів
+# з перекриттям overlap, щоб не «розрубати» думку на межі.
+def chunk_text(text, size=500, overlap=50):
+    chunks = []
+    start = 0
+    while start &lt; len(text):
+        end = start + size
+        chunks.append(text[start:end])   # шматок від start до end
+        start = end - overlap            # наступний починаємо трохи раніше (перекриття)
+    return chunks</code></pre>
+          <div class="callout">
+            <p><strong>Розбір коду.</strong> <code>text[start:end]</code> — це «зріз» (slice): частина рядка
+            від <code>start</code> до <code>end</code>. <code>while start &lt; len(text)</code> крутиться,
+            поки не дійшли до кінця тексту. <code>start = end - overlap</code> — і є перекриття: наступний
+            шматок стартує трохи раніше, ніж скінчився попередній. На практиці беруть розумніші способи
+            (різати по реченнях чи абзацах), але ідея — рівно ця.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 11.5 -->
+        <section id="l5" data-lesson="11.5 Пошук за схожістю" class="scroll-mt-24">
+          <h2><span class="lesson-no">11.5</span>Пошук схожих: як знайти потрібні шматки</h2>
+          <p>
+            Усі шматки перетворені на вектори. Прийшло питання — його теж ембедимо у вектор. Тепер задача:
+            знайти серед усіх шматків ті, чий вектор <strong>найближчий</strong> до вектора питання.
+            «Найближчий» = «найсхожіший за змістом».
+          </p>
+          <p>
+            Як виміряти «близькість» двох списків чисел? Найпоширеніший спосіб — <strong>косинусна
+            схожість</strong>. <strong>Аналогія зі стрілками:</strong> уяви два вектори як дві стрілки з
+            одного центру. Дивляться <em>в один бік</em> — тексти схожі (близько до <strong>1</strong>); у
+            різні — несхожі (ближче до <strong>0</strong>). Косинусна схожість — просто число від -1 до 1,
+            що каже, наскільки «в один бік» дивляться стрілки.
+          </p>
+          <pre><code>def cosine_similarity(a, b):
+    # a і b — вектори (списки чисел) однакової довжини
+    dot = sum(x * y for x, y in zip(a, b))     # перемножуємо попарно й додаємо
+    norm_a = sum(x * x for x in a) ** 0.5       # «довжина» стрілки a (** 0.5 = корінь)
+    norm_b = sum(y * y for y in b) ** 0.5
+    return dot / (norm_a * norm_b)              # підсумок: число від -1 до 1</code></pre>
+          <div class="callout">
+            <p><strong>Розбір (по шматочках).</strong> <code>zip(a, b)</code> зчіплює два списки в пари.
+            <code>x * y for ...</code> — компактний «генератор», що рахує щось для кожної пари.
+            <code>** 0.5</code> — піднесення до степеня 0.5, тобто квадратний корінь. Тобі НЕ треба писати
+            це руками в реальних проєктах — векторні бази й бібліотеки рахують схожість за тебе й дуже
+            швидко. Формулу показуємо лише щоб ти розумів, що «під капотом».</p>
+          </div>
+          <p>
+            У навчальному прикладі можна тримати шматки у списку в пам'яті й рахувати схожість у циклі. Але
+            коли шматків мільйони, перебирати всі — повільно. Тому в проді використовують <strong>векторні
+            бази даних</strong> (наприклад, <em>pgvector</em> — розширення для звичного Postgres, або окремі
+            <em>Qdrant</em>, <em>Pinecone</em>): вони зберігають вектори й блискавично знаходять найближчі.
+            Для нас векторна база — це «розумне сховище, що швидко відповідає: дай 3 найсхожіші шматки до
+            ось цього вектора».
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 11.6 -->
+        <section id="l6" data-lesson="11.6 Збираємо докупи + якість" class="scroll-mt-24">
+          <h2><span class="lesson-no">11.6</span>Збираємо RAG докупи (і про якість)</h2>
+          <p>
+            Момент, заради якого був увесь модуль. Попроси Claude Code: «створи файл <code>rag.py</code>:
+            проста база знань у пам'яті, пошук найсхожіших шматків і відповідь Claude лише на їх основі».
+            З'єднаємо все в робочого бота підтримки — читай зверху вниз, кожен крок ти вже знаєш окремо:
+          </p>
+          <pre><code>import os, json
+from anthropic import Anthropic
+from dotenv import load_dotenv
+load_dotenv()
+client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+# === ФАЗА 1: ІНДЕКСАЦІЯ (готуємо базу знань один раз) ===
+docs = [
+    "Повернення товару можливе протягом 14 днів з моменту отримання.",
+    "Доставка по Україні займає 2–4 робочі дні службою Нова Пошта.",
+    "Гарантія на електроніку — 12 місяців від дати покупки.",
+]
+knowledge = []
+for text in docs:
+    knowledge.append({"text": text, "vector": embed(text)})   # embed з уроку 11.3
+
+# === ФАЗА 2: ЗАПИТ (на кожне питання користувача) ===
+def retrieve(question, k=2):
+    q_vector = embed(question)                      # ембедимо питання
+    scored = []
+    for item in knowledge:
+        score = cosine_similarity(q_vector, item["vector"])   # схожість з кожним шматком
+        scored.append((score, item["text"]))
+    scored.sort(reverse=True)                       # найсхожіше — нагору
+    return [text for score, text in scored[:k]]     # k найкращих текстів
+
+def answer(question):
+    chunks = retrieve(question)                     # 1. знайшли релевантні шматки
+    context = "\n\n".join(chunks)                   # 2. склеїли у контекст
+
+    system = (
+        "Ти асистент підтримки. Відповідай ЛИШЕ на основі наведеного контексту. "
+        "Якщо відповіді в контексті немає — чесно скажи, що не маєш інформації."
+    )
+    prompt = f"Контекст:\n{context}\n\nПитання: {question}"   # 3. вклали контекст
+
+    resp = client.messages.create(                  # 4. модель відповідає (Модулі 8–9)
+        model="claude-sonnet-5", max_tokens=400,
+        system=system,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return resp.content[0].text
+
+print(answer("Скільки днів дається на повернення?"))
+# -> "Повернення можливе протягом 14 днів з моменту отримання товару."</code></pre>
+          <div class="callout">
+            <p><strong>Розбір нових деталей.</strong> <code>"\n\n".join(chunks)</code> склеює список шматків
+            в один текст, вставляючи між ними порожній рядок (<code>\n</code> — перенос). <code>f"...{question}..."</code>
+            — f-рядок: усе у фігурних дужках підставляється всередину. А системний промпт «відповідай ЛИШЕ
+            на основі контексту» — це з Модуля 9, і саме він не дає боту вигадувати поза документами.</p>
+          </div>
+          <p>
+            Зупинись і подивись на цей код ще раз. Усе, що ми вчили окремими цеглинками — списки й функції
+            (Модуль 6), виклик моделі й системний промпт (Модулі 8–9), ембедінги, чанки й схожість (цей
+            модуль) — склалося в один невеликий, але справжній AI-продукт.
+          </p>
+          <p><strong>Коротко про якість.</strong> RAG рідко ідеальний з першого разу — і це нормально. Найчастіші проблеми й ліки:</p>
+          <ul>
+            <li><strong>Дістали не той шматок</strong> — часто через поганий чанкінг; експериментуй із розміром і перекриттям.</li>
+            <li><strong>Потрібне було поза топ-3</strong> — допомагає <strong>реранкінг</strong>: спершу беремо більше кандидатів, потім окремо переупорядковуємо за релевантністю й лишаємо найкращі.</li>
+            <li><strong>Модель усе одно вигадала</strong> — жорсткіший системний промпт + просити <strong>цитувати джерело</strong>.</li>
+          </ul>
+          <div class="callout">
+            <p><strong>Як зрозуміти, що стало краще?</strong> Не «на око». Збираєш набір реальних питань із
+            відомими правильними відповідями (міні-іспит для бота) і після кожної зміни перевіряєш, скільки
+            відповідей правильні. Це <strong>оцінювання (evals)</strong> — окрема тема Модуля 19. Поки
+            запам'ятай принцип: зміни треба <em>вимірювати</em>, а не відчувати.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Підсумок модуля.</strong> RAG = знайти релевантні шматки твоїх даних і вкласти їх у
+            промпт. Деталі: ембедінги перетворюють зміст на числа; чанкінг ріже документи; косинусна
+            схожість знаходить найближче; векторна база робить це швидко; системний промпт тримає модель у
+            рамках; реранкінг і evals підвищують якість. Цим завершується Фаза B — у тебе вже є справжні
+            навички будувати з LLM. Далі — Фаза C: агенти, коли моделі замало «знайти й відповісти», і вона
+            має <em>діяти</em> кількома кроками.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>Сім питань без дедлайнів. Обирай відповідь — і одразу бачиш пояснення.</p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Яку головну проблему розв'язує RAG?",
+            "options": [
+              "Робить модель швидшою",
+              "Дає моделі відповідати на основі ТВОЇХ даних, яких вона не знає, не вкладаючи все в промпт",
+              "Прибирає потребу в системному промпті",
+              "Замінює мову програмування"
+            ],
+            "answer": 1,
+            "explain": "Модель не знає твоїх документів і їх не можна повністю вкласти в промпт (дорого/не влізе). RAG знаходить потрібні шматки й додає лише їх."
+          },
+          {
+            "q": "Що таке ембедінг?",
+            "options": [
+              "Стиснений файл документа",
+              "Список чисел (вектор), що передає зміст тексту: близький зміст — близькі числа",
+              "Інша назва для промпта",
+              "Тип бази даних"
+            ],
+            "answer": 1,
+            "explain": "Ембедінг перетворює текст на вектор так, що схожі за змістом тексти мають близькі вектори. Це дозволяє шукати за змістом, а не за словами."
+          },
+          {
+            "q": "Навіщо різати документи на чанки (шматки)?",
+            "options": [
+              "Щоб файли важили менше",
+              "Щоб ембедінг був точним (на одну тему) і щоб у промпт класти лише потрібний шматок, а не весь документ",
+              "Це необов'язково й нічого не дає",
+              "Щоб приховати дані"
+            ],
+            "answer": 1,
+            "explain": "Один вектор на весь документ — розмитий. Дрібні шматки дають точні ембедінги, і в промпт потрапляє лише релевантне."
+          },
+          {
+            "q": "Навіщо роблять перекриття (overlap) між сусідніми чанками?",
+            "options": [
+              "Щоб шматки були більші",
+              "Щоб думка, розрізана на межі двох шматків, не загубилася",
+              "Щоб пришвидшити пошук",
+              "Перекриття не потрібне"
+            ],
+            "answer": 1,
+            "explain": "Перекриття зберігає контекст на стиках: якщо речення/думка припадає на межу, вона потрапить у обидва сусідні шматки."
+          },
+          {
+            "q": "Що показує косинусна схожість, близька до 1?",
+            "options": [
+              "Що тексти геть різні",
+              "Що вектори (а отже й тексти) дуже схожі за змістом",
+              "Що стався збій",
+              "Що текст занадто довгий"
+            ],
+            "answer": 1,
+            "explain": "Косинусна схожість — число від -1 до 1; ближче до 1 означає, що вектори «дивляться в один бік», тобто тексти близькі за змістом."
+          },
+          {
+            "q": "Навіщо потрібна векторна база даних (pgvector, Qdrant тощо)?",
+            "options": [
+              "Щоб писати промпти",
+              "Щоб зберігати вектори й дуже швидко знаходити найсхожіші, коли шматків багато",
+              "Щоб генерувати ембедінги",
+              "Щоб замінити Claude"
+            ],
+            "answer": 1,
+            "explain": "Перебирати мільйони векторів вручну повільно. Векторна база зберігає їх і блискавично повертає найближчі до запиту."
+          },
+          {
+            "q": "Як правильно перевіряти, що зміни покращили якість RAG?",
+            "options": [
+              "На око, як відчувається",
+              "Зібрати набір питань із відомими правильними відповідями і вимірювати, скільки бот вгадує (evals)",
+              "Питати модель, чи вона стала кращою",
+              "Ніяк, якість не виміряти"
+            ],
+            "answer": 1,
+            "explain": "Якість треба вимірювати на наборі тестових питань (evals), а не відчувати. Це дає об'єктивне порівняння до/після зміни."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Бот відповідає по твоїх даних?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач модуль завершеним — і відкриється Фаза C: будуємо AI-агентів.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+</html>

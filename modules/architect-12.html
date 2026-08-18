@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../architect.config.json">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 12 · Що таке AI-агент — AI Architect</title>
+  <meta name="description" content="Агент проти простого виклику, цикл «думай → дій → спостерігай», коли агент потрібен, повний робочий мінімальний агент, трасування кроків, кілька інструментів і безпека." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#BD5F40",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="a12" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../index.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIA</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Architect</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 12</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../index.html" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">На головну</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>architect.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза C · Агенти й команди агентів</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Що таке AI-агент</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Агенти · 7 уроків · ≈ 90 хв</p>
+        <p class="mt-6 text-lg">
+          Ось ми й дійшли до серця твоєї мети. Досі модель робила один крок: відповіла або один раз
+          викликала інструмент. <strong>Агент</strong> — це коли модель сама проходить багато кроків
+          поспіль, вирішуючи, що робити далі, поки не виконає задачу. У цьому модулі ми розберемо ідею,
+          головний цикл, а потім зберемо <strong>повний робочий агент</strong>, який ти зможеш скопіювати,
+          запустити й покроково простежити. Це фундамент усієї фази, тому йдемо ґрунтовно.
+        </p>
+
+        <hr />
+
+        <!-- УРОК 12.1 -->
+        <section id="l1" data-lesson="12.1 Агент проти виклику" class="scroll-mt-24">
+          <h2><span class="lesson-no">12.1</span>Агент проти простого виклику</h2>
+          <p>
+            У Модулі 10 модель один раз попросила інструмент, отримала результат — і дала відповідь. Це як
+            відповісти на одне питання. <strong>Агент</strong> працює інакше: він отримує <em>мету</em> і
+            самостійно робить стільки кроків, скільки треба, щоб її досягти — викликаючи інструменти,
+            дивлячись на результати й вирішуючи, що робити далі.
+          </p>
+          <p>
+            <strong>Аналогія.</strong> Простий виклик — як спитати колегу «котра година?»: одна відповідь.
+            Агент — як доручити стажеру «підготуй звіт про продажі за тиждень»: він сам зрозуміє, що треба
+            зібрати дані, порахувати, оформити й зберегти — крок за кроком, без твоїх вказівок на кожен рух.
+          </p>
+          <p>Порівняймо прямо:</p>
+          <pre><code>Простий виклик (Модуль 10):
+  ти -> модель -> [один інструмент] -> відповідь.   Один прохід, кінець.
+
+Агент (цей модуль):
+  ти -> модель -> інструмент -> результат ->
+        модель -> інструмент -> результат ->
+        модель -> ... -> фінальна відповідь.        Багато проходів, поки не готово.</code></pre>
+          <div class="callout">
+            <p><strong>Коротко.</strong> Агент = модель + інструменти + <strong>цикл</strong>, у якому вона
+            сама керує послідовністю дій до результату. Усе технічне ти вже знаєш із Модуля 10 — лишилось
+            повторити tool use багато разів. Саме цей цикл і розглянемо.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 12.2 -->
+        <section id="l2" data-lesson="12.2 Цикл агента" class="scroll-mt-24">
+          <h2><span class="lesson-no">12.2</span>Цикл агента: думай → дій → спостерігай</h2>
+          <p>
+            В основі будь-якого агента — простий повторюваний цикл із трьох кроків. Модель <strong>думає</strong>,
+            що зробити; <strong>діє</strong> (викликає інструмент); <strong>спостерігає</strong> результат;
+            і вирішує — задача виконана чи треба ще крок:
+          </p>
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  G["Мета / задача"] --> T["Думай:<br/>що зробити далі?"]
+  T --> A["Дій:<br/>виклик інструмента"]
+  A --> O["Спостерігай:<br/>результат інструмента"]
+  O --> D{"Задача<br/>виконана?"}
+  D -- "Ні" --> T
+  D -- "Так" --> F["Фінальна відповідь"]
+  style F fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">Серце агента: цикл «думай → дій → спостерігай», поки мету не досягнуто</p>
+          </div>
+          <p>
+            Це майже точно цикл tool use з Модуля 10 — лише замість одного проходу він
+            <strong>повторюється</strong>. Модель може викликати один інструмент, побачити результат,
+            викликати інший, ще раз перший — будь-яку послідовність, яку вважатиме за потрібне. А коли
+            вирішить, що задача виконана, просто дасть фінальну відповідь замість запиту інструмента.
+          </p>
+          <div class="callout">
+            <p><strong>Звідки агент «знає», коли зупинитись.</strong> Згадай <code>stop_reason</code>
+            (Модуль 8): поки модель просить інструменти, він дорівнює <code>"tool_use"</code> — цикл триває.
+            Щойно модель відповідає звичайним текстом (інструмент більше не потрібен) — цикл завершується.
+            Це й буде наша умова виходу в коді.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 12.3 -->
+        <section id="l3" data-lesson="12.3 Коли агент потрібен" class="scroll-mt-24">
+          <h2><span class="lesson-no">12.3</span>Коли агент потрібен, а коли — ні</h2>
+          <p>
+            Агенти потужні, але це не «срібна куля». Вони <strong>повільніші</strong> (багато кроків =
+            багато викликів моделі), <strong>дорожчі</strong> (за кожен крок платиш токенами) і
+            <strong>менш передбачувані</strong> (модель сама обирає шлях). Інженер свідомо вирішує, чи
+            справді задача варта агента.
+          </p>
+          <ul>
+            <li><strong>Агент доречний:</strong> задача багатокрокова, кроки наперед невідомі, потрібні
+              рішення «на ходу» — наприклад, «дослідити тему, зібрати дані з кількох джерел і скласти звіт».</li>
+            <li><strong>Агент зайвий:</strong> задача проста й однокрокова. Класифікувати один відгук —
+              достатньо простого виклику (Модуль 9). Відповісти по документах — RAG (Модуль 11).</li>
+          </ul>
+          <pre><code>Питання для себе перед тим, як будувати агента:
+  1. Чи потрібно кілька кроків?        Ні -> простий виклик.
+  2. Чи кроки відомі наперед?          Так -> звичайний код/конвеєр, не агент.
+  3. Чи треба рішення "на ходу"?       Так -> ось тут і потрібен агент.</code></pre>
+          <div class="callout">
+            <p><strong>Правило великого пальця.</strong> Починай із найпростішого, що вирішує задачу:
+            простий виклик → tool use → RAG → і лише якщо потрібна справжня багатокрокова автономність —
+            агент. Зайвий агент додає вартість, повільність і місця для помилок без користі.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 12.4 -->
+        <section id="l4" data-lesson="12.4 Повний мінімальний агент" class="scroll-mt-24">
+          <h2><span class="lesson-no">12.4</span>Будуємо повний мінімальний агент</h2>
+          <p>
+            Тепер — повний робочий файл, який можна <strong>скопіювати й запустити</strong> (нічого не
+            розкидано по інших модулях). Це той самий tool use з Модуля 10, обгорнутий у цикл. Попроси
+            Claude Code: «створи файл <code>simple_agent.py</code> — агент з інструментом погоди й циклом із
+            межею кроків». Ось весь файл:
+          </p>
+          <pre><code>import os
+from anthropic import Anthropic
+from dotenv import load_dotenv
+
+load_dotenv()
+client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+MODEL = "claude-sonnet-5"   # приклад; актуальні моделі — docs.claude.com
+
+# 1) Інструмент — звичайна функція
+def get_weather(city):
+    return f"{city}: +18°C, ясно"   # тут міг би бути реальний виклик API погоди
+
+# 2) Опис інструмента для моделі (анкета з Модуля 10)
+tools = [{
+    "name": "get_weather",
+    "description": "Повертає поточну погоду для вказаного міста",
+    "input_schema": {
+        "type": "object",
+        "properties": {"city": {"type": "string", "description": "Назва міста"}},
+        "required": ["city"],
+    },
+}]
+
+# 3) Карта: ім'я інструмента -> справжня функція
+tool_functions = {"get_weather": get_weather}
+
+# 4) Цикл агента
+def run_agent(task, max_steps=8):
+    messages = [{"role": "user", "content": task}]
+
+    for step in range(max_steps):                # межа кроків — щоб НЕ зациклитись
+        resp = client.messages.create(
+            model=MODEL, max_tokens=1000, tools=tools, messages=messages
+        )
+        messages.append({"role": "assistant", "content": resp.content})
+
+        if resp.stop_reason != "tool_use":       # модель відповіла текстом — готово
+            return resp.content[0].text
+
+        # інакше виконуємо всі запитані інструменти й повертаємо результати
+        results = []
+        for block in resp.content:
+            if block.type == "tool_use":
+                func = tool_functions[block.name]
+                try:
+                    output = func(**block.input)
+                except Exception as e:
+                    output = f"помилка: {e}"      # навіть збій повертаємо моделі
+                results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": str(output),
+                })
+        messages.append({"role": "user", "content": results})
+
+    return "Досягнуто межі кроків"
+
+# 5) Запуск
+print(run_agent("Яка погода в Києві та Львові?"))</code></pre>
+          <div class="callout">
+            <p><strong>Розбір по блоках.</strong> Блоки 1–3 — підготовка (інструмент, його опис, карта
+            імен). Блок 4 — серце: <code>for step in range(max_steps)</code> повторює цикл із запобіжником.
+            На кожному кроці робимо запит із інструментами; якщо <code>stop_reason != "tool_use"</code> —
+            модель завершила, повертаємо текст. Інакше пробігаємо блоки, для кожного <code>tool_use</code>
+            знаходимо функцію за іменем, виконуємо (<code>**block.input</code> — розпакування аргументів,
+            Модуль 10) і повертаємо всі результати одним повідомленням. Потім — наступне коло.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Чому задача про два міста.</strong> Ми спитали погоду <em>в Києві та Львові</em>
+            навмисно: це змусить агента викликати інструмент <strong>не один раз</strong> — і ти на власні
+            очі побачиш, як цикл повторюється. Саме це й відрізняє агента від одиничного виклику.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 12.5 -->
+        <section id="l5" data-lesson="12.5 Крок за кроком" class="scroll-mt-24">
+          <h2><span class="lesson-no">12.5</span>Що відбувається крок за кроком</h2>
+          <p>
+            Запусти <code>python simple_agent.py</code>. Зовні ти побачиш одну фінальну відповідь, але
+            всередині цикл прокрутився кілька разів. Ось що там сталося:
+          </p>
+          <div class="diagram">
+            <pre class="mermaid">
+sequenceDiagram
+  participant K as Твій код (цикл)
+  participant M as Модель
+  K->>M: "Яка погода в Києві та Львові?" + інструменти
+  M-->>K: виклич get_weather(Київ) і get_weather(Львів)
+  K->>K: виконує обидві функції
+  K->>M: tool_result: Київ +18, Львів +18
+  M-->>K: фінальний текст (stop_reason != tool_use)
+  K->>K: цикл завершується, повертаємо текст
+            </pre>
+            <p class="diagram-caption">Один запуск агента — кілька проходів циклу всередині</p>
+          </div>
+          <p>Щоб побачити це <strong>на власні очі</strong>, додай у цикл один рядок-«шпигун»:</p>
+          <pre><code>        for block in resp.content:
+            if block.type == "tool_use":
+                print(f"[крок {step+1}] виклик: {block.name}({block.input})")  # &lt;-- додай
+                func = tool_functions[block.name]
+                ...</code></pre>
+          <div class="callout">
+            <p><strong>Що ти маєш побачити</strong> у терміналі (приблизно):</p>
+            <p><code>[крок 1] виклик: get_weather({'city': 'Київ'})</code><br/>
+            <code>[крок 1] виклик: get_weather({'city': 'Львів'})</code><br/>
+            <code>У Києві та Львові зараз +18°C, ясно.</code></p>
+            <p>Бачиш? Модель попросила інструмент <em>двічі</em> (по разу на місто), отримала результати — і
+            аж тоді дала фінальну відповідь. Це і є «думай → дій → спостерігай» у дії.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Чому це важливо.</strong> Цей друк («шпигун») — твоє вікно у «голову» агента. Коли
+            щось піде не так, саме він покаже, який інструмент і з якими аргументами викликала модель і де
+            саме збій. Ми активно користуватимемось ним у наступному модулі.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 12.6 -->
+        <section id="l6" data-lesson="12.6 Кілька інструментів" class="scroll-mt-24">
+          <h2><span class="lesson-no">12.6</span>Даємо агенту кілька інструментів</h2>
+          <p>
+            Справжня сила агента — коли в нього кілька інструментів і він сам обирає потрібний під кожен
+            крок. Додамо до погоди ще один — поточний час. Зміни в нашому файлі мінімальні: додаємо функцію,
+            її опис і запис у карту.
+          </p>
+          <pre><code># нова функція-інструмент
+def get_time(city):
+    return f"У місті {city} зараз 14:30"   # приклад; реально — через бібліотеку часу
+
+# додаємо опис у список tools
+tools.append({
+    "name": "get_time",
+    "description": "Повертає поточний час у вказаному місті",
+    "input_schema": {
+        "type": "object",
+        "properties": {"city": {"type": "string", "description": "Назва міста"}},
+        "required": ["city"],
+    },
+})
+
+# додаємо у карту імен
+tool_functions["get_time"] = get_time
+
+# тепер агент сам обере інструмент під запитання:
+print(run_agent("Яка погода в Києві і котра там година?"))</code></pre>
+          <div class="callout">
+            <p><strong>Що ти маєш побачити.</strong> Агент викличе <code>get_weather</code> (для погоди)
+            <em>і</em> <code>get_time</code> (для часу), а тоді поєднає обидва в одну відповідь. Зверни увагу:
+            ми <strong>не вказували</strong>, який інструмент коли брати — модель вирішила це сама,
+            прочитавши описи (<code>description</code>). Тому описи мають бути зрозумілі.</p>
+          </div>
+          <p>
+            Помічаєш патерн? Щоб розширити можливості агента, ти додаєш три речі: функцію, її опис і запис у
+            карту. Сам цикл <code>run_agent</code> не змінюється взагалі. Це масштабований підхід — у
+            наступному модулі ми дамо агенту три інструменти під реальну задачу.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 12.7 -->
+        <section id="l7" data-lesson="12.7 Безпека й межі" class="scroll-mt-24">
+          <h2><span class="lesson-no">12.7</span>Безпека й межі агента</h2>
+          <p>
+            Агент діє сам — а отже, потрібні запобіжники. Це не формальність: агент із доступом до реальних
+            дій (видалити файл, надіслати лист, витратити гроші) може наробити шкоди, якщо помилиться чи
+            зациклиться.
+          </p>
+          <ul>
+            <li><strong>Межа кроків.</strong> Завжди обмежуй кількість ітерацій (<code>max_steps</code> у
+              нашому коді) — щоб агент не крутився вічно, спалюючи токени.</li>
+            <li><strong>Підтвердження ризикованих дій.</strong> Небезпечні інструменти (видалення, оплата,
+              надсилання) варто виконувати лише після твого «так» — як це робить сам Claude Code (Модуль 3).</li>
+            <li><strong>Обмежені права.</strong> Давай агенту лише ті інструменти, що реально потрібні. Менше
+              можливостей — менше способів помилитись.</li>
+            <li><strong>Обробка збоїв.</strong> Помітив <code>try/except</code> навколо виклику функції в
+              нашому коді? Він гарантує: навіть якщо інструмент впаде, агент отримає повідомлення про помилку
+              й зможе відреагувати, а не зламається весь процес.</li>
+            <li><strong>Контроль вартості.</strong> Цикл = багато викликів. Пам'ятай про токени (Модуль 8) і
+              ліміт витрат у консолі (Модуль 2).</li>
+          </ul>
+          <div class="callout">
+            <p><strong>Підсумок модуля.</strong> Агент — це модель + інструменти + цикл «думай → дій →
+            спостерігай», що повторюється до результату. Ти зрозумів, коли агент доречний, зібрав
+            <em>повний робочий</em> мінімальний агент, простежив його роботу крок за кроком, додав другий
+            інструмент і знаєш запобіжники. Наступний модуль — велика практика: збудуємо реального агента під
+            бізнес-задачу з трьома інструментами, від плану до запуску й покращень.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>Сім питань без дедлайнів. Обирай відповідь — і одразу бачиш пояснення.</p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Чим AI-агент відрізняється від простого виклику моделі?",
+            "options": [
+              "Нічим, це синоніми",
+              "Агент отримує мету й сам робить багато кроків поспіль (викликаючи інструменти), поки не виконає її",
+              "Агент дешевший за простий виклик",
+              "Агент не використовує модель"
+            ],
+            "answer": 1,
+            "explain": "Агент = модель + інструменти + цикл: він сам керує послідовністю дій до результату, а не дає одну відповідь."
+          },
+          {
+            "q": "Який цикл лежить в основі агента?",
+            "options": [
+              "Завантажити → видалити → перезапустити",
+              "Думай → дій → спостерігай (і повторюй, поки мету не досягнуто)",
+              "Купити → продати → повторити",
+              "Стиснути → зашифрувати → надіслати"
+            ],
+            "answer": 1,
+            "explain": "Агент думає (що робити), діє (викликає інструмент), спостерігає (результат) і вирішує, чи треба ще крок — поки задача не виконана."
+          },
+          {
+            "q": "Як агент «розуміє», що пора зупинитись?",
+            "options": [
+              "За таймером",
+              "Коли модель відповідає звичайним текстом замість запиту інструмента (stop_reason більше не \"tool_use\")",
+              "Ніколи не зупиняється",
+              "Коли закінчиться інтернет"
+            ],
+            "answer": 1,
+            "explain": "Поки модель просить інструменти, stop_reason == \"tool_use\" і цикл триває. Щойно вона дає текстову відповідь — задача завершена."
+          },
+          {
+            "q": "Навіщо в агентному циклі межа кроків (max_steps)?",
+            "options": [
+              "Для краси коду",
+              "Щоб агент не крутився вічно, спалюючи токени й гроші",
+              "Щоб пришвидшити інтернет",
+              "Це не потрібно"
+            ],
+            "answer": 1,
+            "explain": "Межа кроків — обов'язковий запобіжник: вона зупиняє агента, якщо він зациклився або не може завершити задачу."
+          },
+          {
+            "q": "Що потрібно додати, щоб дати агенту новий інструмент?",
+            "options": [
+              "Переписати весь цикл run_agent",
+              "Лише три речі: функцію, її опис у tools і запис у карту tool_functions",
+              "Новий ключ доступу",
+              "Інший комп'ютер"
+            ],
+            "answer": 1,
+            "explain": "Сам цикл не змінюється. Розширення можливостей = функція + опис + запис у карту імен. Це масштабований підхід."
+          },
+          {
+            "q": "Навіщо друкувати кожен виклик інструмента (рядок-«шпигун») у циклі?",
+            "options": [
+              "Для краси",
+              "Щоб бачити «думку» агента: який інструмент і з якими аргументами він викликає, і де збій",
+              "Щоб пришвидшити модель",
+              "Це обов'язкове поле API"
+            ],
+            "answer": 1,
+            "explain": "Друк кроків — вікно у роботу агента. Він показує послідовність дій і допомагає налагоджувати, коли щось іде не так."
+          },
+          {
+            "q": "Який запобіжник доречний для небезпечних дій агента (видалення, оплата)?",
+            "options": [
+              "Виконувати їх автоматично без перевірки",
+              "Виконувати лише після підтвердження людиною",
+              "Завжди забороняти будь-які інструменти",
+              "Підвищити temperature"
+            ],
+            "answer": 1,
+            "explain": "Ризиковані дії варто робити лише з підтвердженням людини — так само, як Claude Code питає дозволу перед змінами."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Зрозумів, що таке агент?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач модуль завершеним — і відкриється Модуль 13: збудуємо реального агента під задачу.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+</html>

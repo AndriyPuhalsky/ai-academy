@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../architect.config.json">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 5 · Git і GitHub за руку — AI Architect</title>
+  <meta name="description" content="Навіщо версіонування, як встановити Git, зробити перший репозиторій і запушити проєкт на GitHub — крок за кроком, із поясненнями." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#BD5F40",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="a05" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../index.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIA</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Architect</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 05</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../index.html" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">На головну</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>architect.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза A · Розуміти, що під ногами</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Git і GitHub за руку</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Основи · 4 уроки · ≈ 45 хв</p>
+        <p class="mt-6 text-lg">
+          Перш ніж будувати складніше, навчимося <strong>зберігати</strong> роботу так, щоб її не втратити
+          й показати світу. Це Git і GitHub — щоденний інструмент кожного інженера і, що важливо для тебе,
+          основа портфоліо, на яке дивляться роботодавці й клієнти. Зробимо все на твоєму проєкті
+          <code>ai-start</code>, крок за кроком.
+        </p>
+
+        <hr />
+
+        <!-- УРОК 5.1 -->
+        <section id="l1" data-lesson="5.1 Навіщо Git" class="scroll-mt-24">
+          <h2><span class="lesson-no">5.1</span>Навіщо потрібен Git</h2>
+          <p>
+            <strong>Git</strong> — це система контролю версій: вона запам'ятовує історію змін твого проєкту.
+          </p>
+          <p>
+            <strong>Аналогія.</strong> Це як «збереження» у відеогрі. Зробив крок — зберігся. Щось пішло не
+            так — повернувся до останнього вдалого збереження. Git дозволяє в будь-який момент побачити, що
+            і коли ти змінював, і відкотитися назад, нічого не втративши.
+          </p>
+          <p>А <strong>GitHub</strong> — це сайт, де твої проєкти зберігаються в хмарі та стають видимими іншим. Для тебе це важливо одразу з трьох причин:</p>
+          <ul>
+            <li><strong>Бекап:</strong> навіть якщо з комп'ютером щось станеться, проєкт у безпеці в хмарі.</li>
+            <li><strong>Портфоліо:</strong> роботодавець чи клієнт майже завжди дивиться твій GitHub — що
+              ти будував і як часто працюєш.</li>
+            <li><strong>Співпраця й деплой:</strong> згодом саме з GitHub ми викладатимемо проєкти в інтернет.</li>
+          </ul>
+          <div class="callout">
+            <p><strong>Запам'ятай різницю.</strong> Git — це інструмент на твоєму комп'ютері (веде історію
+            локально). GitHub — це онлайн-сервіс, куди ти цю історію «відправляєш». Git може жити й без
+            GitHub, але разом вони — стандарт індустрії.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 5.2 -->
+        <section id="l2" data-lesson="5.2 Встановлюємо Git" class="scroll-mt-24">
+          <h2><span class="lesson-no">5.2</span>Встановлюємо й налаштовуємо Git</h2>
+          <p>Спершу перевір, чи Git уже встановлений (часто він є). У терміналі:</p>
+          <pre><code>git --version</code></pre>
+          <p>Якщо побачив номер версії — Git уже є, переходь до налаштування нижче. Якщо «не знайдено» — встанови:</p>
+          <p><strong>Windows:</strong> завантаж інсталятор із <a href="https://git-scm.com" target="_blank" rel="noopener">git-scm.com</a> і пройди «Далі» до кінця (стандартні налаштування підходять).</p>
+          <p><strong>macOS:</strong> у терміналі впиши <code>xcode-select --install</code> і підтвердь (або встанови з <code>git-scm.com</code>).</p>
+          <p><strong>Linux (Debian/Ubuntu):</strong></p>
+          <pre><code>sudo apt update
+sudo apt install -y git</code></pre>
+          <p>
+            <strong>Одноразове налаштування.</strong> Git хоче знати, хто робить зміни (це підписує твою
+            історію). Впиши свої ім'я та пошту (ту саму, якою реєструватимешся на GitHub):
+          </p>
+          <pre><code>git config --global user.name "Твоє Імʼя"
+git config --global user.email "твоя@пошта.com"</code></pre>
+          <div class="callout">
+            <p><strong>Що ти маєш побачити.</strong> Команди <code>config</code> нічого не виводять — це
+            нормально, вони просто тихо зберігають налаштування. Перевірити можна так:
+            <code>git config --global user.name</code> — у відповідь з'явиться введене ім'я.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 5.3 -->
+        <section id="l3" data-lesson="5.3 Перший репозиторій" class="scroll-mt-24">
+          <h2><span class="lesson-no">5.3</span>Перший репозиторій локально</h2>
+          <p>
+            <strong>Репозиторій</strong> (скорочено «репо») — це папка проєкту, за якою Git стежить.
+            Перетворимо нашу <code>ai-start</code> на репозиторій. Зайди в папку й виконай три команди:
+          </p>
+          <pre><code>cd Desktop/ai-start
+
+git init                       # почати стежити за проєктом
+git add .                      # підготувати ВСІ файли до збереження (крапка = всі)
+git commit -m "Перша сторінка" # зберегти «знімок» проєкту з підписом</code></pre>
+          <p>Що відбувається — три прості кроки, які стануть звичкою:</p>
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart LR
+  W["Твої файли<br/>(папка проєкту)"] -->|"git add"| S["Підготовлено<br/>(staging)"]
+  S -->|"git commit"| L["Збережено локально<br/>(знімок в історії)"]
+  L -->|"git push"| G[("GitHub<br/>(хмара)")]
+  style G fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">Шлях зміни: файли → підготувати (add) → зберегти (commit) → відправити в хмару (push)</p>
+          </div>
+          <div class="callout">
+            <p><strong>Розбір команд.</strong> <code>git init</code> створює приховану службову папку, де
+            Git зберігатиме історію (робиться раз на проєкт). <code>git add .</code> — позначає, які зміни
+            ввійдуть у наступний знімок (крапка означає «усі файли»). <code>git commit -m "..."</code> —
+            робить сам знімок із коротким описом, <em>що</em> змінилося. Кожен commit — це точка в історії,
+            до якої можна повернутися.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Що ти маєш побачити.</strong> Після <code>commit</code> Git напише щось на кшталт
+            «1 file changed» і покаже короткий код знімка. Якщо попросить спершу налаштувати ім'я/пошту —
+            повернись до уроку 5.2 і зроби <code>git config</code>.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 5.4 -->
+        <section id="l4" data-lesson="5.4 GitHub і перший push" class="scroll-mt-24">
+          <h2><span class="lesson-no">5.4</span>GitHub і перший push</h2>
+          <p>Тепер відправимо проєкт у хмару, щоб він став частиною портфоліо.</p>
+          <ol>
+            <li>Зареєструйся на <a href="https://github.com" target="_blank" rel="noopener">github.com</a>
+              (пошту бери ту саму, що в <code>git config</code>).</li>
+            <li>Натисни «New» (новий репозиторій), дай назву (наприклад, <code>ai-start</code>), <strong>не
+              додавай</strong> жодних файлів-галочок (README тощо) — лиши порожнім, щоб не було конфлікту.
+              Натисни «Create repository».</li>
+            <li>GitHub покаже адресу репозиторію виду <code>https://github.com/твій-нік/ai-start.git</code>.
+              Скопіюй її.</li>
+          </ol>
+          <p>Повертаємось у термінал (у папці <code>ai-start</code>) і під'єднуємо хмару:</p>
+          <pre><code>git remote add origin https://github.com/твій-нік/ai-start.git
+git branch -M main
+git push -u origin main</code></pre>
+          <div class="callout">
+            <p><strong>Розбір команд.</strong> <code>git remote add origin ...</code> — каже Git, куди в
+            хмарі відправляти (даємо цьому «пункту призначення» звичне ім'я <code>origin</code>).
+            <code>git branch -M main</code> — називає основну гілку <code>main</code> (стандарт).
+            <code>git push -u origin main</code> — відправляє твої збережені знімки на GitHub. Прапорець
+            <code>-u</code> запам'ятовує зв'язок, щоб надалі вистачало просто <code>git push</code>.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Про вхід під час push.</strong> GitHub попросить підтвердити, що це ти. Сучасний
+            GitHub не приймає звичайний пароль — він запропонує увійти через браузер або через спеціальний
+            токен. Просто йди за підказками, які він покаже; якщо щось незрозуміло — відкрий інструкцію з
+            автентифікації в довідці GitHub, вона веде за руку.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Лайфхак у дусі курсу.</strong> Усі ці git-команди можна доручити Claude Code: запусти
+            <code>claude</code> в папці й попроси «ініціалізуй git-репозиторій і допоможи запушити цей
+            проєкт на GitHub, пояснюючи кожен крок». Він проведе тебе процесом. Але корисно хоч раз зробити
+            вручну — щоб розуміти, що відбувається.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Що ти маєш побачити.</strong> Онови сторінку свого репозиторію на
+            <code>github.com</code> — там з'явиться файл <code>index.html</code>. Вітаю: твій перший проєкт
+            у хмарі й у портфоліо. <strong>Підсумок:</strong> ти вмієш зберігати історію (commit) і
+            публікувати її (push). Далі — Модуль 6: трохи Python, щоб упевнено читати й правити те, що пише
+            Claude Code.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>П'ять питань, щоб закріпити кроки. Обирай відповідь — і одразу бачиш пояснення.</p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Що таке Git?",
+            "options": [
+              "Сайт для зберігання фото",
+              "Система контролю версій — зберігає історію змін проєкту (як «збереження» у грі)",
+              "Мова програмування",
+              "Антивірус"
+            ],
+            "answer": 1,
+            "explain": "Git веде історію змін локально, дозволяючи бачити, що і коли змінилось, і відкочуватися назад."
+          },
+          {
+            "q": "Чим GitHub відрізняється від Git?",
+            "options": [
+              "Це повні синоніми",
+              "Git — інструмент на твоєму комп'ютері; GitHub — онлайн-сервіс, куди ти відправляєш історію",
+              "GitHub працює без інтернету, Git — ні",
+              "Git лише для сайтів"
+            ],
+            "answer": 1,
+            "explain": "Git веде історію локально, GitHub зберігає її в хмарі й робить видимою іншим. Разом — стандарт індустрії."
+          },
+          {
+            "q": "Що робить команда git commit -m \"...\"?",
+            "options": [
+              "Видаляє проєкт",
+              "Зберігає «знімок» проєкту з коротким описом змін",
+              "Відкриває браузер",
+              "Встановлює Node.js"
+            ],
+            "answer": 1,
+            "explain": "commit робить точку в історії — знімок поточного стану з підписом, що саме змінилось. До неї потім можна повернутися."
+          },
+          {
+            "q": "Що робить git push?",
+            "options": [
+              "Створює новий файл",
+              "Відправляє твої збережені знімки (commits) у хмару на GitHub",
+              "Видаляє історію",
+              "Перейменовує папку"
+            ],
+            "answer": 1,
+            "explain": "push завантажує локальну історію на GitHub. Після цього проєкт видно в хмарі й у твоєму портфоліо."
+          },
+          {
+            "q": "Чому при push GitHub не приймає звичайний пароль?",
+            "options": [
+              "Це помилка, треба перевстановити Git",
+              "Сучасний GitHub використовує вхід через браузер або токен — це безпечніше; треба йти за підказками",
+              "Бо інтернет повільний",
+              "Бо файл завеликий"
+            ],
+            "answer": 1,
+            "explain": "GitHub відмовився від паролів на користь токенів/входу через браузер. Під час push просто слідуй його підказкам з автентифікації."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Проєкт у хмарі?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач модуль завершеним — і відкриється Модуль 6: трохи Python, щоб читати й правити код.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+</html>

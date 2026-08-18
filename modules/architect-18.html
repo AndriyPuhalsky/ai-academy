@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../architect.config.json">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 18 · LLMOps, вартість, моніторинг — AI Architect</title>
+  <meta name="description" content="Тримаємо живий AI-продукт під контролем: облік токенів і вартості, логування, повтори при збоях, версіонування промптів, оптимізація витрат і моніторинг." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#BD5F40",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="a18" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../index.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIA</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Architect</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 18</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../index.html" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">На головну</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>architect.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза D · Продакшн</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">LLMOps, вартість, моніторинг</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Продакшн · 7 уроків · ≈ 85 хв</p>
+        <p class="mt-6 text-lg">
+          Задеплоїти продукт — лише півсправи. Тепер ним треба <strong>керувати</strong>: знати, скільки він
+          коштує, бачити, що в ньому відбувається, переживати збої й не втрачати якість. Цей набір практик
+          називають <strong>LLMOps</strong> (експлуатація систем на мовних моделях). Розберемо кожну з
+          повними прикладами коду.
+        </p>
+
+        <hr />
+
+        <!-- УРОК 18.1 -->
+        <section id="l1" data-lesson="18.1 Що таке LLMOps" class="scroll-mt-24">
+          <h2><span class="lesson-no">18.1</span>Що таке LLMOps і навіщо воно</h2>
+          <p>
+            <strong>LLMOps</strong> — це експлуатація живих продуктів на мовних моделях: облік витрат,
+            логування, надійність, моніторинг якості й керування промптами. Простими словами — усе, що
+            тримає твій продукт здоровим у бойових умовах.
+          </p>
+          <p>
+            <strong>Аналогія.</strong> Відкрити ресторан (деплой, Модуль 17) — одне. А ось щодня ним
+            керувати — рахувати витрати на продукти, реагувати на скарги, тримати стабільну якість страв —
+            зовсім інше. Без цього навіть гарний ресторан швидко прогорить. LLMOps — це і є щоденне
+            «керування рестораном» для твого AI-продукту.
+          </p>
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart LR
+  D["Живий продукт"] --> MON["Моніторинг:<br/>вартість, логи, помилки"]
+  MON --> IMP["Висновки:<br/>оптимізувати, виправити"]
+  IMP --> UP["Оновити (git push)"]
+  UP --> D
+  style D fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">LLMOps — це постійний цикл: спостерігай → роби висновки → оновлюй</p>
+          </div>
+          <div class="callout">
+            <p><strong>Чому це окрема навичка.</strong> Модель — недетермінована (відповіді різняться),
+            платна (за токени) і залежна від зовнішнього сервісу (бувають збої). Тому до звичайного коду
+            додаються нові турботи: контроль грошей, видимість поведінки й стійкість. Освоїш їх — і твої
+            продукти будуть не лише «працюють у демо», а й надійні в проді.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 18.2 -->
+        <section id="l2" data-lesson="18.2 Облік вартості" class="scroll-mt-24">
+          <h2><span class="lesson-no">18.2</span>Облік токенів і вартості</h2>
+          <p>
+            Перше правило проду: <strong>знай, скільки витрачаєш</strong>. Кожна відповідь несе в собі
+            лічильник токенів (<code>usage</code>, Модуль 8). Зробимо помічника, що рахує орієнтовну
+            вартість кожного виклику:
+          </p>
+          <pre><code># Ціни УМОВНІ — звіряй актуальні на docs.claude.com
+PRICE_IN = 3.0    # $ за мільйон вхідних токенів
+PRICE_OUT = 15.0  # $ за мільйон вихідних токенів
+
+def estimate_cost(usage):
+    return (usage.input_tokens  / 1_000_000) * PRICE_IN \
+         + (usage.output_tokens / 1_000_000) * PRICE_OUT
+
+resp = client.messages.create(
+    model=MODEL, max_tokens=500,
+    messages=[{"role": "user", "content": "Привіт!"}],
+)
+cost = estimate_cost(resp.usage)
+print(f"токени: {resp.usage.input_tokens} + {resp.usage.output_tokens}, ~${cost:.5f}")</code></pre>
+          <div class="callout">
+            <p><strong>Розбір.</strong> <code>estimate_cost</code> бере вхідні й вихідні токени з
+            <code>usage</code> і множить на ціну за мільйон (Модуль 8). Зворотний слеш <code>\</code> в кінці
+            рядка — це перенесення довгого виразу на наступний рядок (для читабельності).
+            <code>:.5f</code> у f-рядку — формат «5 знаків після коми». Тепер ти бачиш ціну <em>кожного</em>
+            запиту.</p>
+          </div>
+          <p>Щоб контролювати загальні витрати — накопичуй суму (а в проді ще й пиши у файл/лог):</p>
+          <pre><code>total_cost = 0.0    # глобальний лічильник
+
+def track(resp):
+    global total_cost
+    total_cost += estimate_cost(resp.usage)
+    print(f"всього витрачено за сесію: ~${total_cost:.4f}")</code></pre>
+          <div class="callout">
+            <p><strong>Підказка з безпеки бюджету.</strong> Поєднай це з лімітом витрат у консолі Anthropic
+            (Модуль 2) — він страхує на рівні акаунта. А власний лічильник дає тобі точну картину: який
+            ендпоінт чи функція «з'їдає» найбільше, і де є сенс оптимізувати (урок 18.6).</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 18.3 -->
+        <section id="l3" data-lesson="18.3 Логування" class="scroll-mt-24">
+          <h2><span class="lesson-no">18.3</span>Логування: бачимо, що відбувається</h2>
+          <p>
+            Локально ти бачив усе через <code>print</code> у терміналі. Але задеплоєний продукт працює без
+            тебе — ти не дивишся в його екран цілодобово. Тому потрібні <strong>логи</strong>: запис того,
+            що відбувається, який зберігається й який можна переглянути згодом.
+          </p>
+          <p>У Python для цього є вбудований модуль <code>logging</code> — кращий за <code>print</code> для проду:</p>
+          <pre><code>import logging
+
+logging.basicConfig(
+    filename="app.log",                 # писати в файл (а не лише на екран)
+    level=logging.INFO,                  # рівень: INFO і вище
+    format="%(asctime)s %(levelname)s %(message)s",   # час + рівень + текст
+)
+
+# далі по коду:
+logging.info("Запит: %s", question)                  # звичайна подія
+logging.warning("Повільна відповідь: %.1f c", delay) # попередження
+logging.error("Помилка виклику: %s", error)          # помилка</code></pre>
+          <div class="callout">
+            <p><strong>Чому logging кращий за print.</strong> Він додає <em>час</em> до кожного запису
+            (видно, коли що сталося), має <em>рівні</em> (INFO/WARNING/ERROR — легко відфільтрувати важливе),
+            і пише у <em>файл</em>, що зберігається. У проді саме за логами ти зрозумієш, що пішло не так,
+            коли користувач поскаржиться. <code>%s</code> — це місце, куди підставиться значення (тут
+            <code>question</code>).</p>
+          </div>
+          <div class="callout">
+            <p><strong>Обережно з приватністю.</strong> Не логуй секрети (ключі!) і будь обачним із
+            персональними даними користувачів. Логуй те, що потрібно для діагностики, а чутливе — приховуй
+            або не пиши взагалі (детальніше про PII — Модуль 19).</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 18.4 -->
+        <section id="l4" data-lesson="18.4 Надійність: повтори" class="scroll-mt-24">
+          <h2><span class="lesson-no">18.4</span>Надійність: повтори, backoff і таймаути</h2>
+          <p>
+            Зовнішній сервіс іноді відповідає помилкою: <strong>429</strong> (забагато запитів) чи
+            <strong>5xx</strong> (тимчасовий збій). Надійний продукт не падає від цього, а
+            <strong>чекає й повторює</strong> з паузою, що зростає (експоненційний backoff, Модуль 8):
+          </p>
+          <pre><code>import time, logging
+
+def call_with_retry(messages, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            return client.messages.create(
+                model=MODEL, max_tokens=500, messages=messages
+            )
+        except Exception as e:
+            wait = 2 ** attempt    # 1, потім 2, потім 4 секунди (** = степінь)
+            logging.warning("Спроба %d не вдалась: %s; чекаю %ds", attempt + 1, e, wait)
+            time.sleep(wait)       # пауза перед повтором
+    raise RuntimeError("Не вдалося отримати відповідь після кількох спроб")</code></pre>
+          <div class="callout">
+            <p><strong>Розбір.</strong> Цикл <code>for attempt in range(max_retries)</code> дає кілька
+            спроб. <code>2 ** attempt</code> — пауза 1, 2, 4 секунди (зростає, щоб не «довбати»
+            перевантажений сервіс). <code>time.sleep(wait)</code> чекає перед наступною спробою. Якщо всі
+            спроби провалились — кидаємо помилку через <code>raise</code> (Модуль 6). Кожну невдачу пишемо в
+            лог (урок 18.3), щоб бачити проблеми.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Корисно знати.</strong> Офіційний SDK уже вміє робити повтори автоматично — але
+            власний обгортач дає тобі контроль (скільки спроб, логування, запасний варіант). Також варто
+            задавати <strong>таймаут</strong> — максимальний час очікування відповіді, щоб запит не «висів»
+            вічно (це налаштовується при створенні клієнта; дивись докси SDK).</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 18.5 -->
+        <section id="l5" data-lesson="18.5 Версіонування промптів" class="scroll-mt-24">
+          <h2><span class="lesson-no">18.5</span>Версіонування промптів</h2>
+          <p>
+            Промпт — це теж код, від якого залежить поведінка продукту. Якщо тримати його «десь у рядку» й
+            міняти наосліп, одного дня зміна погіршить якість — і ти не зможеш швидко повернути як було. Тому
+            промпти <strong>версіонують</strong>: зберігають в одному місці з номерами версій.
+          </p>
+          <pre><code>PROMPTS = {
+    "support_v1": "Ти асистент підтримки. Відповідай на питання клієнтів.",
+    "support_v2": ("Ти асистент підтримки. Відповідай коротко, чемно й "
+                   "українською. Якщо не знаєш — чесно скажи про це."),
+}
+ACTIVE_PROMPT = "support_v2"     # яку версію використовуємо зараз
+
+system = PROMPTS[ACTIVE_PROMPT]
+# ... передаємо system у виклик моделі ...
+logging.info("Використано промпт: %s", ACTIVE_PROMPT)   # фіксуємо версію в лозі</code></pre>
+          <div class="callout">
+            <p><strong>Що це дає.</strong> Зміна промпта стає <em>свідомою й оборотною</em>: погіршив якість
+            у <code>v3</code> — миттєво повертаєшся на <code>v2</code>, змінивши один рядок. А запис версії в
+            лог дозволяє зрозуміти, який саме промпт дав ту чи іншу відповідь. Це той самий принцип
+            «збережень», що й Git (Модуль 5), але для поведінки моделі.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Як перевіряти, що нова версія краща.</strong> Не «на око», а на наборі тестових
+            прикладів — це оцінювання (evals), яким присвячено наступний модуль. Спочатку прогнав
+            <code>v3</code> на тестах, переконався, що краще — і лише тоді зробив активною.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 18.6 -->
+        <section id="l6" data-lesson="18.6 Оптимізація вартості" class="scroll-mt-24">
+          <h2><span class="lesson-no">18.6</span>Оптимізація вартості</h2>
+          <p>Коли продукт працює, з'являється сенс економити. Чотири головні важелі:</p>
+          <ul>
+            <li><strong>Кешуй повтори.</strong> Якщо одне й те саме питання приходить часто — не плати за
+              нього щоразу, віддавай збережену відповідь:</li>
+          </ul>
+          <pre><code>cache = {}    # простий кеш: питання -> відповідь
+
+def ask_cached(question):
+    if question in cache:           # вже відповідали — беремо з кешу безкоштовно
+        return cache[question]
+    answer = ask_model(question)    # інакше — питаємо модель
+    cache[question] = answer         # і запам'ятовуємо
+    return answer</code></pre>
+          <ul>
+            <li><strong>Бери дешевшу модель для простого.</strong> Для класифікації чи коротких відповідей
+              підійде швидша й дешевша модель, а потужну лиши для складних задач (назви моделей — на
+              docs.claude.com).</li>
+            <li><strong>Підрізай контекст.</strong> Довга історія діалогу = багато токенів щоразу (Модуль 8).
+              Обмежуй її або стискай у короткий підсумок.</li>
+            <li><strong>Тримай <code>max_tokens</code> розумним.</strong> Не проси 4000 токенів, якщо
+              відповідь — два речення.</li>
+          </ul>
+          <div class="callout">
+            <p><strong>Як вирішувати.</strong> Спершу <em>виміряй</em> (урок 18.2), де витрати найбільші,
+            і оптимізуй саме там. Передчасна оптимізація навмання — марнування часу. На масштабі тисяч
+            запитів ці чотири важелі вирішують, прибутковий продукт чи збитковий.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 18.7 -->
+        <section id="l7" data-lesson="18.7 Моніторинг і алерти" class="scroll-mt-24">
+          <h2><span class="lesson-no">18.7</span>Моніторинг і алерти</h2>
+          <p>
+            Моніторинг — це постійне відстеження «здоров'я» продукту, щоб помітити проблему <em>раніше</em>,
+            ніж про неї скажуть користувачі. Що варто тримати на оці:
+          </p>
+          <ul>
+            <li><strong>Вартість за день</strong> — щоб витрати не вийшли з-під контролю (урок 18.2).</li>
+            <li><strong>Частота помилок</strong> — скільки запитів падає; різкий стрибок = щось зламалось.</li>
+            <li><strong>Затримка (latency)</strong> — як швидко відповідає; зросла = проблема.</li>
+            <li><strong>Обсяг запитів</strong> — скільки людей користується; допомагає планувати витрати.</li>
+          </ul>
+          <pre><code>Звідки це брати:
+  - логи (урок 18.3) — твоє головне джерело правди про події;
+  - панель хостингу (Модуль 17) — там видно логи й базові метрики живого сервісу;
+  - консоль Anthropic — використання й витрати на рівні акаунта.</code></pre>
+          <div class="callout">
+            <p><strong>Алерти — щоб не дивитись постійно.</strong> Сенс не в тому, щоб цілодобово вдивлятися
+            в графіки, а щоб система <em>сама</em> повідомила про проблему: ліміт витрат у консолі (Модуль 2)
+            як «стоп-кран» на гроші, сповіщення платформи про падіння сервісу. Налаштуй ключові алерти один
+            раз — і спи спокійно.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Підсумок модуля.</strong> Ти вмієш рахувати вартість кожного виклику, логувати події
+            у проді, переживати збої через повтори з backoff, версіонувати промпти з можливістю відкату,
+            оптимізувати витрати (кеш, дешевша модель, підрізання контексту) і знаєш, що моніторити та як
+            налаштувати алерти. Твій продукт тепер не лише живий, а й <em>керований</em>. Наступний модуль —
+            якість і безпека: як виміряти, що продукт працює добре, і захистити його.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>Сім питань без дедлайнів. Обирай відповідь — і одразу бачиш пояснення.</p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Що таке LLMOps?",
+            "options": [
+              "Назва моделі",
+              "Експлуатація живих продуктів на мовних моделях: вартість, логи, надійність, моніторинг, керування промптами",
+              "Мова програмування",
+              "Тип бази даних"
+            ],
+            "answer": 1,
+            "explain": "LLMOps — це «щоденне керування рестораном» для AI-продукту: усе, що тримає його здоровим і під контролем у проді."
+          },
+          {
+            "q": "Звідки брати дані про вартість кожного виклику?",
+            "options": [
+              "Вгадувати",
+              "З поля usage у відповіді (input_tokens, output_tokens) і ціни за токени",
+              "З назви файлу",
+              "Вартість завжди фіксована"
+            ],
+            "answer": 1,
+            "explain": "usage містить кількість токенів; помноживши на ціну за мільйон (Модуль 8), отримуєш орієнтовну вартість запиту."
+          },
+          {
+            "q": "Чому в проді логування (logging) краще за print?",
+            "options": [
+              "Воно швидше працює",
+              "Додає час і рівні до записів і пише у файл, який можна переглянути згодом — бо ти не дивишся в екран 24/7",
+              "print не існує в Python",
+              "Різниці немає"
+            ],
+            "answer": 1,
+            "explain": "Логи зберігаються з часом і рівнями (INFO/WARNING/ERROR). Саме за ними діагностують проблеми в задеплоєному продукті."
+          },
+          {
+            "q": "Як надійний код реагує на тимчасові помилки (429, 5xx)?",
+            "options": [
+              "Аварійно завершується",
+              "Чекає й повторює спробу з паузою, що зростає (експоненційний backoff)",
+              "Ігнорує й повертає порожнечу",
+              "Видаляє ключ"
+            ],
+            "answer": 1,
+            "explain": "Повтор із зростаючою паузою (1, 2, 4 с) дає сервісу «віддихатись» і підвищує шанс успіху, не валячи продукт."
+          },
+          {
+            "q": "Навіщо версіонувати промпти?",
+            "options": [
+              "Для краси",
+              "Щоб зміни були свідомими й оборотними — можна миттєво відкотитись на попередню версію, якщо якість впала",
+              "Щоб пришвидшити модель",
+              "Це непотрібно"
+            ],
+            "answer": 1,
+            "explain": "Промпт впливає на поведінку. Версії дозволяють відкочуватись і знати (через лог), який промпт дав яку відповідь."
+          },
+          {
+            "q": "Який простий спосіб не платити за однакові повторювані запити?",
+            "options": [
+              "Підняти max_tokens",
+              "Кешувати: зберігати відповідь і віддавати її при повторі того самого питання",
+              "Вимкнути логи",
+              "Використати дорожчу модель"
+            ],
+            "answer": 1,
+            "explain": "Кеш (питання -> відповідь) віддає збережений результат без нового виклику моделі — пряма економія на повторах."
+          },
+          {
+            "q": "Що з переліченого варто моніторити у живому AI-продукті?",
+            "options": [
+              "Лише колір інтерфейсу",
+              "Вартість за день, частоту помилок, затримку й обсяг запитів",
+              "Розмір файлу index.html",
+              "Кількість рядків коду"
+            ],
+            "answer": 1,
+            "explain": "Ці метрики показують «здоров'я» продукту. А алерти (ліміт витрат, сповіщення про збій) повідомлять про проблему самі."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Продукт під контролем?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач модуль завершеним — і відкриється Модуль 19: якість і безпека AI-продукту.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+</html>

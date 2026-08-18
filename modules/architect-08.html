@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../architect.config.json">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 8 · Claude API у коді — AI Architect</title>
+  <meta name="description" content="Перша програма, що звертається до моделі: встановлюємо SDK, робимо перший дзвінок, ведемо діалог, задаємо роль, керуємо параметрами, стрімимо й рахуємо токени." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#BD5F40",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="a08" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../index.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIA</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Architect</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 08</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../index.html" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">На головну</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>architect.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза B · Будуємо з LLM</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Claude API у коді</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Практика · 6 уроків · ≈ 75 хв</p>
+        <p class="mt-6 text-lg">
+          Фундамент позаду — час на головне. Зараз твоя власна програма вперше по-справжньому заговорить
+          із Claude. Ми, як завжди, керуватимемо Claude Code (він напише файли), але тепер ти вже вмієш
+          читати код, тож розумітимеш кожен рядок. Підемо повільно, з аналогіями й розбором. Наприкінці в
+          тебе буде робочий скрипт, що спілкується з моделлю.
+        </p>
+
+        <div class="callout">
+          <p><strong>Спираємось на попереднє.</strong> Ключ ми вже отримали й поклали в <code>.env</code>
+          (Модуль 7), а код читати навчилися (Модуль 6). Тут усе складеться разом. Бібліотеки, які
+          знадобляться: <code>anthropic</code> (офіційний SDK) і <code>python-dotenv</code>. Можеш
+          поставити їх сам або попросити Claude Code: <code>pip install anthropic python-dotenv</code>
+          (на macOS/Linux інколи <code>pip3</code>).</p>
+        </div>
+
+        <hr />
+
+        <!-- УРОК 8.1 -->
+        <section id="l1" data-lesson="8.1 Перший дзвінок" class="scroll-mt-24">
+          <h2><span class="lesson-no">8.1</span>Перший дзвінок до моделі</h2>
+          <p>
+            Нагадування для тих, хто з нуля: модель не шукає готових відповідей — вона передбачає текст
+            маленькими шматочками-<strong>токенами</strong> (приблизно частина слова). Це важливо, бо саме
+            в токенах рахується і довжина відповіді, і гроші. Тепер — до справи.
+          </p>
+          <p>
+            <strong>Аналогія.</strong> Виклик API — як заповнити бланк замовлення й віддати у віконце: ти
+            вказуєш, <em>яку</em> модель береш, <em>що</em> питаєш і <em>які</em> умови, а назад отримуєш
+            результат. Попроси Claude Code: «створи файл <code>chat.py</code>, що читає мій ключ із
+            <code>.env</code>, надсилає Claude одне повідомлення й друкує відповідь». Він створить приблизно
+            таке:
+          </p>
+          <pre><code>import os
+from anthropic import Anthropic
+from dotenv import load_dotenv
+
+load_dotenv()                                  # читаємо .env з ключем (Модуль 7)
+client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+response = client.messages.create(
+    model="claude-sonnet-5",                 # приклад; актуальні моделі — у docs.claude.com
+    max_tokens=300,                            # стеля довжини відповіді (у токенах)
+    messages=[
+        {"role": "user", "content": "Поясни простими словами, що таке API."}
+    ],
+)
+
+print(response.content[0].text)                # сам текст відповіді
+print(response.usage.input_tokens)             # скільки токенів пішло на запит
+print(response.usage.output_tokens)            # скільки на відповідь
+print(response.stop_reason)                    # чому генерація завершилась</code></pre>
+          <p>Запусти його в терміналі:</p>
+          <pre><code>python chat.py        # або python3 chat.py на macOS/Linux</code></pre>
+          <div class="callout">
+            <p><strong>Що ти маєш побачити.</strong> Відповідь моделі текстом, а під нею — кілька чисел
+            (токени) і причину завершення (наприклад, <code>end_turn</code>). Якщо так — вітаю, твоя
+            програма щойно поговорила з Claude!</p>
+          </div>
+          <div class="callout">
+            <p><strong>Розбір рядок за рядком.</strong> <code>load_dotenv()</code> + <code>os.getenv(...)</code>
+            дістають ключ із <code>.env</code> (Модуль 7). <code>client = Anthropic(...)</code> — це наш
+            «телефон» до API. <code>client.messages.create(...)</code> — сам дзвінок: у дужках поля «бланку».
+            <code>messages=[{...}]</code> — список (Модуль 6) з одного словника: <code>role</code> (хто
+            говорить) і <code>content</code> (текст). А <code>response</code> — це не рядок, а об'єкт із
+            кількома «відділеннями»: текст у <code>content[0].text</code>, лічильник токенів у
+            <code>usage</code>, причина завершення в <code>stop_reason</code>.</p>
+          </div>
+          <p>Запам'ятай «анатомію» будь-якого виклику — далі вона лише обростатиме деталями:</p>
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart LR
+  subgraph REQ["Запит (бланк)"]
+    M["model — яка модель"]
+    S["system — роль і правила"]
+    MSG["messages — історія діалогу"]
+    P["параметри — max_tokens, temperature"]
+  end
+  REQ --> API["Claude API"]
+  API --> R["Відповідь:<br/>content (текст) + usage (токени)"]
+  style API fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">На вході — складові «бланку», на виході — структурована відповідь</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 8.2 -->
+        <section id="l2" data-lesson="8.2 Ролі та пам'ять" class="scroll-mt-24">
+          <h2><span class="lesson-no">8.2</span>Ролі та пам'ять: як вести діалог</h2>
+          <p>
+            Поле <code>messages</code> — список реплік, у кожної є роль: <code>user</code> (людина) або
+            <code>assistant</code> (модель). А тепер найнесподіваніше для новачків правило:
+            <strong>модель не має пам'яті між викликами</strong>.
+          </p>
+          <p>
+            <strong>Аналогія.</strong> Уяви клерка з повною амнезією: щоразу, коли підходиш, він тебе не
+            пам'ятає. Щоб він зрозумів контекст, ти даєш йому прочитати <em>всю стенограму</em> попередньої
+            розмови. Модель — такий клерк. «Пам'ять» діалогу існує лише тому, що ти щоразу надсилаєш усю
+            історію наново.
+          </p>
+          <div class="diagram">
+            <pre class="mermaid">
+sequenceDiagram
+  participant T as Твій код
+  participant M as Модель
+  T->>M: messages = [хід 1]
+  M-->>T: відповідь 1
+  Note over T: додаєш відповідь 1 в історію
+  T->>M: messages = [хід 1, відповідь 1, хід 2]
+  M-->>T: відповідь 2
+  Note over T,M: модель отримує всю історію щоразу
+            </pre>
+            <p class="diagram-caption">«Пам'ять» — це історія, яку додаєш ти; сама модель нічого не зберігає</p>
+          </div>
+          <pre><code>messages = [
+    {"role": "user", "content": "Запам'ятай число 7."}
+]
+r1 = client.messages.create(model=MODEL, max_tokens=200, messages=messages)
+
+# Додаємо відповідь моделі в історію — інакше наступний хід її «не побачить»
+messages.append({"role": "assistant", "content": r1.content[0].text})
+messages.append({"role": "user", "content": "Яке число я просив запам'ятати?"})
+
+r2 = client.messages.create(model=MODEL, max_tokens=200, messages=messages)
+print(r2.content[0].text)   # "7" — бо ми передали всю історію</code></pre>
+          <div class="callout">
+            <p><strong>Наслідок для гаманця.</strong> Що довша розмова, то довшу історію ти щоразу
+            надсилаєш — і за всі ці токени платиш знову. Тому в реальних застосунках довгі діалоги
+            підрізають або стискають у короткий підсумок. Це не дрібниця — повернемось до вартості в уроці 8.6.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 8.3 -->
+        <section id="l3" data-lesson="8.3 Системний промпт" class="scroll-mt-24">
+          <h2><span class="lesson-no">8.3</span>Системний промпт: задаємо роль і правила</h2>
+          <p>
+            Окреме поле <code>system</code> — інструкція «хто ти і як поводься», що діє на весь діалог.
+          </p>
+          <p>
+            <strong>Аналогія.</strong> Якщо повідомлення <code>user</code> — це конкретні завдання, то
+            системний промпт — <em>посадова інструкція</em> працівника: роль, тон, формат, межі. Пишеться
+            раз і діє на всі наступні запити.
+          </p>
+          <pre><code>response = client.messages.create(
+    model=MODEL,
+    max_tokens=400,
+    system=(
+        "Ти — лаконічний асистент із фінансів для початківців. "
+        "Пояснюй простою мовою, без жаргону. Якщо питання стосується "
+        "інвестицій — додавай, що це не індивідуальна порада."
+    ),
+    messages=[{"role": "user", "content": "Що таке депозит?"}],
+)</code></pre>
+          <div class="callout">
+            <p><strong>Стоп, що це за лапки на кожному рядку?</strong> Текст розбито на три рядки, кожен у
+            своїх лапках, без жодних плюсів. Це особливість Python: <strong>сусідні рядкові літерали
+            автоматично склеюються в один</strong>. Тобто <code>"abc" "def"</code> для Python — це
+            <code>"abcdef"</code>. Дужки навколо (<code>system=( ... )</code>) дозволяють розкласти текст
+            на кілька рядків для читабельності. Зверни увагу на пробіл у кінці кожного рядка — без нього
+            слова злиплися б. Це ідіоматичний спосіб писати довгий текст.</p>
+          </div>
+          <p>
+            Сила в тому, що той самий <code>user</code>-запит дасть різні відповіді залежно від інструкції:
+          </p>
+          <pre><code>system="Пояснюй як дитині 10 років, одним абзацом."   # проста відповідь
+system="Ти фінансовий аналітик. Відповідай точно, з нюансами."  # фахова відповідь</code></pre>
+          <p>Це твій головний важіль керування продуктом: тут живе «характер» асистента.</p>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 8.4 -->
+        <section id="l4" data-lesson="8.4 Параметри" class="scroll-mt-24">
+          <h2><span class="lesson-no">8.4</span>Параметри: керуємо відповіддю</h2>
+          <p><strong>Аналогія.</strong> Уяви на «бланку» кілька регуляторів-ручок. Покрутиш — зміниться характер відповіді:</p>
+          <ul>
+            <li><strong>max_tokens</strong> — стеля довжини відповіді (у токенах). Як ліміт на поїздку:
+              довша відповідь = більше токенів = дорожче. Обірвалась на півслові — підніми.</li>
+            <li><strong>temperature</strong> — «творчість» від 0 до 1. Нижче — точніше й передбачуваніше;
+              вище — різноманітніше й креативніше.</li>
+            <li><strong>stop_sequences</strong> — «стоп-слова»: щойно модель їх згенерує, генерація обірветься.</li>
+          </ul>
+          <pre><code>response = client.messages.create(
+    model=MODEL,
+    max_tokens=500,
+    temperature=0.2,                 # факти, код, видобування — низька «творчість»
+    messages=[{"role": "user", "content": "Випиши 3 ключові тези тексту..."}],
+)</code></pre>
+          <p>Інтуїція для temperature — обирай під тип задачі:</p>
+          <pre><code>0.0 ──────── 0.3 ──────── 0.7 ──────── 1.0
+точність    аналіз      письмо      брейнсторм
+(код,       (витяг      (тексти,    (ідеї,
+факти)      даних)      пояснення)  варіанти)</code></pre>
+          <div class="callout">
+            <p><strong>Правило великого пальця.</strong> Є «правильна» відповідь (код, видобування) →
+            низька temperature (0–0.3). Потрібне розмаїття (ідеї, креатив) → вища. Почни з 0.2–0.3 і
+            підкручуй за результатом.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 8.5 -->
+        <section id="l5" data-lesson="8.5 Стрімінг" class="scroll-mt-24">
+          <h2><span class="lesson-no">8.5</span>Стрімінг: відповідь, що з'являється на очах</h2>
+          <p>
+            <strong>Аналогія.</strong> Без стрімінгу — це офіціант, що чекає, поки приготуються всі страви,
+            і виносить разом: ти сидиш перед порожнім столом. Зі <strong>стрімінгом</strong> кожну страву
+            несуть, щойно готова. Технічно: текст надходить шматочками, щойно генерується, і користувач
+            бачить, як він «друкується». Так працюють усі чат-інтерфейси.
+          </p>
+          <div class="diagram">
+            <pre class="mermaid">
+sequenceDiagram
+  participant U as Користувач
+  participant A as Твій застосунок
+  participant M as Модель
+  U->>A: запит
+  A->>M: messages (stream)
+  M-->>A: шматок "Жив"
+  M-->>A: шматок "-був "
+  M-->>A: шматок "кіт..."
+  A-->>U: показує текст одразу, по шматках
+            </pre>
+            <p class="diagram-caption">Стрімінг прибирає «паузу очікування» — критично для гарного UX</p>
+          </div>
+          <pre><code>with client.messages.stream(
+    model=MODEL,
+    max_tokens=500,
+    messages=[{"role": "user", "content": "Напиши коротку казку про кота."}],
+) as stream:
+    for text in stream.text_stream:           # перебираємо шматочки по черзі
+        print(text, end="", flush=True)        # друкуємо одразу, без переносу рядка</code></pre>
+          <div class="callout">
+            <p><strong>Розбір незнайомого.</strong> <code>with ... as stream:</code> — «менеджер контексту»:
+            він сам коректно відкриє й закриє потік (не лишиться «висіти»). <code>for text in
+            stream.text_stream:</code> — звичайний цикл (Модуль 6) по шматочках, що надходять.
+            <code>end=""</code> прибирає автоматичний перенос рядка після кожного <code>print</code> (щоб
+            шматки склеювались), а <code>flush=True</code> показує їх негайно.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 8.6 -->
+        <section id="l6" data-lesson="8.6 Токени й вартість" class="scroll-mt-24">
+          <h2><span class="lesson-no">8.6</span>Токени, вартість і трохи про надійність</h2>
+          <p>
+            Те, що відрізняє інженера від «погрався з API»: контроль вартості. Грубе правило:
+            <strong>≈ 1 токен — це ~4 символи</strong> (українською зазвичай більше токенів, ніж
+            англійською). Скільки витрачено — у відповіді, у <code>usage</code> (бачили в уроці 8.1):
+          </p>
+          <pre><code>print(response.usage.input_tokens)    # вхід (твій запит)
+print(response.usage.output_tokens)   # вихід (відповідь)</code></pre>
+          <p>
+            <strong>Вартість.</strong> Аналогія — таксі-лічильник: платиш за «пробіг» у токенах. Вхід і
+            вихід тарифікуються окремо, і вихід зазвичай дорожчий. Ціни вказують «за мільйон токенів»:
+          </p>
+          <pre><code>вартість = (вхідні_токени  / 1_000_000) * ціна_входу
+         + (вихідні_токени / 1_000_000) * ціна_виходу
+
+# Приклад (ЦІНИ УМОВНІ — звіряй актуальні на docs.claude.com):
+# вхід 1000 ток. * $3/млн  = $0.003
+# вихід 500 ток. * $15/млн = $0.0075
+# разом ≈ $0.0105 за один запит</code></pre>
+          <div class="callout">
+            <p><strong>Інженерні висновки.</strong> Дешевші/швидші моделі — для простих задач, дорожчі —
+            лише там, де треба «розум». Довгу історію підрізай (урок 8.2). <code>max_tokens</code> тримай
+            розумним. Пам'ятаєш ліміт витрат у консолі (Модуль 2)? Він страхує, поки вчишся.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Коротко про збої.</strong> Інколи API відповідає помилкою: <strong>429</strong>
+            («забагато запитів») чи <strong>5xx</strong> (тимчасовий збій). Надійний код не падає, а чекає
+            й повторює спробу з паузою, що зростає (так званий backoff). Хороша новина: офіційний SDK уже
+            робить це автоматично — тобі лише корисно знати, що так буває.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Підсумок модуля.</strong> Твоя програма вміє звертатися до моделі, вести діалог із
+            історією, задавати роль через <code>system</code>, керувати відповіддю параметрами, стрімити
+            текст і рахувати токени з вартістю. Наступний модуль підніме якість самих запитів: як отримувати
+            від моделі надійний, машиночитаний результат (structured outputs) — і збудуємо реальний
+            видобувач даних.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>Сім питань без дедлайнів. Обирай відповідь — і одразу бачиш пояснення.</p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Де у відповіді лежить згенерований текст?",
+            "options": [ "response.text напряму", "response.content[0].text", "response.message", "response.output" ],
+            "answer": 1,
+            "explain": "Відповідь — об'єкт із відділеннями. content — список блоків; [0] бере перший блок, .text — дістає текст."
+          },
+          {
+            "q": "Чи пам'ятає модель попередні повідомлення між окремими викликами?",
+            "options": [
+              "Так, запам'ятовує сама",
+              "Ні — пам'ять створюєш ти, щоразу надсилаючи всю історію в messages",
+              "Так, якщо ввімкнути temperature",
+              "Лише перші 5 повідомлень"
+            ],
+            "answer": 1,
+            "explain": "Модель — як клерк з амнезією: кожен виклик чистий аркуш. «Пам'ять» — це історія, яку ти сам передаєш у messages."
+          },
+          {
+            "q": "Навіщо поле system?",
+            "options": [
+              "Щоб пришвидшити відповідь",
+              "Щоб задати сталу роль, тон і правила (як посадову інструкцію) на весь діалог",
+              "Щоб зберегти ключ",
+              "Це те саме, що user"
+            ],
+            "answer": 1,
+            "explain": "system — «посадова інструкція» асистента: роль, тон, формат, межі. Діє на весь діалог, окремо від запитів user."
+          },
+          {
+            "q": "Для задачі з однозначно правильною відповіддю яку temperature брати?",
+            "options": [ "Високу (~1.0)", "Низьку (~0–0.3)", "Не має значення", "Рівно 0.5" ],
+            "answer": 1,
+            "explain": "Низька temperature дає точніші, передбачуваніші відповіді. Висока — для творчих задач, де цінне розмаїття."
+          },
+          {
+            "q": "Що обмежує max_tokens?",
+            "options": [
+              "Кількість запитів за хвилину",
+              "Максимальну довжину ВІДПОВІДІ моделі (і впливає на вартість)",
+              "Розмір ключа",
+              "Швидкість інтернету"
+            ],
+            "answer": 1,
+            "explain": "max_tokens — стеля довжини відповіді в токенах. Обірвалась — підніми; це також впливає на ціну."
+          },
+          {
+            "q": "Навіщо стрімінг?",
+            "options": [
+              "Щоб відповідь була дешевшою",
+              "Щоб показувати текст користувачу одразу по шматках, а не чекати всю відповідь у тиші",
+              "Щоб модель щось запам'ятала",
+              "Щоб обійти ліміти"
+            ],
+            "answer": 1,
+            "explain": "Стрімінг віддає текст шматочками в реальному часі (як страви по готовності) — критично для гарного UX чатів."
+          },
+          {
+            "q": "Як рахується вартість запиту?",
+            "options": [
+              "Фіксована ціна за будь-який запит",
+              "За токени: вхід і вихід окремо (вихід зазвичай дорожчий), за ціною за мільйон токенів",
+              "За кількість слів англійською",
+              "Безкоштовно завжди"
+            ],
+            "answer": 1,
+            "explain": "Платиш за токени входу й виходу окремо. Тому короткі промпти й розумний max_tokens прямо економлять гроші."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Програма заговорила з Claude?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач модуль завершеним — і відкриється Модуль 9: надійний JSON і видобувач даних.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+</html>

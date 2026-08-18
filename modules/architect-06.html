@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../architect.config.json">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 6 · Python, щоб читати й керувати — AI Architect</title>
+  <meta name="description" content="Рівно стільки Python, щоб упевнено читати й правити код, який пише Claude Code: змінні, списки й словники, умови й цикли, функції та помилки." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#BD5F40",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="a06" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../index.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIA</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Architect</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 06</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../index.html" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">На головну</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>architect.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза A · Розуміти, що під ногами</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Python, щоб читати й керувати</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Основи · 6 уроків · ≈ 75 хв</p>
+        <p class="mt-6 text-lg">
+          Важлива установка: ми <strong>не</strong> робимо з тебе Python-програміста, що пише все з нуля.
+          Мета цього модуля скромніша й практичніша — навчитися <strong>читати</strong> код, який пише
+          Claude Code, розуміти, що він робить, і впевнено правити дрібниці. Цього досить, щоб керувати AI
+          свідомо, а не наосліп. Python — наша робоча мова на весь курс, тож знайомимось рівно настільки,
+          наскільки треба.
+        </p>
+
+        <hr />
+
+        <!-- УРОК 6.1 -->
+        <section id="l1" data-lesson="6.1 Навіщо читати код" class="scroll-mt-24">
+          <h2><span class="lesson-no">6.1</span>Навіщо читати код і як запускати Python</h2>
+          <p>
+            Claude Code пише код за тебе — але щоб <em>перевірити</em>, <em>підправити</em> чи зрозуміти,
+            що пішло не так, ти маєш вміти його прочитати. Це як водій, що не мусить бути механіком, але
+            розуміє приладову панель. Саме така ціль: читати й орієнтуватися, а не зубрити синтаксис.
+          </p>
+          <p>
+            Файл з програмою на Python має розширення <code>.py</code>. Щоб його <strong>запустити</strong>
+            (виконати), у терміналі пишуть:
+          </p>
+          <pre><code>python hello.py        # на Windows
+python3 hello.py       # на macOS / Linux (там часто саме python3)</code></pre>
+          <p>Ось робочий ритм цього модуля — він знадобиться завжди:</p>
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart LR
+  R["Прочитати код"] --> RUN["Запустити"]
+  RUN --> Q{"Працює?"}
+  Q -- "Так" --> OK["Готово"]
+  Q -- "Ні" --> ASK["Спитати Claude Code:<br/>поясни / виправ"]
+  ASK --> RUN
+  style OK fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">Читай → запусти → не працює? спитай Claude Code → повтори. Без паніки</p>
+          </div>
+          <div class="callout">
+            <p><strong>Головна звичка модуля.</strong> Будь-який незнайомий код можна вставити Claude Code
+            зі словами «поясни рядок за рядком простими словами». Не соромся — це найшвидший спосіб
+            навчитися читати. Далі ми пройдемо основні «цеглинки», які ти зустрічатимеш постійно.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 6.2 -->
+        <section id="l2" data-lesson="6.2 Змінні й типи" class="scroll-mt-24">
+          <h2><span class="lesson-no">6.2</span>Змінні й типи: значення з іменами</h2>
+          <p>
+            <strong>Змінна</strong> — це підписана «коробка» зі значенням. Зустрічатимеш їх у кожному файлі.
+          </p>
+          <pre><code>name = "Андрій"        # рядок (str) — текст у лапках
+age = 28                # ціле число (int)
+price = 19.99           # дробове число (float)
+is_active = True        # булеве (bool): True або False
+print(name, age)        # вивести значення на екран</code></pre>
+          <p>Чотири типи покривають майже все, що ти бачитимеш:</p>
+          <ul>
+            <li><strong>str</strong> — текст у лапках: <code>"Claude"</code>;</li>
+            <li><strong>int</strong> — цілі числа: <code>42</code>;</li>
+            <li><strong>float</strong> — дробові: <code>0.7</code>;</li>
+            <li><strong>bool</strong> — <code>True</code> / <code>False</code> (так/ні).</li>
+          </ul>
+          <div class="callout">
+            <p><strong>Це і є «керування» на практиці.</strong> Часто щоб змінити поведінку програми,
+            достатньо знайти потрібну змінну й поміняти її значення — наприклад, число чи текст. Тобі не
+            треба переписувати все: знайшов рядок, змінив значення, запустив. <code>#</code> на початку
+            рядка — це коментар: Python його ігнорує, він для людей.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 6.3 -->
+        <section id="l3" data-lesson="6.3 Списки й словники" class="scroll-mt-24">
+          <h2><span class="lesson-no">6.3</span>Списки й словники: набори значень</h2>
+          <p>Дві структури, які ти впізнаватимеш миттєво за дужками.</p>
+          <p><strong>Список</strong> (list) — упорядкований набір у квадратних дужках. Нумерація з <strong>нуля</strong>:</p>
+          <pre><code>topics = ["вступ", "термінал", "веб"]
+print(topics[0])      # вступ — перший елемент (індекс 0)
+print(len(topics))    # 3 — скільки елементів</code></pre>
+          <p><strong>Словник</strong> (dict) — пари «ключ: значення» у фігурних дужках. Звертаєшся за ключем:</p>
+          <pre><code>user = {"name": "Андрій", "lessons": 3}
+print(user["name"])   # Андрій</code></pre>
+          <div class="callout">
+            <p><strong>Впізнаєш?</strong> Словник виглядає майже як JSON із Модуля 4 — ті самі пари
+            «ключ: значення». Це не випадково: коли модель чи API повертають дані у JSON, у Python вони
+            стають саме словниками й списками. Тому ці дві структури — твій хліб насущний у роботі з AI.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 6.4 -->
+        <section id="l4" data-lesson="6.4 Умови й цикли" class="scroll-mt-24">
+          <h2><span class="lesson-no">6.4</span>Умови й цикли: логіка коду</h2>
+          <p><strong>Умова</strong> (<code>if</code>) виконує код лише коли щось правда:</p>
+          <pre><code>score = 82
+
+if score >= 70:
+    print("Зараховано")
+else:
+    print("Спробуй ще раз")</code></pre>
+          <div class="callout">
+            <p><strong>Найважливіше про Python — відступи.</strong> Бачиш, що рядки після
+            <code>if</code> зсунуті праворуч (на 4 пробіли)? Саме <strong>відступ показує, який код
+            «належить» умові</strong>. Це не краса, а синтаксис: те, що зсунуто всередину — виконується в
+            межах <code>if</code>. Зустрічатимеш відступи в циклах і функціях так само.</p>
+          </div>
+          <p><strong>Цикл</strong> (<code>for</code>) повторює дію для кожного елемента набору:</p>
+          <pre><code>topics = ["вступ", "термінал", "веб"]
+
+for topic in topics:
+    print("Тема:", topic)
+# Тема: вступ
+# Тема: термінал
+# Тема: веб</code></pre>
+          <p>
+            Читається майже як англійська: «для кожного topic у списку topics — виведи його». Цикли —
+            основа обробки даних: пройтися по всіх документах, по всіх відповідях, по всіх рядках.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 6.5 -->
+        <section id="l5" data-lesson="6.5 Функції" class="scroll-mt-24">
+          <h2><span class="lesson-no">6.5</span>Функції: іменовані шматки роботи</h2>
+          <p>
+            <strong>Функція</strong> — це названий блок коду, який щось приймає (аргументи) і повертає
+            результат. Замість повторювати код, його викликають за іменем. Ти бачитимеш функції всюди.
+          </p>
+          <pre><code>def greet(name):
+    return "Привіт, " + name
+
+print(greet("Андрій"))   # Привіт, Андрій
+print(greet("Олено"))    # Привіт, Олено</code></pre>
+          <div class="callout">
+            <p><strong>Розбір.</strong> <code>def</code> оголошує функцію, далі її ім'я (<code>greet</code>)
+            і в дужках — аргументи (<code>name</code>). <code>return</code> віддає результат назад тому, хто
+            викликав. Рядок <code>greet("Андрій")</code> — це <em>виклик</em>: ми передаємо значення
+            <code>"Андрій"</code>, і функція повертає привітання. Уся програма зазвичай зібрана з таких
+            функцій-цеглинок.</p>
+          </div>
+          <p>
+            Тобі не треба вміти писати складні функції з нуля — досить упізнавати їх у коді й розуміти:
+            «ось блок, що приймає оце й повертає оте». Цього вистачить, щоб орієнтуватись у будь-якому
+            файлі, який згенерує Claude Code.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 6.6 -->
+        <section id="l6" data-lesson="6.6 Помилки" class="scroll-mt-24">
+          <h2><span class="lesson-no">6.6</span>Помилки — це нормально (і як їх читати)</h2>
+          <p>
+            Запускаєш код — і замість результату червоний текст? Спокійно: помилки — звичайна частина
+            роботи, навіть у досвідчених інженерів. Коли в Python щось не так, він друкує
+            <strong>traceback</strong> — «слід» того, де зламалось. Виглядає лячно, але головне правило
+            просте:
+          </p>
+          <div class="callout">
+            <p><strong>Читай знизу вгору.</strong> <em>Останній</em> рядок traceback — найважливіший: це
+            сам тип і опис помилки. Наприклад, <code>NameError: name 'nme' is not defined</code> означає,
+            що ти звернувся до змінної <code>nme</code>, якої немає (мабуть, описка в <code>name</code>).
+            Часто вже цього рядка досить, щоб зрозуміти причину.</p>
+          </div>
+          <p>А найшвидший спосіб полагодити — той самий, що в нашій діаграмі на початку модуля:</p>
+          <pre><code>Встав Claude Code увесь текст помилки + код і запитай:
+"Ось помилка і код. Що це означає простими словами і як виправити?"</code></pre>
+          <p>
+            Він пояснить причину й запропонує виправлення. Згодом ти й сам читатимеш типові помилки з
+            першого погляду — але навіть тоді вставити traceback помічнику швидше, ніж гадати.
+          </p>
+          <div class="callout">
+            <p><strong>Підсумок.</strong> Ти вмієш читати головні «цеглинки» Python — змінні й типи, списки
+            й словники, умови й цикли, функції — і не лякаєшся помилок. Цього рівня достатньо, щоб свідомо
+            керувати кодом, який пише Claude Code. Останній крок Фази A — навчитися безпечно поводитися з
+            ключами доступу. Це наступний модуль.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>Шість питань, щоб закріпити «цеглинки». Обирай відповідь — і одразу бачиш пояснення.</p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Яка мета цього модуля?",
+            "options": [
+              "Стати Python-програмістом, що пише все з нуля",
+              "Навчитися читати й розуміти код, який пише Claude Code, і правити дрібниці",
+              "Вивчити всі бібліотеки Python напам'ять",
+              "Більше ніколи не користуватись AI"
+            ],
+            "answer": 1,
+            "explain": "Як водій розуміє панель, не будучи механіком: ми вчимося читати й свідомо керувати кодом, а не писати все вручну."
+          },
+          {
+            "q": "Як запустити файл program.py?",
+            "options": [
+              "Двічі клацнути по ньому завжди",
+              "У терміналі: python program.py (або python3 program.py на macOS/Linux)",
+              "Командою git push",
+              "Відкрити в браузері"
+            ],
+            "answer": 1,
+            "explain": "Python-файли запускають командою python (чи python3) із назвою файлу в терміналі."
+          },
+          {
+            "q": "З якого індексу починається перший елемент списку?",
+            "options": [ "З 1", "З 0", "З -1", "Залежить від довжини" ],
+            "answer": 1,
+            "explain": "У Python нумерація з нуля: topics[0] — це перший елемент."
+          },
+          {
+            "q": "Що в Python показують відступи (зсув коду праворуч)?",
+            "options": [
+              "Нічого, лише краса",
+              "Який код «належить» умові, циклу чи функції — це частина синтаксису",
+              "Розмір файлу",
+              "Кількість змінних"
+            ],
+            "answer": 1,
+            "explain": "Відступи визначають, що виконується всередині if/for/функції. У Python це не оформлення, а синтаксис."
+          },
+          {
+            "q": "Що робить return у функції?",
+            "options": [
+              "Виводить текст на екран",
+              "Повертає результат назад тому, хто викликав функцію",
+              "Видаляє функцію",
+              "Запускає браузер"
+            ],
+            "answer": 1,
+            "explain": "return віддає значення у місце виклику. Вивід на екран — окрема дія, print()."
+          },
+          {
+            "q": "Який найшвидший спосіб розібратися з незрозумілою помилкою?",
+            "options": [
+              "Перевстановити Python",
+              "Вставити Claude Code увесь текст помилки разом із кодом і спитати, що це і як виправити",
+              "Видалити проєкт",
+              "Ігнорувати її"
+            ],
+            "answer": 1,
+            "explain": "Останній рядок traceback — ключ до причини, а Claude Code пояснить помилку й запропонує виправлення, якщо дати йому текст і код."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Читаєш код впевненіше?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач модуль завершеним — і відкриється Модуль 7: ключі доступу та безпека (.env).
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+</html>

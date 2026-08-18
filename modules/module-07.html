@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 7 · RAG і робота зі знаннями — AI Академія</title>
+  <meta name="description"
+    content="Retrieval-augmented generation: embeddings на пальцях, chunking, векторний пошук, цитування джерел і чесний вибір між RAG та великим контекстом." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#BD5F40",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="m07" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../index.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIA</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Академія</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 07</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../index.html#syllabus" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + уроки модуля (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Трек III · Розробка з Claude</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">RAG і робота зі знаннями</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Середній · 5 уроків · ≈ 60 хв читання</p>
+        <p class="mt-6 text-lg">
+          Контекстне вікно велике, але скінченне — і за кожен вхідний токен ти платиш.
+          Що робити, коли знань — база FAQ, сотні договорів, ціла внутрішня вікі —
+          більше, ніж розумно класти у промпт? Відповідь індустрії — RAG,
+          retrieval-augmented generation: «генерація, підсилена пошуком». Ідея проста:
+          не тягни всю бібліотеку — знайди потрібні сторінки.
+        </p>
+
+        <hr />
+
+        <!-- УРОК 7.1 -->
+        <section id="l1" data-lesson="7.1 Навіщо RAG" class="scroll-mt-24">
+          <h2><span class="lesson-no">7.1</span>Навіщо RAG: межі «вкласти все у промпт»</h2>
+          <p>
+            Здавалося б, рішення очевидне: контекст великий — клади всі документи в кожен
+            запит. На практиці це ламається з трьох причин.
+          </p>
+          <ul>
+            <li><strong>Фізична межа.</strong> Вікно сягає сотень тисяч токенів, але
+              корпоративна база знань легко більша — а українська, нагадаємо з Модуля 1,
+              ще й «дорожча» в токенах.</li>
+            <li><strong>Гроші та швидкість.</strong> Платити за двісті сторінок вхідних
+              токенів на кожен запит заради одного потрібного абзацу — марнотратство;
+              та й обробка великого контексту повільніша.</li>
+            <li><strong>Якість.</strong> Ефект «голки в сіні»: серед тонн нерелевантного
+              тексту моделі легше загубити потрібне — і впевненіше згалюцинувати.</li>
+          </ul>
+          <p>
+            Аналогія, яка тримає весь модуль: досвідчений бібліотекар. На питання читача
+            він не перечитує бібліотеку — за каталогом знаходить три потрібні книжки
+            і кладе на стіл. RAG — це автоматичний бібліотекар для нашого «робочого
+            столу» з Модуля 1: <strong>Retrieval</strong> (знайти релевантні фрагменти) →
+            <strong>Augmentation</strong> (підкласти їх у промпт) →
+            <strong>Generation</strong> (відповісти, спираючись на них).
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart LR
+  Q["Питання"] --> R["Пошук: знайти релевантні фрагменти в базі знань"]
+  R --> C["У промпт кладемо лише знайдене"]
+  C --> M["Модель відповідає, спираючись на фрагменти"]
+  style R fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">RAG — системна версія «заземлення» з Модуля 4: документи тепер добираються
+              автоматично</p>
+          </div>
+        </section>
+
+        <!-- УРОК 7.2 -->
+        <section id="l2" data-lesson="7.2 Embeddings" class="scroll-mt-24">
+          <h2><span class="lesson-no">7.2</span>Embeddings: зміст як координати</h2>
+          <p>
+            Перше питання RAG: як шукати? Пошук за ключовими словами ламається на
+            синонімах: для нього «банкет» і «святкова вечеря на 40 осіб» — різні рядки,
+            хоча зміст один. Потрібен пошук за сенсом.
+          </p>
+          <p>
+            Тут з'являється <strong>embedding</strong> — числове представлення тексту:
+            вектор із сотень чи тисяч чисел. Спеціальна модель-ембедер навчена так,
+            щоб тексти про одне й те саме опинялися поруч у цьому багатовимірному
+            просторі. Уяви карту смислів: «фуршет» і «банкет» — сусідні квартали,
+            «рахунок за оренду залу» — зовсім інший район міста.
+          </p>
+          <p>
+            Близькість векторів міряють <strong>косинусною подібністю</strong>:
+            1 — однаковий напрямок (той самий зміст), близько 0 — нічого спільного.
+            Ось уся математика на іграшкових векторах:
+          </p>
+
+          <div class="example">
+            <div class="example-head"><span>Python · косинусна подібність</span></div>
+            <pre>def cosine(a, b):
+    dot = sum(x * y for x, y in zip(a, b))
+    norm_a = sum(x * x for x in a) ** 0.5
+    norm_b = sum(x * x for x in b) ** 0.5
+    return dot / (norm_a * norm_b)
+
+# іграшкові вектори на 4 виміри — справжні мають сотні й тисячі
+v_banquet = [0.9, 0.1, 0.7, 0.0]   # «банкет на 45 гостей»
+v_buffet  = [0.8, 0.2, 0.6, 0.1]   # «фуршет для компанії»
+v_invoice = [0.1, 0.9, 0.0, 0.8]   # «рахунок за оренду залу»
+
+print(cosine(v_banquet, v_buffet))    # ≈ 0.99 — теми близькі
+print(cosine(v_banquet, v_invoice))   # ≈ 0.13 — теми різні</pre>
+          </div>
+
+          <div class="callout">
+            <span class="callout-title">Важлива деталь</span>
+            <p>
+              Ембедер — окрема спеціалізована модель, не Claude. Для продакшну беруть
+              готові рішення — наприклад, Voyage AI (його рекомендує документація
+              Anthropic) або open-source моделі. Головне правило: питання і документи
+              мають проходити через <strong>одну й ту саму</strong> embedding-модель,
+              інакше «карти смислів» не зійдуться.
+            </p>
+          </div>
+        </section>
+
+        <!-- УРОК 7.3 -->
+        <section id="l3" data-lesson="7.3 Chunking" class="scroll-mt-24">
+          <h2><span class="lesson-no">7.3</span>Chunking: різати з розумом</h2>
+          <p>
+            Документи в базу знань потрапляють не цілком, а <strong>чанками</strong> —
+            фрагментами. Навіщо різати: пошук влучає в конкретний абзац, а не у
+            двохсотсторінковий PDF; у контекст їде лише потрібне; і короткий зв'язний
+            шматок embedding «тримає» значно краще за простирадло.
+          </p>
+          <p>
+            Розмір — компроміс. Завеликі чанки тягнуть у вікно зайве і розмивають пошук;
+            замалі — втрачають зміст: фрагмент «він має бути сплачений протягом п'яти
+            днів» без сусідніх речень не скаже, хто такий «він».
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Стратегія</th>
+                <th>Суть</th>
+                <th>Коли брати</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Фіксований розмір + перекриття</td>
+                <td>Рівні шматки, сусідні перекриваються на 10–20%</td>
+                <td>Швидкий старт, однорідні тексти</td>
+              </tr>
+              <tr>
+                <td>За структурою документа</td>
+                <td>Заголовки, абзаци, пункти договору</td>
+                <td>Найкращий дефолт для більшості баз</td>
+              </tr>
+              <tr>
+                <td>Семантичний chunking</td>
+                <td>Межі — там, де змінюється тема</td>
+                <td>Складні кейси, коли структури немає</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Золоте правило: <strong>чанк має бути зрозумілим сам по собі</strong>.
+            Найдешевший спосіб цього досягти — контекстний заголовок: допиши на початок
+            кожного чанка рядок на кшталт «Документ: Договір оренди №7 · Розділ: Оплата».
+            Один рядок помітно покращує і пошук, і точність відповідей — особливо коли
+            в базі багато схожих документів.
+          </p>
+        </section>
+
+        <!-- УРОК 7.4 -->
+        <section id="l4" data-lesson="7.4 Повний цикл RAG" class="scroll-mt-24">
+          <h2><span class="lesson-no">7.4</span>Повний цикл RAG у коді</h2>
+          <p>
+            RAG живе у два етапи. <strong>Індексація</strong> — заздалегідь і нечасто:
+            порізати документи, порахувати embeddings, скласти у сховище.
+            <strong>Запит</strong> — щоразу: ембеднути питання, знайти найближчі чанки,
+            зібрати промпт, отримати відповідь.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  subgraph IDX["Етап 1 · Індексація — заздалегідь"]
+    D["Документи"] --> CH["Розбиття на чанки"]
+    CH --> EM["Embeddings"]
+    EM --> VDB["Векторне сховище"]
+  end
+  subgraph QRY["Етап 2 · Запит — щоразу"]
+    Q["Питання користувача"] --> QE["Embedding питання"]
+    QE --> S["Пошук найближчих чанків"]
+    VDB --> S
+    S --> P["Промпт: знайдені чанки + питання"]
+    P --> M["Claude: відповідь із посиланнями"]
+  end
+  style S fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">Індексація — рідко, пошук — на кожен запит</p>
+          </div>
+
+          <div class="example">
+            <div class="example-head"><span>Python · мінімальний RAG</span></div>
+            <pre>from anthropic import Anthropic
+
+client = Anthropic()
+MODEL = "claude-sonnet-5"
+
+def embed(text):
+    # реальна реалізація — виклик embedding-моделі
+    # (Voyage AI, sentence-transformers тощо); тут — заглушка
+    ...
+
+# ---------- Етап 1 · Індексація (виконується заздалегідь) ----------
+chunks = [
+    {"id": "faq-01", "text": "FAQ · Замовлення: мінімальний фуршет — 15 гостей."},
+    {"id": "faq-02", "text": "FAQ · Доставка: по Чернівцях безкоштовно від 5000 грн."},
+    {"id": "faq-03", "text": "FAQ · Зміни: приймаємо до 48 годин до події."},
+]
+index = [
+    {"id": c["id"], "vector": embed(c["text"]), "text": c["text"]}
+    for c in chunks
+]
+
+# ---------- Етап 2 · Запит (виконується щоразу) ----------
+def retrieve(query, k=3):
+    q = embed(query)
+    scored = sorted(index, key=lambda c: cosine(q, c["vector"]), reverse=True)
+    return scored[:k]
+
+def answer(question):
+    found = retrieve(question)
+    context = "\n\n".join(
+        "&lt;chunk id=\"" + c["id"] + "\"&gt;\n" + c["text"] + "\n&lt;/chunk&gt;"
+        for c in found
+    )
+    response = client.messages.create(
+        model=MODEL,
+        max_tokens=600,
+        temperature=0,
+        system="Відповідай ЛИШЕ на основі фрагментів у &lt;knowledge&gt;. "
+               "Після кожного твердження вкажи id джерела у квадратних "
+               "дужках, наприклад [faq-02]. Якщо відповіді у фрагментах "
+               "немає — чесно скажи це.",
+        messages=[{"role": "user",
+                   "content": "&lt;knowledge&gt;\n" + context + "\n&lt;/knowledge&gt;\n\n"
+                              "Питання: " + question}],
+    )
+    return response.content[0].text
+
+print(answer("Скільки коштує доставка фуршету по місту?"))</pre>
+          </div>
+
+          <p>Розбір ключових рішень:</p>
+          <ul>
+            <li><strong>top-k = 3–5</strong> — типовий старт: досить для відповіді,
+              не засмічує контекст;</li>
+            <li><strong>temperature 0</strong> — фактична задача, мінімум випадковості
+              (Модуль 5);</li>
+            <li><strong>теги і вимога посилань</strong> — усе ремесло Модулів 3–4
+              працює тут: <code>&lt;knowledge&gt;</code> відокремлює дані,
+              id чанків роблять відповідь перевірюваною;</li>
+            <li><strong>чесний fallback</strong> — «у фрагментах немає» замість
+              вигадки: системний промпт вимагає це прямо.</li>
+          </ul>
+          <p>
+            У продакшні замість списку в пам'яті — векторні сховища: FAISS, Chroma,
+            Qdrant, pgvector. Принцип той самий, масштаб і швидкість інші. А коли
+            базовий RAG запрацює, є рівень два: гібридний пошук (вектори плюс ключові
+            слова), reranking знайдених чанків окремою моделлю і фільтри за метаданими —
+            датою, типом документа, клієнтом.
+          </p>
+        </section>
+
+        <!-- УРОК 7.5 -->
+        <section id="l5" data-lesson="7.5 Цитування і вибір" class="scroll-mt-24">
+          <h2><span class="lesson-no">7.5</span>Цитування джерел і чесний вибір підходу</h2>
+          <p>
+            Чому цитування — не прикраса, а вимога: посилання на джерело робить відповідь
+            перевірюваною, а галюцинацію — видимою. Користувач клікає на [faq-02]
+            і бачить, що там написано насправді. Три робочі рівні:
+          </p>
+          <ul>
+            <li><strong>id чанків у промпті</strong> + вимога посилань — як у коді
+              вище: найпростіше і вже працює;</li>
+            <li><strong>«цитати перед висновком» з Модуля 4</strong> поверх знайдених
+              чанків — для відповідей із високою ціною помилки;</li>
+            <li><strong>вбудовані citations в API</strong> — для документних блоків
+              Claude вміє повертати точні прив'язки до фрагментів джерела; деталі
+              та актуальний синтаксис — у docs.claude.com.</li>
+          </ul>
+          <p>
+            І чесна розмова наостанок: <strong>RAG потрібен не завжди</strong>.
+            Це ще одна система — індекс, синхронізація, моніторинг, — і вона має
+            окупатися.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Ситуація</th>
+                <th>Розумний вибір</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Один документ чи мала база, оновлюється рідко</td>
+                <td>Просто поклади в контекст цілком; кешування промпта здешевить повтори</td>
+              </tr>
+              <tr>
+                <td>Велика або жива база: сотні документів, щоденні зміни</td>
+                <td>RAG: переіндексував змінений чанк — і система актуальна</td>
+              </tr>
+              <tr>
+                <td>Потрібні точкові посилання на джерела</td>
+                <td>RAG природніший: чанки вже мають id</td>
+              </tr>
+              <tr>
+                <td>Прототип на сьогодні ввечері</td>
+                <td>Почни з контексту; RAG доростеш, коли впрешся в межі</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Правило треку: починай із найпростішого, що працює. RAG дав моделі пам'ять,
+            tool use з Модуля 6 — руки. У Модулі 8 побачимо MCP — відкритий стандарт,
+            що з'єднує і пам'ять, і руки з будь-яким застосунком: твій RAG-ретривер,
+            до речі, часто і стає одним із MCP-інструментів.
+          </p>
+        </section>
+
+        <hr />
+
+        <div class="callout callout-sand">
+          <span class="callout-title">Підсумок модуля</span>
+          <ul>
+            <li>RAG = знайти → підкласти → відповісти: не тягни бібліотеку, принеси сторінки.</li>
+            <li>Embedding — координати змісту: близькі за сенсом тексти мають близькі вектори; міряємо косинусом.</li>
+            <li>Ембедер — окрема модель; питання й документи ембедь однією і тією самою.</li>
+            <li>Чанк має жити сам по собі: ріж за структурою, додавай контекстний заголовок, давай перекриття.</li>
+            <li>У промпт — top-k чанків з id; вимагай посилань і чесного «у базі немає».</li>
+            <li>RAG — не завжди: малу статичну базу дешевше покласти в контекст цілком.</li>
+          </ul>
+        </div>
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Вісім питань про пошук і знання. Обирай відповідь — і одразу отримуй пояснення.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "У чому суть підходу RAG?",
+            "options": [
+              "Модель тренується заново на твоїх документах",
+              "Релевантні фрагменти знаходяться пошуком і підкладаються у промпт перед генерацією",
+              "Усі документи завжди надсилаються в кожному запиті",
+              "Відповіді кешуються і повторюються"
+            ],
+            "answer": 1,
+            "explain": "Retrieval-augmented generation: знайти → підкласти → відповісти. Ніякого дотренування — лише розумне наповнення контексту на кожен запит."
+          },
+          {
+            "q": "Чому пошук за ключовими словами програє embedding-пошуку в базах знань?",
+            "options": [
+              "Він повільніший на порядки",
+              "Він не бачить збігу змісту в синонімах і перефразуваннях",
+              "Він не працює з кирилицею",
+              "Він потребує більше пам'яті"
+            ],
+            "answer": 1,
+            "explain": "Для пошуку рядків «банкет» і «святкова вечеря на 40 осіб» — різні тексти, хоча зміст один. Embeddings ставлять близькі за сенсом тексти поруч у векторному просторі."
+          },
+          {
+            "q": "Що таке embedding тексту?",
+            "options": [
+              "Стиснута zip-версія тексту",
+              "Вектор чисел, де геометрична близькість відповідає змістовій",
+              "Переклад тексту англійською для моделі",
+              "Хеш для перевірки цілісності"
+            ],
+            "answer": 1,
+            "explain": "Embedding — координати на «карті смислів»: сотні або тисячі чисел, обчислені спеціальною моделлю так, щоб схожі за змістом тексти опинялися поруч."
+          },
+          {
+            "q": "Косинусна подібність двох embeddings дорівнює 0.98. Це означає, що тексти…",
+            "options": [
+              "Майже ідентичні за змістом",
+              "Зовсім різні",
+              "Однакової довжини",
+              "Написані однією мовою"
+            ],
+            "answer": 0,
+            "explain": "Косинус близько 1 — вектори дивляться в один бік, тобто зміст дуже близький. Близько 0 — нічого спільного. Довжина тексту і мова тут ні до чого."
+          },
+          {
+            "q": "Базу порізали на чанки по п'ять слів. Який головний ризик?",
+            "options": [
+              "Індексація триватиме надто довго",
+              "Фрагменти втратять зміст і будуть незрозумілі самі по собі",
+              "Векторна база не прийме такі короткі тексти",
+              "Жодного — що дрібніше, то точніше"
+            ],
+            "answer": 1,
+            "explain": "Замалі чанки відриваються від контексту: «він має бути сплачений за п'ять днів» не каже, хто такий «він». Чанк має жити сам по собі."
+          },
+          {
+            "q": "Навіщо дописувати до чанка контекстний заголовок на кшталт «Договір №7 · Розділ: Оплата»?",
+            "options": [
+              "Для краси у звітах",
+              "Щоб чанк був зрозумілим сам по собі — кращі і пошук, і відповіді",
+              "Щоб збільшити кількість токенів",
+              "Це вимога векторних баз"
+            ],
+            "answer": 1,
+            "explain": "Один рядок контексту прив'язує фрагмент до документа й розділу: embedding точніший, а модель у відповіді не плутає схожі документи між собою."
+          },
+          {
+            "q": "Користувач питає те, чого немає у знайдених чанках. Правильна поведінка системи?",
+            "options": [
+              "Відповісти із загальних знань моделі, ніби з бази",
+              "Чесно сказати, що в базі знань відповіді немає",
+              "Повернути найближчий за темою чанк як відповідь",
+              "Мовчки повторити пошук до результату"
+            ],
+            "answer": 1,
+            "explain": "Системний промпт прямо вимагає «лише на основі фрагментів» і чесний fallback. Відповідь «з голови» під виглядом бази — найгірший сценарій: невидима галюцинація."
+          },
+          {
+            "q": "База знань — 30 сторінок FAQ, оновлюється раз на рік. Найрозумніший старт?",
+            "options": [
+              "Повний RAG із векторною базою і reranking",
+              "Покласти FAQ у контекст цілком, без RAG-інфраструктури",
+              "Дотренувати модель на FAQ",
+              "Відмовитися від асистента"
+            ],
+            "answer": 1,
+            "explain": "Мала статична база — класичний випадок «просто в контекст»: жодної додаткової системи, а кешування промпта здешевлює повторні запити. RAG доростеш, коли впрешся в межі."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>

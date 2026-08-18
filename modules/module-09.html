@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 9 · Агенти й агентні системи — AI Академія</title>
+  <meta name="description"
+    content="Workflow проти агента, п'ять патернів оркестрації, агентний цикл «думка → дія → спостереження» у коді та Claude Code зсередини." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#BD5F40",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="m09" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../index.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIA</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Академія</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 09</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../index.html#syllabus" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + уроки модуля (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Трек IV · Агенти та продакшн</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Агенти й агентні системи</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Просунутий · 5 уроків · ≈ 75 хв читання</p>
+        <p class="mt-6 text-lg">
+          Усі цеглинки зібрано: промпти з Треку II, API, інструменти, пам'ять
+          і стандартний роз'єм із Треку III. Час скласти з них системи, які працюють
+          самі. Цей модуль розставить терміни — workflow проти агента, — дасть п'ять
+          робочих патернів оркестрації і нарешті виростить «ембріон агента»
+          з Модуля 6 у повноцінний цикл.
+        </p>
+
+        <hr />
+
+        <!-- УРОК 9.1 -->
+        <section id="l1" data-lesson="9.1 Workflow чи агент" class="scroll-mt-24">
+          <h2><span class="lesson-no">9.1</span>Workflow чи агент: важлива різниця</h2>
+          <p>
+            Слово «агент» сьогодні клеять на все підряд, тож розставимо терміни.
+            Різниця не академічна, а суто практична — і вона в одному питанні:
+            <strong>хто визначає маршрут?</strong>
+          </p>
+          <ul>
+            <li><strong>Workflow</strong> — кроки з викликами моделі з'єднані заздалегідь
+              написаним кодом. Маршрут відомий до старту: спершу класифікація, потім
+              екстракція, потім звіт. Ти — диригент, модель — оркестранти.</li>
+            <li><strong>Агент</strong> — модель сама вирішує, які кроки і в якому
+              порядку робити: викликає інструменти в циклі, дивиться на результати
+              й коригує план, поки не досягне мети. Маршрут народжується в процесі.</li>
+          </ul>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TB
+  subgraph W["Workflow: маршрут визначає код"]
+    direction LR
+    A["Крок A"] --> B["Крок B"]
+    B --> C["Крок C"]
+  end
+  subgraph AG["Агент: маршрут обирає модель"]
+    direction LR
+    M["Модель"] -->|"дія"| TL["Інструменти"]
+    TL -->|"спостереження"| M
+  end
+  style M fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">Workflow — передбачуваний і дешевий; агент — гнучкий, але дорожчий і менш
+              керований</p>
+          </div>
+
+          <p>
+            Звідси робоче правило, яке тримає весь модуль:
+            <strong>шукай найпростіше рішення, що працює</strong>. Дуже часто це один
+            добре написаний промпт із Модулів 3–4. Не вистачило — ланцюжок промптів.
+            Далі — workflow із розгалуженнями. І лише коли маршрут принципово неможливо
+            прописати наперед — агент. Кожна сходинка вгору додає гнучкості, але
+            забирає передбачуваність, швидкість і гроші.
+          </p>
+        </section>
+
+        <!-- УРОК 9.2 -->
+        <section id="l2" data-lesson="9.2 Базові патерни" class="scroll-mt-24">
+          <h2><span class="lesson-no">9.2</span>Базові патерни: chaining, routing, паралелізація</h2>
+          <p>
+            <strong>1 · Prompt chaining — ланцюжок.</strong> Вихід одного кроку стає
+            входом наступного. Тижневі відгуки клієнтів: перший промпт витягає проблеми,
+            другий групує їх за темами, третій пише звіт для власниці. Кожен крок
+            простий і налагоджується окремо, а між кроками код може ставити «шлюзи» —
+            перевірки, що результат придатний для наступного етапу. Пам'ятаєш
+            антипатерн «промпт-вінегрет» із Модуля 4? Ланцюжок — його ліки.
+          </p>
+          <p>
+            <strong>2 · Routing — маршрутизація.</strong> Перший виклик — легкий
+            класифікатор, який спрямовує запит у спеціалізовану гілку зі своїм промптом.
+            Наш класифікатор звернень із Модуля 4 нарешті отримує продовження:
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart LR
+  IN["Звернення клієнта"] --> R["Класифікатор"]
+  R -->|"нове замовлення"| A["Промпт: оформлення заявки"]
+  R -->|"зміна замовлення"| B["Промпт: коригування"]
+  R -->|"скарга"| C["Промпт: відповідь + ескалація людині"]
+  style R fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">Кожна гілка має власний вузький промпт замість одного «промпта на всі випадки»
+            </p>
+          </div>
+
+          <p>
+            Класифікатор тут найкраще робити дешевою моделлю з few-shot прикладами
+            (Модуль 4) і структурованим виводом через форсований інструмент
+            (Модуль 6) — тоді гілка обирається надійно, а коштує копійки.
+          </p>
+          <p>
+            <strong>3 · Паралелізація.</strong> Незалежні підзадачі — одночасно.
+            Два смаки: <em>секціонування</em> — різні аспекти паралельно (один виклик
+            перевіряє факти листа, другий тон, третій структуру — потім результати
+            зливаються); і <em>голосування</em> — та сама задача кілька разів,
+            а код бере консенсус: корисно там, де потрібна надійність одного
+            критичного рішення.
+          </p>
+        </section>
+
+        <!-- УРОК 9.3 -->
+        <section id="l3" data-lesson="9.3 Складні патерни" class="scroll-mt-24">
+          <h2><span class="lesson-no">9.3</span>Складніші патерни: оркестратор і оцінювач</h2>
+          <p>
+            <strong>4 · Orchestrator–workers.</strong> Зовні схоже на паралелізацію,
+            але з принциповою різницею: підзадачі визначає не код, а
+            <strong>модель-оркестратор</strong>. Запит «підготуй комерційну пропозицію
+            для весілля на 80 гостей» оркестратор сам розбиває: воркеру-кухарю — меню,
+            воркеру-логісту — доставка й персонал, воркеру-фінансисту — кошторис;
+            потім синтезує результати в один документ. Бери цей патерн, коли
+            <em>структура</em> розбиття залежить від конкретного запиту.
+          </p>
+          <p>
+            <strong>5 · Evaluator–optimizer.</strong> Двійка «генератор + оцінювач»
+            у циклі: генератор створює чернетку, оцінювач перевіряє її за явними
+            критеріями (тон, факти, обсяг) і повертає зауваження, генератор виправляє —
+            і так до «прийнято» або ліміту ітерацій. Упізнаєш? Це автоматизоване
+            <em>розпізнавання</em> з Модуля 2: цикл «оцінка → конкретний фідбек →
+            ітерація», тільки тепер обидві ролі грає модель.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Патерн</th>
+                <th>Коли брати</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Prompt chaining</td>
+                <td>Задача природно ділиться на відомі послідовні кроки</td>
+              </tr>
+              <tr>
+                <td>Routing</td>
+                <td>Різні типи запитів потребують різної обробки</td>
+              </tr>
+              <tr>
+                <td>Паралелізація</td>
+                <td>Підзадачі незалежні, або потрібен консенсус для надійності</td>
+              </tr>
+              <tr>
+                <td>Orchestrator–workers</td>
+                <td>Розбиття на підзадачі залежить від самого запиту</td>
+              </tr>
+              <tr>
+                <td>Evaluator–optimizer</td>
+                <td>Є чіткі критерії якості й цінність ітеративного покращення</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout">
+            <span class="callout-title">Цінник складності</span>
+            <p>
+              Кожен патерн — це додаткові виклики моделі: час, гроші, точки відмови.
+              Патерни можна комбінувати (routing, а в гілках — ланцюжки), але правило
+              з Модуля 7 повертається: складність має окупатися. Якщо один промпт
+              дає 95% якості — він і є правильною архітектурою.
+            </p>
+          </div>
+        </section>
+
+        <!-- УРОК 9.4 -->
+        <section id="l4" data-lesson="9.4 Агентний цикл" class="scroll-mt-24">
+          <h2><span class="lesson-no">9.4</span>Агентний цикл: думка → дія → спостереження</h2>
+          <p>
+            А тепер задачі, де маршрут наперед невідомий: налагодити код, дослідити
+            питання, зібрати дані з кількох систем із несподіванками дорогою. Тут
+            працює агентний цикл: модель <strong>міркує</strong> (покрокове мислення
+            з Модуля 4), <strong>діє</strong> (викликає інструмент із Модуля 6),
+            <strong>спостерігає</strong> результат — і повторює, поки мету
+            не досягнуто.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  T["Задача"] --> TH["Думка: що робити далі?"]
+  TH --> D{"Потрібен інструмент?"}
+  D -->|"так"| ACT["Дія: tool_use"]
+  ACT --> OBS["Спостереження: tool_result"]
+  OBS --> TH
+  D -->|"ні"| FIN["Фінальна відповідь"]
+  style D stroke:#D97757
+  style TH fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">Той самий while-цикл із Модуля 6 — тепер із метою, стоп-умовою і страховкою</p>
+          </div>
+
+          <p>
+            «Ембріон агента» з Модуля 6 виростає трьома доповненнями: системний промпт
+            із роллю і правилом завершення, ліміт кроків і чесна обробка помилок.
+          </p>
+
+          <div class="example">
+            <div class="example-head"><span>Python · універсальний агентний цикл</span></div>
+            <pre>import json
+from anthropic import Anthropic
+
+client = Anthropic()
+MODEL = "claude-sonnet-5"
+
+SYSTEM = (
+    "Ти — операційний агент кейтерингової компанії. "
+    "Розв'язуй задачу крок за кроком: міркуй, викликай потрібні "
+    "інструменти, аналізуй результати. Коли даних достатньо — "
+    "дай фінальну відповідь без виклику інструментів."
+)
+
+def run_agent(task, tools, tool_impls, max_steps=8):
+    messages = [{"role": "user", "content": task}]
+
+    for step in range(max_steps):
+        response = client.messages.create(
+            model=MODEL, max_tokens=1024,
+            system=SYSTEM, tools=tools, messages=messages,
+        )
+
+        # немає запитів на інструменти — агент вважає мету досягнутою
+        if response.stop_reason != "tool_use":
+            return response.content[0].text
+
+        messages.append({"role": "assistant", "content": response.content})
+
+        results = []
+        for block in response.content:
+            if block.type == "tool_use":
+                fn = tool_impls[block.name]
+                try:
+                    output = json.dumps(fn(**block.input), ensure_ascii=False)
+                    results.append({"type": "tool_result",
+                                    "tool_use_id": block.id,
+                                    "content": output})
+                except Exception as err:
+                    # чесна помилка — агент адаптується (Модуль 6)
+                    results.append({"type": "tool_result",
+                                    "tool_use_id": block.id,
+                                    "content": str(err),
+                                    "is_error": True})
+
+        messages.append({"role": "user", "content": results})
+
+    return "Досягнуто ліміт кроків — задача потребує людини."</pre>
+          </div>
+
+          <p>Чотири рішення, які роблять цикл придатним до життя:</p>
+          <ul>
+            <li><strong>Стоп-умова:</strong> відповідь без <code>tool_use</code> —
+              сигнал, що агент завершив; правило прописане прямо в системному промпті;</li>
+            <li><strong><code>max_steps</code>:</strong> страховка від нескінченного
+              циклу і неконтрольованого рахунку — з чесним фолбеком на людину;</li>
+            <li><strong>помилки без прикрас:</strong> <code>is_error</code> з Модуля 6
+              дає агенту шанс змінити план замість тихого провалу;</li>
+            <li><strong>контекст росте з кожним кроком</strong> — економіка з Модуля 5:
+              тримай результати інструментів компактними, а довгі — підсумовуй.</li>
+          </ul>
+          <p>
+            І принцип, що важливіший за код: <strong>прозорість</strong>. Логуй думки
+            і кроки агента — без цього налагодження перетворюється на ворожіння,
+            а довіра користувача — на лотерею.
+          </p>
+        </section>
+
+        <!-- УРОК 9.5 -->
+        <section id="l5" data-lesson="9.5 Claude Code і вибір" class="scroll-mt-24">
+          <h2><span class="lesson-no">9.5</span>Claude Code зсередини — і коли агент не потрібен</h2>
+          <p>
+            Найкращий спосіб відчути агентний цикл — подивитися на живий приклад.
+            Claude Code — агент для роботи з кодом у терміналі. Його інструменти:
+            читання й редагування файлів, пошук по репозиторію, запуск команд і тестів.
+            Сесія «полагодь червоний тест» виглядає як підручниковий цикл: прочитати
+            тест (дія) → побачити помилку (спостереження) → прочитати код → внести
+            правку → запустити тести → знову червоні? ще ітерація → зелені —
+            мету досягнуто.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Секрет збіжності</span>
+            <p>
+              Кодинг — ідеальне середовище для агентів, бо воно саме каже, чи вийшло:
+              тести, компілятор, лінтер дають перевірюваний зворотний звязок. Звідси
+              урок для твоїх агентів: дай їм спосіб перевіряти себе — валідатор,
+              тест, контрольний запит. Цикл із перевіркою сходиться; цикл
+              «на відчуттях» блукає.
+            </p>
+          </div>
+
+          <p>
+            І чесний чекліст наостанок — <strong>коли агента будувати не варто</strong>:
+          </p>
+          <ul>
+            <li>маршрут відомий заздалегідь → workflow дешевший і стабільніший;</li>
+            <li>досить однієї відповіді → один добрий промпт, і крапка;</li>
+            <li>ціна помилки висока, а перевірити автоматично нічим → людина веде,
+              модель асистує (матриця з Модуля 2);</li>
+            <li>бюджет викликів критичний → вартість агента непередбачувана
+              за визначенням.</li>
+          </ul>
+          <p>
+            Драбина рішень модуля: промпт → ланцюжок → workflow з маршрутизацією →
+            агент. Підіймайся лише тоді, коли нижня сходинка чесно не тягне. А як
+            зрозуміти, що «тягне» чи «не тягне», не на око? Саме про це наступний
+            модуль — evals: вимірювання якості ШІ-систем.
+          </p>
+        </section>
+
+        <hr />
+
+        <div class="callout callout-sand">
+          <span class="callout-title">Підсумок модуля</span>
+          <ul>
+            <li>Workflow — маршрут у коді; агент — маршрут обирає модель у циклі. Починай із простішого.</li>
+            <li>П'ять патернів: chaining, routing, паралелізація, orchestrator–workers, evaluator–optimizer.</li>
+            <li>Агентний цикл = думка → дія → спостереження; обов'язкові стоп-умова і ліміт кроків.</li>
+            <li>Помилки інструментів повертай чесно через is_error — агент адаптується.</li>
+            <li>Давай агенту перевірку себе: тести й валідатори роблять цикл збіжним — секрет Claude Code.</li>
+            <li>Драбина: промпт → ланцюжок → workflow → агент; кожна сходинка має окупатися.</li>
+          </ul>
+        </div>
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Вісім питань про агентів і патерни. Обирай відповідь — і одразу отримуй
+            пояснення.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "У чому головна різниця між workflow та агентом?",
+            "options": [
+              "Workflow працює швидше за будь-яких умов",
+              "У workflow маршрут визначає код заздалегідь, в агента — модель у процесі",
+              "Агент не використовує інструменти",
+              "Workflow не може викликати модель двічі"
+            ],
+            "answer": 1,
+            "explain": "Це і є межа термінів: заздалегідь прописаний маршрут — workflow; модель, що сама обирає наступний крок у циклі з інструментами, — агент."
+          },
+          {
+            "q": "Відгуки → витягти проблеми → згрупувати → написати звіт. Кроки відомі й послідовні. Який патерн?",
+            "options": [
+              "Orchestrator–workers",
+              "Prompt chaining",
+              "Голосування",
+              "Повноцінний агент"
+            ],
+            "answer": 1,
+            "explain": "Класичний ланцюжок: вихід кроку — вхід наступного, кожен етап простий і налагоджується окремо. Ліки від «промпта-вінегрета» з Модуля 4."
+          },
+          {
+            "q": "Звернення різних типів мають оброблятися різними промптами. Який патерн обрати?",
+            "options": [
+              "Routing: класифікатор спрямовує у спеціалізовану гілку",
+              "Паралелізація всіх гілок одразу",
+              "Evaluator–optimizer",
+              "Збільшити temperature"
+            ],
+            "answer": 0,
+            "explain": "Маршрутизація: дешевий класифікатор (few-shot + структурований вивід) обирає гілку, і кожна гілка має вузький якісний промпт замість одного «на всі випадки»."
+          },
+          {
+            "q": "Чим orchestrator–workers відрізняється від простої паралелізації?",
+            "options": [
+              "Нічим, це синоніми",
+              "Підзадачі визначає модель-оркестратор, а не заздалегідь написаний код",
+              "Оркестратор працює лише з одним воркером",
+              "Паралелізація завжди дорожча"
+            ],
+            "answer": 1,
+            "explain": "У паралелізації розбиття зашите в коді; в orchestrator–workers модель сама вирішує, на які підзадачі ділити конкретний запит — структура народжується з задачі."
+          },
+          {
+            "q": "Evaluator–optimizer — це автоматизація якої компетенції з Модуля 2?",
+            "options": [
+              "Делегування",
+              "Опису",
+              "Розпізнавання",
+              "Прозорості"
+            ],
+            "answer": 2,
+            "explain": "Цикл «оцінка за критеріями → конкретний фідбек → ітерація» — це розпізнавання, тільки тепер і генератором, і критиком виступає модель."
+          },
+          {
+            "q": "Як агент із нашого коду розуміє, що час завершувати роботу?",
+            "options": [
+              "Минуло рівно вісім секунд",
+              "Модель відповіла без tool_use — даних достатньо для фінальної відповіді",
+              "Користувач натиснув стоп",
+              "Закінчилися інструменти у списку"
+            ],
+            "answer": 1,
+            "explain": "Стоп-умова циклу: stop_reason не дорівнює tool_use. Правило «коли даних досить — відповідай без інструментів» прописане прямо в системному промпті агента."
+          },
+          {
+            "q": "Навіщо агентному циклу параметр max_steps?",
+            "options": [
+              "Щоб агент працював швидше",
+              "Страховка від нескінченного циклу і неконтрольованих витрат",
+              "Це вимога API",
+              "Щоб модель не нудьгувала"
+            ],
+            "answer": 1,
+            "explain": "Агент непередбачуваний за маршрутом — отже, і за вартістю. Ліміт кроків із чесним фолбеком «задача потребує людини» захищає і бюджет, і користувача."
+          },
+          {
+            "q": "Чому саме робота з кодом — таке вдячне середовище для агентів?",
+            "options": [
+              "Код коротший за звичайний текст",
+              "Середовище дає перевірюваний зворотний звязок: тести й компілятор кажуть, чи вийшло",
+              "Програмісти терплячіші за інших користувачів",
+              "У коді не буває галюцинацій"
+            ],
+            "answer": 1,
+            "explain": "Тести, компілятор і лінтер — об'єктивний сигнал успіху, тому цикл сходиться. Звідси правило: давай своїм агентам спосіб перевіряти себе — валідатори і тести."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>

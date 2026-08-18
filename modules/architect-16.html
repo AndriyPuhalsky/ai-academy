@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../architect.config.json">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 16 · Бекенд для AI-продукту — AI Architect</title>
+  <meta name="description" content="Загортаємо AI-код у вебсервіс: навіщо бекенд, FastAPI-ендпоінт, повний робочий бекенд і фронтенд, потік запиту, обробка помилок і безпека ключа." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#BD5F40",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="a16" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../index.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIA</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Architect</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 16</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../index.html" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">На головну</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>architect.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза D · Продакшн</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Бекенд для AI-продукту</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Продакшн · 7 уроків · ≈ 90 хв</p>
+        <p class="mt-6 text-lg">
+          Досі весь наш код працював лише в твоєму терміналі — ним не міг скористатися ніхто інший. У цій
+          фазі ми перетворимо код на <strong>справжній продукт</strong>. Перший крок — бекенд: сервіс, що
+          приймає запити й повертає відповіді, плюс простий вебінтерфейс. Зберемо повний робочий приклад,
+          який запрацює в браузері.
+        </p>
+
+        <hr />
+
+        <!-- УРОК 16.1 -->
+        <section id="l1" data-lesson="16.1 Навіщо бекенд" class="scroll-mt-24">
+          <h2><span class="lesson-no">16.1</span>Навіщо потрібен бекенд</h2>
+          <p>
+            Твій скрипт із Модуля 8 чудово працює — але тільки коли <em>ти</em> запускаєш його в терміналі.
+            Щоб ним користувався клієнт чи колега через браузер, код має «жити» на сервері й відповідати на
+            запити. Це і є <strong>бекенд</strong>.
+          </p>
+          <p>
+            <strong>Аналогія.</strong> Уяви, що твій код — кухар, який чудово готує. Але поки він на твоїй
+            домашній кухні, поїсти може лише ти. Бекенд — це ресторан: є зал, офіціант приймає замовлення,
+            кухар готує, страву виносять гостю. Тепер скористатися можуть усі.
+          </p>
+          <p>І ще одна, критично важлива причина (про неї часто забувають):</p>
+          <div class="callout">
+            <p><strong>Бекенд ховає твій ключ.</strong> Пам'ятаєш із Модуля 7 — ключ не можна показувати?
+            Якби браузер звертався до Claude напряму, ключ був би видний кожному відвідувачу (а отже,
+            вкрадений). Бекенд тримає ключ у себе на сервері: браузер говорить лише з <em>твоїм</em>
+            бекендом, а вже бекенд — із Claude. Це головна технічна причина, чому бекенд обов'язковий.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 16.2 -->
+        <section id="l2" data-lesson="16.2 Ендпоінти й FastAPI" class="scroll-mt-24">
+          <h2><span class="lesson-no">16.2</span>Веб-бекенд, ендпоінти та FastAPI</h2>
+          <p>
+            Бекенд — це програма, що постійно «слухає» запити. Точка, куди надсилають запит, зветься
+            <strong>ендпоінт</strong> (endpoint) — по суті, адреса-URL із певною функцією. Наприклад,
+            ендпоінт <code>/ask</code> прийматиме питання й повертатиме відповідь моделі.
+          </p>
+          <p>
+            Згадай клієнт-сервер із Модуля 4: браузер (клієнт) робить запит на ендпоінт, бекенд (сервер)
+            обробляє й повертає відповідь — зазвичай у JSON. Щоб не писати весь сервер з нуля, беремо
+            <strong>FastAPI</strong> — популярну Python-бібліотеку, що робить створення бекенду простим і
+            швидким.
+          </p>
+          <div class="callout">
+            <p><strong>Що знадобиться.</strong> Дві бібліотеки: <code>fastapi</code> (сам бекенд) і
+            <code>uvicorn</code> (сервер, що його запускає). Постав їх або попроси Claude Code:
+            <code>pip install fastapi uvicorn</code> (на macOS/Linux інколи <code>pip3</code>). Ключ
+            читаємо з <code>.env</code>, як завжди (Модуль 7).</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 16.3 -->
+        <section id="l3" data-lesson="16.3 Перший бекенд (код)" class="scroll-mt-24">
+          <h2><span class="lesson-no">16.3</span>Перший бекенд на FastAPI (повний код)</h2>
+          <p>
+            Ось <strong>увесь файл</strong> <code>main.py</code> — бекенд з одним ендпоінтом
+            <code>/ask</code>, що звертається до Claude. Попроси Claude Code створити його або скопіюй:
+          </p>
+          <pre><code>import os
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from anthropic import Anthropic
+from dotenv import load_dotenv
+
+load_dotenv()
+client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+MODEL = "claude-sonnet-5"   # приклад; актуальні моделі — docs.claude.com
+
+app = FastAPI()   # створюємо застосунок-бекенд
+
+# Дозволяємо браузеру звертатися до бекенду (CORS).
+# Для навчання дозволяємо всім; у проді — лише свій сайт.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
+)
+
+# Опис того, що приймає ендпоінт: об'єкт із полем text (рядок)
+class Question(BaseModel):
+    text: str
+
+# Сам ендпоінт: приймає POST-запит на /ask
+@app.post("/ask")
+def ask(q: Question):
+    resp = client.messages.create(
+        model=MODEL, max_tokens=500,
+        messages=[{"role": "user", "content": q.text}],
+    )
+    return {"answer": resp.content[0].text}   # повертаємо відповідь у JSON</code></pre>
+          <div class="callout">
+            <p><strong>Розбір.</strong> <code>app = FastAPI()</code> — створює бекенд. <code>class
+            Question(BaseModel)</code> — описує очікуваний вхід (поле <code>text</code> типу рядок); FastAPI
+            сам перевірить, що запит правильний. <code>@app.post("/ask")</code> — це «декоратор»: він каже
+            «функція нижче обробляє POST-запити на адресу <code>/ask</code>». Усередині — знайомий виклик
+            Claude (Модуль 8), а <code>return {"answer": ...}</code> віддає відповідь у форматі JSON
+            (Модуль 4). Зверни увагу: ключ лишається тут, на бекенді — браузер його не побачить.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 16.4 -->
+        <section id="l4" data-lesson="16.4 Запускаємо й тестуємо" class="scroll-mt-24">
+          <h2><span class="lesson-no">16.4</span>Запускаємо й тестуємо бекенд</h2>
+          <p>Бекенд запускає сервер <code>uvicorn</code>. У терміналі, в папці з <code>main.py</code>:</p>
+          <pre><code>uvicorn main:app --reload</code></pre>
+          <p>
+            Тут <code>main</code> — ім'я файлу (<code>main.py</code>), <code>app</code> — наш застосунок
+            усередині, а <code>--reload</code> автоматично перезапускає сервер, коли ти змінюєш код (зручно
+            під час розробки).
+          </p>
+          <div class="callout">
+            <p><strong>Що ти маєш побачити</strong> у терміналі:</p>
+            <p><code>INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)</code><br/>
+            <code>INFO:     Application startup complete.</code></p>
+            <p>Це означає, що бекенд працює за адресою <code>127.0.0.1:8000</code> (це твій власний
+            комп'ютер, «localhost»).</p>
+          </div>
+          <p>
+            Найзручніший спосіб одразу перевірити ендпоінт — вбудована сторінка документації FastAPI.
+            Відкрий у браузері:
+          </p>
+          <pre><code>http://127.0.0.1:8000/docs</code></pre>
+          <div class="callout">
+            <p><strong>Що ти маєш побачити.</strong> Сторінку з твоїм ендпоінтом <code>/ask</code>. Натисни
+            на нього → «Try it out» → впиши у поле <code>text</code> якесь питання → «Execute». Нижче
+            з'явиться відповідь моделі у JSON: <code>{"answer": "..."}</code>. Вітаю — твій AI працює як
+            вебсервіс! FastAPI автоматично згенерував цю сторінку для тебе.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Якщо помилка.</strong> «Address already in use» — порт зайнятий, додай інший:
+            <code>uvicorn main:app --reload --port 8001</code>. Помилка про ключ — перевір <code>.env</code>
+            (Модуль 7). «command not found: uvicorn» — встанови <code>pip install uvicorn</code>.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 16.5 -->
+        <section id="l5" data-lesson="16.5 Простий інтерфейс" class="scroll-mt-24">
+          <h2><span class="lesson-no">16.5</span>Додаємо простий вебінтерфейс</h2>
+          <p>
+            Сторінка <code>/docs</code> — для розробників. Зробимо людський інтерфейс: проста HTML-сторінка
+            з полем і кнопкою, що звертається до нашого бекенду. Створи файл <code>index.html</code>:
+          </p>
+          <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="uk"&gt;
+&lt;head&gt;&lt;meta charset="UTF-8"&gt;&lt;title&gt;AI помічник&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Запитай AI&lt;/h1&gt;
+  &lt;input id="q" placeholder="Твоє питання" /&gt;
+  &lt;button onclick="ask()"&gt;Запитати&lt;/button&gt;
+  &lt;p id="answer"&gt;&lt;/p&gt;
+
+  &lt;script&gt;
+    async function ask() {
+      const text = document.getElementById("q").value;
+      document.getElementById("answer").textContent = "Думаю...";
+
+      const res = await fetch("http://127.0.0.1:8000/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: text }),   // надсилаємо питання у JSON
+      });
+
+      const data = await res.json();             // отримуємо {answer: ...}
+      document.getElementById("answer").textContent = data.answer;
+    }
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+          <div class="callout">
+            <p><strong>Це JavaScript — і це нормально.</strong> Інтерфейс у браузері пишуть мовою
+            JavaScript (не Python). Не лякайся: тобі не треба її опановувати — Claude Code напише фронтенд
+            за тебе. Важливо <em>розуміти потік</em>: <code>fetch("...","POST", body)</code> надсилає питання
+            на наш бекенд (Модуль 4), <code>await res.json()</code> отримує відповідь, і ми показуємо її на
+            сторінці. <code>async/await</code> просто означає «зачекай на відповідь, перш ніж показувати».</p>
+          </div>
+          <div class="callout">
+            <p><strong>Навіщо CORS у бекенді.</strong> Браузер із міркувань безпеки за замовчуванням блокує
+            запити з однієї адреси на іншу. Рядок із <code>CORSMiddleware</code> у <code>main.py</code> якраз
+            дозволяє нашій сторінці звертатися до бекенду. Без нього браузер показав би помилку CORS — тепер
+            ти знатимеш, що це й де лагодити.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 16.6 -->
+        <section id="l6" data-lesson="16.6 З'єднуємо все" class="scroll-mt-24">
+          <h2><span class="lesson-no">16.6</span>З'єднуємо все докупи</h2>
+          <p>Тепер маємо дві частини. Запусти бекенд (якщо ще не запущений) і відкрий сторінку:</p>
+          <pre><code>uvicorn main:app --reload          # 1) бекенд працює на :8000
+# 2) відкрий index.html у браузері (подвійним кліком або через localhost)</code></pre>
+          <p>Впиши питання, натисни «Запитати» — і за мить побачиш відповідь. Ось що сталося «під капотом»:</p>
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart LR
+  U["Браузер<br/>(index.html)"] -->|"POST /ask + питання"| B["Бекенд<br/>(FastAPI, main.py)"]
+  B -->|"запит з ключем"| M["Claude API"]
+  M -->|"відповідь"| B
+  B -->|"JSON {answer}"| U
+  style B fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">Повний потік: браузер → твій бекенд → Claude → назад. Ключ живе лише на бекенді</p>
+          </div>
+          <div class="callout">
+            <p><strong>Що ти маєш побачити.</strong> На сторінці з'являється «Думаю...», а за секунду —
+            відповідь моделі. У терміналі, де працює <code>uvicorn</code>, з'явиться рядок про отриманий
+            запит (наприклад, <code>POST /ask 200 OK</code>). Це твій перший повноцінний AI-застосунок:
+            інтерфейс + бекенд + модель.</p>
+          </div>
+          <p>
+            Осягни масштаб: ти пройшов шлях від «скрипт у терміналі» до «продукт, яким можна користуватись у
+            браузері». Будь-який AI-агент із попередніх модулів можна так само загорнути в ендпоінт — і він
+            стане доступним сервісом.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 16.7 -->
+        <section id="l7" data-lesson="16.7 Помилки й безпека" class="scroll-mt-24">
+          <h2><span class="lesson-no">16.7</span>Обробка помилок, структура й безпека</h2>
+          <p>Перш ніж публікувати продукт (наступний модуль), зробімо його охайнішим і безпечнішим.</p>
+          <ul>
+            <li><strong>Обробка помилок.</strong> Виклик моделі може впасти (збій, ліміт). Обгорни його в
+              <code>try/except</code> (Модуль 6) і повертай зрозумілу помилку, а не «поклади» весь бекенд:</li>
+          </ul>
+          <pre><code>from fastapi import HTTPException
+
+@app.post("/ask")
+def ask(q: Question):
+    try:
+        resp = client.messages.create(
+            model=MODEL, max_tokens=500,
+            messages=[{"role": "user", "content": q.text}],
+        )
+        return {"answer": resp.content[0].text}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Не вдалося отримати відповідь")</code></pre>
+          <ul>
+            <li><strong>Структура проєкту.</strong> Тримай файли охайно: <code>main.py</code> (бекенд),
+              <code>index.html</code> (інтерфейс), <code>.env</code> (ключ, у <code>.gitignore</code>!),
+              <code>requirements.txt</code> (список бібліотек — знадобиться для деплою).</li>
+            <li><strong>Безпека ключа.</strong> Повторимо головне: ключ <em>лише</em> на бекенді, у
+              <code>.env</code>, ніколи не у фронтенді й не в Git. Браузер спілкується тільки з твоїм
+              бекендом.</li>
+            <li><strong>Перевірка вводу.</strong> FastAPI з <code>BaseModel</code> уже відсіює запити без
+              поля <code>text</code> — це безкоштовний захист від кривих запитів.</li>
+          </ul>
+          <div class="callout">
+            <p><strong>Підказка про requirements.txt.</strong> Це простий файл зі списком потрібних
+            бібліотек (по одній на рядок: <code>fastapi</code>, <code>uvicorn</code>, <code>anthropic</code>,
+            <code>python-dotenv</code>). Він потрібен, щоб сервер під час деплою знав, що встановити. Claude
+            Code може згенерувати його командою чи на прохання.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Підсумок модуля.</strong> Ти зрозумів, навіщо бекенд (доступ для інших + захист
+            ключа), зібрав повний бекенд на FastAPI з ендпоінтом <code>/ask</code>, запустив його через
+            uvicorn, додав простий вебінтерфейс, з'єднав усе докупи й подбав про помилки та безпеку. Твій
+            AI вже працює як застосунок — але поки лише на твоєму комп'ютері. Наступний модуль — деплой:
+            зробимо його доступним в інтернеті 24/7.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>Сім питань без дедлайнів. Обирай відповідь — і одразу бачиш пояснення.</p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Навіщо потрібен бекенд для AI-продукту?",
+            "options": [
+              "Щоб код виглядав складнішим",
+              "Щоб ним могли користуватися інші через браузер і щоб ключ лишався прихованим на сервері",
+              "Щоб не платити за модель",
+              "Щоб працювати без інтернету"
+            ],
+            "answer": 1,
+            "explain": "Бекенд робить код доступним сервісом і ховає ключ: браузер говорить лише з твоїм бекендом, а той — із Claude."
+          },
+          {
+            "q": "Що таке ендпоінт (endpoint)?",
+            "options": [
+              "Назва моделі",
+              "Адреса-URL на бекенді з певною функцією, куди надсилають запит (наприклад, /ask)",
+              "Тип файлу",
+              "Помилка сервера"
+            ],
+            "answer": 1,
+            "explain": "Ендпоінт — точка входу бекенду: URL, який приймає запит і повертає відповідь. У нас це /ask."
+          },
+          {
+            "q": "Що робить рядок @app.post(\"/ask\") перед функцією?",
+            "options": [
+              "Видаляє функцію",
+              "Каже FastAPI: ця функція обробляє POST-запити на адресу /ask",
+              "Запускає браузер",
+              "Створює ключ"
+            ],
+            "answer": 1,
+            "explain": "Це декоратор маршруту: він прив'язує функцію до ендпоінта /ask і методу POST."
+          },
+          {
+            "q": "Якою командою запускають бекенд на FastAPI?",
+            "options": [
+              "python main.py завжди",
+              "uvicorn main:app --reload (uvicorn — сервер, що запускає застосунок)",
+              "git push",
+              "npm start"
+            ],
+            "answer": 1,
+            "explain": "uvicorn — це сервер; main:app означає «застосунок app у файлі main.py»; --reload перезапускає при змінах коду."
+          },
+          {
+            "q": "Що показує сторінка http://127.0.0.1:8000/docs?",
+            "options": [
+              "Помилку",
+              "Автоматичну документацію FastAPI, де можна протестувати ендпоінти",
+              "Код моделі",
+              "Файли проєкту"
+            ],
+            "answer": 1,
+            "explain": "FastAPI сам генерує інтерактивну сторінку /docs — там можна викликати ендпоінт і побачити відповідь без коду."
+          },
+          {
+            "q": "Чому ключ доступу має лишатися на бекенді, а не у фронтенді?",
+            "options": [
+              "Так швидше",
+              "Бо код фронтенду видно кожному відвідувачу — ключ був би вкрадений; бекенд тримає його в себе",
+              "Це не має значення",
+              "Бо браузер не вміє робити запити"
+            ],
+            "answer": 1,
+            "explain": "Фронтенд відкритий для всіх. Якби ключ був там, його б миттєво вкрали. Тому браузер говорить лише з твоїм бекендом."
+          },
+          {
+            "q": "Навіщо у бекенді налаштування CORS?",
+            "options": [
+              "Щоб пришвидшити модель",
+              "Щоб дозволити браузеру (з іншої адреси) звертатися до твого бекенду — інакше він заблокує запит",
+              "Щоб зашифрувати ключ",
+              "Це необов'язково ніколи"
+            ],
+            "answer": 1,
+            "explain": "Браузер за замовчуванням блокує крос-адресні запити. CORS дозволяє твоїй сторінці звертатися до бекенду; у проді його обмежують своїм сайтом."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Бекенд працює в браузері?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач модуль завершеним — і відкриється Модуль 17: деплой, щоб продукт жив в інтернеті 24/7.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+</html>

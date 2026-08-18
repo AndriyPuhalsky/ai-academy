@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../architect.config.json">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 9 · Промпт-інжиніринг промислового рівня — AI Architect</title>
+  <meta name="description" content="Передбачувані відповіді: структурований вивід (JSON), техніки промптингу й валідація. Будуємо реальний видобувач даних зі звернень клієнтів." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#BD5F40",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="a09" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../index.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIA</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Architect</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 09</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../index.html" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">На головну</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>architect.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза B · Будуємо з LLM</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Промпт-інжиніринг промислового рівня</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Практика · 5 уроків · ≈ 65 хв</p>
+        <p class="mt-6 text-lg">
+          У минулому модулі модель відповідала вільним текстом — добре для читання очима. Але щоб
+          <em>програма</em> могла надійно обробити відповідь, потрібен передбачуваний, машиночитаний
+          результат. Цей модуль навчить отримувати від моделі стабільний JSON і застосувати це на ділі:
+          ми разом збудуємо реальний <strong>видобувач даних</strong> — інструмент, що перетворює хаотичні
+          звернення клієнтів на акуратні структуровані записи.
+        </p>
+
+        <hr />
+
+        <!-- УРОК 9.1 -->
+        <section id="l1" data-lesson="9.1 Передбачуваність" class="scroll-mt-24">
+          <h2><span class="lesson-no">9.1</span>Від «гарної відповіді» до передбачуваної</h2>
+          <p>
+            У чаті ти читаєш відповідь сам — і вільний текст це окей. У коді вільний текст — проблема.
+            Уяви: програма хоче дістати з відповіді ціну. Сьогодні модель пише «Ціна: 200 грн», завтра —
+            «Це коштуватиме близько двохсот гривень». Код, що шукав число, ламається на другому варіанті.
+          </p>
+          <p>
+            <strong>Аналогія.</strong> Жива розмова — як базар: щоразу трохи інакше. А програмі потрібен
+            <em>торговий автомат</em>: натиснув «А3» — завжди та сама вода в тому самому місці. Промисловий
+            промптинг — це проєктування запиту так, щоб відповідь була стабільною й машиночитаною.
+          </p>
+          <p>Три принципи, на яких усе тримається:</p>
+          <ul>
+            <li><strong>Будь явним:</strong> чітко скажи формат, поля, мову, обмеження. Модель не вгадує — виконує.</li>
+            <li><strong>Дай структуру:</strong> проси конкретний формат (JSON із полями), а не «опиши».</li>
+            <li><strong>Перевіряй:</strong> код має валідувати відповідь і гідно реагувати, якщо вона не така.</li>
+          </ul>
+          <div class="callout">
+            <p><strong>Зміна мислення.</strong> Ти більше не «спілкуєшся» з моделлю — ти проєктуєш
+            <em>контракт</em>: «на такий вхід дай рівно такий вихід». Решта модуля — як цей контракт
+            закріпити технічно.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 9.2 -->
+        <section id="l2" data-lesson="9.2 Структурований JSON" class="scroll-mt-24">
+          <h2><span class="lesson-no">9.2</span>Структурований вивід: надійний JSON</h2>
+          <p>
+            Рішення — попросити відповідь у форматі <strong>JSON</strong> (Модуль 4) із чітко заданими
+            полями. <strong>Аналогія:</strong> це різниця між «напиши есе» і «заповни анкету: настрій,
+            тема, чи терміново». Анкету з полями легко прочитати автоматично; есе — ні.
+          </p>
+          <pre><code>system = (
+    "Ти аналізуєш відгук клієнта. Поверни ЛИШЕ JSON без пояснень, "
+    "за схемою: {\"sentiment\": \"позитивний|нейтральний|негативний\", "
+    "\"theme\": str, \"urgent\": bool}."
+)
+
+response = client.messages.create(
+    model=MODEL, max_tokens=300, system=system,
+    messages=[{"role": "user", "content": "Замовлення йшло два тижні, жах!"}],
+)
+
+import json
+data = json.loads(response.content[0].text)   # текст JSON -> словник Python
+print(data["sentiment"], data["urgent"])        # негативний True</code></pre>
+          <div class="callout">
+            <p><strong>Розбір.</strong> <code>json.loads()</code> перетворює <em>рядок</em> із JSON на
+            словник Python — і далі дістаєш поля як зі звичайного словника (Модуль 6):
+            <code>data["sentiment"]</code>. Назва <code>loads</code> = «load string». Зворотна дія —
+            <code>json.dumps()</code> (словник → рядок). Лапки всередині схеми ми екранували через
+            <code>\"</code> — щоб вони не закрили рядок передчасно.</p>
+          </div>
+          <p>
+            Іноді модель додає «ввічливий» текст перед JSON («Ось результат: {...}»), і
+            <code>json.loads</code> на цьому спіткнеться. Надійний трюк — <strong>префіл</strong>: останнім
+            ходом ставиш початок відповіді асистента з <code>{</code>, і модель продовжує одразу з JSON:
+          </p>
+          <pre><code>messages = [
+    {"role": "user", "content": "Замовлення йшло два тижні, жах!"},
+    {"role": "assistant", "content": "{"},      # префіл: змушуємо почати з JSON
+]</code></pre>
+          <div class="callout">
+            <p><strong>Чому це працює.</strong> Модель завжди <em>продовжує</em> вже написане (Модуль 8:
+            вона передбачає наступний токен). Поставивши за неї <code>{</code>, ти ніби почав речення
+            замість співрозмовника — і їй лишається продовжити саме JSON. Маленька деталь: оскільки
+            <code>{</code> уже «сказав» ти, у відповіді його не буде — тож у коді його треба додати назад
+            (побачиш це в нашому проєкті нижче).</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 9.3 -->
+        <section id="l3" data-lesson="9.3 Техніки промптингу" class="scroll-mt-24">
+          <h2><span class="lesson-no">9.3</span>Техніки, що різко підвищують якість</h2>
+          <p>Кілька прийомів, які перетворюють «так собі» на «точно те, що треба»:</p>
+          <ul>
+            <li><strong>Дай приклади (few-shot).</strong> Покажи 1–3 приклади «вхід → бажаний вихід».
+              Модель чудово наслідує показаний зразок — це найсильніший важіль для формату. Аналогія:
+              краще раз показати заповнену анкету, ніж довго описувати правила.</li>
+            <li><strong>Дозволь подумати.</strong> Для складних задач попроси спершу міркування, потім
+              відповідь: «спочатку обґрунтуй, потім дай фінальний JSON». Як людині — подумати вголос
+              перед відповіддю; точність зростає.</li>
+            <li><strong>Низька temperature</strong> (Модуль 8) для задач із «правильною» відповіддю.</li>
+            <li><strong>Будь конкретним</strong> щодо мови, формату й крайніх випадків.</li>
+          </ul>
+          <pre><code># Приклад few-shot прямо в системному промпті:
+system = (
+    "Класифікуй звернення. Поверни лише JSON {\"category\": ..., \"urgent\": ...}.\n"
+    "Приклад:\n"
+    "Вхід: 'Дякую, кур'єр приїхав вчасно!'\n"
+    "Вихід: {\"category\": \"доставка\", \"urgent\": false}"
+)</code></pre>
+          <div class="callout">
+            <p><strong>Чому приклад такий сильний.</strong> Один зразок бажаного виводу пояснює формат
+            краще за абзац інструкцій. Модель «бачить» точну форму — і повторює її. Це перше, що варто
+            спробувати, коли відповіді «майже, але не зовсім» правильні.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 9.4 -->
+        <section id="l4" data-lesson="9.4 Будуємо видобувач даних" class="scroll-mt-24">
+          <h2><span class="lesson-no">9.4</span>Проєкт: видобувач даних зі звернень</h2>
+          <p>
+            З'єднаємо все в реальний інструмент. Уяви бізнес, що отримує сотні звернень клієнтів вільним
+            текстом. Наш видобувач читатиме кожне й повертатиме акуратний структурований запис, який можна
+            скласти в таблицю чи базу. Ось логіка:
+          </p>
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart LR
+  T["Хаотичний текст<br/>звернення"] --> M["Claude<br/>(system: схема JSON)"]
+  M --> J["JSON-запис"]
+  J --> P["json.loads<br/>(словник Python)"]
+  P --> U["Готово: у таблицю / базу"]
+  style U fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">Видобувач: хаотичний текст → модель за схемою → JSON → готові структуровані дані</p>
+          </div>
+          <p>
+            Попроси Claude Code: «створи файл <code>extractor.py</code>, що класифікує звернення клієнта в
+            JSON за схемою category/sentiment/urgent/summary, з префілом і температурою 0». Вийде приблизно так:
+          </p>
+          <pre><code>import os, json
+from anthropic import Anthropic
+from dotenv import load_dotenv
+
+load_dotenv()
+client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+SYSTEM = (
+    "Ти класифікуєш звернення клієнтів служби підтримки. "
+    "Поверни ЛИШЕ JSON без пояснень, за схемою: "
+    "{\"category\": \"оплата|доставка|товар|інше\", "
+    "\"sentiment\": \"позитивний|нейтральний|негативний\", "
+    "\"urgent\": true або false, \"summary\": \"короткий підсумок\"}."
+)
+
+def extract(text):
+    resp = client.messages.create(
+        model="claude-sonnet-5",
+        max_tokens=300,
+        temperature=0,                      # потрібна стабільність, не творчість
+        system=SYSTEM,
+        messages=[
+            {"role": "user", "content": text},
+            {"role": "assistant", "content": "{"},   # префіл: почати з JSON
+        ],
+    )
+    raw = "{" + resp.content[0].text        # додаємо { назад, бо ним почали ми
+    return json.loads(raw)                   # рядок JSON -> словник
+
+ticket = "Замовлення йшло два тижні і досі не прийшло, поверніть гроші!"
+print(extract(ticket))
+# {'category': 'доставка', 'sentiment': 'негативний', 'urgent': True,
+#  'summary': 'Затримка доставки, вимога повернення коштів'}</code></pre>
+          <div class="callout">
+            <p><strong>Розбір ключових місць.</strong> <code>temperature=0</code> — бо нам потрібна
+            однаковість, а не фантазія. Префіл <code>{"role": "assistant", "content": "{"}</code> змушує
+            модель почати з JSON. Рядок <code>raw = "{" + resp.content[0].text</code> повертає на місце ту
+            фігурну дужку, яку «сказали» ми (тому її немає у відповіді). <code>json.loads(raw)</code>
+            перетворює текст на словник — і ти вже працюєш зі звичайними полями Python.</p>
+          </div>
+          <p>
+            Запусти <code>python extractor.py</code> — і побачиш акуратний словник. Підстав свої тексти,
+            спробуй різні звернення. Це вже не іграшка: такий інструмент реально економить години ручного
+            сортування заявок.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 9.5 -->
+        <section id="l5" data-lesson="9.5 Надійність і валідація" class="scroll-mt-24">
+          <h2><span class="lesson-no">9.5</span>Надійність: не довіряй — перевіряй</h2>
+          <p>
+            Модель надійна, але не ідеальна: колись може повернути криве або неповне. Продакшн-код це
+            <strong>передбачає</strong> й не падає. Додамо «запобіжник» навколо нашого видобувача:
+          </p>
+          <pre><code>def safe_extract(text):
+    try:
+        data = extract(text)                 # пробуємо дістати й розпарсити
+        for field in ["category", "sentiment", "urgent", "summary"]:
+            if field not in data:            # перевіряємо, що всі поля контракту на місці
+                raise ValueError(f"немає поля {field}")
+        return data
+    except (json.JSONDecodeError, ValueError) as e:
+        print("Некоректна відповідь, варто повторити:", e)
+        return None                          # тут можна повторити запит</code></pre>
+          <div class="callout">
+            <p><strong>Розбір.</strong> <code>try:</code> — пробуємо ризиковану дію; якщо всередині станеться
+            помилка, керування «впаде» в <code>except</code> замість краху (Модуль 6). Цикл перевіряє, що
+            кожне очікуване поле є у відповіді; якщо ні — ми <em>самі</em> кидаємо помилку через
+            <code>raise ValueError(...)</code>. <code>except (A, B)</code> ловить обидва типи: і коли JSON
+            не розпарсився, і нашу власну. Повертаючи <code>None</code>, ми сигналізуємо «відповідь
+            непридатна» — і вище можемо повторити запит.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Підсумок модуля.</strong> Ти вмієш діставати від моделі надійний JSON (з префілом),
+            підсилювати якість прикладами й «обдумуванням», і валідувати результат — тобто перетворювати
+            модель на передбачуваний компонент продукту. Ти збудував робочий видобувач даних — повноцінний
+            інструмент. Наступний модуль робить крок далі: даємо моделі «руки», щоб вона не лише відповідала,
+            а й <em>діяла</em> — це tool use.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>Шість питань без дедлайнів. Обирай відповідь — і одразу бачиш пояснення.</p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Чому в коді небезпечно покладатися на вільний текст від моделі?",
+            "options": [
+              "Він завжди неправильний",
+              "Формат може щоразу відрізнятися, і код, що його розбирає, ламається",
+              "Вільний текст дорожчий",
+              "Модель не вміє писати текст"
+            ],
+            "answer": 1,
+            "explain": "Вільний текст непередбачуваний за формою (як базар). Коду потрібен стабільний машиночитаний формат — як у торгового автомата."
+          },
+          {
+            "q": "Що робить json.loads()?",
+            "options": [
+              "Надсилає запит до моделі",
+              "Перетворює рядок із JSON на словник Python",
+              "Перетворює словник на рядок JSON",
+              "Зберігає файл"
+            ],
+            "answer": 1,
+            "explain": "json.loads() (load string) парсить JSON-рядок у словник Python. Зворотна дія — json.dumps()."
+          },
+          {
+            "q": "Навіщо префіл (assistant-хід зі змістом \"{\")?",
+            "options": [
+              "Щоб пришвидшити відповідь",
+              "Щоб змусити модель почати одразу з JSON, без вступних слів",
+              "Щоб приховати ключ",
+              "Це обов'язкове поле"
+            ],
+            "answer": 1,
+            "explain": "Модель продовжує вже написане. Почавши за неї з \"{\", не лишаєш місця для тексту перед JSON (і потім додаєш { назад у коді)."
+          },
+          {
+            "q": "Який прийом найсильніше закріплює потрібний ФОРМАТ відповіді?",
+            "options": [
+              "Підняти temperature до 1.0",
+              "Дати 1–3 приклади «вхід → бажаний вихід» (few-shot)",
+              "Зробити запит коротшим",
+              "Прибрати системний промпт"
+            ],
+            "answer": 1,
+            "explain": "Кілька прикладів бажаного виводу пояснюють формат краще за абзац правил — модель наслідує показаний зразок."
+          },
+          {
+            "q": "Чому у видобувачі даних ми ставимо temperature=0?",
+            "options": [
+              "Щоб відповідь була довшою",
+              "Бо потрібна стабільність і однаковість, а не творче розмаїття",
+              "Щоб зекономити токени",
+              "Це випадкове число"
+            ],
+            "answer": 1,
+            "explain": "Класифікація — задача з «правильною» відповіддю. Низька temperature робить результат стабільним і передбачуваним."
+          },
+          {
+            "q": "Навіщо обгортати розбір відповіді у try/except із перевіркою полів?",
+            "options": [
+              "Для краси коду",
+              "Щоб код не впав, якщо модель поверне криве чи неповне — і можна було повторити запит",
+              "Щоб пришвидшити модель",
+              "Це непотрібно"
+            ],
+            "answer": 1,
+            "explain": "Надійність — це перевірка, а не довіра. try/except ловить погану відповідь, а перевірка полів гарантує, що контракт виконано."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Видобувач працює?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач модуль завершеним — і відкриється Модуль 10: даємо моделі «руки» (tool use).
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+</html>

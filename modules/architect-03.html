@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../architect.config.json">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 3 · Перша розмова з Claude Code — AI Architect</title>
+  <meta name="description" content="Запускаємо claude, розбираємо цикл роботи (ти просиш — він пропонує — ти підтверджуєш — він робить) і будуємо першу сторінку, керуючи AI." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#BD5F40",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="a03" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../index.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIA</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Architect</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 03</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../index.html" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">На головну</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>architect.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 0 · Старт і перша перемога</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Перша розмова з Claude Code</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Старт · 4 уроки · ≈ 40 хв</p>
+        <p class="mt-6 text-lg">
+          Настав момент першої перемоги. Зараз ти, не написавши жодного рядка коду власноруч, збудуєш
+          справжню вебсторінку — просто пояснивши Claude Code словами, чого хочеш. Це і є головний навик
+          курсу: чітко поставити задачу, подивитися, що пропонує AI, підтвердити — і отримати результат.
+        </p>
+
+        <hr />
+
+        <!-- УРОК 3.1 -->
+        <section id="l1" data-lesson="3.1 Запуск у папці" class="scroll-mt-24">
+          <h2><span class="lesson-no">3.1</span>Запускаємо Claude Code у папці проєкту</h2>
+          <p>
+            Важливе правило: Claude Code працює <strong>всередині папки</strong>, у якій ти його запустив —
+            саме там він створюватиме й змінюватиме файли. Тому спершу заходимо в потрібну папку, а вже
+            потім запускаємо. Використаємо ту, що створили в минулому модулі:
+          </p>
+          <pre><code>cd Desktop/ai-start    # заходимо в нашу папку проєкту
+claude                 # запускаємо Claude Code саме тут</code></pre>
+          <div class="callout">
+            <p><strong>Що ти маєш побачити.</strong> Термінал перейшов у режим розмови: внизу є поле, куди
+            можна друкувати текст. Тепер термінал «слухає» тебе як співрозмовника, а не чекає системних
+            команд. Можеш звертатися звичайними словами українською.</p>
+          </div>
+          <p>
+            Спробуй просто привітатися — напиши в поле, наприклад: <em>«Привіт! Поясни в двох реченнях, що
+            ти вмієш робити»</em> — і натисни Enter. Claude Code відповість текстом. Це твоя перша розмова.
+          </p>
+          <div class="callout">
+            <p><strong>Підказка.</strong> Звертайся до Claude Code, як до колеги-інженера: кажи, <em>що</em>
+            треба, а не <em>як</em> це писати в коді. «Зроби сторінку з кнопкою» — гарна задача. Деталі він
+            спитає або запропонує сам.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 3.2 -->
+        <section id="l2" data-lesson="3.2 Цикл роботи" class="scroll-mt-24">
+          <h2><span class="lesson-no">3.2</span>Цикл роботи: проси → дивись → підтверджуй</h2>
+          <p>
+            Перш ніж будувати, зрозумій, як Claude Code діє — це знімає весь страх. Він не робить змін
+            мовчки за твоєю спиною. Він працює циклом і <strong>питає твого дозволу</strong>, перш ніж
+            щось змінити чи запустити:
+          </p>
+          <div class="diagram">
+            <pre class="mermaid">
+sequenceDiagram
+  participant Ти as Ти
+  participant CC as Claude Code
+  Ти->>CC: задача словами
+  CC-->>Ти: пропонує, що зробити (показує зміни)
+  Ти->>CC: підтверджуєш (так / ні)
+  CC->>CC: створює файли, запускає команди
+  CC-->>Ти: показує результат
+  Note over Ти,CC: не подобається — просто проси переробити
+            </pre>
+            <p class="diagram-caption">Ти завжди головний: Claude Code пропонує, ти схвалюєш або відхиляєш</p>
+          </div>
+          <p>
+            На практиці це виглядає так: ти описав задачу — Claude Code показує, які файли хоче створити чи
+            змінити (і запитує підтвердження). Ти погоджуєшся — він виконує. Якщо результат не той — просто
+            кажеш словами, що поправити. Жодних незворотних дій без твого «так».
+          </p>
+          <div class="callout">
+            <p><strong>Чому це безпечно й комфортно.</strong> Оскільки нічого не змінюється без твого
+            підтвердження, ти можеш сміливо експериментувати. Не зрозумів, що він пропонує? Напиши «поясни,
+            що ця зміна робить і навіщо» — і тільки потім підтверджуй.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 3.3 -->
+        <section id="l3" data-lesson="3.3 Перша збірка" class="scroll-mt-24">
+          <h2><span class="lesson-no">3.3</span>Перша збірка: своя вебсторінка</h2>
+          <p>
+            Тепер найприємніше. У режимі розмови з Claude Code (поле вводу) встав таку задачу звичайними
+            словами:
+          </p>
+          <pre><code>Створи просту вебсторінку у файлі index.html: великий заголовок
+"Моя перша AI-сторінка" і кнопка "Привітатись", яка по натисканню
+показує спливне повідомлення "Все працює!". Зроби приємний вигляд.</code></pre>
+          <p>
+            Claude Code запропонує створити файл <code>index.html</code> і покаже його вміст. Підтвердь
+            створення (погодься, коли він спитає). За кілька секунд файл з'явиться у твоїй папці
+            <code>ai-start</code>.
+          </p>
+          <p><strong>Тепер відкриємо результат у браузері.</strong> Це можна зробити двома шляхами:</p>
+          <ul>
+            <li>Найпростіше: відкрий папку <code>ai-start</code> у провіднику/Finder і двічі клацни по
+              файлу <code>index.html</code> — він відкриється у браузері.</li>
+            <li>Або прямо з терміналу (відкрий нове вікно терміналу в тій самій папці) однією з команд:</li>
+          </ul>
+          <pre><code>open index.html        # macOS
+start index.html       # Windows
+xdg-open index.html    # Linux</code></pre>
+          <div class="callout">
+            <p><strong>Що ти маєш побачити.</strong> У браузері — сторінка з твоїм заголовком і кнопкою.
+            Натискаєш кнопку — вискакує повідомлення «Все працює!». Вітаю — ти щойно <strong>створив і
+            запустив свою першу програму</strong>, керуючи AI. Це і є та сама «перша перемога».</p>
+          </div>
+          <div class="callout">
+            <p><strong>Якщо щось не так.</strong> Сторінка порожня чи кнопка не реагує? Повернись у Claude
+            Code і просто опиши проблему словами: «кнопка не показує повідомлення, виправ, будь ласка». Він
+            подивиться й полагодить. Уміння спокійно описати проблему — половина роботи інженера.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 3.4 -->
+        <section id="l4" data-lesson="3.4 Корисні звички" class="scroll-mt-24">
+          <h2><span class="lesson-no">3.4</span>Корисні звички з перших днів</h2>
+          <p>Кілька прийомів, які зроблять роботу з Claude Code приємною й продуктивною:</p>
+          <ul>
+            <li><strong>Ітеруй маленькими кроками.</strong> Не проси все одразу. Зробив сторінку — тепер
+              «зроби кнопку синьою», потім «додай поле для імені». По шматочку — простіше й зрозуміліше.</li>
+            <li><strong>Проси пояснювати.</strong> «Поясни простими словами, що ти щойно змінив» — і ти
+              навчаєшся по ходу, а не просто отримуєш результат.</li>
+            <li><strong>Не бійся помилок.</strong> Зламалося — опиши словами, що бачиш. Це нормальна
+              частина процесу, а не катастрофа.</li>
+            <li><strong>Команди-службовці.</strong> Усередині Claude Code є команди, що починаються зі
+              слешу — наприклад, <code>/help</code> покаже доступні можливості, а <code>/exit</code> вийде.
+              Спробуй <code>/help</code> зараз, щоб роззирнутися.</li>
+          </ul>
+          <div class="callout">
+            <p><strong>Де «живе» твій проєкт.</strong> Усі файли, які створює Claude Code, лежать у тій
+            папці, де ти його запустив (<code>ai-start</code>). Це звичайні файли — їх видно у
+            провіднику/Finder, їх можна відкривати, копіювати, видаляти. Ніякої магії: AI просто створює
+            файли замість тебе.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Підсумок Фази 0.</strong> Ти налаштував комп'ютер і вже збудував першу вебсторінку,
+            керуючи AI. Ти зрозумів головний цикл: проси → дивись → підтверджуй. Далі, у Фазі A, ми трохи
+            зазирнемо «під капот» того, що ти створив: що таке ці файли, як влаштований веб, і як зберігати
+            свою роботу через Git. Поступово, без поспіху.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>П'ять питань, щоб закріпити головне. Обирай відповідь — і одразу бачиш пояснення.</p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Де Claude Code створює й змінює файли?",
+            "options": [
+              "У випадковому місці на диску",
+              "У папці, всередині якої ти його запустив",
+              "Тільки в інтернеті",
+              "У папці Node.js"
+            ],
+            "answer": 1,
+            "explain": "Claude Code працює в поточній папці. Тому спершу заходимо в потрібну папку (cd ...), а вже потім запускаємо claude."
+          },
+          {
+            "q": "Як правильно ставити задачу Claude Code?",
+            "options": [
+              "Писати готовий код за нього",
+              "Описати словами, ЩО треба отримати (а не як це писати)",
+              "Лише командами з одного слова",
+              "Тільки англійською"
+            ],
+            "answer": 1,
+            "explain": "Ти диригент: кажеш, що треба («зроби сторінку з кнопкою»), а як це реалізувати в коді — робота Claude Code."
+          },
+          {
+            "q": "Що Claude Code робить ПЕРЕД тим, як змінити файли чи запустити команду?",
+            "options": [
+              "Нічого не питає, робить мовчки",
+              "Пропонує зміни й чекає твого підтвердження",
+              "Вимикає комп'ютер",
+              "Видаляє папку"
+            ],
+            "answer": 1,
+            "explain": "Цикл такий: він пропонує і питає дозволу, ти підтверджуєш — і лише тоді він діє. Нічого незворотного без твого «так»."
+          },
+          {
+            "q": "Сторінка відкрилась, але кнопка не працює. Що робити?",
+            "options": [
+              "Видалити Claude Code",
+              "Повернутись у Claude Code і описати проблему словами — він полагодить",
+              "Почати курс заново",
+              "Переустановити Windows"
+            ],
+            "answer": 1,
+            "explain": "Спокійно опиши проблему («кнопка не реагує, виправ»). Уміння чітко описати проблему — половина роботи інженера."
+          },
+          {
+            "q": "Що покаже команда /help усередині Claude Code?",
+            "options": [
+              "Видалить усі файли",
+              "Доступні можливості й команди",
+              "Закриє комп'ютер",
+              "Створить акаунт"
+            ],
+            "answer": 1,
+            "explain": "Команди зі слешу — службові. /help показує можливості, /exit виходить. Корисно роззирнутися ними на старті."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Перша сторінка готова?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач модуль завершеним — і відкриється Фаза A: зазирнемо під капот того, що ти збудував.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+</html>

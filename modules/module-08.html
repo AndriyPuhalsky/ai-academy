@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 8 · Model Context Protocol — AI Академія</title>
+  <meta name="description"
+    content="MCP: проблема N×M інтеграцій, архітектура host–client–server, примітиви tools/resources/prompts, перший власний сервер на FastMCP та безпека підключень." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#BD5F40",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="m08" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../index.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIA</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Академія</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 08</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../index.html#syllabus" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + уроки модуля (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Трек III · Розробка з Claude</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Model Context Protocol</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Просунутий · 5 уроків · ≈ 70 хв читання</p>
+        <p class="mt-6 text-lg">
+          У Модулі 6 модель отримала руки, у сьомому — пам'ять. Але кожна інтеграція досі
+          писалася вручну і жила лише у твоєму коді. MCP — Model Context Protocol,
+          відкритий стандарт, представлений Anthropic наприкінці 2024 року, — робить
+          інструменти й дані переносними: написав сервер один раз — підключив до
+          будь-якого сумісного застосунку. Як універсальний роз'єм замість жмені
+          перехідників.
+        </p>
+
+        <hr />
+
+        <!-- УРОК 8.1 -->
+        <section id="l1" data-lesson="8.1 Проблема N×M" class="scroll-mt-24">
+          <h2><span class="lesson-no">8.1</span>Проблема N×M інтеграцій</h2>
+          <p>
+            Порахуймо чесно. У тебе M застосунків зі штучним інтелектом: чат-асистент,
+            помічник в IDE, внутрішній агент. І N джерел: GitHub, база замовлень, CRM,
+            файлове сховище. До стандарту кожна пара означала окрему кастомну
+            інтеграцію — свій код, свій формат, свої баги. Разом M×N конекторів,
+            і кожен новий застосунок чи джерело множить роботу знову.
+          </p>
+          <p>
+            MCP перетворює множення на додавання. Застосунок реалізує клієнтську частину
+            протоколу <strong>один раз</strong> — і вміє говорити з будь-яким сервером.
+            Джерело отримує один MCP-сервер — і доступне будь-якому застосунку.
+            M + N компонентів замість M × N.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TB
+  subgraph OLD["До: кожен з кожним"]
+    direction LR
+    A["Чат-асистент"] --- G["GitHub"]
+    A --- DB["База замовлень"]
+    B["Помічник в IDE"] --- G
+    B --- DB
+  end
+  subgraph NEW["З MCP: одна спільна мова"]
+    direction LR
+    A2["Чат-асистент"] --- P["MCP"]
+    B2["Помічник в IDE"] --- P
+    P --- G2["MCP-сервер GitHub"]
+    P --- DB2["MCP-сервер бази"]
+  end
+  style P fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">Чотири кастомні інтеграції перетворюються на чотири стандартні компоненти — і
+              далі різниця лише зростає</p>
+          </div>
+
+          <p>
+            Важливі дві речі. По-перше, MCP — <strong>відкритий</strong> стандарт:
+            специфікація і SDK доступні всім, і його підтримка давно вийшла за межі
+            продуктів Anthropic — це фактично спільна мова галузі для підключення
+            контексту. По-друге, tool use з Модуля 6 нікуди не зник: MCP стандартизує,
+            <em>як</em> інструменти описуються, знаходяться і викликаються між
+            застосунками, — сама механіка виклику тобі вже знайома.
+          </p>
+        </section>
+
+        <!-- УРОК 8.2 -->
+        <section id="l2" data-lesson="8.2 Архітектура MCP" class="scroll-mt-24">
+          <h2><span class="lesson-no">8.2</span>Архітектура: host → client → server</h2>
+          <p>У протоколі три ролі.</p>
+          <ul>
+            <li><strong>Host</strong> — застосунок, у якому живе модель: Claude Desktop,
+              Claude Code, твій власний агент. Він вирішує, які сервери підключати
+              і що показувати моделі.</li>
+            <li><strong>Client</strong> — конектор усередині хоста. Один клієнт тримає
+              з'єднання рівно з одним сервером: зв'язок 1:1.</li>
+            <li><strong>Server</strong> — легка програма перед конкретним джерелом:
+              оголошує свої можливості та виконує запити. База замовлень, файли,
+              месенджер — кожному своє.</li>
+          </ul>
+          <p>
+            Спілкуються вони повідомленнями <strong>JSON-RPC 2.0</strong>. Транспорт —
+            на вибір: <strong>stdio</strong> для локальних серверів (хост запускає сервер
+            як підпроцес і говорить із ним через стандартні потоки) або
+            <strong>HTTP</strong> для віддалених.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart LR
+  subgraph HOST["Host — застосунок з моделлю"]
+    LLM["Модель"]
+    C1["MCP-клієнт 1"]
+    C2["MCP-клієнт 2"]
+  end
+  C1 ---|"JSON-RPC"| S1["MCP-сервер: база замовлень"]
+  C2 ---|"JSON-RPC"| S2["MCP-сервер: файли"]
+  S1 --> D1["PostgreSQL"]
+  S2 --> D2["Локальний диск"]
+  style LLM fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">Один клієнт — один сервер; серверів у хоста може бути скільки завгодно</p>
+          </div>
+
+          <p>
+            Життєвий цикл простий: хост підключає сервер → відбувається рукостискання
+            й обмін можливостями («у мене три tools і два resources») → під час роботи
+            модель і хост викликають ці можливості, а результати повертаються
+            в контекст розмови.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Ключова думка</span>
+            <p>
+              Сервер не знає і не мусить знати, який саме хост його викликає. Саме ця
+              взаємна анонімність дає переносимість: сервер бази замовлень, написаний
+              для Claude Desktop, без жодної зміни працюватиме в Claude Code чи
+              будь-якому іншому сумісному застосунку.
+            </p>
+          </div>
+        </section>
+
+        <!-- УРОК 8.3 -->
+        <section id="l3" data-lesson="8.3 Tools, resources, prompts" class="scroll-mt-24">
+          <h2><span class="lesson-no">8.3</span>Три примітиви: tools, resources, prompts</h2>
+          <p>
+            Сервер може пропонувати три типи можливостей — і різниця між ними не в тому,
+            «що це», а в тому, <strong>хто ініціює використання</strong>.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Примітив</th>
+                <th>Хто ініціює</th>
+                <th>Приклад</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Tools</td>
+                <td>Модель — сама вирішує викликати</td>
+                <td>get_orders_for_date: дістати замовлення з бази</td>
+              </tr>
+              <tr>
+                <td>Resources</td>
+                <td>Застосунок — підкладає дані в контекст</td>
+                <td>menu://current: актуальне меню для читання</td>
+              </tr>
+              <tr>
+                <td>Prompts</td>
+                <td>Користувач — явно обирає шаблон</td>
+                <td>weekly_report: тижневий аналіз відгуків</td>
+              </tr>
+            </tbody>
+          </table>
+          <ul>
+            <li><strong>Tools</strong> — наш Модуль 6 у стандартизованій обгортці:
+              функції зі схемами, які модель викликає за потреби.</li>
+            <li><strong>Resources</strong> — дані для читання, адресовані URI:
+              файл, запис бази, документ. Модель не «лазить» по них сама — хост
+              вирішує, що і коли підкласти в контекст.</li>
+            <li><strong>Prompts</strong> — готові параметризовані шаблони, які людина
+              запускає свідомо (наприклад, слеш-командою). Пам'ятаєш шаблон тижневого
+              звіту з Модуля 4? Ідеальний кандидат: один раз поклав на сервер —
+              уся команда користується.</li>
+          </ul>
+          <p>
+            Цей поділ — не бюрократія, а рівні довіри: модель контролює лише tools,
+            застосунок — resources, людина — prompts. Кожен примітив запускається тим,
+            кому це належить за ризиком. Для повноти: протокол має й «зворотні»
+            можливості клієнта — наприклад, sampling, коли сервер просить хоста
+            згенерувати текст моделлю, — але це вже за межами нашого модуля.
+          </p>
+        </section>
+
+        <!-- УРОК 8.4 -->
+        <section id="l4" data-lesson="8.4 Власний MCP-сервер" class="scroll-mt-24">
+          <h2><span class="lesson-no">8.4</span>Перший власний MCP-сервер</h2>
+          <p>
+            Офіційний Python SDK має шар FastMCP, який робить сервер майже декларативним:
+            декоратор перетворює функцію на tool, type hints стають JSON-схемою,
+            а docstring — описом. Пам'ятаєш, як у Модулі 6 ми писали схеми руками?
+            Тут вони генеруються самі — і це чесна винагорода за розуміння механіки.
+          </p>
+
+          <div class="example">
+            <div class="example-head"><span>Python · server.py — сервер кейтерингу</span></div>
+            <pre>from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("catering")
+
+ORDERS = [
+    {"date": "2026-06-20", "event": "фуршет", "guests": 30, "status": "confirmed"},
+    {"date": "2026-06-20", "event": "банкет", "guests": 45, "status": "pending"},
+]
+
+@mcp.tool()
+def get_orders_for_date(date: str, status: str = "all") -> list[dict]:
+    """Повертає замовлення кейтерингу на дату у форматі YYYY-MM-DD.
+    status: confirmed | pending | all (за замовчуванням all)."""
+    result = [o for o in ORDERS if o["date"] == date]
+    if status != "all":
+        result = [o for o in result if o["status"] == status]
+    return result
+
+@mcp.resource("menu://current")
+def current_menu() -> str:
+    """Актуальне меню для подій."""
+    return "Фуршет: канапе, тарти, лимонади. Банкет: три подачі, десертний стіл."
+
+@mcp.prompt()
+def weekly_report(reviews: str) -> str:
+    """Шаблон тижневого аналізу відгуків — той самий, з Модуля 4."""
+    return (
+        "Ти — аналітик якості сервісу кейтерингу. Проаналізуй відгуки, "
+        "згрупуй проблеми за темами і дай три пріоритетні дії.\n\n"
+        "&lt;reviews&gt;\n" + reviews + "\n&lt;/reviews&gt;"
+    )
+
+if __name__ == "__main__":
+    mcp.run()   # транспорт за замовчуванням — stdio</pre>
+          </div>
+
+          <p>
+            Тридцять рядків — і в тебе сервер з усіма трьома примітивами. Лишилося
+            сказати хосту, де його знайти. Для Claude Desktop це запис у конфігурації:
+          </p>
+
+          <div class="example">
+            <div class="example-head"><span>JSON · фрагмент конфігурації хоста</span></div>
+            <pre>{
+  "mcpServers": {
+    "catering": {
+      "command": "python",
+      "args": ["/повний/шлях/до/server.py"]
+    }
+  }
+}</pre>
+          </div>
+
+          <p>
+            У Claude Code сервер додається командою <code>claude mcp add</code>;
+            точні шляхи конфігів і нюанси конкретних клієнтів — у документації MCP
+            та самого застосунку. Після перезапуску хост побачить можливості сервера:
+            спитаєш у чаті «що в нас підтверджено на двадцяте?» — і модель викличе
+            твій <code>get_orders_for_date</code> через стандартний протокол. Той самий
+            цикл tool use з Модуля 6, лише тепер між процесами і без жодного рядка
+            інтеграційного коду на боці застосунку.
+          </p>
+        </section>
+
+        <!-- УРОК 8.5 -->
+        <section id="l5" data-lesson="8.5 Екосистема і безпека" class="scroll-mt-24">
+          <h2><span class="lesson-no">8.5</span>Екосистема готових серверів і безпека</h2>
+          <p>
+            Перед тим як писати свій сервер — перевір каталоги готових: файлова система,
+            Git і GitHub, бази даних, пошук, месенджери, таск-трекери — екосистема
+            налічує сотні серверів від спільноти й вендорів. А твій RAG-ретривер
+            із Модуля 7 — природний кандидат стати сервером
+            <code>search_knowledge_base</code>: один раз загорнув — і база знань
+            доступна з будь-якого MCP-сумісного застосунку.
+          </p>
+          <p>
+            Тепер серйозна частина. MCP-сервер — це код, який працює
+            <strong>з твоїми правами</strong> і чий вивід читає твоя модель.
+            Звідси чотири правила:
+          </p>
+          <ul>
+            <li><strong>Встановлюй лише довірене.</strong> Сервер із випадкового
+              репозиторію — як випадковий виконуваний файл; маленькі сервери
+              нескладно переглянути очима перед запуском.</li>
+            <li><strong>Prompt injection повертається.</strong> Описи інструментів
+              і їхні результати — теж вхід для моделі: зловмисний сервер може
+              «отруїти» контекст інструкціями (tool poisoning). Розділення даних
+              та інструкцій з Модуля 3 і пильність з Модуля 11 — обов'язкові.</li>
+            <li><strong>Мінімальні права.</strong> Read-only доступ, де можливо;
+              окремі токени з вузькими дозволами замість «майстер-ключа».</li>
+            <li><strong>Людина підтверджує небезпечне.</strong> Видалення, надсилання,
+              платежі — лише з явним підтвердженням користувача, а не «тихо» з волі
+              моделі.</li>
+          </ul>
+          <p>
+            На цьому Трек III завершено повністю: модель отримала руки (Модуль 6),
+            пам'ять (Модуль 7) і стандартний роз'єм до світу (Модуль 8). Попереду
+            фінальний трек: у Модулі 9 усе це запрацює в циклі — агенти й агентні
+            системи; Модуль 10 навчить вимірювати якість, а Модуль 11 поглибить
+            сьогоднішні безпекові застереження.
+          </p>
+        </section>
+
+        <hr />
+
+        <div class="callout callout-sand">
+          <span class="callout-title">Підсумок модуля</span>
+          <ul>
+            <li>MCP перетворює M×N інтеграцій на M+N: одна спільна мова для застосунків і джерел.</li>
+            <li>Архітектура: host (застосунок) → client (конектор 1:1) → server (перед джерелом); JSON-RPC поверх stdio
+              або HTTP.</li>
+            <li>Три примітиви за рівнем контролю: tools викликає модель, resources підкладає застосунок, prompts
+              запускає користувач.</li>
+            <li>FastMCP: type hints стають схемою, docstring — описом; робочий сервер — це ~30 рядків.</li>
+            <li>Сервер не знає хоста — тому написане один раз працює всюди.</li>
+            <li>Безпека: сервери працюють із твоїми правами — довіряй, обмежуй, підтверджуй небезпечне.</li>
+          </ul>
+        </div>
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Вісім питань про протокол. Обирай відповідь — і одразу отримуй пояснення.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Яку проблему насамперед розв'язує MCP?",
+            "options": [
+              "Повільну генерацію токенів",
+              "Вибух кастомних інтеграцій: M застосунків × N джерел",
+              "Високу вартість моделей",
+              "Відсутність україномовних моделей"
+            ],
+            "answer": 1,
+            "explain": "Спільний протокол перетворює множення на додавання: застосунок один раз реалізує клієнта, джерело один раз отримує сервер — M+N замість M×N."
+          },
+          {
+            "q": "Хто такий host в архітектурі MCP?",
+            "options": [
+              "Сервер, на якому крутиться база даних",
+              "Застосунок із моделлю, що підключає MCP-сервери через клієнтів",
+              "Хмарний провайдер Anthropic",
+              "Адміністратор системи"
+            ],
+            "answer": 1,
+            "explain": "Host — це AI-застосунок: Claude Desktop, Claude Code, твій агент. Він вирішує, які сервери підключати, і тримає по одному клієнту на кожен."
+          },
+          {
+            "q": "Скільки серверів обслуговує один MCP-клієнт?",
+            "options": [
+              "Скільки завгодно одночасно",
+              "Рівно один — зв'язок 1:1",
+              "Не більше трьох",
+              "Залежить від моделі"
+            ],
+            "answer": 1,
+            "explain": "Клієнт тримає з'єднання рівно з одним сервером. Хочеш п'ять серверів — хост створює п'ять клієнтів."
+          },
+          {
+            "q": "Який примітив сервера явно запускає користувач?",
+            "options": [
+              "Tools",
+              "Resources",
+              "Prompts",
+              "Sampling"
+            ],
+            "answer": 2,
+            "explain": "Поділ за ініціатором: tools викликає модель, resources підкладає застосунок, prompts свідомо обирає людина — наприклад, слеш-командою."
+          },
+          {
+            "q": "Resources в MCP — це…",
+            "options": [
+              "Обчислювальні квоти сервера",
+              "Дані для читання з URI-адресами, які хост може підкласти в контекст",
+              "Функції, які модель викликає сама",
+              "Платні розширення протоколу"
+            ],
+            "answer": 1,
+            "explain": "Resource — це вміст за адресою на кшталт menu://current чи file:///...: модель сама по них не «лазить», що і коли підкласти — вирішує застосунок."
+          },
+          {
+            "q": "Звідки FastMCP бере JSON-схему аргументів інструмента?",
+            "options": [
+              "Зі окремого файлу schema.json",
+              "З type hints функції; docstring стає описом",
+              "Генерує модель під час першого виклику",
+              "Схему треба писати руками, як у Модулі 6"
+            ],
+            "answer": 1,
+            "explain": "У цьому краса FastMCP: анотації типів перетворюються на схему, docstring — на description. Розуміння ручних схем із Модуля 6 лишається — тепер ти знаєш, що саме генерується."
+          },
+          {
+            "q": "Через що типово спілкується локальний MCP-сервер із хостом?",
+            "options": [
+              "Через електронну пошту",
+              "Через stdio: хост запускає сервер як підпроцес",
+              "Лише через публічний інтернет",
+              "Через спільну базу даних"
+            ],
+            "answer": 1,
+            "explain": "Локальний транспорт — stdio: хост стартує сервер підпроцесом і обмінюється JSON-RPC повідомленнями через стандартні потоки. Для віддалених серверів є HTTP."
+          },
+          {
+            "q": "Головне безпекове правило перед встановленням стороннього MCP-сервера?",
+            "options": [
+              "Перевірити кількість зірок у репозиторії — і досить",
+              "Пам'ятати, що сервер працює з твоїми правами: лише довірений код, мінімальні дозволи, підтвердження небезпечних дій",
+              "Запускати все від адміністратора для сумісності",
+              "Сервери безпечні за визначенням — це ж стандарт"
+            ],
+            "answer": 1,
+            "explain": "Сервер — код із твоїми правами, а його вивід читає модель: можливі й зловживання доступом, і tool poisoning. Довіряй, обмежуй права, тримай людину на підтвердженні небезпечного."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>

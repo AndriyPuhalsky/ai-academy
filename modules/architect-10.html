@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../architect.config.json">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 10 · Tool use / function calling — AI Architect</title>
+  <meta name="description" content="Даємо моделі «руки»: вона викликає твої функції чи API. Ідея, цикл tool use, опис інструмента, повний код і кілька інструментів — фундамент агентів." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#BD5F40",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="a10" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../index.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIA</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Architect</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 10</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../index.html" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">На головну</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>architect.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза B · Будуємо з LLM</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Tool use / function calling</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Практика · 5 уроків · ≈ 65 хв</p>
+        <p class="mt-6 text-lg">
+          Досі модель лише <em>говорила</em>. Тепер навчимо її <strong>діяти</strong>: викликати твої
+          функції, щоб дізнатися щось із зовнішнього світу чи виконати дію. Це називається tool use (інша
+          назва — function calling), і саме воно перетворює балакучу модель на справжній інструмент. Це
+          також фундамент агентів, до яких ми перейдемо в наступній фазі. Підемо повільно, з аналогією й
+          розбором коду.
+        </p>
+
+        <hr />
+
+        <!-- УРОК 10.1 -->
+        <section id="l1" data-lesson="10.1 Навіщо інструменти" class="scroll-mt-24">
+          <h2><span class="lesson-no">10.1</span>Навіщо моделі інструменти</h2>
+          <p>
+            Сама собою модель багато чого не вміє: дізнатися сьогоднішню погоду, точно порахувати велике
+            число, заглянути в твою базу даних, надіслати лист. Вона працює лише з текстом. Але вона вміє
+            інше — <strong>зрозуміти, що для відповіді потрібен інструмент, і попросити його викликати</strong>.
+          </p>
+          <p>
+            <strong>Аналогія.</strong> Уяви тямущого помічника в кабінеті без телефону й комп'ютера. Сам
+            він залишок товару на складі не дізнається. Зате пише тобі <em>записку</em>: «зателефонуй на
+            склад і спитай, скільки одиниць товару №42». Ти телефонуєш (виконуєш дію), приносиш відповідь —
+            і він формулює гарну відповідь клієнту. Модель — цей помічник: вона не діє сама, вона
+            <em>просить</em> тебе виконати дію й повернути результат.
+          </p>
+          <div class="callout">
+            <p><strong>Що це відкриває.</strong> Через інструменти модель може: підтягувати свіжі дані
+            (погода, курси, новини), звертатися до інших сервісів (API), рахувати точно (калькулятор),
+            працювати з твоєю базою. Тобто переходить від «розумного співрозмовника» до «виконавця, що
+            взаємодіє зі світом». Саме на цьому будуються AI-агенти.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 10.2 -->
+        <section id="l2" data-lesson="10.2 Цикл tool use" class="scroll-mt-24">
+          <h2><span class="lesson-no">10.2</span>Цикл tool use: хто що робить</h2>
+          <p>
+            Перш ніж кодити, втримай у голові загальний рух. Ти описуєш моделі доступні інструменти. Якщо
+            для відповіді потрібен один із них, модель не вигадує результат, а повертає запит «виклич ось
+            цю функцію з такими аргументами». Твій код виконує — і повертає результат моделі, а та формулює
+            фінальну відповідь:
+          </p>
+          <div class="diagram">
+            <pre class="mermaid">
+sequenceDiagram
+  participant C as Твій код
+  participant M as Модель
+  C->>M: запит + список інструментів
+  M-->>C: "виклич get_weather(city='Київ')"
+  C->>C: виконує функцію get_weather
+  C->>M: результат інструменту (tool_result)
+  M-->>C: фінальна відповідь людською мовою
+            </pre>
+            <p class="diagram-caption">Модель вирішує ЩО викликати; виконує функцію завжди твій код</p>
+          </div>
+          <div class="callout">
+            <p><strong>Ключова думка.</strong> Модель ніколи не виконує твій код сама — вона лише
+            <em>просить</em> (пише записку). Виконання, перевірка прав і безпека — повністю на тобі. Це й
+            робить tool use водночас потужним і керованим: модель отримує «руки», але кнопки натискаєш ти.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 10.3 -->
+        <section id="l3" data-lesson="10.3 Описуємо інструмент" class="scroll-mt-24">
+          <h2><span class="lesson-no">10.3</span>Описуємо інструмент для моделі</h2>
+          <p>
+            Спершу треба пояснити моделі, які інструменти в неї є. Опис — це ніби <strong>анкета</strong>:
+            як називається інструмент, навіщо він і які аргументи приймає.
+          </p>
+          <pre><code>tools = [
+    {
+        "name": "get_weather",
+        "description": "Повертає поточну погоду для вказаного міста",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "city": {"type": "string", "description": "Назва міста"}
+            },
+            "required": ["city"]
+        }
+    }
+]</code></pre>
+          <div class="callout">
+            <p><strong>Розбір опису.</strong> <code>name</code> — як називається інструмент.
+            <code>description</code> — навіщо він; модель читає це й вирішує, чи він потрібен (тому пиши
+            зрозуміло!). <code>input_schema</code> — опис аргументів мовою <em>JSON Schema</em>, тобто
+            «анкета»: тут одне поле <code>city</code> типу «рядок» (<code>string</code>), і воно
+            <code>required</code> — обов'язкове. За цим описом модель розуміє, що і в якому форматі їй
+            передати.</p>
+          </div>
+          <p>
+            Список <code>tools</code> — це просто перелік таких анкет. Можна описати кілька інструментів
+            одразу, і модель сама обере потрібний (побачимо в уроці 10.5).
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 10.4 -->
+        <section id="l4" data-lesson="10.4 Повний цикл у коді" class="scroll-mt-24">
+          <h2><span class="lesson-no">10.4</span>Повний цикл у коді</h2>
+          <p>
+            Тепер зберемо все. Попроси Claude Code: «створи файл <code>tool_demo.py</code> з інструментом
+            get_weather і повним циклом tool use». Вийде приблизно так (читай із коментарями):
+          </p>
+          <pre><code>def get_weather(city):
+    return f"{city}: +18°C, ясно"   # тут міг би бути реальний виклик API погоди
+
+messages = [{"role": "user", "content": "Яка погода в Києві?"}]
+resp = client.messages.create(model=MODEL, max_tokens=500, tools=tools, messages=messages)
+
+# Якщо модель просить інструмент, stop_reason буде "tool_use"
+if resp.stop_reason == "tool_use":
+    tool = next(b for b in resp.content if b.type == "tool_use")   # знаходимо блок-запит
+    result = get_weather(**tool.input)                             # виконуємо функцію
+
+    # Повертаємо моделі її ж запит + наш результат (як у діалозі, Модуль 8)
+    messages.append({"role": "assistant", "content": resp.content})
+    messages.append({"role": "user", "content": [{
+        "type": "tool_result",
+        "tool_use_id": tool.id,        # прив'язка результату до конкретного запиту
+        "content": result
+    }]})
+
+    final = client.messages.create(model=MODEL, max_tokens=500, tools=tools, messages=messages)
+    print(final.content[0].text)   # "У Києві зараз +18°C, ясно."</code></pre>
+          <div class="callout">
+            <p><strong>Розбір найхитріших місць.</strong></p>
+            <p>• <code>next(b for b in resp.content if b.type == "tool_use")</code> — пробігаємо блоки
+            відповіді й беремо перший, що є запитом інструмента (<code>resp.content</code> — список блоків
+            із Модуля 8; <code>next(...)</code> повертає перший відповідний).</p>
+            <p>• <code>get_weather(**tool.input)</code> — дві зірочки «розпаковують» словник у іменовані
+            аргументи. Модель прислала <code>tool.input = {"city": "Київ"}</code>, а <code>**</code>
+            перетворює це на виклик <code>get_weather(city="Київ")</code>.</p>
+            <p>• <code>tool_use_id</code> повертаємо, щоб модель зрозуміла, на який саме запит цей
+            результат (вона може попросити кілька викликів одночасно — ID їх розрізняє).</p>
+          </div>
+          <p>
+            Помітив? Це той самий цикл із діаграми, лише в коді: запит → модель просить → ти виконуєш →
+            повертаєш результат → фінальна відповідь. Запусти <code>python tool_demo.py</code> — і побачиш,
+            як модель «сходила по погоду» через твою функцію.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 10.5 -->
+        <section id="l5" data-lesson="10.5 Кілька інструментів і надійність" class="scroll-mt-24">
+          <h2><span class="lesson-no">10.5</span>Кілька інструментів, надійність і крок до агентів</h2>
+          <p>
+            У реальних застосунках інструментів кілька. Ти просто описуєш їх усі в списку <code>tools</code>,
+            а модель сама обирає потрібний під запит:
+          </p>
+          <pre><code>tools = [
+    { "name": "get_weather", "description": "Погода в місті", "input_schema": {...} },
+    { "name": "get_time",    "description": "Поточний час у місті", "input_schema": {...} },
+]
+# На "яка зараз погода?" модель попросить get_weather,
+# на "котра година?" — get_time. Вибір робить вона сама.</code></pre>
+          <div class="callout">
+            <p><strong>Надійність інструментів.</strong> Твої функції теж можуть впасти (сервіс недоступний,
+            кривий аргумент). Обгортай виконання в <code>try/except</code> (Модуль 6) і повертай моделі
+            зрозумілий результат навіть при помилці — наприклад, <code>"помилка: місто не знайдено"</code>.
+            Тоді модель гідно це обробить у відповіді, а не зламається весь процес.</p>
+          </div>
+          <p>
+            І найголовніше — куди це веде. Поки що ми робили <strong>один</strong> прохід циклу: модель
+            попросила інструмент один раз. А що, якщо дозволити їй просити інструменти <em>багато разів
+            поспіль</em>, поки задача не виконана — крок за кроком, самостійно вирішуючи, що робити далі?
+            Це вже й буде <strong>AI-агент</strong>. Саме цей крок ми зробимо в наступній фазі.
+          </p>
+          <div class="callout">
+            <p><strong>Підсумок модуля.</strong> Ти вмієш описувати інструменти (анкета
+            <code>input_schema</code>), проводити повний цикл tool use в коді (<code>tool_use</code> →
+            виконати → <code>tool_result</code> → фінальна відповідь), давати моделі кілька інструментів і
+            безпечно обробляти збої. Модель тепер не лише говорить, а й діє. Далі — Фаза C: перетворимо цей
+            цикл на справжнього агента.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>Шість питань без дедлайнів. Обирай відповідь — і одразу бачиш пояснення.</p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Що таке tool use (function calling)?",
+            "options": [
+              "Модель сама виконує будь-який код на твоєму комп'ютері",
+              "Модель може попросити викликати описану тобою функцію й використати її результат у відповіді",
+              "Спосіб пришвидшити відповідь",
+              "Інша назва для стрімінгу"
+            ],
+            "answer": 1,
+            "explain": "Ти описуєш інструменти; модель вирішує, який і з якими аргументами потрібен, і просить його викликати (пише «записку»). Сама код не виконує."
+          },
+          {
+            "q": "Хто фактично ВИКОНУЄ функцію інструмента?",
+            "options": [ "Модель", "Твій код", "Сервер автоматично", "Ніхто, це симуляція" ],
+            "answer": 1,
+            "explain": "Модель лише просить виклик. Виконання, перевірка прав і безпека — повністю на твоєму коді. Це й робить tool use керованим."
+          },
+          {
+            "q": "Що описує input_schema в інструменті?",
+            "options": [
+              "Скільки коштує виклик",
+              "Аргументи інструмента (які поля, якого типу, що обов'язкове) — мовою JSON Schema",
+              "Колір кнопки",
+              "Назву моделі"
+            ],
+            "answer": 1,
+            "explain": "input_schema — це «анкета» аргументів: за нею модель розуміє, що і в якому форматі передати інструменту."
+          },
+          {
+            "q": "Що означає stop_reason == \"tool_use\" у відповіді?",
+            "options": [
+              "Сталася помилка",
+              "Модель хоче, щоб ти виконав інструмент і повернув результат",
+              "Відповідь готова, інструменти не потрібні",
+              "Закінчились токени"
+            ],
+            "answer": 1,
+            "explain": "Це сигнал, що модель просить виклик інструмента. Ти виконуєш функцію й повертаєш tool_result, після чого модель дає фінальну відповідь."
+          },
+          {
+            "q": "Навіщо повертати tool_use_id разом із результатом?",
+            "options": [
+              "Для краси",
+              "Щоб модель зрозуміла, на який саме виклик цей результат (їх може бути кілька)",
+              "Щоб зашифрувати дані",
+              "Це необов'язкове поле"
+            ],
+            "answer": 1,
+            "explain": "tool_use_id прив'язує результат до конкретного запиту інструмента — особливо коли модель попросила кілька викликів одночасно."
+          },
+          {
+            "q": "Як одиничний цикл tool use перетворюється на AI-агента?",
+            "options": [
+              "Ніяк, це різні речі",
+              "Якщо дозволити моделі просити інструменти багато разів поспіль, поки задача не виконана",
+              "Якщо підняти temperature",
+              "Якщо прибрати інструменти"
+            ],
+            "answer": 1,
+            "explain": "Агент — це той самий цикл, але повторюваний: модель крок за кроком сама вирішує, який інструмент викликати далі, поки не завершить задачу."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модель навчилась діяти?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач модуль завершеним — і відкриється Модуль 11: дамо моделі знання з твоїх документів (RAG).
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../architect.config.json">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 2 · Готуємо комп'ютер — AI Architect</title>
+  <meta name="description" content="Покроково й для трьох ОС: термінал, Node.js, акаунт Anthropic з оплатою, встановлення Claude Code і перший вхід." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#BD5F40",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="a02" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../index.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIA</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Architect</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 02</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../index.html" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">На головну</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>architect.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 0 · Старт і перша перемога</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Готуємо комп'ютер</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Старт · 5 уроків · ≈ 50 хв</p>
+        <p class="mt-6 text-lg">
+          Це найтехнічніший підготовчий модуль — далі буде легше. Ми разом, крок за кроком, перетворимо
+          твій звичайний комп'ютер на робоче місце AI-інженера. Нічого не пропускай і не поспішай: після
+          кожного кроку є перевірка «що ти маєш побачити». Якщо щось не так — поряд є блок «якщо помилка».
+          Наприкінці в тебе працюватиме команда <code>claude</code>.
+        </p>
+
+        <p>Ось весь маршрут цього модуля — п'ять кроків:</p>
+        <div class="diagram">
+          <pre class="mermaid">
+flowchart TD
+  A["1. Термінал<br/>навчитись відкривати"] --> B["2. Node.js<br/>встановити"]
+  B --> C["3. Акаунт Anthropic<br/>+ оплата"]
+  C --> D["4. Claude Code<br/>встановити"]
+  D --> E["5. Перший вхід<br/>авторизація"]
+  E --> OK["Готово<br/>команда claude працює"]
+  style OK fill:#2A211C,stroke:#D97757,color:#F0EEE6
+          </pre>
+          <p class="diagram-caption">П'ять кроків до робочого місця. Йдемо зверху вниз, перевіряючи кожен</p>
+        </div>
+
+        <hr />
+
+        <!-- УРОК 2.1 -->
+        <section id="l1" data-lesson="2.1 Термінал" class="scroll-mt-24">
+          <h2><span class="lesson-no">2.1</span>Крок 1. Термінал — твій пульт керування</h2>
+          <p>
+            <strong>Термінал</strong> (його ще звуть командний рядок) — це вікно, де ти даєш комп'ютеру
+            команди текстом. Саме звідси ми запускатимемо все. Спершу навчимося його відкривати.
+          </p>
+          <p><strong>Windows:</strong> натисни клавішу Windows, набери <code>PowerShell</code>, відкрий
+          застосунок «Windows PowerShell» (або «Terminal», якщо є).</p>
+          <p><strong>macOS:</strong> натисни Cmd+Пробіл, набери <code>Terminal</code>, натисни Enter.</p>
+          <p><strong>Linux:</strong> зазвичай Ctrl+Alt+T, або знайди «Terminal» у меню застосунків.</p>
+          <p>Відкрилося темне (або світле) вікно з курсором. Перевіримо, що все живе — впиши команду й натисни Enter:</p>
+          <pre><code>pwd</code></pre>
+          <div class="callout">
+            <p><strong>Що ти маєш побачити.</strong> Рядок зі шляхом до поточної папки, наприклад
+            <code>/Users/ім'я</code> (macOS), <code>/home/ім'я</code> (Linux) або
+            <code>C:\Users\ім'я</code> (Windows). Це означає «зараз я знаходжусь ось у цій папці».
+            <code>pwd</code> = «print working directory».</p>
+          </div>
+          <p>Ще три команди, які знадобляться постійно (спробуй кожну):</p>
+          <pre><code>ls            # показати файли в поточній папці (на Windows PowerShell теж працює)
+cd Desktop    # зайти в папку Desktop (робочий стіл)
+cd ..         # піднятися на рівень вище</code></pre>
+          <div class="callout">
+            <p><strong>Не треба запам'ятовувати все.</strong> Цих кількох команд вистачить надовго.
+            Термінал лякає лише перші 10 хвилин — далі він стане звичним, як будь-яке вікно.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 2.2 -->
+        <section id="l2" data-lesson="2.2 Node.js" class="scroll-mt-24">
+          <h2><span class="lesson-no">2.2</span>Крок 2. Встановлюємо Node.js</h2>
+          <p>
+            <strong>Node.js</strong> — це програма, без якої не запуститься Claude Code (він на ній
+            побудований). Встановимо її.
+          </p>
+          <p><strong>Windows і macOS (найпростіший шлях):</strong></p>
+          <ol>
+            <li>Відкрий у браузері <a href="https://nodejs.org" target="_blank" rel="noopener">nodejs.org</a>.</li>
+            <li>Завантаж версію з позначкою <strong>LTS</strong> (це стабільна версія «для всіх»).</li>
+            <li>Запусти завантажений файл і тисни «Далі/Continue» до кінця, нічого не міняючи.</li>
+          </ol>
+          <p><strong>Linux (Debian/Ubuntu) — у терміналі:</strong></p>
+          <pre><code>sudo apt update
+sudo apt install -y nodejs npm</code></pre>
+          <p>
+            (На інших дистрибутивах — свій менеджер пакетів, або встанови з <code>nodejs.org</code>.)
+          </p>
+          <p><strong>Перевірка.</strong> Закрий і знову відкрий термінал (щоб він «побачив» нову програму), потім впиши:</p>
+          <pre><code>node --version
+npm --version</code></pre>
+          <div class="callout">
+            <p><strong>Що ти маєш побачити.</strong> Два рядки з номерами версій, наприклад
+            <code>v20.11.1</code> і <code>10.2.4</code> (числа в тебе можуть бути іншими — це нормально).
+            Якщо обидва номери з'явилися — Node.js встановлено успішно. <code>npm</code> — це «магазин»
+            бібліотек, що ставиться разом із Node; ним за хвилину поставимо Claude Code.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Якщо помилка</strong> на кшталт <code>command not found</code> чи «не є внутрішньою
+            командою»: 1) переконайся, що ти <em>закрив і відкрив термінал заново</em> після встановлення;
+            2) якщо не допомогло — перевстанови Node.js із <code>nodejs.org</code> і перезавантаж комп'ютер.
+            Це найчастіша причина, і вона легко лікується.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 2.3 -->
+        <section id="l3" data-lesson="2.3 Акаунт і оплата" class="scroll-mt-24">
+          <h2><span class="lesson-no">2.3</span>Крок 3. Акаунт Anthropic і оплата</h2>
+          <p>
+            Claude Code звертається до моделі Claude, а це платна послуга. Тому потрібен акаунт із
+            налаштованою оплатою. Зробимо це до встановлення — щоб потім усе запрацювало одразу.
+          </p>
+          <ol>
+            <li>Відкрий <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>
+              і зареєструйся (або увійди, якщо акаунт уже є).</li>
+            <li>Знайди розділ оплати (зазвичай «Billing» / «Plans &amp; billing» у налаштуваннях) і додай
+              спосіб оплати та трохи коштів на баланс або підписку.</li>
+          </ol>
+          <div class="callout">
+            <p><strong>Скільки це коштує.</strong> Ти платиш за фактичне використання, і для навчання суми
+            зазвичай невеликі. Але це реальні гроші — заклади невеликий стартовий бюджет. Точні актуальні
+            тарифи й варіанти доступу завжди дивись на офіційній сторінці
+            <a href="https://docs.claude.com" target="_blank" rel="noopener">docs.claude.com</a> (ціни
+            змінюються, тому єдине надійне джерело — офіційне).</p>
+          </div>
+          <div class="callout">
+            <p><strong>Порада з безпеки.</strong> У консолі можна виставити <em>ліміт витрат</em> (spending
+            limit). Постав невелику межу на старті — так ти точно не витратиш більше, ніж планував, поки
+            вчишся.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 2.4 -->
+        <section id="l4" data-lesson="2.4 Встановлюємо Claude Code" class="scroll-mt-24">
+          <h2><span class="lesson-no">2.4</span>Крок 4. Встановлюємо Claude Code</h2>
+          <p>
+            Тепер головне. У терміналі впиши одну команду (вона працює однаково на Windows, macOS і Linux,
+            бо ми ставимо через <code>npm</code> із кроку 2):
+          </p>
+          <pre><code>npm install -g @anthropic-ai/claude-code</code></pre>
+          <p>
+            Прапорець <code>-g</code> означає «global» — встановити для всієї системи, щоб команду
+            <code>claude</code> можна було викликати з будь-якої папки. Встановлення триватиме кілька
+            секунд — побіжать рядки тексту, це нормально.
+          </p>
+          <p><strong>Перевірка:</strong></p>
+          <pre><code>claude --version</code></pre>
+          <div class="callout">
+            <p><strong>Що ти маєш побачити.</strong> Номер версії Claude Code (наприклад,
+            <code>1.x.x</code>). З'явився — інструмент встановлено.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Якщо помилка про доступ</strong> (<code>EACCES</code>, «permission denied») на
+            macOS/Linux: не став через <code>sudo</code> наосліп — краще налаштувати окрему теку для
+            глобальних пакетів npm. Найшвидше — відкрий офіційну інструкцію зі встановлення на
+            <a href="https://docs.claude.com" target="_blank" rel="noopener">docs.claude.com</a> і виконай
+            кроки звідти: вони завжди актуальні під твою систему.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Важливо.</strong> Команда встановлення й вимоги можуть із часом змінюватися. Якщо
+            рядок вище не спрацював або десь читаєш інакший — орієнтуйся на офіційну сторінку встановлення
+            Claude Code. Звіряти кроки з документацією — нормальна щоденна звичка інженера, не виняток.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- УРОК 2.5 -->
+        <section id="l5" data-lesson="2.5 Перший вхід" class="scroll-mt-24">
+          <h2><span class="lesson-no">2.5</span>Крок 5. Перший запуск і вхід</h2>
+          <p>Створимо окрему папку для першого проєкту й зайдемо в неї — щоб не захаращувати систему:</p>
+          <pre><code>cd Desktop          # перейдемо на робочий стіл (або куди зручно)
+mkdir ai-start      # створимо папку ai-start
+cd ai-start         # зайдемо в неї</code></pre>
+          <p>Тепер запускаємо Claude Code прямо в цій папці:</p>
+          <pre><code>claude</code></pre>
+          <p>
+            Під час першого запуску Claude Code попросить тебе <strong>увійти</strong>. Зазвичай він
+            відкриє браузер (або дасть посилання), де треба підтвердити вхід у твій акаунт Anthropic і
+            дозволити доступ. Підтверджуєш — і повертаєшся в термінал.
+          </p>
+          <div class="callout">
+            <p><strong>Що ти маєш побачити.</strong> Після входу термінал перейде в режим розмови з Claude
+            Code: з'явиться запрошення щось написати (поле вводу й, можливо, вітальний текст). Це означає,
+            що все працює — інструмент готовий приймати твої задачі.</p>
+          </div>
+          <div class="callout">
+            <p><strong>Якщо помилка.</strong> Якщо <code>claude</code> «не знайдено» — закрий і відкрий
+            термінал заново (як із Node.js). Якщо не вдається увійти — перевір, що акаунт і оплата
+            налаштовані (крок 3) і що в консолі є доступ/баланс. Будь-яку незрозумілу помилку можна
+            скопіювати й пошукати на <a href="https://docs.claude.com" target="_blank" rel="noopener">docs.claude.com</a>.</p>
+          </div>
+          <p>
+            Поки що нічого більше не роби — просто переконайся, що дійшов до режиму розмови. Як вийти:
+            зазвичай команда <code>/exit</code> усередині, або сполучення Ctrl+C кілька разів. У наступному
+            модулі ми вже поставимо Claude Code першу справжню задачу.
+          </p>
+          <div class="callout">
+            <p><strong>Підсумок.</strong> Ти відкрив термінал, встановив Node.js, створив акаунт із
+            оплатою, поставив Claude Code і вперше зайшов. Це був найтехнічніший етап — далі починається
+            найцікавіше: ти збудуєш першу річ, керуючи AI.</p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>П'ять питань, щоб закріпити кроки. Обирай відповідь — і одразу бачиш пояснення.</p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Що таке термінал?",
+            "options": [
+              "Програма для перегляду відео",
+              "Вікно, де ти даєш комп'ютеру команди текстом",
+              "Антивірус",
+              "Папка з файлами"
+            ],
+            "answer": 1,
+            "explain": "Термінал (командний рядок) — це текстовий пульт керування комп'ютером. Саме звідти ми запускаємо інструменти."
+          },
+          {
+            "q": "Навіщо потрібен Node.js у цьому курсі?",
+            "options": [
+              "Це антивірус",
+              "На ньому працює Claude Code — без нього він не запуститься",
+              "Це браузер",
+              "Це мова, якою ми будемо писати весь код"
+            ],
+            "answer": 1,
+            "explain": "Node.js — основа, на якій працює Claude Code. Тому ми ставимо його перед самим Claude Code."
+          },
+          {
+            "q": "Як перевірити, що Node.js встановлено?",
+            "options": [
+              "Перезавантажити роутер",
+              "Ввести в терміналі node --version і побачити номер версії",
+              "Відкрити браузер",
+              "Видалити папку Desktop"
+            ],
+            "answer": 1,
+            "explain": "Команда node --version виводить номер версії. Якщо номер з'явився — Node.js на місці (так само npm --version для npm)."
+          },
+          {
+            "q": "Що робить команда npm install -g @anthropic-ai/claude-code?",
+            "options": [
+              "Видаляє Node.js",
+              "Встановлює Claude Code глобально (для всієї системи)",
+              "Створює акаунт Anthropic",
+              "Відкриває браузер"
+            ],
+            "answer": 1,
+            "explain": "Ця команда через npm ставить Claude Code; прапорець -g робить команду claude доступною з будь-якої папки."
+          },
+          {
+            "q": "Чому варто виставити ліміт витрат (spending limit) у консолі?",
+            "options": [
+              "Щоб пришвидшити інтернет",
+              "Щоб не витратити більше грошей, ніж планував, поки вчишся",
+              "Це обов'язково для роботи Node.js",
+              "Щоб приховати акаунт"
+            ],
+            "answer": 1,
+            "explain": "Оплата йде за використання. Ліміт витрат — проста страховка від несподіваних витрат на старті навчання."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Комп'ютер готовий?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач модуль завершеним — і відкриється Модуль 3, де ми поставимо Claude Code першу задачу.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+</html>

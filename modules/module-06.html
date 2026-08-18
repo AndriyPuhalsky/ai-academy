@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 6 · Tool Use: інструменти для Claude — AI Академія</title>
+  <meta name="description"
+    content="Як дати Claude руки: опис інструментів через JSON Schema, повний цикл tool_use → tool_result, паралельні виклики та гарантований структурований вивід." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#BD5F40",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="m06" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../index.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIA</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Академія</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 06</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../index.html#syllabus" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + уроки модуля (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Трек III · Розробка з Claude</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Tool Use: інструменти для Claude
+        </h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Середній · 5 уроків · ≈ 60 хв читання</p>
+        <p class="mt-6 text-lg">
+          У Модулі 1 ми чесно визнали: модель уміє одне — генерувати текст. Вона не подивиться
+          погоду, не зазирне у твою базу замовлень і не надішле лист. Tool Use — протокол,
+          що закриває цю прірву: модель формулює структуровані запити, а виконує їх твій код.
+          Наприкінці модуля ти знатимеш і головний трюк продакшн-систем — гарантований
+          структурований вивід через форсований інструмент.
+        </p>
+
+        <hr />
+
+        <!-- УРОК 6.1 -->
+        <section id="l1" data-lesson="6.1 Концепція tool use" class="scroll-mt-24">
+          <h2><span class="lesson-no">6.1</span>Модель просить — код виконує</h2>
+          <p>
+            Працює це так. Ти описуєш моделі набір <strong>інструментів</strong> — по суті,
+            функцій твого коду. Коли модель вирішує, що для відповіді потрібен інструмент,
+            вона його не виконує (їй просто нічим!), а повертає структурований запит:
+            «виклич <code>get_orders_for_date</code> з <code>date=2026-06-20</code>».
+            Твій код виконує функцію, повертає результат у розмову — і модель продовжує
+            відповідь уже з реальними даними.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Мантра модуля</span>
+            <p>
+              Модель — мозок, твій код — руки. Жоден інструмент не виконується без твоєї
+              участі: ти валідуєш аргументи, обмежуєш права, логуєш кожен виклик.
+              Це не обмеження, а перевага — повний контроль на твоєму боці.
+            </p>
+          </div>
+
+          <p>
+            Аналогія з Модуля 2 отримує продовження. Талановитий новий колега не має
+            доступів до систем — і не лізе в них сам. Він пише тобі: «перевір, будь ласка,
+            замовлення на двадцяте». Ти перевіряєш і відповідаєш. Колега формулює запити —
+            виконуєш ти.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  U["Запит користувача + опис інструментів"] --> M["Модель"]
+  M --> T["stop_reason: tool_use — запит на виклик з аргументами"]
+  T --> C["Твій код виконує функцію"]
+  C --> R["tool_result повертається в розмову"]
+  R --> M2["Модель: фінальна відповідь з реальними даними"]
+  style T fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style C stroke:#E8DCC3
+            </pre>
+            <p class="diagram-caption">Один цикл tool use; далі побачиш, що модель може просити кілька викликів поспіль
+            </p>
+          </div>
+
+          <p>Що це відкриває:</p>
+          <ul>
+            <li><strong>свіжі дані</strong> попри межу знань із Модуля 1 — пошук, курси,
+              погода, розклади;</li>
+            <li><strong>приватні системи</strong> — твоя база, CRM, календар, склад;</li>
+            <li><strong>дії у світі</strong> — створити запис, надіслати лист, поставити
+              задачу (з твоїм підтвердженням, де доречно);</li>
+            <li><strong>точні обчислення</strong> — калькулятор замість «математики
+              токенами».</li>
+          </ul>
+        </section>
+
+        <!-- УРОК 6.2 -->
+        <section id="l2" data-lesson="6.2 JSON Schema" class="scroll-mt-24">
+          <h2><span class="lesson-no">6.2</span>Опис інструмента: JSON Schema</h2>
+          <p>
+            Інструмент описується трьома полями: <code>name</code>,
+            <code>description</code> та <code>input_schema</code> — схемою аргументів
+            у форматі JSON Schema.
+          </p>
+          <p>
+            Найнедооціненіше з них — <strong><code>description</code></strong>. Це теж
+            промпт, лише адресований рішенню «коли і як викликати». Усе з Модуля 3
+            застосовне: чітко, прямо, з крайніми випадками. Добрий опис каже, що робить
+            інструмент, що повертає і коли його використовувати — а коли ні.
+          </p>
+
+          <div class="example">
+            <div class="example-head"><span>JSON · опис інструмента</span></div>
+            <pre>{
+  "name": "get_orders_for_date",
+  "description": "Повертає список замовлень кейтерингу на вказану дату: тип події, кількість гостей, статус. Використовуй, коли користувач питає про завантаженість дня або конкретні замовлення. Не використовуй для дат у минулому місяці — їх немає в активній базі.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "date": {
+        "type": "string",
+        "description": "Дата у форматі YYYY-MM-DD, наприклад 2026-06-20"
+      },
+      "status": {
+        "type": "string",
+        "enum": ["confirmed", "pending", "all"],
+        "description": "Фільтр за статусом; якщо користувач не уточнив — all"
+      }
+    },
+    "required": ["date"]
+  }
+}</pre>
+          </div>
+
+          <p>Практичні правила схем:</p>
+          <ul>
+            <li><strong><code>enum</code> для закритих переліків</strong> — модель
+              не вигадає п'ятий статус, якого немає у твоїй базі;</li>
+            <li><strong>формати — у description поля:</strong> дати, телефони,
+              ідентифікатори; приклад значення працює найкраще;</li>
+            <li><strong>одна функція — одна відповідальність:</strong> три маленькі
+              інструменти кращі за один «комбайн» із сімома режимами;</li>
+            <li><strong>назви дієслівні й конкретні:</strong>
+              <code>get_orders_for_date</code>, а не <code>data_helper</code>.
+            </li>
+          </ul>
+        </section>
+
+        <!-- УРОК 6.3 -->
+        <section id="l3" data-lesson="6.3 Повний цикл у коді" class="scroll-mt-24">
+          <h2><span class="lesson-no">6.3</span>Повний цикл: tool_use → tool_result</h2>
+          <p>
+            Зберемо все в робочий код. Сценарій: асистент кейтерингу, який уміє діставати
+            замовлення з «бази» (для прикладу — мок-функція).
+          </p>
+
+          <div class="example">
+            <div class="example-head"><span>Python · повний цикл tool use</span></div>
+            <pre>import json
+from anthropic import Anthropic
+
+client = Anthropic()
+MODEL = "claude-sonnet-5"
+
+def get_orders_for_date(date, status="all"):
+    # тут був би запит до твоєї бази; для прикладу — мок
+    orders = [
+        {"event": "фуршет", "guests": 30, "status": "confirmed"},
+        {"event": "банкет", "guests": 45, "status": "pending"},
+    ]
+    if status != "all":
+        orders = [o for o in orders if o["status"] == status]
+    return orders
+
+tools = [{
+    "name": "get_orders_for_date",
+    "description": "Повертає замовлення кейтерингу на дату: тип події, "
+                   "кількість гостей, статус. Використовуй для питань про "
+                   "завантаженість дня чи конкретні замовлення.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "date": {"type": "string",
+                     "description": "Дата у форматі YYYY-MM-DD"},
+            "status": {"type": "string",
+                       "enum": ["confirmed", "pending", "all"],
+                       "description": "Фільтр; за замовчуванням all"},
+        },
+        "required": ["date"],
+    },
+}]
+
+messages = [{"role": "user",
+             "content": "Що в нас підтверджено на 2026-06-20?"}]
+
+response = client.messages.create(
+    model=MODEL, max_tokens=1024, tools=tools, messages=messages,
+)
+
+while response.stop_reason == "tool_use":
+    # 1) відповідь моделі (з блоками tool_use) — в історію
+    messages.append({"role": "assistant", "content": response.content})
+
+    # 2) виконуємо КОЖЕН запитаний інструмент
+    results = []
+    for block in response.content:
+        if block.type == "tool_use":
+            if block.name == "get_orders_for_date":
+                output = get_orders_for_date(**block.input)
+            results.append({
+                "type": "tool_result",
+                "tool_use_id": block.id,
+                "content": json.dumps(output, ensure_ascii=False),
+            })
+
+    # 3) усі результати — одним повідомленням користувача
+    messages.append({"role": "user", "content": results})
+
+    # 4) даємо моделі продовжити з реальними даними
+    response = client.messages.create(
+        model=MODEL, max_tokens=1024, tools=tools, messages=messages,
+    )
+
+print(response.content[0].text)</pre>
+          </div>
+
+          <p>Розбір ключових моментів:</p>
+          <ul>
+            <li><strong><code>stop_reason == "tool_use"</code></strong> — модель
+              зупинилась і чекає результатів, фінальної відповіді ще немає;</li>
+            <li><strong><code>content</code> — масив блоків:</strong> ось чому в Модулі 5
+              текст лежав у <code>content[0].text</code> — поруч із текстом тепер
+              можуть жити блоки <code>tool_use</code>;</li>
+            <li><strong><code>tool_result</code> їде в ролі user</strong> — і обов'язково
+              з <code>tool_use_id</code> того запиту, на який відповідає;</li>
+            <li><strong>цикл <code>while</code> не випадковий:</strong> отримавши
+              результат, модель може попросити ще один виклик — і ще. Це вже ембріон
+              агента, до якого ми дійдемо в Модулі 9.</li>
+          </ul>
+
+          <div class="callout">
+            <span class="callout-title">Помилки інструментів</span>
+            <p>
+              Якщо функція впала — не ховай це. Поверни <code>tool_result</code>
+              із полем <code>"is_error": true</code> і людським описом проблеми:
+              модель побачить помилку і адаптується — перепитає параметри, спробує
+              інакше або чесно скаже користувачу, що дані недоступні.
+            </p>
+          </div>
+        </section>
+
+        <!-- УРОК 6.4 -->
+        <section id="l4" data-lesson="6.4 Паралельні виклики" class="scroll-mt-24">
+          <h2><span class="lesson-no">6.4</span>Кілька інструментів і паралельні виклики</h2>
+          <p>
+            Справжня сила з'являється з меню: дай моделі кілька інструментів — і вона
+            сама обере потрібний для кожного кроку. Обирає вона за описами, тож якість
+            <code>description</code> із уроку 6.2 вирішує все: розпливчасті описи —
+            хаотичні виклики.
+          </p>
+          <p>
+            <strong>Паралельні виклики.</strong> На запит «скільки гостей сумарно на
+            п'ятницю і суботу?» модель може повернути <em>два</em> блоки
+            <code>tool_use</code> в одній відповіді. Правило просте: виконай усі
+            й поверни всі <code>tool_result</code> одним повідомленням користувача.
+            Наш цикл з уроку 6.3 це вже вміє — саме тому там <code>for</code>
+            по блоках, а не обробка одного.
+          </p>
+          <p>
+            <strong><code>tool_choice</code></strong> — ручка свободи вибору:
+          </p>
+          <ul>
+            <li><code>{"type": "auto"}</code> — за замовчуванням: модель сама вирішує,
+              чи потрібен інструмент;</li>
+            <li><code>{"type": "any"}</code> — мусить викликати якийсь із наданих
+              інструментів;</li>
+            <li><code>{"type": "tool", "name": "..."}</code> — мусить викликати саме
+              цей. Запам'ятай цей варіант — він головний герой наступного уроку.</li>
+          </ul>
+          <p>
+            І зворотний бік: не давай інструменти «про всяк випадок». Якщо відповідь
+            і так у знаннях моделі, зайвий виклик — це час, гроші й точка відмови.
+            Опис може прямо казати: «використовуй лише якщо користувач питає про
+            конкретні замовлення з бази».
+          </p>
+        </section>
+
+        <!-- УРОК 6.5 -->
+        <section id="l5" data-lesson="6.5 Структурований вивід" class="scroll-mt-24">
+          <h2><span class="lesson-no">6.5</span>Структурований вивід через інструменти</h2>
+          <p>
+            У Модулях 3 і 5 ми вибивали чистий JSON інструкціями та префілом. Працює,
+            але без гарантій структури: модель може перейменувати ключ або забути поле.
+            Ось трюк продакшн-рівня: опиши інструмент, чия <code>input_schema</code> —
+            це і є твоя бажана структура виводу, і форсуй його через
+            <code>tool_choice</code>. Модель «викличе» інструмент — а
+            <code>block.input</code> виявиться готовим об'єктом за схемою.
+            Виконувати нічого не треба: сама «функція» — фікція.
+          </p>
+
+          <div class="example">
+            <div class="example-head"><span>Python · структурований вивід</span></div>
+            <pre>extract_tool = {
+    "name": "save_order_request",
+    "description": "Зберігає структуровану заявку на кейтеринг, "
+                   "витягнуту з листа клієнта.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "event_type": {"type": "string",
+                           "enum": ["фуршет", "банкет", "кава-брейк", "інше"]},
+            "guests": {"type": "integer",
+                       "description": "Кількість гостей"},
+            "date": {"type": "string",
+                     "description": "YYYY-MM-DD або порожній рядок, якщо не вказано"},
+            "contact_phone": {"type": "string"},
+        },
+        "required": ["event_type", "guests"],
+    },
+}
+
+response = client.messages.create(
+    model=MODEL,
+    max_tokens=500,
+    tools=[extract_tool],
+    tool_choice={"type": "tool", "name": "save_order_request"},
+    messages=[{"role": "user",
+               "content": "Витягни заявку з листа:\n\n" + email_text}],
+)
+
+order = response.content[0].input   # готовий dict за схемою
+print(order["event_type"], order["guests"])</pre>
+          </div>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart LR
+  E["Лист клієнта"] --> M["Модель + форсований інструмент зі схемою"]
+  M --> I["block.input — об'єкт строго за схемою"]
+  I --> DB["Твоя база чи CRM"]
+  style M fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">«Виклик» нікуди не йде — нам потрібні лише його аргументи</p>
+          </div>
+
+          <p>
+            Чому це краще за «попроси JSON»: схема з типами та enum тримає формат,
+            преамбула неможлива в принципі, а парсити текст не треба взагалі.
+            Чесне застереження: структура гарантується значно краще, ніж зміст —
+            значення полів усе одно валідуй (модель може помилитися в даті чи числі;
+            розпізнавання з Модуля 2 безсмертне).
+          </p>
+          <p>
+            Інструменти — це руки моделі. У Модулі 7 розберемося з пам'яттю — RAG
+            і робота зі знаннями, що не влазять у контекст. А в Модулі 8 побачиш MCP —
+            відкритий стандарт, який робить інструменти переносними між застосунками.
+          </p>
+        </section>
+
+        <hr />
+
+        <div class="callout callout-sand">
+          <span class="callout-title">Підсумок модуля</span>
+          <ul>
+            <li>Модель нічого не виконує: tool use — це структуровані запити, а руки — твій код.</li>
+            <li>Інструмент = name + description + JSON Schema; description — це промпт, і він вирішує.</li>
+            <li>Цикл: tool_use → виконання → tool_result з tool_use_id → відповідь; помилки повертай з is_error.</li>
+            <li>Кілька tool_use в одній відповіді — норма: виконай усі, поверни одним повідомленням.</li>
+            <li>tool_choice керує свободою: auto, any або конкретний інструмент.</li>
+            <li>Форсований інструмент = гарантована структура виводу: block.input і є твій об'єкт.</li>
+          </ul>
+        </div>
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Вісім питань про інструменти. Обирай відповідь — і одразу отримуй пояснення.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Що насправді відбувається, коли модель «викликає інструмент»?",
+            "options": [
+              "Модель виконує функцію на серверах Anthropic",
+              "Модель повертає структурований запит, а функцію виконує твій код",
+              "Модель отримує прямий доступ до твоєї бази даних",
+              "Запит автоматично йде в інтернет"
+            ],
+            "answer": 1,
+            "explain": "Модель — мозок, код — руки: вона лише формує запит з назвою інструмента й аргументами. Виконання, валідація і права — повністю на твоєму боці."
+          },
+          {
+            "q": "Яке поле найбільше впливає на те, чи правильно модель обере інструмент?",
+            "options": [
+              "name",
+              "description",
+              "required",
+              "Порядок інструментів у списку"
+            ],
+            "answer": 1,
+            "explain": "description — це промпт для рішення «коли і як викликати»: що робить інструмент, що повертає, коли доречний. Розпливчастий опис — хаотичні виклики."
+          },
+          {
+            "q": "Відповідь прийшла зі stop_reason = «tool_use». Це означає, що…",
+            "options": [
+              "Модель завершила відповідь і використала інструмент сама",
+              "Модель зупинилась і чекає результат інструмента від твого коду",
+              "Сталася помилка виклику",
+              "Інструмент видалено зі списку"
+            ],
+            "answer": 1,
+            "explain": "tool_use — пауза, а не фінал: у content лежать блоки з запитами на виклики, і розмова продовжиться лише після того, як ти повернеш tool_result."
+          },
+          {
+            "q": "Як правильно повернути моделі результат інструмента?",
+            "options": [
+              "Повідомленням assistant із текстом результату",
+              "Повідомленням user із блоком tool_result і відповідним tool_use_id",
+              "Окремим HTTP-запитом на спеціальний ендпойнт",
+              "Дописати результат у системний промпт"
+            ],
+            "answer": 1,
+            "explain": "Результат їде наступним повідомленням user як блок tool_result, обов'язково з tool_use_id запиту, на який він відповідає, — так модель зіставляє питання й відповіді."
+          },
+          {
+            "q": "Модель повернула два блоки tool_use в одній відповіді. Твої дії?",
+            "options": [
+              "Виконати лише перший — другий зайвий",
+              "Виконати обидва й повернути обидва tool_result одним повідомленням user",
+              "Повернути помилку: так не буває",
+              "Надіслати два окремі повідомлення user, по одному результату"
+            ],
+            "answer": 1,
+            "explain": "Паралельні виклики — норма: виконай усі запити й поверни всі результати в одному повідомленні користувача. Саме тому в робочому циклі — for по блоках."
+          },
+          {
+            "q": "Функція інструмента впала з винятком. Як правильно вчинити?",
+            "options": [
+              "Мовчки обірвати розмову",
+              "Повернути tool_result з is_error: true і зрозумілим описом проблеми",
+              "Повернути порожній рядок, ніби все добре",
+              "Повторювати виклик до перемоги"
+            ],
+            "answer": 1,
+            "explain": "Чесна помилка в tool_result дає моделі шанс адаптуватися: уточнити параметри, спробувати інший шлях або прямо сказати користувачу, що дані недоступні."
+          },
+          {
+            "q": "Як гарантовано отримати відповідь строго за заданою схемою полів?",
+            "options": [
+              "Написати «дуже прошу, тримай формат»",
+              "Інструмент зі схемою-структурою плюс tool_choice типу tool — і взяти block.input",
+              "Підняти temperature до 1",
+              "Надіслати запит двічі й порівняти"
+            ],
+            "answer": 1,
+            "explain": "Форсований інструмент — головний трюк структурованого виводу: input_schema задає типи й enum, а block.input повертається готовим об'єктом без парсингу тексту. Значення полів усе одно валідуй."
+          },
+          {
+            "q": "Навіщо в схемі параметра поле enum?",
+            "options": [
+              "Для прискорення відповіді",
+              "Щоб обмежити значення закритим переліком і відсікти вигадані варіанти",
+              "Це обов'язкова вимога JSON Schema",
+              "Щоб модель могла додавати нові значення"
+            ],
+            "answer": 1,
+            "explain": "enum — твій довідник дозволених значень: модель не вигадає статус, якого немає в базі, а пайплайн не отримає сюрпризів у полі."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>

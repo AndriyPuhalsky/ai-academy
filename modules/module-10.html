@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 10 · Evals: оцінювання якості — AI Академія</title>
+  <meta name="description"
+    content="Чому «на око» не працює: тестові набори, code- і model-graded оцінки, метрики та ітеративний цикл покращення промптів на числах, а не відчуттях." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#BD5F40",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="m10" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../index.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIA</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Академія</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 10</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../index.html#syllabus" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + уроки модуля (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Трек IV · Агенти та продакшн</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Evals: оцінювання якості</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Просунутий · 4 уроки · ≈ 55 хв читання</p>
+        <p class="mt-6 text-lg">
+          Модуль 9 закінчився питанням: агент працює — але наскільки добре? Промпт
+          «покращили» — а чи справді? У звичайній розробці на такі питання відповідають
+          тести; в LLM-системах їхній аналог — evals. Це останній технічний інструмент
+          курсу, і він перетворює «здається, стало краще» на «на 12% менше помилок
+          на п'ятдесяти кейсах».
+        </p>
+
+        <hr />
+
+        <!-- УРОК 10.1 -->
+        <section id="l1" data-lesson="10.1 Чому «на око» бреше" class="scroll-mt-24">
+          <h2><span class="lesson-no">10.1</span>Чому «на око» не працює</h2>
+          <p>
+            Типова сцена. Ти переформулював промпт, спробував на двох-трьох прикладах —
+            «о, стало краще!» — і задеплоїв. За тиждень у проді посипалися кейси,
+            яких ти не пробував. Знайомо? Інтуїція тут програє з чотирьох причин.
+          </p>
+          <ul>
+            <li><strong>Недетермінованість.</strong> Згадай Модуль 1: у виборі токенів
+              є випадковість. Одна вдала відповідь на один приклад — це не покращення,
+              це монетка, що випала орлом.</li>
+            <li><strong>Вибіркова пам'ять.</strong> Ми перевіряємо на улюблених
+              прикладах — тих, що й так працювали.</li>
+            <li><strong>Невидимі регресії.</strong> Покращив категорію «скарга» —
+              зламав «зміну замовлення». А її ти не перевіряв.</li>
+            <li><strong>Упередження до «звучить краще».</strong> Гладкіший текст
+              здається якіснішим, навіть якщо він менш точний.</li>
+          </ul>
+          <p>
+            Аналогія для розробника пряма: міняти промпти без evals — як рефакторити
+            код без тестів. «Ну компілюється ж» — не аргумент. <strong>Eval — це
+              unit-тести для промптів</strong>: набір тестових кейсів (вхід плюс
+            очікування), спосіб оцінити відповідь і агрегована метрика. Прогнав
+            до зміни, прогнав після — порівняв числа.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  CH["Зміна промпта"] --> A["«На око»: 2–3 улюблені приклади"]
+  CH --> B["Eval: фіксований набір із 50 кейсів"]
+  A --> A2["Невидимі регресії випливають у проді"]
+  B --> B2["Число до і після: рішення на фактах"]
+  style B fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">Та сама зміна — два різні рівні впевненості</p>
+          </div>
+
+          <p>
+            Коли заводити evals? Раніше, ніж здається: двадцять кейсів незрівнянно
+            кращі за нуль, а набір росте разом із продуктом. Якщо твоя система вже
+            відповідає реальним людям — час був учора.
+          </p>
+        </section>
+
+        <!-- УРОК 10.2 -->
+        <section id="l2" data-lesson="10.2 Тестовий набір" class="scroll-mt-24">
+          <h2><span class="lesson-no">10.2</span>Тестовий набір: золотий запас якості</h2>
+          <p>
+            Кейс — це вхід плюс очікування: точна відповідь, перелік обов'язкових
+            елементів або критерії якості. Зберігати найзручніше простим JSON поруч
+            із промптами — і версіонувати разом із ними. Ось стартовий набір для
+            нашого класифікатора звернень із Модулів 4 і 9:
+          </p>
+
+          <div class="example">
+            <div class="example-head"><span>JSON · eval_cases.json</span></div>
+            <pre>[
+  {"id": "c01",
+   "input": "Хочемо фуршет на 25 осіб наступної п'ятниці",
+   "expected": "нове_замовлення"},
+  {"id": "c02",
+   "input": "Ми замовляли банкет на 40 — зробіть, будь ласка, на 50",
+   "expected": "зміна_замовлення"},
+  {"id": "c03",
+   "input": "Десерти вчора приїхали теплі, це неприйнятно",
+   "expected": "скарга"},
+  {"id": "c04",
+   "input": "Підкажіть, чи працюєте ви на виїзді за містом?",
+   "expected": "інше"},
+  {"id": "c05",
+   "input": "Все було чудово, дякуємо! Але рахунок досі не прийшов",
+   "expected": "інше"}
+]</pre>
+          </div>
+
+          <p>
+            Зверни увагу на c05 — подяка з питанням про рахунок. Саме такі межові
+            кейси і є цінністю набору. Звідки їх брати:
+          </p>
+          <ul>
+            <li><strong>Реальні запити з логів</strong> — золото: справжній розподіл
+              формулювань, помилок і суржику;</li>
+            <li><strong>типові сценарії</strong> — по кілька на кожну категорію
+              чи гілку;</li>
+            <li><strong>крайні випадки</strong> — порожній вхід, дуже довгий текст,
+              суміш мов, спроби prompt injection (так-так, безпекові кейси теж
+              живуть тут — Модуль 11 поруч);</li>
+            <li><strong>кейси-«могилки»</strong> — кожен баг із проду стає тестом
+              назавжди, як у звичайній розробці.</li>
+          </ul>
+          <p>
+            Скільки треба? Для старту — 20–50. Важливіша за розмір
+            <strong>репрезентативність</strong>: розподіл кейсів має відбивати те,
+            що реально приходить у систему, а не те, що зручно перевіряти.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Не плутати з тренуванням</span>
+            <p>
+              Eval-набір нічого не «навчає» — ми не дотреновуємо модель. Це лише
+              лінійка: нею вимірюють, а не виховують. Тому той самий набір чесно
+              працює для порівняння промптів, моделей і навіть архітектур
+              між собою.
+            </p>
+          </div>
+        </section>
+
+        <!-- УРОК 10.3 -->
+        <section id="l3" data-lesson="10.3 Три способи оцінки" class="scroll-mt-24">
+          <h2><span class="lesson-no">10.3</span>Три способи оцінювання</h2>
+          <p>
+            Кейси є — лишилося вирішити, <em>хто</em> ставитиме оцінку. Варіантів три,
+            і вони не конкуренти, а інструменти під різні задачі.
+          </p>
+          <ul>
+            <li><strong>Code-graded — оцінює код.</strong> Точна відповідність для
+              класифікації, парсинг JSON і перевірка полів для структурованого виводу
+              (Модуль 6), запуск тестів для згенерованого коду. Дешево, миттєво,
+              об'єктивно — коли правильна відповідь однозначна.</li>
+            <li><strong>Human-graded — оцінюють люди.</strong> Для тону, корисності,
+              доречності. Найточніше і найдорожче. Обов'язкова рубрика з критеріями
+              та шкалою — інакше оцінювання деградує до «подобається / не подобається».</li>
+            <li><strong>Model-graded — оцінює модель (LLM-as-judge).</strong> Модель-суддя
+              перевіряє відповідь за рубрикою: масштабований спосіб міряти
+              суб'єктивне — тисяча кейсів за обід.</li>
+          </ul>
+          <table>
+            <thead>
+              <tr>
+                <th>Метод</th>
+                <th>Що міряє добре</th>
+                <th>Ціна</th>
+                <th>Головний ризик</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Code-graded</td>
+                <td>Точні відповіді, формати, факти зі списку</td>
+                <td>Копійки</td>
+                <td>Не бачить відтінків якості</td>
+              </tr>
+              <tr>
+                <td>Human-graded</td>
+                <td>Тон, корисність, доречність</td>
+                <td>Дорого і повільно</td>
+                <td>Без рубрики — суцільна суб'єктивність</td>
+              </tr>
+              <tr>
+                <td>Model-graded</td>
+                <td>Суб'єктивне в масштабі</td>
+                <td>Помірно</td>
+                <td>Упередження судді</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Правила надійного судді-моделі: чітка рубрика прямо в промпті; оцінка
+            повертається структуровано — форсованим інструментом із Модуля 6, а не
+            вільним текстом; temperature 0; суддя отримує критерії, а не той самий
+            промпт, що й генератор. І головне — <strong>калібрування</strong>:
+            вибірково порівнюй оцінки судді з людськими; розходяться — лагодь рубрику.
+            Пам'ятай і про типові упередження суддів: схильність любити довші
+            та ввічливіші відповіді — нейтралізуй це явними критеріями.
+          </p>
+          <p>
+            Про метрики коротко: для класифікації — точність (частка правильних);
+            для перевірок — pass rate (частка кейсів, що пройшли всі умови);
+            для рубрик — середній бал. Яку б не обрав, головне одне: та сама метрика
+            на тому самому наборі до і після зміни.
+          </p>
+        </section>
+
+        <!-- УРОК 10.4 -->
+        <section id="l4" data-lesson="10.4 Цикл покращення" class="scroll-mt-24">
+          <h2><span class="lesson-no">10.4</span>Ітеративний цикл покращення</h2>
+          <p>
+            Збираємо процес: зафіксував базлайн → зробив <em>одну</em> зміну → прогнав
+            набір → порівняв метрику → прийняв або відкотив. А прод тим часом постачає
+            нові кейси в набір.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart LR
+  BASE["Базлайн: метрика поточного промпта"] --> CH["Одна зміна промпта"]
+  CH --> RUN["Прогін на тест-наборі"]
+  RUN --> CMP{"Метрика покращилась?"}
+  CMP -->|"так"| ACC["Прийняти: новий базлайн"]
+  CMP -->|"ні"| REJ["Відкотити і спробувати інакше"]
+  ACC --> CH
+  REJ --> CH
+  PROD["Падіння в проді"] -.->|"стає кейсом назавжди"| RUN
+  style CMP stroke:#D97757
+  style PROD fill:#2A211C,stroke:#E8DCC3,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">Той самий цикл, що й у звичайній розробці з тестами, — лише лінійка інша</p>
+          </div>
+
+          <div class="example">
+            <div class="example-head"><span>Python · eval-раннер для класифікатора</span></div>
+            <pre>import json
+from anthropic import Anthropic
+
+client = Anthropic()
+MODEL = "claude-sonnet-5"
+
+PROMPT_V2 = (
+    "Класифікуй звернення клієнта кейтерингу в одну з категорій: "
+    "нове_замовлення | зміна_замовлення | скарга | інше. "
+    "Відповідай лише назвою категорії.\n\nЗвернення: "
+)
+
+def classify(text):
+    response = client.messages.create(
+        model=MODEL, max_tokens=10, temperature=0,
+        messages=[{"role": "user", "content": PROMPT_V2 + text}],
+    )
+    return response.content[0].text.strip()
+
+def run_eval(cases):
+    passed, failures = 0, []
+    for case in cases:
+        got = classify(case["input"])
+        if got == case["expected"]:
+            passed += 1
+        else:
+            failures.append({"id": case["id"],
+                             "expected": case["expected"],
+                             "got": got})
+    accuracy = passed / len(cases)
+    return accuracy, failures
+
+with open("eval_cases.json", encoding="utf-8") as f:
+    cases = json.load(f)
+
+accuracy, failures = run_eval(cases)
+
+print(f"Точність: {accuracy:.0%} на {len(cases)} кейсах")
+for fail in failures:
+    print(f"  - {fail['id']}: очікували {fail['expected']}, отримали {fail['got']}")</pre>
+          </div>
+
+          <p>Що тут важливо:</p>
+          <ul>
+            <li><strong>temperature 0</strong> — заради відтворюваності; повної
+              детермінованості це не гарантує, тож для важливих рішень проганяй
+              набір двічі;</li>
+            <li><strong>звіт показує не лише число, а й провали</strong> — саме
+              failures підказують, якою буде наступна зміна промпта;</li>
+            <li><strong>одна зміна за раз</strong> — поміняв два блоки одночасно
+              і метрика зросла? Тепер ти не знаєш, який із них допоміг, а який,
+              можливо, нашкодив;</li>
+            <li><strong>поріг для деплою</strong> — наприклад, «не гірше базлайну
+              в жодній категорії», а не лише загальна цифра;</li>
+            <li><strong>для агентів</strong> із Модуля 9 оцінюй кінцевий результат
+              задачі, а не кожен проміжний крок — маршрут у агента свій щоразу.</li>
+          </ul>
+          <p>
+            Для model-graded оцінок раннер змінюється мінімально: замість порівняння
+            рядків — виклик судді, який повертає бал форсованим інструментом
+            із Модуля 6. Рубрика в промпті судді, число у схемі — і суб'єктивне
+            стає вимірюваним.
+          </p>
+          <p>
+            Вимірювати вміємо. Лишилося навчитися захищатися: Модуль 11 — prompt
+            injection, приватність даних і межі відповідального використання.
+            І так, безпекові кейси теж житимуть у твоєму eval-наборі.
+          </p>
+        </section>
+
+        <hr />
+
+        <div class="callout callout-sand">
+          <span class="callout-title">Підсумок модуля</span>
+          <ul>
+            <li>«На око» бреше: недетермінованість, вибіркова пам'ять, невидимі регресії.</li>
+            <li>Eval = набір кейсів + спосіб оцінки + метрика; двадцять кейсів кращі за нуль.</li>
+            <li>Кейси бери з реальних логів; кожен баг із проду стає тестом назавжди.</li>
+            <li>Code-graded — де відповідь однозначна; human — еталон; model-graded — масштабована суб'єктивність.</li>
+            <li>Суддя-модель: рубрика, структурований вивід, temperature 0 і калібрування на людських оцінках.</li>
+            <li>Цикл: базлайн → одна зміна → прогін → порівняння. Рішення на числах, не на відчуттях.</li>
+          </ul>
+        </div>
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Вісім питань про вимірювання якості. Обирай відповідь — і одразу отримуй
+            пояснення.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Чому перевірка зміни промпта на двох-трьох прикладах часто обманює?",
+            "options": [
+              "Приклади завжди застарілі",
+              "Випадковість генерації плюс невидимі регресії на неперевірених кейсах",
+              "Модель запам'ятовує приклади і підлаштовується",
+              "Два приклади — це забагато"
+            ],
+            "answer": 1,
+            "explain": "Одна вдала відповідь може бути монеткою, що випала орлом, а покращення однієї категорії легко ламає іншу — яку ти не перевіряв. Тому потрібен фіксований набір і метрика."
+          },
+          {
+            "q": "З чого складається eval?",
+            "options": [
+              "З довгого промпта і терпіння",
+              "З набору кейсів, способу оцінки відповіді та агрегованої метрики",
+              "З дашборда і красивих графіків",
+              "З окремої натренованої моделі"
+            ],
+            "answer": 1,
+            "explain": "Три складники: кейси (вхід + очікування), оцінювач (код, людина або модель) і метрика, яку порівнюєш до та після зміни."
+          },
+          {
+            "q": "Найцінніше джерело тестових кейсів?",
+            "options": [
+              "Випадковий генератор текстів",
+              "Реальні запити користувачів із логів",
+              "Приклади з документації",
+              "Вигадані ідеальні формулювання"
+            ],
+            "answer": 1,
+            "explain": "Логи дають справжній розподіл: живі формулювання, суржик, несподівані повороти. Плюс кожен баг із проду має ставати кейсом-«могилкою» назавжди."
+          },
+          {
+            "q": "Класифікація звернень із точною правильною відповіддю — який метод оцінки природний?",
+            "options": [
+              "Human-graded із панеллю експертів",
+              "Code-graded: точне порівняння з очікуваною категорією",
+              "Model-graded із розгорнутою рубрикою",
+              "Жоден — класифікацію не оцінюють"
+            ],
+            "answer": 1,
+            "explain": "Коли відповідь однозначна, код порівнює рядки: миттєво, безкоштовно, об'єктивно. Складніші методи лишай для задач без єдиної правильної відповіді."
+          },
+          {
+            "q": "Треба масштабовано оцінювати тон і емпатію тисяч відповідей підтримки. Розумний підхід?",
+            "options": [
+              "Найняти тисячу оцінювачів",
+              "Model-graded за чіткою рубрикою, відкалібрований на вибірці людських оцінок",
+              "Перевірити перші п'ять і екстраполювати",
+              "Рахувати кількість слів «дякуємо»"
+            ],
+            "answer": 1,
+            "explain": "LLM-as-judge масштабує суб'єктивну оцінку, але потребує рубрики, структурованого виводу і калібрування: вибірково звіряй оцінки судді з людськими."
+          },
+          {
+            "q": "Ключові вимоги до промпта моделі-судді?",
+            "options": [
+              "Висока temperature для креативності оцінок",
+              "Чітка рубрика з критеріями і структурований вивід оцінки при temperature 0",
+              "Той самий промпт, що й у генератора",
+              "Якнайменше деталей, щоб не упереджувати"
+            ],
+            "answer": 1,
+            "explain": "Суддя має знати критерії і повертати бал у фіксованій структурі (форсований інструмент із Модуля 6) за нульової температури — інакше оцінки гуляють і не порівнюються."
+          },
+          {
+            "q": "Ти зробив дві зміни промпта одночасно, метрика зросла. У чому проблема?",
+            "options": [
+              "Жодної — метрика ж зросла",
+              "Невідомо, яка зміна допомогла, а яка, можливо, нашкодила",
+              "Метрика від двох змін завжди бреше",
+              "Подвійні зміни заборонені API"
+            ],
+            "answer": 1,
+            "explain": "Базова гігієна експерименту: одна зміна за раз. Інакше «покращення» може бути сумою плюс п'ятнадцять і мінус сім — і ти збережеш шкідливу половину."
+          },
+          {
+            "q": "У проді знайшовся кейс, на якому система падає. Перша дія для довгострокової якості?",
+            "options": [
+              "Видалити кейс із логів",
+              "Додати його в eval-набір — щоб ця помилка більше ніколи не поверталась непоміченою",
+              "Підняти temperature",
+              "Перейти на іншу модель без вимірювань"
+            ],
+            "answer": 1,
+            "explain": "Кейс-«могилка»: спершу баг стає тестом, потім лагодиться промпт — і прогін набору підтверджує виправлення без регресій. Точнісінько як у звичайній розробці."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
