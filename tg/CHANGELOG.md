@@ -20,8 +20,12 @@ SQL-міграції в Supabase, деплої/оновлення Edge Functions
 - Оновлено Edge Function "telegram" (`tg/telegram_index.ts`) — додано кнопку
   «✉️ Повідомлення» / команду `/messages`: показує останні звернення з таблиці
   `contact_messages`.
-- Очікує: `TURNSTILE_SECRET_KEY` (Supabase secret) і публічний Site key у
-  `config.json` → `contact.turnstileSiteKey` — без них Turnstile-перевірка форми пропускається.
+- Підключено Cloudflare Turnstile: `TURNSTILE_SECRET_KEY` додано в секрети функції
+  "contact", публічний Site key вписано в `config.json` → `contact.turnstileSiteKey`.
+  Додано перевірку `data.hostname` у відповіді `siteverify` (без неї публічний site key
+  можна було б вставити на чужому сайті й реплеїти токени в обхід капчі).
+- Наскрізно перевірено локально (localhost): Turnstile проходить, POST доходить до
+  Edge Function, запис падає в `contact_messages`, тестовий рядок після перевірки видалено.
 
 ## 2026-08-18
 - RLS перевірено вручну через Dashboard → Database → Policies: ключові таблиці
