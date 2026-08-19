@@ -257,12 +257,13 @@
           'Відкрити ↗' +
         '</a>';
     } else {
-      // type === "copy": показуємо значення моноширинним і кнопку копіювання
+      // type === "copy": показуємо значення повністю (перенесення рядків) і кнопку копіювання
+      var copyValue = method.copyValue != null ? method.copyValue : method.value;
       body =
-        '<div class="mt-auto flex items-center gap-2">' +
-          '<code class="min-w-0 flex-1 truncate rounded-lg border border-line bg-ink px-3 py-2 font-mono text-sm text-sand">' + esc(method.value) + '</code>' +
-          '<button type="button" data-copy="' + esc(method.value) + '" ' +
-                  'class="shrink-0 rounded-lg border border-line px-3 py-2 text-sm transition hover:border-clay/60 hover:text-sand">' +
+        '<div class="mt-auto flex flex-col gap-2">' +
+          '<code class="min-w-0 whitespace-pre-wrap break-all rounded-lg border border-line bg-ink px-3 py-2 font-mono text-xs text-sand">' + esc(method.value) + '</code>' +
+          '<button type="button" data-copy="' + esc(copyValue) + '" ' +
+                  'class="w-fit shrink-0 rounded-lg border border-line px-3 py-2 text-sm transition hover:border-clay/60 hover:text-sand">' +
             'Копіювати' +
           '</button>' +
         '</div>';
