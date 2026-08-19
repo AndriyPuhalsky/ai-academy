@@ -5,8 +5,11 @@
 //
 //  Робить дві речі:
 //   1) Приймає оновлення від Telegram-бота: /start, /id, /menu, /stats, /export,
-//      кнопки постійної клавіатури («📊 Статистика», «⬇️ Експорт»)
-//      та натискання inline-кнопок (callback_query).
+//      /messages, кнопки постійної клавіатури («📊 Статистика», «⬇️ Експорт»,
+//      «✉️ Повідомлення») та натискання inline-кнопок (callback_query).
+//      «✉️ Повідомлення» показує останні звернення з форми «Написати нам»
+//      (таблиця contact_messages, наповнює окрема функція "contact" —
+//      див. tg/contact_index.ts + tg/contact_messages.sql).
 //   2) Приймає Database Webhook на вставку в profiles → шле адміну
 //      сповіщення «нова реєстрація».
 //
@@ -39,10 +42,11 @@ const TG_SECRET = Deno.env.get("TELEGRAM_SECRET_TOKEN") ?? "";
 // Підписи кнопок постійної клавіатури (мають точно збігатися при маршрутизації).
 const BTN_STATS = "📊 Статистика";
 const BTN_EXPORT = "⬇️ Експорт";
+const BTN_MESSAGES = "✉️ Повідомлення";
 
 // Постійна клавіатура під полем вводу — щоб не шукати слеш-команди.
 const ADMIN_MENU = {
-  keyboard: [[{ text: BTN_STATS }, { text: BTN_EXPORT }]],
+  keyboard: [[{ text: BTN_STATS }, { text: BTN_EXPORT }], [{ text: BTN_MESSAGES }]],
   resize_keyboard: true,
   is_persistent: true,
 };
@@ -141,6 +145,36 @@ async function actionExport(chatId: string | number) {
   await sendCsv(chatId, `users_${today}.csv`, toCsv(rows));
 }
 
+function fmtDateTime(iso: string): string {
+  try { return new Date(iso).toLocaleString("uk-UA", { dateStyle: "short", timeStyle: "short" }); }
+  catch { return iso; }
+}
+
+// Останні звернення з форми «Написати нам» (наповнює функція "contact", див. tg/contact_index.ts).
+async function actionMessages(chatId: string | number) {
+  const { data, error } = await admin()
+    .from("contact_messages")
+    .select("full_name, email, telegram, message, created_at")
+    .order("created_at", { ascending: false })
+    .limit(10);
+  if (error) { await sendMessage(chatId, "Помилка: " + escapeHtml(error.message)); return; }
+  const rows = data ?? [];
+  if (!rows.length) { await sendMessage(chatId, "Повідомлень поки немає."); return; }
+
+  const items = rows.map((r: any) => {
+    const short = r.message.length > 200 ? r.message.slice(0, 200) + "…" : r.message;
+    return (
+      `🕐 ${fmtDateTime(r.created_at)}\n` +
+      `Ім'я: ${escapeHtml(r.full_name)}\n` +
+      `Email: ${escapeHtml(r.email)}\n` +
+      `Telegram: ${r.telegram ? escapeHtml(r.telegram) : "—"}\n` +
+      `${escapeHtml(short)}`
+    );
+  });
+  const text = `✉️ <b>Останні звернення (${rows.length})</b>\n\n` + items.join("\n\n———\n\n");
+  await sendMessage(chatId, text.length > 4000 ? text.slice(0, 4000) + "…" : text);
+}
+
 Deno.serve(async (req) => {
   let body: any;
   try { body = await req.json(); } catch { return new Response("ok"); }
@@ -186,7 +220,7 @@ Deno.serve(async (req) => {
         await sendMessage(
           chatId,
           `Привіт, адміне! Користуйся кнопками нижче 👇\n` +
-          `Слеш-команди теж працюють: /stats, /export.`,
+          `Слеш-команди теж працюють: /stats, /export, /messages.`,
           ADMIN_MENU,
         );
       } else {
@@ -194,7 +228,7 @@ Deno.serve(async (req) => {
           chatId,
           `Привіт! Твій chat_id: <code>${chatId}</code>\n\n` +
           `Додай його у секрет <b>ADMIN_CHAT_ID</b>, щоб користуватись адмін-командами:\n` +
-          `/export — CSV усіх користувачів\n/stats — коротка статистика`,
+          `/export — CSV усіх користувачів\n/stats — коротка статистика\n/messages — звернення з форми «Написати нам»`,
         );
       }
     } else if (text === "/stats" || text === BTN_STATS) {
@@ -203,10 +237,13 @@ Deno.serve(async (req) => {
     } else if (text === "/export" || text === BTN_EXPORT) {
       if (!isAdmin(chatId)) { await sendMessage(chatId, "🔒 Лише для адміна."); return new Response("ok"); }
       await actionExport(chatId);
+    } else if (text === "/messages" || text === BTN_MESSAGES) {
+      if (!isAdmin(chatId)) { await sendMessage(chatId, "🔒 Лише для адміна."); return new Response("ok"); }
+      await actionMessages(chatId);
     } else {
       await sendMessage(
         chatId,
-        "Не знаю такої команди. Скористайся кнопками нижче або /stats, /export.",
+        "Не знаю такої команди. Скористайся кнопками нижче або /stats, /export, /messages.",
         isAdmin(chatId) ? ADMIN_MENU : undefined,
       );
     }
