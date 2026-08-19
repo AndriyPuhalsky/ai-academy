@@ -18,6 +18,9 @@ Supabase (auth/прогрес/сертифікати) + Telegram Edge Function (
 - `tg/telegram_index.ts` — Supabase Edge Function: адмін-бот (`/stats`, `/export`) +
   сповіщення про нові реєстрації. Деплоїться окремо (Supabase CLI/Dashboard), не через git
   push сайту.
+- `tg/CHANGELOG.md` — журнал інфра-змін (reverse-chronological): SQL-міграції Supabase,
+  деплої/оновлення Edge Functions, зміни секретів/конфігурації, версії. Поповнюй його після
+  кожної SQL-міграції, деплою Edge Function чи зміни секрету.
 - `deploy-guide.local.html` — приватний покроковий рантайм-гайд власника (git, Cloudflare,
   домен, Supabase). У `.gitignore` — НЕ комітити, НЕ вважати джерелом правди про код, це
   людський runbook, а не документація коду.
