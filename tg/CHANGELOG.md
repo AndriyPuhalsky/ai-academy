@@ -10,6 +10,29 @@ SQL-міграції в Supabase, деплої/оновлення Edge Functions
 `РРРР-ММ-ДД`.
 
 ## 2026-08-19
+- **Змін інфраструктури не вносилось** (жодної SQL-міграції, деплою Edge Function чи
+  зміни секретів) — сесія проєктна. Нижче лише результати перевірок і зафіксовані плани.
+- Перевірено обсяг публікації статики: `wrangler.toml` має `[assets] directory = "."`,
+  тому в публічний доступ іде **весь корінь репозиторію**. Підтверджено curl-ом на
+  dev-URL: `CLAUDE.md`, `tg/CHANGELOG.md`, `tg/GOING_LIVE.md`, `tg/contact_messages.sql`,
+  `tg/telegram_index.ts`, `wrangler.toml` — усі віддають 200. Секретів у них немає
+  (вони в Supabase Secrets), але карта інфраструктури читається зовні.
+  **Заплановано:** `.assetsignore` у корені (`tg/`, `*.md`, `*.sql`, `dev/`, `.claude/`)
+  з перевіркою тим самим curl-ом на dev перед merge у `main`. Ще не зроблено.
+- Уточнення до запису 2026-08-18 про RLS: там звірялись політики виду `using (...)`,
+  а `USING` керує SELECT/UPDATE/DELETE. Для INSERT працює окрема умова `with check`,
+  і вона **ще не звірена** — тобто питання, чи можна писати в `progress`/`certificates`
+  прямим REST-запитом з публічним anon-ключем в обхід `submit_quiz`, лишається
+  відкритим. **Заплановано:** знімок реальних політик і сигнатур RPC з Dashboard у
+  `dev/schema-snapshot.local.md` (приватний, у `.gitignore`); заодно перевірити, чи
+  `submit_quiz` рахує «попередній модуль» у межах курсу, а не глобально.
+- Спроєктовано третю платформу (курс «Python Basic» з AI-ментором): план у приватному
+  `dev/python-course-plan.local.md`, короткий запис у `dev/ideas.local.md`. Стан — ідея,
+  не почато. Майбутні інфра-наслідки, коли дійде до реалізації: рядок у `courses` + 8
+  рядків у `modules` (коди `p01…p08`), нові таблиці під AI-шар (`learning_profiles`,
+  `study_plans`, `homework_reviews`, `exam_items`, `exam_attempts`,
+  `capstone_submissions`), нові RPC для серверної перевірки екзамену. Нової Edge
+  Function не потрібно — LLM викликається з браузера ключем самого учня.
 - Додано таблицю `contact_messages` + RLS-політика `contact_messages: admin read`
   (`using (is_admin())`) — міграція `tg/contact_messages.sql`. INSERT-політики немає навмисно:
   записи вставляє лише Edge Function через service_role-ключ (в обхід Turnstile/honeypot/
