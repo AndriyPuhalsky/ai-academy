@@ -43,6 +43,16 @@ const ALLOWED_ORIGINS = [
   "https://dev-ai-academy.andriy-puhalsky.workers.dev",
 ];
 
+// Хости, яким Cloudflare Turnstile підтверджує проходження виклику. Без цієї
+// перевірки будь-хто міг би вставити наш публічний site key на СВОЄМУ сайті,
+// нафармити валідні токени й реплеїти їх сюди в обхід капчі.
+const ALLOWED_TURNSTILE_HOSTNAMES = new Set([
+  "ai-academia.com.ua",
+  "ai-academy.andriy-puhalsky.workers.dev",
+  "dev-ai-academy.andriy-puhalsky.workers.dev",
+  "localhost",
+]);
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_NAME = 2;
 const MAX_NAME = 100;
@@ -110,7 +120,7 @@ async function verifyTurnstile(token: string, ip: string | null): Promise<boolea
       body: form,
     });
     const data = await res.json();
-    return data.success === true;
+    return data.success === true && ALLOWED_TURNSTILE_HOSTNAMES.has(data.hostname);
   } catch {
     return false;
   }
