@@ -67,6 +67,20 @@ Supabase (auth/прогрес/сертифікати) + Telegram Edge Function (
   жодним налаштуванням автономності — власник прямо це підкреслив.
 - Винятків за розміром зміни немає: навіть одне слово в конфізі спершу йде через `dev`.
 
+### URL середовищ
+- **Прод (гілка `main`):** https://ai-academia.com.ua — і https://ai-academy.andriy-puhalsky.workers.dev
+  (обидва позначені в Cloudflare міткою "Production", це те саме — не два різні середовища).
+- **Dev (гілка `dev`):** https://dev-ai-academy.andriy-puhalsky.workers.dev — окремий
+  Preview-деплой, автоматично піднімається Cloudflare при push у `dev` (шаблон
+  `*-ai-academy.andriy-puhalsky.workers.dev`, де `*` = назва гілки; не вводити зірочку
+  буквально в браузер).
+- Красивого `dev.ai-academia.com.ua` НЕМАЄ — діалог "Add Domain" у Cloudflare Workers
+  прив'язує кастомний домен напряму до Worker'а (тобто до прод-версії), без вибору
+  гілки/environment. Щоб отримати гарний dev-домен, потрібне окреме named environment у
+  `wrangler.toml` + окремий Route — свідомо не робилось, щоб не заплутати прод/дев одним
+  необережним кліком.
+
 ## Відкрите зараз
-- Домен `ai-academia.com.ua` (imena.ua) — куплено, підключення DNS ↔ Cloudflare Workers
-  (вкладка Domains) ще в процесі.
+- Домен `ai-academia.com.ua`: NS перемкнено на Cloudflare (`elliot.ns.cloudflare.com`,
+  `ziggy.ns.cloudflare.com`), уже видно через 8.8.8.8. SSL/повне поширення DNS ще не
+  підтверджено остаточно на момент цього запису.
