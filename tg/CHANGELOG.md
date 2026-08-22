@@ -9,6 +9,30 @@ SQL-міграції в Supabase, деплої/оновлення Edge Functions
 Нові записи додаються **зверху** (найновіші перші), під заголовком з датою у форматі
 `РРРР-ММ-ДД`.
 
+## 2026-08-22
+- **`.assetsignore` створено — закрито публічну роздачу службових файлів.** Це виконання
+  пункту, запланованого 2026-08-19 і доти не зробленого. Оскільки `wrangler.toml` має
+  `[assets] directory = "."`, корінь assets = корінь репозиторію; у `.assetsignore`
+  (синтаксис як у `.gitignore`) виключено `dev/`, `tg/`, `deploy-guide.local.html`,
+  `.claude/`, `.mcp.json`, `CLAUDE.md`, `wrangler.toml`, `.gitignore`, `.assetsignore`,
+  `.DS_Store`. Замість запланованого «`*.md`, `*.sql`» узято точніше `tg/` — воно накриває
+  `GOING_LIVE.md`, `contact_messages.sql`, `telegram_index.ts` і сам цей журнал. Свідомо
+  НЕ виключено `readme.md` (публічний за призначенням) і `config.json` /
+  `architect.config.json` (сайт їх fetch-ить, без них нічого не працює).
+- **Перевірено curl-ом до і після, на dev і на проді.** До: `tg/CHANGELOG.md` і `CLAUDE.md`
+  віддавали 200 на обох середовищах. Після пушу в `dev` — 404 уже через ~15 с (Cloudflare
+  перебудував preview сам, без ручних дій). Після merge `dev` → `main` — те саме на
+  `ai-academia.com.ua`. Сайт цілий: `/`, `/architect`, `/verify`, `/modules/module-01.html`,
+  `config.json`, `css/custom.css`, `js/auth.js` — усі 200. Побічно підтверджено, що
+  `architect.html` → 307 на `/architect` — це штатний clean-URL редірект Cloudflare, не регресія.
+- **`dev/design/` заведено в git.** `.gitignore` тепер `dev/*` + `!dev/design/`. Причина —
+  власник працює з двох ноутбуків. Репозиторій **публічний**: перемикання в private
+  розглядалось і відкладено власником, тому стратегічні `dev/*.local.md`
+  (`strategy-analysis`, `ideas`, `python-course-plan`) свідомо лишені поза git — на другому
+  ноуті їх не буде. Наслідок, який треба тримати в голові: усе, що потрапляє в
+  `dev/design/`, стає публічно читабельним на GitHub.
+- Змін у Supabase (SQL-міграції, RPC, секрети) і деплоїв Edge Functions не було.
+
 ## 2026-08-19
 - **Змін інфраструктури не вносилось** (жодної SQL-міграції, деплою Edge Function чи
   зміни секретів) — сесія проєктна. Нижче лише результати перевірок і зафіксовані плани.

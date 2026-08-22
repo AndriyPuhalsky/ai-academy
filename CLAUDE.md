@@ -31,6 +31,14 @@ Supabase (auth/прогрес/сертифікати) + Telegram Edge Function (
   пересобирає й публікує за ~хвилину.
 - Локально: `python -m http.server 8000` (потрібен реальний HTTP-сервер — `fetch(config.json)`
   не працює з `file://`).
+- **`.assetsignore` у корені вирішує, що НЕ роздається з сайту.** Через
+  `directory = "."` Cloudflare публікує весь репозиторій, тому будь-який новий приватний
+  чи службовий файл у корені стане доступним по URL, поки його не додати в `.assetsignore`
+  (синтаксис як у `.gitignore`). Уже виключені: `dev/`, `tg/`, `.claude/`, `.mcp.json`,
+  `CLAUDE.md`, `wrangler.toml`, `deploy-guide.local.html`. Свідомо роздаються:
+  `config.json` і `architect.config.json` (сайт їх fetch-ить) та `readme.md`.
+  Перевірка після зміни — `curl -s -o /dev/null -w '%{http_code}' <url>` на dev-превʼю,
+  до мержу в `main`.
 
 ## Важливе застереження: регістр шляхів
 Розробка велась на macOS (файлова система нечутлива до регістру), деплой — на Cloudflare
