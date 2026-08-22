@@ -45,9 +45,12 @@
 
 Тому цей скіл:
 - **лишається локально** й далі працює в конвеєрі (`.claude/skills/web-design-guidelines`);
-- **виключений з гіта** через кореневий `.gitignore`;
-- на новому ноутбуці ставиться окремо:
-  `npx skills add vercel-labs/agent-skills@web-design-guidelines -y` з `dev/design/`.
+- **виключений з гіта** — зроблено кореневою сесією в коміті `ecb39af`, правила в кореневому
+  `.gitignore` (рядки 13–14). Перевірено незалежно: `git ls-files | grep web-design-guidelines`
+  віддає лише handoff-документ, `git check-ignore -v` підтверджує обидва правила, симлінк
+  на диску цілий;
+- **на новому ноутбуці його треба поставити окремо** — `git clone` його не принесе:
+  `npx skills add vercel-labs/agent-skills@web-design-guidelines -y` з папки `dev/design/`.
 
 Якщо Vercel колись додасть LICENSE — можна повернути в гіт і дописати в таблицю вище.
 
