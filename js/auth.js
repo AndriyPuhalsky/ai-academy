@@ -318,29 +318,41 @@ function renderSlot() {
 
 /* ---------- Діалог імені ---------- */
 
-// Крутиться, поки не збережемо або поки людина не скасує. Якщо збереження
-// впало — відкриваємо діалог знову, з тим самим значенням і текстом помилки.
+// Головний шлях: віддаємо діалогу onSave, і він зберігає, ПОКИ ЩЕ ВІДКРИТИЙ —
+// при невдачі людина лишається в тому самому діалозі з текстом помилки
+// (критерій приймання 18). Якщо версія auth-ui.js onSave не викликала —
+// зберігаємо самі й відкриваємо діалог знову вже з помилкою.
 async function runNameDialog(mode, opener) {
   const u = ui();
   if (!u || typeof u.openNameDialog !== "function") return false;
 
+  const user = window.AIA_USER;
   let value = currentName() || "";
   let errorText = "";
 
   for (;;) {
+    let savedInside = false;
     let res;
     try {
       res = await u.openNameDialog({
         mode: mode,
         value: value,
         opener: opener,
-        error: errorText || undefined
+        userId: user ? user.id : undefined,
+        error: errorText || undefined,
+        onSave: function (clean) {
+          return saveName(clean).then(function (r) {
+            if (r.ok) savedInside = true;
+            return r;
+          });
+        }
       });
     } catch (e) {
       console.error("[AIA auth] openNameDialog:", (e && e.message) || e);
       return false;
     }
     if (!res || res.action === "cancelled") return false;
+    if (savedInside) { markNameConfirmed(); return true; }
 
     value = res.name == null ? value : res.name;
     const saved = await saveName(value);
