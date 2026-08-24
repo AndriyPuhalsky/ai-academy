@@ -44,7 +44,7 @@ dev/build/NNN-slug/          ← номер той самий, що в dev/desig
 
 | №   | Задача | Статус | Дизайн | Заведено | Готово |
 | --- | ------ | ------ | ------ | -------- | ------ |
-| 001 | [Вхід і реєстрація через Google](001-oauth-google/task.md) · [план](001-oauth-google/01-plan.md) | в роботі | [design/001](../design/001-oauth-google/SUMMARY.md), варіант B | 2026-08-23 | — |
+| 001 | [Вхід і реєстрація через Google](001-oauth-google/task.md) · [план](001-oauth-google/01-plan.md) | заблоковано | [design/001](../design/001-oauth-google/SUMMARY.md), варіант B | 2026-08-23 | — |
 | 002 | [Ескалація привілеїв через `profiles.role`](002-rls-role-escalation/task.md) | у плані | не потрібен | 2026-08-23 | — |
 
 Статуси: `у плані` → `в роботі` → `на тестуванні` → `готово до merge` → `у проді`
