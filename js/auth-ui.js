@@ -981,13 +981,57 @@
     return false;   // ключа немає → гість (частіший випадок)
   }
 
+  /* --- FIX-1 (дефект D-1): ширина скелетона = ширина майбутнього контрола ---
+     Плитка імені в макеті — 100px «на око», а ім'я в кожного своє, тому
+     підміна розсувала шапку (QA: група 439 → 468 px, внесок CLS 0.00054).
+     Порахувати ширину тексту наперед не можна — її знає тільки браузер і
+     тільки після рендера. Тому міряємо реальний слот один раз і кладемо
+     число в localStorage: наступне завантаження ставить плитці рівно ту
+     ширину, якої слоту забракне. Ключ у localStorage вже і так є (без
+     сесії залогінений скелетон не показується взагалі), тож кеш існує
+     завжди, окрім найпершого рендера після цього деплою. */
+  var SLOT_W_KEY = "aia:slotW";
+
+  function cachedSlotWidth() {
+    try {
+      var v = parseFloat(localStorage.getItem(SLOT_W_KEY));
+      // Верхня межа: max-width імені 12rem + дві плитки + два gap = 392px.
+      return (isFinite(v) && v > 200 && v <= 392) ? v : 0;
+    } catch (e) { return 0; }   // приватний режим — просто без кеша
+  }
+
+  function rememberSlotWidth(slot) {
+    if (!slot || isNarrow()) return;   // <640px скелетон і контрол — той самий кружечок
+    var save = function () {
+      try {
+        if (isNarrow()) return;
+        var w = slot.getBoundingClientRect().width;
+        if (w > 200) localStorage.setItem(SLOT_W_KEY, String(Math.round(w * 100) / 100));
+      } catch (e) { /* приватний режим або зникла нода — не наша біда */ }
+    };
+    // Міряти до завантаження шрифту не можна: моноширинний фолбек дасть
+    // іншу ширину, і кеш зафіксує хибне число.
+    if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === "function") {
+      document.fonts.ready.then(save, save);
+    } else {
+      save();
+    }
+  }
+
   function skeletonHtml(isUser, narrow) {
     if (!isUser) return '<span class="sk sk--guest" aria-hidden="true"></span>';
     if (narrow) return '<span class="sk sk--avatar" aria-hidden="true"></span>';
     // FIX-10 · скелетон повторює СТРУКТУРУ контрола, а не одну плиту:
     // ширина імені в цей момент ще нікому не відома.
+    // FIX-1 · але сумарна ширина — відома з попереднього візиту. Плитці
+    // імені лишається різниця; сусідні дві й обидва gap беремо з токенів,
+    // щоб число не роз'їхалось із CSS, якщо токен колись зміниться.
+    var w = cachedSlotWidth();
+    var nameStyle = w
+      ? ' style="--sk-name-w: calc(' + w + 'px - var(--sk-certs-w) - var(--sk-out-w) - var(--s-3) * 2)"'
+      : "";
     return '<span class="sk-row" aria-hidden="true">' +
-             '<span class="sk sk--name"></span>' +
+             '<span class="sk sk--name"' + nameStyle + "></span>" +
              '<span class="sk sk--certs"></span>' +
              '<span class="sk sk--out"></span>' +
            "</span>";
@@ -1058,6 +1102,7 @@
         "</div>";
 
       swapSlot(slot, html, function () {
+        rememberSlotWidth(slot);   // FIX-1 · замір для скелетона наступного завантаження
         var nb = document.getElementById("aiaNameBtn");
         if (nb) nb.addEventListener("click", function () { editNameFrom(nb, editable); });
         var out = document.getElementById("aiaLogout");
