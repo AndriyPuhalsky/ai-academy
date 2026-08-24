@@ -59,6 +59,20 @@ function normalizeEmail(value) {
   return String(value == null ? "" : value).trim().slice(0, MAX_EMAIL);
 }
 
+// Опис помилки для консолі БЕЗ чутливого. Друкувати сирий об'єкт помилки
+// supabase-js не можна: в AuthApiError лежить і тіло відповіді. Тому беремо
+// лише name/status і текст, з якого вирізано все, схоже на токен, код чи
+// довгий ідентифікатор (сегмент JWT, PKCE-код, uuid — усе це 20+ символів
+// суцільної латиниці з цифрами).
+function safeErrorText(e) {
+  const name = (e && e.name) || "Error";
+  const status = e && e.status != null ? " " + e.status : "";
+  const msg = String((e && e.message) || "")
+    .replace(/[A-Za-z0-9_-]{20,}/g, "\u2026")
+    .slice(0, 120);
+  return name + status + (msg ? ": " + msg : "");
+}
+
 /* ---------- Міст до шару вигляду ---------- */
 
 // js/auth-ui.js — класичний скрипт без defer, тому за специфікацією HTML він
@@ -81,8 +95,12 @@ function ui() {
 async function boot() {
   // 1. ЧИТАЄМО URL ПЕРШИМ. supabase-js із detectSessionInUrl вичищає auth-параметри
   //    сам і асинхронно — прочитати пізніше означає не прочитати взагалі.
-  const oauthPanel = readOAuthError();
-  const hadAuthParams = oauthPanel !== null || hasAuthCode();
+  let oauthPanel = readOAuthError();
+  const hadCode = hasAuthCode();
+  const hadAuthParams = oauthPanel !== null || hadCode;
+  // Ознака «на Google людину відправили саме ми» — ставиться в signInWithGoogle
+  // перед редіректом, читається тут рівно один раз (див. takeOAuthStarted).
+  const cameFromGoogle = takeOAuthStarted();
 
   let cfg;
   try {
@@ -110,6 +128,20 @@ async function boot() {
 
   // 4. Сесія. САМЕ ТУТ supabase-js обмінює ?code= на сесію (PKCE).
   await refreshSession();
+
+  // 4b. Був ?code=, а сесії після обміну так і немає — вхід провалився мовчки.
+  //     ЧОМУ НЕ ЧЕРЕЗ ПОМИЛКУ getSession(): supabase-js ковтає помилку обміну
+  //     всередині _initialize() і назовні віддає error === null (перевірено на
+  //     auth-js 2.112.4, 2026-08-24). Ба більше — якщо в сховищі немає
+  //     code-verifier, обміну не буде взагалі, навіть без запиту в мережу.
+  //     Тому єдина надійна ознака — СТАН: код у URL був, користувача немає.
+  if (hadCode && !window.AIA_USER) {
+    console.warn("[AIA auth] повернення з ?code= не дало сесії — вхід не відбувся.");
+    // Панель показуємо лише тому, хто справді йшов через нашу кнопку. Сторонній
+    // ?code= у посиланні (промо-мітка, чужий редірект) не має лякати гостя
+    // помилкою входу, якого він не починав.
+    if (!oauthPanel && cameFromGoogle) oauthPanel = "other";
+  }
 
   // 5. І ТІЛЬКИ ТЕПЕР чистимо URL. Раніше — зітремо ?code= до обміну,
   //    і вхід тихо не відбудеться: без помилки, без панелі, просто «нічого».
@@ -151,7 +183,12 @@ async function buildModuleMap() {
 }
 
 async function refreshSession() {
-  const { data } = await sb.auth.getSession();
+  const { data, error } = await sb.auth.getSession();
+  // Помилку читання сесії не ковтаємо: без неї «людина лишилась гостем» і
+  // «зламався порядок у boot()» виглядають однаково. У вивід іде ТІЛЬКИ
+  // знеособлений опис — сирий об'єкт помилки supabase-js містить тіло
+  // відповіді, а там можуть бути токени.
+  if (error) console.warn("[AIA auth] getSession:", safeErrorText(error));
   const user = data && data.session ? data.session.user : null;
   window.AIA_USER = user;
   // Ім'я і прогрес незалежні — тягнемо паралельно, щоб не подовжувати холодний старт.
@@ -380,12 +417,39 @@ function editName(opener) {
 
 /* ---------- OAuth ---------- */
 
+// Ознака «ми самі відправили людину на Google». Переживає редірект у тій самій
+// вкладці й читається рівно один раз. Саме sessionStorage, а не localStorage:
+// інша вкладка й наступний сеанс про цей потік знати не мають.
+// Потрібна вона рівно для одного рішення в boot(): чи показувати панель
+// помилки, коли повернення з ?code= не дало сесії.
+const OAUTH_FLAG = "aia:oauth-started";
+
+function markOAuthStarted() {
+  // Сховище може бути недоступним (приватний режим, заблоковані куки) — тоді
+  // ознаки просто не буде, і boot() обмежиться рядком у консолі без панелі.
+  // Це не проглинута помилка, а свідома деградація: вхід від цього не ламається.
+  try { sessionStorage.setItem(OAUTH_FLAG, "1"); } catch (e) { /* сховище недоступне */ }
+}
+
+function takeOAuthStarted() {
+  try {
+    const had = sessionStorage.getItem(OAUTH_FLAG) === "1";
+    sessionStorage.removeItem(OAUTH_FLAG);
+    return had;
+  } catch (e) {
+    return false;   // те саме: немає сховища — немає ознаки
+  }
+}
+
 async function signInWithGoogle() {
   if (!sb) return { ok: false, panel: "open" };
   // redirectTo обов'язково без search і без hash: інакше після повернення
   // старі параметри змішаються з новими code/error і очищення URL стане
   // неоднозначним. Ціна — втрачений якір на сторінці модуля, це прийнятно.
   const back = location.origin + location.pathname;
+  // Ставимо ДО виклику: редірект відбувається всередині signInWithOAuth, після
+  // нього наш код може вже не виконатись.
+  markOAuthStarted();
   try {
     const { error } = await sb.auth.signInWithOAuth({
       provider: "google",
@@ -394,6 +458,7 @@ async function signInWithGoogle() {
     if (error) throw error;
     return { ok: true };   // далі браузер сам іде на Google
   } catch (e) {
+    takeOAuthStarted();   // редіректу не буде — знімаємо ознаку, щоб не висіла
     console.error("[AIA auth] oauth:", (e && e.message) || e);
     return { ok: false, panel: "open" };
   }
