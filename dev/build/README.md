@@ -44,8 +44,8 @@ dev/build/NNN-slug/          ← номер той самий, що в dev/desig
 
 | №   | Задача | Статус | Дизайн | Заведено | Готово |
 | --- | ------ | ------ | ------ | -------- | ------ |
-| 001 | [Вхід і реєстрація через Google](001-oauth-google/task.md) · [план](001-oauth-google/01-plan.md) · [бекенд](001-oauth-google/02-backend/report.md) · [фронтенд](001-oauth-google/03-frontend/report.md) · [QA](001-oauth-google/04-qa/report.md) · [підсумок](001-oauth-google/SUMMARY.md) | чекає на власника | [design/001](../design/001-oauth-google/SUMMARY.md), варіант B | 2026-08-23 | — |
-| 002 | [Ескалація привілеїв через `profiles.role`](002-rls-role-escalation/task.md) | у плані | не потрібен | 2026-08-23 | — |
+| 001 | [Вхід і реєстрація через Google](001-oauth-google/task.md) · [план](001-oauth-google/01-plan.md) · [бекенд](001-oauth-google/02-backend/report.md) · [фронтенд](001-oauth-google/03-frontend/report.md) · [QA](001-oauth-google/04-qa/report.md) · [підсумок](001-oauth-google/SUMMARY.md) | готово до merge | [design/001](../design/001-oauth-google/SUMMARY.md), варіант B | 2026-08-23 | 2026-08-24 |
+| 002 | [Ескалація привілеїв через `profiles.role`](002-rls-role-escalation/task.md) · [розбір](002-rls-role-escalation/02-backend/findings.md) | у проді | не потрібен | 2026-08-23 | 2026-08-24 |
 
 Статуси: `у плані` → `в роботі` → `на тестуванні` → `готово до merge` → `у проді`
 (ще бувають `на паузі`, `відхилено`, `заблоковано`).
