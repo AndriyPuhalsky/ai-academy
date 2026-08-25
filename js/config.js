@@ -303,6 +303,87 @@
     el.textContent = parts.join(" · ");
   }
 
+  /* --- FIX-2 (знайдено при розборі D-1): пілюля прогресу не розсуває шапку ---
+     Пілюля лежить у розмітці з hidden, а показується аж після гідратації
+     прогресу — через два мережеві кроки (config.json → Supabase). QA бачив
+     це як зсув групи DIV.flex у шапці 300 → 439 px (+139 = 12 gap + 127
+     пілюля), внесок у CLS 0.00258 — більший, ніж давав слот авторизації.
+
+     Тримаємо місце наперед, синхронно, ще до першого малювання: якщо в
+     цьому браузері вже був прогрес на ЦЬОМУ курсі й лежить токен сесії —
+     пілюля одразу стає в потік невидимою (data-reserved, visibility), а
+     коли числа приїдуть, лише проявляється. Ширину резерву беремо з кеша:
+     текст моноширинний (кожен гліф 0.6em), тому N символів — це рівно N ch,
+     і резерв дорівнює боксу майбутньої пілюлі символ у символ. Кешуємо саме
+     довжину, а не число модулів, бо «3/12» і «7/12» — однакова ширина, а
+     різняться лише 13- і 14-символьні випадки («9/12» проти «10/12»).
+
+     Гість місця не отримує: без токена й без кеша резерву немає взагалі,
+     а хибний резерв знімається, щойно прогрес гідратовано нулем.
+
+     Резерв — і тільки резерв — має min-width (секція L у css/custom.css).
+     Видима пілюля лишається такою самою, як була: жодного нового правила
+     на неї не діє, щоб на вузькому екрані шапка розкладалась як досі. --- */
+
+  // Кеш — окремий на кожен курс: у config.json 12 модулів, в architect 22.
+  // Значення — не сам прогрес, а лише ДОВЖИНА тексту в символах (13 або 14),
+  // тобто в localStorage не осідає, скільки саме модулів людина пройшла.
+  var NAVPROG_KEY = "aia:navProgress:" + CONFIG_PATH.split("/").pop();
+  var NAVPROG_MAX_WAIT = 8000;   // страховка, якщо гідратації не буде взагалі
+
+  function navProgressText(doneCount, total) {
+    return "Прогрес: " + doneCount + "/" + total;
+  }
+
+  function readNavProgressChars() {
+    try {
+      var v = parseInt(localStorage.getItem(NAVPROG_KEY), 10);
+      return (v >= 12 && v <= 24) ? v : 0;   // 12 = «Прогрес: 1/9», 24 — з великим запасом
+    } catch (e) { return 0; }                // приватний режим — просто без кеша
+  }
+
+  function rememberNavProgress(chars) {
+    try { localStorage.setItem(NAVPROG_KEY, String(chars)); } catch (e) { /* приватний режим */ }
+  }
+
+  function forgetNavProgress() {
+    try { localStorage.removeItem(NAVPROG_KEY); } catch (e) { /* приватний режим */ }
+  }
+
+  // Двійник guessLoggedIn() із js/auth-ui.js: там він приватний, а цей файл
+  // виконується РАНІШЕ за auth-ui.js, тож позичити його нізвідки. Обидва
+  // питають одне: чи лежить у сховищі ключ сесії supabase-js.
+  function hasAuthToken() {
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        if (/^sb-.*-auth-token$/.test(localStorage.key(i))) return true;
+      }
+    } catch (e) { return false; }
+    return false;
+  }
+
+  function progressHydrated() {
+    return !!(window.AIAProgress && window.AIAProgress.isHydrated && window.AIAProgress.isHydrated());
+  }
+
+  function reserveNavProgress() {
+    var pill = $("#navProgress");
+    if (!pill || !pill.hidden) return;
+    var chars = readNavProgressChars();
+    if (!chars || !hasAuthToken()) return;   // гість або перший візит — місця не тримаємо
+    pill.style.setProperty("--navprog-ch", String(chars));
+    pill.setAttribute("data-reserved", "");
+    pill.hidden = false;
+    // Якщо прогрес не приїде взагалі (js/auth.js не піднявся, CDN Supabase
+    // недоступний) — резерв не має лишитись невидимою дірою назавжди.
+    setTimeout(function () {
+      if (!progressHydrated() && pill.hasAttribute("data-reserved")) {
+        pill.removeAttribute("data-reserved");
+        pill.hidden = true;
+      }
+    }, NAVPROG_MAX_WAIT);
+  }
+
   function updateNavProgress(cfg) {
     var pill = $("#navProgress");
     var total = (cfg.modules || []).length;
@@ -312,10 +393,19 @@
     var done = completedSet();
     var doneCount = (cfg.modules || []).filter(function (m) { return done.has(m.id); }).length;
     if (doneCount > 0) {
+      var text = navProgressText(doneCount, total);
+      // Знімаємо резерв і показуємо текст одним заходом: обидва стани — той
+      // самий бокс тієї самої ширини, бо резервували рівно довжину тексту.
+      pill.removeAttribute("data-reserved");
       pill.hidden = false;
-      pill.textContent = "Прогрес: " + doneCount + "/" + total;
-    } else {
+      pill.textContent = text;
+      rememberNavProgress(text.length);
+    } else if (progressHydrated()) {
+      // Нуль означає «нічого не пройдено» тільки ПІСЛЯ гідратації: до неї кеш
+      // прогресу порожній у всіх, і згортати зарезервоване місце ще зарано.
+      pill.removeAttribute("data-reserved");
       pill.hidden = true;
+      forgetNavProgress();
     }
   }
 
@@ -334,6 +424,10 @@
   }
 
   /* ---------- Старт ---------- */
+
+  // Синхронно, ще під час парсингу сторінки: резерв місця під пілюлю прогресу
+  // має потрапити в перше малювання, інакше він сам стане зсувом (FIX-2).
+  reserveNavProgress();
 
   document.addEventListener("DOMContentLoaded", function () {
     loadConfig()

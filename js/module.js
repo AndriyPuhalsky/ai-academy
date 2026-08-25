@@ -300,12 +300,53 @@
     setMainLocked(!unlocked.has(currentId), cfg);
   }
 
+  // Чи саме цей клік доводить курс до n/n. Умова сформульована через «усі інші
+  // пройдені», а не через size + 1 === total: так вона лишається правильною,
+  // навіть якщо людина зняла позначку з середини курсу.
+  function isFinalClick() {
+    var cfg = cfgCache || window.AIA_CONFIG;
+    if (!window.AIA_USER) return false;                              // 1. є сесія
+    if (!cfg || !cfg.modules || !cfg.modules.length) return false;
+    if (!window.AIAProgress.isHydrated || !window.AIAProgress.isHydrated()) return false; // 2. прогрес підвантажено
+    if (window.AIAProgress.isCompleted(currentId)) return false;     // 3. це не «зняти позначку»
+    var done = window.AIAProgress.completedSet();
+    return cfg.modules.every(function (m) {                          // 4. після цього кліку буде n/n
+      return m.id === currentId || done.has(m.id);
+    });
+  }
+
+  var completeBusy = false;   // діалог імені вже відкритий — другий клік ігноруємо
+
   function initComplete() {
     var btn = $("#completeBtn");
     if (!btn || !window.AIAProgress || !currentId) return;
     btn.addEventListener("click", function () {
-      var done = window.AIAProgress.isCompleted(currentId);
-      window.AIAProgress.setCompleted(currentId, !done);
+      if (completeBusy) return;
+
+      if (window.AIAProgress.isCompleted(currentId)) {       // зняти позначку
+        window.AIAProgress.setCompleted(currentId, false);
+        return;
+      }
+      if (!isFinalClick()) {                                 // звичайний модуль
+        window.AIAProgress.setCompleted(currentId, true);
+        return;
+      }
+      // Останній модуль курсу: перед submit_quiz (а отже, перед видачею
+      // сертифіката) даємо людині підтвердити ім'я. Скасування = на сервер
+      // нічого не йде, лічильник лишається n-1/n.
+      if (!window.AIAAuth || typeof window.AIAAuth.confirmCertificateName !== "function") {
+        window.AIAProgress.setCompleted(currentId, true);
+        return;
+      }
+      completeBusy = true;
+      window.AIAAuth.confirmCertificateName({ opener: btn })
+        .then(function (ok) {
+          if (ok) window.AIAProgress.setCompleted(currentId, true);
+        })
+        .catch(function (e) {
+          console.error("[AIA] confirmCertificateName:", (e && e.message) || e);
+        })
+        .then(function () { completeBusy = false; });
       // подія aia:progress оновить кнопку, сайдбар і лічильник у шапці
     });
   }

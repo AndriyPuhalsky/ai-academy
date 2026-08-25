@@ -9,6 +9,63 @@ SQL-міграції в Supabase, деплої/оновлення Edge Functions
 Нові записи додаються **зверху** (найновіші перші), під заголовком з датою у форматі
 `РРРР-ММ-ДД`.
 
+## 2026-08-24
+- **Застосовано міграцію `002-lock-profiles-role.sql` — закрито ескалацію привілеїв через
+  `public.profiles.role`.** Виконав власник у SQL Editor; файл міграції —
+  `dev/build/002-rls-role-escalation/02-backend/db/002-lock-profiles-role.sql`, блок відкату
+  в тому ж файлі. Простій нульовий: клієнт у `profiles` напряму не писав.
+  - **Що було:** `anon` і `authenticated` мали `UPDATE` на **всі** колонки `profiles`,
+    включно з `role`, а політика `profiles_update` не мала `WITH CHECK` — Postgres підставляв
+    туди `USING (id = auth.uid())`, яке лишається істинним і після зміни власної ролі. Один
+    `PATCH /rest/v1/profiles` робив будь-якого залогіненого учня адміном, а `is_admin()`
+    відкривала йому персональні дані всіх (`profiles`, `contact_messages` з IP, `progress`,
+    `certificates`). Дірка була відкрита в проді з моменту заведення таблиці.
+  - **Що стало (звірено з живою базою через MCP після застосування):** у
+    `information_schema.column_privileges` для `profiles` лишився рівно один рядок —
+    `authenticated / full_name / UPDATE`; `INSERT` для `anon`/`authenticated` забраний;
+    `profiles_update` має **явний** `with_check = (id = auth.uid())`.
+  - **Чому `full_name` свідомо лишили:** це право легальної фічі «зміни своє імʼя» із задачі
+    001. Створення профілю при реєстрації не постраждало — `handle_new_user()` виявився
+    `SECURITY DEFINER` (перевірено окремо, це знімало ризик Р9 плану 001).
+  - **RLS тут ні до чого:** RLS не вміє обмежувати колонки, це робота `GRANT`. Саме тому
+    екран політик у Dashboard показував коректну картину, а дірка все одно існувала.
+- **Google OAuth піднято з нуля — задача `001-oauth-google`, бекенд-частина інфраструктури.**
+  Робив власник руками через браузер разом із кореневою сесією; секрет у репозиторій не
+  потрапляв і не потрапить.
+  - **Google Cloud:** створено проєкт `ai-academia-506420` (акаунт `andriy.puhalsky@gmail.com`
+    активовано в Google Cloud уперше — ToS прийняв власник особисто). Налаштовано
+    OAuth consent screen: App name `AI Academia`, user type **External**, support-email і
+    контакт — пошта власника. Створено OAuth 2.0 client типу **Web application** з іменем
+    `Supabase Auth — ai-academia.com.ua`; єдиний Authorized redirect URI —
+    `https://hpcyrnxschpxlrxudmqk.supabase.co/auth/v1/callback`. Authorized JavaScript
+    origins свідомо порожні: ми йдемо класичним server-side redirect flow через Supabase,
+    а не через Google Identity Services / One Tap, тому origins не потрібні.
+  - **Статус публікації — `In production`.** Спочатку застосунок був у `Testing`, де вхід
+    доступний лише списку тест-користувачів, а refresh-токени живуть 7 днів. Опубліковано
+    через `Publish app`. Верифікація Google не потрібна: запитуються лише базові неконфіденційні
+    скоупи (email, profile), логотипа немає, доменів менше десяти.
+  - **Supabase → Authentication → Sign In / Providers → Google:** увімкнено, вставлено
+    Client ID і Client Secret. Секрет копіювався через буфер обміну безпосередньо з діалогу
+    Google у поле Supabase — ніде не зберігався у файлах.
+- **Виправлено `Site URL`, який ламав би весь OAuth: було `http://localhost:8000`.** Це
+  значення прод-проєкту; будь-який редірект, що не збігся з allow-list, ішов би користувачу
+  на його ж локальний порт. Стало `https://ai-academia.com.ua`. Побічно це лагодить і
+  листи скидання пароля — шаблон підставляє `{{ .SiteURL }}`, тобто досі слав людей на
+  localhost.
+- **`Redirect URLs` були порожні — додано чотири:** `https://ai-academia.com.ua/**`,
+  `https://ai-academy.andriy-puhalsky.workers.dev/**`,
+  `https://dev-ai-academy.andriy-puhalsky.workers.dev/**`, `http://localhost:8000/**`.
+  Третій — щоб OAuth можна було чесно тестувати на dev-превʼю; четвертий — для локального
+  `python3 -m http.server 8000`. Гілкові превʼю, крім `dev`, свідомо не покривались
+  wildcard-ом — з'явиться потреба, додамо явно.
+- **Перевірено незалежно від Dashboard, не «на вигляд»:**
+  `GET /auth/v1/settings` → `"google": true` (до змін було `false`);
+  `GET /auth/v1/authorize?provider=google&redirect_to=<dev-превʼю>` → `302` на
+  `accounts.google.com/o/oauth2/v2/auth` з тим самим `client_id`, тобто і провайдер, і
+  allow-list редіректів справді робочі.
+- SQL-міграцій не застосовувалось, Edge Functions не деплоїлись. Дірка з
+  `002-rls-role-escalation` **лишається відкритою** — цей запис її не стосується.
+
 ## 2026-08-22
 - **`.assetsignore` створено — закрито публічну роздачу службових файлів.** Це виконання
   пункту, запланованого 2026-08-19 і доти не зробленого. Оскільки `wrangler.toml` має

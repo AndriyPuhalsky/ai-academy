@@ -1,16 +1,22 @@
 /* ============================================================
-   AI Академія — авторизація через Supabase.
+   AI Академія — ШАР ДАНИХ авторизації (Supabase).
    Підключається як <script type="module" src="js/auth.js">.
+
+   Розмітки тут немає жодного рядка — увесь вигляд живе в
+   js/auth-ui.js (класичний скрипт, вантажиться ПЕРЕД цим файлом).
+   Контракт між файлами — dev/build/001-oauth-google/01-plan.md, розділ 5.
 
    Робить:
    • створює клієнт window.sb (ключі бере з config.json → "supabase");
-   • тримає поточного користувача у window.AIA_USER;
+   • тримає поточного користувача у window.AIA_USER, ім'я — у window.AIA_NAME;
    • будує карту модулів window.AIA_MODULE_MAP { code: uuid };
    • підвантажує прогрес користувача у window.AIAProgress.hydrate();
-   • малює в шапці кнопку «Увійти» / ім'я + «Вийти»;
-   • показує модальне вікно входу та реєстрації.
+   • веде вхід поштою і вхід через Google (OAuth), читає ознаку помилки з URL;
+   • читає й пише ім'я для сертифіката (public.profiles.full_name).
 
-   Публічний інтерфейс: window.AIAAuth.open(note), .signOut(), .user().
+   Публічний інтерфейс:
+     window.AIAAuth.open(note) · .signOut() · .user() · .name()
+                   .editName(opener) · .confirmCertificateName({ opener })
    ============================================================ */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -23,23 +29,25 @@ const CONFIG_PATH = new URL("../config.json", import.meta.url).href;
 // Сторінка «Мої сертифікати» — шлях відносно цього файла, тож однаковий
 // і для головної, і для сторінок у /modules.
 const CERT_URL = new URL("../certificate.html", import.meta.url).href;
-let sb = null;
-let mode = "login";
-let modalEl = null;
 
-/* ---------- Перевірки вводу (UX + базова гігієна) ----------
-   Справжній захист — на сервері (Supabase: автентифікація, підтвердження
-   пошти, обмеження частоти). Це лише клієнтська валідація: швидкий зрозумілий
-   фідбек і відсів очевидно некоректного вводу до мережевого запиту. */
+let sb = null;
+let profileName = null;      // кеш public.profiles.full_name (null = порожньо)
+let profileLoadedFor = null; // для якого user.id кеш актуальний
+let uiWarned = false;
+
+/* ---------- Межі й гігієна вводу ----------
+   Валідація ФОРМИ (порожньо / формат / довжина) переїхала в js/auth-ui.js —
+   тут лишились тільки ті межі, якими користується сам шар даних:
+   нормалізація email перед запитом і очищення імені перед записом у базу.
+   Справжній захист — на сервері (Supabase + RLS), це лише гігієна. */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_EMAIL = 254;   // практична межа довжини email
-const MIN_PASS = 6;      // мінімум від Supabase
-const MAX_PASS = 128;    // розумна стеля (хешування й так обмежене)
 const MIN_NAME = 2;
 const MAX_NAME = 100;
 
 // Очищаємо ім'я: прибираємо керівні символи й кутові дужки, тримаємо в межах довжини.
-// (При виводі ім'я й так екранується через escapeHtml — це додатковий шар.)
+// УВАГА: діапазон керівних символів записаний ЕСКЕЙПАМИ (\u0000-\u001F), а не
+// літеральними байтами — інакше git починає вважати файл бінарним.
 function sanitizeName(value) {
   return String(value == null ? "" : value)
     .replace(/[\u0000-\u001F\u007F<>]/g, "")
@@ -47,9 +55,53 @@ function sanitizeName(value) {
     .slice(0, MAX_NAME);
 }
 
+function normalizeEmail(value) {
+  return String(value == null ? "" : value).trim().slice(0, MAX_EMAIL);
+}
+
+// Опис помилки для консолі БЕЗ чутливого. Друкувати сирий об'єкт помилки
+// supabase-js не можна: в AuthApiError лежить і тіло відповіді. Тому беремо
+// лише name/status і текст, з якого вирізано все, схоже на токен, код чи
+// довгий ідентифікатор (сегмент JWT, PKCE-код, uuid — усе це 20+ символів
+// суцільної латиниці з цифрами).
+function safeErrorText(e) {
+  const name = (e && e.name) || "Error";
+  const status = e && e.status != null ? " " + e.status : "";
+  const msg = String((e && e.message) || "")
+    .replace(/[A-Za-z0-9_-]{20,}/g, "\u2026")
+    .slice(0, 120);
+  return name + status + (msg ? ": " + msg : "");
+}
+
+/* ---------- Міст до шару вигляду ---------- */
+
+// js/auth-ui.js — класичний скрипт без defer, тому за специфікацією HTML він
+// виконується ДО будь-якого type="module". Якщо його все-таки немає (404 через
+// регістр шляху, помилка деплою) — кажемо про це голосно один раз, а не мовчимо.
+function ui() {
+  const u = window.AIAAuthUI;
+  if (!u) {
+    if (!uiWarned) {
+      uiWarned = true;
+      console.error("[AIA auth] js/auth-ui.js не завантажився — інтерфейс входу недоступний.");
+    }
+    return null;
+  }
+  return u;
+}
+
 /* ---------- Старт ---------- */
 
 async function boot() {
+  // 1. ЧИТАЄМО URL ПЕРШИМ. supabase-js із detectSessionInUrl вичищає auth-параметри
+  //    сам і асинхронно — прочитати пізніше означає не прочитати взагалі.
+  let oauthPanel = readOAuthError();
+  const hadCode = hasAuthCode();
+  const hadAuthParams = oauthPanel !== null || hadCode;
+  // Ознака «на Google людину відправили саме ми» — ставиться в signInWithGoogle
+  // перед редіректом, читається тут рівно один раз (див. takeOAuthStarted).
+  const cameFromGoogle = takeOAuthStarted();
+
   let cfg;
   try {
     cfg = await fetch(CONFIG_PATH, { cache: "no-store" }).then((r) => r.json());
@@ -64,20 +116,57 @@ async function boot() {
     return;
   }
 
+  // 2. Клієнт.
   sb = createClient(s.url, s.anonKey);
   window.sb = sb;
 
+  // 3. Одразу після createClient, до refreshSession — віддаємо шару вигляду handlers.
+  const u = ui();
+  if (u) u.init({ handlers: handlers, certUrl: CERT_URL });
+
   await buildModuleMap();
+
+  // 4. Сесія. САМЕ ТУТ supabase-js обмінює ?code= на сесію (PKCE).
   await refreshSession();
 
-  sb.auth.onAuthStateChange((_event, session) => {
-    window.AIA_USER = session ? session.user : null;
-    renderAuthControl();
-    document.dispatchEvent(new CustomEvent("aia:auth", { detail: window.AIA_USER }));
+  // 4b. Був ?code=, а сесії після обміну так і немає — вхід провалився мовчки.
+  //     ЧОМУ НЕ ЧЕРЕЗ ПОМИЛКУ getSession(): supabase-js ковтає помилку обміну
+  //     всередині _initialize() і назовні віддає error === null (перевірено на
+  //     auth-js 2.112.4, 2026-08-24). Ба більше — якщо в сховищі немає
+  //     code-verifier, обміну не буде взагалі, навіть без запиту в мережу.
+  //     Тому єдина надійна ознака — СТАН: код у URL був, користувача немає.
+  if (hadCode && !window.AIA_USER) {
+    console.warn("[AIA auth] повернення з ?code= не дало сесії — вхід не відбувся.");
+    // Панель показуємо лише тому, хто справді йшов через нашу кнопку. Сторонній
+    // ?code= у посиланні (промо-мітка, чужий редірект) не має лякати гостя
+    // помилкою входу, якого він не починав.
+    if (!oauthPanel && cameFromGoogle) oauthPanel = "other";
+  }
+
+  // 5. І ТІЛЬКИ ТЕПЕР чистимо URL. Раніше — зітремо ?code= до обміну,
+  //    і вхід тихо не відбудеться: без помилки, без панелі, просто «нічого».
+  if (hadAuthParams) cleanUrl();
+
+  sb.auth.onAuthStateChange((event, session) => {
+    const user = session ? session.user : null;
+    window.AIA_USER = user;
+    const id = user ? user.id : null;
+
+    // USER_UPDATED (наслідок sb.auth.updateUser після збереження імені) НЕ має
+    // перезавантажувати сторінку — інакше вона перезавантажиться посеред діалогу,
+    // просто перед submit_quiz. Тільки перечитуємо ім'я й перемальовуємо слот.
+    if (id !== profileLoadedFor) {
+      loadProfileName(user).then(renderSlot);
+    } else {
+      renderSlot();
+    }
+    document.dispatchEvent(new CustomEvent("aia:auth", { detail: user }));
   });
 
-  buildModal();
-  renderAuthControl();
+  renderSlot();
+
+  // 6. Повернулись із помилкою — модалку відкриваємо самі.
+  if (oauthPanel && u) u.openAuthModal({ panel: oauthPanel });
 }
 
 async function buildModuleMap() {
@@ -88,16 +177,22 @@ async function buildModuleMap() {
     (data || []).forEach((m) => { map[m.code] = m.id; });
     window.AIA_MODULE_MAP = map;
   } catch (e) {
-    console.error("[AIA auth] modules:", e.message || e);
+    console.error("[AIA auth] modules:", safeErrorText(e));
     window.AIA_MODULE_MAP = {};
   }
 }
 
 async function refreshSession() {
-  const { data } = await sb.auth.getSession();
+  const { data, error } = await sb.auth.getSession();
+  // Помилку читання сесії не ковтаємо: без неї «людина лишилась гостем» і
+  // «зламався порядок у boot()» виглядають однаково. У вивід іде ТІЛЬКИ
+  // знеособлений опис — сирий об'єкт помилки supabase-js містить тіло
+  // відповіді, а там можуть бути токени.
+  if (error) console.warn("[AIA auth] getSession:", safeErrorText(error));
   const user = data && data.session ? data.session.user : null;
   window.AIA_USER = user;
-  await hydrateProgress(user);
+  // Ім'я і прогрес незалежні — тягнемо паралельно, щоб не подовжувати холодний старт.
+  await Promise.all([loadProfileName(user), hydrateProgress(user)]);
   document.dispatchEvent(new CustomEvent("aia:auth", { detail: user }));
 }
 
@@ -113,170 +208,376 @@ async function hydrateProgress(user) {
     const codes = (data || []).map((r) => r.modules && r.modules.code).filter(Boolean);
     window.AIAProgress.hydrate(codes);
   } catch (e) {
-    console.error("[AIA auth] progress:", e.message || e);
+    console.error("[AIA auth] progress:", safeErrorText(e));
     window.AIAProgress.hydrate([]);
   }
 }
 
-/* ---------- Кнопка у шапці ---------- */
+/* ---------- Ім'я для сертифіката ----------
+   Джерело правди — public.profiles.full_name: саме звідти
+   maybe_issue_certificate() бере ім'я у мить видачі
+   (звірено з живою базою 2026-08-24: coalesce(full_name, email, 'Студент')).
+   Метадані auth.users при зв'язуванні Google-акаунта може перезаписати
+   сам Supabase, тому покладатись на них не можна. */
 
-function renderAuthControl() {
-  const anchor = document.getElementById("navProgress");
-  let slot = document.getElementById("aiaAuth");
-  if (!slot) {
-    slot = document.createElement("div");
-    slot.id = "aiaAuth";
-    slot.className = "flex items-center gap-3";
-    if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(slot, anchor);
-    else { const h = document.querySelector("header"); if (h) h.appendChild(slot); }
+async function loadProfileName(user) {
+  profileName = null;
+  profileLoadedFor = user ? user.id : null;
+  if (user) {
+    try {
+      const { data, error } = await sb
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (error) throw error;
+      const v = data && data.full_name ? String(data.full_name).trim() : "";
+      profileName = v || null;
+    } catch (e) {
+      // Не фатально: currentName() впаде на метадані. Але мовчати не можна.
+      console.warn("[AIA auth] profiles.full_name:", safeErrorText(e));
+      profileName = null;
+    }
   }
+  window.AIA_NAME = currentName();
+  return profileName;
+}
+
+// Ланцюжок читання: profiles.full_name → user_metadata.full_name →
+// user_metadata.name → user.email. Перше непорожнє після trim().
+// Далі («Студент») — це вже підказка інтерфейсу, не дані.
+function currentName() {
+  const user = window.AIA_USER;
+  if (!user) return null;
+  const meta = user.user_metadata || {};
+  const chain = [profileName, meta.full_name, meta.name, user.email];
+  for (let i = 0; i < chain.length; i++) {
+    const v = chain[i] == null ? "" : String(chain[i]).trim();
+    if (v) return v;
+  }
+  return null;
+}
+
+// ГОЛОВНА пастка цієї частини: PostgREST на UPDATE без збігів повертає
+// error: null і порожній результат. Наївний код відрапортує «збережено»,
+// а в PDF поїде старе ім'я. Тому гілок ТРИ, а не дві.
+async function saveName(name) {
+  if (!sb) return { ok: false, message: "Сервіс ще не готовий. Онови сторінку і спробуй ще раз." };
+  const user = window.AIA_USER;
+  if (!user) return { ok: false, message: "Спершу увійди." };
+
+  const clean = sanitizeName(name);
+  if (!clean) return { ok: false, message: "Вкажи ім'я — воно з'явиться у сертифікаті." };
+  if (clean.length < MIN_NAME) return { ok: false, message: "Ім'я надто коротке." };
+
+  let data = null;
+  let error = null;
+  try {
+    const res = await sb
+      .from("profiles")
+      .update({ full_name: clean })
+      .eq("id", user.id)
+      .select("full_name")
+      .maybeSingle();
+    data = res.data;
+    error = res.error;
+  } catch (e) {
+    error = e;
+  }
+
+  if (error) {
+    console.error("[AIA auth] saveName:", safeErrorText(error));
+    return { ok: false, message: "Не вдалося зберегти ім'я. Перевір з'єднання і спробуй ще раз." };
+  }
+  if (!data) {
+    console.error("[AIA auth] profiles row missing for", user.id);
+    return { ok: false, message: "Не вдалося зберегти ім'я. Онови сторінку і спробуй ще раз." };
+  }
+
+  profileName = (data.full_name && String(data.full_name).trim()) || clean;
+  profileLoadedFor = user.id;
+  window.AIA_NAME = currentName();
+  renderSlot();
+
+  // Другий крок — best-effort. Метадані потрібні лише для того, щоб інші
+  // (майбутні) читачі бачили те саме ім'я; помилка тут користувача не стосується.
+  try {
+    const r = await sb.auth.updateUser({ data: { full_name: clean } });
+    if (r && r.error) console.warn("[AIA auth] updateUser:", safeErrorText(r.error));
+  } catch (e) {
+    console.warn("[AIA auth] updateUser:", safeErrorText(e));
+  }
+
+  return { ok: true, name: profileName };
+}
+
+/* ---------- Прапорець «ім'я вже підтверджували» ----------
+   Окремої колонки в базі дизайн не передбачає, тому це localStorage.
+   На іншому пристрої людина побачить повний діалог замість м'якого —
+   це не поломка, а лише втрата послаблення. */
+
+function nameFlagKey() {
+  const user = window.AIA_USER;
+  return user ? "aia:nameConfirmed:" + user.id : null;
+}
+
+function nameConfirmed() {
+  try {
+    const k = nameFlagKey();
+    return !!(k && localStorage.getItem(k));
+  } catch (e) {
+    return false;   // приватний режим: вважаємо, що не підтверджували
+  }
+}
+
+function markNameConfirmed() {
+  try {
+    const k = nameFlagKey();
+    if (k) localStorage.setItem(k, "1");
+  } catch (e) {
+    /* приватний режим — просто лишаємось без послаблення, це не помилка */
+  }
+}
+
+/* ---------- Слот у шапці ---------- */
+
+function renderSlot() {
+  const u = ui();
+  if (!u || typeof u.renderSlot !== "function") return;
+  const user = window.AIA_USER;
+  u.renderSlot({
+    status: user ? "user" : "guest",
+    name: user ? currentName() : null,
+    email: user ? (user.email || null) : null,
+    userId: user ? user.id : null
+  });
+}
+
+/* ---------- Діалог імені ---------- */
+
+// Головний шлях: віддаємо діалогу onSave, і він зберігає, ПОКИ ЩЕ ВІДКРИТИЙ —
+// при невдачі людина лишається в тому самому діалозі з текстом помилки
+// (критерій приймання 18). Якщо версія auth-ui.js onSave не викликала —
+// зберігаємо самі й відкриваємо діалог знову вже з помилкою.
+async function runNameDialog(mode, opener) {
+  const u = ui();
+  if (!u || typeof u.openNameDialog !== "function") return false;
 
   const user = window.AIA_USER;
-  if (user) {
-    const name = (user.user_metadata && user.user_metadata.full_name) || user.email;
-    slot.innerHTML =
-      '<span class="hidden max-w-[12rem] truncate font-mono text-xs text-sand sm:inline">' + escapeHtml(name) + "</span>" +
-      '<a href="' + CERT_URL + '" class="hidden rounded-lg border border-line px-3 py-1.5 text-sm text-muted transition hover:border-clay/60 hover:text-sand sm:inline-block">Сертифікати</a>' +
-      '<button type="button" id="aiaLogout" class="rounded-lg border border-line px-3 py-1.5 text-sm text-muted transition hover:border-clay/60 hover:text-sand">Вийти</button>';
-    slot.querySelector("#aiaLogout").addEventListener("click", async () => {
-      await sb.auth.signOut();
-      location.reload();
-    });
-  } else {
-    slot.innerHTML =
-      '<button type="button" id="aiaLogin" class="rounded-lg bg-clay px-4 py-1.5 text-sm font-medium text-ink transition hover:bg-clay-deep">Увійти</button>';
-    slot.querySelector("#aiaLogin").addEventListener("click", () => openModal());
-  }
-}
+  let value = currentName() || "";
+  let errorText = "";
 
-/* ---------- Модальне вікно ---------- */
-
-function buildModal() {
-  if (modalEl) return;
-  modalEl = document.createElement("div");
-  modalEl.id = "aiaAuthModal";
-  modalEl.className = "fixed inset-0 z-[60] hidden items-center justify-center bg-ink/80 p-4 backdrop-blur";
-  modalEl.innerHTML =
-    '<div class="w-full max-w-sm rounded-2xl border border-line bg-surface p-6 shadow-2xl">' +
-      '<div class="mb-1 flex items-center justify-between">' +
-        '<h2 class="font-display text-xl" id="aiaModalTitle">Вхід</h2>' +
-        '<button type="button" id="aiaClose" class="text-faint transition hover:text-sand" aria-label="Закрити">✕</button>' +
-      "</div>" +
-      '<p id="aiaModalNote" class="mb-4 hidden text-sm text-muted"></p>' +
-      '<div class="mb-4 grid grid-cols-2 gap-1 rounded-lg border border-line p-1 text-sm">' +
-        '<button type="button" data-tab="login" class="rounded-md px-3 py-1.5 transition">Вхід</button>' +
-        '<button type="button" data-tab="register" class="rounded-md px-3 py-1.5 transition">Реєстрація</button>' +
-      "</div>" +
-      '<div class="space-y-3">' +
-        '<input id="aiaName" type="text" placeholder="Ім\'я" autocomplete="name" maxlength="100" class="hidden w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm text-ivory outline-none transition focus:border-clay/60" />' +
-        '<p id="aiaNameHint" class="hidden -mt-1 text-xs text-faint">Це ім\'я з\'явиться у твоєму сертифікаті — вкажи його повністю.</p>' +
-        '<input id="aiaEmail" type="email" placeholder="Email" autocomplete="email" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="254" class="w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm text-ivory outline-none transition focus:border-clay/60" />' +
-        '<input id="aiaPass" type="password" placeholder="Пароль (мін. 6 символів)" autocomplete="current-password" maxlength="128" class="w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm text-ivory outline-none transition focus:border-clay/60" />' +
-        '<p id="aiaError" class="hidden text-sm text-clay"></p>' +
-        '<button type="button" id="aiaSubmit" class="w-full rounded-lg bg-clay px-4 py-2.5 font-medium text-ink transition hover:bg-clay-deep">Увійти</button>' +
-      "</div>" +
-    "</div>";
-  document.body.appendChild(modalEl);
-
-  modalEl.querySelector("#aiaClose").addEventListener("click", closeModal);
-  modalEl.addEventListener("click", (e) => { if (e.target === modalEl) closeModal(); });
-  modalEl.querySelectorAll("[data-tab]").forEach((b) =>
-    b.addEventListener("click", () => setTab(b.getAttribute("data-tab"))));
-  modalEl.querySelector("#aiaSubmit").addEventListener("click", submit);
-  modalEl.querySelector("#aiaPass").addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
-  setTab("login");
-}
-
-function setTab(t) {
-  mode = t;
-  const q = (s) => modalEl.querySelector(s);
-  q("#aiaName").classList.toggle("hidden", t !== "register");
-  q("#aiaNameHint").classList.toggle("hidden", t !== "register");
-  q("#aiaModalTitle").textContent = t === "register" ? "Реєстрація" : "Вхід";
-  q("#aiaSubmit").textContent = t === "register" ? "Зареєструватися" : "Увійти";
-  q("#aiaPass").setAttribute("autocomplete", t === "register" ? "new-password" : "current-password");
-  modalEl.querySelectorAll("[data-tab]").forEach((b) => {
-    const active = b.getAttribute("data-tab") === t;
-    b.classList.toggle("bg-clay", active);
-    b.classList.toggle("text-ink", active);
-    b.classList.toggle("font-medium", active);
-    b.classList.toggle("text-muted", !active);
-  });
-  hideError();
-}
-
-function openModal(note) {
-  buildModal();
-  const noteEl = modalEl.querySelector("#aiaModalNote");
-  noteEl.textContent = note || "";
-  noteEl.classList.toggle("hidden", !note);
-  modalEl.classList.remove("hidden");
-  modalEl.classList.add("flex");
-  setTimeout(() => modalEl.querySelector("#aiaEmail").focus(), 50);
-}
-
-function closeModal() {
-  if (!modalEl) return;
-  modalEl.classList.add("hidden");
-  modalEl.classList.remove("flex");
-}
-
-function showError(msg) {
-  const el = modalEl.querySelector("#aiaError");
-  el.textContent = msg; el.classList.remove("hidden");
-}
-function hideError() {
-  const el = modalEl.querySelector("#aiaError");
-  el.textContent = ""; el.classList.add("hidden");
-}
-
-async function submit() {
-  const btn = modalEl.querySelector("#aiaSubmit");
-  if (btn.disabled) return;            // захист від повторного кліку / подвійного Enter
-  hideError();
-
-  const email = modalEl.querySelector("#aiaEmail").value.trim().slice(0, MAX_EMAIL);
-  const pass = modalEl.querySelector("#aiaPass").value;          // пароль НЕ обрізаємо
-  const name = sanitizeName(modalEl.querySelector("#aiaName").value);
-
-  // --- перевірки вводу ---
-  if (!email) { showError("Вкажи email."); return; }
-  if (!EMAIL_RE.test(email)) { showError("Схоже, email введено некоректно."); return; }
-  if (!pass) { showError("Вкажи пароль."); return; }
-  if (pass.length < MIN_PASS) { showError("Пароль має містити щонайменше 6 символів."); return; }
-  if (pass.length > MAX_PASS) { showError("Пароль задовгий (максимум 128 символів)."); return; }
-  if (mode === "register") {
-    if (!name) { showError("Вкажи ім'я — воно з'явиться у сертифікаті."); return; }
-    if (name.length < MIN_NAME) { showError("Ім'я надто коротке."); return; }
-  }
-
-  btn.disabled = true;
-  const original = btn.textContent;
-  btn.textContent = "Зачекай…";
-  try {
-    if (mode === "register") {
-      const { data, error } = await sb.auth.signUp({
-        email, password: pass, options: { data: { full_name: name } }
+  for (;;) {
+    let savedInside = false;
+    let res;
+    try {
+      res = await u.openNameDialog({
+        mode: mode,
+        value: value,
+        opener: opener,
+        userId: user ? user.id : undefined,
+        error: errorText || undefined,
+        onSave: function (clean) {
+          return saveName(clean).then(function (r) {
+            if (r.ok) savedInside = true;
+            return r;
+          });
+        }
       });
-      if (error) throw error;
-      if (data.session) { location.reload(); return; }
-      showError("Готово! Якщо прийшов лист — підтверди пошту, тоді увійди.");
-      setTab("login");
-    } else {
-      const { error } = await sb.auth.signInWithPassword({ email, password: pass });
-      if (error) throw error;
-      location.reload(); return;
+    } catch (e) {
+      console.error("[AIA auth] openNameDialog:", (e && e.message) || e);
+      return false;
     }
-  } catch (e) {
-    showError(translateError(e && e.message));
-  } finally {
-    btn.disabled = false;
-    btn.textContent = original;
+    if (!res || res.action === "cancelled") return false;
+    if (savedInside) { markNameConfirmed(); return true; }
+
+    value = res.name == null ? value : res.name;
+    const saved = await saveName(value);
+    if (saved.ok) { markNameConfirmed(); return true; }
+    errorText = saved.message;
   }
 }
 
-function translateError(msg) {
+// Гарантований дотик перед завершенням останнього модуля.
+// true  → ім'я підтверджено, можна кликати submit_quiz
+// false → скасовано, на сервер НІЧОГО не йде
+async function confirmCertificateName(opts) {
+  const opener = opts && opts.opener;
+  const u = ui();
+  // Інтерфейсу немає (auth-ui.js не завантажився) — не блокуємо людині прогрес
+  // через нашу поломку: поводимось, як до цієї задачі.
+  if (!u || typeof u.openNameDialog !== "function") return true;
+  if (!window.AIA_USER) return true;   // без сесії submit_quiz і так відмовить
+  return runNameDialog(nameConfirmed() ? "soft" : "last", opener);
+}
+
+function editName(opener) {
+  return runNameDialog("permanent", opener);
+}
+
+/* ---------- OAuth ---------- */
+
+// Ознака «ми самі відправили людину на Google». Переживає редірект у тій самій
+// вкладці й читається рівно один раз. Саме sessionStorage, а не localStorage:
+// інша вкладка й наступний сеанс про цей потік знати не мають.
+// Потрібна вона рівно для одного рішення в boot(): чи показувати панель
+// помилки, коли повернення з ?code= не дало сесії.
+const OAUTH_FLAG = "aia:oauth-started";
+
+function markOAuthStarted() {
+  // Сховище може бути недоступним (приватний режим, заблоковані куки) — тоді
+  // ознаки просто не буде, і boot() обмежиться рядком у консолі без панелі.
+  // Це не проглинута помилка, а свідома деградація: вхід від цього не ламається.
+  try { sessionStorage.setItem(OAUTH_FLAG, "1"); } catch (e) { /* сховище недоступне */ }
+}
+
+function takeOAuthStarted() {
+  try {
+    const had = sessionStorage.getItem(OAUTH_FLAG) === "1";
+    sessionStorage.removeItem(OAUTH_FLAG);
+    return had;
+  } catch (e) {
+    return false;   // те саме: немає сховища — немає ознаки
+  }
+}
+
+async function signInWithGoogle() {
+  if (!sb) return { ok: false, panel: "open" };
+  // redirectTo обов'язково без search і без hash: інакше після повернення
+  // старі параметри змішаються з новими code/error і очищення URL стане
+  // неоднозначним. Ціна — втрачений якір на сторінці модуля, це прийнятно.
+  const back = location.origin + location.pathname;
+  // Ставимо ДО виклику: редірект відбувається всередині signInWithOAuth, після
+  // нього наш код може вже не виконатись.
+  markOAuthStarted();
+  try {
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: back }
+    });
+    if (error) throw error;
+    return { ok: true };   // далі браузер сам іде на Google
+  } catch (e) {
+    takeOAuthStarted();   // редіректу не буде — знімаємо ознаку, щоб не висіла
+    console.error("[AIA auth] oauth:", safeErrorText(e));
+    return { ok: false, panel: "open" };
+  }
+}
+
+// Ознака помилки приходить у location.search (потік — authorization code).
+// Читання hash лишаємо оборонно: вимикач потоку живе на боці Supabase.
+function readOAuthError() {
+  let out = null;
+  ["search", "hash"].forEach(function (part) {
+    const raw = location[part] || "";
+    if (!raw) return;
+    const p = new URLSearchParams(raw.replace(/^[#?]/, ""));
+    const code = p.get("error_code") || p.get("error");
+    if (!code) return;
+    const d = (p.get("error_description") || "").toLowerCase();
+    const probe = (code + " " + d).toLowerCase();
+    if (/access_denied|denied|cancel/.test(probe)) out = "cancelled";
+    else if (/identity|already|exists|conflict/.test(probe)) out = "conflict";
+    else out = "other";
+  });
+  return out;
+}
+
+function hasAuthCode() {
+  try {
+    const q = new URLSearchParams(location.search);
+    if (q.has("code") || q.has("access_token")) return true;
+    const h = new URLSearchParams((location.hash || "").replace(/^#/, ""));
+    return h.has("code") || h.has("access_token");
+  } catch (e) {
+    return false;
+  }
+}
+
+// Прибираємо ЛИШЕ auth-параметри. Не location.pathname навпростець:
+// так на сторінці модуля виживають і ?utm_source=, і якір #lesson-3.
+function cleanUrl() {
+  const AUTH_KEYS = ["code", "state", "error", "error_code", "error_description",
+    "access_token", "refresh_token", "expires_in", "expires_at",
+    "token_type", "provider_token", "provider_refresh_token", "type"];
+  try {
+    const url = new URL(location.href);
+    let touched = false;
+    AUTH_KEYS.forEach(function (k) {
+      if (url.searchParams.has(k)) { url.searchParams.delete(k); touched = true; }
+    });
+    // hash може бути і якорем сторінки, і носієм implicit-потоку
+    if (url.hash && AUTH_KEYS.some(function (k) { return new RegExp("[#&]" + k + "=").test(url.hash); })) {
+      url.hash = "";
+      touched = true;
+    }
+    if (touched) history.replaceState(null, "", url.pathname + url.search + url.hash);
+  } catch (e) {
+    console.warn("[AIA auth] cleanUrl:", e.message || e);
+  }
+}
+
+/* ---------- Вхід поштою ---------- */
+
+async function signInWithPassword(payload) {
+  if (!sb) return { ok: false, message: "Сервіс ще не готовий. Онови сторінку і спробуй ще раз." };
+  const email = normalizeEmail(payload && payload.email);
+  const password = (payload && payload.password) || "";
+  if (!EMAIL_RE.test(email)) return { ok: false, message: "Схоже, email введено некоректно." };
+
+  try {
+    const { error } = await sb.auth.signInWithPassword({ email: email, password: password });
+    if (error) throw error;
+    location.reload();
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, message: translateError(e && e.message, e) };
+  }
+}
+
+async function signUp(payload) {
+  if (!sb) return { ok: false, message: "Сервіс ще не готовий. Онови сторінку і спробуй ще раз." };
+  const email = normalizeEmail(payload && payload.email);
+  const password = (payload && payload.password) || "";
+  const name = sanitizeName(payload && payload.name);
+  if (!EMAIL_RE.test(email)) return { ok: false, message: "Схоже, email введено некоректно." };
+  if (!name || name.length < MIN_NAME) {
+    return { ok: false, message: "Вкажи ім'я — воно з'явиться у сертифікаті." };
+  }
+
+  try {
+    const { data, error } = await sb.auth.signUp({
+      email: email,
+      password: password,
+      options: { data: { full_name: name } }
+    });
+    if (error) throw error;
+    // Тригер on_auth_user_created → handle_new_user() (SECURITY DEFINER) сам
+    // покладе це ім'я у public.profiles.full_name.
+    if (data && data.session) { location.reload(); return { ok: true, session: true }; }
+    return { ok: true, session: false };
+  } catch (e) {
+    return { ok: false, message: translateError(e && e.message, e) };
+  }
+}
+
+async function signOut() {
+  try {
+    if (sb) await sb.auth.signOut();
+  } catch (e) {
+    console.warn("[AIA auth] signOut:", safeErrorText(e));
+  }
+  location.reload();
+}
+
+function translateError(msg, err) {
+  const status = err && (err.status || err.statusCode);
+  const code = (err && err.code) || "";
+  const probe = String(code) + " " + String(msg || "");
+  // Перевіряємо ПЕРШИМ: при 429 тіло відповіді може взагалі не мати тексту.
+  if (status === 429 || /over_email_send_rate_limit|over_request_rate_limit|rate limit|too many requests/i.test(probe)) {
+    return "Забагато спроб. Зачекай хвилину і спробуй ще раз.";
+  }
   if (!msg) return "Щось пішло не так. Спробуй ще раз.";
   if (/Invalid login credentials/i.test(msg)) return "Невірний email або пароль.";
   if (/already registered|already exists/i.test(msg)) return "Такий email уже зареєстровано — увійди.";
@@ -285,16 +586,29 @@ function translateError(msg) {
   return msg;
 }
 
-function escapeHtml(s) {
-  return String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-}
+/* ---------- Контракт із шаром вигляду (розділ 5.3 плану) ---------- */
+
+const handlers = {
+  signInWithGoogle: signInWithGoogle,
+  signInWithPassword: signInWithPassword,
+  signUp: signUp,
+  saveName: saveName,
+  signOut: signOut
+};
 
 /* ---------- Публічний інтерфейс ---------- */
+
 window.AIAAuth = {
-  open: openModal,
-  signOut: async () => { await sb.auth.signOut(); location.reload(); },
-  user: () => window.AIA_USER || null
+  // Сумісність: js/progress.js, js/module.js і js/certificate.js кличуть open()
+  open: function (note) {
+    const u = ui();
+    if (u) u.openAuthModal(note ? { note: note } : {});
+  },
+  signOut: signOut,
+  user: function () { return window.AIA_USER || null; },
+  name: function () { return currentName(); },
+  editName: editName,
+  confirmCertificateName: confirmCertificateName
 };
 
 boot();
