@@ -177,7 +177,7 @@ async function buildModuleMap() {
     (data || []).forEach((m) => { map[m.code] = m.id; });
     window.AIA_MODULE_MAP = map;
   } catch (e) {
-    console.error("[AIA auth] modules:", e.message || e);
+    console.error("[AIA auth] modules:", safeErrorText(e));
     window.AIA_MODULE_MAP = {};
   }
 }
@@ -208,7 +208,7 @@ async function hydrateProgress(user) {
     const codes = (data || []).map((r) => r.modules && r.modules.code).filter(Boolean);
     window.AIAProgress.hydrate(codes);
   } catch (e) {
-    console.error("[AIA auth] progress:", e.message || e);
+    console.error("[AIA auth] progress:", safeErrorText(e));
     window.AIAProgress.hydrate([]);
   }
 }
@@ -235,7 +235,7 @@ async function loadProfileName(user) {
       profileName = v || null;
     } catch (e) {
       // Не фатально: currentName() впаде на метадані. Але мовчати не можна.
-      console.warn("[AIA auth] profiles.full_name:", e.message || e);
+      console.warn("[AIA auth] profiles.full_name:", safeErrorText(e));
       profileName = null;
     }
   }
@@ -286,7 +286,7 @@ async function saveName(name) {
   }
 
   if (error) {
-    console.error("[AIA auth] saveName:", error.message || error);
+    console.error("[AIA auth] saveName:", safeErrorText(error));
     return { ok: false, message: "Не вдалося зберегти ім'я. Перевір з'єднання і спробуй ще раз." };
   }
   if (!data) {
@@ -303,9 +303,9 @@ async function saveName(name) {
   // (майбутні) читачі бачили те саме ім'я; помилка тут користувача не стосується.
   try {
     const r = await sb.auth.updateUser({ data: { full_name: clean } });
-    if (r && r.error) console.warn("[AIA auth] updateUser:", r.error.message);
+    if (r && r.error) console.warn("[AIA auth] updateUser:", safeErrorText(r.error));
   } catch (e) {
-    console.warn("[AIA auth] updateUser:", e.message || e);
+    console.warn("[AIA auth] updateUser:", safeErrorText(e));
   }
 
   return { ok: true, name: profileName };
@@ -459,7 +459,7 @@ async function signInWithGoogle() {
     return { ok: true };   // далі браузер сам іде на Google
   } catch (e) {
     takeOAuthStarted();   // редіректу не буде — знімаємо ознаку, щоб не висіла
-    console.error("[AIA auth] oauth:", (e && e.message) || e);
+    console.error("[AIA auth] oauth:", safeErrorText(e));
     return { ok: false, panel: "open" };
   }
 }
@@ -565,7 +565,7 @@ async function signOut() {
   try {
     if (sb) await sb.auth.signOut();
   } catch (e) {
-    console.warn("[AIA auth] signOut:", e.message || e);
+    console.warn("[AIA auth] signOut:", safeErrorText(e));
   }
   location.reload();
 }
