@@ -46,6 +46,7 @@ dev/build/NNN-slug/          ← номер той самий, що в dev/desig
 | --- | ------ | ------ | ------ | -------- | ------ |
 | 001 | [Вхід і реєстрація через Google](001-oauth-google/task.md) · [план](001-oauth-google/01-plan.md) · [бекенд](001-oauth-google/02-backend/report.md) · [фронтенд](001-oauth-google/03-frontend/report.md) · [QA](001-oauth-google/04-qa/report.md) · [підсумок](001-oauth-google/SUMMARY.md) · [QA коло 2](001-oauth-google/04-qa/round-2.md) | у проді | [design/001](../design/001-oauth-google/SUMMARY.md), варіант B | 2026-08-23 | 2026-08-25 |
 | 002 | [Ескалація привілеїв через `profiles.role`](002-rls-role-escalation/task.md) · [розбір](002-rls-role-escalation/02-backend/findings.md) | у проді | не потрібен | 2026-08-23 | 2026-08-24 |
+| 003 | [Роадмап розробки (окрема анімована сторінка)](003-roadmap/task.md) | у плані · **чекає на команду власника** | [design/003](../design/003-roadmap/SUMMARY.md), варіант A «Лінія» | 2026-08-26 | — |
 | 004 | [Борг доступності після 001 і email у сертифікаті](004-a11y-debt/task.md) | у плані | не потрібен (нульова візуальна зміна) | 2026-08-25 | — |
 
 Статуси: `у плані` → `в роботі` → `на тестуванні` → `готово до merge` → `у проді`
