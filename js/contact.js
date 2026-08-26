@@ -50,6 +50,12 @@ async function boot() {
   }
   const trigger = document.getElementById("contactTrigger");
   if (trigger) trigger.addEventListener("click", openModal);
+
+  // Задача 003: роадмапу потрібні чотири точки виклику модалки (футер,
+  // кінцівка, порожня «В роботі», панель помилки), а не одна. Публічний
+  // доступ замість дублювання id — наявне звʼязування #contactTrigger
+  // лишається як було, тобто решта сторінок працює без змін.
+  window.AIAContact = { open: openModal };
 }
 
 /* ---------- Turnstile: підвантажуємо лише коли модалку відкрито ---------- */

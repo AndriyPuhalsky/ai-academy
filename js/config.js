@@ -62,8 +62,13 @@
   // і всі <a data-link="..."> посиланнями з config.links.
   function fillStatic(cfg) {
     var site = cfg.site || {};
-    // На сторінках модулів <title> власний — не чіпаємо його
-    if (site.name && !document.body.hasAttribute("data-module")) {
+    // На сторінках модулів <title> власний — не чіпаємо його.
+    // Задача 003: на roadmap.html <title> приходить із roadmap.json, і два
+    // асинхронні fetch інакше змагаються за document.title. Прапорець
+    // data-own-title на <html> вимикає підстановку; сторінки без нього
+    // поводяться точно так, як раніше.
+    if (site.name && !document.body.hasAttribute("data-module") &&
+        !document.documentElement.hasAttribute("data-own-title")) {
       document.title = site.tagline ? site.name + " — " + site.tagline : site.name;
     }
 
