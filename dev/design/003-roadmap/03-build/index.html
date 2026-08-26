@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="config.json">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Свідома розбіжність із рештою сайту: НЕ повторюємо user-scalable=no.
+       Це відомий провал WCAG 1.4.4 (AA); роадмап — точка, з якої його виправляють. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Роадмап — AI Академія та AI Architect</title>
+  <meta name="description" content="Публічний план розвитку двох освітніх платформ: що зроблено, що робимо просто зараз і що попереду." />
+  <meta name="theme-color" content="#141312" />
+  <meta property="og:title" content="Роадмап — AI Академія та AI Architect" />
+  <meta property="og:type" content="website" />
+  <link rel="icon" type="image/svg+xml" href="../../../../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <!-- Ті самі три сімейства, що на всьому сайті. Нових шрифтів задача не вводить. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Той самий Tailwind CDN і той самий tailwind.config, що в index.html / architect.html.
+       Роадмап-специфіка живе в styles.css, тут — лише шапка й футер, щоб перенесення
+       в код було механічним. -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E",
+            ivory: "#F0EEE6", muted: "#A8A095", faint: "#7A7164",
+            clay: "#D97757", "clay-deep": "#C4674A", sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="tokens.css" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- M1 · перехід між сторінками там, де браузер уміє. Деградує в ніщо. -->
+  <style>@view-transition { navigation: auto; }</style>
+</head>
+
+<body id="top" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Ця сторінка збирається з файлу даних, тож для неї потрібен JavaScript.
+      Курси працюють і без нього — <a class="underline" href="../../../../index.html">поверніться до AI Академії</a>.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА. Свідомо тонша за шапку курсів: тут немає навігації по курсу
+       і немає слота авторизації (сторінка публічна, дані від входу не залежать —
+       краще не ставити слот узагалі, ніж ставити без резерву висоти). -->
+  <header class="rm-head">
+    <div class="rm-head__in">
+      <a href="#top" class="rm-brand">
+        <span class="rm-brand__mark" aria-hidden="true">AIA</span>
+        <span class="rm-brand__name">Роадмап</span>
+      </a>
+      <!-- Одна ЗМІННА кнопка повернення: куди — вирішує ?from= / referrer,
+           дефолт — AI Академія. Критерій 21. -->
+      <a id="backLink" href="../../../../index.html" class="rm-back">
+        <span class="rm-back__arrow" aria-hidden="true">←</span>
+        <span id="backLabel">До AI Академії</span>
+      </a>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <!-- ================= HERO ================= -->
+    <section class="rm-hero" aria-labelledby="heroTitle">
+      <div class="rm-hero__in">
+        <p class="rm-eyebrow" id="heroEyebrow"><span class="rm-eyebrow__slash" aria-hidden="true">//</span>&nbsp;</p>
+
+        <h1 class="rm-hero__title" id="heroTitle"></h1>
+
+        <p class="rm-hero__lead" id="heroLead"></p>
+
+        <!-- M3 · живий доказ. Числа рахуються з даних, не пишуться руками. -->
+        <dl class="rm-counts" id="heroCounts" aria-label="Стан плану розвитку"></dl>
+
+        <p class="rm-updated" id="heroUpdated"></p>
+      </div>
+    </section>
+
+    <!-- ================= СТРІЧКА ================= -->
+    <!-- Змійка — окремий SVG-шар поверх усієї стрічки. Він абсолютний і
+         pointer-events:none, тому не заважає ні миші, ні клавіатурі. -->
+    <div class="rm-timeline" id="timeline">
+      <svg class="rm-trail" id="trail" aria-hidden="true" focusable="false" preserveAspectRatio="none"></svg>
+      <span class="rm-axis" id="axisProbe" aria-hidden="true"></span>
+      <div class="rm-sections" id="sections">
+        <!-- Рендериться з roadmap.json. У розмітці немає жодного пункту,
+             жодної назви секції і жодного заголовка. Критерій 18. -->
+      </div>
+    </div>
+
+    <!-- ================= КІНЦІВКА ================= -->
+    <section class="rm-outro" id="outro" aria-labelledby="outroTitle" hidden></section>
+
+  </main>
+
+  <!-- ФУТЕР. Копія футера сайту — щоб було видно, що точка входу в роадмап
+       (рядок «План розвитку») не ламає композицію ні при 2, ні при 5 рядках. -->
+  <footer class="border-t border-line/60">
+    <div class="mx-auto grid max-w-content gap-10 px-5 py-12 sm:px-8 md:grid-cols-[1.4fr,1fr,1fr]">
+      <div>
+        <p class="mb-3 font-display text-xl">AI Академія</p>
+        <p class="max-w-sm text-sm leading-relaxed text-muted">
+          Незалежний освітній проєкт спільноти. Не є офіційним продуктом Anthropic і не афілійований
+          з компанією. Claude та Anthropic — торгові марки відповідних власників.
+        </p>
+      </div>
+
+      <nav aria-label="Посилання проєкту">
+        <p class="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-muted">Проєкт</p>
+        <ul class="space-y-2 text-sm" id="footerLinks">
+          <li><a href="#" class="text-muted transition hover:text-sand">Мої сертифікати ↗</a></li>
+          <li><button type="button" id="contactTrigger" class="text-muted transition hover:text-sand">Написати нам</button></li>
+        </ul>
+
+        <!-- M10 · ТОЧКА ВХОДУ. Акцент у межах футера: окремий блок під списком,
+             усередині тієї самої nav. Висота футера росте на один рядок. -->
+        <a class="rm-entry" href="#top" aria-current="page">
+          <span class="rm-entry__label">План розвитку</span>
+          <span class="rm-entry__arrow" aria-hidden="true">→</span>
+          <span class="rm-entry__rule" aria-hidden="true"></span>
+        </a>
+      </nav>
+
+      <nav aria-label="Першоджерела">
+        <p class="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-muted">Першоджерела</p>
+        <ul class="space-y-2 text-sm">
+          <li><a href="https://docs.claude.com" class="text-muted transition hover:text-sand">Документація Claude ↗</a></li>
+          <li><a href="https://anthropic.skilljar.com" class="text-muted transition hover:text-sand">Офіційні курси Anthropic ↗</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="border-t border-line/60">
+      <div class="mx-auto flex max-w-content flex-wrap items-center justify-between gap-3 px-5 py-5 font-mono text-xs text-muted sm:px-8">
+        <span>v0.2.0 · оновлено 25 серпня 2026</span>
+        <span>Зроблено спільнотою · <a href="#top" class="transition hover:text-sand">Нагору ↑</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- GSAP: core + ScrollTrigger, з CDN, без збірки.
+       Ліцензія перевірена на gsap.com/licensing (див. NOTES.md):
+       усе GSAP, включно з колишніми «клубними» плагінами, безкоштовне
+       для комерційного використання з 30.04.2025. Плагінів тут навмисно
+       НЕМАЄ — усе робиться ядром + нативним SVG API. -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+  <!-- CustomEase — щоб криві бралися просто з tokens.css, а не дублювались
+       у JS наближеннями. Один токен → і CSS, і GSAP. -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/CustomEase.min.js"></script>
+
+  <script src="render.js"></script>
+  <script src="motion.js"></script>
+</body>
+</html>

@@ -1,0 +1,823 @@
+/* ============================================================
+   003 · РОАДМАП — КОМПОНЕНТИ
+   ------------------------------------------------------------
+   Жодного хекса й жодного магічного числа: усе — з tokens.css.
+   Композиційний принцип: на сторінці НЕМАЄ карток. Структуру
+   тримає одна змійка й хайрлайни. Єдина заливка на всій
+   сторінці — секція «В роботі». Це і є свідомий ризик макета.
+   ============================================================ */
+
+/* ---------- 0. База, яку на сайті дає css/custom.css ----------
+   Тут вона продубльована лише тому, що макет самодостатній. */
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  background: var(--c-accent); color: var(--c-on-accent);
+  padding: 0.6rem 1.1rem; border-radius: 0 0 var(--r-control) 0;
+  font-weight: var(--w-medium);
+}
+.skip-link:focus { left: 0; }
+
+:where(a, button, [tabindex]):focus-visible {
+  outline: var(--focus-w) solid var(--c-accent);
+  outline-offset: var(--focus-offset);
+  border-radius: var(--focus-radius);
+}
+
+::selection { background: var(--c-accent-ghost); color: var(--c-ivory); }
+
+html { scrollbar-width: thin; scrollbar-color: var(--c-line) transparent; }
+
+body { overflow-x: hidden; }
+
+/* Українські слова довгі: переноси замість горизонтального скролу */
+.rm-row__title, .rm-row__desc, .rm-hero__lead, .rm-outro__text, .rm-sec__note {
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* ============================================================
+   1. ШАПКА
+   ============================================================ */
+
+.rm-head {
+  position: sticky; top: 0; z-index: 40;
+  border-bottom: var(--bw) solid var(--c-line);
+  background: color-mix(in srgb, var(--c-ink) 88%, transparent);
+  backdrop-filter: blur(10px);
+}
+.rm-head__in {
+  margin: 0 auto; max-width: var(--w-page);
+  height: var(--s-16);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s-4);
+  padding: 0 var(--pad-page);
+}
+.rm-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.rm-brand__mark {
+  display: grid; place-items: center;
+  width: var(--s-8); height: var(--s-8);
+  border-radius: var(--r-control);
+  background: var(--c-accent); color: var(--c-on-accent);
+  font-family: var(--f-mono); font-size: var(--fs-label); font-weight: var(--w-semi);
+}
+.rm-brand__name {
+  font-family: var(--f-display); font-size: 1.125rem; color: var(--c-ivory);
+}
+
+.rm-back {
+  display: inline-flex; align-items: center; gap: var(--s-2);
+  min-height: var(--hit-min); padding: 0 var(--s-2);
+  font-size: var(--fs-body); color: var(--c-muted);
+  text-decoration: none;
+  transition: color var(--dur-hover) var(--e-out);
+}
+.rm-back:hover { color: var(--c-sand); }
+.rm-back__arrow {
+  display: inline-block;
+  transition: transform var(--dur-hover) var(--e-out);
+}
+.rm-back:hover .rm-back__arrow { transform: translateX(calc(var(--move-arrow) * -1)); }
+
+/* ============================================================
+   2. HERO
+   ============================================================ */
+
+/* Ритм hero свідомо тісний: специфікація вимагає, щоб перший пункт
+   був видимий або явно натякнутий уже на першому екрані десктопа. */
+.rm-hero { padding: clamp(2.25rem, 4.5vw, 3.5rem) 0 clamp(1.25rem, 2.5vw, 2rem); }
+.rm-hero__in {
+  margin: 0 auto; max-width: var(--w-page); padding: 0 var(--pad-page);
+}
+
+.rm-eyebrow {
+  font-family: var(--f-mono);
+  font-size: var(--fs-eyebrow); line-height: var(--lh-eyebrow);
+  text-transform: uppercase; letter-spacing: var(--tr-eyebrow);
+  color: var(--c-accent);
+  margin-bottom: var(--s-6);
+}
+.rm-eyebrow__slash { opacity: 0.6; }
+
+.rm-hero__title {
+  font-family: var(--f-display);
+  font-weight: var(--w-semi);
+  font-size: var(--fs-hero);
+  line-height: var(--lh-hero);
+  letter-spacing: var(--tr-hero);
+  color: var(--c-ivory);
+  max-width: 16ch;
+}
+/* M2 · маска для порядкової появи. overflow клипає виносні елементи,
+   тому компенсуємо padding/margin, а не збільшуємо line-height. */
+.rm-hl {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.09em;
+  margin-bottom: -0.09em;
+}
+.rm-hl__in { display: block; }
+
+.rm-hero__lead {
+  margin-top: var(--s-6);
+  max-width: var(--ch-lead);
+  font-size: var(--fs-lead); line-height: var(--lh-lead);
+  color: var(--c-prose);
+}
+
+/* --- M3 · лічильники. Час і числа на цій сторінці ЗАВЖДИ моноширинні --- */
+.rm-counts {
+  margin-top: clamp(1.75rem, 3.5vw, 2.75rem);
+  display: flex; flex-wrap: wrap;
+  gap: 0;
+  border-top: var(--bw) solid var(--c-line);
+}
+.rm-count {
+  display: flex; flex-direction: column-reverse;
+  gap: var(--s-2);
+  padding: var(--s-5) clamp(1.25rem, 3vw, 2.75rem) var(--s-4) 0;
+  margin-right: clamp(1.25rem, 3vw, 2.75rem);
+  border-right: var(--bw) solid var(--c-line);
+}
+.rm-count:last-child { border-right: 0; margin-right: 0; }
+.rm-count__num {
+  margin: 0;
+  font-family: var(--f-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-count);
+  line-height: 1;
+  color: var(--c-sand);
+}
+.rm-count--progress .rm-count__num { color: var(--c-accent); }
+.rm-count__label {
+  font-family: var(--f-mono);
+  font-size: var(--fs-eyebrow);
+  text-transform: uppercase; letter-spacing: var(--tr-label);
+  color: var(--c-muted);
+}
+
+.rm-updated {
+  margin-top: var(--s-5);
+  font-family: var(--f-mono);
+  font-size: var(--fs-meta);
+  color: var(--c-muted);
+}
+
+/* ============================================================
+   3. СТРІЧКА Й ЗМІЙКА
+   ============================================================ */
+
+.rm-timeline {
+  position: relative;
+  margin: 0 auto;
+  max-width: var(--w-page);
+  padding: clamp(1.5rem, 3vw, 2.5rem) var(--pad-page) clamp(3rem, 7vw, 6rem);
+}
+/* Резерв висоти на час завантаження. Діє з ПЕРШОГО кадру, а не з
+   моменту показу скелетона, — інакше стрибок просто переїжджає на
+   150 мс пізніше. */
+html:not(.rm-ready):not(.rm-error) .rm-timeline { min-height: 100vh; }
+html:not(.rm-ready):not(.rm-error) .rm-hero__in { min-height: var(--hero-reserve); }
+html:not(.rm-ready) .rm-eyebrow { visibility: hidden; }
+
+.rm-trail {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 0;
+}
+.rm-trail__track path { fill: none; stroke: var(--c-trail-rest); stroke-width: var(--trail-w); stroke-linecap: round; }
+.rm-trail__lit   path { fill: none; stroke: var(--c-trail-lit);  stroke-width: var(--trail-w-lit); stroke-linecap: round; }
+
+/* Вузли. «Пробій» кольором тла = лінія проходить КРІЗЬ пункт,
+   а не впирається в нього. */
+.rm-node { transform-box: fill-box; transform-origin: center; }
+.rm-node__punch { fill: var(--c-ink); }
+.rm-node--done .rm-node__core   { fill: var(--c-trail-rest); }
+.rm-trail__lit .rm-node--done  .rm-node__core { fill: var(--c-trail-lit); }
+.rm-node--ahead .rm-node__core  { fill: none; stroke: var(--c-trail-rest); stroke-width: var(--trail-w); }
+.rm-trail__lit .rm-node--ahead .rm-node__core { stroke: var(--c-trail-lit); }
+.rm-node--group .rm-node__core  { stroke: var(--c-trail-rest); stroke-width: var(--trail-w); }
+.rm-trail__lit .rm-node--group .rm-node__core { stroke: var(--c-trail-lit); }
+
+/* «В роботі» — окремий, НЕклипований шар: доказ життя видно
+   ще до того, як змійка туди дійшла. */
+/* УВАГА: transform-box тут НЕ ставиться. GSAP сам рахує центр bbox для
+   SVG; якщо додати transform-box: fill-box, браузер застосує матрицю
+   вдруге і елемент поїде. Це вже було й ловилось скріншотом. */
+.rm-now__core { fill: var(--c-trail-now); }
+.rm-now__ring { fill: none; stroke: var(--c-trail-now); stroke-width: var(--trail-w); }
+
+/* Голова лінії — те, що перетворює рейку на дію (R15) */
+.rm-head-dot__core { fill: var(--c-trail-lit); }
+.rm-head-dot__halo { fill: none; stroke: var(--c-trail-lit); stroke-width: 1; opacity: 0.45; }
+
+/* Наведення на пункт підсвічує саме його вузол */
+/* Наведення підсвічує вузол розміром. У «В роботі» замість масштабу
+   (він конфліктував би з GSAP на кільці) міняється радіус ядра. */
+.rm-node { transition: transform var(--dur-hover) var(--e-out); }
+.rm-node.is-hot { transform: scale(var(--scale-node-hover)); }
+.rm-now__core { transition: r var(--dur-hover) var(--e-out); }
+.rm-now.is-hot .rm-now__core { r: calc(var(--node-r-now) * var(--scale-node-hover)); }
+
+.rm-sections { position: relative; z-index: 1; }
+
+/* Вимірювальна мітка осі: єдине джерело правди про x змійки для JS.
+   Нульового розміру, ARIA-невидима, ніколи нічого не перекриває. */
+.rm-axis {
+  position: absolute;
+  left: calc(var(--pad-page) + var(--trail-x));
+  top: 0; width: 0; height: 0;
+  pointer-events: none;
+}
+
+/* ============================================================
+   4. СЕКЦІЯ
+   ============================================================ */
+
+.rm-sec { margin-bottom: var(--sec-gap); }
+.rm-sec:last-child { margin-bottom: 0; }
+
+/* M8 · pin заголовка секції — чистим CSS, нуль ScrollTrigger'ів */
+.rm-sec__head {
+  position: sticky;
+  top: var(--s-16);
+  z-index: 2;
+  display: flex; align-items: baseline; flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+  padding: var(--s-4) 0 var(--s-3) var(--rail-w);
+  margin-bottom: var(--s-5);
+  border-bottom: var(--bw) solid var(--c-line);
+}
+/* Непрозоре тло липкого заголовка починається ТІЛЬКИ з текстової
+   колонки. Смуга змійки лишається прозорою, тому лінія проходить
+   за заголовками секцій без розривів — вона одна на всю сторінку,
+   і це має бути видно. */
+.rm-sec__head::before {
+  content: ""; position: absolute; z-index: -1;
+  inset: calc(var(--s-4) * -1) 0 0 var(--rail-w);
+  background: var(--c-ink);
+}
+/* Градієнтного «хвоста» під заголовком свідомо НЕМАЄ: він підфарбовував
+   назву пункту, що проїжджала під ним, і це читалось як дефект, а не як
+   мʼякість. Різ по суцільному тлу з хайрлайном чесніший. */
+.rm-sec__title {
+  font-family: var(--f-display);
+  font-weight: var(--w-semi);
+  font-size: var(--fs-h2); line-height: var(--lh-h2);
+  color: var(--c-ivory);
+  margin: 0;
+}
+.rm-sec--progress .rm-sec__title { color: var(--c-accent); }
+.rm-sec__note {
+  margin: 0; flex: 1 1 14rem;
+  font-size: var(--fs-desc); color: var(--c-muted);
+}
+.rm-sec__count {
+  margin: 0 0 0 auto;
+  font-family: var(--f-mono); font-variant-numeric: tabular-nums;
+  font-size: var(--fs-meta); color: var(--c-muted);
+}
+
+/* ---------- Квартальна група (стиснення історії) ---------- */
+
+.rm-group + .rm-group { margin-top: var(--s-8); }
+.rm-group__head {
+  position: relative;
+  margin: 0 0 var(--s-3);
+  padding-left: var(--rail-w);
+  font-family: var(--f-mono);
+  font-size: var(--fs-meta);
+  font-weight: var(--w-regular);
+  text-transform: uppercase; letter-spacing: var(--tr-label);
+  color: var(--c-muted);
+}
+.rm-group__head > * { display: inline-flex; align-items: baseline; }
+.rm-group__head .rm-row__anchor { height: calc(var(--fs-meta) * 1.5); top: 0; }
+.rm-group__label { color: var(--c-sand); }
+.rm-group__meta { margin-left: var(--s-3); }
+.rm-group__btn {
+  display: inline-flex; align-items: baseline; gap: var(--s-3);
+  min-height: var(--s-6);
+  padding: var(--s-1) var(--s-2);
+  margin-left: calc(var(--s-2) * -1);
+  background: none; border: 0;
+  font: inherit; letter-spacing: inherit; text-transform: inherit;
+  color: inherit; cursor: pointer;
+  transition: color var(--dur-hover) var(--e-out);
+}
+.rm-group__btn:hover { color: var(--c-sand); }
+.rm-group__chev {
+  font-family: var(--f-mono);
+  width: 1ch; text-align: center;
+  color: var(--c-accent);
+}
+.rm-group.is-collapsed .rm-group__head { opacity: 1; }
+
+/* ============================================================
+   5. РЯДОК-ПУНКТ
+   ------------------------------------------------------------
+   Структура однакова в усіх станах. Різняться: форма лінії,
+   накреслення хайрлайну, розмір і вага заголовка, щільність,
+   наявність заливки. Кольору тексту серед відмінностей НЕМАЄ —
+   тому в градаціях сірого стани все одно розрізняються.
+   ============================================================ */
+
+.rm-rows { list-style: none; margin: 0; padding: 0; }
+
+.rm-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--meta-w);
+  gap: var(--s-2) var(--col-gap);
+  padding: var(--row-pad-y) 0 var(--row-pad-y) var(--rail-w);
+  align-items: start;
+}
+
+/* Точка перетину змійки з пунктом. Нульової ширини: це вимірювальна
+   мітка, а не елемент оформлення. Малює її SVG. */
+.rm-row__anchor {
+  position: absolute;
+  left: var(--trail-x);
+  top: var(--row-pad-y);
+  width: 0;
+  height: calc(var(--fs-row) * var(--lh-item));
+  pointer-events: none;
+}
+
+.rm-row__main { min-width: 0; }
+.rm-row__title {
+  margin: 0;
+  font-family: var(--f-display);
+  font-size: var(--fs-row);
+  line-height: var(--lh-item);
+  letter-spacing: var(--tr-item);
+  color: var(--c-ivory);
+  font-weight: var(--w-medium);
+}
+.rm-row__desc {
+  margin: var(--s-2) 0 0;
+  max-width: var(--ch-desc);
+  font-size: var(--fs-desc); line-height: var(--lh-desc);
+  color: var(--c-prose);
+}
+
+.rm-row__meta {
+  text-align: right;
+  font-family: var(--f-mono);
+  font-size: var(--fs-meta);
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-muted);
+}
+.rm-row__meta p { margin: 0; }
+.rm-row__state-word { text-transform: uppercase; letter-spacing: var(--tr-label); }
+.rm-row__dot { padding: 0 0.4ch; opacity: 0.6; }
+.rm-row__date { color: var(--c-sand); }
+.rm-row__plat {
+  margin-top: var(--s-1) !important;
+  display: inline-flex; align-items: center; gap: var(--s-2);
+}
+/* Позначка платформи — ФОРМА з двох комірок, а не колір.
+   «Обидві» = обидві заповнені, тобто не читається як «жодна». */
+.rm-row__plat-mark { display: inline-flex; gap: 2px; }
+.rm-row__plat-mark::before,
+.rm-row__plat-mark::after {
+  content: ""; width: 6px; height: 6px;
+  border: var(--bw) solid var(--c-line-strong);
+  border-radius: 1px;
+}
+.rm-row__plat-mark--academy::before   { background: var(--c-sand); border-color: var(--c-sand); }
+.rm-row__plat-mark--architect::after  { background: var(--c-sand); border-color: var(--c-sand); }
+.rm-row__plat-mark--both::before,
+.rm-row__plat-mark--both::after       { background: var(--c-sand); border-color: var(--c-sand); }
+
+/* --- deep-link --- */
+.rm-row__link {
+  position: absolute;
+  /* ВИПРАВЛЕНО агентом №4: було left: calc(--rail-w - --s-8), тобто гліф «#»
+     стояв упритул до назви й читався як її частина («#Додати реєстрацію…»).
+     Відсунуто на --s-3 у смугу змійки. */
+  left: calc(var(--rail-w) - var(--s-8) - var(--s-3));
+  top: calc(var(--row-pad-y) - var(--s-1));
+  width: var(--s-8); height: var(--s-8);
+  display: grid; place-items: center;
+  background: none; border: 0; padding: 0; cursor: pointer;
+  color: var(--c-muted);
+  opacity: 0;
+  transition: opacity var(--dur-hover) var(--e-out), color var(--dur-hover) var(--e-out);
+}
+.rm-row:hover .rm-row__link,
+.rm-row:focus-within .rm-row__link,
+.rm-row__link:focus-visible { opacity: 1; }
+.rm-row__link:hover { color: var(--c-accent); }
+.rm-row__link.is-done { color: var(--c-accent); opacity: 1; }
+.rm-row__link-glyph { font-family: var(--f-mono); font-size: var(--fs-body); }
+
+/* ---------- 5.1 Стан «Зроблено» ----------
+   Хайрлайн суцільний. Заголовок середньої ваги. Крок короткий. */
+.rm-row--done {
+  --fs-row: var(--fs-item);
+  border-bottom: var(--bw) solid var(--c-line);
+  margin-bottom: var(--row-gap-done);
+  padding-bottom: var(--row-gap-done);
+}
+.rm-rows--done > .rm-row:last-child { border-bottom: 0; }
+
+/* ---------- 5.2 Стан «Попереду» ----------
+   Той самий пункт, але накреслення пунктирне, кегль менший,
+   вага легша, щільність вища. Колір тексту НЕ приглушений. */
+.rm-row--ahead {
+  --fs-row: var(--fs-item-sm);
+  border-bottom: var(--bw) dashed var(--c-line-strong);
+  margin-bottom: var(--row-gap-ahead);
+  padding-bottom: var(--row-gap-ahead);
+}
+.rm-row--ahead .rm-row__title { font-weight: var(--w-regular); }
+.rm-rows--ahead > .rm-row:last-child { border-bottom: 0; }
+
+/* ---------- 5.3 Стан «Передумали» ---------- */
+.rm-row--dropped {
+  --fs-row: var(--fs-item-sm);
+  border-bottom: var(--bw) solid var(--c-line);
+  margin-bottom: var(--row-gap-ahead);
+  padding-bottom: var(--row-gap-ahead);
+}
+.rm-row--dropped .rm-row__title {
+  font-weight: var(--w-regular);
+  text-decoration: line-through;
+  /* ВИПРАВЛЕНО агентом №4: було 1px у --c-line-strong (3.49:1) — на 18px
+     серіфі закреслення практично не читалось, тобто стан «передумали»
+     фактично не мав візуальної відмінності від «зроблено». Товщина 2px
+     і --c-muted (6.63:1) роблять його видимим, не роблячи крикливим. */
+  text-decoration-color: var(--c-muted);
+  text-decoration-thickness: 2px;
+}
+
+/* ---------- 5.4 Стан «В роботі» ----------
+   ЄДИНА заливка на всій сторінці. Розмах змійки тут найширший,
+   вертикальний ритм найпросторіший, і саме тут живе єдиний
+   безкінечний рух. Якщо на сторінці є один найяскравіший
+   елемент — він тут.                                          */
+.rm-rows--progress { display: grid; gap: var(--row-gap-now); }
+.rm-row--progress,
+.rm-void {
+  --fs-row: calc(var(--fs-item) * 1.12);
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--meta-w);
+  gap: var(--s-3) var(--col-gap);
+  margin-left: var(--rail-w);
+  padding: var(--s-6) var(--s-6) var(--s-6) var(--s-6);
+  background: var(--c-now-surface);
+  border: var(--bw) solid var(--c-now-edge);
+  border-radius: var(--r-card);
+  box-shadow: 0 0 0 1px var(--c-now-glow), 0 24px 60px -32px rgba(0, 0, 0, 0.9);
+}
+.rm-row--progress { padding-left: var(--s-6); }
+/* Вузол «В роботі» сидить РІВНО на лівій межі єдиної заливки сторінки.
+   Саме тому розмах змійки тут найширший: лінія мусить дотягнутись
+   до цього краю — форма підпорядкована змісту, а не навпаки. */
+.rm-row--progress .rm-row__anchor,
+.rm-void .rm-row__anchor {
+  left: 0;
+  top: var(--s-6);
+}
+.rm-row--progress .rm-row__title,
+.rm-void .rm-row__title {
+  font-weight: var(--w-semi);
+  color: var(--c-ivory);
+}
+.rm-row--progress .rm-row__state-word { color: var(--c-accent); }
+/* ВИПРАВЛЕНО агентом №4: кнопка «#» стояла в правому ВЕРХНЬОМУ куті заливки,
+   тобто рівно там, де живе мета-колонка. Виміряно перетин прямокутників:
+   на hover гліф лягав на «Q-2 2026». Перенесено в нижній правий кут —
+   там порожньо в усіх станах даних. */
+.rm-row--progress .rm-row__link,
+.rm-void .rm-row__link { left: auto; right: var(--s-3); top: auto; bottom: var(--s-3); }
+/* І резерв під нею: на коротких заливках (пункт без опису) нижній правий кут
+   ще належить мета-колонці. Без цього резерву гліф лягав на рядок стану —
+   виміряно перетином текстових прямокутників. */
+.rm-row--progress .rm-row__meta,
+.rm-void .rm-row__meta { padding-bottom: var(--s-8); }
+@media (max-width: 1023px) {
+  .rm-row--progress .rm-row__meta,
+  .rm-void .rm-row__meta { padding-bottom: 0; }
+}
+
+/* Порожня «В роботі» — змістовна заміна, а не порожнє місце */
+.rm-void__eyebrow {
+  margin: 0 0 var(--s-2);
+  font-family: var(--f-mono);
+  font-size: var(--fs-eyebrow);
+  text-transform: uppercase; letter-spacing: var(--tr-eyebrow);
+  color: var(--c-accent);
+}
+.rm-void .rm-cta { margin-top: var(--s-5); }
+
+/* ============================================================
+   6. КІНЦІВКА
+   ============================================================ */
+
+.rm-outro {
+  border-top: var(--bw) solid var(--c-line);
+  padding: clamp(3.5rem, 8vw, 7rem) 0 clamp(3rem, 6vw, 5rem);
+}
+.rm-outro__in {
+  margin: 0 auto; max-width: var(--w-page); padding: 0 var(--pad-page);
+}
+.rm-outro__title {
+  margin: 0;
+  font-family: var(--f-display); font-weight: var(--w-semi);
+  font-size: var(--fs-h2); line-height: var(--lh-h2);
+  letter-spacing: var(--tr-hero);
+  color: var(--c-ivory);
+  max-width: 18ch;
+}
+.rm-outro__text {
+  margin: var(--s-5) 0 0;
+  max-width: var(--ch-desc);
+  font-size: var(--fs-lead); line-height: var(--lh-lead);
+  color: var(--c-prose);
+}
+.rm-outro__actions {
+  margin-top: var(--s-10);
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-4);
+}
+
+.rm-cta {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: var(--hit-min); padding: 0 var(--s-6);
+  border: var(--bw) solid transparent; border-radius: var(--r-control);
+  background: var(--c-accent); color: var(--c-on-accent);
+  font-family: var(--f-sans); font-size: var(--fs-body); font-weight: var(--w-medium);
+  text-decoration: none; cursor: pointer;
+  transition: background var(--dur-hover) var(--e-out), transform var(--dur-press) var(--e-out);
+}
+.rm-cta:hover { background: var(--c-accent-deep); }
+.rm-cta:active { transform: scale(var(--scale-press)); }
+.rm-cta--ghost {
+  background: none; color: var(--c-sand);
+  border-color: var(--c-line-strong);
+}
+.rm-cta--ghost:hover { background: var(--c-sand-ghost); }
+
+.rm-chan {
+  display: inline-flex; align-items: center; gap: var(--s-2);
+  min-height: var(--hit-min); padding: 0 var(--s-2);
+  color: var(--c-muted); font-size: var(--fs-body); text-decoration: none;
+  transition: color var(--dur-hover) var(--e-out);
+}
+.rm-chan:hover { color: var(--c-sand); }
+.rm-chan__arrow { transition: transform var(--dur-hover) var(--e-out); }
+.rm-chan:hover .rm-chan__arrow { transform: translate(var(--move-arrow), calc(var(--move-arrow) * -1)); }
+
+/* ============================================================
+   7. ТОЧКА ВХОДУ У ФУТЕРІ (M10)
+   ------------------------------------------------------------
+   Акцент у межах футера: окремий блок ПІД списком, усередині тієї
+   самої nav. Висота футера росте рівно на один рядок списку, тож
+   композиція виживає і при 2 рядках (як у проді сьогодні), і при 5.
+   Ціль дотику 44px по висоті — вище за мінімум WCAG 2.2 (24).
+   ============================================================ */
+
+.rm-entry {
+  position: relative;
+  display: inline-flex; align-items: center; gap: var(--s-2);
+  margin-top: var(--s-5);
+  min-height: var(--hit-min);
+  padding: 0 var(--s-1);
+  font-family: var(--f-mono);
+  font-size: var(--fs-body);
+  letter-spacing: var(--tr-label);
+  color: var(--c-sand);
+  text-decoration: none;
+}
+.rm-entry__arrow {
+  display: inline-block;
+  color: var(--c-accent);
+  transition: transform var(--dur-hover) var(--e-out);
+}
+.rm-entry:hover .rm-entry__arrow,
+.rm-entry:focus-visible .rm-entry__arrow { transform: translateX(var(--move-arrow)); }
+/* Підкреслення росте від лівого краю — той самий мікрожест, що й стрілка */
+.rm-entry__rule {
+  position: absolute; left: var(--s-1); right: var(--s-1);
+  bottom: calc(var(--hit-min) / 2 - 0.85em);
+  height: var(--bw);
+  background: var(--c-accent);
+  transform: scaleX(0); transform-origin: left center;
+  transition: transform var(--dur-hover) var(--e-out);
+}
+.rm-entry:hover .rm-entry__rule,
+.rm-entry:focus-visible .rm-entry__rule { transform: scaleX(1); }
+
+/* ============================================================
+   8. СКЕЛЕТОН, ПОМИЛКА, ПОРОЖНЕЧА
+   ============================================================ */
+
+.rm-sk { padding-left: var(--rail-w); }
+.rm-sk--hero { padding-left: 0; }
+.rm-sk__hl, .rm-sk__ld, .rm-sk__cn {
+  border-radius: var(--r-inner);
+  background: linear-gradient(90deg, var(--c-raised) 0%, var(--c-shimmer) 50%, var(--c-raised) 100%);
+  background-size: 200% 100%;
+  animation: rm-shimmer var(--dur-shimmer) linear infinite;
+}
+.rm-sk__hl { height: calc(var(--fs-hero) * 0.72); margin-bottom: calc(var(--fs-hero) * 0.34); }
+.rm-sk__hl:nth-child(1) { width: 42%; }
+.rm-sk__hl:nth-child(2) { width: 54%; }
+.rm-sk__hl:nth-child(3) { width: 33%; }
+.rm-sk__ld { height: 14px; width: 30%; margin-top: var(--s-4); }
+.rm-sk__cns { display: flex; gap: clamp(1.25rem, 3vw, 2.75rem); margin-top: clamp(1.75rem, 3.5vw, 2.75rem); padding-top: var(--s-5); border-top: var(--bw) solid var(--c-line); }
+.rm-sk__cn { height: calc(var(--fs-count) + var(--s-6)); width: 92px; }
+.rm-sk__row {
+  height: var(--sk-row-h);
+  display: flex; flex-direction: column; justify-content: center; gap: var(--s-2);
+  border-bottom: var(--bw) solid var(--c-line);
+}
+.rm-sk__t, .rm-sk__d {
+  height: 12px; border-radius: var(--r-inner);
+  background: linear-gradient(90deg, var(--c-raised) 0%, var(--c-shimmer) 50%, var(--c-raised) 100%);
+  background-size: 200% 100%;
+  animation: rm-shimmer var(--dur-shimmer) linear infinite;
+}
+.rm-sk__t { width: 42%; }
+.rm-sk__d { width: 64%; height: 9px; opacity: 0.55; }
+@keyframes rm-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+.rm-panel {
+  margin-left: var(--rail-w);
+  padding: var(--s-8);
+  border: var(--bw) solid var(--c-sand-edge);
+  border-radius: var(--r-card);
+  background: var(--c-surface);
+  max-width: 46rem;
+}
+.rm-panel--soft { border-color: var(--c-line); }
+.rm-panel__title {
+  margin: 0; font-family: var(--f-display); font-weight: var(--w-semi);
+  font-size: var(--fs-h2); line-height: var(--lh-h2); color: var(--c-sand);
+}
+.rm-panel__text {
+  margin: var(--s-4) 0 0; color: var(--c-prose);
+  font-size: var(--fs-lead); line-height: var(--lh-lead);
+}
+.rm-panel__acts { margin-top: var(--s-8); display: flex; flex-wrap: wrap; gap: var(--s-4); }
+
+/* У стані помилки hero порожній (тексти теж приходять із даних), тому
+   він ховається цілком, а не показує рамку без вмісту. */
+.rm-error .rm-hero,
+.rm-error .rm-outro { display: none; }
+.rm-counts:empty { display: none; }
+.rm-panel { margin-top: var(--s-6); }
+
+/* Тимчасовий тост — тільки для макета (на сайті це модалка js/contact.js) */
+.rm-toast {
+  position: fixed; left: 50%; bottom: var(--s-8); transform: translateX(-50%);
+  z-index: 90;
+  padding: var(--s-3) var(--s-5);
+  border: var(--bw) solid var(--c-line-strong); border-radius: var(--r-pill);
+  background: var(--c-surface); color: var(--c-sand);
+  font-size: var(--fs-small);
+  box-shadow: 0 16px 40px -20px rgba(0, 0, 0, 0.9);
+}
+
+/* ============================================================
+   9. ПОЯВА ПУНКТІВ (M5 / M6 / M11)
+   ------------------------------------------------------------
+   Через IntersectionObserver + CSS-переходи, а НЕ через
+   ScrollTrigger: інакше кількість тригерів росла б лінійно з
+   кількістю пунктів. На anthropic.com виміряно рівно 2 тригери
+   на цілий лендінг — це наш орієнтир.
+   ============================================================ */
+
+.js .rm-row,
+.js .rm-void,
+.js .rm-group__head,
+.js .rm-panel {
+  opacity: 0;
+  transform: translateY(var(--move-row));
+  transition:
+    opacity var(--dur-row-done) var(--e-out) var(--rm-delay, 0ms),
+    transform var(--dur-row-done) var(--e-out) var(--rm-delay, 0ms);
+}
+/* «Попереду» проявляється довше й мʼякше — найдовший рух на сторінці */
+.js .rm-row--ahead {
+  transform: translateY(var(--move-row-ahead));
+  transition:
+    opacity var(--dur-row-ahead) var(--e-slow) var(--rm-delay, 0ms),
+    transform var(--dur-row-ahead) var(--e-slow) var(--rm-delay, 0ms);
+}
+.js .rm-row--progress, .js .rm-void {
+  transition:
+    opacity var(--dur-row-now) var(--e-out) var(--rm-delay, 0ms),
+    transform var(--dur-row-now) var(--e-out) var(--rm-delay, 0ms);
+}
+.js .rm-row.is-in,
+.js .rm-void.is-in,
+.js .rm-group__head.is-in,
+.js .rm-panel.is-in { opacity: 1; transform: none; }
+
+/* Пунктирний хайрлайн «Попереду» дописується разом із появою:
+   це і є «креслення лінією» замість приглушення кольором. */
+.js .rm-row--ahead { border-bottom-color: transparent; }
+.js .rm-row--ahead.is-in {
+  border-bottom-color: var(--c-line-strong);
+  transition:
+    opacity var(--dur-row-ahead) var(--e-slow) var(--rm-delay, 0ms),
+    transform var(--dur-row-ahead) var(--e-slow) var(--rm-delay, 0ms),
+    border-bottom-color var(--dur-row-ahead) var(--e-slow) calc(var(--rm-delay, 0ms) + var(--dur-row-ahead) / 2);
+}
+
+/* Без JS сторінка все одно показує текст (макет має noscript-банер,
+   але навіть із ним нічого не має лишатись невидимим) */
+html:not(.js) .rm-row,
+html:not(.js) .rm-void { opacity: 1; transform: none; }
+
+/* ============================================================
+   10. АДАПТИВ
+   ------------------------------------------------------------
+   Значення токенів для брейкпойнтів — у tokens.css.
+   Тут лише перебудова сітки.
+   ============================================================ */
+
+@media (max-width: 1023px) {
+  .rm-row,
+  .rm-row--progress,
+  .rm-void { grid-template-columns: minmax(0, 1fr); }
+  .rm-row__meta {
+    text-align: left;
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-4);
+    margin-top: var(--s-3);
+  }
+  .rm-row__plat { margin-top: 0 !important; }
+  .rm-row__link { left: auto; right: 0; top: var(--row-pad-y); }
+  .rm-row--progress .rm-row__link { right: var(--s-3); }
+  /* Контрол «поділитись» тут завжди видимий (дотик не має hover),
+     тому під нього резервується місце — інакше він лягає на назву. */
+  .rm-row__main { padding-right: var(--s-8); }
+}
+
+/* ВИПРАВЛЕНО агентом №4. M8 вимикався ТІЛЬКИ по ширині (≤640). Виміряно на
+   проксі 200% зуму (в'юпорт 752×460): шапка 64px + липкий заголовок секції
+   ≈60px = 27% висоти вікна назавжди зайнято. Для людини, яка сидить на 200%
+   зумі, це і є її екран. Тому вимикаємо ще й по ВИСОТІ. */
+@media (max-height: 700px) {
+  .rm-sec__head { position: static; backdrop-filter: none; background: none; }
+  .rm-sec__head::before { display: none; }
+}
+
+/* WCAG 2.2 SC 2.4.11 (focus not obscured): фокус, приведений браузером у кадр,
+   не має ховатись під липкою шапкою. Резерв беремо з висоти шапки + заголовка. */
+.rm-row, .rm-row__link, .rm-group__btn, .rm-void, .rm-cta, .rm-chan {
+  scroll-margin-top: calc(var(--s-16) + var(--s-16));
+  scroll-margin-bottom: var(--s-8);
+}
+
+@media (max-width: 640px) {
+  /* M8 вимикається: sticky-заголовок на мобілці забирає піввікна */
+  .rm-sec__head { position: static; backdrop-filter: none; background: none; }
+  .rm-sec__head::after { display: none; }
+  .rm-hero__title { max-width: none; }
+  .rm-counts { border-top: 0; }
+  .rm-count {
+    padding: var(--s-4) var(--s-5) var(--s-4) 0;
+    margin-right: var(--s-5);
+  }
+  .rm-row--progress, .rm-void { padding: var(--s-5); }
+  .rm-panel { padding: var(--s-5); }
+  /* Контрол «поділитись» на дотику не має hover — тримаємо його видимим */
+  .rm-row__link { opacity: 1; }
+}
+
+@media (hover: none) {
+  .rm-row__link { opacity: 1; }
+}
+
+/* ============================================================
+   11. prefers-reduced-motion
+   ------------------------------------------------------------
+   Токени вже обнулені в tokens.css. Тут добиваються дві речі,
+   які токенами не виражаються: keyframes-шимер і те, що вміст
+   МУСИТЬ бути видимим одразу — жоден пункт не лишається
+   невидимим, жоден текст не лишається нерозкритим (критерій 13).
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .rm-sk__t, .rm-sk__d { animation: none; }
+  .js .rm-row, .js .rm-void, .js .rm-group__head, .js .rm-panel {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .js .rm-row--ahead { border-bottom-color: var(--c-line-strong) !important; }
+  .rm-hl__in { transform: none !important; }
+}

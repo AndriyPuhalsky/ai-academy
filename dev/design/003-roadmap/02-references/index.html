@@ -1,0 +1,2455 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>003 · Референси до роадмапу</title>
+<style>
+:root{
+  --bg:#141312; --panel:#1E1B18; --panel2:#221E1A; --line:#3A342E;
+  --ivory:#F0EEE6; --muted:#CFC9BF; --faint:#8B8276; --clay:#D97757; --sand:#E8DCC3;
+  --serif:'Iowan Old Style',Georgia,'Times New Roman',serif;
+  --mono:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--muted);
+  font:16px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+h1,h2,h3{font-family:var(--serif);color:var(--ivory);font-weight:600;line-height:1.2;margin:0}
+a{color:var(--clay)}
+code{font:0.86em var(--mono);background:#00000055;border:1px solid var(--line);
+  border-radius:4px;padding:1px 5px;color:var(--sand)}
+b,strong{color:var(--ivory);font-weight:600}
+
+/* --- шапка --- */
+.top{border-bottom:1px solid var(--line);padding:64px 0 40px;background:
+  radial-gradient(120% 90% at 50% 0%, #2A231D 0%, var(--bg) 62%)}
+.kicker{font:600 12px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;
+  color:var(--clay);margin-bottom:18px}
+h1{font-size:clamp(30px,5vw,46px)}
+.lede{max-width:70ch;margin-top:16px;font-size:18px;color:var(--muted)}
+.stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.stat{border:1px solid var(--line);background:var(--panel);border-radius:8px;
+  padding:9px 14px;font:13px/1.3 var(--mono);color:var(--sand)}
+.stat b{color:var(--ivory)}
+
+/* --- панелі --- */
+section{padding:52px 0;border-bottom:1px solid var(--line)}
+h2{font-size:26px;margin-bottom:6px}
+.sub{color:var(--faint);font-size:14px;margin:0 0 26px}
+.note{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--clay);
+  border-radius:6px;padding:18px 22px;margin:18px 0}
+.note h3{font-size:17px;margin-bottom:8px}
+.note p{margin:0 0 10px}
+.note p:last-child{margin-bottom:0}
+.note ol,.note ul{margin:8px 0 0;padding-left:22px}
+.note li{margin-bottom:8px}
+.note li::marker{color:var(--clay)}
+
+/* --- карта осі B --- */
+.axis-map{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:22px;margin-top:20px;overflow-x:auto}
+.axis-track{display:grid;grid-template-columns:repeat(6,minmax(150px,1fr));gap:12px;min-width:900px}
+.axis-col{border-top:2px solid var(--line);padding-top:12px}
+.axis-col:first-child{border-color:var(--sand)}
+.axis-col:last-child{border-color:var(--clay)}
+.axis-lbl{font:600 11px/1.35 var(--mono);text-transform:uppercase;letter-spacing:.08em;
+  color:var(--faint);min-height:32px;margin-bottom:10px}
+.axis-col:first-child .axis-lbl,.axis-col:last-child .axis-lbl{color:var(--sand)}
+.axis-items{display:flex;flex-wrap:wrap;gap:5px}
+.pill{display:inline-block;font:11px/1 var(--mono);border:1px solid var(--line);
+  border-radius:5px;padding:5px 7px;color:var(--muted);text-decoration:none;background:var(--panel2)}
+.pill:hover{border-color:var(--clay);color:var(--ivory)}
+.axis-ends{display:flex;justify-content:space-between;font:12px var(--mono);
+  color:var(--faint);margin-top:14px;min-width:900px}
+
+/* --- покриття слотів --- */
+.cov{width:100%;border-collapse:collapse;margin-top:18px;font-size:14px}
+.cov th,.cov td{border-bottom:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}
+.cov th{font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--faint)}
+.cov td:first-child{font:600 13px var(--mono);color:var(--clay);white-space:nowrap}
+.cov .n{color:var(--ivory);font:600 13px var(--mono);white-space:nowrap}
+.cov .gap{color:#E2725B}
+.cov .hint{color:var(--faint);font-size:13px}
+
+/* --- групи --- */
+.group{padding-top:52px}
+.group-head{border-left:3px solid var(--clay);padding-left:18px;margin-bottom:30px}
+.group-head h2{font-size:28px}
+.group-head p{max-width:80ch;margin:10px 0 0;color:var(--muted)}
+
+/* --- картка референсу --- */
+.ref{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:24px;margin-bottom:22px}
+.ref-head{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.ref-n{font:600 13px var(--mono);color:var(--clay);border:1px solid var(--line);
+  border-radius:6px;padding:5px 9px;background:var(--bg)}
+.ref-title{flex:1;min-width:240px}
+.ref-title h3{font-size:20px}
+.ref-cls{margin:4px 0 0;font:12px var(--mono);color:var(--faint)}
+.ref-url{font:13px var(--mono);text-decoration:none;border:1px solid var(--line);
+  border-radius:6px;padding:7px 12px;background:var(--bg)}
+.ref-url:hover{border-color:var(--clay)}
+.shots{display:grid;gap:14px;margin:20px 0;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+figure{margin:0}
+.shots img{width:100%;display:block;border:1px solid var(--line);border-radius:8px;
+  background:#000;cursor:zoom-in}
+.shots img:hover{border-color:var(--clay)}
+figcaption{font-size:12.5px;color:var(--faint);margin-top:7px;line-height:1.45}
+.ref-body>.block,.two{margin-top:18px}
+.block h4{font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.1em;
+  color:var(--faint);margin:0 0 8px}
+.block p{margin:0}
+.two{display:grid;gap:16px;grid-template-columns:1fr 1fr}
+.take,.dont{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.take{border-left:3px solid #6E9E6E}
+.dont{border-left:3px solid #B4553F}
+.motion{width:100%;border-collapse:collapse;font-size:14.5px}
+.motion th{text-align:left;width:170px;padding:6px 12px 6px 0;color:var(--sand);
+  font:600 13px var(--mono);vertical-align:top;border-bottom:1px solid var(--line)}
+.motion td{padding:6px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.motion tr:last-child th,.motion tr:last-child td{border-bottom:0}
+.meta{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);
+  display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:11px/1 var(--mono);border-radius:5px;padding:5px 8px;border:1px solid var(--line)}
+.chip.slot{color:var(--clay);background:#D9775715}
+.chip.axis{color:var(--faint)}
+.chip.axis b{color:var(--sand);font-weight:600}
+.feas{font:12px var(--mono);color:var(--faint)}
+.feas.ok{color:#7FA97F}.feas.mid{color:var(--sand)}.feas.hard{color:#D98C77}
+
+/* --- антиреференси --- */
+.anti-grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.anti{background:var(--panel);border:1px solid var(--line);border-left:3px solid #B4553F;
+  border-radius:10px;padding:20px}
+.anti h3{font-size:18px;margin-bottom:4px}
+.anti .n{font:600 12px var(--mono);color:#D98C77}
+.anti img{width:100%;border:1px solid var(--line);border-radius:8px;margin:14px 0;
+  display:block;cursor:zoom-in;background:#000}
+.anti h4{font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.1em;
+  color:var(--faint);margin:14px 0 6px}
+.anti p{margin:0}
+footer{padding:44px 0 72px;color:var(--faint);font-size:14px}
+
+/* --- лайтбокс --- */
+#lb{position:fixed;inset:0;background:#0A0908F2;display:none;align-items:center;
+  justify-content:center;z-index:50;padding:24px;cursor:zoom-out}
+#lb.on{display:flex}
+#lb img{max-width:100%;max-height:100%;border:1px solid var(--line);border-radius:8px}
+@media (max-width:720px){.two{grid-template-columns:1fr}.motion th{width:120px}}
+</style>
+
+<div class="top"><div class="wrap">
+  <p class="kicker">Задача 003 · Роадмап розробки · агент №2</p>
+  <h1>Референси: анімована сторінка роадмапу</h1>
+  <p class="lede">Матеріал для одного рішення — <b>який напрям беремо</b>. Не читати підряд:
+  прогорнути, зупинитись там, де щось зачепило, і назвати номери. Макет ще не будується.</p>
+  <div class="stats">
+    <span class="stat"><b>37</b> референсів</span>
+    <span class="stat"><b>7</b> напрямків</span>
+    <span class="stat"><b>7</b> антиреференсів</span>
+    <span class="stat"><b>54</b> скріншотів</span>
+    <span class="stat">слоти руху: <b>12/12</b> покрито</span>
+  </div>
+</div></div>
+
+<div class="wrap">
+
+<section>
+  <h2>Як користуватись цією сторінкою</h2>
+  <p class="sub">Три хвилини читання, далі — дивитись картинки.</p>
+
+  <div class="note">
+    <h3>Що ти вирішуєш</h3>
+    <p><b>Головне — точка на осі «стримана чесність ↔ максимальний вау».</b> У брифі ти обрав
+    усі чотири відчуття одразу (живий · чесний · вау · долучитись), і вони конфліктують:
+    «вау» тягне в ефектність, «чесність» — у стриманість. Це відкрите питання №1 у специфікації,
+    і відповідати на нього текстом незручно. Тому нижче є <b>карта осі</b>: усі 37 робіт
+    розкладені від «нуль руху» до «максимальний вау». Ткни в ті, що подобаються — цим
+    питання й закриється.</p>
+    <p><b>Друге — напрям (A–G).</b> Сім груп, це сім різних способів розповісти той самий
+    роадмап. Можна взяти один, можна сказати «структура з A, рух з C».</p>
+    <p><b>Третє — антиреференси.</b> Ти їх не називав, тому вони зібрані окремо: сім
+    публічних роадмапів і патернів, які показують, як робити НЕ треба. Якщо якийсь із них
+    насправді подобається — це важливіше за всі 37 вище, скажи одразу.</p>
+  </div>
+
+  <div class="note">
+    <h3>Чого тут свідомо немає</h3>
+    <p>Немає нашого макета — його малює наступний агент, і тільки після твого вибору.
+    Немає й «переможця»: рекомендація на цьому етапі підмінила б твоє рішення чужим смаком.</p>
+  </div>
+
+  <div class="note">
+    <h3>Словник, щоб не спотикатись</h3>
+    <p><b>Слот руху (M1–M12)</b> — конкретне місце сторінки, де щось рухається; список
+    зафіксовано в специфікації, і кожен референс підписаний тим, який слот він закриває.
+    <b>Осі (A–E)</b> — п'ять вимірів, за якими роботи відрізняються. Головна — B.</p>
+    <ul>
+      <li><b>A · Геометрія часу</b> — вертикальний шлях ↔ горизонтальна стрічка ↔ нелінійна композиція</li><li><b>B · Інтенсивність</b> — стримана чесність ↔ максимальний вау — ГОЛОВНА вісь рішення</li><li><b>C · Жанр</b> — changelog · редакційне · лабораторний журнал · портфоліо</li><li><b>D · Щільність</b> — щільно ↔ одна картка на екран</li><li><b>E · Як показано майбутнє</b> — розмиття · пунктир/каркас · менша щільність</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <h2>Карта осі B — головне рішення</h2>
+  <p class="sub">Зліва — сторінка переконує змістом і майже не рухається. Справа — рух є
+  окремим враженням. Клікни номер, щоб перейти до розбору.</p>
+  <div class="axis-map">
+    <div class="axis-track">
+      
+      <div class="axis-col">
+        <div class="axis-lbl">нуль руху</div>
+        <div class="axis-items"><a class="pill" href="#r04" title="Derek Sivers — /now">R04</a></div>
+      </div>
+      <div class="axis-col">
+        <div class="axis-lbl">крайня стриманість</div>
+        <div class="axis-items"><a class="pill" href="#r01" title="Obsidian — Roadmap">R01</a><a class="pill" href="#r02" title="Paco Coursey">R02</a><a class="pill" href="#r03" title="Emil Kowalski">R03</a></div>
+      </div>
+      <div class="axis-col">
+        <div class="axis-lbl">стримана чесність</div>
+        <div class="axis-items"><a class="pill" href="#r05" title="Anthropic — News">R05</a><a class="pill" href="#r06" title="Cursor — Changelog">R06</a><a class="pill" href="#r07" title="Attio — Changelog">R07</a><a class="pill" href="#r08" title="Linear — Now / Changelog">R08</a><a class="pill" href="#r09" title="Figma — Release notes">R09</a><a class="pill" href="#r11" title="Sentry — Changelog">R11</a><a class="pill" href="#r12" title="Vercel — Changelog">R12</a><a class="pill" href="#r13" title="Supabase — Changelog">R13</a><a class="pill" href="#r33" title="Arc — Release Notes">R33</a><a class="pill" href="#r20" title="The History of the Web — Timeline">R20</a><a class="pill" href="#r30" title="Ghost — футер зі статусом">R30</a><a class="pill" href="#r31" title="Claude Status">R31</a><a class="pill" href="#r32" title="Vercel — футер">R32</a></div>
+      </div>
+      <div class="axis-col">
+        <div class="axis-lbl">посередині осі</div>
+        <div class="axis-items"><a class="pill" href="#r10" title="Liveblocks — Changelog">R10</a><a class="pill" href="#r14" title="Aceternity UI — Timeline">R14</a><a class="pill" href="#r27" title="Anthropic — головна">R27</a><a class="pill" href="#r29" title="MUBI">R29</a><a class="pill" href="#r34" title="Magic UI — Blur Fade">R34</a><a class="pill" href="#r36" title="Magic UI — Number Ticker">R36</a></div>
+      </div>
+      <div class="axis-col">
+        <div class="axis-lbl">ближче до вау</div>
+        <div class="axis-items"><a class="pill" href="#r15" title="Aceternity UI — Tracing Beam">R15</a><a class="pill" href="#r16" title="GSAP MotionPath + ScrollTrigger (демо до статті Codrops)">R16</a><a class="pill" href="#r19" title="Cloudflare Radar — Year in Review 2024">R19</a><a class="pill" href="#r21" title="Kononenko Architectural Bureau">R21</a><a class="pill" href="#r24" title="Locomotive — Extras">R24</a><a class="pill" href="#r28" title="Oimachi">R28</a></div>
+      </div>
+      <div class="axis-col">
+        <div class="axis-lbl">максимальний вау</div>
+        <div class="axis-items"><a class="pill" href="#r22" title="The Watch — 60fps.fr">R22</a><a class="pill" href="#r23" title="Michael Gatt">R23</a><a class="pill" href="#r26" title="Resend">R26</a><a class="pill" href="#r25" title="basement.studio">R25</a></div>
+      </div>
+    </div>
+    <div class="axis-ends"><span>← чесність, спокій, довіра</span><span>вау, ефект, «хочеться доскролити» →</span></div>
+  </div>
+  <p class="sub" style="margin-top:14px">Поза шкалою (мікропатерни й
+  готові цеглини, які самі по собі не задають інтенсивності): <a class="pill" href="#r17">R17</a> <a class="pill" href="#r18">R18</a> <a class="pill" href="#r35">R35</a> <a class="pill" href="#r37">R37</a></p>
+</section>
+
+<section>
+  <h2>Покриття слотів руху</h2>
+  <p class="sub">Специфікація вимагала 2–3 різні за характером референси на кожен слот.
+  Слот без референсів — це діра, яку інакше закриє вигадка, тому вона показана явно.</p>
+  <table class="cov">
+    <tr><th>Слот</th><th>Що це</th><th>Референси</th></tr>
+    <tr>
+        <td>M1</td>
+        <td>Вхід на сторінку з футера<br><span class="hint">Page transition, 250–450 мс</span></td>
+        <td class="n"><a class="pill" href="#r37">R37</a></td>
+      </tr><tr>
+        <td>M2</td>
+        <td>Заголовок hero<br><span class="hint">Line-by-line reveal, ≤1.2 с</span></td>
+        <td class="n"><a class="pill" href="#r02">R02</a> <a class="pill" href="#r17">R17</a> <a class="pill" href="#r21">R21</a> <a class="pill" href="#r23">R23</a> <a class="pill" href="#r26">R26</a> <a class="pill" href="#r29">R29</a></td>
+      </tr><tr>
+        <td>M3</td>
+        <td>Лічильники hero<br><span class="hint">Number ticker, 600–900 мс</span></td>
+        <td class="n"><a class="pill" href="#r19">R19</a> <a class="pill" href="#r22">R22</a> <a class="pill" href="#r31">R31</a> <a class="pill" href="#r36">R36</a></td>
+      </tr><tr>
+        <td>M4</td>
+        <td>Вісь часу<br><span class="hint">Scroll-driven scrub</span></td>
+        <td class="n"><a class="pill" href="#r08">R08</a> <a class="pill" href="#r14">R14</a> <a class="pill" href="#r15">R15</a> <a class="pill" href="#r16">R16</a> <a class="pill" href="#r17">R17</a> <a class="pill" href="#r18">R18</a> <a class="pill" href="#r20">R20</a> <a class="pill" href="#r22">R22</a> <a class="pill" href="#r27">R27</a></td>
+      </tr><tr>
+        <td>M5</td>
+        <td>Поява картки «Зроблено»<br><span class="hint">Scroll reveal + stagger, 350–500 мс</span></td>
+        <td class="n"><a class="pill" href="#r01">R01</a> <a class="pill" href="#r06">R06</a> <a class="pill" href="#r07">R07</a> <a class="pill" href="#r10">R10</a> <a class="pill" href="#r12">R12</a> <a class="pill" href="#r13">R13</a> <a class="pill" href="#r14">R14</a> <a class="pill" href="#r18">R18</a> <a class="pill" href="#r19">R19</a> <a class="pill" href="#r20">R20</a> <a class="pill" href="#r24">R24</a> <a class="pill" href="#r27">R27</a> <a class="pill" href="#r25">R25</a> <a class="pill" href="#r29">R29</a></td>
+      </tr><tr>
+        <td>M6</td>
+        <td>Поява картки «Попереду»<br><span class="hint">Reveal з невизначеності, 500–800 мс</span></td>
+        <td class="n"><a class="pill" href="#r18">R18</a> <a class="pill" href="#r21">R21</a> <a class="pill" href="#r34">R34</a></td>
+      </tr><tr>
+        <td>M7</td>
+        <td>«В роботі»<br><span class="hint">Єдиний безкінечний рух на сторінці</span></td>
+        <td class="n"><a class="pill" href="#r19">R19</a> <a class="pill" href="#r26">R26</a> <a class="pill" href="#r25">R25</a> <a class="pill" href="#r30">R30</a> <a class="pill" href="#r31">R31</a></td>
+      </tr><tr>
+        <td>M8</td>
+        <td>Заголовок секції<br><span class="hint">Pin (sticky) на час секції</span></td>
+        <td class="n"><a class="pill" href="#r01">R01</a> <a class="pill" href="#r08">R08</a> <a class="pill" href="#r11">R11</a> <a class="pill" href="#r13">R13</a> <a class="pill" href="#r33">R33</a> <a class="pill" href="#r14">R14</a> <a class="pill" href="#r17">R17</a></td>
+      </tr><tr>
+        <td>M9</td>
+        <td>Hover/focus картки<br><span class="hint">Hover + press feedback, 150 мс</span></td>
+        <td class="n"><a class="pill" href="#r03">R03</a> <a class="pill" href="#r05">R05</a> <a class="pill" href="#r07">R07</a> <a class="pill" href="#r09">R09</a> <a class="pill" href="#r23">R23</a> <a class="pill" href="#r24">R24</a> <a class="pill" href="#r25">R25</a> <a class="pill" href="#r28">R28</a></td>
+      </tr><tr>
+        <td>M10</td>
+        <td>Точка входу у футері<br><span class="hint">Мікрожест ≤4 px, 150 мс</span></td>
+        <td class="n"><a class="pill" href="#r02">R02</a> <a class="pill" href="#r30">R30</a> <a class="pill" href="#r32">R32</a></td>
+      </tr><tr>
+        <td>M11</td>
+        <td>Кінцівка<br><span class="hint">Entrance із затримкою</span></td>
+        <td class="n"><a class="pill" href="#r27">R27</a></td>
+      </tr><tr>
+        <td>M12</td>
+        <td>Перехід стану пункту<br><span class="hint">Continuity transition, 300–500 мс</span></td>
+        <td class="n"><a class="pill" href="#r01">R01</a> <a class="pill" href="#r10">R10</a> <a class="pill" href="#r28">R28</a> <a class="pill" href="#r35">R35</a></td>
+      </tr>
+  </table>
+</section>
+
+
+<section class="group" id="g-a">
+  <div class="group-head">
+    <h2>Напрям A · Стримана редакційна чесність</h2>
+    <p>Полюс «чесність» осі B. Рух майже відсутній або зведений до 0.15–0.25 с. Сторінка переконує змістом, структурою і повітрям. Ризик: без руху «вау» не буде взагалі, і сторінку прогорнуть за 8 секунд.</p>
+  </div>
+  
+<article class="ref" id="r01">
+  <header class="ref-head">
+    <span class="ref-n">R01</span>
+    <div class="ref-title">
+      <h3>Obsidian — Roadmap</h3>
+      <p class="ref-cls">Живий продукт · рівно наш жанр</p>
+    </div>
+    <a class="ref-url" href="https://obsidian.md/roadmap" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r01-obsidian-1.jpg" alt="Верх сторінки: заголовок, два речення, секція «Active» — три картки" loading="lazy" data-full="shots/r01-obsidian-1.jpg">
+      <figcaption>Верх сторінки: заголовок, два речення, секція «Active» — три картки</figcaption>
+    </figure>
+    <figure>
+      <img src="shots/r01-obsidian-3.jpg" alt="Історія: місяць у лівій колонці, картки з версією і посиланням справа" loading="lazy" data-full="shots/r01-obsidian-3.jpg">
+      <figcaption>Історія: місяць у лівій колонці, картки з версією і посиланням справа</figcaption>
+    </figure>
+    <figure>
+      <img src="shots/r01-obsidian-2.jpg" alt="Далі вниз — той самий ритм місяць-за-місяцем без змін темпу" loading="lazy" data-full="shots/r01-obsidian-2.jpg">
+      <figcaption>Далі вниз — той самий ритм місяць-за-місяцем без змін темпу</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Єдиний знайдений публічний роадмап, який не є трекером і не є маркетингом. Три речення вгорі чесно кажуть «ми потроху покращуємо», далі — «Active», далі історія, згрупована по місяцях. Жодного голосування, жодних відсотків, жодних команд.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>нема — жодної scroll-анімації</td></tr><tr><th>Що рухається</th><td>тільки hover-стани карток і посилань</td></tr><tr><th>Тривалість</th><td><b>виміряно:</b> <code>all .25s cubic-bezier(.4,0,.2,1)</code> на картках, <code>.15s</code> на посиланнях</td></tr><tr><th>Безкінечний рух</th><td><b>виміряно: нуль.</b> Жодного елемента з <code>animation-iteration-count: infinite</code>. «Active» позначено лише іконкою-іскрою</td></tr><tr><th>Відчуття</th><td>спокійна довіра — і повна відсутність бажання лишитись</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Порядок секцій «Active → історія». Групування минулого по місяцях лівою колонкою — це і є механізм стиснення історії з §4.3, найдешевший з можливих. Версія + посилання як другорядна мітка справа = наше «поділитись пунктом».</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Не беремо повну відсутність руху і те, що «Active» ніяк не виділено, крім іконки. У нас «В роботі» — смисловий центр, а тут це просто перший блок списку.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Так — сторінка вже темна, майже наш тон. Кирилиця не потрібна (шрифт системний).</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Поява картки «Зроблено»">M5</span><span class="chip slot" title="Заголовок секції">M8</span><span class="chip slot" title="Перехід стану пункту">M12</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> крайня стриманість</span><span class="chip axis"><b>C</b> продуктовий changelog</span><span class="chip axis"><b>D</b> щільний</span><span class="chip axis"><b>E</b> менша щільність інформації</span>
+      </div>
+      <span class="feas ok" title="чиста сітка, жодних плагінів">реалізовність: легко — чиста сітка, жодних плагінів</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r02">
+  <header class="ref-head">
+    <span class="ref-n">R02</span>
+    <div class="ref-title">
+      <h3>Paco Coursey</h3>
+      <p class="ref-cls">Персональне портфоліо · індекс</p>
+    </div>
+    <a class="ref-url" href="https://paco.me" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r02-paco-1.jpg" alt="Індекс у три колонки: Building / Projects / Writing, унизу — блок «Now»" loading="lazy" data-full="shots/r02-paco-1.jpg">
+      <figcaption>Індекс у три колонки: Building / Projects / Writing, унизу — блок «Now»</figcaption>
+    </figure>
+    <figure>
+      <img src="shots/r02-paco-2.jpg" alt="Нижче сторінки: той самий ритм, жодних секцій-заставок" loading="lazy" data-full="shots/r02-paco-2.jpg">
+      <figcaption>Нижче сторінки: той самий ритм, жодних секцій-заставок</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Дизайн-інженер Vercel і Linear. Сторінка тримається виключно на класифікації: те, що зараз будується, відділено від того, що зроблено, і від того, що написано. Це саме наша задача, розв’язана без жодної анімації.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>завантаження сторінки</td></tr><tr><th>Що рухається</th><td>увесь контент одразу</td></tr><tr><th>Тривалість</th><td><b>виміряно:</b> одна-єдина keyframe-анімація на всю сторінку — <code>enter .6s ease</code></td></tr><tr><th>Мікрожест</th><td><b>виміряно:</b> <code>text-decoration-color .24s ease</code> — підкреслення проявляється, текст не зсувається</td></tr><tr><th>Відчуття</th><td>«тут працює доросла людина»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Окрема зона «Now» унизу індексу. І прийом підкреслення через <code>text-decoration-color</code> замість <code>translate</code> — кандидат у M10: жест є, зсуву немає, focus-контур не стрибає.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Не беремо цілковиту відмову від ієрархії: у нас «В роботі» має бути видно з першого екрана.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Світле тло, але механіка переноситься: колір тут нічого не несе.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Заголовок hero">M2</span><span class="chip slot" title="Точка входу у футері">M10</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> крайня стриманість</span><span class="chip axis"><b>C</b> редакційно-видавниче</span><span class="chip axis"><b>D</b> щільний</span>
+      </div>
+      <span class="feas ok" title="один CSS-перехід">реалізовність: легко — один CSS-перехід</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r03">
+  <header class="ref-head">
+    <span class="ref-n">R03</span>
+    <div class="ref-title">
+      <h3>Emil Kowalski</h3>
+      <p class="ref-cls">Персональна сторінка · автор наших скілів</p>
+    </div>
+    <a class="ref-url" href="https://emilkowal.ski" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r03-emil-1.jpg" alt="«Today» — теперішній час замість анімації" loading="lazy" data-full="shots/r03-emil-1.jpg">
+      <figcaption>«Today» — теперішній час замість анімації</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Автор скілів <code>animation-vocabulary</code>, <code>review-animations</code>, на яких стоїть наш конвеєр, свою власну сторінку не анімує взагалі. Це не лінь — це його теза «You don’t need animations» у дії.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>—</td></tr><tr><th>Що рухається</th><td><b>виміряно:</b> нічого; єдиний перехід — <code>color .15s cubic-bezier(.4,0,.2,1)</code></td></tr><tr><th>Keyframes у стилях</th><td><code>popoverEnter</code>, <code>popoverExit</code> — тільки для службових поповерів</td></tr><tr><th>Відчуття</th><td>«мене поважають і не затримують»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Формулювання розділу теперішнім часом: «Today I work on…». Для нас це підказка, що «В роботі» має бути написана в теперішньому часі від першої особи, а не як статус-мітка.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Нічого візуального.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Світле. Перенесення — тільки текстове.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Hover/focus картки">M9</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> крайня стриманість</span><span class="chip axis"><b>C</b> редакційно-видавниче</span><span class="chip axis"><b>D</b> щільний</span>
+      </div>
+      <span class="feas ok" title="—">реалізовність: легко — —</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r04">
+  <header class="ref-head">
+    <span class="ref-n">R04</span>
+    <div class="ref-title">
+      <h3>Derek Sivers — /now</h3>
+      <p class="ref-cls">Концепція, не візуал · нижня межа шкали</p>
+    </div>
+    <a class="ref-url" href="https://sive.rs/now" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r04-sivers-1.jpg" alt="«What I’m doing now», дата оновлення в першому рядку" loading="lazy" data-full="shots/r04-sivers-1.jpg">
+      <figcaption>«What I’m doing now», дата оновлення в першому рядку</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Автор руху «/now-page»: у сотень сайтів є сторінка, яка чесно каже, чим людина зайнята зараз, і коли її востаннє оновлювали. Ідея, з якої виріс увесь жанр, до якого належить наша задача.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>—</td></tr><tr><th>Що рухається</th><td>нічого. Нуль анімації, нуль дизайну</td></tr><tr><th>Відчуття</th><td>довіра є, бажання лишитись — нема</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Один прийом: <b>дата оновлення в першому рядку сторінки</b>, а не у футері. Це найдешевший доказ, що сторінка жива.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Усе інше. Цей референс тут як межа шкали: він показує, скільки саме «чесності» можна взяти, перш ніж сторінка перестане бути преміальною.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Ні (кремове тло), і це не важливо.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> нуль руху (крайня ліва точка осі)</span><span class="chip axis"><b>C</b> редакційно-видавниче</span><span class="chip axis"><b>D</b> щільний</span>
+      </div>
+      <span class="feas ok" title="—">реалізовність: легко — —</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r05">
+  <header class="ref-head">
+    <span class="ref-n">R05</span>
+    <div class="ref-title">
+      <h3>Anthropic — News</h3>
+      <p class="ref-cls">Живий сайт · наша власна палітра-першоджерело</p>
+    </div>
+    <a class="ref-url" href="https://www.anthropic.com/news" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r05-anthropic-news-1.jpg" alt="Таблиця DATE / CATEGORY / TITLE — категорія як стабільна колонка" loading="lazy" data-full="shots/r05-anthropic-news-1.jpg">
+      <figcaption>Таблиця DATE / CATEGORY / TITLE — категорія як стабільна колонка</figcaption>
+    </figure>
+    <figure>
+      <img src="shots/r05-anthropic-news-2.jpg" alt="Верх сторінки: заголовок, пошук, і одразу дані" loading="lazy" data-full="shots/r05-anthropic-news-2.jpg">
+      <figcaption>Верх сторінки: заголовок, пошук, і одразу дані</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Палітра нашого сайту походить саме звідси. <b>Виміряно на живій сторінці:</b> <code>--color-slate-950: #141413</code> — це фактично наш <code>ink #141312</code>. Тобто це не «схожий настрій», а той самий тон, з якого можна легально брати проміжні сходинки.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>hover по рядку</td></tr><tr><th>Що рухається</th><td><b>виміряно:</b> <code>color .1s cubic-bezier(.165,.84,.44,1)</code> — лише колір, 100 мс</td></tr><tr><th>Поява</th><td>без scroll-reveal: список одразу на місці</td></tr><tr><th>Відчуття</th><td>«це реєстр, йому можна вірити»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p><b>Колонка CATEGORY</b> — прямий прообраз нашої позначки платформи: не бейдж на картці, а стабільна колонка, по якій око йде вертикально. При трьох значеннях (Академія / Architect / обидві) це найчитабельніше рішення.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Не беремо табличну сухість для всієї сторінки — у нас три різні за характером секції.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Ця сторінка світла, але темна шкала існує в токенах і виміряна (див. «Витягнуті системи»). Кирилиця: власні шрифти Anthropic — не наш варіант, у нас Literata + IBM Plex.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Hover/focus картки">M9</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> стримана чесність</span><span class="chip axis"><b>C</b> редакційно-видавниче</span><span class="chip axis"><b>D</b> щільний</span>
+      </div>
+      <span class="feas ok" title="сітка + одна колонка">реалізовність: легко — сітка + одна колонка</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r06">
+  <header class="ref-head">
+    <span class="ref-n">R06</span>
+    <div class="ref-title">
+      <h3>Cursor — Changelog</h3>
+      <p class="ref-cls">Живий продукт · теплий редакційний changelog</p>
+    </div>
+    <a class="ref-url" href="https://cursor.com/changelog" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r06-cursor-1.jpg" alt="Верх: назва місяця і великий заголовок запису" loading="lazy" data-full="shots/r06-cursor-1.jpg">
+      <figcaption>Верх: назва місяця і великий заголовок запису</figcaption>
+    </figure>
+    <figure>
+      <img src="shots/r06-cursor-2.jpg" alt="Запис = маленька історія: дата зліва, заголовок, абзац, скріншот" loading="lazy" data-full="shots/r06-cursor-2.jpg">
+      <figcaption>Запис = маленька історія: дата зліва, заголовок, абзац, скріншот</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Найтепліший з усіх переглянутих changelog-ів: фон <code>#f7f7f4</code>, власна гротеска, і головне — кожен запис написано як коротку історію («Cursor can now host your code»), а не як рядок релізу.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>вхід у в’юпорт</td></tr><tr><th>Що рухається</th><td><b>виміряно:</b> <code>opacity .5s cubic-bezier(.4,0,.2,1)</code> — тільки прозорість, без зсуву</td></tr><tr><th>Мікрожести</th><td><code>.14s cubic-bezier(.25,1,.5,1)</code> на інтерактиві — вдвічі швидше за появу</td></tr><tr><th>Відчуття</th><td>«читаю, а не переглядаю»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Обсяг тексту на пункт і тон формулювань. Плюс двошвидкісний розподіл: поява 500 мс, інтеракція 140 мс — рівно те, що вимагає §5.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Світле тло.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Ні — і це принципово: тепло тут зроблено світлим. Нам доведеться те саме тепло робити темним, що складніше.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Поява картки «Зроблено»">M5</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> стримана чесність</span><span class="chip axis"><b>C</b> редакційно-видавниче</span><span class="chip axis"><b>D</b> середня</span>
+      </div>
+      <span class="feas ok" title="fade без transform">реалізовність: легко — fade без transform</span>
+    </div>
+  </div>
+</article>
+</section>
+<section class="group" id="g-b">
+  <div class="group-head">
+    <h2>Напрям B · Живий журнал: щільність і функція</h2>
+    <p>Полюс D=«щільний список». Ці роботи вирішують ту саму задачу, що й ми: як показати стрічку, яка росте роками, і не втопити в ній читача. Тут найбільше готових механізмів стиснення історії.</p>
+  </div>
+  
+<article class="ref" id="r07">
+  <header class="ref-head">
+    <span class="ref-n">R07</span>
+    <div class="ref-title">
+      <h3>Attio — Changelog</h3>
+      <p class="ref-cls">Живий продукт · найщільніший зі знайдених</p>
+    </div>
+    <a class="ref-url" href="https://attio.com/changelog" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r07-attio-1.jpg" alt="Рядок = дата (моно, капс) + назва + один рядок користі + теги справа" loading="lazy" data-full="shots/r07-attio-1.jpg">
+      <figcaption>Рядок = дата (моно, капс) + назва + один рядок користі + теги справа</figcaption>
+    </figure>
+    <figure>
+      <img src="shots/r07-attio-2.jpg" alt="Той самий ритм на сотні рядків; роздільник — пунктир" loading="lazy" data-full="shots/r07-attio-2.jpg">
+      <figcaption>Той самий ритм на сотні рядків; роздільник — пунктир</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Найточніша анатомія рядка з усього огляду: <b>MAR 24</b> моноширинним капсом ліворуч · назва · <i>один</i> рядок про користь («Stop hunting for the admin to grant access») · теги праворуч · стрілка. Опис завжди про користувача, ніколи про тікет.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>hover по рядку</td></tr><tr><th>Що рухається</th><td>фон рядка й стрілка; поява — без scroll-reveal</td></tr><tr><th>Роздільник</th><td>пунктирна лінія між рядками замість суцільної — це і є «повітря» при щільності</td></tr><tr><th>Відчуття</th><td>«можна прогорнути очима і зупинитись там, де цікаво»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Анатомія рядка цілком: моно-дата → назва → один рядок користі → мітка справа. Пунктирний роздільник як спосіб дати повітря без збільшення відступів.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p><b>Увага, це пастка для нашого критерію 4:</b> теги тут розрізняються лише кольором крихітної крапки (Design / Feature / Enhancement). У градаціях сірого вони зливаються. Форма правильна — кодування ні.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Ні, але структура рядка нейтральна до тла.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Поява картки «Зроблено»">M5</span><span class="chip slot" title="Hover/focus картки">M9</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> стримана чесність</span><span class="chip axis"><b>C</b> продуктовий changelog</span><span class="chip axis"><b>D</b> крайня щільність</span>
+      </div>
+      <span class="feas ok" title="проста сітка рядка">реалізовність: легко — проста сітка рядка</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r08">
+  <header class="ref-head">
+    <span class="ref-n">R08</span>
+    <div class="ref-title">
+      <h3>Linear — Now / Changelog</h3>
+      <p class="ref-cls">Живий продукт · sticky-рейка дат</p>
+    </div>
+    <a class="ref-url" href="https://linear.app/changelog" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r08-linear-1.jpg" alt="Ліва колонка дат прилипає; активний запис позначений крапкою clay-кольору" loading="lazy" data-full="shots/r08-linear-1.jpg">
+      <figcaption>Ліва колонка дат прилипає; активний запис позначений крапкою clay-кольору</figcaption>
+    </figure>
+    <figure>
+      <img src="shots/r08-linear-2.jpg" alt="Проскроллено: пройдені дати лишаються, змінюється тільки яскравість рейки" loading="lazy" data-full="shots/r08-linear-2.jpg">
+      <figcaption>Проскроллено: пройдені дати лишаються, змінюється тільки яскравість рейки</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Класичне рішення «де я в часі»: sticky-колонка дат ліворуч, контент праворуч. Стан «я тут» переданий не кольором тексту, а <b>щільністю самої рейки</b>.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>прогрес скролу</td></tr><tr><th>Що рухається</th><td><b>виміряно:</b> сегмент рейки 4×56 px і крапка 8×8 px</td></tr><tr><th>Значення</th><td><b>виміряно:</b> неактивний сегмент — <code>rgba(255,255,255,.16)</code>, активний — <code>rgb(255,255,255)</code>. Тобто стан = прозорість смуги</td></tr><tr><th>Тривалість</th><td><b>виміряно:</b> <code>.16s cubic-bezier(.25,.46,.45,.94)</code></td></tr><tr><th>Відчуття</th><td>«я всередині розділу, а не в порожнечі»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Рейка як індикатор позиції в часі, зі станом через <b>непрозорість смуги</b>, а не через колір тексту. Це рішення переживає перевірку в градаціях сірого.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Крапка як єдиний носій стану (у Linear вона clay-помаранчева — рівно наш акцент, і саме тому спокуса скопіювати буде сильною).</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Так, тло <code>#08090A</code> — холодне чорне; нам треба тепліше, але механіка переноситься 1:1.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Вісь часу">M4</span><span class="chip slot" title="Заголовок секції">M8</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> стримана чесність</span><span class="chip axis"><b>C</b> продуктовий changelog</span><span class="chip axis"><b>D</b> середня</span>
+      </div>
+      <span class="feas mid" title="sticky + ScrollTrigger на активний елемент">реалізовність: середньо — sticky + ScrollTrigger на активний елемент</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r09">
+  <header class="ref-head">
+    <span class="ref-n">R09</span>
+    <div class="ref-title">
+      <h3>Figma — Release notes</h3>
+      <p class="ref-cls">Живий продукт · deep-link на запис</p>
+    </div>
+    <a class="ref-url" href="https://www.figma.com/release-notes/" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r09-figma-1.jpg" alt="Під кожним записом — «Copy link ⧉»; дата вгорі, теги капсом" loading="lazy" data-full="shots/r09-figma-1.jpg">
+      <figcaption>Під кожним записом — «Copy link ⧉»; дата вгорі, теги капсом</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Пряма відповідь на відкрите питання №5 специфікації: контрол «Copy link» живе під кожним записом, поруч із датою, і не потребує hover, щоб про нього дізнатись.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>hover / focus</td></tr><tr><th>Тривалість</th><td><b>виміряно:</b> все на <code>.18s ease-out</code> — <code>background, box-shadow, translate, opacity</code></td></tr><tr><th>Відчуття</th><td>«кожен запис — окремий об’єкт, на нього можна послатись»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Місце й вигляд контрола «поділитись пунктом». 180 мс — верхня межа для такого мікрожесту.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Не беремо теги великим капсом трьома штуками поспіль — у нас позначка одна.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Ні. Прийом нейтральний.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Hover/focus картки">M9</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> стримана чесність</span><span class="chip axis"><b>C</b> продуктовий changelog</span><span class="chip axis"><b>D</b> середня</span>
+      </div>
+      <span class="feas ok" title="anchor + clipboard API">реалізовність: легко — anchor + clipboard API</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r10">
+  <header class="ref-head">
+    <span class="ref-n">R10</span>
+    <div class="ref-title">
+      <h3>Liveblocks — Changelog</h3>
+      <p class="ref-cls">Живий продукт · одиниця часу як об’єкт</p>
+    </div>
+    <a class="ref-url" href="https://liveblocks.io/changelog" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r10-liveblocks-1.jpg" alt="«WEEK 30» усередині темного кола — тиждень стає графічним об’єктом" loading="lazy" data-full="shots/r10-liveblocks-1.jpg">
+      <figcaption>«WEEK 30» усередині темного кола — тиждень стає графічним об’єктом</figcaption>
+    </figure>
+    <figure>
+      <img src="shots/r10-liveblocks-3.jpg" alt="«WEEK 27» і версія під ним; ритм публікацій = ритм сторінки" loading="lazy" data-full="shots/r10-liveblocks-3.jpg">
+      <figcaption>«WEEK 27» і версія під ним; ритм публікацій = ритм сторінки</figcaption>
+    </figure>
+    <figure>
+      <img src="shots/r10-liveblocks-2.jpg" alt="Нижче — контриб’ютори з аватарами" loading="lazy" data-full="shots/r10-liveblocks-2.jpg">
+      <figcaption>Нижче — контриб’ютори з аватарами</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Замість дати — <b>номер тижня у великому колі</b>. Одиниця часу перетворена на візуальний якір, і стрічка автоматично отримує ритм: скільки кіл — стільки тижнів роботи.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>hover / вхід у в’юпорт</td></tr><tr><th>Тривалість</th><td><b>виміряно:</b> <code>transform .3s cubic-bezier(.09, 1.12, .37, 1)</code> — <b>крива з перельотом</b> (друга контрольна точка >1), тобто елемент трішки проскакує ціль і повертається</td></tr><tr><th>Відчуття</th><td>«тут є пульс, тижні йдуть»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Ідея: у нас одиниця часу — <b>сезон/квартал</b>, і саме він може стати графічним якорем секції замість підпису дрібним шрифтом. І крива з перельотом — єдиний знайдений живий приклад «pop in» у цьому жанрі.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Номер тижня як такий: він обіцяє щотижневий ритм, якого ми гарантувати не можемо.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Так, чорне тло, білий Suisse. Переноситься.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Поява картки «Зроблено»">M5</span><span class="chip slot" title="Перехід стану пункту">M12</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> посередині осі</span><span class="chip axis"><b>C</b> продуктовий changelog</span><span class="chip axis"><b>D</b> середня</span>
+      </div>
+      <span class="feas ok" title="CSS-крива, без плагінів">реалізовність: легко — CSS-крива, без плагінів</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r11">
+  <header class="ref-head">
+    <span class="ref-n">R11</span>
+    <div class="ref-title">
+      <h3>Sentry — Changelog</h3>
+      <p class="ref-cls">Живий продукт · індекс місяців праворуч</p>
+    </div>
+    <a class="ref-url" href="https://sentry.io/changelog/" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r11-sentry-1.jpg" alt="Правий стовпчик: August 2026 … May 2024 — швидкий перехід по історії" loading="lazy" data-full="shots/r11-sentry-1.jpg">
+      <figcaption>Правий стовпчик: August 2026 … May 2024 — швидкий перехід по історії</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Другий механізм стиснення історії: сама стрічка не групується, але праворуч висить <b>індекс місяців</b>, який дозволяє стрибнути на будь-який період.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>клік по місяцю</td></tr><tr><th>Що рухається</th><td>сторінка (scroll-to), рядки — ні</td></tr><tr><th>Тривалість</th><td><b>виміряно:</b> <code>all .2s cubic-bezier(.4,0,.2,1)</code></td></tr><tr><th>Відчуття</th><td>«довга історія керована»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Індекс періодів як окремий контрол. Для нас — індекс сезонів.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Саму стрічку: усі записи однакової ваги, читати неможливо. Це вже майже антиреференс — див. розділ нижче.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Ні (фіолетове тло). Механіка переноситься.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Заголовок секції">M8</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> стримана чесність</span><span class="chip axis"><b>C</b> продуктовий changelog</span><span class="chip axis"><b>D</b> крайня щільність</span>
+      </div>
+      <span class="feas ok" title="якорі + sticky">реалізовність: легко — якорі + sticky</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r12">
+  <header class="ref-head">
+    <span class="ref-n">R12</span>
+    <div class="ref-title">
+      <h3>Vercel — Changelog</h3>
+      <p class="ref-cls">Живий продукт · авторство</p>
+    </div>
+    <a class="ref-url" href="https://vercel.com/changelog" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r12-vercel-cl-1.jpg" alt="Під кожним записом — ім’я і посада людини, яка це зробила" loading="lazy" data-full="shots/r12-vercel-cl-1.jpg">
+      <figcaption>Під кожним записом — ім’я і посада людини, яка це зробила</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Єдиний зі знайдених, хто підписує кожен запис <b>іменем і посадою</b> («Software Engineer»). Зроблене перестає бути безособовим.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>вхід у в’юпорт</td></tr><tr><th>Тривалість</th><td><b>виміряно:</b> <code>opacity .3s / .15s cubic-bezier(.4,0,.2,1)</code></td></tr><tr><th>Відчуття</th><td>«за цим стоять люди»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Атрибуція. Наш проєкт веде <b>одна людина</b> — підпис під пунктом перетворює «чесність» з декларації на факт і працює на ціль «проєкт живий» без жодної анімації.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>—</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Ні. Прийом текстовий.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Поява картки «Зроблено»">M5</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> стримана чесність</span><span class="chip axis"><b>C</b> продуктовий changelog</span><span class="chip axis"><b>D</b> середня</span>
+      </div>
+      <span class="feas ok" title="поле в даних">реалізовність: легко — поле в даних</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r13">
+  <header class="ref-head">
+    <span class="ref-n">R13</span>
+    <div class="ref-title">
+      <h3>Supabase — Changelog</h3>
+      <p class="ref-cls">Живий продукт · вендор нашого бекенду</p>
+    </div>
+    <a class="ref-url" href="https://supabase.com/changelog" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r13-supabase-cl-1.jpg" alt="Рік у лівій рейці, типи змін бейджами капсом" loading="lazy" data-full="shots/r13-supabase-cl-1.jpg">
+      <figcaption>Рік у лівій рейці, типи змін бейджами капсом</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Рік у лівій рейці + типізовані бейджі (NEW FEATURE / IMPROVEMENT / DEPRECATION). Той самий вендор, чию базу ми використовуємо — корисно бачити, як вони самі це подають.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>вхід у в’юпорт</td></tr><tr><th>Тривалість</th><td><b>виміряно:</b> <code>fadeIn .3s ease</code>, hover <code>.2s cubic-bezier(0,0,.2,1)</code></td></tr><tr><th>Відчуття</th><td>«технічний журнал»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Бейдж, у якому текст несе значення, а колір лише підсилює — це проходить наш критерій 4, на відміну від крапок Attio.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Три типи бейджів на один запис — у нас один стан і одна платформа.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Сторінка світла. Бейджі переносяться.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Поява картки «Зроблено»">M5</span><span class="chip slot" title="Заголовок секції">M8</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> стримана чесність</span><span class="chip axis"><b>C</b> лабораторний журнал</span><span class="chip axis"><b>D</b> крайня щільність</span>
+      </div>
+      <span class="feas ok" title="—">реалізовність: легко — —</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r33">
+  <header class="ref-head">
+    <span class="ref-n">R33</span>
+    <div class="ref-title">
+      <h3>Arc — Release Notes</h3>
+      <p class="ref-cls">Живий продукт · «On this Page» з датами</p>
+    </div>
+    <a class="ref-url" href="https://arc.net/release-notes" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r33-arc-1.jpg" alt="Ліва колонка — повний перелік дат випусків, як зміст документа" loading="lazy" data-full="shots/r33-arc-1.jpg">
+      <figcaption>Ліва колонка — повний перелік дат випусків, як зміст документа</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Третій (і найдешевший) механізм навігації довгою історією: звичайний docs-зміст, де пункти — це дати.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>клік / scroll-spy</td></tr><tr><th>Що рухається</th><td>підсвітка активного пункту змісту</td></tr><tr><th>Відчуття</th><td>«це документ, а не стрічка»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Найдешевший варіант відповіді на критерій 16 (40 пунктів без тунелю), якщо не хочемо ні групування, ні згортання.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Docs-естетику: сторінка від цього стає документацією, а не флагманом.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Ні. Механіка переноситься.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Заголовок секції">M8</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> стримана чесність</span><span class="chip axis"><b>C</b> лабораторний журнал</span><span class="chip axis"><b>D</b> крайня щільність</span>
+      </div>
+      <span class="feas ok" title="scroll-spy на якорях">реалізовність: легко — scroll-spy на якорях</span>
+    </div>
+  </div>
+</article>
+</section>
+<section class="group" id="g-c">
+  <div class="group-head">
+    <h2>Напрям C · Вісь часу, керована скролом</h2>
+    <p>Головний кут пошуку зі специфікації (A4) і головний матеріал під слот M4. Тут різниця між полюсами осі A видно найкраще: пряма вертикальна рейка ↔ крива, що малюється.</p>
+  </div>
+  
+<article class="ref" id="r14">
+  <header class="ref-head">
+    <span class="ref-n">R14</span>
+    <div class="ref-title">
+      <h3>Aceternity UI — Timeline</h3>
+      <p class="ref-cls">Компонент із живим демо · найточніший прототип M4</p>
+    </div>
+    <a class="ref-url" href="https://ui.aceternity.com/components/timeline" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r14-aceternity-tl-1.jpg" alt="Рік «Early 2023» прилипає ліворуч, контент іде праворуч" loading="lazy" data-full="shots/r14-aceternity-tl-1.jpg">
+      <figcaption>Рік «Early 2023» прилипає ліворуч, контент іде праворуч</figcaption>
+    </figure>
+    <figure>
+      <img src="shots/r14-aceternity-tl-2.jpg" alt="Нижче: рейка вже «прорисована» до поточної позиції скролу" loading="lazy" data-full="shots/r14-aceternity-tl-2.jpg">
+      <figcaption>Нижче: рейка вже «прорисована» до поточної позиції скролу</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Це буквально наш слот M4 плюс M8 в одному компоненті, і його можна не описувати, а <b>виміряти</b>.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>прогрес скролу (scroll-linked, не транзиція)</td></tr><tr><th>Що рухається</th><td><b>виміряно:</b> абсолютно спозиційована смуга <code>w-[2px]</code> з <code>linear-gradient(to top, …, transparent)</code></td></tr><tr><th>Значення</th><td><b>виміряно на 50% скролу:</b> висота смуги = <code>1936.83px</code> — дробове число, тобто величина рахується з прогресу кадр у кадр, а не анімується</td></tr><tr><th>Easing</th><td>нема — рух прив’язаний до скролу напряму (<code>ease: none</code> за суттю)</td></tr><tr><th>Sticky</th><td>мітка періоду ліворуч прилипає на час своєї секції</td></tr><tr><th>Відчуття</th><td>«я не гортаю список, я рухаюсь у часі»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Механіка цілком: <b>2px-рейка, висота якої = прогрес скролу</b>, з прозорим згасанням угорі. Це і є «вісь часу» без жодного плагіна: у нас це або ScrollTrigger <code>scrub</code>, або чистий CSS <code>animation-timeline: scroll()</code>.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Неоновий фіолетово-синій градієнт: рейка світиться сильніше за контент, і око йде на неї, а не на пункти. У нас має бути навпаки.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Демо світле, але сама рейка задумана під темне; градієнт треба перекласти в наші токени.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Вісь часу">M4</span><span class="chip slot" title="Заголовок секції">M8</span><span class="chip slot" title="Поява картки «Зроблено»">M5</span>
+        <span class="chip axis"><b>A</b> вертикальний шлях</span><span class="chip axis"><b>B</b> посередині осі</span><span class="chip axis"><b>C</b> продуктовий changelog</span><span class="chip axis"><b>D</b> одна картка на екран</span>
+      </div>
+      <span class="feas mid" title="у React це framer-motion useScroll; нам треба переписати на ScrollTrigger або CSS scroll-timeline">реалізовність: середньо — у React це framer-motion useScroll; нам треба переписати на ScrollTrigger або CSS scroll-timeline</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r15">
+  <header class="ref-head">
+    <span class="ref-n">R15</span>
+    <div class="ref-title">
+      <h3>Aceternity UI — Tracing Beam</h3>
+      <p class="ref-cls">Компонент із живим демо</p>
+    </div>
+    <a class="ref-url" href="https://ui.aceternity.com/components/tracing-beam" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r15-tracingbeam-1.jpg" alt="SVG-шлях зліва, що «дописується» разом зі скролом, з рухомою точкою-головою" loading="lazy" data-full="shots/r15-tracingbeam-1.jpg">
+      <figcaption>SVG-шлях зліва, що «дописується» разом зі скролом, з рухомою точкою-головою</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Варіація R14, де рейка — не пряма, а <b>SVG-шлях</b>, і в неї є «голова» — крапка, що їде попереду. Це вже line drawing, а не просто масштабування.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>прогрес скролу</td></tr><tr><th>Що рухається</th><td><code>stroke-dashoffset</code> шляху + позиція крапки</td></tr><tr><th>Easing</th><td>лінійний до скролу</td></tr><tr><th>Відчуття</th><td>«хтось малює цю лінію просто зараз»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Ідею «голови» лінії: саме вона перетворює рейку з індикатора на дію. Для нас точка-голова природно зупиняється рівно на секції «В роботі».</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Свічення (glow) навколо крапки — на теплому темному воно швидко читається як дефект екрана.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Так, демо темне.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Вісь часу">M4</span>
+        <span class="chip axis"><b>A</b> вертикальний шлях</span><span class="chip axis"><b>B</b> ближче до вау</span><span class="chip axis"><b>C</b> студійне портфоліо</span><span class="chip axis"><b>D</b> одна картка на екран</span>
+      </div>
+      <span class="feas mid" title="SVG + DrawSVGPlugin (безкоштовний, див. нижче) або чистий stroke-dashoffset">реалізовність: середньо — SVG + DrawSVGPlugin (безкоштовний, див. нижче) або чистий stroke-dashoffset</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r16">
+  <header class="ref-head">
+    <span class="ref-n">R16</span>
+    <div class="ref-title">
+      <h3>GSAP MotionPath + ScrollTrigger (демо до статті Codrops)</h3>
+      <p class="ref-cls">Технічне демо · крива замість прямої</p>
+    </div>
+    <a class="ref-url" href="https://codepen.io/betawaxx/full/JoGZQLZ" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r16-motionpath-1.jpg" alt="«↓ Scroll Down» і панель контрольних точок кривої Безьє" loading="lazy" data-full="shots/r16-motionpath-1.jpg">
+      <figcaption>«↓ Scroll Down» і панель контрольних точок кривої Безьє</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Розбір Codrops «Building Responsive, Scroll-Triggered Curved Path Animations with GSAP» (17.12.2025). Показує, як зробити <b>нелінійну</b> вісь часу: елемент їде по кривій між трьома позиціями сторінки й змінює розмір по дорозі.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>прогрес скролу, <code>scrub: true</code></td></tr><tr><th>Що рухається</th><td>елемент по кубічній кривій Безьє (MotionPathPlugin)</td></tr><tr><th>Easing</th><td><code>ease: "none"</code> — навмисно, щоб позиція лінійно мапилась на скрол</td></tr><tr><th>Адаптивність</th><td>контрольні точки перераховуються при resize</td></tr><tr><th>Відчуття</th><td>«час не прямий»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Технічний рецепт для варіанта «нелінійна геометрія часу» (вісь A для агента №4). MotionPathPlugin тепер безкоштовний — див. блок «Ліцензія GSAP».</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Саму естетику демо (це навчальний стенд, не дизайн).</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Демо нейтральне.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Вісь часу">M4</span>
+        <span class="chip axis"><b>A</b> нелінійна композиція</span><span class="chip axis"><b>B</b> ближче до вау</span><span class="chip axis"><b>C</b> студійне портфоліо</span>
+      </div>
+      <span class="feas hard" title="крива має лишатись читабельною на трьох брейкпойнтах; це найдорожчий із варіантів M4">реалізовність: важко — крива має лишатись читабельною на трьох брейкпойнтах; це найдорожчий із варіантів M4</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r17">
+  <header class="ref-head">
+    <span class="ref-n">R17</span>
+    <div class="ref-title">
+      <h3>GSAP — Demos</h3>
+      <p class="ref-cls">Полиця інструментів, не настрій</p>
+    </div>
+    <a class="ref-url" href="https://gsap.com/demos" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r17-gsapdemos-1.jpg" alt="Живі демо, згруповані за плагінами: ScrollTrigger, SplitText…" loading="lazy" data-full="shots/r17-gsapdemos-1.jpg">
+      <figcaption>Живі демо, згруповані за плагінами: ScrollTrigger, SplitText…</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Не референс настрою, а робоча полиця для агента №3: кожне демо відкривається й скролиться, у кожного є код.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Категорії</th><td>ScrollTrigger (pin, scrub, horizontal), SplitText (порядкова поява), Flip, Draggable</td></tr><tr><th>Відчуття</th><td>—</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Взяти звідси базові рецепти під M2 (SplitText порядково) і M4 (pin + scrub), замість того щоб писати їх з нуля.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Не тягнути звідси візуальні рішення: демо навмисно кричущі.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Демо різні.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Заголовок hero">M2</span><span class="chip slot" title="Вісь часу">M4</span><span class="chip slot" title="Заголовок секції">M8</span>
+        <span class="chip axis"><b>A</b> усі</span>
+      </div>
+      <span class="feas ok" title="офіційні приклади">реалізовність: легко — офіційні приклади</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r18">
+  <header class="ref-head">
+    <span class="ref-n">R18</span>
+    <div class="ref-title">
+      <h3>Scroll-driven Animations (CSS)</h3>
+      <p class="ref-cls">Технічний каталог · важливо для нашого стеку</p>
+    </div>
+    <a class="ref-url" href="https://scroll-driven-animations.style/" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r18-scrolldriven-1.jpg" alt="Кожне демо має перемикач CSS VERSION / JS VERSION" loading="lazy" data-full="shots/r18-scrolldriven-1.jpg">
+      <figcaption>Кожне демо має перемикач CSS VERSION / JS VERSION</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Каталог того, що в 2026 році робиться <b>чистим CSS</b> — <code>animation-timeline: scroll()</code> і <code>view()</code> — без жодної бібліотеки. Для сторінки без build-кроку це прямо релевантно: частину M4 і весь M5 можна закрити без GSAP.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td><code>animation-timeline: view()</code> — прогрес елемента крізь в’юпорт</td></tr><tr><th>Що рухається</th><td>будь-яка CSS-анімація, у якої часом виступає скрол</td></tr><tr><th>Плюс</th><td>працює на композиторі, не тримає JS-потік</td></tr><tr><th>Мінус</th><td><b>не перевірено мною:</b> підтримка в Safari/Firefox станом на сьогодні — це треба звірити перед закладанням у макет</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Стратегічно: спершу перевірити, чи слот закривається чистим CSS, і лише потім тягнути GSAP. Менше JS = менше ризику для 60 fps.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Не покладатись на це для критичного контенту без фолбека.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>—</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Вісь часу">M4</span><span class="chip slot" title="Поява картки «Зроблено»">M5</span><span class="chip slot" title="Поява картки «Попереду»">M6</span>
+        <span class="chip axis"><b>A</b> вертикальний</span>
+      </div>
+      <span class="feas ok" title="нуль залежностей — але потрібна перевірка підтримки">реалізовність: легко — нуль залежностей — але потрібна перевірка підтримки</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r19">
+  <header class="ref-head">
+    <span class="ref-n">R19</span>
+    <div class="ref-title">
+      <h3>Cloudflare Radar — Year in Review 2024</h3>
+      <p class="ref-cls">Живий сайт · річний звіт зі scroll-хореографією</p>
+    </div>
+    <a class="ref-url" href="https://radar.cloudflare.com/year-in-review/2024" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r19-cloudflare-1.jpg" alt="Секція на весь екран: eyebrow-мітка, великий заголовок, дані" loading="lazy" data-full="shots/r19-cloudflare-1.jpg">
+      <figcaption>Секція на весь екран: eyebrow-мітка, великий заголовок, дані</figcaption>
+    </figure>
+    <figure>
+      <img src="shots/r19-cloudflare-2.jpg" alt="Наступна секція — той самий каркас, інший зміст; у кожної є «Copy link»" loading="lazy" data-full="shots/r19-cloudflare-2.jpg">
+      <figcaption>Наступна секція — той самий каркас, інший зміст; у кожної є «Copy link»</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Найближчий живий аналог секції «Зроблено»: показати зроблене за рік так, щоб це відчувалось вагою. І тут є два виміряні прийоми, яких нам бракує.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Лічильники</th><td><b>виміряно:</b> keyframes <code>countUp</code> і <code>countUpPercent</code> — числа докручуються, а не з’являються</td></tr><tr><th>Живий маркер</th><td><b>виміряно:</b> <code>pulse 1.4s ease-in-out infinite</code> — рівно наш діапазон для M7 (1.4–2.5 с)</td></tr><tr><th>Перехід секцій</th><td><b>виміряно:</b> <code>transform .5s cubic-bezier(.16,1,.3,1)</code> — сильне гальмування</td></tr><tr><th>Якір</th><td>кожна секція має власний «Copy link»</td></tr><tr><th>Відчуття</th><td>«це полічені факти, а не круглі слова»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Лічильники в hero (M3) з живою кривою; <code>pulse 1.4s</code> як готове число для M7; посекційний «Copy link» як другий рівень deep-link (не лише на пункт, а й на секцію).</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Графіки й аналітику: у нас не звіт, і §2.6 забороняє технічні деталі.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Так, темно-синє тло — але холодне. Наш тон тепліший; переносяться механіки, не колір.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Лічильники hero">M3</span><span class="chip slot" title="«В роботі»">M7</span><span class="chip slot" title="Поява картки «Зроблено»">M5</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> ближче до вау</span><span class="chip axis"><b>C</b> лабораторний журнал</span><span class="chip axis"><b>D</b> одна секція на екран</span>
+      </div>
+      <span class="feas mid" title="лічильники — легко; посекційний pin — середньо">реалізовність: середньо — лічильники — легко; посекційний pin — середньо</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r20">
+  <header class="ref-head">
+    <span class="ref-n">R20</span>
+    <div class="ref-title">
+      <h3>The History of the Web — Timeline</h3>
+      <p class="ref-cls">Живий сайт · «чиста» вертикальна вісь</p>
+    </div>
+    <a class="ref-url" href="https://thehistoryoftheweb.com/timeline/" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r20-history-1.jpg" alt="Дата ліворуч, крапка на рейці, картка праворуч — і так сотні разів" loading="lazy" data-full="shots/r20-history-1.jpg">
+      <figcaption>Дата ліворуч, крапка на рейці, картка праворуч — і так сотні разів</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Референс і попередження в одному. Показує, як виглядає канонічна вертикальна вісь часу на великому масиві подій: <code>JAN 01 1993</code> ліворуч, крапка на рейці, картка праворуч.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>нема scroll-хореографії</td></tr><tr><th>Тривалість</th><td><b>виміряно:</b> <code>all .15s ease-in-out</code> — тільки hover</td></tr><tr><th>Відчуття</th><td>через 20 подій — втома. Кожна подія важить рівно стільки ж, скільки попередня</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Каркас «дата — крапка — картка» як базовий, від якого відштовхуватись.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p><b>Головний урок — негативний:</b> це і є «нескінченний скрол-тунель» з брифа. Однакова вага всіх подій без жодного механізму стиснення. Доказ, що §4.3 обов’язковий, а не бажаний.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Ні (світло-сіре). Типографіка Lora + Oswald — обидві мають кирилицю, але це не наш напрям.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Вісь часу">M4</span><span class="chip slot" title="Поява картки «Зроблено»">M5</span>
+        <span class="chip axis"><b>A</b> вертикальний шлях</span><span class="chip axis"><b>B</b> стримана чесність</span><span class="chip axis"><b>C</b> редакційно-видавниче</span><span class="chip axis"><b>D</b> крайня щільність</span>
+      </div>
+      <span class="feas ok" title="—">реалізовність: легко — —</span>
+    </div>
+  </div>
+</article>
+</section>
+<section class="group" id="g-d">
+  <div class="group-head">
+    <h2>Напрям D · Нелінійна геометрія часу</h2>
+    <p>Третій полюс осі A. Час показано не рядком, а композицією: сузір’я, циферблат, індекс. Найризикованіший напрям — і водночас єдиний, у якому наша сторінка не буде схожа на чийсь changelog.</p>
+  </div>
+  
+<article class="ref" id="r21">
+  <header class="ref-head">
+    <span class="ref-n">R21</span>
+    <div class="ref-title">
+      <h3>Kononenko Architectural Bureau</h3>
+      <p class="ref-cls">Живий сайт · Awwwards SOTD 23.08.2026</p>
+    </div>
+    <a class="ref-url" href="https://kononenkogroup.com" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r21-kononenko-1.jpg" alt="Майбутнє показане КРЕСЛЕННЯМ: тонка лінія, не рендер" loading="lazy" data-full="shots/r21-kononenko-1.jpg">
+      <figcaption>Майбутнє показане КРЕСЛЕННЯМ: тонка лінія, не рендер</figcaption>
+    </figure>
+    <figure>
+      <img src="shots/r21-kononenko-2.jpg" alt="«Сузір’я»: тонкі промені з пронумерованими вузлами навколо заголовка" loading="lazy" data-full="shots/r21-kononenko-2.jpg">
+      <figcaption>«Сузір’я»: тонкі промені з пронумерованими вузлами навколо заголовка</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Найсильніша знахідка огляду під слот M6. Архітектурне бюро розв’язує рівно нашу задачу «визначене минуле vs невизначене майбутнє»: <b>збудоване показують фотографією, незбудоване — ескізом лінією</b>. Плюс друга композиція: заголовок у центрі, навколо — промені з пронумерованими вузлами.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>вхід у в’юпорт</td></tr><tr><th>Тривалість</th><td><b>виміряно:</b> <code>transform, opacity 1.109s / .3s cubic-bezier(.17,.84,.44,1)</code> — рух повільний, прозорість швидка</td></tr><tr><th>Інше</th><td><code>transform, mix-blend-mode .6s</code> тією ж кривою</td></tr><tr><th>Відчуття</th><td>«це ще не існує» — до читання підпису</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p><b>Головне, що варто взяти з усього огляду:</b> невизначеність кодується <i>накресленням</i>, а не приглушенням. Секція «Попереду» = картка-креслення (тонкий контур, порожні зони, без ілюстрації), «Зроблено» = картка з повною заливкою. Це проходить і критерій 4 (форма, не колір), і критерій 5 (контраст тексту не чіпаємо взагалі).</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Сузір’я з нумерованими вузлами як основну композицію сторінки: у нас 20–40 пунктів, а не 8.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Сайт світлий, але <b>прийом інвертується без втрат</b>: біла лінія на <code>#141312</code> читається так само, як чорна на білому. Контраст лінії регулюється товщиною, а не сірістю тексту — тобто пастка з <code>faint</code> нас не наздоганяє.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Поява картки «Попереду»">M6</span><span class="chip slot" title="Заголовок hero">M2</span>
+        <span class="chip axis"><b>A</b> нелінійна композиція</span><span class="chip axis"><b>B</b> ближче до вау</span><span class="chip axis"><b>C</b> студійне портфоліо</span><span class="chip axis"><b>D</b> одна картка на екран</span><span class="chip axis"><b>E</b> пунктир / каркас</span>
+      </div>
+      <span class="feas mid" title="SVG-контур і різна щільність картки — дешево; сузір’я — дорого">реалізовність: середньо — SVG-контур і різна щільність картки — дешево; сузір’я — дорого</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r22">
+  <header class="ref-head">
+    <span class="ref-n">R22</span>
+    <div class="ref-title">
+      <h3>The Watch — 60fps.fr</h3>
+      <p class="ref-cls">Живий сайт · Awwwards SOTD 17.08.2026</p>
+    </div>
+    <a class="ref-url" href="https://thewatch.60fps.fr/" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r22-watch-1.jpg" alt="Радіальна шкала: час як циферблат, типографіка розсунута навколо" loading="lazy" data-full="shots/r22-watch-1.jpg">
+      <figcaption>Радіальна шкала: час як циферблат, типографіка розсунута навколо</figcaption>
+    </figure>
+    <figure>
+      <img src="shots/r22-watch-2.jpg" alt="Далі по скролу шкала заповнюється" loading="lazy" data-full="shots/r22-watch-2.jpg">
+      <figcaption>Далі по скролу шкала заповнюється</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Єдина знайдена робота, де вісь часу <b>кругла</b>. Скрол заповнює сектор циферблата, а не рухає стрічку.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>завантаження + прогрес скролу</td></tr><tr><th>Що рухається</th><td><b>виміряно:</b> keyframes <code>fill-circle 1.2s ease-in-out</code> і <code>stroke</code> — тобто заливка сектора і промальовка контуру</td></tr><tr><th>Відчуття</th><td>«час іде по колу, а не вниз»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Ідея радіального прогресу для hero: «рік 2026 пройдено на 2/3» одним кадром, без чисел.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Циферблат як основну навігацію: він обіцяє точність часу, а в нас квартали й сезони. Обіцянка, яку не виконаємо.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Тло світло-сіре, але композиція нейтральна.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Вісь часу">M4</span><span class="chip slot" title="Лічильники hero">M3</span>
+        <span class="chip axis"><b>A</b> нелінійна композиція</span><span class="chip axis"><b>B</b> максимальний вау</span><span class="chip axis"><b>C</b> студійне портфоліо</span><span class="chip axis"><b>D</b> одна картка на екран</span>
+      </div>
+      <span class="feas hard" title="SVG-сектори + прив’язка до скролу + мобільна деградація">реалізовність: важко — SVG-сектори + прив’язка до скролу + мобільна деградація</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r23">
+  <header class="ref-head">
+    <span class="ref-n">R23</span>
+    <div class="ref-title">
+      <h3>Michael Gatt</h3>
+      <p class="ref-cls">Живий сайт · Awwwards SOTD 18.08.2026</p>
+    </div>
+    <a class="ref-url" href="https://michaelgatt.com/" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r23-gatt-1.jpg" alt="Чорне поле, дрібна розріджена типографіка, майже порожньо" loading="lazy" data-full="shots/r23-gatt-1.jpg">
+      <figcaption>Чорне поле, дрібна розріджена типографіка, майже порожньо</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Полюс «максимальний вау», досягнутий <b>відніманням</b>: чорне поле, крихітний розріджений текст, дуже повільні переходи. Корисно як контрприклад до уявлення, що «вау = багато ефектів».</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>hover / завантаження</td></tr><tr><th>Тривалість</th><td><b>виміряно:</b> геть усе на <code>.5s cubic-bezier(.4,0,.2,1)</code> — уніфікована повільність</td></tr><tr><th>Відчуття</th><td>напруга і зосередження</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Урок про темп: одна тривалість (500 мс) на всі жести дає відчуття цілісності дорожче, ніж різноманіття кривих.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Розмір і контраст тексту — це прямий провал WCAG AA, який нам заборонений критерієм 5.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Так, чорне. Нам треба тепліше.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Заголовок hero">M2</span><span class="chip slot" title="Hover/focus картки">M9</span>
+        <span class="chip axis"><b>A</b> нелінійна композиція</span><span class="chip axis"><b>B</b> максимальний вау</span><span class="chip axis"><b>C</b> студійне портфоліо</span><span class="chip axis"><b>D</b> одна картка на екран</span>
+      </div>
+      <span class="feas ok" title="—">реалізовність: легко — —</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r24">
+  <header class="ref-head">
+    <span class="ref-n">R24</span>
+    <div class="ref-title">
+      <h3>Locomotive — Extras</h3>
+      <p class="ref-cls">Студія · індекс, згрупований роками</p>
+    </div>
+    <a class="ref-url" href="https://locomotive.ca/en" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r24-locomotive-1.jpg" alt="«Extras (13)»: лічильник у заголовку, роки в дужках у рядках" loading="lazy" data-full="shots/r24-locomotive-1.jpg">
+      <figcaption>«Extras (13)»: лічильник у заголовку, роки в дужках у рядках</figcaption>
+    </figure>
+    <figure>
+      <img src="shots/r24-locomotive-2.jpg" alt="Вище: гігантський серифний список із hover-перемиканням" loading="lazy" data-full="shots/r24-locomotive-2.jpg">
+      <figcaption>Вище: гігантський серифний список із hover-перемиканням</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Показує, як стиснути історію в один екран: заголовок секції несе <b>лічильник</b> «(13)», а рядки — рік у дужках. Уся хронологія читається без прокрутки.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>hover по рядку</td></tr><tr><th>Тривалість</th><td><b>виміряно:</b> <code>transform .2s cubic-bezier(.215,.61,.355,1)</code>, <code>width .2s cubic-bezier(.23,1,.32,1)</code></td></tr><tr><th>Відчуття</th><td>«великий обсяг роботи, поданий як одна сторінка»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Лічильник у заголовку секції — «Зроблено (14)». Це той самий доказ ваги, що й лічильники в hero, але вбудований у структуру, а не окремим блоком.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Анімацію <code>width</code> — заборонена нашим критерієм 12 (layout thrashing).</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Обидві теми є на сайті; переноситься.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Поява картки «Зроблено»">M5</span><span class="chip slot" title="Hover/focus картки">M9</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> ближче до вау</span><span class="chip axis"><b>C</b> студійне портфоліо</span><span class="chip axis"><b>D</b> крайня щільність</span>
+      </div>
+      <span class="feas ok" title="—">реалізовність: легко — —</span>
+    </div>
+  </div>
+</article>
+</section>
+<section class="group" id="g-e">
+  <div class="group-head">
+    <h2>Напрям E · Темний преміум і максимальний вау</h2>
+    <p>Полюс «вау» осі B, відібраний із застереженням: тільки те, що працює на теплому темному тлі й не тримається на WebGL. Тут найбільше матеріалу під M2 (hero) і M7 (доказ життя).</p>
+  </div>
+  
+<article class="ref" id="r27">
+  <header class="ref-head">
+    <span class="ref-n">R27</span>
+    <div class="ref-title">
+      <h3>Anthropic — головна</h3>
+      <p class="ref-cls">Живий сайт · першоджерело нашої палітри, на GSAP</p>
+    </div>
+    <a class="ref-url" href="https://www.anthropic.com" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r27-anthropic-1.jpg" alt="«Latest releases» — три картки з DATE-міткою і стрілкою" loading="lazy" data-full="shots/r27-anthropic-1.jpg">
+      <figcaption>«Latest releases» — три картки з DATE-міткою і стрілкою</figcaption>
+    </figure>
+    <figure>
+      <img src="shots/r27-anthropic-2.jpg" alt="Індекс матеріалів: назва ліворуч, категорія праворуч, тонка лінія між ними" loading="lazy" data-full="shots/r27-anthropic-2.jpg">
+      <figcaption>Індекс матеріалів: назва ліворуч, категорія праворуч, тонка лінія між ними</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Найважливіший технічний доказ огляду: сайт, з якого прийшла наша палітра, <b>працює на GSAP + ScrollTrigger</b> — тобто наш стек і наш вигляд уже поєднані в живому продукті.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Інструмент</th><td><b>виміряно:</b> <code>window.gsap</code> і <code>ScrollTrigger</code> присутні</td></tr><tr><th>Кількість тригерів</th><td><b>виміряно: рівно 2 ScrollTrigger на весь лендінг.</b> Не двадцять</td></tr><tr><th>Головний ефект</th><td><b>виміряно:</b> <code>{ start: "center 70%", end: "center 40%", scrub: 0.8 }</code> на фінальному CTA-блоці — фон переходить, прив’язаний до скролу з інерцією 0.8 с</td></tr><tr><th>Другий</th><td><code>start: "top+=350px 70%"</code>, без scrub — разова поява</td></tr><tr><th>Відчуття</th><td>«дорого, але нічого не смикається»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Дві речі. (1) <code>scrub: 0.8</code> на фінальному блоці — готове число для нашого M11. (2) <b>Пропорція: два ScrollTrigger на цілий лендінг.</b> Це прямий аргумент проти плодіння тригерів на кожну картку (критерій §7.9).</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Ілюстративний стиль і карткову сітку «Latest releases» — вона надто маркетингова для роадмапу.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Головна світла (<code>#faf9f5</code>), але темна шкала є в токенах і виміряна нижче. Це <b>той самий дизайн-словник</b>, у якому написаний наш сайт.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Кінцівка">M11</span><span class="chip slot" title="Вісь часу">M4</span><span class="chip slot" title="Поява картки «Зроблено»">M5</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> посередині осі</span><span class="chip axis"><b>C</b> редакційно-видавниче</span><span class="chip axis"><b>D</b> середня</span>
+      </div>
+      <span class="feas ok" title="наш стек, наші кольори">реалізовність: легко — наш стек, наші кольори</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r26">
+  <header class="ref-head">
+    <span class="ref-n">R26</span>
+    <div class="ref-title">
+      <h3>Resend</h3>
+      <p class="ref-cls">Живий сайт · темний із серифним дисплеєм</p>
+    </div>
+    <a class="ref-url" href="https://resend.com" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r26-resend-1.jpg" alt="Hero: Domaine Display 96px на чорному, темний 3D-об’єкт" loading="lazy" data-full="shots/r26-resend-1.jpg">
+      <figcaption>Hero: Domaine Display 96px на чорному, темний 3D-об’єкт</figcaption>
+    </figure>
+    <figure>
+      <img src="shots/r26-resend-2.jpg" alt="Їхній changelog: серифний заголовок усередині темної медіа-картки" loading="lazy" data-full="shots/r26-resend-2.jpg">
+      <figcaption>Їхній changelog: серифний заголовок усередині темної медіа-картки</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Показує, що на майже чорному тлі преміальність дає <b>дисплейний сериф великого кегля</b>, а не ефекти. І дає готове число для найважливішого слота сторінки.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Hero</th><td><b>виміряно:</b> <code>hero-text-slide-up-fade 1s ease-in-out</code> — заголовок піднімається з прозорості за 1 с</td></tr><tr><th>Доказ життя</th><td><b>виміряно:</b> <code>plop 1s ease-in-out infinite</code> — крихітний безкінечний пульс; плюс <code>rotate 30s linear infinite</code> для повільного об’єкта</td></tr><tr><th>Інше</th><td>keyframes <code>shine</code>, <code>ai-shimmer-text</code>, <code>scroll-x 180s linear infinite</code> (марка-стрічка)</td></tr><tr><th>Відчуття</th><td>«дорогий інструмент для дорослих»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p><code>plop 1s ease-in-out infinite</code> як робоча гіпотеза для M7. Серифний дисплей великого кегля на темному — у нас це Literata, у якої <b>є кирилиця</b>.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Domaine Display — <b>кирилиці немає</b>, це для нас не типографічний референс, а картинка. І не беремо марка-стрічку 180 с: вона стала б другим безкінечним рухом і вбила б M7.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Так, але <code>#000</code> — холодне. Наш <code>#141312</code> тепліший і прощає більше.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Заголовок hero">M2</span><span class="chip slot" title="«В роботі»">M7</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> максимальний вау</span><span class="chip axis"><b>C</b> студійне портфоліо</span><span class="chip axis"><b>D</b> одна картка на екран</span>
+      </div>
+      <span class="feas ok" title="CSS keyframes">реалізовність: легко — CSS keyframes</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r25">
+  <header class="ref-head">
+    <span class="ref-n">R25</span>
+    <div class="ref-title">
+      <h3>basement.studio</h3>
+      <p class="ref-cls">Студійне портфоліо · темна редакційна сітка</p>
+    </div>
+    <a class="ref-url" href="https://basement.studio" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r25-basement-1.jpg" alt="«Featured Projects»: сітка з видимими лініями, підписи по краях комірок" loading="lazy" data-full="shots/r25-basement-1.jpg">
+      <figcaption>«Featured Projects»: сітка з видимими лініями, підписи по краях комірок</figcaption>
+    </figure>
+    <figure>
+      <img src="shots/r25-basement-2.jpg" alt="Нижче: великий маніфест-текст, той самий каркас" loading="lazy" data-full="shots/r25-basement-2.jpg">
+      <figcaption>Нижче: великий маніфест-текст, той самий каркас</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Темне студійне портфоліо, збудоване на <b>сітці з видимими лініями</b>, а не на ефектах. Підписи живуть по кутах комірок — саме те, що потрібно картці з чотирма полями (стан, назва, час, платформа).</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>hover / вхід у в’юпорт</td></tr><tr><th>Тривалість</th><td><b>виміряно:</b> <code>transform .3s cubic-bezier(.4,0,.2,1)</code></td></tr><tr><th>Keyframes у стилях</th><td><b>виміряно:</b> <code>subtle-pulse</code>, <code>machine-reveal</code>, <code>diagonalPatternAnimation</code>, <code>marquee-translate</code>, <code>actionable-blink</code></td></tr><tr><th>Відчуття</th><td>«студія, яка вміє»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Видима сітка як носій ієрархії: підпис у куті комірки замість бейджа всередині картки. Іменування <code>subtle-pulse</code> / <code>actionable-blink</code> — корисний словник: «пульс» для стану, «блимання» для дії.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>WebGL-блоки — <b>не в нашому стеку</b>. І <code>actionable-blink</code>: блимання заборонене нашими вимогами до доступності.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Так, <code>#000</code>. Використовує WebGL для окремих блоків — але сітка й типографіка від нього не залежать.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Поява картки «Зроблено»">M5</span><span class="chip slot" title="Hover/focus картки">M9</span><span class="chip slot" title="«В роботі»">M7</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> максимальний вау</span><span class="chip axis"><b>C</b> студійне портфоліо</span><span class="chip axis"><b>D</b> щільний</span>
+      </div>
+      <span class="feas mid" title="сітка легко, але дисципліна підписів дорога у верстці">реалізовність: середньо — сітка легко, але дисципліна підписів дорога у верстці</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r28">
+  <header class="ref-head">
+    <span class="ref-n">R28</span>
+    <div class="ref-title">
+      <h3>Oimachi</h3>
+      <p class="ref-cls">Живий сайт · Awwwards SOTD 21.08.2026</p>
+    </div>
+    <a class="ref-url" href="https://www.oimachi.co" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r28-oimachi-1.jpg" alt="Сітка робіт із морфінгом форми картки при наведенні" loading="lazy" data-full="shots/r28-oimachi-1.jpg">
+      <figcaption>Сітка робіт із морфінгом форми картки при наведенні</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Дає два виміряні числа, яких нам бракує: криву морфінгу картки і тривалість скелетона.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Морфінг</th><td><b>виміряно:</b> <code>transform .8s cubic-bezier(.19,1,.22,1)</code> — expo-out, дуже різкий старт і довге гальмування</td></tr><tr><th>Зміна форми</th><td><b>виміряно:</b> <code>border-radius .8s cubic-bezier(.77,0,.175,1)</code> — радіус картки анімується окремо</td></tr><tr><th>Скелетон</th><td><b>виміряно:</b> <code>skeleton-shimmer 1.2s ease-in-out infinite</code></td></tr><tr><th>Відчуття</th><td>«поверхня жива й пружна»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p><code>border-radius</code> як носій зміни стану — це відповідь на M12 і критерій 4 одночасно: форма картки різна в трьох станах, і це видно в градаціях сірого. Плюс <code>skeleton-shimmer 1.2s</code> — майже наш наявний токен <code>--dur-shimmer 1400</code>.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>800 мс на hover — це вчетверо повільніше за наш <code>--dur-hover 150</code> і на інтерфейсному жесті читатиметься як гальмування.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Тло світло-сіре; механіки нейтральні.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Перехід стану пункту">M12</span><span class="chip slot" title="Hover/focus картки">M9</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> ближче до вау</span><span class="chip axis"><b>C</b> студійне портфоліо</span><span class="chip axis"><b>D</b> середня</span>
+      </div>
+      <span class="feas ok" title="CSS-переходи; &lt;code&gt;border-radius&lt;/code&gt; композититься дешево">реалізовність: легко — CSS-переходи; &lt;code&gt;border-radius&lt;/code&gt; композититься дешево</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r29">
+  <header class="ref-head">
+    <span class="ref-n">R29</span>
+    <div class="ref-title">
+      <h3>MUBI</h3>
+      <p class="ref-cls">Культурна інституція · темне редакційне</p>
+    </div>
+    <a class="ref-url" href="https://mubi.com" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r29-mubi-1.jpg" alt="Маніфест капсом, під ним стрічка карток із підписами" loading="lazy" data-full="shots/r29-mubi-1.jpg">
+      <figcaption>Маніфест капсом, під ним стрічка карток із підписами</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Кінотека як приклад «дорого без крикливості»: темне тло, вузька гротеска, маніфест капсом, і стагер, вбудований прямо в систему.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>вхід у в’юпорт</td></tr><tr><th>Тривалість</th><td><b>виміряно: три сходинки</b> — <code>.3s</code>, <code>.7s</code> і <code>1s</code>, усі <code>ease-out</code></td></tr><tr><th>Прозорість</th><td><code>opacity .4s / 1s ease</code></td></tr><tr><th>Відчуття</th><td>«редакція, а не магазин»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p><b>Три швидкості входу на три рівні ієрархії</b> (0.3 / 0.7 / 1.0 с) — готова система для наших трьох секцій: «Зроблено» найшвидше, «Попереду» найповільніше. Це рівно правило «рух означає стан» із §5.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Кегль капсу — на кирилиці капс читається важче, ніж на латині.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Так. Найближчий до нас настрій із «культурних» референсів.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Заголовок hero">M2</span><span class="chip slot" title="Поява картки «Зроблено»">M5</span>
+        <span class="chip axis"><b>A</b> вертикальний</span><span class="chip axis"><b>B</b> посередині осі</span><span class="chip axis"><b>C</b> редакційно-видавниче</span><span class="chip axis"><b>D</b> середня</span>
+      </div>
+      <span class="feas ok" title="три класи тривалості">реалізовність: легко — три класи тривалості</span>
+    </div>
+  </div>
+</article>
+</section>
+<section class="group" id="g-f">
+  <div class="group-head">
+    <h2>Напрям F · Вхід із футера і доказ життя</h2>
+    <p>Кут A1 і слоти M7/M10. Питання №2 специфікації («скромний рядок чи акцент») тут отримує третю, кращу відповідь: рядок, який щось знає.</p>
+  </div>
+  
+<article class="ref" id="r30">
+  <header class="ref-head">
+    <span class="ref-n">R30</span>
+    <div class="ref-title">
+      <h3>Ghost — футер зі статусом</h3>
+      <p class="ref-cls">Живий сайт · пряма відповідь на питання №2</p>
+    </div>
+    <a class="ref-url" href="https://ghost.org" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r30-ghost-1.jpg" alt="У колонці Support футера: «Status ● 99.98%» — рядок із живим показником" loading="lazy" data-full="shots/r30-ghost-1.jpg">
+      <figcaption>У колонці Support футера: «Status ● 99.98%» — рядок із живим показником</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Найкраща знайдена відповідь на «скромний рядок чи акцентна кнопка». Ghost робить <b>ні те, ні інше</b>: звичайний рядок списку, але з крапкою-індикатором і живим числом. Ритм футера не зламано, увага все одно є.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>hover</td></tr><tr><th>Тривалість</th><td><b>виміряно:</b> <code>.15s cubic-bezier(.4,0,.2,1)</code> на кольорі, <code>.3s / .4s</code> на складніших елементах</td></tr><tr><th>Індикатор</th><td>крапка + число; <b>виміряно: без пульсації</b> — число саме по собі є доказом</td></tr><tr><th>Відчуття</th><td>«хтось за цим стежить»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p><b>Третій варіант відповіді на питання №2:</b> роадмап у футері — це рядок списку, який несе мікро-доказ («3 в роботі» або «оновлено в серпні»). Він не ламає композицію ні при 2 рядках у колонці, ні при 5 (критерій 2), і при цьому не є ще одним однаковим посиланням.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Зелений колір «все ОК» — у нас інша семантика.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Футер темний. Переноситься прямо.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Точка входу у футері">M10</span><span class="chip slot" title="«В роботі»">M7</span>
+        <span class="chip axis"><b>B</b> стримана чесність</span><span class="chip axis"><b>C</b> продуктовий changelog</span>
+      </div>
+      <span class="feas ok" title="число рахується з тих самих даних роадмапу">реалізовність: легко — число рахується з тих самих даних роадмапу</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r31">
+  <header class="ref-head">
+    <span class="ref-n">R31</span>
+    <div class="ref-title">
+      <h3>Claude Status</h3>
+      <p class="ref-cls">Status-сторінка · історія одним поглядом</p>
+    </div>
+    <a class="ref-url" href="https://status.anthropic.com" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r31-status-1.jpg" alt="Стрічка з ~90 крихітних смужок = 90 днів історії в одному рядку" loading="lazy" data-full="shots/r31-status-1.jpg">
+      <figcaption>Стрічка з ~90 крихітних смужок = 90 днів історії в одному рядку</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Найщільніший знайдений спосіб показати історію: <b>90 днів у смузі заввишки 30 px</b>. Для секції «Зроблено» це альтернатива і лічильникам, і довгій стрічці.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>hover по смужці</td></tr><tr><th>Що рухається</th><td>тултип із датою; сама смуга статична</td></tr><tr><th>Відчуття</th><td>«безперервність» — видно, що нічого не переривалось</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Спарклайн-стрічка «останні N тижнів роботи» у hero — доказ живого проєкту без жодного тексту й без безкінечної анімації. І це <b>третій</b> механізм стиснення історії, найдешевший з усіх.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Жанр uptime і кодування «зелений = добре»: у нас немає «поганого» стану, і зелений колір у нашій палітрі відсутній.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Ні. Але прийом кольоронезалежний, якщо смужки різняться висотою/щільністю, а не лише кольором.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Лічильники hero">M3</span><span class="chip slot" title="«В роботі»">M7</span>
+        <span class="chip axis"><b>A</b> горизонтальна стрічка</span><span class="chip axis"><b>B</b> стримана чесність</span><span class="chip axis"><b>C</b> лабораторний журнал</span><span class="chip axis"><b>D</b> крайня щільність</span>
+      </div>
+      <span class="feas ok" title="div-и фіксованої ширини з даних">реалізовність: легко — div-и фіксованої ширини з даних</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r32">
+  <header class="ref-head">
+    <span class="ref-n">R32</span>
+    <div class="ref-title">
+      <h3>Vercel — футер</h3>
+      <p class="ref-cls">Живий сайт · маркер свіжості у футері</p>
+    </div>
+    <a class="ref-url" href="https://vercel.com" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r32-vercel-footer-1.jpg" alt="Пігулки «New» біля окремих пунктів футера" loading="lazy" data-full="shots/r32-vercel-footer-1.jpg">
+      <figcaption>Пігулки «New» біля окремих пунктів футера</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Другий спосіб зробити рядок футера помітним без виламування: <b>крихітна пігулка «New»</b> на тих пунктах, де щось змінилось.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>hover</td></tr><tr><th>Тривалість</th><td><b>виміряно:</b> <code>.15s cubic-bezier(.4,0,.2,1)</code>; єдиний безкінечний рух на сторінці — <code>marquee 40s linear infinite</code> (логотипи)</td></tr><tr><th>Відчуття</th><td>«тут є що подивитись»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Пігулка як альтернатива числу з R30 — але вона мовчазна: «New» не каже, що саме нове. Число чесніше.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Ставити пігулку статично: якщо «New» висить рік, довіру вона вбиває сильніше, ніж відсутність роадмапу.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Головна світла, футер теж. Прийом нейтральний.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Точка входу у футері">M10</span>
+        <span class="chip axis"><b>B</b> стримана чесність</span><span class="chip axis"><b>C</b> продуктовий changelog</span><span class="chip axis"><b>D</b> крайня щільність</span>
+      </div>
+      <span class="feas ok" title="—">реалізовність: легко — —</span>
+    </div>
+  </div>
+</article>
+</section>
+<section class="group" id="g-g">
+  <div class="group-head">
+    <h2>Напрям G · Готові цеглини під конкретні слоти</h2>
+    <p>Не настрій, а матеріал. Ці чотири — не про те, як має виглядати сторінка, а про те, чим закрити слоти M1, M3, M6 і критерій «стан не лише кольором».</p>
+  </div>
+  
+<article class="ref" id="r34">
+  <header class="ref-head">
+    <span class="ref-n">R34</span>
+    <div class="ref-title">
+      <h3>Magic UI — Blur Fade</h3>
+      <p class="ref-cls">Компонент · кандидат під M6</p>
+    </div>
+    <a class="ref-url" href="https://magicui.design/docs/components/blur-fade" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r34-blurfade-1.jpg" alt="Демо: елементи проявляються з розмиття у різкість зі стагером" loading="lazy" data-full="shots/r34-blurfade-1.jpg">
+      <figcaption>Демо: елементи проявляються з розмиття у різкість зі стагером</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Найпоширеніша реалізація «невизначеність → визначеність»: <code>filter: blur()</code> + <code>opacity</code> + невеликий зсув, зі стагером по сітці.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>вхід у в’юпорт (IntersectionObserver)</td></tr><tr><th>Що рухається</th><td><code>filter</code>, <code>opacity</code>, <code>transform</code></td></tr><tr><th>Стагер</th><td>затримка на індекс елемента</td></tr><tr><th>Відчуття</th><td>«проявляється, як фото»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Механіку стагера. Значення затримки — з нашої специфікації (80–120 мс для «Попереду»), не з демо.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p><b>Два застереження.</b> (1) <code>filter: blur()</code> — не безкоштовна композиція; на скролі з 20+ елементами це прямий ризик для 60 fps і порушення правила §5.6 «тільки transform і opacity». (2) Розмитий текст у кінцевому стані нечитабельний — блюр допустимий лише як стан <i>входу</i>, не як постійний вигляд «Попереду».</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Так, компонент нейтральний.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Поява картки «Попереду»">M6</span>
+        <span class="chip axis"><b>B</b> посередині осі</span><span class="chip axis"><b>E</b> розмиття</span>
+      </div>
+      <span class="feas mid" title="дешево написати, дорого утримати 60 fps">реалізовність: середньо — дешево написати, дорого утримати 60 fps</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r35">
+  <header class="ref-head">
+    <span class="ref-n">R35</span>
+    <div class="ref-title">
+      <h3>21st.dev — бейджі</h3>
+      <p class="ref-cls">Каталог компонентів · критерій 4</p>
+    </div>
+    <a class="ref-url" href="https://21st.dev/s/badge" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r35-badges-1.jpg" alt="Два десятки варіантів бейджа: з крапкою, з іконкою, з рамкою, з таймером «7 days»" loading="lazy" data-full="shots/r35-badges-1.jpg">
+      <figcaption>Два десятки варіантів бейджа: з крапкою, з іконкою, з рамкою, з таймером «7 days»</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Матеріал під критерій приймання 4 («стан розрізняється не лише кольором»). Видно всю палітру рішень: крапка, іконка, контур, форма, вбудований лічильник.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>—</td></tr><tr><th>Що рухається</th><td>у більшості — нічого; у окремих — пульсуюча крапка</td></tr><tr><th>Відчуття</th><td>—</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Три різні <b>форми</b> бейджа під три стани (заливка / контур / пунктир) замість трьох кольорів. Плюс важлива деталь: наш сайт уже має мову бейджів (<code>.badge-ready</code> / <code>.badge-soon</code> / <code>.badge-done</code>), і §2.4 попереджає про плутанину — форма дозволяє свідомо від неї відійти.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Пульсуючі бейджі: це другий безкінечний рух і провал критерію 9.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Є і темні варіанти.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Перехід стану пункту">M12</span>
+        
+      </div>
+      <span class="feas ok" title="CSS">реалізовність: легко — CSS</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r36">
+  <header class="ref-head">
+    <span class="ref-n">R36</span>
+    <div class="ref-title">
+      <h3>Magic UI — Number Ticker</h3>
+      <p class="ref-cls">Компонент · слот M3</p>
+    </div>
+    <a class="ref-url" href="https://magicui.design/docs/components/number-ticker" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r36-ticker-1.jpg" alt="Число докручується до цільового значення" loading="lazy" data-full="shots/r36-ticker-1.jpg">
+      <figcaption>Число докручується до цільового значення</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Готова реалізація M3 (лічильники hero). Разом із <code>countUp</code> з R19 дає два незалежні джерела на слот.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>вхід у в’юпорт</td></tr><tr><th>Що рухається</th><td>значення числа</td></tr><tr><th>Обов’язково</th><td><code>font-variant-numeric: tabular-nums</code> — інакше рядок «стрибає» на кожному кадрі</td></tr><tr><th>Відчуття</th><td>«це полічено»</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Механіку і вимогу <code>tabular-nums</code> (це вже записано в §4.6 для часової мітки — те саме правило).</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Не крутити довше 900 мс: після цього це вже не доказ, а атракціон.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>Так.</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Лічильники hero">M3</span>
+        <span class="chip axis"><b>B</b> посередині осі</span>
+      </div>
+      <span class="feas ok" title="GSAP або rAF, 20 рядків">реалізовність: легко — GSAP або rAF, 20 рядків</span>
+    </div>
+  </div>
+</article>
+<article class="ref" id="r37">
+  <header class="ref-head">
+    <span class="ref-n">R37</span>
+    <div class="ref-title">
+      <h3>View Transitions — демо Chrome</h3>
+      <p class="ref-cls">Технічне демо · єдиний матеріал під M1</p>
+    </div>
+    <a class="ref-url" href="https://view-transitions.chrome.dev/" target="_blank" rel="noopener">відкрити ↗</a>
+  </header>
+
+  <div class="shots">
+    
+    <figure>
+      <img src="shots/r37-viewtrans-1.jpg" alt="Каталог демо переходів між сторінками й станами" loading="lazy" data-full="shots/r37-viewtrans-1.jpg">
+      <figcaption>Каталог демо переходів між сторінками й станами</figcaption>
+    </figure>
+  </div>
+
+  <div class="ref-body">
+    <div class="block">
+      <h4>Чому тут</h4>
+      <p>Наш сайт — багатосторінковий статичний, без роутера. Класичний page transition (barba.js, Next.js) нам недоступний. View Transitions API — <b>єдиний</b> спосіб зробити M1 без введення фреймворка.</p>
+    </div>
+
+    <div class="block">
+      <h4>Розбір руху</h4>
+      <table class="motion">
+        <tr><th>Тригер</th><td>навігація між документами</td></tr><tr><th>Що рухається</th><td>браузер сам морфить спільні елементи, решту — crossfade</td></tr><tr><th>Ціна</th><td><code>@view-transition { navigation: auto }</code> — кілька рядків CSS</td></tr><tr><th>Ризик</th><td><b>не перевірено мною:</b> підтримка cross-document переходів у не-Chromium браузерах</td></tr>
+      </table>
+    </div>
+
+    <div class="two">
+      <div class="block take">
+        <h4>Що беремо</h4>
+        <p>Це і є відповідь на M1 у нашому стеку. Фолбек — звичайне завантаження, нічого не ламається.</p>
+      </div>
+      <div class="block dont">
+        <h4>Що НЕ беремо</h4>
+        <p>Не будувати на цьому смисл: якщо перехід не спрацює, сторінка має бути такою самою.</p>
+      </div>
+    </div>
+
+    <div class="block"><h4>Наша темна тема / кирилиця</h4><p>—</p></div>
+
+    <div class="meta">
+      <div class="chips">
+        <span class="chip slot" title="Вхід на сторінку з футера">M1</span>
+        
+      </div>
+      <span class="feas ok" title="кілька рядків CSS, деградує сама">реалізовність: легко — кілька рядків CSS, деградує сама</span>
+    </div>
+  </div>
+</article>
+</section>
+
+<section>
+  <h2>Антиреференси — як робити НЕ треба</h2>
+  <p class="sub">Власник антиреференсів не називав, тому вони зібрані окремо. Якщо щось із
+  цього насправді подобається — це важливіша інформація, ніж будь-що вище.</p>
+  <div class="anti-grid">
+    
+    <div class="anti" id="x01">
+      <span class="n">X01</span>
+      <h3>PostHog — Roadmap</h3>
+      <a class="ref-url" href="https://posthog.com/roadmap" target="_blank" rel="noopener">відкрити ↗</a>
+      <img src="shots/x01-posthog-1.jpg" alt="PostHog — Roadmap" loading="lazy">
+      <h4>Що там</h4><p>Три канбан-колонки «Concept / Alpha / Beta», назви внутрішніх команд під кожним пунктом, лічильник «25 of 25 features», пошук по фіче-флагах.</p>
+      <h4>Чому нам не підходить</h4><p>Рівно те, що власник виключив: публічна дошка задач. Три проблеми одразу. (1) Колонки — це трекер, а не розповідь: людина має сама здогадатись, що важливо. (2) Стан закодований <b>лише кольором бейджа</b> — у градаціях сірого сторінка розсипається. (3) «AI Research Team» нічого не каже учневі й видає внутрішню кухню, яку §2.6 нам прямо забороняє.</p>
+    </div>
+    <div class="anti" id="x02">
+      <span class="n">X02</span>
+      <h3>GitHub — Changelog</h3>
+      <a class="ref-url" href="https://github.blog/changelog/" target="_blank" rel="noopener">відкрити ↗</a>
+      <img src="shots/x02-github-1.jpg" alt="GitHub — Changelog" loading="lazy">
+      <h4>Що там</h4><p>Стрічка однакових рядків: крихітна дата, тег «RELEASE / IMPROVEMENT», назва, тег продукту.</p>
+      <h4>Чому нам не підходить</h4><p>Ідеальна ілюстрація «нескінченного скрол-тунелю» з брифа. Усі записи важать однаково, ієрархії немає, зупинити око нема на чому. Плюс формулювання рівня «Rulesets” issue relationship in public preview» — інженерний регістр, заборонений §2.6.</p>
+    </div>
+    <div class="anti" id="x03">
+      <span class="n">X03</span>
+      <h3>Raycast — Changelog</h3>
+      <a class="ref-url" href="https://www.raycast.com/changelog" target="_blank" rel="noopener">відкрити ↗</a>
+      <img src="shots/x03-raycast-1.jpg" alt="Raycast — Changelog" loading="lazy">
+      <h4>Що там</h4><p>Версія + дата ліворуч, далі списки «Fixes / Improvements» на сотні рядків.</p>
+      <h4>Чому нам не підходить</h4><p>Дизайн тут якраз хороший (sticky-версія, чиста типографіка) — <b>непридатний саме жанр</b>. «AI Chat: Fixed transparent overlaid sidebar» адресовано розробнику, а не учневі. Наша сторінка мусить узяти форму й відкинути регістр: пункт про користь для людини, а не про полагоджений сайдбар.</p>
+    </div>
+    <div class="anti" id="x04">
+      <span class="n">X04</span>
+      <h3>GitLab — Direction</h3>
+      <a class="ref-url" href="https://about.gitlab.com/direction/" target="_blank" rel="noopener">відкрити ↗</a>
+      <img src="shots/x04-gitlab-1.jpg" alt="GitLab — Direction" loading="lazy">
+      <h4>Що там</h4><p>Корпоративний роадмап: липкий банер «Be the first to know when new features ship · Join the list» поверх сторінки, під ним стіна відеокарток.</p>
+      <h4>Чому нам не підходить</h4><p>Так виглядає «хочеться долучитись», перетворене на тиск. Липкий банер перехоплює увагу до того, як людина щось прочитала, — тобто заклик іде <i>перед</i> доказом. У нас §4.7 вимагає протилежного: кінцівка як фінальний акорд, а не як вступ.</p>
+    </div>
+    <div class="anti" id="x05">
+      <span class="n">X05</span>
+      <h3>Monzo — Making Monzo</h3>
+      <a class="ref-url" href="https://monzo.com/making-monzo/" target="_blank" rel="noopener">відкрити ↗</a>
+      <img src="shots/x05-monzo-1.jpg" alt="Monzo — Making Monzo" loading="lazy">
+      <h4>Що там</h4><p><b>404.</b> Сторінка не існує.</p>
+      <h4>Чому нам не підходить</h4><p>Найважливіший антиреференс огляду, і він не про візуал. «Making Monzo» роками наводили як приклад найкращого публічного роадмапу — банк показував квартальні цілі й давав підписуватись на пункти. Сьогодні за цим посиланням порожньо. <b>Це і є головний ризик задачі 003:</b> роадмап, який перестали оновлювати, шкодить довірі сильніше, ніж його відсутність. Прямий наслідок для дизайну: сторінка мусить бути дешевою в оновленні (дані у файлі, §7.6) і мусить <b>показувати дату останнього оновлення</b> — щоб її занедбання було видно чесно, а не маскувалось.</p>
+    </div>
+    <div class="anti" id="x06">
+      <span class="n">X06</span>
+      <h3>Instatus</h3>
+      <a class="ref-url" href="https://instatus.com" target="_blank" rel="noopener">відкрити ↗</a>
+      <img src="shots/x06-instatus-1.jpg" alt="Instatus" loading="lazy">
+      <h4>Що там</h4><p>Темний hero «GET READY FOR DOWNTIME» з кнопкою «PLAY GAME».</p>
+      <h4>Чому нам не підходить</h4><p>Гумор замість довіри. Для сторінки, чия єдина валюта — «нам можна вірити», жарт про власні збої коштує дорожче, ніж дає. Наша аудиторія — людина, яка сумнівається, чи це не черговий покинутий безкоштовний курс.</p>
+    </div>
+    <div class="anti" id="x07">
+      <span class="n">X07</span>
+      <h3>Igloo Inc</h3>
+      <a class="ref-url" href="https://igloo.inc" target="_blank" rel="noopener">відкрити ↗</a>
+      <img src="shots/x07-igloo-1.jpg" alt="Igloo Inc" loading="lazy">
+      <h4>Що там</h4><p>Повноекранна WebGL-сцена, 3D-іглу в снігах, керована скролом.</p>
+      <h4>Чому нам не підходить</h4><p>Візуально це вершина «вау», і саме тому корисно назвати вголос: <b>не в нашому стеку</b>. Немає build-кроку, на мобілці важкий canvas прямо заборонений брифом, і жоден із чотирьох станів роадмапу від такої сцени не стає зрозумілішим. Якщо власник вкаже на щось подібне — це сигнал переглянути обмеження задачі, а не додати Three.js.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Задача 003 · <code>dev/design/003-roadmap/02-references/</code> · дані — <code>data.js</code>,
+  генератор — <code>build.js</code> (<code>node build.js</code> перебудовує цю сторінку).</p>
+  <p>Далі за конвеєром: вибір напряму власником → агент №3 будує живий макет → агент №4 робить варіанти.</p>
+</footer>
+</div>
+
+<div id="lb"><img alt=""></div>
+<script>
+(function(){
+  var lb = document.getElementById('lb'), img = lb.querySelector('img');
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    if (t.tagName === 'IMG' && t.closest('.shots, .anti')) { img.src = t.src; lb.classList.add('on'); }
+    else if (lb.classList.contains('on')) { lb.classList.remove('on'); img.removeAttribute('src'); }
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') { lb.classList.remove('on'); img.removeAttribute('src'); }
+  });
+})();
+</script>

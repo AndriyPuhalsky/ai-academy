@@ -1,0 +1,288 @@
+/* ============================================================
+   ВАРІАНТ C · «СТАНЦІЇ»
+   ------------------------------------------------------------
+   Вісь відмінності варіантів: ЩО ТРИМАЄ СТОРІНКУ РАЗОМ.
+   Полюс C: структуру тримають ПРЕДМЕТИ. Кожен пункт — окремий
+   об'єкт із власним СИЛУЕТОМ, а змійка з'єднує їх, як маршрут
+   з'єднує станції. Розмах лінії найширший на сторінці: вона
+   мусить дотягуватись до кожного об'єкта.
+
+   Чому це не «AI-slop із однаковим радіусом і тінню»:
+   силуети трьох станів РІЗНІ і різниця несе сенс —
+     · «Зроблено»  — заповнена плашка зі СКОШЕНИМ кутом: закрито, штамп;
+     · «В роботі»  — єдина заливка з клеєвою межею й м'яким радіусом: живе;
+     · «Попереду»  — пунктирний КОНТУР із РОЗІРВАНИМ низом: ще не замкнено;
+     · «Передумали» — плашка з закресленням і скосом з іншого боку.
+   Стан читається за силуетом ще до підпису й лишається читабельним
+   у градаціях сірого — саме цього вимагає критерій 4.
+
+   Що це дає: найбільший вау, найсильніша «предметність»,
+   і мова, спільна з наявними картками сайту.
+   Чим платимо: найдовша сторінка, найбільше межових пікселів
+   на екран, найбільший ризик зісковзнути в шаблонність, якщо
+   колись хтось «уніфікує» радіуси.
+   ============================================================ */
+
+:root {
+  /* ---- Змійка: маршрут, а не рейка ------------------------- */
+  --amp-done:   34px;
+  --amp-now:    96px;
+  --amp-ahead:  60px;
+  --amp-lead:   48px;
+  --trail-w:      2px;
+  --trail-w-lit:  2px;
+  --node-r:       4.5px;
+  --node-r-ahead:   5px;
+  --node-r-now:     6px;
+  --node-ring-now: 13px;
+  --node-punch:     4px;
+  --trail-dash:  "4 10";
+
+  /* ---- Геометрія: смуга ширша, бо дуга мусить у неї вміститись ---- */
+  --rail-w:  212px;
+  --trail-x:  96px;
+  --meta-w:  196px;
+
+  /* ---- Щільність: об'єктам потрібне повітря ---------------- */
+  --row-gap-done:  var(--s-5);
+  --row-gap-now:   var(--s-8);
+  --row-gap-ahead: var(--s-4);
+  --row-pad-y:     var(--s-5);
+  --sec-gap:       clamp(4.5rem, 9vw, 8.5rem);
+
+  /* ---- Рух: довший і м'якший; станція — це подія ------------
+     Числа лишаються в межах §5 специфікації (350–500 / 500–800). */
+  --dur-row-done:  480ms;
+  --dur-row-ahead: 760ms;
+  --dur-row-now:   620ms;
+  --move-row:       18px;
+  --move-row-ahead: 14px;
+  --stag-done:      80ms;
+  --stag-ahead:    120ms;
+  --scale-node-hover: 1.5;
+}
+
+/* ============================================================
+   ПРЕДМЕТ · «Зроблено» — заповнена плашка зі скошеним кутом
+   ============================================================ */
+/* СПІЛЬНА ГЕОМЕТРІЯ ПРЕДМЕТІВ.
+   Знайдено й виправлено під час перевірки цього ж варіанта в браузері:
+   спершу предмети займали всю ширину, включно зі смугою змійки, і
+   заповнена плашка «Зроблено» ПЕРЕКРИВАЛА вузол лінії — тобто змійка
+   переставала перетинати кожен пункт, а це пряме рішення власника.
+   Стало: предмети відступають на смугу (margin-left), вузол сидить
+   РІВНО на лівій межі предмета — так само, як у «В роботі». Тепер
+   маршрут фізично торкається кожної станції, і це видно. */
+.rm-row--done,
+.rm-row--ahead,
+.rm-row--dropped {
+  margin-left: var(--rail-w);
+  padding-left: var(--s-6);
+  padding-right: var(--s-6);
+}
+.rm-row--done .rm-row__anchor,
+.rm-row--ahead .rm-row__anchor,
+.rm-row--dropped .rm-row__anchor { left: 0; }
+
+.rm-row--done {
+  border-bottom: 0;
+  background: var(--c-raised);
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-inner);
+  /* Скіс правого верхнього кута: «закрито». Кут — не оздоба,
+     а те, чим цей силует відрізняється від решти. */
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+  padding-top: var(--s-5);
+  padding-bottom: var(--s-5);
+  margin-bottom: var(--row-gap-done);
+}
+.rm-rows--done > .rm-row:last-child { border-bottom: var(--bw) solid var(--c-line); }
+
+/* ============================================================
+   ПРЕДМЕТ · «Попереду» — пунктирний контур із РОЗІРВАНИМ низом
+   ------------------------------------------------------------
+   Низ незамкнений: об'єкт ще не закрито. Це той самий прийом
+   R21 — невизначеність накресленням, а не приглушеним кольором.
+   Колір тексту тут такий самий, як у «Зроблено».
+   ============================================================ */
+.rm-row--ahead {
+  border: var(--bw) dashed var(--c-line-strong);
+  border-bottom: 0;
+  border-radius: var(--r-inner) var(--r-inner) 0 0;
+  background: none;
+  padding-top: var(--s-4);
+  padding-bottom: var(--s-5);
+  margin-bottom: var(--row-gap-ahead);
+}
+.rm-rows--ahead > .rm-row:last-child { border-bottom: 0; }
+/* Контур «дописується» разом із появою — замість хайрлайну в базі.
+   Тривалості цього переходу задані нижче, разом із наведенням. */
+.js .rm-row--ahead { border-color: transparent; }
+.js .rm-row--ahead.is-in {
+  border-color: var(--c-line-strong);
+  border-bottom-color: transparent;
+}
+@media (prefers-reduced-motion: reduce) {
+  .js .rm-row--ahead { border-color: var(--c-line-strong) !important; border-bottom-color: transparent !important; }
+}
+
+/* ============================================================
+   ПРЕДМЕТ · «Передумали» — скіс з ІНШОГО боку + закреслення
+   ============================================================ */
+.rm-row--dropped {
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-inner);
+  background: none;
+  clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px);
+  padding-top: var(--s-4);
+  padding-bottom: var(--s-4);
+}
+
+/* ============================================================
+   ПРЕДМЕТ · «В роботі» — лишається найгучнішим
+   ------------------------------------------------------------
+   Тут вона вже не «єдина заливка серед ліній», а найяскравіший
+   предмет серед предметів, тому їй додано трохи більше межі
+   й більший радіус, щоб вона не зрівнялась із рештою.
+   ============================================================ */
+.rm-row--progress,
+.rm-void {
+  border-width: 2px;
+  padding: var(--s-8) var(--s-6);
+}
+.rm-row--progress .rm-row__anchor,
+.rm-void .rm-row__anchor { top: var(--s-8); }
+
+/* Об'єкти мають власні внутрішні відступи, тому вузол змійки
+   для «Зроблено»/«Попереду» їде разом із текстом. */
+.rm-row--done .rm-row__anchor,
+.rm-row--ahead .rm-row__anchor,
+.rm-row--dropped .rm-row__anchor { top: var(--s-5); }
+/* Вузол «Попереду» — порожнє кільце на межі незамкненого контуру */
+.rm-row--ahead .rm-row__anchor { top: var(--s-4); }
+
+/* Наведення робить предмет предметом: він трохи підводиться.
+   Свідомо через окрему властивість `translate`, а НЕ через `transform`:
+   `transform` уже зайнятий появою рядка (base: .js .rm-row), і одним
+   shorthand'ом `transition` не можна мати дві різні тривалості для
+   однієї властивості — наведення або з'їдало б дописування контуру,
+   або тривало б 480 мс і відчувалось як залипання.
+   `translate` — окрема анімовна властивість, тому конфлікту немає,
+   і рух так само лишається композитним (нуль layout). */
+.js .rm-row--done,
+.js .rm-row--dropped {
+  translate: 0 0;
+  transition:
+    opacity var(--dur-row-done) var(--e-out) var(--rm-delay, 0ms),
+    transform var(--dur-row-done) var(--e-out) var(--rm-delay, 0ms),
+    translate var(--dur-hover) var(--e-out),
+    border-color var(--dur-hover) var(--e-out);
+}
+/* «Попереду» має власне правило .is-in (специфічність 0,3,0), яке пише
+   контур, — тому translate доводиться дописати саме туди, інакше воно
+   не доїде. Це і є та ціна, яку платиш за силуети: правил більше. */
+.js .rm-row--ahead { translate: 0 0; }
+.js .rm-row--ahead.is-in {
+  transition:
+    opacity var(--dur-row-ahead) var(--e-slow) var(--rm-delay, 0ms),
+    transform var(--dur-row-ahead) var(--e-slow) var(--rm-delay, 0ms),
+    translate var(--dur-hover) var(--e-out),
+    border-color var(--dur-row-ahead) var(--e-slow) calc(var(--rm-delay, 0ms) + var(--dur-row-ahead) / 2);
+}
+.rm-row--done:hover, .rm-row--done:focus-within,
+.rm-row--ahead:hover, .rm-row--ahead:focus-within,
+.rm-row--dropped:hover, .rm-row--dropped:focus-within { translate: 0 -2px; }
+.rm-row--done:hover, .rm-row--done:focus-within { border-color: var(--c-line-strong); }
+@media (prefers-reduced-motion: reduce) {
+  .rm-row--done:hover, .rm-row--ahead:hover, .rm-row--dropped:hover,
+  .rm-row--done:focus-within, .rm-row--ahead:focus-within, .rm-row--dropped:focus-within {
+    translate: 0 0;
+  }
+}
+
+/* Заголовок секції — подія: об'єкти вимагають більшої афіші */
+:root { --fs-h2: clamp(1.75rem, 1.2rem + 2.6vw, 2.75rem); }
+
+/* Кнопка «поділитись» живе В МЕЖАХ предмета: `clip-path`, який і дає скіс,
+   обрізає все, що виступає за силует, тому винести її в смугу (як у варіанті A)
+   тут неможливо. Отже вона стоїть у нижньому правому куті, а під мета-колонкою
+   резервується чиста зона — інакше на коротких предметах (пункт без опису)
+   гліф лягав на рядок платформи. Виміряно перетином реальних текстових
+   прямокутників: було 9 накладань, стало 0.
+   Ціна відома й названа: кожен предмет стає на ~32px вищим. Це і є та сама
+   «найдовша сторінка», якою варіант C платить за предметність. */
+.rm-row__link { left: auto; right: var(--s-3); top: auto; bottom: var(--s-2); }
+.rm-row--done .rm-row__meta,
+.rm-row--ahead .rm-row__meta,
+.rm-row--dropped .rm-row__meta { padding-bottom: var(--s-8); }
+@media (max-width: 1023px) {
+  .rm-row__link { right: var(--s-2); bottom: var(--s-2); top: auto; }
+  /* На вузьких екранах мета переїжджає під текст, резерв більше не потрібен */
+  .rm-row--done .rm-row__meta,
+  .rm-row--ahead .rm-row__meta,
+  .rm-row--dropped .rm-row__meta { padding-bottom: 0; padding-right: var(--s-8); }
+}
+
+/* Мобілка: об'єкти лишаються об'єктами, але скоси зникають —
+   на 46px смуги вони перетворюються на шум. */
+@media (max-width: 640px) {
+  /* Скоси на 46px смуги перетворюються на шум — вимикаємо */
+  .rm-row--done, .rm-row--dropped { clip-path: none; }
+  .rm-row--done, .rm-row--ahead, .rm-row--dropped {
+    padding-left: var(--s-4); padding-right: var(--s-4);
+  }
+}
+
+/* Підпис полюса */
+.rm-hero__in::before {
+  content: "варіант C · станції";
+  display: block;
+  margin-bottom: var(--s-4);
+  font-family: var(--f-mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+
+/* ============================================================
+   БРЕЙКПОЙНТИ ВАРІАНТА — обов'язкові, і ось чому
+   ------------------------------------------------------------
+   variant.css підключається ПІСЛЯ tokens.css, тому :root цього
+   файлу перебиває навіть ті значення, які tokens.css задає
+   всередині @media. Без цього блоку на 390px лишався десктопний
+   --rail-w: 212px, тобто текстова колонка стискалась до ~146px,
+   і сторінка виростала до 8440px (проти 4837 у варіанта A).
+   Виміряно, а не припущено.
+   ============================================================ */
+@media (max-width: 1023px) {
+  :root {
+    --rail-w:  132px;
+    --trail-x:  56px;
+    --meta-w:    0px;
+    --amp-done:  22px;
+    --amp-now:   52px;
+    --amp-ahead: 34px;
+    --amp-lead:  28px;
+    --row-gap-done:  var(--s-4);
+    --row-gap-now:   var(--s-6);
+    --row-gap-ahead: var(--s-3);
+  }
+}
+@media (max-width: 640px) {
+  :root {
+    --rail-w:  44px;
+    --trail-x:  14px;
+    --amp-done:   6px;
+    --amp-now:   16px;
+    --amp-ahead: 11px;
+    --amp-lead:   9px;
+    --sec-gap: clamp(3rem, 8vw, 5rem);
+  }
+  .rm-row--progress, .rm-void { padding: var(--s-5); }
+  .rm-row--progress .rm-row__anchor,
+  .rm-void .rm-row__anchor { top: var(--s-5); }
+  .rm-row--done .rm-row__anchor,
+  .rm-row--ahead .rm-row__anchor,
+  .rm-row--dropped .rm-row__anchor { top: var(--s-4); }
+}

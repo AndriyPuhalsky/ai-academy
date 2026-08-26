@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Демо-стенд станів — роадмап 003</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      colors: { ink:"#141312", surface:"#1E1B18", raised:"#272320", line:"#3A342E",
+        "line-strong":"#736A5E", ivory:"#F0EEE6", muted:"#A8A095", faint:"#7A7164",
+        clay:"#D97757", "clay-deep":"#C4674A", sand:"#E8DCC3" },
+      fontFamily: { display:["Literata","Georgia","serif"], sans:["'IBM Plex Sans'","system-ui","sans-serif"], mono:["'IBM Plex Mono'","ui-monospace","monospace"] },
+      maxWidth: { content: "72rem" } } } };
+  </script>
+  <link rel="stylesheet" href="tokens.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Стилі самого стенда — не частина макета сторінки */
+    .st-wrap { max-width: var(--w-page); margin: 0 auto; padding: var(--s-12) var(--pad-page) var(--s-16); }
+    .st-h1 { font-family: var(--f-display); font-size: var(--fs-h2); font-weight: var(--w-semi); color: var(--c-ivory); margin: 0 0 var(--s-3); }
+    .st-note { color: var(--c-prose); font-size: var(--fs-lead); line-height: var(--lh-lead); max-width: var(--ch-desc); margin: 0 0 var(--s-10); }
+    .st-sec { margin-top: var(--s-16); padding-top: var(--s-8); border-top: var(--bw) solid var(--c-line); }
+    .st-sec > h2 { font-family: var(--f-mono); font-size: var(--fs-eyebrow); text-transform: uppercase;
+      letter-spacing: var(--tr-eyebrow); color: var(--c-accent); margin: 0 0 var(--s-2); }
+    .st-sec > p { color: var(--c-muted); font-size: var(--fs-desc); max-width: var(--ch-desc); margin: 0 0 var(--s-8); }
+    .st-gray { filter: grayscale(1) contrast(1.02); }
+    .st-flag { display: inline-block; font-family: var(--f-mono); font-size: var(--fs-eyebrow);
+      text-transform: uppercase; letter-spacing: var(--tr-label); color: var(--c-sand);
+      border: var(--bw) solid var(--c-line-strong); border-radius: var(--r-pill);
+      padding: 3px 10px; margin-bottom: var(--s-5); }
+    .st-cols { display: grid; gap: var(--s-10); }
+    @media (min-width: 900px) { .st-cols { grid-template-columns: 1fr 1fr; } }
+    .st-links { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); }
+    .st-links a { color: var(--c-sand); font-family: var(--f-mono); font-size: var(--fs-body); }
+    .st-links code { color: var(--c-muted); }
+    .st-swatches { display: flex; flex-wrap: wrap; gap: var(--s-4); }
+    .st-sw { width: 148px; }
+    .st-sw__chip { height: 52px; border-radius: var(--r-inner); border: var(--bw) solid var(--c-line); }
+    .st-sw__n { display: block; font-family: var(--f-mono); font-size: var(--fs-eyebrow); color: var(--c-muted); margin-top: var(--s-2); }
+    /* Стенд показує рядки без появи — вони мають бути видимі одразу */
+    .st-wrap .rm-row, .st-wrap .rm-void { opacity: 1 !important; transform: none !important; }
+    .st-stack { padding-left: 0; }
+    .st-stack .rm-row { padding-left: var(--s-8); }
+    .st-stack .rm-row__anchor { left: var(--s-3); }
+    .st-stack .rm-row--progress, .st-stack .rm-void { margin-left: var(--s-8); }
+  </style>
+</head>
+<body class="bg-ink font-sans text-ivory antialiased">
+<div class="st-wrap">
+
+  <h1 class="st-h1">Демо-стенд: пункт у всіх станах</h1>
+  <p class="st-note">
+    Один і той самий пункт, показаний у чотирьох станах. Перевірка критерію 7:
+    назва, порядок полів і базова форма не змінюються — змінюється тільки акцент.
+    І критерію 4: праворуч та сама сітка в градаціях сірого, тобто без жодної
+    кольорової підказки.
+  </p>
+
+  <div class="st-cols">
+    <div>
+      <span class="st-flag">як є</span>
+      <ol class="rm-rows st-stack" id="stColor"></ol>
+    </div>
+    <div>
+      <span class="st-flag">градації сірого + без анімації</span>
+      <ol class="rm-rows st-stack st-gray" id="stGray"></ol>
+    </div>
+  </div>
+
+  <section class="st-sec">
+    <h2>Точка входу у футері · M10</h2>
+    <p>
+      Критерій 2: композиція має вижити у двох станах даних. Ліворуч — як у проді
+      сьогодні (GitHub і Telegram порожні, колонка з двох рядків). Праворуч — коли
+      посилання заповнять і колонка виросте до пʼяти.
+    </p>
+    <div class="st-cols">
+      <nav aria-label="Проєкт · порожні канали">
+        <p class="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-muted">Проєкт</p>
+        <ul class="space-y-2 text-sm">
+          <li><a href="#" class="text-muted transition hover:text-sand">Мої сертифікати ↗</a></li>
+          <li><button type="button" class="text-muted transition hover:text-sand">Написати нам</button></li>
+        </ul>
+        <a class="rm-entry" href="index.html">
+          <span class="rm-entry__label">План розвитку</span>
+          <span class="rm-entry__arrow" aria-hidden="true">→</span>
+          <span class="rm-entry__rule" aria-hidden="true"></span>
+        </a>
+      </nav>
+      <nav aria-label="Проєкт · канали заповнені">
+        <p class="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-muted">Проєкт</p>
+        <ul class="space-y-2 text-sm">
+          <li><a href="#" class="text-muted transition hover:text-sand">Мої сертифікати ↗</a></li>
+          <li><a href="#" class="text-muted transition hover:text-sand">Безкоштовний курс ↗</a></li>
+          <li><a href="#" class="text-muted transition hover:text-sand">GitHub ↗</a></li>
+          <li><a href="#" class="text-muted transition hover:text-sand">Telegram ↗</a></li>
+          <li><button type="button" class="text-muted transition hover:text-sand">Написати нам</button></li>
+        </ul>
+        <a class="rm-entry" href="index.html">
+          <span class="rm-entry__label">План розвитку</span>
+          <span class="rm-entry__arrow" aria-hidden="true">→</span>
+          <span class="rm-entry__rule" aria-hidden="true"></span>
+        </a>
+      </nav>
+    </div>
+  </section>
+
+  <section class="st-sec">
+    <h2>Нові токени кольору</h2>
+    <p>Усе інше — успадковане з <code>css/custom.css</code>. Колір <code>#7A7164</code> (faint)
+       у тексті не вживається ніде; він живе тільки в кольорі лінії.</p>
+    <div class="st-swatches" id="stSw"></div>
+  </section>
+
+  <section class="st-sec">
+    <h2>Крайні випадки — відкрити й подивитись</h2>
+    <p>Перемикачі вбудовані в макет, щоб стани можна було перевірити очима, а не на слово.
+       На сайті цього блоку не буде.</p>
+    <ul class="st-links">
+      <li><a href="index.html">Базовий стан</a> — <code>16 пунктів: 6 / 2 / 8</code></li>
+      <li><a href="index.html?data=min">Три пункти на всю сторінку</a> — <code>?data=min</code></li>
+      <li><a href="index.html?data=max">Сорок пунктів</a> — <code>?data=max</code> · перевірка стиснення історії</li>
+      <li><a href="index.html?data=empty-progress">Порожня «В роботі»</a> — <code>?data=empty-progress</code></li>
+      <li><a href="index.html?data=dropped">Стан «передумали»</a> — <code>?data=dropped</code></li>
+      <li><a href="index.html?data=empty">Порожній роадмап</a> — <code>?data=empty</code></li>
+      <li><a href="index.html?fail=1">Помилка завантаження даних</a> — <code>?fail=1</code></li>
+      <li><a href="index.html?slow=1">Скелетон (затримка 2.2 с)</a> — <code>?slow=1</code></li>
+      <li><a href="index.html?links=1">Кінцівка з каналами</a> — <code>?links=1</code></li>
+      <li><a href="index.html?from=architect">Повернення в AI Architect</a> — <code>?from=architect</code></li>
+      <li><a href="index.html#practice">Deep-link на пункт</a> — <code>#practice</code></li>
+    </ul>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  var LABELS = { done: "Зроблено", progress: "В роботі", ahead: "Попереду", dropped: "Передумали" };
+  var STATES = [
+    { s: "ahead",    date: "Q-1 2027", desc: "Особисті нотатки поруч із теорією, з експортом у текст." },
+    { s: "progress", date: "Q-3 2026", desc: "Особисті нотатки поруч із теорією, з експортом у текст." },
+    { s: "done",     date: "Q-3 2026", desc: "Особисті нотатки поруч із теорією, з експортом у текст." },
+    { s: "dropped",  date: "Q-3 2026", desc: "Передумали: нотатки дублювали б те, що людина вже має у своєму редакторі." }
+  ];
+  var TITLE = "Нотатки до модулів";
+
+  function row(cfg) {
+    var li = document.createElement("li");
+    li.className = "rm-row rm-row--" + cfg.s;
+    li.innerHTML =
+      '<span class="rm-row__anchor" aria-hidden="true"></span>' +
+      '<div class="rm-row__main">' +
+        '<h4 class="rm-row__title">' + TITLE + '</h4>' +
+        '<p class="rm-row__desc">' + cfg.desc + '</p>' +
+      '</div>' +
+      '<div class="rm-row__meta">' +
+        '<p class="rm-row__state"><span class="sr-only">Стан: </span>' +
+          '<span class="rm-row__state-word">' + LABELS[cfg.s] + '</span>' +
+          '<span class="rm-row__dot">·</span>' +
+          '<time class="rm-row__date">' + cfg.date + '</time></p>' +
+        '<p class="rm-row__plat"><span class="sr-only">Платформа: </span>' +
+          '<span class="rm-row__plat-mark rm-row__plat-mark--both" aria-hidden="true"></span>Обидві</p>' +
+      '</div>';
+    return li;
+  }
+  ["stColor", "stGray"].forEach(function (id) {
+    var ol = document.getElementById(id);
+    STATES.forEach(function (c) { ol.appendChild(row(c)); });
+  });
+
+  var SW = [
+    ["--c-trail-rest", "змійка · не пройдено"],
+    ["--c-trail-lit", "змійка · пройдено"],
+    ["--c-trail-now", "змійка · зараз"],
+    ["--c-now-surface", "єдина заливка"],
+    ["--c-now-edge", "її межа"],
+    ["--c-prose", "опис пункту 9.72:1"]
+  ];
+  var box = document.getElementById("stSw");
+  SW.forEach(function (p) {
+    var v = getComputedStyle(document.documentElement).getPropertyValue(p[0]).trim();
+    var d = document.createElement("div");
+    d.className = "st-sw";
+    d.innerHTML = '<div class="st-sw__chip" style="background:' + v + '"></div>' +
+                  '<span class="st-sw__n">' + p[0] + '<br>' + v + '<br>' + p[1] + '</span>';
+    box.appendChild(d);
+  });
+})();
+</script>
+</body>
+</html>

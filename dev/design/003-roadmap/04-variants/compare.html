@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>003 · Роадмап — A / B / C кадр-у-кадр</title>
+<link rel="stylesheet" href="_base/tokens.css" />
+<link href="https://fonts.googleapis.com/css2?family=Literata:wght@400;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  body { margin:0; background:var(--c-ink); color:var(--c-ivory);
+         font-family:var(--f-sans); font-size:var(--fs-body); line-height:1.6; }
+  .wrap { max-width:96rem; margin:0 auto; padding:var(--s-8) var(--s-5) var(--s-16); }
+  a { color:var(--c-sand); }
+  h1 { font-family:var(--f-display); font-size:clamp(1.75rem,1.2rem+2vw,2.5rem); line-height:1.1;
+       letter-spacing:-0.02em; margin:0 0 var(--s-3); }
+  h2 { font-family:var(--f-display); font-size:1.4rem; margin:var(--s-12) 0 var(--s-2); }
+  .eyebrow { font-family:var(--f-mono); font-size:var(--fs-eyebrow); text-transform:uppercase;
+             letter-spacing:var(--tr-eyebrow); color:var(--c-accent); margin:0 0 var(--s-4); }
+  p { color:var(--c-prose); max-width:74ch; }
+  .note { font-family:var(--f-mono); font-size:var(--fs-eyebrow); color:var(--c-muted);
+          text-transform:uppercase; letter-spacing:var(--tr-label); }
+
+  /* ---- пульт ---- */
+  .bar { display:flex; flex-wrap:wrap; gap:var(--s-3); align-items:center;
+         padding:var(--s-4) 0; border-top:1px solid var(--c-line);
+         border-bottom:1px solid var(--c-line); margin:var(--s-6) 0 var(--s-6); }
+  .bar > .lbl { font-family:var(--f-mono); font-size:var(--fs-eyebrow); text-transform:uppercase;
+                letter-spacing:var(--tr-label); color:var(--c-muted); }
+  .bar button { font-family:var(--f-mono); font-size:var(--fs-small); color:var(--c-ivory);
+                background:var(--c-surface); border:1px solid var(--c-line);
+                padding:var(--s-2) var(--s-4); min-height:32px; cursor:pointer; }
+  .bar button[aria-pressed="true"] { border-color:var(--c-accent); color:var(--c-accent); }
+  .bar button:focus-visible { outline:var(--focus-w) solid var(--c-accent);
+                              outline-offset:var(--focus-offset); }
+  .bar .sep { width:1px; align-self:stretch; background:var(--c-line); }
+
+  /* ---- триптих ---- */
+  .trio { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--s-4); align-items:start; }
+  .cell { min-width:0; }
+  .cap { display:flex; justify-content:space-between; align-items:baseline; gap:var(--s-3);
+         font-family:var(--f-mono); font-size:var(--fs-eyebrow); text-transform:uppercase;
+         letter-spacing:var(--tr-label); margin-bottom:var(--s-2); }
+  .cap b { color:var(--c-sand); }
+  .cap .y { color:var(--c-muted); }
+  .shell { position:relative; overflow:hidden; border:1px solid var(--c-line);
+           background:var(--c-ink); }
+  .shell iframe { border:0; display:block; transform-origin:0 0; }
+  @media (max-width:900px) { .trio { grid-template-columns:1fr; } }
+
+  /* ---- галерея знімків ---- */
+  .row { margin-top:var(--s-10); }
+  .row h3 { font-family:var(--f-mono); font-size:var(--fs-small); text-transform:uppercase;
+            letter-spacing:var(--tr-label); color:var(--c-sand); font-weight:400;
+            margin:0 0 var(--s-3); padding-bottom:var(--s-2);
+            border-bottom:1px solid var(--c-line); }
+  .row .trio img { width:100%; height:auto; display:block; border:1px solid var(--c-line); }
+  .row .trio figure { margin:0; }
+  .row .trio figcaption { font-family:var(--f-mono); font-size:var(--fs-eyebrow);
+                          text-transform:uppercase; letter-spacing:var(--tr-label);
+                          color:var(--c-muted); margin-top:var(--s-2); }
+  table { border-collapse:collapse; width:100%; margin-top:var(--s-6); font-size:var(--fs-small); }
+  th, td { text-align:left; padding:var(--s-2) var(--s-3); border-bottom:1px solid var(--c-line);
+           vertical-align:top; }
+  th { font-family:var(--f-mono); font-size:var(--fs-eyebrow); text-transform:uppercase;
+       letter-spacing:var(--tr-label); color:var(--c-muted); font-weight:400; }
+  .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+             clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+  .skip { position:absolute; left:-9999px; top:0; background:var(--c-accent); color:var(--c-ink);
+          padding:var(--s-2) var(--s-4); z-index:10; }
+  .skip:focus { left:0; }
+</style>
+</head>
+<body>
+<a class="skip" href="#trio">До порівняння</a>
+<div class="wrap">
+  <p class="eyebrow">003 · роадмап · агент №4</p>
+  <h1>Три варіанти кадр-у-кадр</h1>
+  <p>Однакові дані, однакова ширина в’юпорта, однакова точка скролу. Різницю між
+     A, B і C видно в одному кадрі, а не з опису. Кнопки нижче ведуть усі три макети
+     в ту саму точку сторінки одночасно; статична серія знімків — під пультом,
+     на випадок якщо живі кадри не піднялись.</p>
+
+  <div class="bar" role="group" aria-label="Точка скролу">
+    <span class="lbl">точка</span>
+    <button type="button" data-a="hero" aria-pressed="true">1 · перший екран</button>
+    <button type="button" data-a="done" aria-pressed="false">2 · зроблено</button>
+    <button type="button" data-a="progress" aria-pressed="false">3 · в роботі</button>
+    <button type="button" data-a="ahead" aria-pressed="false">4 · попереду</button>
+    <button type="button" data-a="outro" aria-pressed="false">5 · кінцівка</button>
+    <button type="button" data-a="footer" aria-pressed="false">6 · футер і вхід</button>
+    <span class="sep" aria-hidden="true"></span>
+    <span class="lbl">ширина</span>
+    <button type="button" data-w="1440" aria-pressed="true">1440 · десктоп</button>
+    <button type="button" data-w="390" aria-pressed="false">390 · мобілка</button>
+  </div>
+
+  <div class="trio" id="trio">
+    <div class="cell">
+      <p class="cap"><b>A · Лінія</b> <span class="y" data-y="a">—</span></p>
+      <div class="shell" data-shell="a"><iframe data-v="a" title="Варіант A · Лінія"
+        src="variant-a/index.html" loading="lazy"></iframe></div>
+      <p class="note"><a href="variant-a/index.html">відкрити A на весь екран →</a></p>
+    </div>
+    <div class="cell">
+      <p class="cap"><b>B · Сітка</b> <span class="y" data-y="b">—</span></p>
+      <div class="shell" data-shell="b"><iframe data-v="b" title="Варіант B · Сітка"
+        src="variant-b/index.html" loading="lazy"></iframe></div>
+      <p class="note"><a href="variant-b/index.html">відкрити B на весь екран →</a></p>
+    </div>
+    <div class="cell">
+      <p class="cap"><b>C · Станції</b> <span class="y" data-y="c">—</span></p>
+      <div class="shell" data-shell="c"><iframe data-v="c" title="Варіант C · Станції"
+        src="variant-c/index.html" loading="lazy"></iframe></div>
+      <p class="note"><a href="variant-c/index.html">відкрити C на весь екран →</a></p>
+    </div>
+  </div>
+
+  <h2>Статична серія — 1512×653, ті самі шість точок</h2>
+  <p>Знято агентом №4 у живому Chrome: один і той самий в’юпорт, ті самі дані
+     (<code>roadmap.json</code> без параметрів), кожен кадр вирівняний по тій самій точці
+     сторінки. Пульс «В роботі» у всіх кадрах зупинений на однаковій фазі — інакше кільце
+     було б різного розміру й порівняння брехало б.</p>
+
+  <div class="row"><h3>1 · перший екран (scrollY = 0)</h3>
+    <div class="trio">
+      <figure><img src="shots/01-hero-a.jpg" alt="Варіант A, перший екран" /><figcaption>A · Лінія</figcaption></figure>
+      <figure><img src="shots/01-hero-b.jpg" alt="Варіант B, перший екран" /><figcaption>B · Сітка</figcaption></figure>
+      <figure><img src="shots/01-hero-c.jpg" alt="Варіант C, перший екран" /><figcaption>C · Станції</figcaption></figure>
+    </div></div>
+
+  <div class="row"><h3>2 · «Зроблено» — початок секції</h3>
+    <div class="trio">
+      <figure><img src="shots/02-done-a.jpg" alt="Варіант A, секція «Зроблено»" /><figcaption>A · Лінія</figcaption></figure>
+      <figure><img src="shots/02-done-b.jpg" alt="Варіант B, секція «Зроблено»" /><figcaption>B · Сітка</figcaption></figure>
+      <figure><img src="shots/02-done-c.jpg" alt="Варіант C, секція «Зроблено»" /><figcaption>C · Станції</figcaption></figure>
+    </div></div>
+
+  <div class="row"><h3>3 · «В роботі» — єдина заливка / смуга / предмет</h3>
+    <div class="trio">
+      <figure><img src="shots/03-progress-a.jpg" alt="Варіант A, секція «В роботі»" /><figcaption>A · Лінія</figcaption></figure>
+      <figure><img src="shots/03-progress-b.jpg" alt="Варіант B, секція «В роботі»" /><figcaption>B · Сітка</figcaption></figure>
+      <figure><img src="shots/03-progress-c.jpg" alt="Варіант C, секція «В роботі»" /><figcaption>C · Станції</figcaption></figure>
+    </div></div>
+
+  <div class="row"><h3>4 · «Попереду» — пунктир і щільність</h3>
+    <div class="trio">
+      <figure><img src="shots/04-ahead-a.jpg" alt="Варіант A, секція «Попереду»" /><figcaption>A · Лінія</figcaption></figure>
+      <figure><img src="shots/04-ahead-b.jpg" alt="Варіант B, секція «Попереду»" /><figcaption>B · Сітка</figcaption></figure>
+      <figure><img src="shots/04-ahead-c.jpg" alt="Варіант C, секція «Попереду»" /><figcaption>C · Станції</figcaption></figure>
+    </div></div>
+
+  <div class="row"><h3>5 · кінцівка — точка спокою без лінії</h3>
+    <div class="trio">
+      <figure><img src="shots/05-outro-a.jpg" alt="Варіант A, кінцівка" /><figcaption>A · Лінія</figcaption></figure>
+      <figure><img src="shots/05-outro-b.jpg" alt="Варіант B, кінцівка" /><figcaption>B · Сітка</figcaption></figure>
+      <figure><img src="shots/05-outro-c.jpg" alt="Варіант C, кінцівка" /><figcaption>C · Станції</figcaption></figure>
+    </div></div>
+
+  <div class="row"><h3>6 · футер і точка входу (питання №1 до власника)</h3>
+    <div class="trio">
+      <figure><img src="shots/06-footer-a.jpg" alt="Варіант A, футер із точкою входу" /><figcaption>A · Лінія</figcaption></figure>
+      <figure><img src="shots/06-footer-b.jpg" alt="Варіант B, футер із точкою входу" /><figcaption>B · Сітка</figcaption></figure>
+      <figure><img src="shots/06-footer-c.jpg" alt="Варіант C, футер із точкою входу" /><figcaption>C · Станції</figcaption></figure>
+    </div></div>
+
+  <div class="row"><h3>7 · мобілка 390px — три варіанти в одному кадрі</h3>
+    <figure style="margin:0">
+      <img src="shots/07-mobile-hero.jpg" style="width:100%;height:auto;display:block;border:1px solid var(--c-line)"
+           alt="A, B і C на ширині 390 пікселів, перший екран, поряд в одному кадрі" />
+      <figcaption class="note" style="margin-top:var(--s-2)">перший екран · злiва A, у центрі B, справа C</figcaption>
+    </figure>
+    <figure style="margin:var(--s-6) 0 0">
+      <img src="shots/07-mobile-progress.jpg" style="width:100%;height:auto;display:block;border:1px solid var(--c-line)"
+           alt="A, B і C на ширині 390 пікселів, секція «В роботі», поряд в одному кадрі" />
+      <figcaption class="note" style="margin-top:var(--s-2)">«В роботі» · злiва A, у центрі B, справа C</figcaption>
+    </figure></div>
+
+  <h2>Що дивитись у кожній точці</h2>
+  <table>
+    <thead><tr><th>Точка</th><th>Питання, на яке відповідає кадр</th></tr></thead>
+    <tbody>
+      <tr><td>1 · перший екран</td><td>Чи видно перший пункт, чи лише натяк на нього (зауваження К12)</td></tr>
+      <tr><td>2 · зроблено</td><td>Що тримає структуру: накреслення (A), правила й колонки (B), силуети (C)</td></tr>
+      <tr><td>3 · в роботі</td><td>Головне порівняння: одна заливка проти смуги проти предмета</td></tr>
+      <tr><td>4 · попереду</td><td>Чи читається невизначеність пунктиром і наскільки щільно</td></tr>
+      <tr><td>5 · кінцівка</td><td>Чи спрацьовує точка спокою — єдине місце без лінії</td></tr>
+      <tr><td>6 · футер і вхід</td><td>Ціна акцентної точки входу: +64px проти рядка списку 28px</td></tr>
+      <tr><td>7 · мобілка</td><td>Що з ефектів свідомо звужено на 390px</td></tr>
+    </tbody>
+  </table>
+
+  <p class="note" style="margin-top:var(--s-10)">
+    <a href="index.html">← вітрина варіантів</a> ·
+    <a href="verdict.md">verdict.md — вердикт, вимірювання, питання до власника</a>
+  </p>
+</div>
+
+<script>
+/* Пульт: веде всі три макети в ту саму точку. Один і той самий код
+   використовував агент №4 для статичної серії — тому кадри в галереї
+   і живі кадри тут вирівняні однаково. */
+(function () {
+  var W = 1440, H = 653, A = "hero";
+  var frames = { a: null, b: null, c: null };
+  var shells = {};
+  document.querySelectorAll("iframe[data-v]").forEach(function (f) { frames[f.dataset.v] = f; });
+  document.querySelectorAll(".shell[data-shell]").forEach(function (s) { shells[s.dataset.shell] = s; });
+
+  function layout() {
+    var col = shells.a.parentElement.getBoundingClientRect().width;
+    var k = Math.min(1, col / W);
+    Object.keys(frames).forEach(function (key) {
+      var f = frames[key];
+      f.style.width = W + "px";
+      f.style.height = H + "px";
+      f.style.transform = "scale(" + k + ")";
+      shells[key].style.height = Math.round(H * k) + "px";
+    });
+  }
+
+  /* Вирівнювання: та сама точка сторінки, не той самий scrollY —
+     сторінки різної висоти, тому однаковий scrollY порівнював би
+     різний вміст. */
+  function seek(win, anchor) {
+    var d = win.document, y = 0;
+    if (anchor === "hero") y = 0;
+    else if (anchor === "footer") y = d.documentElement.scrollHeight;
+    else {
+      var el = d.getElementById("sec-" + anchor) || d.getElementById(anchor);
+      if (el) y = el.getBoundingClientRect().top + win.scrollY;
+    }
+    win.scrollTo(0, y);
+    try {
+      if (win.ScrollTrigger) win.ScrollTrigger.update();
+      var g = win.gsap;
+      if (g) {                        /* пульс — на однаковій фазі в усіх трьох */
+        var loop = g.globalTimeline.getChildren(true, true, true)
+                    .filter(function (t) { return t.repeat && t.repeat() === -1; })[0];
+        if (loop) { g.ticker.sleep(); loop.totalTime(0.183); }
+      }
+    } catch (e) { /* макет ще не піднявся — не критично */ }
+    return Math.round(y);
+  }
+
+  function apply() {
+    Object.keys(frames).forEach(function (key) {
+      var f = frames[key];
+      try {
+        var y = seek(f.contentWindow, A);
+        document.querySelector('[data-y="' + key + '"]').textContent = "scrollY " + y;
+      } catch (e) {
+        document.querySelector('[data-y="' + key + '"]').textContent = "—";
+      }
+    });
+  }
+  window.rmCompare = { goTo: function (a) { A = a; apply(); }, width: function (w) { W = w; layout(); apply(); } };
+
+  document.querySelectorAll("button[data-a]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.querySelectorAll("button[data-a]").forEach(function (o) { o.setAttribute("aria-pressed", "false"); });
+      b.setAttribute("aria-pressed", "true");
+      A = b.dataset.a; apply();
+    });
+  });
+  document.querySelectorAll("button[data-w]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.querySelectorAll("button[data-w]").forEach(function (o) { o.setAttribute("aria-pressed", "false"); });
+      b.setAttribute("aria-pressed", "true");
+      W = +b.dataset.w; H = (W === 390 ? 560 : 653); layout(); apply();
+    });
+  });
+  window.addEventListener("resize", layout);
+  layout();
+  var n = 0;
+  document.querySelectorAll("iframe[data-v]").forEach(function (f) {
+    f.addEventListener("load", function () { if (++n === 3) setTimeout(apply, 700); });
+  });
+})();
+</script>
+</body>
+</html>
