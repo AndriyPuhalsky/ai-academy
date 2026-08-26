@@ -245,7 +245,10 @@
      життя видно ще до того, як змійка туди дійшла.
      ============================================================ */
 
-  var lit = { rect: null, headG: null, fullPath: null, len: 0, lut: null };
+  /* p — останній застосований прогрес змійки. Він тут, а не в замиканні
+     хореографії, бо render() мусить уміти перенести його на щойно
+     створені вузли (див. коментар «БУВ ДЕФЕКТ D-01» нижче). */
+  var lit = { rect: null, headG: null, fullPath: null, len: 0, lut: null, p: 0 };
 
 /* ВИПРАВЛЕНО агентом №4 (виміряно, не припущено).
    Було: pointAtY() робив 22 виклики getPointAtLength() НА КАДР, поки грає
@@ -365,8 +368,9 @@ function buildLUT() {
     });
     svg.appendChild(now);
 
-    // голова лінії
-    var headG = el("g", { class: "rm-head-dot" });
+    // голова лінії. Створюється СХОВАНОЮ: свій справжній стан вона
+    // отримає нижче, від setTrailProgress(lit.p) — до першого малювання.
+    var headG = el("g", { class: "rm-head-dot", style: "visibility:hidden" });
     headG.appendChild(el("circle", { class: "rm-head-dot__halo", cx: 0, cy: 0, r: t.nodeR * 2.6 }));
     headG.appendChild(el("circle", { class: "rm-head-dot__core", cx: 0, cy: 0, r: t.nodeR }));
     svg.appendChild(headG);
@@ -376,6 +380,23 @@ function buildLUT() {
     lit.fullPath = fullPath;
     lit.len = fullPath.getTotalLength ? fullPath.getTotalLength() : 0;
     buildLUT();
+
+    /* ВИПРАВЛЕНО в колі фіксів 1 (2026-08-26), симетрично до rebindPulse
+       нижче — і з рівно тієї самої причини.
+       БУВ ДЕФЕКТ D-01: render() затирає svg.innerHTML і створює НОВУ
+       голову лінії, а прогрес на неї не переносив ніхто.
+       ScrollTrigger.refresh() тут не допомагає: він не переграє onUpdate
+       скраб-твіна, якщо сам прогрес не змінився. Наслідок, заміряний QA
+       у браузері: через ~0.7 с після завантаження (load + дебаунс resize
+       200 мс) новий <g class="rm-head-dot"> лишався без transform і
+       малювався в локальному нулі SVG — окремим кільцем за ~116 px від
+       лінії, до першого тіку колеса. Те саме після кожного resize і
+       кожного rm:relayout.
+       Стало: прогрес живе в lit.p і переноситься на нові вузли зсередини
+       render(), тобто завжди ПІСЛЯ їх створення — іншого порядку тут бути
+       не може, як і в rebindPulse. Нових твінів і тригерів це не створює:
+       setTrailProgress робить лише gsap.set(). */
+    setTrailProgress(lit.p);
 
     /* ВИПРАВЛЕНО агентом №4 (доведено вимірюванням).
        БУВ БЛОКУЮЧИЙ ДЕФЕКТ: render() затирає svg.innerHTML і створює
@@ -414,16 +435,22 @@ function buildLUT() {
   }
 
   function setTrailProgress(p) {
+    lit.p = p;                    // щоб render() міг перенести стан на нові вузли
     if (!lit.rect) return;
     if (HAS_GSAP) gsap.set(lit.rect, { scaleY: p, transformOrigin: "0px 0px" });
     else lit.rect.setAttribute("transform", "scale(1," + p + ")");
 
     var pt = pointAtY(p * geo.H);
+    // Геометрії немає (дуже старий рушій) — голова лишається схованою,
+    // якою її й створив render(). Кільце в локальному нулі не малюється.
     if (!pt || !lit.headG) return;
     var visible = p > 0.004 && p < 0.996;
     if (HAS_GSAP) gsap.set(lit.headG, { x: pt.x, y: pt.y, autoAlpha: visible ? 1 : 0 });
     else {
       lit.headG.setAttribute("transform", "translate(" + pt.x + "," + pt.y + ")");
+      // те саме, що робить autoAlpha: інакше visibility:hidden з render()
+      // лишився б назавжди й без GSAP голова не показалась би ніколи
+      lit.headG.style.visibility = visible ? "inherit" : "hidden";
       lit.headG.style.opacity = visible ? 1 : 0;
     }
   }
