@@ -838,6 +838,193 @@ a.mnav:hover .mnav-label { color: #D97757; }
   --dim-busy:       0.45;  /* решта діалогу під час редіректу */
 }
 
+/* ============================================================
+   003 · РОАДМАП — ТОКЕНИ (нове)
+   ------------------------------------------------------------
+   Перенесено з dev/design/003-roadmap/04-variants/_base/tokens.css,
+   блок 2 (§2.1–2.10) і блок 2bis (брейкпойнти). Значення не змінені.
+
+   Що НЕ перенесено:
+     · блок 1 tokens.css — це побайтова копія :root вище (рядки 646+),
+       він уже в цьому файлі; дублювати не можна;
+     · блок 3 (prefers-reduced-motion) — його 27 нових рядків дописані
+       в наявний блок нижче, а не заведені окремим медіа-запитом.
+
+   Що ПЕРЕВИЗНАЧАЄТЬСЯ поза цим файлом: --fs-hero, --fs-count, --fs-h2
+   і --hero-reserve — у css/roadmap.css, блок @media (max-height: 700px)
+   (стиснення hero на низьких екранах, рішення власника 2026-08-26).
+   css/roadmap.css підключений після цього файлу, тому виграє він.
+
+   Ці токени вантажать усі сторінки сайту, а використовує їх одна
+   (roadmap.html) плюс .rm-entry у футерах index.html / architect.html.
+   ============================================================ */
+:root {
+
+  /* ---- 2.1 Колір змійки -------------------------------------
+     Змійка — не текст, тому до неї не застосовується поріг 4.5:1;
+     її читабельність регулюється ТОВЩИНОЮ. Саме тому тут дозволено
+     похідні від --c-faint / --c-line-strong, які в тексті заборонені. */
+  --c-trail-rest:  rgba(115, 106, 94, 0.62);  /* line-strong @62% — «ще не пройдено» */
+  --c-trail-lit:   var(--c-sand);             /* пройдений відрізок — памʼять */
+  --c-trail-now:   var(--c-accent);           /* «просто зараз» — єдиний clay на осі */
+  --c-node-core:   var(--c-ink);              /* оголошений, поки не використовується */
+
+  /* ---- 2.2 Поверхня «В роботі» ------------------------------
+     Єдина заливка на всій сторінці. Це і є візуальний центр. */
+  --c-now-surface: #1E1B18;                   /* = --c-surface, названо окремо за роллю */
+  --c-now-edge:    var(--c-accent-edge);
+  --c-now-glow:    rgba(217, 119, 87, 0.07);
+
+  /* ---- 2.3 Типографічна шкала сторінки ---------------------- */
+  --fs-hero:    clamp(2.375rem, 1.35rem + 4.6vw, 4.25rem);  /*  38 → 68 */
+  --fs-h2:      clamp(1.625rem, 1.15rem + 2.1vw, 2.375rem); /*  26 → 38 */
+  --fs-lead:    clamp(1rem, 0.94rem + 0.28vw, 1.125rem);    /*  16 → 18 */
+  --fs-item:    clamp(1.0625rem, 0.95rem + 0.5vw, 1.3125rem); /* 17 → 21 */
+  --fs-item-sm: clamp(1rem, 0.93rem + 0.3vw, 1.125rem);     /*  16 → 18 «Попереду» */
+  --fs-desc:    clamp(0.875rem, 0.85rem + 0.12vw, 0.9375rem); /* 14 → 15 */
+  --fs-count:   clamp(1.75rem, 1.3rem + 2vw, 2.75rem);      /*  28 → 44 */
+  --fs-meta:    12px;
+
+  --lh-hero:  1.06;
+  --lh-h2:    1.14;
+  --lh-item:  1.28;
+  --lh-desc:  1.6;
+  --lh-lead:  1.55;
+
+  --tr-hero:  -0.022em;
+  --tr-item:  -0.008em;
+
+  --ch-desc:  62ch;   /* межа рядка опису */
+  --ch-lead:  46ch;
+
+  /* ---- 2.4 Геометрія сторінки й змійки ---------------------- */
+  --w-page:      72rem;    /* = maxWidth.content сайту */
+  --pad-page:    var(--s-5);
+
+  --rail-w:     184px;     /* колонка, у якій живе змійка */
+  --trail-x:     96px;     /* вісь змійки від лівого краю контенту */
+  --meta-w:     190px;     /* права колонка: дата + платформа */
+  --col-gap:    var(--s-8);
+
+  /* Розмах змійки по секціях — головне рішення макета:
+     форма лінії сама називає стан, ще до підпису. */
+  --amp-done:    22px;     /* туго, крок короткий */
+  --amp-now:     72px;     /* дихає — найширший розмах на сторінці */
+  --amp-ahead:   44px;     /* середній, але пунктиром */
+  --amp-lead:    34px;     /* вхідний відрізок у hero */
+
+  --trail-w:      2px;     /* товщина лінії */
+  --trail-w-lit:  2px;
+  --trail-dash:   "5 9";   /* пунктир «Попереду» — читає JS */
+  --trail-fade-in:   96px;
+  --trail-fade-out: 140px;
+
+  --node-r:      3.5px;    /* вузол «Зроблено» */
+  --node-r-ahead:  4px;    /* порожній вузол «Попереду» */
+  --node-r-now:      5px;  /* ядро «В роботі» */
+  --node-ring-now:  10px;  /* пульсуюче кільце */
+  --node-punch:      3px;  /* ширина «пробою» вузла кольором тла */
+  --group-tick:     18px;  /* поперечна риска квартальної групи */
+
+  /* Вертикальний ритм рядків — теж кодує стан. */
+  --row-gap-done:   var(--s-6);
+  --row-gap-now:    var(--s-10);
+  --row-gap-ahead:  var(--s-5);
+  --row-pad-y:      var(--s-4);
+  --sec-gap:        clamp(4rem, 8vw, 7.5rem);
+
+  /* ---- 2.5 Рух: криві --------------------------------------- */
+  --e-slow:   cubic-bezier(0.17, 0.84, 0.44, 1);  /* R21, виміряно */
+  --e-count:  cubic-bezier(0.16, 1, 0.30, 1);     /* R19, виміряно */
+  --e-breath: cubic-bezier(0.45, 0, 0.55, 1);     /* конверт єдиного циклу */
+
+  /* ---- 2.6 Рух: тривалості (мс) ----------------------------- */
+  --dur-line:       520ms;   /* M2 · один рядок заголовка hero */
+  --dur-count:      800ms;   /* M3 · лічильник */
+  --dur-row-done:   420ms;   /* M5 */
+  --dur-row-ahead:  640ms;   /* M6 */
+  --dur-row-now:    560ms;
+  --dur-outro:      480ms;   /* M11 */
+  --dur-state:      420ms;   /* M12 · оголошений, поки не використовується */
+  --dur-expand:     300ms;   /* оголошений, поки не використовується */
+  --dur-pulse:     1900ms;   /* M7 · ЄДИНИЙ безкінечний цикл */
+  --dur-pulse-in:   180ms;   /* M7 · фейд-ін конверта */
+  --dur-page-in:    320ms;   /* M1 · оголошений, поки не використовується */
+
+  /* ---- 2.7 Рух: затримки і каскади -------------------------- */
+  --stag-line:       75ms;   /* M2, у межах 60–90 зі специфікації */
+  --stag-done:       70ms;   /* M5 */
+  --stag-ahead:     100ms;   /* M6 */
+  --delay-count:    150ms;   /* M3 стартує після M2 */
+  --delay-outro:    120ms;   /* оголошений, поки не використовується */
+
+  /* ---- 2.8 Рух: зсуви і масштаби ---------------------------- */
+  --move-row:        14px;
+  --move-row-ahead:  10px;
+  --move-hero:       18px;
+  --move-arrow:       3px;
+  --move-outro:      20px;
+  --scale-node-hover: 1.35;
+  --scale-pulse:      1.9;   /* кільце M7: 1 → 1.9 */
+  --opacity-pulse:    0.55;  /* і одночасно 0.55 → 0 */
+
+  /* ---- 2.9 Scroll-driven ------------------------------------
+     0.8 — не смак, а зняте число з anthropic.com (R27). */
+  --scrub-trail:  0.8;
+  --scrub-outro:  0.8;
+  --trail-start:  "top 78%";
+  --trail-end:    "bottom 62%";
+
+  /* Кегль рядка. Кожен стан перевизначає його в css/roadmap.css —
+     від нього ж залежить вертикальна позиція вузла змійки. */
+  --fs-row: var(--fs-item);
+
+  /* ---- 2.10 Скелетон --------------------------------------- */
+  --sk-row-h:    72px;
+  --sk-rows:      6;
+  /* Резерв висоти до приходу даних: виміряна висота реального hero
+     із запасом униз. Разом із резервом стрічки тримає футер за межами
+     вікна, тому layout не стрибає. На низьких екранах перевизначається
+     в css/roadmap.css (@media (max-height: 700px)). */
+  --hero-reserve: 610px;
+}
+
+/* ---- 2bis. Брейкпойнти роадмапу ----------------------------
+   Змійка лишається на всіх ширинах — змінюється лише її масштаб.
+   Свідома деградація на мобілці: розмах зменшено вп'ятеро, тобто
+   лінія лишається доказом, але перестає бути атракціоном. */
+@media (max-width: 1023px) {
+  :root {
+    --rail-w:   116px;
+    --trail-x:   56px;
+    --meta-w:     0px;
+    --col-gap: var(--s-6);
+
+    --amp-done:  15px;
+    --amp-now:   40px;
+    --amp-ahead: 28px;
+    --amp-lead:  22px;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --pad-page: var(--s-4);
+    --rail-w:    46px;
+    --trail-x:   18px;
+
+    --amp-done:   6px;
+    --amp-now:   14px;
+    --amp-ahead: 11px;
+    --amp-lead:   9px;
+
+    --row-gap-done:  var(--s-5);
+    --row-gap-now:   var(--s-8);
+    --row-gap-ahead: var(--s-4);
+    --hero-reserve: 470px;
+  }
+}
+
 /* ---------- Ф2. prefers-reduced-motion для НОВИХ токенів ----------
    Наявний блок вище (css/custom.css) покриває лише scroll-behavior,
    .reveal і .caret — нове туди само не потрапляє. Тут вимикаються всі
@@ -862,6 +1049,42 @@ a.mnav:hover .mnav-label { color: #D97757; }
     --scale-press:    1;
     --move-error:     0px;
     --g-transition: 0.001ms;   /* FIX-9 · 218 мс лишались живими */
+
+    /* ---- 003 · роадмап. Блок 3 tokens.css, ПОІМЕННО (критерій 12).
+       Шість токенів списку (--dur-hover, --dur-enter, --dur-press,
+       --dur-collapse, --move-card-in, --scale-press) уже стоять вище —
+       не дублюємо. Решта 27 — тут. JS роадмапу читає ці ж змінні
+       (js/roadmap-motion.js), тому обнулення вимикає і GSAP. ---- */
+    --dur-line:      0.001ms;
+    --dur-count:     0.001ms;
+    --dur-row-done:  0.001ms;
+    --dur-row-ahead: 0.001ms;
+    --dur-row-now:   0.001ms;
+    --dur-outro:     0.001ms;
+    --dur-state:     0.001ms;
+    --dur-expand:    0.001ms;
+    --dur-pulse:     0.001ms;
+    --dur-pulse-in:  0.001ms;
+    --dur-page-in:   0.001ms;
+    --dur-shimmer:   0.001ms;
+
+    --stag-line:     0ms;
+    --stag-done:     0ms;
+    --stag-ahead:    0ms;
+    --delay-count:   0ms;
+    --delay-outro:   0ms;
+
+    --move-row:        0px;
+    --move-row-ahead:  0px;
+    --move-hero:       0px;
+    --move-arrow:      0px;
+    --move-outro:      0px;
+    --scale-node-hover: 1;
+    --scale-pulse:      1;
+    --opacity-pulse:    0;
+
+    --scrub-trail: 0;
+    --scrub-outro: 0;
   }
 }
 
@@ -1651,3 +1874,51 @@ a.mnav:hover .mnav-label { color: #D97757; }
      стоять у розмітці всіх 37 сторінок, box-sizing: border-box. */
   min-width: calc(var(--navprog-ch, 13) * 1ch + 1.5rem + 2px);
 }
+
+/* ============================================================
+   003 · ТОЧКА ВХОДУ У ФУТЕРІ (M10)
+   ------------------------------------------------------------
+   Перенесено з dev/design/003-roadmap/04-variants/_base/styles.css,
+   секція 7, без змін значень. Живе тут, а не в css/roadmap.css,
+   бо потрібне на трьох сторінках: index.html, architect.html
+   і roadmap.html (там із aria-current="page").
+
+   Акцент у межах футера: окремий блок ПІД списком, усередині тієї
+   самої nav. Ціль дотику 44px по висоті — вище за мінімум WCAG 2.2
+   SC 2.5.8 (24). Зростання висоти футера на +64px — рішення
+   власника 2026-08-26 (7.1), а не недогляд.
+
+   Єдиний новий токен, від якого залежить, — --move-arrow; він
+   оголошений у блоці «003 · РОАДМАП — ТОКЕНИ» вище і обнулений
+   у reduced-motion.
+   ============================================================ */
+.rm-entry {
+  position: relative;
+  display: inline-flex; align-items: center; gap: var(--s-2);
+  margin-top: var(--s-5);
+  min-height: var(--hit-min);
+  padding: 0 var(--s-1);
+  font-family: var(--f-mono);
+  font-size: var(--fs-body);
+  letter-spacing: var(--tr-label);
+  color: var(--c-sand);
+  text-decoration: none;
+}
+.rm-entry__arrow {
+  display: inline-block;
+  color: var(--c-accent);
+  transition: transform var(--dur-hover) var(--e-out);
+}
+.rm-entry:hover .rm-entry__arrow,
+.rm-entry:focus-visible .rm-entry__arrow { transform: translateX(var(--move-arrow)); }
+/* Підкреслення росте від лівого краю — той самий мікрожест, що й стрілка */
+.rm-entry__rule {
+  position: absolute; left: var(--s-1); right: var(--s-1);
+  bottom: calc(var(--hit-min) / 2 - 0.85em);
+  height: var(--bw);
+  background: var(--c-accent);
+  transform: scaleX(0); transform-origin: left center;
+  transition: transform var(--dur-hover) var(--e-out);
+}
+.rm-entry:hover .rm-entry__rule,
+.rm-entry:focus-visible .rm-entry__rule { transform: scaleX(1); }
