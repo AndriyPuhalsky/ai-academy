@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<!-- data-own-title: <title> на цій сторінці приходить із roadmap.json
+     (copy.pageTitle), а не з config.json. Без цього прапорця два
+     асинхронні fetch змагались би за document.title — див. js/config.js. -->
+<html lang="uk" data-config="config.json" data-own-title>
+<head>
+  <meta charset="UTF-8" />
+  <!-- Свідома розбіжність із рештою сайту: тут НЕ повторюється
+       user-scalable=no. Це відомий провал WCAG 1.4.4 (AA) на 43 наявних
+       сторінках; він виправляється задачею 004, а роадмап уже правильний. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Роадмап — AI Академія та AI Architect</title>
+  <meta name="description" content="Публічний план розвитку двох освітніх платформ: що зроблено, що робимо просто зараз і що попереду." />
+  <meta name="theme-color" content="#141312" />
+  <meta property="og:title" content="Роадмап — AI Академія та AI Architect" />
+  <meta property="og:description" content="Публічний план розвитку двох освітніх платформ: що зроблено, що робимо просто зараз і що попереду." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+
+  <!-- Позначаємо, що JS увімкнено -->
+  <script>document.documentElement.classList.add("js");</script>
+
+  <!-- Шрифти: Literata (дисплейний серіф) + IBM Plex Sans/Mono — усі з повною кирилицею -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind через CDN + наша палітра в стилістиці Anthropic -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink:    "#141312", // глибокий теплий фон сторінки
+            surface:"#1E1B18", // картки
+            raised: "#272320", // картки при наведенні
+            line:   "#3A342E", // межі / роздільники
+            "line-strong": "#736A5E",
+            ivory:  "#F0EEE6", // основний текст
+            muted:  "#A8A095", // другорядний текст
+            faint:  "#7A7164", // третинний текст, підписи
+            clay:   "#D97757", // фірмовий кораловий акцент
+            "clay-deep": "#C4674A",
+            sand:   "#E8DCC3"  // м'який пісочний підсвіт
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+
+  <!-- Порядок обов'язковий: токени лежать у custom.css, а roadmap.css їх
+       перевизначає у блоці @media (max-height: 700px) — стиснення hero. -->
+  <link rel="stylesheet" href="css/custom.css" />
+  <link rel="stylesheet" href="css/roadmap.css" />
+
+  <!-- M1: @view-transition тут СВІДОМО НЕМАЄ. З ним кожен перехід на цю
+       сторінку кидає неперехвачений InvalidStateError (перевірено справжнім
+       кліком по <a href>, не лише програмною навігацією), і жодного переходу
+       при цьому не видно: сторінка малюється після fetch даних, тобто
+       транзакція скасовується. Повертати можна лише після тесту на реальній
+       парі сторінок і з інлайненими в HTML даними. -->
+</head>
+
+<body id="top" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Ця сторінка збирається з файлу даних, тож для неї потрібен JavaScript.
+      Курси працюють і без нього — <a class="underline" data-brand-back href="index.html">поверніться до курсу</a>.
+    </div>
+  </noscript>
+
+  <header class="rm-head">
+    <div class="rm-head__in">
+      <a href="#top" class="rm-brand">
+        <span class="rm-brand__mark" aria-hidden="true">AIA</span>
+        <span class="rm-brand__name">Роадмап</span>
+      </a>
+      <a id="backLink" href="index.html" class="rm-back">
+        <span class="rm-back__arrow" aria-hidden="true">←</span>
+        <span id="backLabel">До AI Академії</span>
+      </a>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <!-- УВАГА: у цій розмітці немає жодного пункту, жодної назви секції
+         і жодного заголовка. Увесь текст сторінки приходить із roadmap.json
+         через js/roadmap-render.js (критерій приймання 13). Винятки за
+         побудовою: <title>/<meta>/og:* і літерали renderError() — вони
+         працюють саме тоді, коли даних немає. -->
+
+    <section class="rm-hero" aria-labelledby="heroTitle">
+      <div class="rm-hero__in">
+        <p class="rm-eyebrow" id="heroEyebrow"><span class="rm-eyebrow__slash" aria-hidden="true">//</span>&nbsp;</p>
+        <h1 class="rm-hero__title" id="heroTitle"></h1>
+        <p class="rm-hero__lead" id="heroLead"></p>
+        <dl class="rm-counts" id="heroCounts" aria-label="Стан плану розвитку"></dl>
+        <p class="rm-updated" id="heroUpdated"></p>
+      </div>
+    </section>
+
+    <div class="rm-timeline" id="timeline">
+      <svg class="rm-trail" id="trail" aria-hidden="true" focusable="false" preserveAspectRatio="none"></svg>
+      <span class="rm-axis" id="axisProbe" aria-hidden="true"></span>
+      <div class="rm-sections" id="sections"></div>
+    </div>
+
+    <section class="rm-outro" id="outro" aria-labelledby="outroTitle" hidden></section>
+
+  </main>
+
+  <!-- ФУТЕР -->
+  <footer class="border-t border-line/60">
+    <div class="mx-auto grid max-w-content gap-10 px-5 py-12 sm:px-8 md:grid-cols-[1.4fr,1fr,1fr]">
+      <div>
+        <!-- data-brand, а НЕ data-site="name": сторінка спільна на дві
+             платформи, і js/roadmap-render.js перемикає бренд за ?from=. -->
+        <p class="mb-3 font-display text-xl" data-brand>AI Академія</p>
+        <p class="max-w-sm text-sm leading-relaxed text-muted" data-site="disclaimer"></p>
+      </div>
+      <nav aria-label="Посилання проєкту">
+        <p class="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-muted">Проєкт</p>
+        <ul class="space-y-2 text-sm">
+          <li><a href="certificate.html" class="text-muted transition hover:text-sand">Мої сертифікати ↗</a></li>
+          <li><a data-link="github" href="#" class="text-muted transition hover:text-sand">GitHub ↗</a></li>
+          <li><a data-link="telegram" href="#" class="text-muted transition hover:text-sand">Telegram ↗</a></li>
+          <li><button type="button" id="contactTrigger" class="text-muted transition hover:text-sand">Написати нам</button></li>
+        </ul>
+
+        <!-- M10 · точка входу. Тут вона веде «нагору», бо ми вже на роадмапі,
+             і саме тут (і тільки тут) стоїть aria-current="page". -->
+        <a class="rm-entry" href="#top" aria-current="page">
+          <span class="rm-entry__label">План розвитку</span>
+          <span class="rm-entry__arrow" aria-hidden="true">→</span>
+          <span class="rm-entry__rule" aria-hidden="true"></span>
+        </a>
+      </nav>
+      <nav aria-label="Першоджерела">
+        <p class="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-muted">Першоджерела</p>
+        <ul class="space-y-2 text-sm">
+          <li><a data-link="officialDocs" href="#" class="text-muted transition hover:text-sand">Документація Claude ↗</a></li>
+          <li><a data-link="officialCourses" href="#" class="text-muted transition hover:text-sand">Офіційні курси Anthropic ↗</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="border-t border-line/60">
+      <!-- #footerMeta тут свідомо немає: дата оновлення роадмапу вже стоїть
+           у hero (з roadmap.json), а config.json дав би другу, іншу дату
+           і версію лише однієї з двох платформ. -->
+      <div class="mx-auto flex max-w-content flex-wrap items-center justify-between gap-3 px-5 py-5 font-mono text-xs text-muted sm:px-8">
+        <span>Зроблено спільнотою · <a href="#top" class="transition hover:text-sand">Нагору ↑</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- GSAP 3.13.0, рівно три файли: ядро + ScrollTrigger + CustomEase.
+       Решту плагінів свідомо не беремо — обґрунтування кожного в §4
+       dev/design/003-roadmap/SUMMARY.md. Ліцензія: gsap.com/licensing —
+       усе GSAP безкоштовне для комерційного використання з 30.04.2025,
+       атрибуції не вимагає. -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/CustomEase.min.js"></script>
+
+  <!-- Порядок render → motion безпечний: обидва класичні скрипти, парсяться
+       синхронно, тому слухач rm:rendered у motion реєструється раніше, ніж
+       може завершитись fetch у render. -->
+  <script src="js/roadmap-render.js"></script>
+  <script src="js/roadmap-motion.js"></script>
+  <!-- Модалка «Написати нам»: Cloudflare Turnstile підвантажує лише сама -->
+  <script type="module" src="js/contact.js"></script>
+  <!-- Дискламер і посилання у футері з config.json -->
+  <script src="js/config.js"></script>
+</body>
+</html>
