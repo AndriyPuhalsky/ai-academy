@@ -1,0 +1,46 @@
+# Хвіст 1: докази щодо колізії імені /sandbox. Дата звірки: 2026-09-03.
+
+[1] $ curl -sL https://code.claude.com/docs/en/commands.md | sed -n '132p'
+| `/sandbox` | Toggle [sandbox mode](/docs/en/sandboxing). Available on supported platforms only |
+    -> мітки **[Skill]** у цьому рядку НЕМАЄ.
+
+[2] У commands.md скіли позначені ЯВНО. Рядки з міткою:
+    37, 60, 66, 68, 75, 76, 78, 80, 83, 89, 106, 130, 131, 138, 157, 161
+    Формат мітки: **[Skill](/docs/en/skills#bundled-skills).**
+    Рядка 132 (/sandbox) у цьому переліку немає.
+
+[3] Пояснення мітки, commands.md:37
+* **[Skill](/docs/en/skills#bundled-skills)**: a bundled skill. It works like skills you write yourself: a prompt handed to Claude.
+
+[4] $ curl -sL https://code.claude.com/docs/en/sandboxing.md | sed -n '23,35p'
+    Start a Claude Code session and run the `/sandbox` command:
+    This opens the sandbox panel with three tabs, plus a Dependencies tab on Linux
+    when the optional seccomp filter is missing:
+    * **Mode**: choose how sandboxed commands are approved
+    * **Overrides**: choose whether commands that fail under the sandbox can fall back
+      to running unsandboxed. This is the `allowUnsandboxedCommands` setting
+    * **Config**: view the resolved sandbox settings
+
+[5] sandboxing.md:574
+`/sandbox` is not a [permission mode](/docs/en/permission-modes).
+
+[6] Пошук спірної цитати «Create an isolated Node.js sandbox...»:
+    - commands.md ................................. 0 збігів
+    - llms.txt (індекс усіх сторінок доксів) ...... 0 збігів
+    - бінарник 2.1.236 (strings | grep -i) ........ 0 збігів для "node.js sandbox"
+    - веб-пошук точної фрази ...................... 0 результатів Anthropic
+      (лише сторонні Node-бібліотеки: jailed, v8-sandbox, isolated-function)
+
+[7] Локально скіла з іменем sandbox немає:
+    $ ls ~/.claude/skills/                -> banner-design brand design design-system
+                                             find-skills slides ui-styling ui-ux-pro-max
+    $ ls AIA/.claude/skills/              -> 19 скілів, sandbox серед них немає
+    $ claude plugin list                  -> exa, frontend-design, skill-creator(off),
+                                             superpowers(off) — жоден не дає /sandbox
+
+[8] ВИРІШАЛЬНЕ: власний артефакт попереднього дослідника, зібраний того ж дня
+    з тієї ж сторінки, спростовує його ж висновок.
+    Файл: 00-research/screens/b-slash-commands-full.txt
+    Шапка: "# Джерело: https://code.claude.com/docs/en/commands.md, розділ 'All commands'
+            # Витягнуто 2026-09-03 (Claude Code 2.1.236)"
+    Рядок 84: /sandbox | Toggle sandbox mode. Available on supported platforms only
