@@ -87,8 +87,18 @@ Supabase (auth/прогрес/сертифікати) + Telegram Edge Function (
 - **Загадку `payments` закрито:** це заготовка під платні курси —
   `user_id, course_id, amount_uah, invoice_id, status (enum payment_status), created_at,
   paid_at`. **0 рядків, ніколи не використовувалась.** Не видаляти без рішення власника.
-- Живі обсяги (точний `count(*)`, а не оцінки `pg_class` — вони брешуть у рази):
-  `courses` 2 · `modules` 34 · `profiles` 3 · `enrollments` 6 · `progress` 35 ·
+- **Третій курс «AI Термінал» у базі з 2026-09-03** (міграція
+  `dev/build/005-ai-terminal/02-backend/db/005-1-course-ai-terminal.sql`, застосована з
+  сесії за прямим дозволом власника). `courses` 3 · `modules` **57** (12 + 22 + 23) ·
+  `profiles` 5, усі п'ять зараховані в новий курс. Тим же файлом закритий пункт 4 задачі
+  004 (`maybe_issue_certificate` більше не друкує email) і знята прив'язка
+  `admin_user_report` до одного курсу. Деталі — `tg/CHANGELOG.md`, запис 2026-09-03.
+- **Коди модулів мусять бути глобально унікальними — це несуча конструкція.**
+  `js/auth.js` будує `AIA_MODULE_MAP` запитом `select id, code` **без фільтра за курсом**,
+  тож збіг коду в різних курсах мовчки затер би чужий модуль. База такий збіг дозволяє:
+  обмеження там `UNIQUE(course_id, code)`, не глобальне.
+- Живі обсяги станом на 2026-08-23 (точний `count(*)`, а не оцінки `pg_class` — вони
+  брешуть у рази), крім оновлених вище: `enrollments` 6 · `progress` 35 ·
   `quiz_attempts` 47 · `certificates` 0 · `payments` 0 · `contact_messages` 0.
 - Дрібніше, не терміново: `maybe_issue_certificate(p_user, ...)` і `module_unlocked(p_user, ...)`
   приймають user параметром і не звіряють його з `auth.uid()`, а EXECUTE відкритий — підробити

@@ -229,7 +229,16 @@ on conflict (user_id, course_id) do nothing;
 -- Database → Functions → Edit): підрахунок v_total/v_done, умова v_total > 0,
 -- генерація 12-символьного коду, insert з `on conflict do nothing`.
 --
--- ЗАСТЕРЕЖЕННЯ ПРО search_path — прочитати до запуску:
+-- ЗАСТЕРЕЖЕННЯ ПРО search_path — ЗНЯТО 2026-09-03, значення з'ясоване.
+-- Крок 0 виконано на живій базі: `proconfig` обох функцій = ["search_path=public"].
+-- Тому тут стоїть РІВНО `public`, а не `public, pg_temp`, як було в чернетці цього
+-- файла. Причина зміни: `create or replace` замінює конфігурацію функції цілком,
+-- і `public, pg_temp` мовчки змінив би налаштування, якого ніхто не просив міняти.
+-- Міграція має робити рівно те, що написано на її обкладинці.
+-- (Історично: нижче лишено початкове застереження, написане до того, як значення
+--  вдалося побачити.)
+--
+-- ПОЧАТКОВЕ ЗАСТЕРЕЖЕННЯ (уже неактуальне, лишено для історії):
 -- `create or replace function` замінює визначення ЦІЛКОМ, включно з конфігурацією
 -- функції. Прочитати `proconfig` живої функції я не зміг (SQL Editor мені
 -- заборонений, а панель Dashboard не докручується до Advanced settings), але
@@ -249,7 +258,7 @@ create or replace function public.maybe_issue_certificate(p_user uuid, p_course 
 returns void
 language plpgsql
 security definer
-set search_path = public, pg_temp
+set search_path = public
 as $function$
 declare
   v_total integer;
@@ -344,7 +353,7 @@ returns table (
 language sql
 stable
 security definer
-set search_path = public, pg_temp
+set search_path = public
 as $function$
   select
     p.email,
@@ -478,7 +487,7 @@ select (select max(total) from public.admin_user_report()) as report_total,
 -- )
 -- language sql
 -- security definer
--- set search_path = public, pg_temp
+-- set search_path = public
 -- as $function$
 --   with ess as (select id from public.courses where slug = 'ai-essentials' limit 1)
 --   select
@@ -508,7 +517,7 @@ select (select max(total) from public.admin_user_report()) as report_total,
 -- returns void
 -- language plpgsql
 -- security definer
--- set search_path = public, pg_temp
+-- set search_path = public
 -- as $function$
 -- declare
 --   v_total integer;
