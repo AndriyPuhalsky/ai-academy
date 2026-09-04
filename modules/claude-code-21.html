@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 21 · Наскрізний проєкт і робочі звички — AI Термінал</title>
+  <meta name="description"
+    content="Цикл Explore → Plan → Implement → Commit і перевірка, яку Claude може запустити сам: чотири рівні гейта, /code-review і /security-review, стилі відповіді, статус-лайн, атрибуція в комітах і налаштування доступності." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="c21" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 21</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 5 · Реальна робота</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Наскрізний проєкт і робочі звички</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Підсумковий · 8 блоків · ≈ 50 хв читання</p>
+        <p class="mt-6 text-lg">
+          Двадцять модулів позаду розбирали механізми поодинці: дозволи, режим плану, пам'ять,
+          помічники, перехоплювачі подій, запуск без діалогу. Цей модуль не додає ще одного
+          механізму. Він відповідає на питання, яке після двадцяти модулів лишається без
+          відповіді: <strong>у якому порядку все це вмикати щодня</strong>, щоб робота доходила
+          до кінця, поки ти дивишся в інший бік.
+        </p>
+        <p>
+          Anthropic тримає під це окрему сторінку документації — <em>Best practices for Claude
+          Code</em>. Вона перебудована влітку 2026 року, і її перший розділ зараз не про промпти
+          й не про режими. Він про одну річ, з якої починається все інше: <strong>дай Claude
+          перевірку, яку він може запустити сам</strong>.
+        </p>
+
+        <div class="callout">
+          <span class="callout-title">Що в цьому модулі є, а чого немає</span>
+          <p>
+            <strong>Є:</strong> цикл із чотирьох фаз — Explore → Plan → Implement → Commit ·
+            перевірка як наскрізна вимога й чотири рівні її жорсткості · <code>/code-review</code>,
+            <code>/security-review</code>, <code>/verify</code> · стилі відповіді (output styles) ·
+            статус-лайн · що Claude Code дописує в коміт і як це змінити · п'ять іменованих
+            антипатернів із документації · налаштування доступності: режим для програм читання
+            з екрана, зменшений рух, голосове введення, свої гарячі клавіші.
+          </p>
+          <p>
+            <strong>Немає:</strong> нових механізмів. Режим плану — модуль 8, пам'ять і
+            <code>CLAUDE.md</code> — модуль 12, помічники — модуль 15, перехоплювачі подій —
+            модуль 16, <code>/goal</code> і робота без тебе — модуль 20. Тут вони лише стають
+            на свої місця в одному циклі.
+          </p>
+        </div>
+
+        <p>
+          Усе, що нижче, звірене з живою документацією <strong>4 вересня 2026 року</strong>, а
+          екрани зняті на встановленій збірці <strong>Claude Code 2.1.236</strong> під
+          <strong>macOS 26.5.2</strong>. Це не формальність: у блоці 2 ти побачиш функцію, яка в
+          документації описана як вбудована, а в цій збірці її ще немає.
+        </p>
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
+          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+
+          <p>
+            Уяви звичайну сесію. Ти попросив полагодити помилку, Claude прочитав файли, щось
+            виправив і написав: «Готово, помилку виправлено». Виправлено? Ти не знаєш. Щоб
+            дізнатись, треба відкрити проєкт, запустити його руками й подивитись. Тобто перевірка
+            все одно є — але виконуєш її ти, і кожна помилка чекає, доки ти її помітиш.
+          </p>
+
+          <h3>Чому робота зупиняється не там, де треба</h3>
+
+          <p>
+            Документація формулює це одним реченням, і воно варте того, щоб його перечитати двічі:
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Best practices for Claude Code · дослівно</span>
+            <p>
+              <em>«Claude stops when the work looks done. Without a check it can run, "looks done"
+              is the only signal available, and you become the verification loop.»</em>
+            </p>
+            <p>
+              Українською: <strong>Claude зупиняється, коли робота виглядає зробленою. Без
+              перевірки, яку він може запустити сам, «виглядає зробленою» — єдиний доступний
+              сигнал, і петлею перевірки стаєш ти.</strong>
+            </p>
+          </div>
+
+          <p>
+            Слово «петля» тут не образне. Агент працює по колу: подумав — зробив дію — подивився
+            на результат — подумав ще раз. Коло замикається тим, що він читає результат своєї
+            дії. Якщо результат — це текст помилки або код виходу тесту, коло замикається саме;
+            якщо результат ніхто не показує, коло розмикається на тобі.
+          </p>
+
+          <p>
+            Звідси головна робоча звичка всього модуля: <strong>перш ніж просити зміну, подумай,
+            що скаже «так» або «ні»</strong>. Це може бути що завгодно, що повертає сигнал у
+            розмову:
+          </p>
+
+          <ul>
+            <li>набір тестів;</li>
+            <li>код виходу збірки (модуль 19 пояснював, що це таке: <code>0</code> — успіх, будь-що
+              інше — невдача);</li>
+            <li>лінтер — програма, яка перевіряє код на типові помилки й неохайність;</li>
+            <li>скрипт, що порівнює вивід програми з еталонним файлом;</li>
+            <li>знімок екрана з браузера, який Claude порівнює з макетом.</li>
+          </ul>
+
+          <h3>Чотири фази, а не п'ять</h3>
+
+          <p>
+            Рекомендований порядок роботи в документації складається з <strong>чотирьох</strong>
+            фаз. Перевірки серед них немає — і це навмисно: перевірка не фаза, а вимога, яка
+            стоїть окремим розділом <em>перед</em> усім циклом і діє в кожній його точці.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Фаза</th>
+                <th>Що відбувається</th>
+                <th>Де це пояснювалось</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Explore<br /><span class="text-faint">розвідка</span></td>
+                <td>Claude читає файли й відповідає на питання, нічого не змінюючи. Ти з'ясовуєш,
+                  як влаштоване те, що збираєшся правити.</td>
+                <td>Режим плану — модуль 8</td>
+              </tr>
+              <tr>
+                <td>Plan<br /><span class="text-faint">план</span></td>
+                <td>Claude пише детальний план змін. Ти його читаєш і правиш, доки він не описує
+                  саме те, що потрібно.</td>
+                <td>Модуль 8</td>
+              </tr>
+              <tr>
+                <td>Implement<br /><span class="text-faint">виконання</span></td>
+                <td>Claude пише код за планом і <strong>сам ганяє перевірку</strong>, доки та не
+                  проходить.</td>
+                <td>Дозволи — модуль 7</td>
+              </tr>
+              <tr>
+                <td>Commit<br /><span class="text-faint">фіксація</span></td>
+                <td>Коміт із осмисленим повідомленням і, за потреби, пул-реквест.</td>
+                <td>Цей модуль, блок 4</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            <strong>Що таке коміт.</strong> Якщо ти не працював із системами контролю версій:
+            git — це програма, яка зберігає стан твоєї папки на кожен момент, коли ти цього
+            попросив. Один такий збережений стан називається <strong>комітом</strong> (commit).
+            Пізніше можна подивитись, що змінилось між двома комітами, і повернутись до
+            будь-якого з них. <strong>Пул-реквест</strong> (pull request, PR) — це прохання
+            влити твої зміни в спільну версію проєкту, з місцем для обговорення. Для цього
+            модуля достатньо знати саме стільки; git у курсі не вивчається окремо.
+          </p>
+
+          <h3>І одразу — застереження від самої документації</h3>
+
+          <p>
+            Документація не радить планувати завжди. Дослівне правило звучить так: <em>«If you
+            could describe the diff in one sentence, skip the plan»</em> — якщо зміну можна
+            описати одним реченням, план пропускай. Планування виправдане, коли ти не певний
+            підходу, коли зміна зачіпає кілька файлів або коли код тобі незнайомий. Виправити
+            одруківку, додати рядок у журнал, перейменувати змінну — на це план коштує більше,
+            ніж дає.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Що таке «діф»</span>
+            <p>
+              <strong>Діф</strong> (diff, від <em>difference</em>) — перелік відмінностей між
+              тим, як було, і тим, як стало. Рядки, які додались, зазвичай позначені
+              <code>+</code>, а ті, що зникли, — <code>−</code>. Слово трапиться в цьому модулі
+              часто: <code>/code-review</code> перевіряє саме діф, а не весь проєкт.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
+          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Сам цикл показати знімком неможливо: усе, крім першої й останньої команди,
+            відбувається всередині інтерактивної сесії, яка перемальовує себе на місці. Курс
+            навмисно не домальовує такі екрани — це правило зустрічалось у кожному модулі й
+            діє тут теж.
+          </p>
+
+          <p>
+            Але головний герой цього модуля знімається чудово, бо він живе <em>поза</em> сесією.
+            Це перевірка. Нижче — справжня, найпростіша з можливих: файл <code>test.sh</code>,
+            який каже <code>OK</code> або <code>FAIL</code> і повертає код виходу.
+          </p>
+
+          <h3>Дві миті, заради яких усе робиться</h3>
+
+          <p>
+            Задача демонстраційного проєкту: скрипт <code>slugify.sh</code> має перетворювати
+            заголовок на адресу — <code>Hello Big World</code> у <code>hello-big-world</code>.
+            Перевірка написана <strong>першою</strong>, до будь-якого коду. Спершу вона падає,
+            бо перевіряти нічого. Потім файл з'являється — і та сама команда каже інше.
+          </p>
+
+          <figure class="term" id="p1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p1t">macOS 26.5.2 · bash · знято 2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">bash test.sh; echo $?</span></span>
+<span class="term__line"><span class="term__err">bash: slugify.sh: No such file or directory</span></span>
+<span class="term__line"><span class="term__err">FAIL: got '', expected 'hello-big-world'</span></span>
+<span class="term__line"><span class="term__err">1</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">printf '%s\n' '#!/bin/bash' 'echo "$1" | tr "[:upper:]" "[:lower:]" | tr " " "-"' &gt; slugify.sh</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">bash test.sh; echo $?</span></span>
+<span class="term__line"><span class="term__ok">OK</span></span>
+<span class="term__line"><span class="term__ok">0</span></span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято наживо на macOS 26.5.2, оболонка bash, 4 вересня 2026 року. Claude Code тут не
+            запускався взагалі — це чистий термінал. Середню команду (<code>printf</code>) я набрав
+            руками, щоб показати другий стан; у твоєму проєкті цей файл напише Claude. Кнопки
+            копіювання в блоці немає навмисно: це демонстрація двох станів, а не рецепт.
+          </p>
+
+          <p>
+            Дві речі, які варто прочитати уважно. Перша: <code>echo $?</code> друкує код виходу
+            попередньої команди — <code>1</code> у першому випадку, <code>0</code> у другому.
+            Друга: різниця між цими двома прогонами — <strong>єдине, що відрізняє «здається,
+            зробив» від «зроблено»</strong>. Claude бачить рівно те саме, що й ти на цьому
+            екрані, і саме тому може працювати далі без тебе.
+          </p>
+
+          <h3>Друге, що видно на екрані: твоя збірка не дорівнює документації</h3>
+
+          <p>
+            У блоці 3 ітиметься про стилі відповіді (output styles). Документація на 4 вересня
+            2026 року перелічує п'ять вбудованих: <strong>Default</strong>,
+            <strong>Proactive</strong>, <strong>Concise</strong>, <strong>Explanatory</strong>,
+            <strong>Learning</strong>. Біля <code>Concise</code> стоїть примітка: «потребує
+            Claude Code v2.1.237 або новішої».
+          </p>
+
+          <p>
+            Встановлена на цій машині збірка — <code>2.1.236</code>. На одну версію менша.
+            Перевірити це можна не здогадками, а командою: <code>strings</code> друкує всі
+            текстові рядки всередині програми, а <code>grep -c</code> рахує збіги.
+          </p>
+
+          <figure class="term term--cmd" id="p2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p2t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p2t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --version</span></span>
+<span class="term__line">2.1.236 (Claude Code)</span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c Explanatory</span></span>
+<span class="term__line">8</span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c Concise</span></span>
+<span class="term__line">0</span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c zzqqxx-fake</span></span>
+<span class="term__line">0</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято наживо, macOS 26.5.2, Claude Code 2.1.236, 4 вересня 2026 року. Останній рядок —
+            контрольний: вигадана назва мусить дати <code>0</code>, інакше метод нічого не доводить.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Рядок</th>
+                <th>Що він означає</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>2.1.236 (Claude Code)</code></td>
+                <td>Версія встановленої програми. Її треба називати щоразу, коли ти комусь
+                  показуєш вивід — інакше через тиждень незрозуміло, що саме перевірялось.</td>
+              </tr>
+              <tr>
+                <td><code>Explanatory</code> → <code>8</code></td>
+                <td>Назва стилю трапляється у файлі програми вісім разів — стиль у збірці є.</td>
+              </tr>
+              <tr>
+                <td><code>Concise</code> → <code>0</code></td>
+                <td>З великої літери, тобто саме як назва стилю, — жодного разу. Стилю в цій
+                  збірці немає, хоча документація його описує.</td>
+              </tr>
+              <tr>
+                <td><code>zzqqxx-fake</code> → <code>0</code></td>
+                <td>Контроль. Якби вигадана назва теж дала число більше нуля, попередні два
+                  результати нічого не значили б.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout">
+            <span class="callout-title">Головна звичка курсу в одному прикладі</span>
+            <p>
+              Документація не помиляється: <code>Concise</code> справді існує — у версії
+              <code>2.1.237</code> і новіших. Не помиляється й програма: у <code>2.1.236</code>
+              його справді немає. Помилиться той, хто прочитає статтю й вирішить, що вона описує
+              <em>його</em> комп'ютер.
+            </p>
+            <p>
+              Тому в цьому курсі щоразу, коли щось «має працювати, але не працює», перший крок
+              один: <strong>перевір живою командою на своїй збірці</strong>. Слово з малої
+              літери, <code>concise</code>, у програмі трапляється часто — це звичайне англійське
+              слово всередині інструкцій. Саме тому пошук іде з великої: назва стилю пишеться
+              саме так.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
+          <h2><span class="lesson-no">3</span>Як це працює</h2>
+
+          <p>
+            Цикл читається зверху вниз, і єдине місце, де він може крутитись, — це перевірка.
+            Доки вона не проходить, фаза виконання повторюється.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  A["1 · Explore — читаємо і питаємо, нічого не міняємо"] --> B["2 · Plan — план на екрані, ти його правиш"]
+  B --> C["3 · Implement — Claude пише код"]
+  C --> D{"Перевірка проходить?"}
+  D -->|"ні"| C
+  D -->|"так"| E["4 · Commit — коміт і пул-реквест"]
+  style D fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Чотири фази з документації Claude Code. Перевірка — не п'ята фаза, а умова виходу
+              з третьої.
+            </p>
+          </div>
+
+          <h3>Гейт: чотири рівні жорсткості</h3>
+
+          <p>
+            «Перевірка є» — це ще не все. Важливо, наскільки <strong>міцно</strong> вона тримає
+            двері: чи можна її обійти, чи вона лише побажання. Двері, які не дають роботі
+            вважатись завершеною, англійською називають <strong>gate</strong> — «ворота»,
+            «шлагбаум»; далі в уроці — <strong>гейт</strong>. Документація перелічує чотири
+            рівні жорсткості, від найдешевшого до найтвердішого.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  A["Claude вважає, що закінчив"] --> B{"Що тримає двері?"}
+  B --> C["Нічого — діф читаєш ти сам"]
+  B --> D["У промпті: запусти тест і виправ, доки не пройде"]
+  B --> E["Умова /goal — окремий оцінювач перевіряє після кожного ходу"]
+  B --> F["Stop-хук — скрипт мусить віддати 0, інакше хід не завершиться"]
+  B --> G["Друга думка — /code-review або окремий помічник у свіжому контексті"]
+  F --> H["Стеля: після 8 блокувань поспіль Claude Code перебиває хук"]
+  style B fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style H fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Чотири способи закрити двері за роботою. Кожен наступний коштує більше налаштування
+              і менше твоєї уваги.
+            </p>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Рівень</th>
+                <th>Як улаштований</th>
+                <th>Коли брати</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>У промпті</td>
+                <td>Одним реченням просиш запустити перевірку й повторювати, доки та не пройде.
+                  Нічого налаштовувати не треба.</td>
+                <td>Завжди. Це той рівень, який працює вже сьогодні на будь-якій задачі.</td>
+              </tr>
+              <tr>
+                <td><code>/goal</code></td>
+                <td>Ставиш умову на всю сесію. Окремий оцінювач перевіряє її після кожного ходу,
+                  і Claude працює далі, доки умова не виконана. Детально — модуль 20.</td>
+                <td>Коли задача довша за один хід і ти відходиш від комп'ютера.</td>
+              </tr>
+              <tr>
+                <td>Stop-хук</td>
+                <td>Перехоплювач події <code>Stop</code> запускає твій скрипт у мить, коли Claude
+                  хоче завершити хід, і не дає завершити, доки скрипт не віддасть <code>0</code>.
+                  Детально — модуль 16.</td>
+                <td>Коли перевірка мусить бути незаперечною: скрипт вирішує, а не модель.</td>
+              </tr>
+              <tr>
+                <td>Друга думка</td>
+                <td>Помічник у свіжому контекстному вікні бачить лише діф і твої критерії, а не
+                  міркування, які цей діф породили. Вбудований варіант —
+                  <code>/code-review</code>.</td>
+                <td>Перед тим, як вважати роботу завершеною, особливо після довгого автономного
+                  прогону.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout">
+            <span class="callout-title">Стеля Stop-хука — 8</span>
+            <p>
+              Гейт, у якому рішення ухвалює скрипт, а не модель, виглядає всемогутнім, але
+              має межу, названу в документації
+              прямо: <strong>Claude Code перебиває хук і завершує хід після 8 блокувань
+              поспіль</strong>. Це захист від нескінченного циклу, коли скрипт не може пройти
+              ніколи. Наслідок практичний: Stop-хук не гарантує «ніколи не зупиниться,
+              доки не полагодить» — він гарантує вісім спроб.
+            </p>
+          </div>
+
+          <h3>Три налаштування, які змінюють сам цикл</h3>
+
+          <p>
+            Далі — три речі, які не додають кроків у цикл, але змінюють, як він відчувається:
+            як Claude із тобою розмовляє, що ти бачиш унизу екрана й що лишається в історії
+            проєкту після коміту.
+          </p>
+
+          <h4>Стиль відповіді (output style) — це підміна ролі, а не тону</h4>
+
+          <p>
+            <strong>Стиль відповіді</strong> (output style) — це текст, який Claude Code
+            дописує до системного промпта, тобто до тих інструкцій, які модель отримує ще
+            до твого першого слова. Документація формулює межу так: стилі змінюють,
+            <em>як</em> Claude відповідає, а не <em>що</em> він знає.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Вбудований стиль</th>
+                <th>Що робить</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Default</strong></td>
+                <td>Звичайний системний промпт Claude Code, налаштований на інженерні задачі.</td>
+              </tr>
+              <tr>
+                <td><strong>Proactive</strong></td>
+                <td>Виконує одразу, робить розумні припущення замість зупинок на дрібних
+                  рішеннях, віддає перевагу дії над плануванням. Це сильніша вказівка на
+                  самостійність, ніж автоматичний режим дозволів, і працює вона <em>незалежно</em>
+                  від режиму: режим дозволів так само вирішує, що виконується без питання.</td>
+              </tr>
+              <tr>
+                <td><strong>Concise</strong></td>
+                <td>Починає з результату, без передмов, короткі відповіді за замовчуванням;
+                  повні відповіді — коли ти явно просиш пояснити. Повний текст помилок,
+                  попереджень безпеки й підтверджень руйнівних дій зберігається завжди.
+                  <strong>Потребує v2.1.237+</strong> — див. блок 2.</td>
+              </tr>
+              <tr>
+                <td><strong>Explanatory</strong></td>
+                <td>Дає пояснення («Insights») між кроками роботи: чому обрано таку реалізацію,
+                  які усталені прийоми (патерни) живуть у цьому коді.</td>
+              </tr>
+              <tr>
+                <td><strong>Learning</strong></td>
+                <td>Навчання дією: Claude не лише пояснює, а й просить тебе написати невеликі
+                  шматки коду самому, лишаючи в коді позначки <code>TODO(human)</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Свій стиль — це markdown-файл у <code>~/.claude/output-styles</code> (для тебе) або
+            <code>.claude/output-styles</code> (для проєкту). Шапка файла (frontmatter — блок
+            між двома рядками <code>---</code> на початку) має чотири поля:
+            <code>name</code>, <code>description</code>, <code>keep-coding-instructions</code>,
+            <code>force-for-plugin</code>.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Найнебезпечніше поле — <code>keep-coding-instructions</code></span>
+            <p>
+              За замовчуванням воно <strong><code>false</code></strong>. Це означає, що твій
+              стиль <strong>прибирає</strong> вбудовані інженерні інструкції Claude Code — те,
+              як він визначає межі змін, як пише коментарі, як перевіряє роботу. Задум
+              зрозумілий: стилі придумані й для задач, де програмування немає взагалі
+              (помічник із текстів, аналітик даних).
+            </p>
+            <p>
+              Але якщо ти хотів лише «відповідай коротше, а код пиши як раніше», і не поставив
+              <code>keep-coding-instructions: true</code>, Claude раптом «розучиться» писати код
+              нормально. Причина не в моделі — ти зняв інструкції.
+            </p>
+          </div>
+
+          <p>
+            Ще дві межі, через які найчастіше плутаються. По-перше, стиль читається
+            <strong>один раз на старті сесії</strong>: змінив — потрібен <code>/clear</code> або
+            новий запуск. По-друге, стиль діє <strong>лише на головну розмову</strong>:
+            помічник (субагент) працює зі своїм системним промптом, тому відповідає не в твоєму
+            стилі. Виняток один — форк розмови, він успадковує системний промпт батька.
+          </p>
+
+          <p>
+            І окремо, бо це найчастіша мертва порада в інтернеті: <strong>команди
+            <code>/output-style</code> більше не існує.</strong> Її оголосили застарілою у
+            v2.1.73 і видалили у v2.1.91. Сьогодні стиль обирають у <code>/config</code> або
+            задають полем <code>outputStyle</code> у файлі налаштувань.
+          </p>
+
+          <h4>Статус-лайн — рядок, який показує те, чого не видно</h4>
+
+          <p>
+            <strong>Статус-лайн</strong> (status line) — смужка внизу вікна Claude Code, у якій
+            друкується вивід <em>твого власного скрипта</em>. Механізм простий: Claude Code
+            запускає скрипт, подає йому на вхід JSON зі станом сесії, і показує те, що скрипт
+            надрукував.
+          </p>
+
+          <p>
+            Навіщо це в модулі про робочі звички: заповнення контекстного вікна (модуль 6) —
+            найважливіший ресурс сесії, і його зручно бачити постійно, а не питати
+            <code>/context</code> час від часу. У JSON приходять, зокрема, назва моделі, поточна
+            папка, гілка git, витрати, тривалість і об'єкт <code>context_window</code> із полем
+            <code>used_percentage</code>.
+          </p>
+
+          <p>
+            Скрипт можна не писати: команда <code>/statusline</code> приймає опис звичайними
+            словами, генерує файл у <code>~/.claude/</code> і сама вписує його в налаштування.
+            Ручний варіант — поле <code>statusLine</code>:
+          </p>
+
+          <pre><code>{
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh",
+    "padding": 0
+  }
+}</code></pre>
+
+          <p>
+            Дрібниця, яка економить години: статус-лайн виконується локально й
+            <strong>не витрачає токенів</strong>. Ще одна: з увімкненим власним статус-лайном
+            Claude Code прибирає більшість підказок із нижнього рядка — зокрема
+            <code>esc to interrupt</code> і підказку голосового введення.
+          </p>
+
+          <h4>Що Claude Code дописує в коміт</h4>
+
+          <p>
+            У фазі Commit з'являється те, чого ти не писав. За замовчуванням Claude Code додає
+            до коміту рядок-трейлер <code>Co-Authored-By: &lt;модель&gt;
+            &lt;noreply@anthropic.com&gt;</code>, а в опис пул-реквеста — рядок
+            <code>🤖 Generated with [Claude Code](https://claude.com/claude-code)</code>.
+          </p>
+
+          <p>
+            Це керується ключем <code>attribution</code> із трьома підполями:
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Ключ</th>
+                <th>Що робить</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>attribution.commit</code></td>
+                <td>Текст, який дописується в коміт. Порожній рядок — не дописувати нічого.</td>
+              </tr>
+              <tr>
+                <td><code>attribution.pr</code></td>
+                <td>Те саме для опису пул-реквеста.</td>
+              </tr>
+              <tr>
+                <td><code>attribution.sessionUrl</code></td>
+                <td>Чи додавати посилання на сесію claude.ai — воно з'являється, коли коміт
+                  робиться з хмарної сесії або через Remote Control (модуль 20).
+                  <code>false</code> прибирає.</td>
+              </tr>
+              <tr>
+                <td><code>includeGitInstructions</code></td>
+                <td><code>false</code> прибирає з системного промпта вбудовані інструкції про
+                  коміти й пул-реквести <em>і</em> знімок стану репозиторію (гілка, головна
+                  гілка, <code>git status</code>, останні коміти).</td>
+              </tr>
+              <tr>
+                <td><code>prUrlTemplate</code></td>
+                <td>Скеровує посилання на пул-реквести, які малює Claude Code, на внутрішній
+                  інструмент замість github.com.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Старий ключ <code>includeCoAuthoredBy</code> ще читається, але позначений застарілим
+            із v2.0.62; щойно ти задав <code>attribution.commit</code> або
+            <code>attribution.pr</code>, він ігнорується.
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
+          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+
+          <p>
+            Далі — наскрізний проєкт від порожньої папки до коміту. Він навмисно крихітний:
+            мета не в тому, щоб написати щось велике, а в тому, щоб один раз пройти всі чотири
+            фази й побачити, як перевірка замикає коло. Часу — приблизно двадцять хвилин.
+          </p>
+
+          <p>
+            Команди нижче для macOS і Linux. На Windows у PowerShell працюють ті самі
+            <code>mkdir</code>, <code>cd</code> і <code>git</code>; відрізняється створення
+            файлів, тому файли зручніше створити в будь-якому текстовому редакторі.
+          </p>
+
+          <h3>Крок 1. Папка і git</h3>
+
+          <p>
+            <code>git init</code> перетворює звичайну папку на репозиторій — місце, де git
+            зберігатиме історію. Якщо git у тебе не встановлений, команда скаже про це;
+            встановлювати його зараз не обов'язково, але кроки 8–9 без нього не спрацюють.
+          </p>
+
+          <figure class="term term--cmd" id="p3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p3t">створення проєкту · macOS 26.5.2 · 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p3t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">mkdir -p ~/slug-tool</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">cd ~/slug-tool</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">git init</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">pwd</span></span></pre>
+          </figure>
+
+          <p>
+            Остання команда — звичка з модуля 1: перш ніж запускати агента, переконайся, що ти
+            стоїш у тій папці, у якій думаєш.
+          </p>
+
+          <h3>Крок 2. Перевірка пишеться першою</h3>
+
+          <p>
+            Створи в цій папці файл <code>test.sh</code> із таким вмістом. Це та сама перевірка,
+            яку ти бачив у блоці 2.
+          </p>
+
+          <pre><code>#!/bin/bash
+got=$(bash slugify.sh "Hello Big World")
+if [ "$got" = "hello-big-world" ]; then
+  echo "OK"
+else
+  echo "FAIL: got '$got', expected 'hello-big-world'"
+  exit 1
+fi</code></pre>
+
+          <p>
+            Прочитай його рядок за рядком, навіть якщо не знаєш bash: <code>got=$(…)</code>
+            запускає <code>slugify.sh</code> і кладе надрукований результат у змінну
+            <code>got</code>; далі порівняння з очікуваним рядком; <code>exit 1</code> — «невдача»
+            для будь-якої програми, яка цей скрипт запустить. Саме цю одиницю Claude і читає.
+          </p>
+
+          <p>
+            Запусти <code>bash test.sh</code> зараз. Він упаде — файла <code>slugify.sh</code> ще
+            немає. Це правильний початковий стан: <strong>перевірка, яка ще ніколи не була
+            зеленою, нічого не доводить</strong>, тому спершу переконайся, що вона вміє бути
+            червоною.
+          </p>
+
+          <h3>Крок 3. Одне правило в <code>CLAUDE.md</code></h3>
+
+          <p>
+            Створи файл <code>CLAUDE.md</code> (модуль 12) і напиши в нього одне речення —
+            рівно одне:
+          </p>
+
+          <pre><code># slug-tool
+
+Після будь-якої зміни коду запусти `bash test.sh` і покажи його вивід.</code></pre>
+
+          <p>
+            Чому одне. Документація називає окремий антипатерн — «надмірно докладний
+            <code>CLAUDE.md</code>»: коли файл завеликий, важливі правила губляться в шумі, і
+            Claude ігнорує половину. Рекомендація дослівна: <em>безжально скорочувати</em>, а
+            те, що мусить виконуватись гарантовано, переносити з тексту в перехоплювач подій
+            (модуль 16).
+          </p>
+
+          <h3>Крок 4. Explore — розвідка в режимі плану</h3>
+
+          <p>
+            Запусти сесію одразу в режимі плану. У цьому режимі Claude читає й відповідає, але
+            нічого не змінює.
+          </p>
+
+          <pre><code>claude --permission-mode plan</code></pre>
+
+          <p>
+            Той самий режим вмикається зсередини сесії натисканням <code>Shift+Tab</code>, доки
+            в рядку стану не з'явиться <code>⏸ plan mode on</code>. Постав питання, яке нічого
+            не змінює:
+          </p>
+
+          <div class="example">
+            <div class="example-head"><span class="tag-user">Промпт</span></div>
+            <pre>Прочитай test.sh і CLAUDE.md у цій папці. Поясни, що саме має робити
+slugify.sh, щоб перевірка пройшла. Нічого поки не пиши.</pre>
+          </div>
+
+          <h3>Крок 5. Plan — план, який ти правиш руками</h3>
+
+          <p>
+            Тепер попроси план. Різниця між «розкажи» й «склади план» тут не косметична: план —
+            це те, що ти зможеш прочитати цілком і виправити до того, як з'явиться перший рядок
+            коду.
+          </p>
+
+          <div class="example">
+            <div class="example-head"><span class="tag-user">Промпт</span></div>
+            <pre>Склади план: які файли з'являться, що буде в кожному, як я перевірю
+результат. Врахуй, що в заголовку бувають великі літери й пробіли.</pre>
+          </div>
+
+          <p>
+            Поки план на екрані, натисни <code>Ctrl+G</code> — план відкриється у твоєму
+            текстовому редакторі, і його можна виправити прямо там, перш ніж Claude піде далі.
+            Це маленька можливість, яка сильно змінює якість результату: правити план у
+            редакторі набагато простіше, ніж описувати правки словами.
+          </p>
+
+          <h3>Крок 6. Implement — з критерієм усередині промпта</h3>
+
+          <p>
+            Вийди з режиму плану, схваливши план (або <code>Shift+Tab</code>), і дай задачу.
+            Зверни увагу на другу половину промпта — вона і є найдешевшим рівнем гейта з блоку 3.
+          </p>
+
+          <div class="example">
+            <div class="example-head"><span class="tag-user">Промпт</span></div>
+            <pre>Напиши slugify.sh за планом. Потім запусти bash test.sh і покажи його
+вивід. Якщо перевірка не проходить — виправ і запусти ще раз, доки не
+побачиш OK. Не міняй сам test.sh.</pre>
+          </div>
+
+          <p>
+            Останнє речення — не перестраховка. Найпростіший спосіб «пройти перевірку» — це
+            переписати перевірку, і закривати ці двері треба явно.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Прийом для великих задач: хай Claude візьме в тебе інтерв'ю</span>
+            <p>
+              Для чогось більшого за цей приклад документація радить інший вхід: почати з
+              короткого опису й попросити <strong>розпитати тебе</strong> — про реалізацію,
+              інтерфейс, крайні випадки й компроміси, — а потім записати повне технічне завдання
+              у файл <code>SPEC.md</code>. Далі новий, чистий сеанс виконує вже написаний
+              документ. Найкорисніші такі описи, за документацією, самодостатні: називають
+              файли й інтерфейси, кажуть, що <em>поза</em> межами задачі, і закінчуються
+              наскрізною перевіркою, яка доводить, що функція працює.
+            </p>
+          </div>
+
+          <h3>Крок 7. Перевір своїми руками</h3>
+
+          <p>
+            Не покладайся на фразу «перевірка пройшла» у відповіді. Вийди з сесії
+            (<code>/exit</code>) або відкрий друге вікно термінала й запусти
+            <code>bash test.sh; echo $?</code> сам. Це займає секунду й закриває цілий клас
+            непорозумінь.
+          </p>
+
+          <p>
+            Документація формулює це як окрему вимогу до самого Claude: просити
+            <strong>докази, а не твердження</strong> — вивід тестів, виконану команду з її
+            результатом, знімок екрана. Читати доказ швидше, ніж переганяти перевірку заново,
+            і це єдиний спосіб перевірити сесію, за якою ти не спостерігав.
+          </p>
+
+          <h3>Крок 8. Огляд змін перед комітом</h3>
+
+          <p>
+            У сесії набери <code>/code-review</code>. Команда перевіряє <strong>поточний
+            діф</strong>: коміти, які є у твоїй гілці й ще не потрапили в ту, за якою вона
+            стежить, плюс усе незакомічене в робочій папці. Тобто їй потрібно, щоб було що
+            оглядати.
+          </p>
+
+          <p>Що варто знати про неї одразу:</p>
+
+          <ul>
+            <li><strong>Працює у фоні, у власному контекстному вікні</strong> — тобто не забиває
+              твою розмову. Результати приходять у сесію, коли огляд завершиться.</li>
+            <li><strong>Рівні зусиль</strong>: <code>low</code>, <code>medium</code>,
+              <code>high</code>, <code>xhigh</code>, <code>max</code>, <code>ultra</code>. На
+              низьких рівнях повідомляються лише знахідки, у яких огляд найбільш упевнений; на
+              високих — ширше покриття й більше сумнівних знахідок. Якщо рівень не назвати,
+              береться той, який ти вводив минулого разу — навіть у попередній сесії, — і
+              Claude Code про це попереджає рядком на кшталт <code>Reusing high effort, the
+              level you typed last time</code>.</li>
+            <li><strong>Прапорці</strong>: <code>--fix</code> застосовує знахідки до робочої
+              папки, <code>--comment</code> публікує їх коментарями в пул-реквесті GitHub.</li>
+            <li><strong>Ціль можна задати</strong>: шлях, номер пул-реквеста, назва гілки або
+              діапазон на кшталт <code>main...my-feature</code>.</li>
+            <li><code>/review</code> — це псевдонім тієї самої команди.</li>
+          </ul>
+
+          <p>
+            Поруч живуть ще три команди, які легко переплутати. Різниця між ними — не в
+            «глибині», а в тому, що саме вони шукають:
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Команда</th>
+                <th>Що шукає</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/code-review</code></td>
+                <td>Помилки в логіці змін і можливості спрощення. Головний інструмент перед
+                  комітом.</td>
+              </tr>
+              <tr>
+                <td><code>/simplify</code></td>
+                <td>Тільки прибирання: повторне використання наявних помічників, спрощення,
+                  ефективність, доречний рівень абстракції. <strong>Помилок не шукає</strong> —
+                  чотири помічники працюють паралельно й одразу застосовують правки.</td>
+              </tr>
+              <tr>
+                <td><code>/security-review</code></td>
+                <td>Уразливості безпеки в змінах гілки: впровадження стороннього коду, проблеми
+                  автентифікації, витік даних. Порівнює твою гілку з
+                  <code>origin/HEAD</code> — і саме тому має відому пастку, розібрану в блоці 6.</td>
+              </tr>
+              <tr>
+                <td><code>/verify</code></td>
+                <td>Не читає код узагалі. Збирає й запускає застосунок і дивиться, чи зміна
+                  справді робить те, що мала, — замість того щоб вірити тестам і перевірці
+                  типів. Запускається лише тоді, коли ти сам її викликав (до v2.1.215 Claude міг
+                  запускати її самостійно).</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Крок 9. Commit</h3>
+
+          <p>
+            Останній крок циклу. Попроси коміт словами — Claude Code має вбудовані інструкції,
+            як писати повідомлення до комітів і пул-реквестів:
+          </p>
+
+          <div class="example">
+            <div class="example-head"><span class="tag-user">Промпт</span></div>
+            <pre>Зроби коміт з описовим повідомленням. Спершу покажи, що саме
+потрапить у коміт.</pre>
+          </div>
+
+          <p>
+            Подивись на повідомлення уважно: у ньому буде рядок <code>Co-Authored-By</code>, про
+            який ішлося в блоці 3. Якщо він тобі не потрібен — ключ <code>attribution</code> у
+            <code>~/.claude/settings.json</code>:
+          </p>
+
+          <pre><code>{
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  }
+}</code></pre>
+
+          <h3>Крок 10 (необов'язковий). Підлаштуй інструмент під себе</h3>
+
+          <p>
+            Останнє в модулі про звички — те, що робить роботу фізично зручнішою. Ці
+            налаштування не потрібні для проходження курсу, але саме вони вирішують, чи зможе
+            людина користуватись Claude Code щодня.
+          </p>
+
+          <h4>Режим для програм читання з екрана</h4>
+
+          <p>
+            <strong>Програма читання з екрана</strong> (screen reader) — застосунок, який
+            озвучує вміст екрана: VoiceOver на macOS, NVDA на Windows. Звичайний інтерфейс
+            Claude Code для неї незручний: рамки з псевдографіки, анімовані індикатори,
+            перемальовування на місці.
+          </p>
+
+          <p>
+            У Claude Code є окремий режим, який замінює це на плоский лінійний текст. Він
+            <strong>не вмикається автоматично</strong>, навіть якщо програма читання вже
+            запущена. Три способи ввімкнути, від разового до постійного:
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Спосіб</th>
+                <th>На що діє</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>claude --ax-screen-reader</code></td>
+                <td>Одна сесія. Потребує v2.1.181+; старіші версії відповідають
+                  <code>error: unknown option '--ax-screen-reader'</code>.</td>
+              </tr>
+              <tr>
+                <td><code>export CLAUDE_AX_SCREEN_READER=1</code></td>
+                <td>Усі сесії з цієї оболонки. У PowerShell —
+                  <code>$env:CLAUDE_AX_SCREEN_READER = "1"</code>.</td>
+              </tr>
+              <tr>
+                <td><code>"axScreenReader": true</code></td>
+                <td>Усі сесії на машині; ключ у файлі налаштувань користувача.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Пріоритет: прапорець сильніший за змінну середовища, змінна сильніша за
+            налаштування. Перший рядок, який друкує програма, підтверджує режим і називає
+            джерело — <code>[Screen Reader Mode: on via flag]</code>,
+            <code>[Screen Reader Mode: on via env]</code> або
+            <code>[Screen Reader Mode: on via settings]</code>.
+          </p>
+
+          <p>
+            У цьому режимі кожне повідомлення в стрічці починається з мітки, яку озвучує
+            програма читання: <code>you:</code>, <code>claude:</code>, <code>thinking:</code>,
+            <code>tool:</code>, <code>tool error:</code>, <code>error:</code>,
+            <code>warning:</code>, <code>Permission Required:</code>, <code>Cost:</code>. Ці
+            мітки шукаються пошуком по історії термінала, тож ними зручно стрибати між
+            частинами розмови. Меню й діалоги дозволів стають нумерованими списками: ти
+            набираєш номер і тиснеш Enter, а на питання «так чи ні» відповідаєш
+            <code>y</code> або <code>n</code>.
+          </p>
+
+          <h4>Якщо програма читання не потрібна, а незручності є</h4>
+
+          <ul>
+            <li><code>"prefersReducedMotion": true</code> — прибирає індикатори-крутилки,
+              мерехтіння й інші анімації;</li>
+            <li><code>CLAUDE_CODE_ACCESSIBILITY=1</code> — тримає курсор термінала постійно
+              видимим, щоб за ним встигали екранні лупи (наприклад, macOS Zoom); з v2.1.218
+              курсор іде й за підсвіченим рядком у меню на кшталт <code>/config</code>;</li>
+            <li><code>"theme"</code> — кольори інтерфейсу, включно з темами для людей із
+              порушенням розрізнення кольорів: <code>dark-daltonized</code> і
+              <code>light-daltonized</code>. Обирається також командою <code>/theme</code>;</li>
+            <li><code>"preferredNotifChannel": "terminal_bell"</code> — звуковий сигнал, коли
+              Claude чекає на тебе.</li>
+          </ul>
+
+          <h4>Голос замість клавіатури</h4>
+
+          <p>
+            Команда <code>/voice</code> вмикає диктування: мова перетворюється на текст прямо
+            в полі вводу, і в одному повідомленні можна змішувати голос і набір. Два режими:
+            <code>/voice hold</code> — тримаєш <code>Space</code>, доки говориш (це типовий), і
+            <code>/voice tap</code> — одне натискання починає запис, друге надсилає.
+            <code>/voice off</code> вимикає.
+          </p>
+
+          <p>
+            Три вимоги, названі в документації прямо. Потрібен <strong>обліковий запис
+            claude.ai</strong>: сервіс розпізнавання недоступний, якщо Claude Code налаштований
+            на ключ API, Amazon Bedrock, Google Cloud Agent Platform або Microsoft Foundry.
+            Потрібен <strong>локальний мікрофон</strong> — у хмарних сесіях і через SSH
+            диктування не працює. У WSL потрібен WSLg. Аудіо надсилається на сервери Anthropic;
+            локально воно не обробляється. Розпізнавання <strong>не витрачає токенів</strong> і
+            не враховується в лімітах, які показує <code>/usage</code>.
+          </p>
+
+          <h4>Свої гарячі клавіші</h4>
+
+          <p>
+            Команда <code>/keybindings</code> створює або відкриває файл
+            <code>~/.claude/keybindings.json</code>. Прив'язки групуються за контекстами —
+            <code>Global</code>, <code>Chat</code>, <code>Autocomplete</code>,
+            <code>Confirmation</code>, <code>Transcript</code> та інші, — тож одна й та сама
+            клавіша може означати різне в різних місцях інтерфейсу. Значення <code>null</code>
+            знімає прив'язку. Зміни у файлі підхоплюються без перезапуску.
+          </p>
+
+          <pre><code>{
+  "bindings": [
+    {
+      "context": "Chat",
+      "bindings": {
+        "ctrl+e": "chat:externalEditor",
+        "ctrl+u": null
+      }
+    }
+  ]
+}</code></pre>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
+          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Модуль про перевірку зобов'язаний давати перевірки на себе. П'ять команд нижче
+            відповідають «так» або «ні» замість здогадок.
+          </p>
+
+          <h3>Перевірка 1. Код виходу самої перевірки</h3>
+
+          <p>
+            <code>bash test.sh; echo $?</code> — <code>0</code> означає «пройшло», будь-що інше
+            означає «ні». Це та сама одиниця й той самий нуль із блоку 2, і це найкоротший
+            спосіб не повірити словам на екрані.
+          </p>
+
+          <h3>Перевірка 2. Що саме змінилось у файлах</h3>
+
+          <p>
+            Відповідь агента описує зміни словами. Git показує їх без інтерпретації:
+          </p>
+
+          <ul>
+            <li><code>git status --short</code> — перелік змінених і нових файлів. Нові позначені
+              двома знаками питання: <code>?? slugify.sh</code>;</li>
+            <li><code>git diff --stat</code> — скільки рядків додано й прибрано в кожному файлі.
+              <strong>Нових файлів він не показує</strong>, доки їх не додано командою
+              <code>git add</code>; після <code>git add -A</code> те саме покаже
+              <code>git diff --cached --stat</code>.</li>
+          </ul>
+
+          <p>
+            Чому саме git, а не чекпойнти з модуля 9: чекпойнти відстежують зміни, зроблені
+            інструментами редагування Claude, і не бачать змін через команди в терміналі.
+            Документація каже про це прямо: <em>це не заміна git</em>. Окремий випадок із того
+            самого ряду — правки, які застосував фоновий <code>/code-review --fix</code>: вони
+            зроблені поза твоїми чекпойнтами, тому <code>/rewind</code> їх не поверне,
+            повертати доведеться через git.
+          </p>
+
+          <h3>Перевірка 3. Чи є потрібна можливість у твоїй збірці</h3>
+
+          <p>
+            Метод із блоку 2, коротко: <code>strings "$(which claude)" | grep -c &lt;назва&gt;</code>
+            і обов'язково контрольний прогін із вигаданою назвою, яка мусить дати
+            <code>0</code>. Швидка перевірка для прапорців — <code>claude --help</code>.
+            Наприклад, на цій машині (2.1.236, 4 вересня 2026) довідка містить рядок:
+          </p>
+
+          <pre><code>  --ax-screen-reader                    Render screen-reader friendly output
+                                        (flat text, no decorative borders or
+                                        animations).</code></pre>
+
+          <p>
+            Одне застереження, яке вже коштувало часу авторам цього курсу: перевіряти існування
+            прапорця треба <strong>без</strong> <code>--help</code> у тому ж рядку. Із
+            <code>--help</code> програма мовчки друкує довідку навіть на неіснуючий прапорець,
+            і ти вирішиш, що він є. Це розбиралось у модулі 17.
+          </p>
+
+          <h3>Перевірка 4. Статус-лайн — без запуску сесії</h3>
+
+          <p>
+            Скрипт статус-лайна отримує JSON на стандартний вхід, тому його можна перевірити
+            звичайним терміналом: подай йому вигаданий JSON і подивись, що він надрукує. Саме
+            цей спосіб радить документація.
+          </p>
+
+          <figure class="term term--cmd" id="p4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p4t">перевірка скрипта статус-лайна · macOS 26.5.2 · 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p4t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">echo '{"model":{"display_name":"Opus"},"workspace":{"current_dir":"/Users/anna/slug-tool"},"context_window":{"used_percentage":25}}' | ./statusline.sh</span></span>
+<span class="term__line">[Opus] slug-tool | 25% контексту</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято наживо, macOS 26.5.2, 4 вересня 2026 року. Скрипт — приклад із документації,
+            перекладений: за допомогою <code>jq</code> він дістає з JSON три поля й друкує один рядок. Шлях у JSON
+            вигаданий (<code>/Users/anna/…</code>), решта дослівна. <code>jq</code> — окрема
+            програма для читання JSON у терміналі, її може не бути на твоїй машині:
+            <code>jq --version</code> скаже.
+          </p>
+
+          <p>Той самий скрипт, якщо хочеш повторити:</p>
+
+          <pre><code>#!/bin/bash
+input=$(cat)
+MODEL=$(echo "$input" | jq -r '.model.display_name')
+DIR=$(echo "$input" | jq -r '.workspace.current_dir')
+PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
+echo "[$MODEL] ${DIR##*/} | ${PCT}% контексту"</code></pre>
+
+          <p>
+            Ще дві перевірки з документації, коли смужка не з'явилась: файл має бути виконуваним
+            (<code>chmod +x ~/.claude/statusline.sh</code>) і має друкувати в стандартний вивід,
+            а не в потік помилок. <code>claude --debug</code> запише в журнал код виходу й потік
+            помилок першого запуску статус-лайна в сесії.
+          </p>
+
+          <h3>Перевірка 5. Чи ввімкнувся режим доступності</h3>
+
+          <p>
+            Не треба вгадувати: перший рядок сесії друкує підтвердження й джерело —
+            <code>[Screen Reader Mode: on via flag]</code>, <code>… on via env</code> або
+            <code>… on via settings</code>. Якщо рядка немає, режим не ввімкнувся.
+          </p>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
+          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+
+          <p>
+            Перші п'ять — іменовані антипатерни з документації, розділ <em>Avoid common failure
+            patterns</em>. Решта — пастки самого цього модуля.
+          </p>
+
+          <h3>1. Сесія-звалище</h3>
+
+          <p>
+            Почав одну задачу, посеред неї спитав щось стороннє, потім повернувся до першої.
+            Контекст забитий тим, що справи не стосується, і якість падає. Виправлення з
+            документації одне: <code>/clear</code> між незв'язаними задачами.
+          </p>
+
+          <h3>2. Виправляєш знову і знову</h3>
+
+          <p>
+            Claude зробив не те, ти виправив, він зробив не те знову, ти виправив ще раз. У
+            контексті тепер живуть усі невдалі підходи, і кожен наступний хід відштовхується від
+            них. Правило з документації конкретне: <strong>після двох невдалих виправлень</strong>
+            — <code>/clear</code> і новий, точніший промпт, який враховує те, що ти вже дізнався.
+            Чиста сесія з добрим промптом майже завжди виграє в довгої сесії з нашаруванням
+            правок.
+          </p>
+
+          <h3>3. Роздутий <code>CLAUDE.md</code></h3>
+
+          <p>
+            Файл виріс — Claude ігнорує половину, бо важливі правила загубились у шумі.
+            Виправлення: різати безжально. Якщо Claude і без інструкції робить правильно, рядок
+            видаляється; якщо правило мусить виконуватись гарантовано, воно перетворюється на
+            перехоплювач подій.
+          </p>
+
+          <h3>4. Розрив між довірою і перевіркою</h3>
+
+          <p>
+            Реалізація виглядає правдоподібно й не обробляє крайні випадки. Це та сама теза,
+            з якої модуль почався, тільки з іншого боку: <em>якщо ти не можеш це перевірити —
+            не випускай це</em>.
+          </p>
+
+          <h3>5. Нескінченна розвідка</h3>
+
+          <p>
+            Попросив «розберись» без меж — Claude прочитав сотні файлів і заповнив контекст.
+            Виправлення: звужувати межі розслідування або віддавати його помічникам (модуль 15),
+            щоб читання не з'їдало твоє вікно.
+          </p>
+
+          <h3>6. <code>/security-review</code> падає з дивною помилкою про <code>origin/HEAD</code></h3>
+
+          <p>
+            Команда збирає контекст, порівнюючи твою гілку з <code>origin/HEAD</code> — місцевим
+            записом про те, яка гілка головна на віддаленому сховищі. Якщо цього запису немає,
+            git-команди падають, і огляд не починається. Ось як це виглядає насправді: та сама
+            команда, яку виконує огляд, у щойно створеному репозиторії без віддаленого сховища.
+          </p>
+
+          <figure class="term term--err" id="p5">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p5t">відтворення помилки · git · macOS 26.5.2 · 2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p5t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">git diff --name-only origin/HEAD...</span></span>
+<span class="term__line"><span class="term__err">fatal: ambiguous argument 'origin/HEAD...': unknown revision or path not in the working tree.</span></span>
+<span class="term__line">Use '--' to separate paths from revisions, like this:</span>
+<span class="term__line">'git &lt;command&gt; [&lt;revision&gt;...] -- [&lt;file&gt;...]'</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято наживо в порожньому репозиторії, macOS 26.5.2, 4 вересня 2026 року. Код виходу —
+            128. Текст збігається з тим, що наводить довідник помилок Claude Code, дослівно.
+            Кнопки копіювання немає: це помилка, а не рецепт.
+          </p>
+
+          <p>
+            У сесії помилка виглядає інакше — обгорнутою в рядок
+            <code>Error: Shell command failed for pattern "!`git diff --name-only origin/HEAD...`"</code>,
+            і команда в лапках щоразу може бути іншою: огляд запускає кілька git-команд одразу й
+            повідомляє про ту, яка впала першою.
+          </p>
+
+          <p><strong>Як полагодити</strong> (з довідника помилок):</p>
+
+          <ul>
+            <li><code>git remote set-head origin &lt;головна-гілка&gt;</code> — назвати головну
+              гілку явно;</li>
+            <li>або <code>git fetch origin</code>, потім
+              <code>git remote set-head origin --auto</code> — спитати про це саме сховище;</li>
+            <li>у клонах з однією гілкою спершу треба розширити перелік:
+              <code>git remote set-branches --add origin &lt;гілка&gt;</code>, потім
+              <code>git fetch origin</code>.</li>
+          </ul>
+
+          <p>
+            Найчастіші причини, чому запису немає: репозиторій створений локально й не має
+            віддаленого сховища взагалі, клон зроблений з однією гілкою або це перевірка коду в
+            CI з вузьким набором гілок.
+          </p>
+
+          <h3>7. Стиль відповіді змінили — ефекту немає</h3>
+
+          <p>
+            Стиль потрапляє в системний промпт, а той читається один раз на старті сесії. Доки
+            ти не зробив <code>/clear</code> або не запустив Claude Code заново, діє старий
+            стиль. Ця сама механіка вже траплялась у модулі 12 з правками в
+            <code>CLAUDE.md</code> посеред сесії.
+          </p>
+
+          <h3>8. Стаття радить <code>/output-style</code>, а команди немає</h3>
+
+          <p>
+            Команду видалили у v2.1.91. Будь-який туторіал, який починається з
+            <code>/output-style</code>, описує програму, якої вже немає, — і при цьому виглядає
+            свіжим. Робочий шлях: <code>/config</code> або поле <code>outputStyle</code>.
+          </p>
+
+          <h3>9. Рецензент завжди щось знаходить</h3>
+
+          <p>
+            Документація попереджає про це окремо: помічник, якого попросили шукати прогалини,
+            зазвичай їх знаходить — навіть коли робота зроблена добре, бо його про це попросили.
+            Гнатись за кожною знахідкою означає надмірну інженерію: зайві шари абстракції,
+            захисний код і тести на випадки, яких не буває. Практичний прийом із документації —
+            прямо сказати рецензентові позначати лише те, що впливає на правильність або на
+            названі вимоги, а решту вважати необов'язковим.
+          </p>
+
+          <h3>10. Статус-лайн зник без попередження</h3>
+
+          <p>
+            Дві причини, які не дають жодного повідомлення. Якщо <code>disableAllHooks</code>
+            стоїть <code>true</code> поза керованими налаштуваннями, Claude Code виконує лише
+            статус-лайн із керованих налаштувань, а якщо його там немає — смужки немає взагалі.
+            Якщо організація ввімкнула <code>allowManagedHooksOnly</code>, свій статус-лайн
+            зникає тихо: дозволений лише той, що заданий керованою політикою.
+          </p>
+
+          <h3>11. Життя в режимі плану</h3>
+
+          <p>
+            Остання грабля — від протилежного. Режим плану коштує зайвого ходу й зайвих токенів
+            на кожній дрібниці, і документація прямо називає це накладними витратами. Правило
+            вже звучало в блоці 1: якщо зміну можна описати одним реченням, план пропускається.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
+          <h2><span class="lesson-no">7</span>Часті питання</h2>
+
+          <h3>Чим <code>/verify</code> відрізняється від <code>/code-review</code>?</h3>
+
+          <p>
+            Вони дивляться в різні боки. <code>/code-review</code> читає діф і шукає помилки в
+            ньому. <code>/verify</code> код не читає: він збирає й запускає застосунок і
+            дивиться на поведінку — саме тому в документації сказано «замість того щоб
+            покладатись на тести й перевірку типів». Поруч живуть ще дві навички:
+            <code>/run</code> лише запускає застосунок, а <code>/run-skill-generator</code>
+            один раз записує рецепт запуску твого проєкту в
+            <code>.claude/skills/run-&lt;назва&gt;/</code>, щоб інші не вигадували його щоразу.
+          </p>
+
+          <h3>Чи потрібен git, щоб користуватись Claude Code?</h3>
+
+          <p>
+            Ні. Читати, пояснювати й правити файли він може в будь-якій папці. Але без git ти
+            лишаєшся без єдиної надійної сітки безпеки: чекпойнти не бачать змін, зроблених
+            командами в терміналі, і не повертають правки фонових помічників, а
+            <code>/code-review</code> і <code>/security-review</code> без історії гілки не мають
+            що порівнювати. Для першого проєкту достатньо <code>git init</code> і звички
+            комітити перед тим, як просити велику зміну.
+          </p>
+
+          <h3><code>/code-review ultra</code> — це платно?</h3>
+
+          <p>
+            Це хмарний варіант огляду: кілька помічників працюють у пісочниці на боці Anthropic.
+            На планах Pro і Max є <strong>три безкоштовні запуски</strong>, далі потрібні
+            додаткові кредити (usage credits). Коли запуск має списати кредити, Claude Code
+            зупиняється перед стартом, бо підтвердження оплати потребує інтерактивної сесії; для
+            скриптів існує окрема підкоманда <code>claude ultrareview</code>, і сам факт її
+            запуску означає згоду на оплату. Хмарний огляд недоступний на Amazon Bedrock, Google
+            Cloud Agent Platform і Microsoft Foundry, а також організаціям із нульовим
+            зберіганням даних — у таких випадках <code>/code-review ultra</code> виконує
+            звичайний локальний огляд.
+          </p>
+
+          <h3>Я не бачу стилю <code>Concise</code>. У мене щось зламано?</h3>
+
+          <p>
+            Ні. Він потребує v2.1.237 або новішої. Якщо твоя версія менша — стилю в програмі
+            фізично немає, і жодне налаштування його не поверне. Перевірка — у блоці 2;
+            оновлення — у модулі 3.
+          </p>
+
+          <h3>Чи побачить колега мій стиль відповіді?</h3>
+
+          <p>
+            Сам файл стилю — так, якщо він лежить у <code>.claude/output-styles</code> проєкту й
+            потрапив у репозиторій. Проєктні стилі підхоплюються з усіх тек
+            <code>.claude/output-styles/</code> між робочою папкою й коренем репозиторію, і при
+            збігу імен виграє найближча до робочої папки. А от <em>вибір</em> стилю через
+            <code>/config</code> Claude Code пише в <code>.claude/settings.local.json</code> —
+            це локальний файл, і він у колеги свій.
+          </p>
+
+          <h3>Що таке <code>/insights</code> і чи коштує це грошей?</h3>
+
+          <p>
+            Це звіт не про токени, а про те, <em>як ти працюєш</em>: у яких проєктах, де виникає
+            тертя (нерозпізнані запити, помилковий код), що варто спробувати. Claude Code пише
+            HTML-файл у <code>~/.claude/usage-data/report.html</code> плюс копію з міткою часу.
+            Один запуск аналізує до <strong>200</strong> нових сесій і пропускає зовсім короткі.
+            Працює на будь-якому плані, але <strong>аналіз іде через твій акаунт, і токени
+            рахуються тобі</strong>. Сесії з інших пристроїв і з claude.ai не враховуються.
+          </p>
+
+          <h3>Чому <code>/code-review</code> не бачить моїх змін?</h3>
+
+          <p>
+            Йому потрібен діф. Якщо твоя гілка нічим не відрізняється від тієї, за якою вона
+            стежить, і в робочій папці немає незакомічених змін, оглядати нічого. Або зроби зміну,
+            або передай ціль явно: шлях, номер пул-реквеста, назву гілки чи діапазон
+            <code>main...my-feature</code>.
+          </p>
+
+          <h3>Голосове введення — це те саме розпізнавання, що в телефоні?</h3>
+
+          <p>
+            Ні, аудіо надсилається на сервери Anthropic, локально воно не обробляється.
+            Розпізнавання налаштоване під лексику програмування: слова на кшталт
+            <code>regex</code>, <code>OAuth</code>, <code>JSON</code>, <code>localhost</code>
+            розпізнаються правильно, а назва твого проєкту й гілки додаються як підказки
+            автоматично.
+          </p>
+
+          <h3>Це останній модуль, після якого я «вмію»?</h3>
+
+          <p>
+            Це останній модуль про роботу. Документація закінчує ту саму сторінку розділом
+            <em>Develop your intuition</em>, і думка там непопулярна для інструкції: описані
+            правила — не закон, а хороша відправна точка. Іноді контекст варто накопичувати, бо
+            ти глибоко в одній складній задачі. Іноді план варто пропустити. Іноді розмитий
+            промпт — саме те, що треба, бо ти хочеш побачити, як Claude зрозуміє задачу, перш
+            ніж її звужувати. Уміння приходить із спостереження за тим, що спрацювало саме в
+            тебе.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
+          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+
+          <p>Уся звичка вміщується в п'ять рядків:</p>
+
+          <ol>
+            <li><strong>Спершу перевірка.</strong> Перш ніж просити зміну, з'ясуй, що скаже «так»
+              або «ні». Немає перевірки — петлею перевірки станеш ти.</li>
+            <li><strong>Розвідка й план окремо від коду</strong> — але лише тоді, коли зміна
+              справді того варта.</li>
+            <li><strong>Критерій — усередині промпта.</strong> «Запусти перевірку й виправ, доки
+              не пройде» коштує одного речення й працює вже сьогодні.</li>
+            <li><strong>Друга думка перед комітом.</strong> <code>/code-review</code> у свіжому
+              контексті бачить діф, а не міркування, які його породили.</li>
+            <li><strong>Перевір своїми руками.</strong> Код виходу й <code>git status</code>
+              не переказують — вони показують.</li>
+          </ol>
+
+          <p>
+            І одна звичка, яка старша за всі попередні: <strong>звіряй живою командою, а не
+            статтею</strong>. У цьому модулі вона мала вигляд одного нуля навпроти
+            <code>Concise</code> — стилю, який документація описує як вбудований, а встановлена
+            збірка не знає. Наступного місяця це буде інша назва й інша версія; спосіб перевірки
+            лишиться той самий.
+          </p>
+
+          <h3>Наступний крок</h3>
+
+          <p>
+            <strong>Модуль 22 — «Безпека, великі проєкти, куди далі».</strong> Там ітиметься про
+            те, чого агенту не варто давати взагалі: впровадження інструкцій через чужий текст,
+            секрети в транскриптах, межі пісочниці, робота у великому репозиторії — і чесний
+            перелік того, що свідомо лишилось поза цим курсом. Після нього — фінальний іспит.
+          </p>
+
+          <p>
+            А доти є маленьке домашнє завдання, яке варте більше, ніж здається: пройди цикл із
+            блоку 4 ще раз, але на <em>своєму</em> файлі. Хай це буде текст, таблиця чи
+            конфігурація — головне, щоб перед початком ти сформулював, що саме означатиме
+            «готово», і щоб це можна було запустити.
+          </p>
+        </section>
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Перевір себе</h2>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Людина просить Claude полагодити помилку, отримує відповідь «готово» і йде далі. Через день з'ясовується, що помилка на місці. Що саме було зроблено не так, за логікою документації?",
+            "options": [
+              "Не було перевірки, яку Claude міг запустити сам, тому єдиним сигналом лишилось «виглядає зробленим»",
+              "Була обрана надто слабка модель для цієї задачі",
+              "Треба було працювати в режимі плану — тоді помилки не сталось би",
+              "Треба було дати більше дозволів, щоб Claude довів роботу до кінця"
+            ],
+            "answer": 0,
+            "explain": "Ключова теза сторінки best practices: Claude зупиняється, коли робота виглядає зробленою, і без перевірки, яку він може запустити, петлею перевірки стає людина. Варіант про модель мимо: жодна модель не знає, що результат неправильний, якщо результат ніхто не перевіряє. Режим плану допомагає обрати підхід, а не переконатись, що код працює. Ширші дозволи лише прибирають питання про дії, вони не додають сигналу «пройшло чи ні»."
+          },
+          {
+            "q": "Скільки фаз у рекомендованому циклі роботи з документації і де в ньому перевірка?",
+            "options": [
+              "П'ять фаз, і перевірка — п'ята з них",
+              "Чотири фази — Explore, Plan, Implement, Commit; перевірка не фаза, а наскрізна вимога",
+              "Три фази, а перевірка виконується тільки в кінці, перед комітом",
+              "Кількість фаз залежить від обраного режиму дозволів"
+            ],
+            "answer": 1,
+            "explain": "У документації рівно чотири кроки: Explore, Plan, Implement, Commit. Перевірці відведено окремий розділ, який стоїть перед описом циклу, бо вона потрібна в кожній його точці, а не в одній. Уявлення про п'ять фаз із перевіркою як окремим етапом — поширена помилка переказів. Варіант про залежність від режиму дозволів плутає дві різні речі: режим вирішує, що виконується без питання, а не з яких кроків складається робота."
+          },
+          {
+            "q": "Людина написала свій стиль відповіді, щоб Claude відповідав коротше. Після переходу на нього Claude почав гірше писати код: не тримає межі змін, не перевіряє себе. Що сталось?",
+            "options": [
+              "Стиль випадково змінив модель на слабшу",
+              "Стилі не можна застосовувати до задач програмування взагалі",
+              "У шапці файла не задано keep-coding-instructions: true, і стиль прибрав вбудовані інженерні інструкції",
+              "Стиль треба класти в CLAUDE.md, а не в окремий файл"
+            ],
+            "answer": 2,
+            "explain": "Поле keep-coding-instructions за замовчуванням має значення false, і тоді власний стиль замінює вбудовані інженерні інструкції Claude Code, а не додається до них. Це задум: стилі розраховані й на задачі, де програмування немає. Модель стиль не змінює — за неї відповідають окремі налаштування. Стилі до програмування придатні, потрібне лише явне значення true. А CLAUDE.md — інший механізм: він додає повідомлення після системного промпта, а не змінює сам системний промпт."
+          },
+          {
+            "q": "Команда /security-review падає з рядком про «ambiguous argument 'origin/HEAD...'». Що це означає?",
+            "options": [
+              "У проєкті знайдено уразливість, яку огляд не може безпечно описати",
+              "Закінчився ліміт безкоштовних запусків огляду",
+              "Гілка захищена налаштуваннями організації, і огляд заборонений",
+              "Немає локального запису про те, яка гілка головна на віддаленому сховищі, і команда не може зібрати діф"
+            ],
+            "answer": 3,
+            "explain": "Огляд будує свій контекст, порівнюючи гілку з origin/HEAD — місцевим записом про головну гілку віддаленого сховища. Немає запису — падають git-команди, і огляд зупиняється до початку. Лікується це git remote set-head, а не оновленням чи оплатою. Про уразливості тут не йдеться взагалі: помилка виникає раніше, ніж огляд щось прочитав. Ліміти безкоштовних запусків стосуються хмарного ultra-огляду, а не /security-review."
+          },
+          {
+            "q": "Фоновий /code-review з прапорцем --fix застосував правки, які виявились зайвими. Людина натискає Esc двічі й відкатує сесію через /rewind, але правки лишаються на місці. Чому?",
+            "options": [
+              "Файли були відкриті в редакторі, і відкат не спрацював",
+              "Правки фонового огляду зроблені поза чекпойнтами сесії, тому повертати їх треба через git",
+              "/rewind повертає тільки розмову й ніколи не повертає код",
+              "Відкат працює лише протягом п'яти хвилин після зміни"
+            ],
+            "answer": 1,
+            "explain": "Фоновий огляд працює як окремий помічник, і його правки застосовуються поза чекпойнтами твоєї сесії — документація каже про це прямо й радить повертати їх через git. Меню /rewind уміє повертати і розмову, і код, і обидва разом, тож твердження «ніколи не повертає код» хибне. Часового вікна в п'ять хвилин у чекпойнтів немає: вони зберігаються разом із розмовою. Відкриті в редакторі файли на це не впливають."
+          },
+          {
+            "q": "Документація описує вбудований стиль Concise, але в конкретній збірці його немає в переліку. Який спосіб перевірки дасть відповідь, а не здогадку?",
+            "options": [
+              "Запустити claude --output-style Concise --help і подивитись, чи буде помилка",
+              "Написати в CLAUDE.md правило відповідати коротко й порівняти поведінку",
+              "Пошукати назву в самій програмі через strings і обов'язково повторити пошук із вигаданою назвою",
+              "Перезапустити термінал і перевірити ще раз"
+            ],
+            "answer": 2,
+            "explain": "Пошук рядків усередині встановленого файла програми показує, чи знає ця збірка потрібну назву; контрольний прогін із вигаданою назвою мусить дати нуль, інакше метод нічого не доводить. Варіант із --help оманливий: наявність --help у рядку глушить помилку про невідомий прапорець, і довідка надрукується так, ніби все гаразд. Правило в CLAUDE.md змінює поведінку, але не відповідає на питання, чи існує стиль. Перезапуск термінала не змінює вміст встановленої програми — тут допомагає лише оновлення версії."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
