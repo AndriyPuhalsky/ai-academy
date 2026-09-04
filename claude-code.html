@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="claude-code.config.json">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Без обмежень масштабу: нова сторінка народжується без дефекту
+       WCAG 1.4.4, який задача 004 знімає з решти сайту. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Термінал — курс про Claude Code українською</title>
+  <meta name="description" content="Безкоштовний курс про Claude Code українською: від «ніколи не відкривав термінал» до впевненої щоденної роботи з агентом. 22 модулі, 5 фаз, фінальний іспит і три довідники." />
+  <meta name="theme-color" content="#141312" />
+  <meta property="og:title" content="AI Термінал — курс про Claude Code" />
+  <meta property="og:description" content="Термінал — не для хакерів. 22 модулі про щоденну роботу з Claude Code: контекст, дозволи, налаштування, автоматизація." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Хореографія hero стартує аж після ДВОХ мережевих подій: приїхав GSAP
+       з CDN і приїхав конфіг. Критерій приймання 1 («сесія доходить до
+       діалогу за ≤6 с від завантаження») міряється від navigationStart,
+       тому обидві події підганяються заздалегідь. -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preload" href="claude-code.config.json" as="fetch" type="application/json" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink:    "#141312",
+            surface:"#1E1B18",
+            raised: "#272320",
+            line:   "#3A342E",
+            "line-strong": "#736A5E",
+            ivory:  "#F0EEE6",
+            muted:  "#A8A095",
+            faint:  "#9A9184",
+            clay:   "#D97757",
+            "clay-deep": "#C4674A",
+            sand:   "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <!-- Порядок обов'язковий: claude-code.css перекриває два роадмапові
+       токени з custom.css (--rail-w, --node-r). Поміняти місцями =
+       зламати геометрію осі сторінки. -->
+  <link rel="stylesheet" href="css/custom.css" />
+  <link rel="stylesheet" href="css/claude-code.css" />
+</head>
+
+<body id="top" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <div id="announcement" hidden class="border-b border-clay/30 bg-clay/10"></div>
+
+  <!-- ШАПКА · та сама розмітка, що в index.html / architect.html -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-content items-center justify-between gap-4 px-5 sm:px-8">
+      <a href="#top" class="flex items-center gap-2.5">
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIT</span>
+        <span class="font-display text-lg" data-site="name">AI Термінал</span>
+      </a>
+
+      <nav aria-label="Головна навігація" class="hidden items-center gap-7 text-sm text-muted sm:flex">
+        <!-- Якірні пункти приходять із claude-code.config.json (ключ nav) -->
+        <span id="ccNav" class="contents"></span>
+        <!-- 005 · «Курси» замість одного перехресного посилання: блоків платформи
+             стало три, і схема «кожен лендінг посилається на кожен» дала б шість
+             перехресних пунктів. Порядок списку — рішення власника 2026-09-04.
+             Поведінка — initCourses() у js/ui.js, той самий патерн, що initMenu. -->
+        <div class="relative">
+          <button id="coursesBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="coursesMenu"
+                  class="flex min-h-[24px] items-center gap-1.5 transition hover:text-ivory">
+            Курси
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 9l7 7 7-7" />
+            </svg>
+          </button>
+          <div id="coursesMenu" class="absolute right-0 top-full z-50 mt-3 hidden w-60 rounded-xl border border-line bg-surface p-1.5 shadow-2xl">
+            <a href="index.html" class="block rounded-lg px-3 py-2 transition hover:bg-raised hover:text-ivory text-muted">Базовий</a>
+            <a href="architect.html" class="block rounded-lg px-3 py-2 transition hover:bg-raised hover:text-ivory text-muted">AI Architect</a>
+            <a href="claude-code.html" class="block rounded-lg px-3 py-2 transition hover:bg-raised hover:text-ivory text-sand" aria-current="page">Claude Code CLI</a>
+          </div>
+        </div>
+        <a data-link="github" href="#" class="transition hover:text-ivory">GitHub ↗</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <button id="menuBtn" type="button" aria-expanded="false" aria-controls="mobileMenu"
+                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory sm:hidden">
+          <span class="sr-only">Меню</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Мобільне меню -->
+    <div id="mobileMenu" class="hidden border-t border-line/60 bg-ink sm:hidden">
+      <nav aria-label="Мобільна навігація" class="mx-auto flex max-w-content flex-col gap-1 px-5 py-4 text-sm">
+        <span id="ccNavMobile" class="contents"></span>
+        <!-- 005 · на мобілці випадайка не потрібна: меню вже розгорнуте списком,
+             тому три курси стоять поспіль під підписом-заголовком. -->
+        <p class="px-3 pb-1 pt-3 font-mono text-xs uppercase tracking-[0.18em] text-faint">Курси</p>
+        <a href="index.html" class="rounded-lg px-3 py-2.5 transition hover:bg-surface hover:text-ivory text-muted">Базовий</a>
+        <a href="architect.html" class="rounded-lg px-3 py-2.5 transition hover:bg-surface hover:text-ivory text-muted">AI Architect</a>
+        <a href="claude-code.html" class="rounded-lg px-3 py-2.5 transition hover:bg-surface hover:text-ivory text-sand" aria-current="page">Claude Code CLI</a>
+        <a data-link="github" href="#" class="rounded-lg px-3 py-2.5 text-muted transition hover:bg-surface hover:text-ivory">GitHub ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-content px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <main id="main">
+
+    <!-- ============================================================
+         ВІСЬ СТОРІНКИ. Одна пряма лінія від hero до вузла іспиту:
+         вона й тримає композицію, і є носієм M9.
+         ============================================================ -->
+    <div class="cc-path">
+      <div class="cc-path__line" aria-hidden="true">
+        <i class="cc-path__rest"></i>
+        <i class="cc-path__lit"></i>
+      </div>
+
+      <!-- ---------------- HERO ---------------- -->
+      <section class="cc-hero cc-wrap" aria-labelledby="heroTitle">
+        <div class="cc-hero__grid">
+          <div class="cc-hero__head">
+            <div class="cc-grid">
+              <div class="cc-grid__rail"></div>
+              <div class="cc-grid__body">
+                <h1 class="cc-hero__title" id="heroTitle"></h1>
+              </div>
+            </div>
+          </div>
+
+          <div class="cc-hero__body">
+            <div class="cc-grid">
+              <div class="cc-grid__rail"></div>
+              <div class="cc-grid__body">
+                <p class="cc-hero__lead" id="heroLead"></p>
+                <div class="cc-hero__cta">
+                  <a class="cc-btn cc-btn--primary" id="ctaStart" href="#"></a>
+                  <a class="cc-btn cc-btn--ghost" id="ctaMap" href="#map"></a>
+                </div>
+                <p class="cc-hero__explain"><span id="heroExplainText"></span></p>
+                <p class="cc-hero__stats" id="heroStats"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Предмет на столі. Плита — єдиний об'єм на сторінці. -->
+          <div class="cc-hero__object is-reserved">
+            <div class="cc-desk">
+              <figure class="term term--hero" id="heroTerm">
+                <figcaption class="term__chrome">
+                  <span class="term__dots" aria-hidden="true"></span>
+                  <span class="term__title" id="heroChrome"></span>
+                </figcaption>
+                <pre class="term__body" id="heroBody" tabindex="0" role="group" aria-labelledby="heroChrome"></pre>
+              </figure>
+              <div class="cc-desk__foot">
+                <span id="heroHint"></span>
+                <button type="button" id="heroReplay" class="cc-btn cc-btn--quiet">
+                  <span aria-hidden="true">↻</span><span id="heroReplayLabel"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------- ДЛЯ КОГО ---------------- -->
+      <section class="cc-section cc-wrap cc-in" aria-labelledby="audTitle">
+        <div class="cc-grid">
+          <div class="cc-grid__rail"></div>
+          <div class="cc-grid__body">
+            <h2 class="cc-h2" id="audTitle"></h2>
+            <p class="cc-lead" id="audLead"></p>
+            <div class="cc-split" style="margin-top:var(--s-10)">
+              <div>
+                <h3 class="cc-split__head" id="audForTitle"></h3>
+                <ul class="cc-list cc-list--for" id="audFor"></ul>
+              </div>
+              <div>
+                <h3 class="cc-split__head" id="audNotTitle"></h3>
+                <ul class="cc-list cc-list--not" id="audNot"></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------- ЧОГО НАВЧИШСЯ ---------------- -->
+      <section class="cc-section cc-wrap cc-in" aria-labelledby="outTitle">
+        <div class="cc-grid">
+          <div class="cc-grid__rail"></div>
+          <div class="cc-grid__body">
+            <h2 class="cc-h2" id="outTitle"></h2>
+            <p class="cc-lead" id="outLead"></p>
+            <ul class="cc-out" id="outList"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------- КАРТА ПРОГРАМИ ---------------- -->
+      <section class="cc-section cc-wrap" id="map" aria-labelledby="mapTitle">
+        <div class="cc-grid cc-in">
+          <div class="cc-grid__rail"></div>
+          <div class="cc-grid__body">
+            <h2 class="cc-h2" id="mapTitle"></h2>
+            <p class="cc-lead" id="mapLead"></p>
+          </div>
+        </div>
+        <ol class="cc-map__reserve" id="ccMap"></ol>
+        <div class="cc-exam cc-grid" id="ccExam"></div>
+      </section>
+    </div><!-- /.cc-path -->
+
+    <!-- ---------------- ПОЛИЦЯ · ДОВІДНИКИ ---------------- -->
+    <section class="cc-section cc-wrap cc-in" id="refs" aria-labelledby="refTitle">
+      <div class="cc-grid">
+        <div class="cc-grid__rail"></div>
+        <div class="cc-grid__body">
+          <h2 class="cc-h2" id="refTitle"></h2>
+          <p class="cc-lead" id="refLead"></p>
+          <div class="cc-shelf__line" aria-hidden="true"></div>
+          <ul class="cc-shelf__items" id="refList"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------- ЯК ВЛАШТОВАНИЙ УРОК ---------------- -->
+    <section class="cc-section cc-wrap cc-in" aria-labelledby="shapeTitle">
+      <div class="cc-grid">
+        <div class="cc-grid__rail"></div>
+        <div class="cc-grid__body">
+          <h2 class="cc-h2" id="shapeTitle"></h2>
+          <p class="cc-lead" id="shapeLead"></p>
+          <ol class="cc-steps" id="shapeSteps"></ol>
+          <p class="cc-note" id="shapeNote"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------- СЕРТИФІКАТ ---------------- -->
+    <section class="cc-section cc-wrap cc-in" aria-labelledby="certTitle">
+      <div class="cc-grid">
+        <div class="cc-grid__rail"></div>
+        <div class="cc-grid__body">
+          <div class="cc-cert">
+            <div>
+              <h2 class="cc-h2" id="certTitle"></h2>
+              <p class="cc-lead" id="certLead"></p>
+              <p class="cc-note" id="certNote"></p>
+            </div>
+            <div class="cc-paper">
+              <p class="cc-paper__kind" id="certKind"></p>
+              <p class="cc-paper__name" id="certName"></p>
+              <div class="cc-paper__rule" aria-hidden="true"></div>
+              <p class="cc-paper__course" id="certCourse"></p>
+              <p class="cc-paper__code" id="certCode"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------- ДОНАТИ ---------------- -->
+    <section class="cc-section cc-wrap cc-in" id="donate" aria-labelledby="donateTitle">
+      <div class="cc-grid">
+        <div class="cc-grid__rail"></div>
+        <div class="cc-grid__body">
+          <h2 class="cc-h2" id="donateTitle"></h2>
+          <p class="cc-lead" id="donateLead"></p>
+          <ul class="cc-donate" id="donateGrid"></ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ФУТЕР · структура index.html / architect.html, тексти з конфіга -->
+  <footer class="border-t border-line/60">
+    <div class="mx-auto grid max-w-content gap-10 px-5 py-12 sm:px-8 md:grid-cols-[1.4fr,1fr,1fr]">
+      <div>
+        <p class="mb-3 font-display text-xl" data-site="name">AI Термінал</p>
+        <p class="max-w-sm text-sm leading-relaxed text-muted" data-site="disclaimer"></p>
+      </div>
+      <nav aria-label="Посилання проєкту">
+        <p class="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-faint" id="footProject"></p>
+        <ul class="space-y-2 text-sm" id="footLinks"></ul>
+        <!-- Модалка «Написати нам» — той самий компонент, що на двох інших
+             лендінгах (js/contact.js). Кнопка статична, бо contact.js
+             прив'язується до #contactTrigger одразу після свого fetch;
+             підпис приходить із конфіга. -->
+        <p class="mt-2 text-sm"><button type="button" id="contactTrigger"
+                class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand"></button></p>
+      </nav>
+      <nav aria-label="Першоджерела">
+        <p class="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-faint" id="footSources"></p>
+        <ul class="space-y-2 text-sm" id="footSourceLinks"></ul>
+      </nav>
+    </div>
+    <div class="border-t border-line/60">
+      <div class="mx-auto flex max-w-content flex-wrap items-center justify-between gap-3 px-5 py-5 font-mono text-xs text-faint sm:px-8">
+        <span id="footerMeta"></span>
+        <span><span id="footMade"></span> · <a href="#top" id="footTop" class="transition hover:text-sand"></a></span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Порядок важливий: прогрес → UI (слухачі подій і випадайка «Курси»).
+       js/config.js тут НЕ підключається: у цієї сторінки власний рендерер. -->
+  <script src="js/progress.js"></script>
+  <script src="js/ui.js"></script>
+  <!-- Авторизація: сама вставляє в шапку кнопку «Увійти» / ім'я + «Вийти» -->
+  <script src="js/auth-ui.js"></script>
+  <script type="module" src="js/auth.js"></script>
+  <!-- Модалка «Написати нам»: Cloudflare Turnstile підвантажує лише сама, при відкритті -->
+  <script type="module" src="js/contact.js"></script>
+
+  <!-- GSAP 3.13.0 — ті самі три файли, що в roadmap.html -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/CustomEase.min.js"></script>
+  <!-- Рендер → подія cc:rendered → хореографія. Порядок міняти не можна:
+       motion слухає подію, яку кидає render. -->
+  <script src="js/claude-code-render.js"></script>
+  <script src="js/claude-code-motion.js"></script>
+</body>
+</html>
