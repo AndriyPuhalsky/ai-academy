@@ -1,0 +1,2098 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="claude-code.config.json" data-own-title>
+
+<head>
+  <meta charset="UTF-8" />
+  <!-- Масштаб не заборонений: сторінка народжується без дефекту WCAG 1.4.4. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Довідник: усі команди й клавіші Claude Code — AI Термінал</title>
+  <meta name="description"
+    content="Повний довідник Claude Code українською: 111 слеш-команд із псевдонімами й поведінкою в claude -p, 13 команд термінала, гарячі клавіші, переприв'язування клавіш. Дата й версія біля кожного числа." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="css/custom.css" />
+</head>
+
+<body class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Сторінка читається й без JavaScript: усі таблиці нижче — звичайний текст. JavaScript тут
+      відповідає лише за кнопку входу в шапці.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <a href="claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Довідник</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <a href="claude-code.html#refs"
+          class="hidden text-sm text-muted transition hover:text-ivory sm:inline">Полиця довідників</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Сам довідник це не ламає —
+      без конфіга не працює лише кнопка входу в шапці.
+    </div>
+  </div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[260px,1fr] lg:gap-12">
+
+    <!-- ЗМІСТ СТОРІНКИ (статичний: js/module.js тут не підключений) -->
+    <nav aria-label="Зміст довідника" class="border-b border-line/60 py-6 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:overflow-y-auto lg:border-b-0 lg:py-10">
+      <p class="mb-3 font-mono text-xs uppercase tracking-[0.18em] text-faint">Зміст</p>
+      <ul class="grid gap-1.5 text-sm text-muted">
+        <li><a href="#how" class="transition hover:text-ivory">Як користуватись сторінкою</a></li>
+        <li><a href="#slash" class="transition hover:text-ivory">Що таке слеш-команда</a></li>
+        <li class="pt-2"><span class="font-mono text-xs uppercase tracking-[0.18em] text-faint">111 команд</span></li>
+        <li><a href="#g1" class="transition hover:text-ivory">1 · Почати в проєкті</a></li>
+        <li><a href="#g2" class="transition hover:text-ivory">2 · Розмова, контекст, відкат</a></li>
+        <li><a href="#g3" class="transition hover:text-ivory">3 · Фонова й паралельна робота</a></li>
+        <li><a href="#g4" class="transition hover:text-ivory">4 · Модель, зусилля, гроші</a></li>
+        <li><a href="#g5" class="transition hover:text-ivory">5 · Код: план, перевірка, огляд</a></li>
+        <li><a href="#g6" class="transition hover:text-ivory">6 · Навички, плагіни, MCP, хуки</a></li>
+        <li><a href="#g7" class="transition hover:text-ivory">7 · Поза цим терміналом</a></li>
+        <li><a href="#g8" class="transition hover:text-ivory">8 · Дизайн і артефакти</a></li>
+        <li><a href="#g9" class="transition hover:text-ivory">9 · Вигляд, клавіші, налаштування</a></li>
+        <li><a href="#g10" class="transition hover:text-ivory">10 · Акаунт і провайдер</a></li>
+        <li><a href="#g11" class="transition hover:text-ivory">11 · Діагностика й довідка</a></li>
+        <li><a href="#g12" class="transition hover:text-ivory">12 · Дрібниці</a></li>
+        <li><a href="#dead" class="transition hover:text-ivory">13 · Видалені й перейменовані</a></li>
+        <li class="pt-2"><span class="font-mono text-xs uppercase tracking-[0.18em] text-faint">Зрізи</span></li>
+        <li><a href="#aliases" class="transition hover:text-ivory">Усі псевдоніми</a></li>
+        <li><a href="#headless" class="transition hover:text-ivory">Що працює в <code>-p</code></a></li>
+        <li><a href="#hidden" class="transition hover:text-ivory">Приховані команди</a></li>
+        <li class="pt-2"><span class="font-mono text-xs uppercase tracking-[0.18em] text-faint">Термінал</span></li>
+        <li><a href="#cli" class="transition hover:text-ivory">Команда <code>claude</code> і 13 підкоманд</a></li>
+        <li class="pt-2"><span class="font-mono text-xs uppercase tracking-[0.18em] text-faint">Клавіші</span></li>
+        <li><a href="#keys-general" class="transition hover:text-ivory">Керування сесією</a></li>
+        <li><a href="#keys-edit" class="transition hover:text-ivory">Редагування рядка</a></li>
+        <li><a href="#keys-multiline" class="transition hover:text-ivory">Кілька рядків і префікси</a></li>
+        <li><a href="#keys-transcript" class="transition hover:text-ivory">Переглядач транскрипту</a></li>
+        <li><a href="#keys-vim" class="transition hover:text-ivory">Vim-режим</a></li>
+        <li><a href="#rebind" class="transition hover:text-ivory">Переприв'язати клавішу</a></li>
+        <li><a href="#trouble" class="transition hover:text-ivory">Команда не спрацювала</a></li>
+        <li><a href="#sources" class="transition hover:text-ivory">Джерела й дати</a></li>
+      </ul>
+      <p class="mt-6 border-t border-line/60 pt-4 text-sm">
+        <a href="claude-code.html" class="text-muted transition hover:text-ivory">← До курсу</a>
+      </p>
+    </nav>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-4xl">
+
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Довідник · це не модуль</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Усі команди й клавіші</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">
+          111 слеш-команд · 13 команд термінала · гарячі клавіші · без квіза й без прогресу
+        </p>
+
+        <p class="mt-6 text-lg">
+          Цю сторінку не проходять — до неї повертаються. Тут немає ні тесту, ні позначки
+          «завершено», і вона не входить у сертифікат. Її завдання одне: коли ти забув, як
+          називалась команда, знайти її за пів хвилини й не піти по відповідь у статтю
+          трирічної давнини.
+        </p>
+
+        <div class="callout callout-sand">
+          <span class="callout-title">Дата, версія і чесна межа цієї сторінки</span>
+          <p>
+            Усі переліки нижче зняті <strong>4 вересня 2026 року</strong> з офіційної документації
+            (<code>code.claude.com/docs/en/</code>) і звірені з
+            <strong>Claude Code 2.1.236 на macOS 26.5.2</strong> — це збірка, встановлена на машині
+            автора.
+          </p>
+          <p>
+            Ці два джерела <strong>не збігаються між собою</strong>, і це не помилка: документація
+            описує найсвіжіший канал, а встановлена в тебе програма майже завжди на кілька версій
+            позаду. Тому в третій колонці таблиць стоять версійні межі на кшталт «потребує
+            v2.1.212». Якщо команда в тебе не працює, спершу подивись на цю колонку, а потім уже
+            вважай це поломкою.
+          </p>
+          <p>
+            Наскільки швидко все це старіє, видно на одному рядку: між знімком 3 вересня і живою
+            документацією 4 вересня <strong>110 із 111 описів збіглися слово в слово, а опис
+            <code>/diff</code> переписали</strong> — подробиці про переглядач змін переїхали на
+            іншу сторінку документації. За одну добу.
+          </p>
+        </div>
+
+        <hr />
+
+        <section id="how" class="scroll-mt-24">
+          <h2>Як користуватись сторінкою</h2>
+          <p>
+            Читати підряд її не треба. Три способи знайти потрібне:
+          </p>
+          <ul>
+            <li>
+              <strong>Пошук по сторінці.</strong> Натисни <code>Cmd+F</code> на macOS або
+              <code>Ctrl+F</code> на Windows і Linux — браузер відкриє поле пошуку. Набери назву
+              команди без скісної риски, наприклад <code>rewind</code>.
+            </li>
+            <li>
+              <strong>Зміст ліворуч</strong> (на вузькому екрані — вгорі сторінки): команди
+              згруповані за задачею, а не за абеткою, бо шукають зазвичай «чим відкотити зміни»,
+              а не «що там було на літеру r».
+            </li>
+            <li>
+              <strong>Зрізи</strong> — окремі таблиці наприкінці: усі псевдоніми в одному місці,
+              усе, що працює без діалогу, і всі приховані команди.
+            </li>
+          </ul>
+
+          <h3>Чотири колонки таблиць</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Колонка</th>
+                <th>Що в ній</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Команда</td>
+                <td>Назва так, як її набирають. У квадратних дужках — необов'язкові аргументи, у кутових — обов'язкові.</td>
+              </tr>
+              <tr>
+                <td>Що робить</td>
+                <td>Одне-два речення. Це переказ документації українською, а не її дослівний переклад.</td>
+              </tr>
+              <tr>
+                <td>Псевдоніми й межі</td>
+                <td>Інші назви тієї самої команди та умови, за яких вона доступна: версія, план підписки, платформа.</td>
+              </tr>
+              <tr>
+                <td>У <code>-p</code></td>
+                <td>Поведінка в неінтерактивному запуску <code>claude -p "…"</code> — коли команду виконують зі скрипта, без вікна діалогу.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout">
+            <span class="callout-title">Що означає прочерк у колонці «У <code>-p</code>»</span>
+            <p>
+              Прочерк <code>—</code> означає рівно одне: <strong>документація про це мовчить, і
+              автор довідника цього не перевіряв</strong>. Це не «не працює». Більшість команд у
+              неінтерактивному режимі беззмістовні, бо вони відкривають діалог, якого в скрипті
+              нікому натиснути. Перевірені випадки — і робочі, і зламані — зібрані окремо в
+              розділі <a href="#headless">Що працює в <code>-p</code></a>.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <section id="slash" class="scroll-mt-24">
+          <h2>Що таке слеш-команда і чим вона не є</h2>
+          <p>
+            У курсі зустрічаються два різні види команд, і плутанина між ними коштує найбільше
+            часу.
+          </p>
+          <p>
+            <strong>Команда термінала</strong> набирається у звичайному вікні термінала, коли
+            Claude Code ще не запущений: <code>claude --version</code>, <code>claude mcp list</code>.
+            Її виконує оболонка — програма, яка чекає на твої команди у чорному вікні.
+          </p>
+          <p>
+            <strong>Слеш-команда</strong> набирається <em>усередині</em> вже запущеної сесії
+            Claude Code, у тому самому полі, де ти пишеш звичайні прохання. Вона починається зі
+            скісної риски <code>/</code> — звідси й назва (англійською slash — скісна риска).
+            Команда розпізнається <strong>лише на початку повідомлення</strong>; текст після назви
+            стає її аргументом.
+          </p>
+          <p>
+            Набери <code>/</code> — і Claude Code покаже меню доступних команд. Набирай далі
+            літери, щоб звузити перелік.
+          </p>
+
+          <h3>Як меню відбирає команди під те, що ти набрав</h3>
+          <p>
+            Правила виглядають дрібницею рівно доти, доки не набереш назву з одруком і не
+            отримаєш замість команди повідомлення <code>Unknown command</code>
+            (документація <code>commands</code>, звірено 2026-09-04):
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Що відбувається</th>
+                <th>Як поводиться меню</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Літери збігаються з назвою або псевдонімом</td>
+                <td>Верхня підказка підсвічена, <code>Enter</code> її запускає. Збіг рахується від початку назви або від початку слова всередині неї, а розділювачі <code>:</code>, <code>_</code>, <code>-</code> не враховуються: <code>/adddir</code> підсвічує <code>/add-dir</code>, а <code>/new</code> — <code>/clear</code> через псевдонім. Ці правила підсвітки потребують v2.1.236 або новішої.</td>
+              </tr>
+              <tr>
+                <td>Одрук у назві</td>
+                <td>Не підсвічено нічого. Близькі варіанти лишаються в переліку, і їх можна вибрати клавішею <code>Tab</code> або стрілками, але <code>Enter</code> відправить твій текст як є — і ти отримаєш <code>Unknown command</code>.</td>
+              </tr>
+              <tr>
+                <td>Команда тобі недоступна</td>
+                <td>Її в меню немає взагалі. Коли не збігається нічого, з'являється <code>No commands match "/name"</code>. Більшість недоступних команд у відповідь на відправку дають <code>Unknown command</code>; окремі відповідають власним поясненням, чому вони недоступні саме тут.</td>
+              </tr>
+              <tr>
+                <td>Команда прихована навмисно</td>
+                <td>Частковий набір її не покаже ніколи. Меню виводить її лише тоді, коли ти набрав назву повністю. Перелік таких команд — у розділі <a href="#hidden">Приховані команди</a>.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Команди від зовнішніх серверів (MCP)</h3>
+          <p>
+            Якщо до Claude Code підключений зовнішній сервер MCP, його заготовки промптів теж
+            стають командами. У меню вони виглядають як
+            <code>/servername:promptname (MCP)</code>, і та сама заготовка запускається другою
+            формою — <code>/mcp__servername__promptname</code>. У другій формі будь-який символ
+            в імені сервера поза межами <code>A-Z</code>, <code>a-z</code>, <code>0-9</code>,
+            <code>_</code> і <code>-</code> заміняється на <code>_</code>
+            (документація <code>mcp</code>, звірено 2026-09-04).
+          </p>
+        </section>
+
+        <hr />
+
+        <h2 id="commands" class="scroll-mt-24">111 слеш-команд</h2>
+        <p>
+          Число не округлене: рядки таблиці «All commands» в офіційній документації перераховані
+          двічі — у знімку від 2026-09-03 і в живій сторінці 2026-09-04. Обидва рази вийшло
+          <strong>111</strong>, і набори назв збіглися повністю. Три з цих команд уже видалені —
+          вони лишаються в документації, щоб пояснити, куди поділись, і зібрані окремо в
+          <a href="#dead">розділі 13</a>.
+        </p>
+
+        <section id="g1" class="scroll-mt-24">
+          <h3>1 · Почати в проєкті</h3>
+          <p>Те, що роблять один раз на новий репозиторій.</p>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Команда</th><th>Що робить</th><th>Псевдоніми й межі</th><th>У <code>-p</code></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/init</code></td>
+                <td>Створює в проєкті стартовий <code>CLAUDE.md</code> — файл із правилами, який Claude читає на початку кожної сесії.</td>
+                <td>Змінна <code>CLAUDE_CODE_NEW_INIT=1</code> вмикає розширений діалог: навички, хуки, особисті файли пам'яті. Якщо поруч знайдеться конфігурація іншого агента, команда запропонує перенести її через <code>/import</code>.</td>
+                <td>Виконується (перевірено на 2.1.236).</td>
+              </tr>
+              <tr>
+                <td><code>/memory</code></td>
+                <td>Редагує файли <code>CLAUDE.md</code>, вмикає й вимикає автоматичну пам'ять і показує її записи.</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/add-dir &lt;path&gt;</code></td>
+                <td>Додає ще одну робочу папку, до якої сесія має доступ до файлів.</td>
+                <td>Частковий шлях доповнюється клавішею <code>Tab</code>. Більшість налаштувань <code>.claude/</code> із доданої папки не підхоплюється. Успішне додавання запускає твої хуки <code>DirectoryAdded</code>. До v2.1.234 команда чекала кінця відповіді.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/cd &lt;path&gt;</code></td>
+                <td>Переносить сесію в іншу робочу папку, зберігаючи розмову.</td>
+                <td>Потребує v2.1.169 і новішої; підказки шляху — v2.1.206+.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/permissions</code></td>
+                <td>Правила дозволів: що дозволено, що питати, що заборонено. Відкриває діалог, де видно правила за областями.</td>
+                <td>Псевдонім <code>/allowed-tools</code>. У діалозі є вкладка <strong>Auto mode</strong> з правилами класифікатора. До v2.1.234 команда чекала кінця відповіді.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/auto-mode-setup</code></td>
+                <td>Складає чернетку записів <code>autoMode.environment</code> з твого проєкту й недавніх сесій, дає її переглянути й зберігає в користувацькі налаштування.</td>
+                <td>Потребує плану Pro, Max або Team і v2.1.228+. На рідній Windows — v2.1.233+.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/sandbox</code></td>
+                <td>Вмикає й вимикає режим пісочниці.</td>
+                <td>Лише на підтримуваних платформах.</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section id="g2" class="scroll-mt-24">
+          <h3>2 · Розмова, контекст, відкат</h3>
+          <p>Найчастіше вживана група: усе про те, як не втратити зроблене й не переповнити пам'ять сесії.</p>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Команда</th><th>Що робить</th><th>Псевдоніми й межі</th><th>У <code>-p</code></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/clear [name]</code></td>
+                <td>Починає нову розмову з порожнім контекстом. Ім'я, передане аргументом, підписує попередню розмову в списку <code>/resume</code>.</td>
+                <td>Псевдоніми <code>/reset</code>, <code>/new</code>. Рядок «попередня сесія» в меню відкату потребує v2.1.191+.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/resume [session]</code></td>
+                <td>Повертає до попередньої розмови за ім'ям чи ідентифікатором або відкриває список сесій.</td>
+                <td>Псевдонім <code>/continue</code>. Фонові сесії позначені <code>bg</code>; ту, що ще працює, звідси відновити не можна — до неї приєднуються через <code>claude agents</code>.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/branch [name]</code></td>
+                <td>Робить гілку розмови в поточній точці й перемикає тебе в неї; оригінал лишається й повертається через <code>/resume</code>.</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/fork [prompt]</code></td>
+                <td>Копіює розмову в нову <strong>фонову</strong> сесію, а ти лишаєшся працювати тут. З промптом копія одразу береться до роботи.</td>
+                <td>Потребує v2.1.212+. На v2.1.161–2.1.211 ця назва означала інше — те, що зараз зветься <code>/subtask</code>. Коли agent view вимкнений, <code>/fork</code> знову поводиться як відгалужений субагент.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/subtask &lt;task&gt;</code></td>
+                <td>Запускає відгалуженого субагента: він успадковує всю розмову, працює над задачею паралельно, а результат повертає сюди ж.</td>
+                <td>Потребує v2.1.212+. При вимкненому agent view команда недоступна. <strong>Не те саме, що <code>/fork</code></strong> — див. рядок вище.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/rewind</code></td>
+                <td>Відкочує розмову й код до попередньої точки або підсумовує розмову з обраного повідомлення.</td>
+                <td>Псевдоніми <code>/checkpoint</code>, <code>/undo</code>.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/compact [instructions]</code></td>
+                <td>Звільняє контекст, стискаючи розмову в підсумок. Аргументом можна сказати, на чому в підсумку зосередитись.</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/autocompact [auto|&lt;tokens&gt;]</code></td>
+                <td>Задає, наскільки повним стає контекстне вікно перед автоматичним стисканням. Приймає розмір на кшталт <code>500k</code> або <code>auto</code>.</td>
+                <td>Потребує v2.1.221+. Значення зберігається в користувацькі налаштування й діє одразу.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/context [all]</code></td>
+                <td>Показує кольоровою сіткою, чим саме зайняте контекстне вікно, і що варто почистити.</td>
+                <td>У повноекранному режимі перелік згортається, щоб сітка лишалась видимою; <code>all</code> його розгортає.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/recap</code></td>
+                <td>Однорядковий підсумок поточної сесії на вимогу.</td>
+                <td>Окремо від цього існує автоматичний підсумок, який з'являється, коли ти повернувся після перерви.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/btw [question]</code></td>
+                <td>Побічне питання про сесію, яке не потрапляє в історію розмови.</td>
+                <td>Без питання показує останнє побічне питання (v2.1.212+); до цієї версії аргумент був обов'язковим.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/copy [N]</code></td>
+                <td>Копіює останню відповідь у буфер обміну; <code>/copy 2</code> — передостанню.</td>
+                <td>Коли у відповіді є блоки коду, відкривається вибірка. Клавіша <code>w</code> у ній пише вибране у файл — зручно по SSH.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/export [filename]</code></td>
+                <td>Вивантажує розмову звичайним текстом: з іменем — прямо у файл, без імені — діалог «у буфер або у файл».</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/rename [name]</code></td>
+                <td>Перейменовує сесію й показує ім'я в рядку вводу. Без аргументу ім'я складається з історії розмови.</td>
+                <td>Керівні й невидимі символи заміняються пробілами, довжина обрізається до 200 знаків (v2.1.221+). Якщо таке ім'я вже зайняте іншою живою сесією, застосується його варіант.</td>
+                <td>Приймає ім'я аргументом (v2.1.205+).</td>
+              </tr>
+              <tr>
+                <td><code>/focus</code></td>
+                <td>Вигляд, у якому лишається тільки твій останній промпт, однорядковий підсумок викликів інструментів і фінальна відповідь.</td>
+                <td>Лише в повноекранному рендері. Вибір зберігається між сесіями; перебивається ключем <code>viewMode</code> в налаштуваннях. У розширенні VS Code — власний перемикач.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/exit</code></td>
+                <td>Виходить із сесії.</td>
+                <td>Псевдонім <code>/quit</code>. У прикріпленій фоновій сесії від'єднує тебе, а сесія працює далі.</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section id="g3" class="scroll-mt-24">
+          <h3>3 · Фонова й паралельна робота</h3>
+          <p>Коли одна задача не мусить блокувати вікно термінала або коли задач кілька одразу.</p>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Команда</th><th>Що робить</th><th>Псевдоніми й межі</th><th>У <code>-p</code></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/background [prompt]</code></td>
+                <td>Від'єднує поточну сесію: вона працює далі як фоновий агент, а термінал звільняється. Промпт аргументом — остання інструкція перед від'єднанням.</td>
+                <td>Псевдонім <code>/bg</code>. Стежити за такою сесією — командою термінала <code>claude agents</code>.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/stop</code></td>
+                <td>Зупиняє фонову сесію.</td>
+                <td>Доступна лише тоді, коли ти до фонової сесії прикріплений. Транскрипт і робоче дерево (worktree) зберігаються. Щоб від'єднатись без зупинки — <code>/exit</code> або стрілка вліво.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/tasks</code></td>
+                <td>Показує фонову роботу поточної сесії, включно з субагентами, які вже завершились.</td>
+                <td>Також доступна як <code>/bashes</code>.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/batch &lt;instruction&gt;</code></td>
+                <td>Навичка. Розкладає велику зміну на 5–30 незалежних одиниць і після твого схвалення запускає на кожну окремого фонового субагента у власному робочому дереві git; кожен проганяє тести й відкриває pull request.</td>
+                <td>Потребує git-репозиторію. Приклад: <code>/batch migrate src/ from JavaScript to TypeScript</code>.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/agents</code></td>
+                <td>З v2.1.198 друкує нагадування: попроси Claude створити субагента або відредагуй <code>.claude/agents/</code> чи <code>~/.claude/agents/</code> напряму.</td>
+                <td>На v2.1.197 і старіших відкривала інтерактивний інтерфейс керування субагентами. Команда, яка <strong>змінила поведінку</strong>, а не зникла.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/list-agents</code></td>
+                <td>Перелічує субагентів, товаришів по команді агентів і інші сесії Claude Code, яким можна написати, і показує ім'я для звертання до кожного.</td>
+                <td>Також <code>/peers</code>. Потребує v2.1.224+ (раніші версії відповідають <code>Unknown command</code>); рядки товаришів і власне ім'я сесії — v2.1.239+. Працює лише там, де ввімкнений обмін повідомленнями між сесіями.</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section id="g4" class="scroll-mt-24">
+          <h3>4 · Модель, зусилля, гроші</h3>
+          <p>Група, у якій найлегше порахувати наслідки: усе тут або впливає на витрати, або їх показує.</p>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Команда</th><th>Що робить</th><th>Псевдоніми й межі</th><th>У <code>-p</code></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/model [model]</code></td>
+                <td>Перемикає модель і зберігає її як типову для нових сесій. Без аргументу відкриває список; клавіша <code>s</code> на рядку перемикає лише цю сесію.</td>
+                <td>Для моделей, що це підтримують, стрілки вліво-вправо міняють рівень зусиль. До v2.1.242 рішення «виконати одразу чи дочекатись кінця відповіді» залежало від прапорця, який програма забирала з сервера.</td>
+                <td>Приймає назву моделі аргументом; діє <strong>лише на цей запуск</strong> і типовою не стає (v2.1.205+).</td>
+              </tr>
+              <tr>
+                <td><code>/effort [level|auto|status]</code></td>
+                <td>Рівень зусиль: від <code>low</code> до <code>xhigh</code>, а також <code>max</code>, <code>ultracode</code> і <code>auto</code>. <code>status</code> друкує поточний.</td>
+                <td><code>max</code> і <code>ultracode</code> діють лише на сесію (ключ <code>ultracode</code> зберігається). Запущена посеред відповіді, команда застосується до наступного запиту в тому ж ході.</td>
+                <td>Працює — поза періодом, коли рівень зусиль утримується примусово.</td>
+              </tr>
+              <tr>
+                <td><code>/fast [on|off]</code></td>
+                <td>Вмикає й вимикає швидкий режим.</td>
+                <td>Потребує v2.1.205+. Увімкнена посеред відповіді, міняє режим одразу, але поточний хід дороблюється на старій швидкості.</td>
+                <td>Доступність обмежена — документація відсилає до розділу про швидкий режим.</td>
+              </tr>
+              <tr>
+                <td><code>/advisor [model|off]</code></td>
+                <td>Вмикає радника — другу модель, яка дає підказку в ключові моменти задачі.</td>
+                <td>Приймає <code>fable</code>, <code>opus</code>, <code>sonnet</code> або повний ідентифікатор моделі; <code>fable</code> потребує доступу до Fable. Без аргументу відкриває вибірку.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/usage</code></td>
+                <td>Вартість сесії, ліміти плану й статистика активності. На Pro, Max, Team і Enterprise показує розклад того, що саме з'їдає ліміт.</td>
+                <td>Псевдоніми <code>/cost</code> і <code>/stats</code>.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/cost</code></td>
+                <td>Те саме, що <code>/usage</code>.</td>
+                <td>Псевдонім.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/stats</code></td>
+                <td>Те саме, що <code>/usage</code>, тільки відкривається одразу на вкладці Stats.</td>
+                <td>Псевдонім.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/usage-credits</code></td>
+                <td>Налаштовує додаткові кредити або надсилає запит на них адміністратору, коли ти вперся в ліміт.</td>
+                <td>Раніше звалась <code>/extra-usage</code>. Учасники Team і Enterprise без прав на оплату надсилають запит адміністраторові з CLI. Друк URL замість відкриття браузера (наприклад по SSH) — v2.1.205+.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/rate-limit-options</code></td>
+                <td>Показує способи працювати далі, коли ліміт claude.ai заблокував запит: почекати й продовжити автоматично, додати кредити або підняти план.</td>
+                <td><strong>⚠ Не показується в меню команд — набирай назву повністю.</strong> Потребує підписки claude.ai. Рядки «почекати й продовжити» — v2.1.234+. Claude Code може відкрити це меню й сам, коли ти впираєшся в ліміт.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/upgrade</code></td>
+                <td>Відкриває в браузері сторінку переходу на вищий план.</td>
+                <td>Коли браузер відкрити не вдається, показує запрошення увійти, але URL не друкує.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/passes</code></td>
+                <td>Ділиться безкоштовним тижнем Claude Code з друзями.</td>
+                <td>Видима лише тим акаунтам, які мають на це право.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/insights</code></td>
+                <td>Складає HTML-звіт про твої недавні сесії на цій машині: у яких проєктах працюєш, як користуєшся Claude Code, де все ламається.</td>
+                <td>Бере до 200 нових сесій за запуск; звіт лягає в <code>~/.claude/usage-data/report.html</code> плюс копія з міткою часу; видаляється за <code>cleanupPeriodDays</code>. <strong>Токени на аналіз рахуються тобі.</strong> У хмарних сесіях недоступна.</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section id="g5" class="scroll-mt-24">
+          <h3>5 · Код: план, перевірка, огляд</h3>
+          <p>Усе, що стоїть між «Claude щось зробив» і «я знаю, що це працює».</p>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Команда</th><th>Що робить</th><th>Псевдоніми й межі</th><th>У <code>-p</code></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/plan [description]</code></td>
+                <td>Вмикає режим плану прямо з рядка вводу. З описом одразу береться за названу задачу: <code>/plan fix the auth bug</code>.</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/goal [condition|clear]</code></td>
+                <td>Ставить ціль: Claude працює далі через ходи, доки умова не виконана або ціль не знята.</td>
+                <td>Без аргументу показує поточну або останню досягнуту ціль. Знімають словами <code>clear</code>, <code>stop</code>, <code>off</code>, <code>reset</code>, <code>none</code>, <code>cancel</code>.</td>
+                <td>Працює: запуск завершується кодом 0 (перевірено на 2.1.236).</td>
+              </tr>
+              <tr>
+                <td><code>/verify</code></td>
+                <td>Навичка. Перевіряє, що зміна робить те, що мала: збирає застосунок, запускає його й дивиться на результат, а не покладається на тести й перевірку типів.</td>
+                <td><strong>Запускається лише за твоїм викликом.</strong> До v2.1.215 Claude міг запустити її самостійно.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/run</code></td>
+                <td>Навичка. Запускає застосунок проєкту й «водить» його, щоб побачити зміну в дії, а не лише зелені тести.</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/run-skill-generator</code></td>
+                <td>Навичка. Пише під конкретний проєкт скіл, який навчає <code>/run</code> і <code>/verify</code> збирати, запускати й «водити» застосунок із чистого середовища.</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/diff</code></td>
+                <td>Показує зміни в робочому дереві, включно з правками, які Claude уже зробив.</td>
+                <td>Опис цього рядка в документації <strong>переписали 2026-09-04</strong>: подробиці керування переглядачем (стрілки між дифом git і окремими ходами Claude, <code>Enter</code> на файлі, <code>Esc</code> назад) переїхали на сторінку <code>interactive-mode</code>.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/code-review [low|medium|high|xhigh|max|ultra] [--fix] [--comment] [pr#|branch|path]</code></td>
+                <td>Навичка. Оглядає поточний диф — або переданий номер PR, гілку чи шлях — на помилки й місця, які варто прибрати. <code>--fix</code> застосовує знахідки, <code>--comment</code> публікує їх коментарями в PR на GitHub, <code>ultra</code> запускає глибокий хмарний огляд.</td>
+                <td>Псевдонім <code>/review</code>. <strong>Пам'ятає рівень зусиль між сесіями</strong> й каже про це рядком <code>Reusing high effort, the level you typed last time</code>. З <code>ultra</code> на PR із github.com прапорець <code>--post</code> заздалегідь обирає публікацію знахідок у діалозі запуску.</td>
+                <td>Рівень, переданий у <code>-p</code>, запам'ятаного <strong>не оновлює</strong>.</td>
+              </tr>
+              <tr>
+                <td><code>/review</code></td>
+                <td>Те саме, що <code>/code-review</code>: ті самі рівні зусиль і прапорці, наприклад <code>/review 1234</code>.</td>
+                <td>Псевдонім. До v2.1.223 це була окрема команда — одноразовий огляд PR лише на читання; з v2.1.186 до v2.1.201 вона запускала той самий движок, що <code>/code-review medium</code>.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/ultrareview [PR or branch]</code></td>
+                <td>Глибокий багатоагентний огляд коду в хмарній пісочниці.</td>
+                <td>Тепер це псевдонім до <code>/code-review ultra</code>. Три безкоштовні запуски на Pro і Max, далі потрібні кредити.</td>
+                <td>Коли запуск має списати кредити, <code>-p</code> <strong>зупиняється до старту</strong>: підтвердження вимагає інтерактивної сесії. Для скриптів є підкоманда термінала <code>claude ultrareview</code>.</td>
+              </tr>
+              <tr>
+                <td><code>/security-review</code></td>
+                <td>Шукає вразливості в змінах твоєї гілки: диф проти типової гілки origin, ін'єкції, проблеми з автентифікацією, витік даних.</td>
+                <td>Потрібен віддалений репозиторій <code>origin</code>. Помилка <code>ambiguous argument</code> означає, що порівнювати нема з чим.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/simplify [target]</code></td>
+                <td>Навичка. Чотири агенти паралельно дивляться на змінений код: чи не написано наново те, що вже є; чи не можна простіше; чи не марнується робота; чи на тому рівні абстракції зроблена зміна.</td>
+                <td><strong>Помилок не шукає</strong> — для цього <code>/code-review</code>. Аргументом можна дати шлях або посилання на PR.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/autofix-pr [prompt]</code></td>
+                <td>Піднімає хмарну сесію Claude Code, яка стежить за PR поточної гілки й сама пушить виправлення, коли падає CI або з'являються коментарі рецензентів.</td>
+                <td>Потрібні <code>gh</code> CLI і доступ до Claude Code on the web. PR визначається з поточної гілки через <code>gh pr view</code>; щоб стежити за іншим — спершу перемкни гілку.</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="callout">
+            <span class="callout-title">Дві пастки <code>/code-review</code>, на які легко наступити</span>
+            <p>
+              <strong>Хвіст рядка розбирається по-різному.</strong> Без слова <code>ultra</code> усе,
+              що йде після прапорців, вважається ціллю огляду — навіть якщо починається з імені
+              іншої команди: <code>/code-review /fix-issue 123</code> огляне текст
+              <code>/fix-issue 123</code>. Зі словом <code>ultra</code> одне слово читається як
+              гілка або номер PR, а довший текст стає нотаткою до огляду.
+            </p>
+            <p>
+              <strong>Огляд можна залишити тільки собі.</strong> Запис
+              <code>skillOverrides: {"code-review": "user-invocable-only"}</code> у налаштуваннях
+              забороняє і самому Claude, і завданням за розписанням запускати огляд без тебе.
+            </p>
+          </div>
+        </section>
+
+        <section id="g6" class="scroll-mt-24">
+          <h3>6 · Навички, плагіни, MCP, хуки</h3>
+          <p>Усе, чим Claude Code розширюють: власні навички, чужі плагіни, зовнішні сервери й перехоплювачі подій (hooks).</p>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Команда</th><th>Що робить</th><th>Псевдоніми й межі</th><th>У <code>-p</code></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/skills</code></td>
+                <td>Перелік доступних навичок із фільтром по назві, опису й джерелу.</td>
+                <td>Клавіша <code>t</code> сортує за кількістю токенів, <code>Space</code> або <code>Enter</code> перемикає видимість навички, <code>Esc</code> зберігає й закриває. Не перемикаються навички з плагінів, навички з <code>disable-model-invocation: true</code> і ті, що мають запис у <code>skillOverrides</code>.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/reload-skills</code></td>
+                <td>Перечитує теки навичок і команд, щоб додане чи змінене на диску запрацювало без перезапуску сесії.</td>
+                <td>Звітує, скільки навичок доступно й скільки додалось або зникло.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/plugin [subcommand]</code></td>
+                <td>Керує плагінами. Без аргументу відкриває меню; з підкомандою (<code>list</code>, <code>install</code>, <code>enable</code>, <code>disable</code>) діє одразу.</td>
+                <td>Claude Code може активувати плагін ще під час встановлення; підсумок встановлення каже, чи він це зробив, чи треба <code>/reload-plugins</code>.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/reload-plugins [--force]</code></td>
+                <td>Перезавантажує активні плагіни, щоб застосувати зміни без перезапуску.</td>
+                <td>Якщо перезавантаження змінить набір інструментів MCP і знеціннить кеш промпта, команда попередить і зупиниться — доки не додаси <code>--force</code>.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/mcp [reconnect &lt;server&gt;|enable|disable [&lt;server&gt;|all]]</code></td>
+                <td>Керує підключеннями до зовнішніх серверів MCP і входом у них. Без аргументу відкриває інтерактивний список.</td>
+                <td>Форм <code>reconnect</code>, <code>enable</code> і <code>disable</code> <strong>у меню команд немає</strong> — їх набирають руками.</td>
+                <td>Без аргументу друкує текстовий підсумок стану серверів замість списку (v2.1.205+).</td>
+              </tr>
+              <tr>
+                <td><code>/hooks</code></td>
+                <td>Показує налаштування перехоплювачів подій (hooks) для подій інструментів.</td>
+                <td>Повна таблиця подій — в окремому довіднику курсу.</td>
+                <td><strong>Не працює:</strong> віддає дослівне <code>/hooks isn't available in this environment.</code> (перевірено на 2.1.236).</td>
+              </tr>
+              <tr>
+                <td><code>/workflows</code></td>
+                <td>Відкриває вигляд робочих процесів: спостерігати, ставити на паузу, продовжувати й зберігати запущені та завершені.</td>
+                <td>Псевдоніма не має.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/workflow-authoring</code></td>
+                <td>Навичка. Завантажує довідку з написання динамічних робочих процесів: API скриптів, поведінка при відновленні, приклади.</td>
+                <td>Доступна там, де ввімкнені динамічні робочі процеси; потребує v2.1.248+. Claude зазвичай підвантажує її сам перед написанням скрипта.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/deep-research &lt;question&gt;</code></td>
+                <td>Робочий процес. Розсипає пошукові запити по мережі, витягує й перехресно звіряє джерела й складає звіт із посиланнями.</td>
+                <td>Це <strong>вбудований робочий процес</strong>, а не звичайна команда.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/dataviz [request]</code></td>
+                <td>Навичка. Підказки з побудови графіків, діаграм і дашбордів: форма під дані, колір за роллю, перевірка палітри на контраст і на розрізнення при дальтонізмі.</td>
+                <td>Потребує v2.1.198+.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/claude-api [migrate|upgrade|managed-agents-onboard|prompt-audit|cost-optimize]</code></td>
+                <td>Навичка. Підтягує довідку по Claude API під мову твого проєкту. Підкоманди: перевести код на новішу модель, підняти SDK через мажорну версію, пройти онбординг керованих агентів, знайти в промптах інструкції під старі моделі, розібрати, куди йдуть гроші.</td>
+                <td>Вмикається сама, коли код імпортує <code>anthropic</code> або <code>@anthropic-ai/sdk</code>. <code>prompt-audit</code> потребує v2.1.221+, <code>upgrade</code> — v2.1.236+, <code>cost-optimize</code> — v2.1.247+.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/fewer-permission-prompts</code></td>
+                <td>Навичка. Переглядає твої транскрипти, знаходить часті безпечні виклики (читання, команди MCP) і додає їх у список дозволеного в <code>.claude/settings.json</code> проєкту.</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section id="g7" class="scroll-mt-24">
+          <h3>7 · Поза цим терміналом</h3>
+          <p>Сесія на іншому пристрої, робота в хмарі, зв'язок із GitHub, Slack, браузером і редактором.</p>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Команда</th><th>Що робить</th><th>Псевдоніми й межі</th><th>У <code>-p</code></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/remote-control</code></td>
+                <td>Робить цю сесію доступною для керування з claude.ai.</td>
+                <td>Псевдонім <code>/rc</code>. Запущена, коли ти не увійшов, друкує, що потрібна підписка claude.ai, і пояснює, як увійти; <strong>до v2.1.206 у тій самій ситуації віддавала <code>Unknown command: /remote-control</code></strong> — тобто виглядала як неіснуюча команда.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/remote-env</code></td>
+                <td>Обирає типове середовище для хмарних агентів.</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/teleport</code></td>
+                <td>Втягує сесію Claude Code on the web у цей термінал: відкриває вибірку, потім забирає гілку й розмову.</td>
+                <td>Також <code>/tp</code>. Потребує підписки claude.ai.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/desktop</code></td>
+                <td>Продовжує поточну сесію в застосунку Claude Code Desktop.</td>
+                <td>Псевдонім <code>/app</code>. Потребує macOS або Windows x64 і підписки Claude.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/mobile</code></td>
+                <td>Показує QR-код для завантаження мобільного застосунку Claude.</td>
+                <td>Псевдоніми <code>/ios</code>, <code>/android</code>.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/loop [interval] [prompt]</code></td>
+                <td>Навичка. Повторює промпт, поки сесія відкрита. Без інтервалу Claude сам задає темп; без промпта виконує вбудований службовий промпт або твій <code>loop.md</code>.</td>
+                <td>Псевдонім <code>/proactive</code>. Приклад: <code>/loop 5m check if the deploy finished</code>.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/schedule [description]</code></td>
+                <td>Створює, оновлює, перелічує й запускає рутини — завдання, які виконуються в хмарі за розписанням. Claude проводить через налаштування розмовою.</td>
+                <td>Псевдонім <code>/routines</code>. У рутин є <strong>окрема добова межа кількості запусків</strong> на акаунт, поверх звичайних лімітів підписки; одноразові запуски до неї не зараховуються (документація <code>routines</code>, звірено 2026-09-04).</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/web-setup</code></td>
+                <td>Підключає твій акаунт GitHub до Claude Code on the web, використовуючи локальні облікові дані <code>gh</code>.</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/install-github-app</code></td>
+                <td>Ставить застосунок Claude для GitHub на репозиторій, за бажанням налаштовує робочі процеси GitHub Actions і секрети.</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/install-slack-app</code></td>
+                <td>Ставить застосунок Claude для Slack; відкриває браузер, щоб пройти вхід.</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/chrome</code></td>
+                <td>Налаштування Claude in Chrome.</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/ide</code></td>
+                <td>Керує інтеграціями з редакторами й показує їхній стан.</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/import [codex|gemini] [--dry-run] [--yes]</code></td>
+                <td>Переносить у Claude Code налаштування інших агентів для коду з твоєї машини — зараз це OpenAI Codex і Google Gemini CLI: файли інструкцій, сервери MCP, команди, субагентів і навички.</td>
+                <td>Потребує v2.1.213+. <code>--dry-run</code> показує, що сталося б, нічого не записуючи; <code>--yes</code> пропускає вибірку. Недоступна на Amazon Bedrock, Google Cloud Agent Platform, Microsoft Foundry і Claude Platform on AWS, а також коли вимкнене отримання прапорців можливостей.</td>
+                <td>Перелічує знайдене й друкує команду, якою імпорт підтверджують.</td>
+              </tr>
+              <tr>
+                <td><code>/team-onboarding</code></td>
+                <td>Складає посібник для нового колеги з твоєї історії роботи: аналізує сесії, команди й використання серверів MCP за останні 30 днів і видає markdown, який колега вставляє першим повідомленням.</td>
+                <td>Для передплатників claude.ai на Pro, Max, Team і Enterprise повертає ще й посилання, яке колега відкриє прямо в Claude Code.</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section id="g8" class="scroll-mt-24">
+          <h3>8 · Дизайн і артефакти</h3>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Команда</th><th>Що робить</th><th>Псевдоніми й межі</th><th>У <code>-p</code></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/design [brief]</code></td>
+                <td>Навичка. Малює макети екранів, схеми переходів, лендінги чи постери як артборди на одному полотні й публікує це артефактом.</td>
+                <td>Потребує сесії, де доступні артефакти, і v2.1.234+. На Amazon Bedrock, Google Cloud Agent Platform, Microsoft Foundry і Claude Platform on AWS артефактів немає, тому команда там недоступна. Де збереження дозволене — редагуєш і публікуєш нову версію; де ні — дивишся чернетку й експортуєш у PNG або PDF.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/design-login</code></td>
+                <td>Дає <code>/design-sync</code> доступ до дизайн-системи через твій акаунт claude.ai.</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/design-sync [hint]</code></td>
+                <td>Навичка. Перетворює React-дизайн-систему твого репозиторію й вивантажує її в Claude Design, щоб макети складались із твоїх справжніх компонентів.</td>
+                <td>Перший синк перевіряє кожен компонент і на великому репозиторії може тривати години. На Bedrock, Google Cloud Agent Platform, Microsoft Foundry і Claude Platform on AWS недоступна: інструмент не дістає до claude.ai.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/artifacts</code></td>
+                <td>Перелічує артефакти, які тобі належать або якими з тобою поділились: приєднати до сесії, відкрити в браузері, скопіювати посилання.</td>
+                <td>Потребує v2.1.208+; приєднання клавішею <code>Enter</code> — v2.1.216+.</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section id="g9" class="scroll-mt-24">
+          <h3>9 · Вигляд, клавіші, налаштування</h3>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Команда</th><th>Що робить</th><th>Псевдоніми й межі</th><th>У <code>-p</code></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/config [key=value ...]</code></td>
+                <td>Відкриває інтерфейс налаштувань: тема, модель, стиль виводу й інше. З v2.1.181 приймає пари <code>ключ=значення</code> й міняє налаштування без відкриття вікна, наприклад <code>/config thinking=false</code>; з v2.1.182 приймає й скорочені імена (<code>/config theme=dark</code>).</td>
+                <td>Псевдонім <code>/settings</code>. Форма <code>ключ=значення</code> <strong>не вмикає</strong> те, що потребує твого підтвердження в панелі (наприклад <code>autoContinueAtUsageLimit</code>) — але вимкнути таке може. Перелік прийнятних ключів друкує <code>/config --help</code>.</td>
+                <td>Форма <code>ключ=значення</code> працює (v2.1.205+), як і з мобільного застосунку через Remote Control.</td>
+              </tr>
+              <tr>
+                <td><code>/theme</code></td>
+                <td>Змінює кольорову тему: <code>auto</code> під фон термінала, світлі й темні варіанти, теми для дальтоніків, ANSI-теми з палітри самого термінала й власні з <code>~/.claude/themes/</code> або з плагінів.</td>
+                <td>Пункт <strong>New custom theme…</strong> створює власну.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/statusline</code></td>
+                <td>Налаштовує рядок стану: опиши словами, що хочеш бачити, або запусти без аргументів — і він збереться з твого запрошення оболонки.</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/keybindings</code></td>
+                <td>Відкриває файл гарячих клавіш.</td>
+                <td>Що в цьому файлі писати — див. <a href="#rebind">Переприв'язати клавішу</a>.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/scroll-speed</code></td>
+                <td>Регулює швидкість прокрутки колесом миші; поки діалог відкритий, поруч є лінійка, на якій зміну видно одразу.</td>
+                <td>Лише в повноекранному рендері й не в терміналі середовищ JetBrains.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/tui [default|fullscreen]</code></td>
+                <td>Обирає рендерер інтерфейсу й перезапускається в нього, зберігаючи розмову. <code>fullscreen</code> вмикає режим без мерехтіння.</td>
+                <td>Без аргументу друкує активний рендерер.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/terminal-setup</code></td>
+                <td>Ставить прив'язку <code>Shift+Enter</code> для переносу рядка у VS Code, Cursor, Devin Desktop, Alacritty й Zed.</td>
+                <td>В Apple Terminal натомість вмикає <code>Option+Enter</code> і вимикає звуковий сигнал. В iTerm2 вмикає доступ до буфера обміну, щоб працювала <code>/copy</code>.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/color [color|default]</code></td>
+                <td>Колір рядка вводу на цю сесію: <code>red</code>, <code>blue</code>, <code>green</code>, <code>yellow</code>, <code>purple</code>, <code>orange</code>, <code>pink</code>, <code>cyan</code>. <code>default</code> скидає, без аргументу береться випадковий.</td>
+                <td>При підключеному Remote Control колір синхронізується з claude.ai/code.</td>
+                <td>Приймає колір аргументом (v2.1.205+).</td>
+              </tr>
+              <tr>
+                <td><code>/voice [hold|tap|off]</code></td>
+                <td>Вмикає диктування голосом або одразу конкретний режим.</td>
+                <td>Потребує акаунта Claude.ai.</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section id="g10" class="scroll-mt-24">
+          <h3>10 · Акаунт і провайдер</h3>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Команда</th><th>Що робить</th><th>Псевдоніми й межі</th><th>У <code>-p</code></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/login</code></td>
+                <td>Вхід в акаунт Anthropic.</td>
+                <td>—</td>
+                <td><strong>Недоступна</strong> (перевірено на 2.1.236).</td>
+              </tr>
+              <tr>
+                <td><code>/logout</code></td>
+                <td>Вихід з акаунта.</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/privacy-settings</code></td>
+                <td>Переглянути й змінити налаштування приватності.</td>
+                <td>Лише для передплатників Pro і Max.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/setup-bedrock</code></td>
+                <td>Майстер налаштування Amazon Bedrock: автентифікація, регіон, закріплення моделей.</td>
+                <td><strong>Прихована з меню</strong>, поки не задано <code>CLAUDE_CODE_USE_BEDROCK=1</code> — набирай повністю. Доступна також з екрана входу.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/setup-vertex</code></td>
+                <td>Те саме для Google Cloud Agent Platform: автентифікація, проєкт, регіон, закріплення моделей.</td>
+                <td><strong>Прихована з меню</strong>, поки не задано <code>CLAUDE_CODE_USE_VERTEX=1</code>.</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section id="g11" class="scroll-mt-24">
+          <h3>11 · Діагностика й довідка</h3>
+          <p>Група, до якої йдуть, коли щось поводиться не так, як написано.</p>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Команда</th><th>Що робить</th><th>Псевдоніми й межі</th><th>У <code>-p</code></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/status</code></td>
+                <td>Відкриває інтерфейс налаштувань на вкладці Status: версія, модель, акаунт, зв'язок.</td>
+                <td>Рядок <code>Session kind</code> показує <code>background job · attached</code>, <code>background job · unattended</code> або <code>interactive</code> — з v2.1.221. Виконується навіть тоді, коли Claude відповідає.</td>
+                <td><strong>Не працює:</strong> віддає <code>/status isn't available in this environment.</code></td>
+              </tr>
+              <tr>
+                <td><code>/doctor</code></td>
+                <td>Навичка. Перевірка встановлення, яка вміє й лагодити: дублікати й залишки інсталяцій, проблеми з <code>PATH</code>, нечитані файли налаштувань, невживані навички, сервери MCP і плагіни проти їхньої ціни в контексті, повільні хуки, наявність новішої версії на твоєму каналі. Ще підрізає роздуті <code>CLAUDE.md</code>. Спершу звітує й питає дозволу, і лише потім щось міняє.</td>
+                <td>Псевдонім <code>/checkup</code>. Перевірка підрізання <code>CLAUDE.md</code> — v2.1.206+. До v2.1.205 команда відкривала екран діагностики лише на читання, а клавіша <code>f</code> надсилала звіт Claude. З термінала <code>claude doctor</code> друкує діагностику встановлення без запуску сесії.</td>
+                <td><strong>Зависає</strong> — автор курсу обірвав запуск на 120 секундах. Використовуй <code>claude doctor</code> у терміналі.</td>
+              </tr>
+              <tr>
+                <td><code>/debug [description]</code></td>
+                <td>Вмикає журнал налагодження для цієї сесії й розбирає проблему, читаючи його. Аргументом можна описати, що саме не так.</td>
+                <td>Журнал вимкнений, якщо ти не стартував із <code>claude --debug</code>, тому <code>/debug</code> посеред сесії починає писати з моменту запуску, а не з початку.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/help</code></td>
+                <td>Довідка й перелік доступних команд.</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/powerup</code></td>
+                <td>Знайомить із можливостями Claude Code короткими інтерактивними уроками з анімованими демонстраціями.</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/bug [report]</code></td>
+                <td>Звіт про помилку або передача розмови. Ти сам обираєш, скільки історії сесії включити, і підтверджуєш це на екрані згоди — до підтвердження не надсилається нічого.</td>
+                <td>Псевдонім <code>/share</code>. Коли ти увійшов в Anthropic напряму, звіт іде в Anthropic; на сторонньому провайдері або без облікових даних Anthropic звіт лягає локально в <code>~/.claude/feedback-bundles/</code>, і надсилаєш його ти сам. У розширенні VS Code відкриває власний діалог (v2.1.229+). До v2.1.212 <code>/bug</code> і <code>/share</code> були псевдонімами <code>/feedback</code>.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/feedback [report]</code></td>
+                <td>Відгук про продукт. Той самий діалог, що в <code>/bug</code>, з тією ж згодою й тими ж правилами надсилання.</td>
+                <td>У сесіях, де Claude склав чернетки відгуків, <code>/feedback</code> без аргументу відкриває чергу чернеток: переглянути, змінити, надіслати чи викинути.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/release-notes</code></td>
+                <td>Показує список змін в інтерактивному виборі версій.</td>
+                <td>Нотатки з'являються в транскрипті, але <strong>в розмову, яку бачить Claude, не входять</strong> — контекст вони не займають.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/heapdump</code></td>
+                <td>Пише знімок пам'яті JavaScript і розклад її використання на робочий стіл (на Linux без теки Desktop — у домашню теку), щоб розібратись із надмірним споживанням пам'яті.</td>
+                <td><strong>⚠ Прихована з меню — набирай повністю.</strong> Прикріплювати до звіту можна <strong>лише</strong> файл <code>-diagnostics.json</code>: файл <code>.heapsnapshot</code> містить усю твою розмову й облікові дані, тому нікому його не надсилай.</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section id="g12" class="scroll-mt-24">
+          <h3>12 · Дрібниці</h3>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Команда</th><th>Що робить</th><th>Псевдоніми й межі</th><th>У <code>-p</code></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/radio</code></td>
+                <td>Відкриває лоу-фай радіо Claude FM у браузері.</td>
+                <td>Коли браузера немає, друкує адресу потоку.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>/stickers</code></td>
+                <td>Замовити наліпки Claude Code.</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section id="dead" class="scroll-mt-24">
+          <h3>13 · Видалені й перейменовані</h3>
+          <p>
+            Найдорожча частина довідника. Ці команди досі трапляються в статтях, відео й чужих
+            конспектах — і виглядають робочими. Три з них уже не існують, решта змінила значення.
+          </p>
+
+          <h4>Видалені, але описані в документації</h4>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Команда</th><th>Коли зникла</th><th>Що замість неї</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/vim</code></td>
+                <td>v2.1.92</td>
+                <td>Перемикання між Vim і звичайним редагуванням — через <code>/config</code> → Editor mode.</td>
+              </tr>
+              <tr>
+                <td><code>/ultraplan &lt;prompt&gt;</code></td>
+                <td>версія не названа</td>
+                <td>Режим плану. Раніше команда відправляла завдання на планування у веб-сесію Claude Code для перегляду в браузері.</td>
+              </tr>
+              <tr>
+                <td><code>/pr-comments [PR]</code></td>
+                <td>v2.1.91</td>
+                <td>Попроси Claude показати коментарі pull request звичайним проханням. На старих версіях команда сама знаходила PR поточної гілки й потребувала <code>gh</code> CLI.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <h4>Живі, але зі зміненим значенням</h4>
+          <p>
+            Ці рядки пояснюють, чому інструкція з мережі може «працювати навпаки»: назва та сама,
+            поведінка інша.
+          </p>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Команда</th><th>Що змінилось</th><th>Межа версій</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/fork</code> і <code>/subtask</code></td>
+                <td>Це <strong>різні речі</strong>: <code>/fork</code> копіює розмову в окрему фонову сесію, <code>/subtask</code> запускає субагента, результат якого повертається сюди. На старих версіях те, що зараз зветься <code>/subtask</code>, звалось <code>/fork</code>.</td>
+                <td>розділені з v2.1.212; на v2.1.161–2.1.211 була одна назва</td>
+              </tr>
+              <tr>
+                <td><code>/agents</code></td>
+                <td>Була інтерактивним інтерфейсом керування субагентами, стала друком нагадування редагувати теки <code>.claude/agents/</code> напряму.</td>
+                <td>змінилась у v2.1.198</td>
+              </tr>
+              <tr>
+                <td><code>/review</code></td>
+                <td>Була окремою командою — одноразовий огляд PR лише на читання. Стала псевдонімом <code>/code-review</code>.</td>
+                <td>псевдонім із v2.1.223; з v2.1.186 до v2.1.201 працювала як <code>/code-review medium</code></td>
+              </tr>
+              <tr>
+                <td><code>/usage-credits</code></td>
+                <td>Перейменована: раніше звалась <code>/extra-usage</code>.</td>
+                <td>друк URL замість відкриття браузера — з v2.1.205</td>
+              </tr>
+              <tr>
+                <td><code>/bug</code>, <code>/share</code></td>
+                <td>Були псевдонімами <code>/feedback</code>, стали окремою парою зі своїм діалогом.</td>
+                <td>розділені з v2.1.212</td>
+              </tr>
+              <tr>
+                <td><code>/remote-control</code></td>
+                <td>Коли ти не увійшов, тепер пояснює, що потрібна підписка; раніше в тій самій ситуації відповідала <code>Unknown command</code> — тобто виглядала неіснуючою.</td>
+                <td>пояснення з v2.1.206</td>
+              </tr>
+              <tr>
+                <td><code>/doctor</code></td>
+                <td>Була екраном діагностики лише на читання (клавіша <code>f</code> надсилала звіт Claude), стала навичкою, яка вміє лагодити знайдене.</td>
+                <td>змінилась у v2.1.205</td>
+              </tr>
+              <tr>
+                <td><code>/btw</code></td>
+                <td>Раніше вимагала питання аргументом; тепер без аргументу показує останнє побічне питання.</td>
+                <td>з v2.1.212</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <hr />
+
+        <h2 id="slices" class="scroll-mt-24">Три зрізи по тих самих командах</h2>
+        <p>
+          Ті самі 111 команд, але відсортовані під три питання, які виникають найчастіше.
+        </p>
+
+        <section id="aliases" class="scroll-mt-24">
+          <h3>Усі псевдоніми: «я бачив <code>/rc</code>, що це?»</h3>
+          <p>
+            Псевдонім (alias) — це друга назва тієї самої команди. Вони існують не для краси:
+            у чужих конспектах і статтях трапляється саме коротка форма, і без цієї таблиці її
+            не впізнати. Ліворуч — що ти зустрів, праворуч — як воно зветься в довіднику.
+          </p>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Псевдонім</th><th>Справжня команда</th><th>Уточнення</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>/allowed-tools</code></td><td><code>/permissions</code></td><td>—</td></tr>
+              <tr><td><code>/android</code></td><td><code>/mobile</code></td><td>—</td></tr>
+              <tr><td><code>/app</code></td><td><code>/desktop</code></td><td>—</td></tr>
+              <tr><td><code>/bashes</code></td><td><code>/tasks</code></td><td>—</td></tr>
+              <tr><td><code>/bg</code></td><td><code>/background</code></td><td>—</td></tr>
+              <tr><td><code>/checkpoint</code></td><td><code>/rewind</code></td><td>—</td></tr>
+              <tr><td><code>/checkup</code></td><td><code>/doctor</code></td><td>—</td></tr>
+              <tr><td><code>/continue</code></td><td><code>/resume</code></td><td>—</td></tr>
+              <tr><td><code>/cost</code></td><td><code>/usage</code></td><td>—</td></tr>
+              <tr><td><code>/ios</code></td><td><code>/mobile</code></td><td>—</td></tr>
+              <tr><td><code>/new</code></td><td><code>/clear</code></td><td>—</td></tr>
+              <tr><td><code>/peers</code></td><td><code>/list-agents</code></td><td>обидві назви рівноправні</td></tr>
+              <tr><td><code>/proactive</code></td><td><code>/loop</code></td><td>—</td></tr>
+              <tr><td><code>/quit</code></td><td><code>/exit</code></td><td>—</td></tr>
+              <tr><td><code>/rc</code></td><td><code>/remote-control</code></td><td>—</td></tr>
+              <tr><td><code>/reset</code></td><td><code>/clear</code></td><td>—</td></tr>
+              <tr><td><code>/review</code></td><td><code>/code-review</code></td><td>до v2.1.223 була окремою командою</td></tr>
+              <tr><td><code>/routines</code></td><td><code>/schedule</code></td><td>—</td></tr>
+              <tr><td><code>/settings</code></td><td><code>/config</code></td><td>—</td></tr>
+              <tr><td><code>/share</code></td><td><code>/bug</code></td><td>до v2.1.212 обидві були псевдонімами <code>/feedback</code></td></tr>
+              <tr><td><code>/stats</code></td><td><code>/usage</code></td><td>відкривається на вкладці Stats</td></tr>
+              <tr><td><code>/tp</code></td><td><code>/teleport</code></td><td>—</td></tr>
+              <tr><td><code>/undo</code></td><td><code>/rewind</code></td><td>—</td></tr>
+              <tr><td><code>/ultrareview</code></td><td><code>/code-review ultra</code></td><td>рекомендована форма — саме <code>/code-review ultra</code></td></tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section id="headless" class="scroll-mt-24">
+          <h3>Що працює в <code>claude -p</code></h3>
+          <p>
+            <code>claude -p "текст"</code> — це запуск без діалогу: програма виконує одне прохання,
+            друкує відповідь у термінал і завершується. Так Claude Code вставляють у скрипти й у
+            конвеєри складання. Слеш-команди в такому запуску теж працюють, але не всі.
+          </p>
+          <p class="font-mono text-xs text-faint">
+            Перевірено авторами курсу на Claude Code 2.1.236, macOS 26.5.2, 2026-09-04. Решта того,
+            що в таблицях нижче, — з документації від тієї ж дати.
+          </p>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Команда</th><th>Поведінка без діалогу</th><th>Межа</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/model sonnet</code></td>
+                <td>Приймає назву моделі аргументом; діє лише на цей запуск і типовою не стає.</td>
+                <td>v2.1.205+</td>
+              </tr>
+              <tr>
+                <td><code>/effort high</code></td>
+                <td>Приймає рівень аргументом — поза періодом примусового утримання рівня.</td>
+                <td>v2.1.205+</td>
+              </tr>
+              <tr>
+                <td><code>/fast on</code></td>
+                <td>Приймає значення, але доступність обмежена — документація відсилає до розділу про швидкий режим.</td>
+                <td>v2.1.205+</td>
+              </tr>
+              <tr>
+                <td><code>/color blue</code></td>
+                <td>Приймає колір аргументом.</td>
+                <td>v2.1.205+</td>
+              </tr>
+              <tr>
+                <td><code>/rename ім'я</code></td>
+                <td>Приймає ім'я аргументом.</td>
+                <td>v2.1.205+</td>
+              </tr>
+              <tr>
+                <td><code>/config ключ=значення</code></td>
+                <td>Міняє налаштування без відкриття панелі. Увімкнути те, що потребує підтвердження в панелі, не може; вимкнути — може.</td>
+                <td>v2.1.205+ (сама форма <code>ключ=значення</code> — з v2.1.181)</td>
+              </tr>
+              <tr>
+                <td><code>/mcp</code></td>
+                <td>Без аргументів друкує текстовий підсумок стану серверів замість інтерактивного списку.</td>
+                <td>v2.1.205+</td>
+              </tr>
+              <tr>
+                <td><code>/import</code></td>
+                <td>Перелічує знайдену конфігурацію інших агентів і друкує команду, якою імпорт підтверджують.</td>
+                <td>v2.1.213+</td>
+              </tr>
+              <tr>
+                <td><code>/init</code></td>
+                <td>Виконується: створює <code>CLAUDE.md</code>, як і в діалозі.</td>
+                <td>перевірено на 2.1.236</td>
+              </tr>
+              <tr>
+                <td><code>/goal</code></td>
+                <td>Працює, запуск завершується кодом 0.</td>
+                <td>перевірено на 2.1.236</td>
+              </tr>
+              <tr>
+                <td><code>/status</code></td>
+                <td><strong>Не працює.</strong> Дослівна відповідь: <code>/status isn't available in this environment.</code></td>
+                <td>перевірено на 2.1.236</td>
+              </tr>
+              <tr>
+                <td><code>/hooks</code></td>
+                <td><strong>Не працює.</strong> Та сама відповідь: <code>/hooks isn't available in this environment.</code></td>
+                <td>перевірено на 2.1.236</td>
+              </tr>
+              <tr>
+                <td><code>/doctor</code></td>
+                <td><strong>Зависає</strong> — не відповідає й не завершується; автор обірвав запуск на 120 секундах. У терміналі замість неї працює <code>claude doctor</code>.</td>
+                <td>перевірено на 2.1.236</td>
+              </tr>
+              <tr>
+                <td><code>/login</code></td>
+                <td><strong>Недоступна.</strong> Вхід вимагає інтерактивної сесії.</td>
+                <td>перевірено на 2.1.236</td>
+              </tr>
+              <tr>
+                <td><code>/ultrareview</code></td>
+                <td>Коли запуск має списати кредити, зупиняється <strong>до старту</strong>: підтвердження вимагає діалогу. Для скриптів існує підкоманда <code>claude ultrareview</code>.</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <div class="callout">
+            <span class="callout-title">Правило, яке економить години</span>
+            <p>
+              Команда, яка в діалозі відкриває панель, у <code>-p</code> здебільшого не має сенсу:
+              панель нікому натиснути. Тому робочих випадків тут мало, і майже всі вони — ті, де
+              значення можна передати аргументом. Якщо потрібної команди немає в цій таблиці,
+              спершу пошукай відповідну <strong>команду термінала</strong> в
+              <a href="#cli">наступному розділі</a> — саме туди винесено те, що має працювати
+              зі скрипта.
+            </p>
+          </div>
+        </section>
+
+        <section id="hidden" class="scroll-mt-24">
+          <h3>Приховані команди й приховані форми</h3>
+          <p>
+            Ці команди існують і працюють, але меню їх не підкаже: набирати треба повну назву.
+            Людина, яка шукає їх через <code>/</code>, робить висновок «такої команди немає» — і
+            помиляється.
+          </p>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Що приховано</th><th>Чому</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/heapdump</code></td>
+                <td>Приховано за задумом: службова діагностика пам'яті.</td>
+              </tr>
+              <tr>
+                <td><code>/rate-limit-options</code></td>
+                <td>Не з'являється в меню взагалі. Claude Code може відкрити це меню сам, коли ти впираєшся в ліміт.</td>
+              </tr>
+              <tr>
+                <td><code>/setup-bedrock</code></td>
+                <td>Прихована, доки не задано <code>CLAUDE_CODE_USE_BEDROCK=1</code>.</td>
+              </tr>
+              <tr>
+                <td><code>/setup-vertex</code></td>
+                <td>Прихована, доки не задано <code>CLAUDE_CODE_USE_VERTEX=1</code>.</td>
+              </tr>
+              <tr>
+                <td><code>/mcp reconnect &lt;server&gt;</code>, <code>/mcp enable|disable [&lt;server&gt;|all]</code></td>
+                <td>Сама <code>/mcp</code> у меню є, а ці її форми — ні. Їх набирають повністю.</td>
+              </tr>
+              <tr>
+                <td>Заготовки промптів із серверів MCP</td>
+                <td>У меню вони виглядають як <code>/servername:promptname (MCP)</code>; та сама заготовка запускається й формою <code>/mcp__servername__promptname</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <hr />
+
+        <section id="cli" class="scroll-mt-24">
+          <h2>Команда <code>claude</code> і 13 підкоманд</h2>
+          <p>
+            Це друга половина довідника: те, що набирають у терміналі <strong>до</strong> запуску
+            сесії або замість неї. Саме сюди винесене все, що має працювати зі скрипта.
+          </p>
+
+          <figure class="term" id="t1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t1t">версія й кількість опцій · macOS 26.5.2</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --version</span></span>
+<span class="term__line">2.1.236 (Claude Code)</span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --help | grep -c -E '^  (-[a-zA-Z], )?--[a-z]'</span></span>
+<span class="term__line">62</span></pre>
+          </figure>
+          <p class="font-mono text-xs text-faint">
+            Знято 2026-09-04 на Claude Code 2.1.236, macOS 26.5.2. У твоїй збірці число може бути
+            іншим — і це нормальна причина перевірити його тією ж командою, а не вірити довіднику.
+          </p>
+
+          <p>
+            Отже: <strong>62 опції й 13 підкоманд</strong> у довідці версії 2.1.236. Число «близько
+            90», яке трапляється в описах курсу й у деяких статтях, стосується <em>слеш-команд</em>
+            і до прапорців відношення не має.
+          </p>
+
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Підкоманда</th><th>Що робить</th><th>Уточнення</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>claude agents</code></td>
+                <td>Керує фоновими агентами: подивитись, приєднатись, зупинити.</td>
+                <td>Сюди ж відсилає <code>/background</code>.</td>
+              </tr>
+              <tr>
+                <td><code>claude auth</code></td>
+                <td>Керує входом і обліковими даними.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>claude auto-mode</code></td>
+                <td>Показує або скидає конфігурацію класифікатора авторежиму.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>claude doctor</code></td>
+                <td>Перевіряє стан встановлення й друкує діагностику <strong>лише на читання</strong>, не запускаючи сесії. Читає файли налаштувань у поточній папці без запиту на довіру.</td>
+                <td>Повна перевірка, яка ще й лагодить знайдене, — це слеш-команда <code>/doctor</code> усередині сесії.</td>
+              </tr>
+              <tr>
+                <td><code>claude gateway</code></td>
+                <td>Запускає корпоративний шлюз автентифікації й телеметрії.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>claude import [source]</code></td>
+                <td>Імпортує конфігурацію іншого агента для коду в Claude Code.</td>
+                <td>Те саме, що слеш-команда <code>/import</code>.</td>
+              </tr>
+              <tr>
+                <td><code>claude install [target]</code></td>
+                <td>Ставить рідну збірку Claude Code. Аргументом задають версію: <code>stable</code>, <code>latest</code> або конкретний номер.</td>
+                <td>Різниця між каналами не косметична: <code>stable</code> зазвичай на кілька версій позаду <code>latest</code>.</td>
+              </tr>
+              <tr>
+                <td><code>claude mcp</code></td>
+                <td>Налаштовує зовнішні сервери MCP і керує ними.</td>
+                <td>Повний розбір — у модулі про MCP.</td>
+              </tr>
+              <tr>
+                <td><code>claude plugin</code></td>
+                <td>Керує плагінами.</td>
+                <td>Приймається й у формі <code>claude plugins</code>.</td>
+              </tr>
+              <tr>
+                <td><code>claude project</code></td>
+                <td>Керує станом проєкту. Єдина її підкоманда — <code>purge</code>: видаляє весь стан Claude Code для проєкту (транскрипти, задачі, історію файлів, запис у конфізі).</td>
+                <td>Опції <code>purge</code>: <code>--all</code>, <code>--dry-run</code>, <code>-i</code>/<code>--interactive</code>, <code>-y</code>/<code>--yes</code>, <code>-h</code> (звірено живим запуском на 2.1.236). Окремо друкує, чого <strong>не</strong> чіпає: <code>shell-snapshots/</code> і <code>backups/</code> — до п'яти ротованих знімків <code>~/.claude.json</code>, у яких запис про проєкт може лишитись.</td>
+              </tr>
+              <tr>
+                <td><code>claude setup-token</code></td>
+                <td>Створює довгоживий токен автентифікації.</td>
+                <td>Потрібна підписка Claude.</td>
+              </tr>
+              <tr>
+                <td><code>claude ultrareview [target]</code></td>
+                <td>Хмарний багатоагентний огляд поточної гілки — або переданого номера PR чи базової гілки — з друком знахідок.</td>
+                <td>Опції: <code>--json</code>, <code>--post</code>, <code>--no-post</code>, <code>--timeout &lt;minutes&gt;</code> (за замовчуванням 30). Це форма для скриптів: слеш-команда в <code>-p</code> зупиняється, коли запуск має списати кредити.</td>
+              </tr>
+              <tr>
+                <td><code>claude update</code></td>
+                <td>Перевіряє наявність оновлення й ставить його.</td>
+                <td>Приймається й у формі <code>claude upgrade</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <h3>Чому <code>claude --help</code> не є вичерпним переліком</h3>
+          <p>
+            Це не претензія до документації, а робочий факт, який економить години. У збірці
+            2.1.236 є прапорці, яких у <code>--help</code> немає взагалі. Перевірка робиться так:
+            шукаємо точний рядок усередині встановленого файла програми й поруч ставимо вигадану
+            назву — вона мусить дати нуль.
+          </p>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Прапорець</th><th>У <code>claude --help</code></th><th>У самій програмі 2.1.236</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>--advisor</code></td><td>немає</td><td>є</td></tr>
+              <tr><td><code>--max-turns</code></td><td>немає</td><td>є</td></tr>
+              <tr><td><code>--init-only</code></td><td>немає</td><td>є</td></tr>
+              <tr><td><code>--maintenance</code></td><td>немає</td><td>є</td></tr>
+              <tr><td><code>--append-system-prompt-file</code></td><td>немає</td><td>є</td></tr>
+              <tr><td><code>--restricted</code></td><td>немає</td><td><strong>немає</strong> — документація позначає його «потребує v2.1.248»</td></tr>
+              <tr><td><code>--zzz-bogus-flag</code> (вигаданий, контрольний)</td><td>немає</td><td>немає — перевірка працює</td></tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="font-mono text-xs text-faint">
+            Звірено 2026-09-04 власним запуском на 2.1.236: <code>claude --help</code> проти
+            <code>strings "$(which claude)"</code>.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Дві пастки перевірки, через які легко зробити хибний висновок</span>
+            <p>
+              <strong>Перша: <code>--help</code> ковтає помилку про невідомий прапорець.</strong>
+              Перевірено на 2.1.236 — дивись блок нижче. Тому існування прапорця перевіряють
+              <em>без</em> <code>--help</code>.
+            </p>
+            <p>
+              <strong>Друга: пошук усередині програми чутливий до регістру.</strong> Якщо назва
+              збігається зі звичайним англійським словом, пошук дасть сотні збігів із тексту
+              всередині програми. Шукай точний регістр і завжди став поруч контрольну вигадану
+              назву: якщо вона дала не нуль, метод зламався, а не факт підтвердився.
+            </p>
+          </div>
+
+          <figure class="term term--err" id="t2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t2t">той самий неіснуючий прапорець двічі · 2.1.236</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t2t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --totally-bogus-flag</span></span>
+<span class="term__line"><span class="term__err">error: unknown option '--totally-bogus-flag'</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --totally-bogus-flag --help</span></span>
+<span class="term__line">Usage: claude [options] [command] [prompt]</span>
+<span class="term__line"><span class="term__meta">… далі звичайна довідка, ніби прапорець існує</span></span></pre>
+          </figure>
+
+          <div class="callout">
+            <span class="callout-title">Команда <code>claude config</code> більше не існує — і мовчить про це</span>
+            <p>
+              У переліку підкоманд вище її немає. Але <code>claude config --help</code> не падає:
+              він друкує звичайну кореневу довідку, бо слово <code>config</code> розбирається як
+              початок звичайного прохання, а не як підкоманда (перевірено на 2.1.236, 2026-09-04).
+            </p>
+            <p>
+              Наслідок: будь-який туторіал із <code>claude config set …</code> мертвий, але
+              виглядає живим — команда «щось показує» замість того, щоб чесно сказати «такої
+              команди немає». Налаштування тепер міняють через <code>/config</code> усередині
+              сесії або правкою файлів налаштувань.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <h2 id="keys" class="scroll-mt-24">Гарячі клавіші</h2>
+        <p>
+          Далі — клавіші, які працюють <strong>усередині запущеної сесії</strong> Claude Code.
+          Запис <code>Ctrl+O</code> означає «тримай <code>Ctrl</code> і натисни <code>O</code>»;
+          запис <code>Ctrl+X Ctrl+K</code> — «натисни <code>Ctrl+X</code>, відпусти, потім натисни
+          <code>Ctrl+K</code>». Усе звірено з документацією <code>interactive-mode</code>
+          2026-09-04.
+        </p>
+        <div class="callout">
+          <span class="callout-title">Окремо для macOS</span>
+          <p>
+            Комбінації з <code>Alt</code> (<code>Alt+B</code>, <code>Alt+F</code>,
+            <code>Alt+D</code>, <code>Alt+Y</code>, <code>Alt+P</code>) на Mac не працюють, доки в
+            налаштуваннях самого термінала не увімкнено «Option as Meta» — тобто «хай клавіша
+            Option поводиться як Meta». Це налаштування термінала, а не Claude Code, і в кожному
+            терміналі воно своє.
+          </p>
+        </div>
+
+        <section id="keys-general" class="scroll-mt-24">
+          <h3>Керування сесією</h3>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Клавіші</th><th>Що робить</th><th>Уточнення</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Esc</code></td>
+                <td>Перериває Claude посеред відповіді або закриває діалог.</td>
+                <td>Зроблене до переривання не втрачається. Якщо в тебе є повідомлення в черзі, Claude надішле їх наступними.</td>
+              </tr>
+              <tr>
+                <td><code>Esc</code> <code>Esc</code></td>
+                <td>Порожній рядок вводу — відкриває меню відкату (те саме, що <code>/rewind</code>). Непорожній — очищає його.</td>
+                <td>Очищений текст зберігається в історію, тому <code>Up</code> його поверне.</td>
+              </tr>
+              <tr>
+                <td><code>Ctrl+C</code></td>
+                <td>Перериває те, що виконується. Якщо не виконується нічого — перше натискання чистить рядок вводу, друге виходить із Claude Code.</td>
+                <td>Переприв'язати не можна.</td>
+              </tr>
+              <tr>
+                <td><code>Ctrl+D</code></td>
+                <td>Виходить із сесії: перше натискання показує підказку, друге протягом 800 мілісекунд виходить.</td>
+                <td><strong>Коли в рядку є текст, <code>Ctrl+D</code> натомість видаляє символ після курсора</strong> — і виглядає це так, ніби вихід не працює.</td>
+              </tr>
+              <tr>
+                <td><code>Shift+Tab</code></td>
+                <td>Перемикає режими дозволів по колу: <code>default</code> (у показнику режиму він зветься Manual), <code>acceptEdits</code>, <code>plan</code>, а де доступно — <code>bypassPermissions</code> і далі <code>auto</code>. З <code>auto</code> перше натискання повертає в <code>default</code>.</td>
+                <td>На Windows, коли середовище виконання Node або Bun не вмикає режим VT-вводу, замість цього працює <code>Alt+M</code>.</td>
+              </tr>
+              <tr>
+                <td><code>Ctrl+O</code></td>
+                <td>Вмикає й вимикає переглядач транскрипту: детальні виклики інструментів, час і модель на кожній відповіді.</td>
+                <td>Також розгортає те, що згорнуте за замовчуванням, наприклад рядок «Called slack 3 times».</td>
+              </tr>
+              <tr>
+                <td><code>Ctrl+T</code></td>
+                <td>Показує й ховає перелік справ, який веде Claude.</td>
+                <td>Це <strong>не</strong> перелік фонових задач — для нього є <code>/tasks</code>. Поки Claude не створив жодного пункту, натискання не дає видимого ефекту.</td>
+              </tr>
+              <tr>
+                <td><code>Ctrl+R</code></td>
+                <td>Зворотний пошук по історії твоїх повідомлень.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>Ctrl+B</code></td>
+                <td>Відправляє у фон те, що зараз виконується: команди оболонки й агентів.</td>
+                <td>У tmux натискають двічі — перше натискання перехоплює сам tmux.</td>
+              </tr>
+              <tr>
+                <td><code>Ctrl+X Ctrl+K</code></td>
+                <td>Зупиняє всіх фонових субагентів цієї сесії й вимикає автоматичні відповіді на коментарі до артефактів до кінця сесії.</td>
+                <td>Щоб підтвердити, натисни двічі протягом 3 секунд.</td>
+              </tr>
+              <tr>
+                <td><code>Ctrl+G</code> або <code>Ctrl+X Ctrl+E</code></td>
+                <td>Відкриває твій промпт у зовнішньому текстовому редакторі.</td>
+                <td><code>Ctrl+X Ctrl+E</code> — це рідна прив'язка readline. Пункт «Show last response in external editor» у <code>/config</code> додає зверху попередню відповідь Claude як коментар.</td>
+              </tr>
+              <tr>
+                <td><code>Ctrl+L</code></td>
+                <td>Перемальовує екран, зберігаючи ввід і історію розмови.</td>
+                <td>Рятує, коли вивід «поїхав» або частина екрана порожня. У повноекранному рендері ще й чистить екран.</td>
+              </tr>
+              <tr>
+                <td><code>Ctrl+S</code></td>
+                <td>Ховає набраний текст і чистить рядок; наступне натискання на порожньому рядку повертає текст, позицію курсора й вставлений вміст.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>Ctrl+Z</code></td>
+                <td>Присипляє процес Claude Code і повертає тебе в оболонку; <code>fg</code> повертає назад.</td>
+                <td>Лише на Unix-системах (macOS, Linux).</td>
+              </tr>
+              <tr>
+                <td><code>Ctrl+V</code></td>
+                <td>Вставляє зображення з буфера обміну як <code>[Image #N]</code> у місці курсора.</td>
+                <td>В iTerm2 — <code>Cmd+V</code>, на Windows і WSL — <code>Alt+V</code>. У WSL прив'язані обидві.</td>
+              </tr>
+              <tr>
+                <td><code>Tab</code></td>
+                <td>Приймає підказку автодоповнення. У діалозі дозволу з обраним <strong>Yes</strong> або <strong>No</strong> відкриває поле коментаря до відповіді; повторне натискання його закриває.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>Up</code> / <code>Down</code> або <code>Ctrl+P</code> / <code>Ctrl+N</code></td>
+                <td>Рухають курсор, а на першому чи останньому видимому рядку — гортають історію твоїх повідомлень.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>Left</code> / <code>Right</code></td>
+                <td>Перемикають вкладки в діалогах і меню.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>Option+P</code> (macOS) / <code>Alt+P</code></td>
+                <td>Змінює модель, не чіпаючи набраний текст.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>Option+T</code> (macOS) / <code>Alt+T</code></td>
+                <td>Вмикає й вимикає розширене мислення.</td>
+                <td>На macOS працює без «Option as Meta». На моделях Fable 5.1 і Fable 5 ефекту не має: вони мислять розширено завжди.</td>
+              </tr>
+              <tr>
+                <td><code>Option+O</code> (macOS) / <code>Alt+O</code></td>
+                <td>Вмикає й вимикає швидкий режим.</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section id="keys-edit" class="scroll-mt-24">
+          <h3>Редагування рядка вводу</h3>
+          <p>
+            Ці комбінації прийшли з readline — набору правил редагування, спільного для більшості
+            терміналів. Знаючи їх, ти редагуєш швидше, ніж стрілками.
+          </p>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Клавіші</th><th>Що робить</th><th>Уточнення</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>Ctrl+A</code></td><td>На початок рядка.</td><td>У багаторядковому вводі — на початок поточного логічного рядка. У GNU screen ця комбінація перехоплюється самим screen.</td></tr>
+              <tr><td><code>Ctrl+E</code></td><td>У кінець рядка.</td><td>—</td></tr>
+              <tr><td><code>Ctrl+K</code></td><td>Видаляє від курсора до кінця рядка.</td><td>Видалене запам'ятовується для вставки через <code>Ctrl+Y</code>.</td></tr>
+              <tr><td><code>Ctrl+U</code></td><td>Видаляє від курсора до початку рядка.</td><td>На macOS багато терміналів прив'язують до цього <code>Cmd+Backspace</code>.</td></tr>
+              <tr><td><code>Ctrl+W</code></td><td>Видаляє попереднє слово.</td><td>На macOS те саме робить <code>Option+Delete</code>, на Windows — <code>Ctrl+Backspace</code>.</td></tr>
+              <tr><td><code>Ctrl+Y</code></td><td>Вставляє останнє видалене через <code>Ctrl+K</code>, <code>Ctrl+U</code> або <code>Ctrl+W</code>.</td><td>—</td></tr>
+              <tr><td><code>Alt+Y</code></td><td>Одразу після вставки гортає історію раніше видаленого.</td><td>Потребує «Option as Meta» на macOS.</td></tr>
+              <tr><td><code>Alt+B</code> / <code>Alt+F</code></td><td>Курсор на слово назад / вперед.</td><td>Потребує «Option as Meta» на macOS.</td></tr>
+              <tr><td><code>Alt+D</code></td><td>Видаляє наступне слово.</td><td>Потребує «Option as Meta» на macOS.</td></tr>
+              <tr><td><code>Ctrl+_</code> або <code>Ctrl+Shift+-</code></td><td>Скасовує останню правку вводу: повертає текст і позицію курсора.</td><td>—</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section id="keys-multiline" class="scroll-mt-24">
+          <h3>Кілька рядків і швидкі префікси</h3>
+          <p>
+            <code>Enter</code> відправляє повідомлення, тому для переносу рядка є окремі способи —
+            їх п'ять:
+          </p>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Спосіб</th><th>Клавіші</th><th>Де працює</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Швидкий перенос</td><td><code>\</code> + <code>Enter</code></td><td>у всіх терміналах</td></tr>
+              <tr><td>Керівна послідовність</td><td><code>Ctrl+J</code></td><td>у будь-якому терміналі, без налаштування</td></tr>
+              <tr><td>Клавіша Option</td><td><code>Option+Enter</code></td><td>на macOS після вмикання «Option as Meta»</td></tr>
+              <tr><td>Shift+Enter</td><td><code>Shift+Enter</code></td><td>рідно в iTerm2, WezTerm, Ghostty, Kitty, Warp, Apple Terminal і Windows Terminal; в інших — після <code>/terminal-setup</code></td></tr>
+              <tr><td>Вставка</td><td>вставити текст як є</td><td>для блоків коду й логів</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>Один символ на початку рядка міняє режим уводу:</p>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Символ</th><th>Що вмикає</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>/</code> на початку</td><td>Команду або навичку.</td></tr>
+              <tr><td><code>!</code> на початку</td><td>Режим оболонки: рядок виконується як команда термінала.</td></tr>
+              <tr><td><code>@</code></td><td>Згадку шляху до файла з підказками.</td></tr>
+              <tr><td><code>:</code></td><td>Скорочення емодзі.</td></tr>
+              <tr><td><code>?</code> на порожньому рядку</td><td>Панель підказок із гарячими клавішами.</td></tr>
+            </tbody>
+          </table>
+          </div>
+          <p>
+            Голосове диктування: утримання або натискання <code>Space</code> — але лише тоді, коли
+            диктування ввімкнене (<code>/voice</code>). Утримувати — щоб записувати, поки тримаєш;
+            <code>/voice tap</code> перемикає на режим «натиснув — почалось, натиснув — скінчилось».
+          </p>
+        </section>
+
+        <section id="keys-transcript" class="scroll-mt-24">
+          <h3>Переглядач транскрипту (<code>Ctrl+O</code>)</h3>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Клавіша</th><th>Що робить</th><th>Уточнення</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>?</code></td><td>Панель підказок із клавішами.</td><td>Потребує повноекранного рендера.</td></tr>
+              <tr><td><code>{</code> / <code>}</code></td><td>Стрибок до попереднього / наступного твого повідомлення.</td><td>Потребує повноекранного рендера.</td></tr>
+              <tr><td><code>Ctrl+E</code></td><td>Показати весь вміст без згортання.</td><td>Лише у класичному рендері, у повноекранному цієї клавіші немає.</td></tr>
+              <tr><td><code>[</code></td><td>Виписує всю розмову у власну прокрутку термінала, щоб її можна було шукати рідними засобами (<code>Cmd+F</code>, режим копіювання tmux).</td><td>Потребує повноекранного рендера.</td></tr>
+              <tr><td><code>v</code></td><td>Пише розмову в тимчасовий файл і відкриває його у твоєму редакторі (<code>$VISUAL</code> або <code>$EDITOR</code>).</td><td>Потребує повноекранного рендера.</td></tr>
+              <tr><td><code>q</code>, <code>Ctrl+C</code>, <code>Esc</code></td><td>Вихід із переглядача.</td><td>Усі три переприв'язуються дією <code>transcript:exit</code>.</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section id="keys-vim" class="scroll-mt-24">
+          <h3>Vim-режим</h3>
+          <p>
+            Vim — старий текстовий редактор із двома режимами: у NORMAL клавіші рухають курсор і
+            правлять текст, у INSERT вони друкують літери. Якщо ти цим не користувався, цей розділ
+            можна пропустити: усе інше в Claude Code працює без нього.
+          </p>
+          <p>
+            Вмикається в <code>/config</code> → Editor mode. Окремої команди <code>/vim</code>
+            більше немає — її видалили у v2.1.92.
+          </p>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Клавіша</th><th>Дія</th><th>З якого режиму</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>Esc</code> або <code>Ctrl+[</code></td><td>Перехід у NORMAL.</td><td>INSERT, VISUAL</td></tr>
+              <tr><td><code>i</code> / <code>I</code></td><td>Вставка перед курсором / на початку рядка.</td><td>NORMAL</td></tr>
+              <tr><td><code>a</code> / <code>A</code></td><td>Вставка після курсора / у кінці рядка.</td><td>NORMAL</td></tr>
+              <tr><td><code>o</code> / <code>O</code></td><td>Новий рядок нижче / вище.</td><td>NORMAL</td></tr>
+              <tr><td><code>v</code> / <code>V</code></td><td>Виділення за символами / за рядками.</td><td>NORMAL</td></tr>
+            </tbody>
+          </table>
+          </div>
+          <p>
+            Далі працює звичайний набір рухів і правок vim (<code>h j k l</code>, <code>w e b</code>,
+            <code>dd</code>, <code>cw</code>, <code>yy</code>, <code>p</code>, <code>u</code>,
+            <code>.</code>, текстові об'єкти <code>iw</code>, <code>a"</code> й таке інше) — повний
+            перелік у документації <code>interactive-mode</code>. Два уточнення, специфічні для
+            Claude Code: у NORMAL клавіша <code>/</code> відкриває пошук по історії (те саме, що
+            <code>Ctrl+R</code>), а <code>?</code> показує меню довідки. Vim-клавіші
+            <strong>не переприв'язуються</strong> файлом гарячих клавіш; послідовність із двох
+            клавіш на кшталт <code>jj</code> замість <code>Esc</code> задається окремим ключем
+            налаштувань <code>vimInsertModeRemaps</code>.
+          </p>
+        </section>
+
+        <section id="rebind" class="scroll-mt-24">
+          <h2>Переприв'язати клавішу</h2>
+          <p>
+            Будь-яку дію, крім кількох зарезервованих, можна повісити на іншу клавішу. Це роблять
+            у файлі <code>~/.claude/keybindings.json</code> — його відкриває команда
+            <code>/keybindings</code>. Зміни у файлі підхоплюються <strong>без перезапуску</strong>
+            Claude Code.
+          </p>
+          <p>
+            Файл — це об'єкт із масивом <code>bindings</code>. Кожен блок називає
+            <strong>контекст</strong> (де прив'язка діє) і перелік «клавіші → дія». Значення
+            <code>null</code> знімає стандартну прив'язку. Приклад із документації вішає
+            <code>Ctrl+E</code> на відкриття зовнішнього редактора в полі вводу й прибирає
+            <code>Ctrl+U</code>:
+          </p>
+          <pre><code>{
+  "$schema": "https://www.schemastore.org/claude-code-keybindings.json",
+  "$docs": "https://code.claude.com/docs/en/keybindings",
+  "bindings": [
+    {
+      "context": "Chat",
+      "bindings": {
+        "ctrl+e": "chat:externalEditor",
+        "ctrl+u": null
+      }
+    }
+  ]
+}</code></pre>
+          <p>
+            Ім'я дії має вигляд <code>простір-імен:дія</code> — наприклад <code>chat:submit</code>
+            (надіслати повідомлення) або <code>app:toggleTodos</code> (показати перелік справ).
+            На 2026-09-04 документація перелічує <strong>120 рядків дій у 23 групах</strong>
+            (112 унікальних імен: частина дій повторюється в різних контекстах) і
+            <strong>20 контекстів</strong>. Число зростає з версіями — тому воно тут із датою.
+          </p>
+
+          <h3>20 контекстів</h3>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Контекст</th><th>Де діє</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>Global</code></td><td>Скрізь у програмі.</td></tr>
+              <tr><td><code>Chat</code></td><td>Головне поле вводу.</td></tr>
+              <tr><td><code>Autocomplete</code></td><td>Відкрите меню автодоповнення.</td></tr>
+              <tr><td><code>Settings</code></td><td>Меню налаштувань.</td></tr>
+              <tr><td><code>Confirmation</code></td><td>Діалоги дозволів і підтверджень.</td></tr>
+              <tr><td><code>Tabs</code></td><td>Перемикання вкладок.</td></tr>
+              <tr><td><code>Help</code></td><td>Видиме меню довідки.</td></tr>
+              <tr><td><code>Transcript</code></td><td>Переглядач транскрипту.</td></tr>
+              <tr><td><code>HistorySearch</code></td><td>Пошук по історії (<code>Ctrl+R</code>).</td></tr>
+              <tr><td><code>Task</code></td><td>Виконується фонова задача.</td></tr>
+              <tr><td><code>ThemePicker</code></td><td>Діалог вибору теми.</td></tr>
+              <tr><td><code>Attachments</code></td><td>Перехід по вкладених зображеннях у діалогах вибору.</td></tr>
+              <tr><td><code>Footer</code></td><td>Показники в нижньому рядку: задачі, команди, диф, артефакти.</td></tr>
+              <tr><td><code>MessageSelector</code></td><td>Вибір повідомлення в діалозі відкату й підсумовування.</td></tr>
+              <tr><td><code>DiffDialog</code></td><td>Навігація в переглядачі змін.</td></tr>
+              <tr><td><code>DiffPanel</code></td><td>Відкрита панель змін.</td></tr>
+              <tr><td><code>ModelPicker</code></td><td>Рівень зусиль у виборі моделі.</td></tr>
+              <tr><td><code>Select</code></td><td>Звичайні списки й вибірки.</td></tr>
+              <tr><td><code>Plugin</code></td><td>Діалог плагінів.</td></tr>
+              <tr><td><code>Scroll</code></td><td>Прокрутка розмови й виділення тексту в повноекранному режимі.</td></tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="font-mono text-xs text-faint">
+            До v2.1.205 існував ще контекст <code>Doctor</code> і дія <code>doctor:fix</code> —
+            для екрана діагностики, якого вже немає.
+          </p>
+
+          <h3>Що переприв'язати не можна</h3>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Клавіші</th><th>Чому</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>Ctrl+C</code></td><td>Переривання зашите в програму.</td></tr>
+              <tr><td><code>Ctrl+D</code></td><td>Вихід зашитий у програму.</td></tr>
+              <tr><td><code>Ctrl+M</code></td><td>Claude Code завжди отримує її як <code>Enter</code>.</td></tr>
+              <tr><td><code>Ctrl+[</code></td><td>Завжди приходить як <code>Escape</code>.</td></tr>
+              <tr><td><code>Ctrl+I</code></td><td>Завжди приходить як <code>Tab</code>.</td></tr>
+              <tr><td><code>Ctrl+H</code></td><td>Надсилає байт backspace; як саме він читається на Windows, залежить від термінала й змінної <code>CLAUDE_CODE_BS_AS_CTRL_BACKSPACE</code>.</td></tr>
+              <tr><td><code>Caps Lock</code></td><td>До програм у терміналі взагалі не доходить.</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <h3>Три конфлікти з самим терміналом</h3>
+          <p>
+            Ці клавіші може забрати собі не Claude Code, а програма, у якій він запущений:
+          </p>
+          <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr><th>Клавіші</th><th>Хто забирає</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>Ctrl+B</code></td><td>tmux — це його префікс. Натискай двічі, щоб клавіша дійшла до Claude Code.</td></tr>
+              <tr><td><code>Ctrl+A</code></td><td>GNU screen — його префікс.</td></tr>
+              <tr><td><code>Ctrl+Z</code></td><td>Сама Unix-оболонка: присипляє процес.</td></tr>
+            </tbody>
+          </table>
+          </div>
+          <p>
+            Якщо у файлі гарячих клавіш є помилка — зламаний JSON, невідома дія, конфлікт —
+            Claude Code показує попередження, а не мовчить.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="trouble" class="scroll-mt-24">
+          <h2>Команда не спрацювала: що перевіряти по порядку</h2>
+          <p>
+            Найчастіші причини — не поломка, а одна з п'яти дрібниць нижче. Порядок має значення:
+            він від найдешевшої перевірки до найдорожчої.
+          </p>
+          <ol>
+            <li>
+              <strong>Одрук.</strong> Меню не підсвітило нічого, а <code>Enter</code> усе одно
+              надіслав текст. Відповідь буде <code>Unknown command</code>. Набери назву ще раз і
+              вибери підказку клавішею <code>Tab</code>, а не <code>Enter</code>.
+            </li>
+            <li>
+              <strong>Команда прихована.</strong> Меню не покаже її ніколи, доки ти не набрав
+              повну назву. Перелік — у розділі <a href="#hidden">Приховані команди</a>.
+            </li>
+            <li>
+              <strong>Твоя версія старіша за документацію.</strong> Подивись
+              <code>claude --version</code> і колонку «Псевдоніми й межі» у таблиці команди. Це
+              найчастіша причина, коли «в статті працює, у мене ні»: канал <code>stable</code>
+              зазвичай на кілька версій позаду <code>latest</code>.
+            </li>
+            <li>
+              <strong>Команда змінила значення або видалена.</strong> Розділ
+              <a href="#dead">Видалені й перейменовані</a> — там же сказано, чим її замінили.
+            </li>
+            <li>
+              <strong>Ти в неінтерактивному запуску.</strong> Частина команд у <code>-p</code>
+              віддає <code>isn't available in this environment</code>, а <code>/doctor</code>
+              зависає. Дивись розділ <a href="#headless">Що працює в <code>-p</code></a>.
+            </li>
+          </ol>
+          <p>
+            І окремо про клавіші: якщо комбінація не спрацювала, спершу подивись, чи вона не
+            зарезервована, чи її не забрав tmux або screen, чи не потрібна їй «Option as Meta» на
+            macOS і чи не працює вона лише в повноекранному рендері.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="sources" class="scroll-mt-24">
+          <h2>Джерела й дати</h2>
+          <p>
+            Довідник зібраний рівно з трьох джерел. Пам'ять моделі джерелом не є: Claude Code
+            змінюється швидше, ніж встигає застаріти будь-який навчальний зріз.
+          </p>
+          <ol>
+            <li>
+              <strong>Офіційна документація</strong>, прочитана наживо 2026-09-04:
+              <a href="https://code.claude.com/docs/en/commands" rel="noopener">commands</a>
+              (таблиця «All commands», 111 рядків, і розділ про роботу меню),
+              <a href="https://code.claude.com/docs/en/interactive-mode" rel="noopener">interactive-mode</a>
+              (гарячі клавіші, багаторядковий ввід, переглядач транскрипту, Vim-режим),
+              <a href="https://code.claude.com/docs/en/keybindings" rel="noopener">keybindings</a>
+              (контексти, дії, зарезервовані клавіші),
+              <a href="https://code.claude.com/docs/en/mcp" rel="noopener">mcp</a> (заготовки
+              промптів як команди),
+              <a href="https://code.claude.com/docs/en/routines" rel="noopener">routines</a>
+              (добова межа запусків рутин).
+            </li>
+            <li>
+              <strong>Знімок таблиці команд від 2026-09-03</strong>, знятий на версії 2.1.236. Саме
+              порівняння цього знімка з живою сторінкою дало факт, з якого починається сторінка:
+              за добу змінився один опис зі 111.
+            </li>
+            <li>
+              <strong>Власні запуски</strong> на Claude Code 2.1.236, macOS 26.5.2, 2026-09-04:
+              <code>claude --version</code>, підрахунок опцій і підкоманд у
+              <code>claude --help</code>, поведінка <code>--help</code> із неіснуючим прапорцем,
+              <code>claude config --help</code>, <code>claude project purge --help</code> і пошук
+              прапорців усередині встановленого файла програми.
+            </li>
+          </ol>
+          <p>
+            Поведінку слеш-команд у <code>claude -p</code> перевіряли автори модулів курсу на тій
+            самій збірці 2.1.236 — це позначено в самих таблицях словами «перевірено на 2.1.236».
+          </p>
+          <div class="callout callout-sand">
+            <span class="callout-title">Якщо довідник розійшовся з тим, що бачиш ти</span>
+            <p>
+              Вір своїй машині. Правильний порядок дій: <code>claude --version</code>, потім
+              <code>claude --help</code> без жодних інших прапорців, потім
+              <code>/help</code> усередині сесії. Розбіжність між цією сторінкою й твоїм екраном
+              означає, що між ними лежать кілька версій — а не що хтось помилився.
+            </p>
+          </div>
+          <p>
+            Ця сторінка не входить у сертифікат і не має квіза.
+            <a href="claude-code.html#refs">Решта полиці довідників</a> ·
+            <a href="claude-code.html#map">Програма курсу</a>
+          </p>
+        </section>
+
+      </article>
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Прогрес і конфіг потрібні лише шапці й футеру: у довідника немає ні модуля,
+       ні квіза, тому js/module.js і js/quiz.js тут свідомо не підключені. -->
+  <script src="js/progress.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth-ui.js"></script>
+  <script type="module" src="js/auth.js"></script>
+</body>
+
+</html>
