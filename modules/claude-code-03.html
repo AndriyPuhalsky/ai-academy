@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 3 · Встановлення й перший вхід — AI Термінал</title>
+  <meta name="description"
+    content="Як встановити Claude Code на macOS, Windows, Linux і WSL, чим канал latest відрізняється від stable, чому збірка з homebrew не оновлюється сама, як увійти підпискою або ключем API і як прочитати вивід claude doctor." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="c03" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 03</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 1 · Старт з нуля</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Встановлення й перший вхід</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Початковий · 8 блоків · ≈ 45 хв читання</p>
+        <p class="mt-6 text-lg">
+          Встановити Claude Code — це одна команда. Проблема в тому, що команд таких шість, вони
+          дають різні результати, і вибір, зроблений тут за десять секунд, визначає, яку версію
+          програми ти бачитимеш наступні місяці. Половина питань на кшталт «у мене немає фічі,
+          про яку пише документація» народжується саме в цьому модулі — і закривається теж тут.
+        </p>
+        <p>
+          Другий крок — вхід. Claude Code не працює без облікового запису, і безкоштовний план
+          claude.ai доступу до нього не дає. Тут розберемо, які акаунти підходять, чим підписка
+          відрізняється від ключа API і чому один забутий рядок у налаштуваннях оболонки може
+          мовчки перебити активну підписку.
+        </p>
+
+        <div class="callout">
+          <span class="callout-title">Що знадобиться до початку</span>
+          <p>
+            <strong>Термінал</strong> — вікно, у яке набирають команди. Якщо слова «поточна папка»,
+            <code>PATH</code> і <code>command not found</code> ще нічого не означають, спершу
+            модуль 1: там усе це пояснено з нуля, і далі я на нього посилаюсь без повторів.
+          </p>
+          <p>
+            <strong>Платний обліковий запис.</strong> Документація каже дослівно: «Claude Code
+            requires a Pro, Max, Team, Enterprise, or Console account. The free Claude.ai plan does
+            not include Claude Code access» — «потрібен акаунт Pro, Max, Team, Enterprise або
+            Console; безкоштовний план claude.ai доступу до Claude Code не дає». Це перше, що варто
+            перевірити, і про це — блок 3.
+          </p>
+          <p>
+            <strong>Комп'ютер, який тягне.</strong> Мінімум — 4 ГБ оперативної пам'яті й одна з
+            систем зі списку в блоці 4. Інтернет потрібен постійно: модель, яка відповідає,
+            працює на серверах Anthropic, а не на твоєму комп'ютері.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
+          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+
+          <p>
+            Claude Code — це програма, яку треба покласти на свій комп'ютер. Не сайт, не вкладка
+            браузера: файл, який запускається командою <code>claude</code> у терміналі. Тому
+            встановлення тут не формальність перед «справжнім» матеріалом, а перше місце, де курс
+            може зламатись мовчки.
+          </p>
+
+          <h3>Чому вибір способу встановлення — це не дрібниця</h3>
+
+          <p>
+            Anthropic — компанія, яка робить Claude, — випускає нові версії Claude Code майже
+            щодня. І роздає їх двома потоками, які в документації називають
+            <strong>каналами релізів</strong> (release channels):
+          </p>
+
+          <ul>
+            <li>
+              <strong><code>latest</code></strong> — «receive new features as soon as they're
+              released», тобто нові версії приїжджають одразу, щойно вийшли;
+            </li>
+            <li>
+              <strong><code>stable</code></strong> — «use a version that is typically about one week
+              old, skipping releases with major regressions»: версія приблизно тижневої давнини,
+              з якої викинуті випуски з великими поломками.
+            </li>
+          </ul>
+
+          <p>
+            Різниця звучить нешкідливо, доки не побачиш її в числах. Ось два пакети Claude Code для
+            менеджера пакетів Homebrew на macOS, перевірені 4 вересня 2026 року: у стабільному
+            каналі — версія <code>2.1.236</code>, у свіжому — <code>2.1.251</code>. Між ними
+            п'ятнадцять випусків. Кожен із них міг додати команду або налаштування, про які
+            документація вже пише як про наявні.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Головна пастка всього курсу</span>
+            <p>
+              Людина ставить Claude Code найпростішим способом, через тиждень читає документацію
+              про якусь можливість, набирає команду — і бачить, що її немає. Вона починає шукати
+              помилку в собі: не так набрала, не туди встановила, зламала налаштування.
+            </p>
+            <p>
+              Насправді не сталося нічого поганого: у неї інший канал релізів, і все. Цей модуль
+              існує здебільшого заради того, щоб ти впізнав цю ситуацію за хвилину, а не за вечір.
+            </p>
+          </div>
+
+          <h3>Друга половина модуля — вхід</h3>
+
+          <p>
+            Після встановлення Claude Code не працює, доки ти в нього не зайдеш. Способів входу
+            більше, ніж здається: підписка Claude (Pro, Max, Team, Enterprise), обліковий запис
+            Claude Console з оплатою за використання, корпоративні хмарні провайдери й довгоживучий
+            токен для автоматичних запусків. Вони не лише співіснують — вони вишикувані в
+            жорсткий порядок пріоритету, і той, що вище, мовчки перебиває той, що нижче. Це один із
+            найчастіших сюжетів «усе працювало, а тепер помилка авторизації», і в блоці 3 буде
+            видно, чому.
+          </p>
+
+          <h3>Що ти вмітимеш після цього модуля</h3>
+
+          <ul>
+            <li>встановити Claude Code на своїй системі свідомо обраним способом;</li>
+            <li>сказати, у якому ти каналі й чому в тебе саме ця версія;</li>
+            <li>оновити програму руками, коли вона не оновлюється сама;</li>
+            <li>увійти в обліковий запис і перевірити, під ким саме ти зайшов;</li>
+            <li>прочитати вивід <code>claude doctor</code> — короткої діагностики, яка відповідає
+              на більшість питань про встановлення.</li>
+          </ul>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
+          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Дві команди відповідають майже на все, що стосується встановлення.
+            <code>claude --version</code> друкує номер версії. <code>claude doctor</code> друкує
+            діагностику: як програма встановлена, де лежить, хто керує її оновленнями і чим
+            закінчилась остання спроба оновитись. Документація описує її так: «prints read-only
+            installation and settings diagnostics without starting a session» — тобто це перевірка
+            тільки на читання, сесія з Claude при цьому не запускається й нічого не витрачається.
+          </p>
+
+          <p>Нижче — справжній вивід обох команд, знятий на робочій машині автора курсу.</p>
+
+          <figure class="term term--cmd" id="d1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="d1t">macOS 26.5.2 · Claude Code 2.1.236, homebrew · знято 2026-09-04</span>
+              <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="d1t"><span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude --version</span></span>
+<span class="term__line"><span class="term__ok">2.1.236 (Claude Code)</span></span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude doctor</span></span>
+<span class="term__line">Claude Code doctor</span>
+<span class="term__line"></span>
+<span class="term__line">Running: package-manager (2.1.236)</span>
+<span class="term__line">Commit: 82959839e940</span>
+<span class="term__line">Platform: darwin-arm64</span>
+<span class="term__line">Package manager: homebrew</span>
+<span class="term__line">Path: /opt/homebrew/Caskroom/claude-code/2.1.236/claude</span>
+<span class="term__line">Config install method: global</span>
+<span class="term__line">Search: OK (bundled)</span>
+<span class="term__line">Auto-updates: Managed by package manager</span>
+<span class="term__line">Auto-update channel: latest</span>
+<span class="term__line"><span class="term__err">Last update attempt: failed (install_failed) — 2026-08-12</span></span>
+<span class="term__line"></span>
+<span class="term__line">Remote Control</span>
+<span class="term__line">Control this session from claude.ai/code or the Claude mobile app</span>
+<span class="term__line"></span>
+<span class="term__line"><span class="term__ok">No installation issues found.</span></span>
+<span class="term__line"></span>
+<span class="term__line">For a full setup checkup that can also fix issues, run /doctor in a Claude Code session.</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято 4 вересня 2026 року: macOS 26.5.2 на процесорі Apple Silicon, Claude Code
+            2.1.236, встановлений через Homebrew. Вивід дослівний, нічого не прибрано й не
+            підправлено. На твоєму комп'ютері рядки <code>Path</code>, <code>Package manager</code>
+            і <code>Platform</code> будуть іншими — вони й описують саме твою установку.
+          </p>
+
+          <h3>Як прочитати цей вивід рядок за рядком</h3>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Рядок</th>
+                <th>Що він каже</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Running: package-manager (2.1.236)</code></td>
+                <td>тип установки, яка зараз запущена, і номер версії. Тут — установка, якою керує
+                  менеджер пакетів</td>
+              </tr>
+              <tr>
+                <td><code>Platform: darwin-arm64</code></td>
+                <td>система й архітектура процесора. <code>darwin</code> — це macOS,
+                  <code>arm64</code> — процесор Apple Silicon</td>
+              </tr>
+              <tr>
+                <td><code>Package manager: homebrew</code></td>
+                <td>яким саме способом програму встановлено. Найважливіший рядок у всьому виводі —
+                  від нього залежить, як вона оновлюється</td>
+              </tr>
+              <tr>
+                <td><code>Path: /opt/homebrew/…</code></td>
+                <td>де фізично лежить файл програми. Той самий шлях, що покаже
+                  <code>which claude</code> з модуля 1</td>
+              </tr>
+              <tr>
+                <td><code>Search: OK (bundled)</code></td>
+                <td>вбудований інструмент пошуку по файлах на місці. Документація зазначає, що
+                  <code>ripgrep</code> зазвичай іде в комплекті з Claude Code</td>
+              </tr>
+              <tr>
+                <td><code>Auto-updates: Managed by package manager</code></td>
+                <td>оновленнями керує не Claude Code, а той менеджер пакетів, через який його
+                  поставили. На практиці це означає «сам не оновиться»</td>
+              </tr>
+              <tr>
+                <td><code>Last update attempt: failed …</code></td>
+                <td>чим закінчилась остання спроба оновитись. Документація прямо радить:
+                  «Run <code>claude doctor</code> to see the result of the most recent update
+                  attempt»</td>
+              </tr>
+              <tr>
+                <td><code>No installation issues found.</code></td>
+                <td>підсумок перевірки. Саме він відповідає на питання «у мене все нормально
+                  встановилось?»</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Рядки <code>Commit</code> і <code>Config install method</code> службові: документація
+            їх окремо не описує, і для роботи вони не потрібні. Блок <code>Remote Control</code> —
+            про керування сесією з телефона; це тема модуля 20.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Один рядок у цьому виводі оманливий</span>
+            <p>
+              <code>Auto-update channel: latest</code> виглядає як відповідь на питання «у якому я
+              каналі». Але встановлено тут пакет <code>claude-code</code>, а це, за документацією,
+              канал <strong>stable</strong>. Суперечності немає: цей рядок показує значення
+              налаштування <code>autoUpdatesChannel</code>, у якого канал <code>latest</code> —
+              значення за замовчуванням. А для установок через Homebrew документація каже
+              дослівно: «Homebrew installations choose a channel by cask name instead of this
+              setting» — канал вирішує назва пакета, а не це налаштування.
+            </p>
+            <p>
+              Практичний висновок: якщо ти ставив через Homebrew, у питанні каналу вір назві
+              пакета, а не рядку <code>Auto-update channel</code>. Як подивитись назву — нижче.
+            </p>
+          </div>
+
+          <h3>Два пакети Homebrew — і різниця між ними в числах</h3>
+
+          <p>
+            Homebrew — популярний менеджер пакетів для macOS: програма, яка встановлює інші
+            програми однією командою. Claude Code роздається в ньому двома пакетами
+            (у Homebrew їх називають casks). Команда <code>brew info</code> показує, яка версія
+            зараз у кожного, нічого не встановлюючи. Приписка <code>| head -1</code> означає
+            «покажи тільки перший рядок відповіді».
+          </p>
+
+          <figure class="term term--cmd" id="d2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="d2t">macOS 26.5.2 · Homebrew · знято 2026-09-04</span>
+              <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="d2t"><span class="term__line"><span class="term__meta">%</span> <span class="term__in">brew info --cask claude-code | head -1</span></span>
+<span class="term__line">==&gt; claude-code (Claude Code): 2.1.236</span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">brew info --cask claude-code@latest | head -1</span></span>
+<span class="term__line">==&gt; claude-code@latest (Claude Code): 2.1.251</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято 4 вересня 2026 року на macOS 26.5.2. Два пакети з тим самим Claude Code
+            відрізняються на п'ятнадцять версій: <code>2.1.236</code> проти <code>2.1.251</code>.
+            Ці числа застаріють — важлива не їхня величина, а сам факт розриву. Повтори ці дві
+            команди в себе, і побачиш свою пару чисел.
+          </p>
+
+          <p>
+            Тепер той самий сюжет словами. Дослідники цього курсу 3 вересня 2026 року звірили
+            документацію з локальною збіркою <code>2.1.236</code> і нарахували розрив приблизно у
+            двадцять випусків, а в ньому — десяток можливостей, які документація вже описує, а в
+            цій версії їх ще немає: серед них окремий рядок про кеш у команді <code>/usage</code>
+            (потрібна <code>2.1.251</code>) і налаштування часу життя кешу (потрібна
+            <code>2.1.242</code>). Тобто розрив між каналами — не
+            теоретичний: він рівно про ті команди, які ти читатимеш у наступних модулях.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
+          <h2><span class="lesson-no">3</span>Як це працює</h2>
+
+          <p>
+            Тут два незалежні механізми: як програма потрапляє на комп'ютер і оновлюється — і як
+            вона розуміє, хто ти. Розберемо по черзі.
+          </p>
+
+          <h3>Спосіб встановлення вирішує все інше</h3>
+
+          <p>
+            Способів шість, і вони діляться на дві групи. Перша — <strong>рідний інсталятор</strong>
+            (native installer): скрипт, який Anthropic роздає за адресою <code>claude.ai/install.sh</code>.
+            Він кладе програму в твою домашню папку й далі стежить за нею сам. Документація про
+            нього: «Native installations automatically update in the background to keep you on the
+            latest version» — оновлюється у фоні без твоєї участі.
+          </p>
+
+          <p>
+            Друга група — <strong>менеджери пакетів</strong>: Homebrew на macOS, WinGet на Windows,
+            <code>apt</code>, <code>dnf</code>, <code>apk</code> на Linux, а також <code>npm</code>.
+            Це програми, які встановлюють і оновлюють увесь софт на машині централізовано. Claude
+            Code у них теж є — але оновлює його вже не Claude Code, а вони. Документація:
+            «Homebrew, WinGet, apt, dnf, and apk installations do not auto-update by default».
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  A["Яким способом встановлено"] --> B["Рідний інсталятор: curl install.sh"]
+  A --> C["Homebrew, пакет claude-code"]
+  A --> D["Homebrew, пакет claude-code@latest"]
+  A --> E["WinGet, apt, dnf, apk, npm"]
+  B --> F["Канал обирається під час встановлення, за замовчуванням latest"]
+  C --> G["Канал stable: приблизно тиждень позаду"]
+  D --> H["Канал latest: нові версії одразу"]
+  F --> I["Оновлюється сам у фоні"]
+  G --> J["Сам НЕ оновиться: потрібна команда brew upgrade"]
+  H --> J
+  E --> K["Сам НЕ оновиться: оновлює твій менеджер пакетів"]
+  style B fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style J stroke:#D97757
+  style K stroke:#D97757
+            </pre>
+            <p class="diagram-caption">
+              Автооновлення у фоні є рівно в однієї гілки — рідного інсталятора. Усі решта
+              оновлюються тільки рукою
+            </p>
+          </div>
+
+          <p>
+            Звідси відповідь на питання з назви модуля — <strong>чому Homebrew не оновлюється
+            сам</strong>. Не тому, що щось зламано, і не тому, що ти щось пропустив: так
+            влаштовано. Менеджер пакетів вважає себе єдиним господарем встановленого софту, і
+            програма, яка сама себе перезаписує в його папці, для нього ненормальна ситуація. Саме
+            це видно в живому виводі з блоку 2: <code>Auto-updates: Managed by package manager</code>,
+            а нижче — невдала спроба оновитись, <code>failed (install_failed)</code>.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Виняток, про який варто знати</span>
+            <p>
+              Документація описує спосіб попросити Claude Code самому виконувати команду оновлення
+              менеджера пакетів: змінна оточення <code>CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE</code>
+              зі значенням <code>1</code>. Працює для Homebrew і WinGet: «Claude Code then runs the
+              upgrade in the background when a new version is available and shows a restart prompt
+              on success». Для <code>apt</code>, <code>dnf</code> і <code>apk</code> так не можна —
+              їхні команди потребують прав адміністратора.
+            </p>
+            <p>
+              Тобто точне формулювання таке: <strong>жоден пакет Homebrew не оновлюється сам</strong>,
+              але Claude Code можна попросити натиснути цю кнопку за тебе. Змінні оточення — тема
+              модуля 13; поки що достатньо знати, що така можливість існує.
+            </p>
+          </div>
+
+          <h3>Канал можна змінити, версію — зафіксувати</h3>
+
+          <ul>
+            <li>
+              <strong>Налаштування <code>autoUpdatesChannel</code></strong> має два значення:
+              <code>"latest"</code> (за замовчуванням) і <code>"stable"</code>. Змінюється в сесії
+              через <code>/config</code> → <strong>Auto-update channel</strong> або в файлі
+              <code>settings.json</code> — це модуль 13. Для установок через Homebrew воно не
+              діє: там канал вирішує назва пакета.
+            </li>
+            <li>
+              <strong>Команда <code>claude install</code></strong> ставить рідну збірку й приймає
+              або канал, або конкретний номер версії. Документація: «The channel you choose at
+              install time becomes your default for auto-updates».
+            </li>
+            <li>
+              <strong>Налаштування <code>minimumVersion</code></strong> задає нижню межу: фонове
+              оновлення й <code>claude update</code> відмовляться поставити версію нижчу за
+              вказану. Це рятує від несподіваного відкату назад під час переходу з
+              <code>latest</code> на <code>stable</code>.
+            </li>
+          </ul>
+
+          <h3>Вхід: сім джерел одного дозволу</h3>
+
+          <p>
+            Claude Code має розуміти, від чийого імені звертатись до сервера. Джерел, з яких він
+            може взяти цей дозвіл, сім, і вони не рівноправні: програма перебирає їх згори вниз і
+            бере <strong>перше, що знайшла</strong>. Документація називає цей порядок
+            «authentication precedence».
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  A["1. Хмарний провайдер: Bedrock, Vertex, Foundry"] --> B["2. Змінна ANTHROPIC_AUTH_TOKEN"]
+  B --> C["3. Змінна ANTHROPIC_API_KEY"]
+  C --> D["4. Скрипт apiKeyHelper"]
+  D --> E["5. Змінна CLAUDE_CODE_OAUTH_TOKEN"]
+  E --> F["6. Профіль Anthropic або федерація"]
+  F --> G["7. Вхід через браузер: підписка Pro, Max, Team, Enterprise"]
+  style C fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style G fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Claude Code бере перше знайдене джерело згори вниз. Тому старий
+              <code>ANTHROPIC_API_KEY</code> у налаштуваннях оболонки мовчки перебиває твою підписку
+            </p>
+          </div>
+
+          <p>
+            Для звичайного користувача важливі рівно два з семи — нижній і третій.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Підписка Claude</th>
+                <th>Ключ API з Claude Console</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Як з'являється</td>
+                <td>вхід через браузер під час першого запуску</td>
+                <td>змінна оточення <code>ANTHROPIC_API_KEY</code> або вхід у Console</td>
+              </tr>
+              <tr>
+                <td>Як платиться</td>
+                <td>фіксована місячна плата за план Pro, Max, Team або Enterprise</td>
+                <td>за фактичне використання, з наперед оплаченого рахунку</td>
+              </tr>
+              <tr>
+                <td>Хто перемагає, якщо є обидва</td>
+                <td>програє</td>
+                <td><strong>перемагає</strong> — після того, як ти один раз підтвердив ключ</td>
+              </tr>
+              <tr>
+                <td>Де подивитись</td>
+                <td colspan="2"><code>claude auth status --text</code> у терміналі або
+                  <code>/status</code> усередині сесії</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Третій рядок цієї таблиці — джерело найпоширенішої плутанини. Документація описує
+            наслідок дослівно: «If you have an active Claude subscription but also have
+            <code>ANTHROPIC_API_KEY</code> set in your environment, the API key takes precedence
+            once approved. This can cause authentication failures if the key belongs to a disabled
+            or expired organization». Тобто активна підписка є, помилка авторизації теж є, і
+            причина — старий ключ, який хтось прописав у налаштуваннях оболонки пів року тому.
+            Ліки в блоці 6.
+          </p>
+
+          <h3>Де зберігається вхід</h3>
+
+          <p>
+            Після успішного входу Claude Code запам'ятовує тебе, і повторювати вхід не треба.
+            Місце залежить від системи:
+          </p>
+
+          <ul>
+            <li><strong>macOS</strong> — у зашифрованому сховищі системи (Keychain). Якщо записати
+              туди не вдалось, наприклад, коли сховище заблоковане у віддаленому сеансі, Claude
+              Code кладе вхід у файл <code>~/.claude/.credentials.json</code> з правами
+              <code>0600</code> — «читати й писати може тільки власник»;</li>
+            <li><strong>Linux</strong> — файл <code>~/.claude/.credentials.json</code>, права
+              <code>0600</code>;</li>
+            <li><strong>Windows</strong> — файл <code>%USERPROFILE%\.claude\.credentials.json</code>,
+              захищений правами твого профілю користувача.</li>
+          </ul>
+
+          <p>
+            Практичний висновок один: цей файл — такий самий секрет, як пароль. Його не
+            викладають у репозиторій, не пересилають і не копіюють на чужу машину.
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
+          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+
+          <p>
+            Далі — встановлення на твоєму комп'ютері. Це перша дія курсу, яка справді щось змінює
+            в системі, тому кроки розписані дрібно.
+          </p>
+
+          <h3>Крок 1. Перевір, чи підходить комп'ютер</h3>
+
+          <p>Системні вимоги з документації, станом на 4 вересня 2026 року:</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Що</th>
+                <th>Вимога</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>macOS</td>
+                <td>13.0 або новіша</td>
+              </tr>
+              <tr>
+                <td>Windows</td>
+                <td>10 версії 1809 або новіша, Windows Server 2019 або новіший</td>
+              </tr>
+              <tr>
+                <td>Linux</td>
+                <td>Ubuntu 20.04+, Debian 10+, Alpine Linux 3.19+</td>
+              </tr>
+              <tr>
+                <td>Залізо</td>
+                <td>4 ГБ оперативної пам'яті або більше, процесор x64 чи ARM64</td>
+              </tr>
+              <tr>
+                <td>Мережа</td>
+                <td>інтернет обов'язковий</td>
+              </tr>
+              <tr>
+                <td>Оболонка</td>
+                <td>Bash, Zsh, PowerShell або CMD</td>
+              </tr>
+              <tr>
+                <td>Країна</td>
+                <td>зі списку підтримуваних Anthropic</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Версію macOS показує меню Apple → «Про цей Mac». Якщо там менше 13.0, Claude Code не
+            запуститься: типові повідомлення в цьому випадку — <code>dyld: cannot load</code> або
+            <code>dyld: Symbol not found</code>.
+          </p>
+
+          <h3>Крок 2. Обери спосіб</h3>
+
+          <p>
+            Рекомендація документації — рідний інсталятор, він позначений як «Native Install
+            (Recommended)». Для цього курсу вона теж найкраща, і причина проста: це єдиний спосіб,
+            який оновлюється сам, тобто твоя версія не відстане від того, що описано в наступних
+            модулях.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Спосіб</th>
+                <th>Команда</th>
+                <th>Оновлюється сам?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Рідний інсталятор · macOS, Linux, WSL</td>
+                <td><code>curl -fsSL https://claude.ai/install.sh | bash</code></td>
+                <td>так</td>
+              </tr>
+              <tr>
+                <td>Рідний інсталятор · Windows PowerShell</td>
+                <td><code>irm https://claude.ai/install.ps1 | iex</code></td>
+                <td>так</td>
+              </tr>
+              <tr>
+                <td>Рідний інсталятор · Windows CMD</td>
+                <td><code>curl -fsSL https://claude.ai/install.cmd -o install.cmd &amp;&amp;
+                    install.cmd &amp;&amp; del install.cmd</code></td>
+                <td>так</td>
+              </tr>
+              <tr>
+                <td>Homebrew · macOS, канал stable</td>
+                <td><code>brew install --cask claude-code</code></td>
+                <td>ні</td>
+              </tr>
+              <tr>
+                <td>Homebrew · macOS, канал latest</td>
+                <td><code>brew install --cask claude-code@latest</code></td>
+                <td>ні</td>
+              </tr>
+              <tr>
+                <td>WinGet · Windows</td>
+                <td><code>winget install Anthropic.ClaudeCode</code></td>
+                <td>ні</td>
+              </tr>
+              <tr>
+                <td>npm · будь-де, потрібен Node.js 22+</td>
+                <td><code>npm install -g @anthropic-ai/claude-code</code></td>
+                <td>ні</td>
+              </tr>
+              <tr>
+                <td>apt, dnf, apk · Linux</td>
+                <td>окремі підписані репозиторії, команди — у документації</td>
+                <td>ні</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p class="diagram-caption" style="text-align:left">
+            Команди дослівно з офіційної документації Claude Code, сторінка «Advanced setup»,
+            прочитана 4 вересня 2026 року. Стовпчик «оновлюється сам» — переказ фрази
+            «do not auto-update by default» з тієї самої сторінки.
+          </p>
+
+          <h3>Крок 3. Виконай команду для своєї системи</h3>
+
+          <p>
+            На macOS, Linux і WSL це один рядок. Знак <code>%</code> на початку набирати не
+            потрібно — це запрошення, яке термінал друкує сам (модуль 1).
+          </p>
+
+          <figure class="term term--cmd" id="d3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="d3t">встановлення на macOS, Linux, WSL · команда з доксів, 2026-09-04</span>
+              <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="d3t"><span class="term__line"><span class="term__meta">%</span> <span class="term__in">curl -fsSL https://claude.ai/install.sh | bash</span></span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Вивід цієї команди в курсі не показаний свідомо. Автор працює на macOS зі збіркою з
+            Homebrew, тобто зняти справжній екран рідного встановлення не може, а домальовувати
+            вивід правилами курсу заборонено. Що станеться насправді: інсталятор завантажить
+            програму й надрукує кілька рядків про хід роботи, після чого поверне запрошення.
+          </p>
+
+          <p>
+            На Windows команда залежить від того, яке вікно ти відкрив. Ознака з модуля 1:
+            PowerShell показує на початку рядка <code>PS C:\Users\YourName&gt;</code>, CMD — той
+            самий рядок без <code>PS</code>. Помилишся вікном — побачиш одну з двох фраз, які
+            документація наводить дослівно:
+          </p>
+
+          <ul>
+            <li><code>The token '&amp;&amp;' is not a valid statement separator</code> — це означає
+              «ти в PowerShell, а набрав команду для CMD»;</li>
+            <li><code>'irm' is not recognized as an internal or external command</code> — навпаки,
+              «ти в CMD, а набрав команду для PowerShell».</li>
+          </ul>
+
+          <p>
+            Прав адміністратора для встановлення на Windows не потрібно — документація зазначає це
+            окремо: «You do not need to run as Administrator».
+          </p>
+
+          <h3>Крок 4. Відкрий новий термінал і перевір</h3>
+
+          <p>
+            Це не зайвий крок. Інсталятор кладе програму в папку <code>~/.local/bin</code> на
+            macOS і Linux, а на Windows — у <code>%USERPROFILE%\.local\bin</code>. Щоб оболонка
+            знаходила її за одним іменем <code>claude</code>, ця папка має бути у списку
+            <code>PATH</code> з модуля 1, а вже відкрите вікно термінала про зміни в
+            <code>PATH</code> не дізнається. Документація радить у цьому місці рівно те саме:
+            «Alternatively, close and reopen your terminal». Тож закрий вікно, відкрий нове й
+            набери:
+          </p>
+
+          <p><code>claude --version</code></p>
+
+          <p>
+            Якщо надрукувався номер із приміткою <code>(Claude Code)</code> — програма стоїть і
+            запускається. Якщо натомість <code>command not found: claude</code> — це не поломка
+            установки, а <code>PATH</code>; лікується в блоці 6.
+          </p>
+
+          <h3>Крок 5. Зайди в папку проєкту й запусти</h3>
+
+          <p>
+            Claude Code працює з тією папкою, у якій його запустили. Тому спершу <code>cd</code>,
+            і тільки потім <code>claude</code>:
+          </p>
+
+          <ol>
+            <li><code>cd ~/my-site</code> — заміни на свою папку. Немає жодної — створи порожню
+              командою <code>mkdir ~/claude-test</code> і зайди в неї;</li>
+            <li><code>claude</code> — запускає програму.</li>
+          </ol>
+
+          <h3>Крок 6. Увійди в обліковий запис</h3>
+
+          <p>
+            Під час першого запуску Claude Code відкриє браузер. Далі дослівно за документацією,
+            бо цей екран інтерактивний і зняти його текстом неможливо:
+          </p>
+
+          <ul>
+            <li>браузер відкривається сам. <strong>Якщо не відкрився</strong> — натисни клавішу
+              <code>c</code>, і адреса для входу скопіюється в буфер обміну; встав її в браузер
+              руками;</li>
+            <li>увійди у свій акаунт Claude у вікні браузера;</li>
+            <li><strong>якщо браузер показав код замість того, щоб повернути тебе назад</strong> —
+              скопіюй цей код і встав у термінал на запит <code>Paste code here if prompted</code>.
+              Документація зазначає, що так буває у WSL2, у сеансах через SSH і в контейнерах;</li>
+            <li>коли вхід завершився, термінал друкує <code>Login successful</code> і просить
+              натиснути <code>Enter</code>.</li>
+          </ul>
+
+          <p>
+            Далі перепроходити вхід не треба: облікові дані зберігаються на комп'ютері (де саме —
+            у блоці 3). Змінити акаунт можна командою <code>/login</code> усередині сесії, вийти —
+            <code>/logout</code>.
+          </p>
+
+          <p>
+            Той самий вхід є і окремою командою термінала — <code>claude auth login</code>, а
+            поруч із нею <code>claude auth logout</code> і <code>claude auth status</code>. У
+            <code>login</code> є чотири прапорці, і саме тут проходить межа «підписка проти ключа
+            API»: <code>--claudeai</code> — вхід підпискою Claude, це поведінка за замовчуванням;
+            <code>--console</code> — вхід через Claude Console, тобто з оплатою за використання;
+            <code>--sso</code> — корпоративний вхід; <code>--email</code> — підставити адресу на
+            сторінці входу. Перевірено на живій збірці 2.1.236 (macOS, 2026-09-04) і звірено з
+            довідником команд документації того самого дня.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Три деталі про перший запуск</span>
+            <p>
+              <strong>Безкоштовний план не підходить.</strong> Якщо в тебе звичайний
+              безкоштовний акаунт claude.ai, вхід відбудеться, а робота — ні. Потрібен Pro, Max,
+              Team, Enterprise або Console.
+            </p>
+            <p>
+              <strong>Якщо в оточенні є <code>ANTHROPIC_API_KEY</code></strong>, браузер не
+              відкриється взагалі: замість входу Claude Code один раз спитає, чи використовувати
+              цей ключ.
+            </p>
+            <p>
+              <strong>Перша сесія відрізняється від наступних.</strong> Документація зазначає, що
+              в найпершій сесії після встановлення частина можливостей ще не підтягнулась, і сесія
+              може стартувати в ручному режимі дозволів навіть на тих планах, де зазвичай стартує
+              автоматичний. Це не поломка й не твоя помилка — у наступній сесії все на місці.
+              Що таке режими дозволів і чому починати варто саме з ручного — модуль 4.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
+          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Три команди дають три різні відповіді, і жодна з них не здогадка. Нижче — справжній
+            вивід усіх трьох підряд на машині автора.
+          </p>
+
+          <figure class="term term--cmd" id="d4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="d4t">перевірка після встановлення · macOS 26.5.2 · Claude Code 2.1.236 ·
+                знято 2026-09-04</span>
+              <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="d4t"><span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude --version</span></span>
+<span class="term__line"><span class="term__ok">2.1.236 (Claude Code)</span></span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">which -a claude</span></span>
+<span class="term__line">/opt/homebrew/bin/claude</span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude auth status --text</span></span>
+<span class="term__line"><span class="term__ok">Login method: Claude Max account</span></span>
+<span class="term__line">Organization: anna@example.com's Organization</span>
+<span class="term__line">Email: anna@example.com</span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">echo $?</span></span>
+<span class="term__line">0</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято 4 вересня 2026 року, macOS 26.5.2, Claude Code 2.1.236 з Homebrew. Замінена рівно
+            одна річ: справжня адреса пошти автора скрізь замінена на
+            <code>anna@example.com</code>. Решта дослівна, включно з рядком
+            <code>Organization</code>, який Claude Code складає з тієї самої адреси.
+          </p>
+
+          <h3>Що саме перевіряє кожна команда</h3>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Питання</th>
+                <th>Команда</th>
+                <th>Як прочитати відповідь</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Програма встановлена й запускається?</td>
+                <td><code>claude --version</code></td>
+                <td>надрукований номер із приміткою <code>(Claude Code)</code> — так;
+                  <code>command not found</code> — ні</td>
+              </tr>
+              <tr>
+                <td>Скільки в мене установок і де вони?</td>
+                <td><code>which -a claude</code></td>
+                <td>один рядок — одна установка, і це нормально. Два і більше — конфлікт версій,
+                  див. блок 6</td>
+              </tr>
+              <tr>
+                <td>Під ким я зайшов і що в мене за план?</td>
+                <td><code>claude auth status --text</code></td>
+                <td>рядок <code>Login method</code> називає тип акаунта</td>
+              </tr>
+              <tr>
+                <td>Як воно встановлене й чи є проблеми?</td>
+                <td><code>claude doctor</code></td>
+                <td>останній рядок: <code>No installation issues found.</code> або перелік проблем</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout">
+            <span class="callout-title">Команда, яка відповідає «так» або «ні» без слів</span>
+            <p>
+              Документація про <code>claude auth status</code>: «Exits with code 0 if logged in,
+              1 if not» — команда повертає нуль, якщо ти залогінений, і одиницю, якщо ні. Це так
+              званий <strong>код завершення</strong> (exit code): число, яке кожна програма
+              віддає оболонці, коли закінчила роботу; нуль означає «все добре».
+            </p>
+            <p>
+              Подивитись його можна командою <code>echo $?</code> одразу після перевірки — у блоці
+              вище вона надрукувала <code>0</code>. Само собою це дрібниця, але саме на кодах
+              завершення тримаються автоматичні запуски з модуля 19: скрипт не читає текст, він
+              читає число.
+            </p>
+          </div>
+
+          <p>
+            Перевірку доречно повторити ще раз через тиждень — і подивитись, чи змінився номер
+            версії. Якщо в тебе рідна установка, він має зрости сам. Якщо не зріс жодного разу за
+            місяць, ти або в каналі <code>stable</code>, або взагалі не в тій гілці, про яку
+            думаєш — і тоді <code>claude doctor</code> покаже, у якій саме.
+          </p>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
+          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+
+          <h3>1. <code>command not found: claude</code> одразу після встановлення</h3>
+
+          <p>
+            Найчастіша ситуація в цьому модулі. Установка пройшла, а оболонка програму не бачить.
+            Документація формулює причину прямо: папка, у яку інсталятор поклав <code>claude</code>,
+            не входить у <code>PATH</code>. Ця папка —
+            <code>~/.local/bin/claude</code> на macOS і Linux,
+            <code>%USERPROFILE%\.local\bin\claude.exe</code> на Windows.
+          </p>
+
+          <p>Порядок дій:</p>
+
+          <ol>
+            <li>
+              <strong>Закрий термінал і відкрий новий.</strong> Половина випадків лікується цим:
+              вже відкрите вікно не бачить змін у <code>PATH</code>.
+            </li>
+            <li>
+              <strong>Перевір, чи папка в списку.</strong> На macOS і Linux команда з документації:
+              <code>echo $PATH | tr ':' '\n' | grep -Fx "$HOME/.local/bin"</code>. Надрукувався
+              шлях — папка в списку; порожньо — ні.
+            </li>
+            <li>
+              <strong>Додай її.</strong> Для zsh (за замовчуванням на macOS):
+              <code>echo 'export PATH="$HOME/.local/bin:$PATH"' &gt;&gt; ~/.zshrc</code>, потім
+              <code>source ~/.zshrc</code>. Для bash (більшість Linux) те саме з
+              <code>~/.bashrc</code>. Обидва рядки — дослівно з документації.
+            </li>
+            <li>
+              <strong>Перевір:</strong> <code>claude --version</code>.
+            </li>
+          </ol>
+
+          <p>
+            На Windows у PowerShell документація радить спершу подивитись
+            <code>$env:PATH -split ';' | Select-String '\.local\\bin'</code>, а потім, якщо
+            порожньо, додати папку в PATH користувача й перезапустити термінал.
+          </p>
+
+          <h3>2. Дві установки одночасно</h3>
+
+          <p>
+            Ставив через Homebrew, потім спробував рідний інсталятор — і тепер на комп'ютері дві
+            програми <code>claude</code>. Документація попереджає: «Multiple Claude Code
+            installations can cause version mismatches or unexpected behavior». Симптом характерний:
+            <code>claude --version</code> показує не ту версію, яку ти щойно поставив.
+          </p>
+
+          <p>
+            Діагностика — <code>which -a claude</code> (усі знайдені в <code>PATH</code>) і
+            <code>claude doctor</code> (яка саме зараз запущена). Далі зайву прибирають так, як
+            велить її спосіб установки: <code>brew uninstall --cask claude-code</code>,
+            <code>npm uninstall -g @anthropic-ai/claude-code</code>,
+            <code>winget uninstall Anthropic.ClaudeCode</code> або видалення файлів рідної
+            установки — <code>rm -f ~/.local/bin/claude</code> і
+            <code>rm -rf ~/.local/share/claude</code>.
+          </p>
+
+          <h3>3. Активна підписка, а Claude Code лається на авторизацію</h3>
+
+          <p>
+            Симптом із документації: <code>API Error: 400 ... "This organization has been
+            disabled"</code> попри живу підписку. Причина — змінна <code>ANTHROPIC_API_KEY</code> в
+            оточенні, найчастіше «стара, з попередньої роботи чи попереднього проєкту». За порядком
+            пріоритету з блоку 3 ключ стоїть вище за підписку, тому підписка не використовується
+            взагалі.
+          </p>
+
+          <p>Що робити, дослівно за документацією:</p>
+
+          <ul>
+            <li>на macOS і Linux — <code>unset ANTHROPIC_API_KEY</code>, потім запустити
+              <code>claude</code>;</li>
+            <li>на Windows у PowerShell — <code>Remove-Item Env:ANTHROPIC_API_KEY</code>;</li>
+            <li>щоб не повернулось після перезапуску — знайти й прибрати рядок
+              <code>export ANTHROPIC_API_KEY=…</code> у файлах <code>~/.zshrc</code>,
+              <code>~/.bashrc</code> або <code>~/.profile</code>;</li>
+            <li>перевірити результат командою <code>/status</code> усередині сесії.</li>
+          </ul>
+
+          <h3>4. «У мене немає команди, про яку пише документація»</h3>
+
+          <p>
+            Не поломка, а канал релізів — той самий сюжет із блоків 1 і 2. Порядок дій:
+          </p>
+
+          <ol>
+            <li><code>claude doctor</code> — подивитись рядки <code>Package manager</code> і
+              версію;</li>
+            <li>якщо там <code>homebrew</code> — <code>brew upgrade claude-code</code> або
+              <code>brew upgrade claude-code@latest</code>, залежно від того, який пакет
+              встановлений;</li>
+            <li>якщо потрібен свіжий канал — перейти на пакет <code>claude-code@latest</code> або
+              на рідну установку;</li>
+            <li>для WinGet — <code>winget upgrade Anthropic.ClaudeCode</code>.</li>
+          </ol>
+
+          <p>
+            Окрема пастка Homebrew з документації: <code>Cask 'claude-code' is unavailable: No Cask
+            with this name exists</code> означає, що застарів локальний перелік пакетів Homebrew.
+            Ліки з документації — <code>brew update</code>, а потім повторити встановлення; шукати
+            проблему в Claude Code тут немає сенсу.
+          </p>
+
+          <h3>5. Помилки, які варто впізнавати з першого погляду</h3>
+
+          <p>
+            Нижче — рядки дослівно з таблиці помилок офіційної документації, прочитаної 4 вересня
+            2026 року. Екранів тут немає навмисно: більшість цих помилок трапляється на Windows і
+            Linux, а автор працює на macOS — вигадувати чужі екрани правилами курсу заборонено.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Що на екрані</th>
+                <th>Що це означає</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>command not found: claude</code> або
+                  <code>'claude' is not recognized</code></td>
+                <td>справа в <code>PATH</code> — пункт 1 вище</td>
+              </tr>
+              <tr>
+                <td><code>The token '&amp;&amp;' is not a valid statement separator</code></td>
+                <td>ти в PowerShell, а набрав команду для CMD</td>
+              </tr>
+              <tr>
+                <td><code>'irm' is not recognized as an internal or external command</code></td>
+                <td>ти в CMD, а набрав команду для PowerShell</td>
+              </tr>
+              <tr>
+                <td><code>Claude Code does not support 32-bit Windows</code></td>
+                <td>відкритий 32-бітний PowerShell (позначений x86) — треба звичайний</td>
+              </tr>
+              <tr>
+                <td><code>dyld: Symbol not found</code>, <code>dyld: cannot load</code></td>
+                <td>macOS старіша за 13.0 або невідповідна збірка</td>
+              </tr>
+              <tr>
+                <td><code>syntax error near unexpected token '&lt;'</code> або
+                  <code>curl: (22) … error: 403</code></td>
+                <td>замість скрипта завантажилась вебсторінка: мережа чи проксі блокують
+                  завантаження</td>
+              </tr>
+              <tr>
+                <td><code>Installation was killed before it could finish (exit code 137)</code></td>
+                <td>на Linux забракло оперативної пам'яті під час встановлення</td>
+              </tr>
+              <tr>
+                <td><code>Error: claude native binary not installed</code></td>
+                <td>установка через npm не дотягла сам виконуваний файл</td>
+              </tr>
+              <tr>
+                <td><code>App unavailable in region</code></td>
+                <td>Claude Code недоступний у твоїй країні</td>
+              </tr>
+              <tr>
+                <td><code>OAuth error: Invalid code. Please make sure the full code was copied</code></td>
+                <td>код входу з браузера прострочився або скопіювався не повністю</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>6. Дрібні, але дорогі помилки</h3>
+
+          <ul>
+            <li>
+              <strong><code>sudo npm install -g</code></strong> — документація забороняє прямо:
+              «Do NOT use <code>sudo npm install -g</code> as this can lead to permission issues
+              and security risks». Якщо npm лається на права, лікувати треба права, а не тиснути
+              <code>sudo</code>.
+            </li>
+            <li>
+              <strong>Alpine Linux без підготовки.</strong> Там немає навіть
+              <code>bash</code> і <code>curl</code>, тому команда встановлення падає з
+              <code>not found</code>. Спершу <code>apk add bash curl libgcc libstdc++ ripgrep</code>,
+              потім змінна <code>USE_BUILTIN_RIPGREP</code> у значенні <code>0</code>.
+            </li>
+            <li>
+              <strong>Windows без Git for Windows.</strong> Ставити його необов'язково, але без
+              нього Claude Code виконує команди через PowerShell, а не через Bash. Якщо Git
+              встановлений, а Claude Code його не знаходить, документація радить прописати шлях у
+              налаштуванні <code>CLAUDE_CODE_GIT_BASH_PATH</code>.
+            </li>
+            <li>
+              <strong>Розширення для VS Code — не те саме, що встановлення.</strong> Документація
+              зазначає окремо: розширення тримає власну копію Claude Code всередині себе й
+              <strong>не</strong> кладе <code>claude</code> у <code>PATH</code>. Тобто після нього
+              команда в терміналі не з'явиться.
+            </li>
+          </ul>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
+          <h2><span class="lesson-no">7</span>Часті питання</h2>
+
+          <h3>Чи безпечно запускати команду, яка тягне скрипт з інтернету й одразу його виконує?</h3>
+          <p>
+            Питання доречне: <code>curl … | bash</code> означає «завантаж і виконай не читаючи».
+            Anthropic відповідає на нього криптографічно. Кожен випуск публікує файл
+            <code>manifest.json</code> із контрольними сумами всіх збірок, підписаний ключем
+            компанії; перевірка підпису підтверджує весь список одразу. Відбиток ключа —
+            <code>31DD DE24 DDFA B679 F42D 7BD2 BAA9 29FF 1A7E CACE</code>, перевірка —
+            <code>gpg --verify manifest.json.sig manifest.json</code>, правильна відповідь містить
+            <code>Good signature</code>. Підписи маніфестів існують для версій від
+            <code>2.1.89</code> і новіших. Плюс сама програма підписана засобами системи: на macOS
+            «signed by "Anthropic PBC" and notarized by Apple», перевірка —
+            <code>codesign --verify --verbose ./claude</code>; на Windows — підпис «Anthropic, PBC».
+            На Linux окремих підписів у файлів немає, але репозиторії <code>apt</code>,
+            <code>dnf</code> і <code>apk</code> підписані, і менеджер пакетів перевіряє їх сам.
+          </p>
+
+          <h3>Скільки це коштує і який план потрібен?</h3>
+          <p>
+            Потрібен Pro, Max, Team, Enterprise або обліковий запис Claude Console з оплатою за
+            використання. Безкоштовний план claude.ai Claude Code не дає. Детально про ліміти,
+            вартість запитів і про те, коли ключ API дешевший за підписку, — модуль 11: там ця тема
+            зібрана в одному місці, щоб не розмазуватись по всьому курсу.
+          </p>
+
+          <h3>Що обрати: Homebrew чи рідний інсталятор?</h3>
+          <p>
+            Для цього курсу — рідний інсталятор: він оновлюється сам, і твоя версія не відстане від
+            матеріалу. Homebrew має сенс, коли ти вже тримаєш увесь софт на машині в ньому й хочеш
+            оновлювати все однією командою; тоді свідомо обирай пакет <code>claude-code@latest</code>,
+            якщо тобі потрібні свіжі можливості, і не забувай <code>brew upgrade</code>. Homebrew
+            зберігає старі версії на диску — час від часу варто виконати <code>brew cleanup</code>.
+          </p>
+
+          <h3>Як перейти на інший канал або відкотитись на конкретну версію?</h3>
+          <p>
+            Рідна установка приймає ціль прямо в команді: <code>claude install stable</code>,
+            <code>claude install latest</code> або конкретний номер, наприклад
+            <code>claude install 2.1.89</code>. Обраний канал стає типовим для подальших
+            автооновлень. Той самий вибір є в інсталяторі:
+            <code>curl -fsSL https://claude.ai/install.sh | bash -s stable</code>. Перевірити
+            результат — <code>claude --version</code>: команда друкує саме ту версію, яку ти
+            назвав. Одне застереження: якщо в тебе вже є установка з менеджера пакетів,
+            <code>claude install</code> додасть до неї другу, рідну — і вийде ситуація з пункту 2
+            блоку 6.
+          </p>
+
+          <h3>Чи потрібен Node.js?</h3>
+          <p>
+            Ні, якщо ти не ставиш через npm. Claude Code — самостійна програма; навіть при
+            встановленні через npm вона тягне ту саму рідну збірку, а Node.js під час роботи не
+            використовується. Але сама установка через npm від версії <code>2.1.198</code>
+            потребує Node.js 22 або новішого.
+          </p>
+
+          <h3>Як повністю прибрати Claude Code з комп'ютера?</h3>
+          <p>
+            Спершу прибрати програму способом, яким ставив: <code>rm -f ~/.local/bin/claude</code>
+            і <code>rm -rf ~/.local/share/claude</code> для рідної установки,
+            <code>brew uninstall --cask claude-code</code>,
+            <code>winget uninstall Anthropic.ClaudeCode</code>,
+            <code>npm uninstall -g @anthropic-ai/claude-code</code>. Окремо — налаштування й
+            історія: <code>rm -rf ~/.claude</code> і <code>rm ~/.claude.json</code>. Друга частина
+            незворотна: разом з нею зникнуть усі налаштування, дозволи й історія сесій. І ще одне з
+            документації: якщо на машині лишились розширення для VS Code чи JetBrains або
+            застосунок для комп'ютера, папка <code>~/.claude</code> з'явиться знову — вони теж у
+            неї пишуть.
+          </p>
+
+          <h3>А що таке <code>claude setup-token</code>, який видно в довідці?</h3>
+          <p>
+            Це спосіб увійти там, де немає браузера: на сервері збірки, у скрипті, в автоматичному
+            запуску. Команда відкриває той самий вхід через браузер і друкує в термінал токен
+            строком на рік. Найважливіше про неї: <strong>вона нікуди його не зберігає</strong> —
+            токен треба скопіювати самому й покласти у змінну оточення
+            <code>CLAUDE_CODE_OAUTH_TOKEN</code>. Потребує підписки. Поводитись із ним треба як з
+            паролем; докладно про автоматичні запуски — модуль 19.
+          </p>
+
+          <h3>Чи можна працювати взагалі без термінала?</h3>
+          <p>
+            Можна: є застосунок для комп'ютера під macOS, Windows і Linux, розширення для VS Code
+            і JetBrains, вебверсія. Курс лишається про термінал з причини, названої в модулі 1:
+            у ньому видно всі механізми, які в застосунку сховані. Але пам'ятай пастку з блоку 6:
+            встановлення розширення для VS Code не робить команду <code>claude</code> доступною в
+            терміналі.
+          </p>
+
+          <h3>Чому <code>claude doctor</code>, а не <code>/doctor</code>?</h3>
+          <p>
+            Це дві різні речі. <code>claude doctor</code> запускається з термінала, нічого не
+            змінює й не відкриває сесію. <code>/doctor</code> набирається вже всередині сесії
+            Claude Code — документація описує його як повнішу перевірку, яка вміє й лагодити
+            знайдене. Обидва інструменти детально розібрані в модулі 17, присвяченому діагностиці.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
+          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Якщо <code>claude --version</code> друкує номер, <code>claude auth status --text</code>
+            називає твій акаунт, а <code>claude doctor</code> закінчується рядком
+            <code>No installation issues found.</code> — модуль зробив свою роботу. Усе інше в
+            курсі відбуватиметься вже всередині запущеної програми.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Підсумок модуля</span>
+            <ul>
+              <li>Способів встановлення шість. Автооновлення у фоні є <strong>лише</strong> в
+                рідної установки через <code>claude.ai/install.sh</code>. Homebrew, WinGet,
+                <code>apt</code>, <code>dnf</code>, <code>apk</code> і npm самі не оновлюються — це
+                задокументована поведінка, а не поломка.</li>
+              <li>Канали релізів два: <code>latest</code> — одразу після виходу,
+                <code>stable</code> — приблизно тиждень пізніше, без випусків із великими
+                поломками. Різниця буває в десятки версій: 4 вересня 2026 року пакети Homebrew
+                показували <code>2.1.236</code> проти <code>2.1.251</code>.</li>
+              <li>У Homebrew канал вирішує назва пакета: <code>claude-code</code> — stable,
+                <code>claude-code@latest</code> — latest. Рядок <code>Auto-update channel</code> у
+                виводі <code>claude doctor</code> для такої установки не показує реального
+                каналу.</li>
+              <li>Claude Code потребує платного акаунта: Pro, Max, Team, Enterprise або Console.
+                Безкоштовний план claude.ai доступу не дає.</li>
+              <li>Джерел входу сім, і вони мають жорсткий порядок. <code>ANTHROPIC_API_KEY</code>
+                стоїть вище за підписку, тому забутий ключ у налаштуваннях оболонки мовчки
+                перебиває її. Ліки — <code>unset ANTHROPIC_API_KEY</code>.</li>
+              <li><code>claude doctor</code> — коротка діагностика без запуску сесії. Вона
+                відповідає на «як я це встановив», «яка в мене версія», «хто керує оновленнями» і
+                «чим закінчилась остання спроба оновитись».</li>
+              <li>Найчастіша проблема етапу — <code>command not found: claude</code> при успішній
+                установці. Це <code>PATH</code>, і половина випадків лікується новим вікном
+                термінала.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Далі — <strong>модуль 4 «Перша сесія: проси, дивись, дозволяй»</strong>: як
+            сформулювати задачу, як читати кроки, які Claude показує на екрані, що таке діалог
+            дозволу й чому найпершу сесію варто провести в ручному режимі. Саме там стане в пригоді
+            зауваження з кроку 6 цього модуля — про те, що перший запуск після встановлення
+            поводиться інакше, ніж усі наступні.
+          </p>
+          <p>
+            До того часу — одна корисна звичка: перш ніж шукати причину дивної поведінки в собі,
+            набери <code>claude doctor</code> і подивись на версію. Дуже часто відповідь саме там.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять на назви
+            команд: до кожної відповіді одразу з'являється пояснення, чому решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Людина поставила Claude Code командою brew install --cask claude-code три тижні тому. Сьогодні вона читає документацію про нову можливість, набирає команду — і її немає. Що сталося найімовірніше?",
+            "options": [
+              "Установка зіпсувалась, треба перевстановити з нуля",
+              "Пакет claude-code — це канал stable, і Homebrew до того ж не оновлює його сам, тому версія відстала від документації",
+              "Документація помилкова: такої можливості не існує",
+              "Не вистачає прав адміністратора для нових команд"
+            ],
+            "answer": 1,
+            "explain": "Дві причини складаються. Перша: пакет claude-code відповідає каналу stable, який за документацією приблизно на тиждень позаду. Друга, важливіша: установки через Homebrew не оновлюються самі, тому версія стоїть на місці, доки людина не виконає brew upgrade. Перевстановлення з нуля тим самим пакетом дасть той самий канал і нічого не змінить, а документація описує саме свіжі версії — 4 вересня 2026 року два пакети Homebrew відрізнялись на п'ятнадцять випусків."
+          },
+          {
+            "q": "У виводі claude doctor стоїть рядок «Auto-updates: Managed by package manager». Що це означає на практиці?",
+            "options": [
+              "Оновлення вимкнені назавжди і ввімкнути їх неможливо",
+              "Claude Code оновлюватиметься у фоні сам, як і при рідній установці",
+              "Оновленнями керує менеджер пакетів, тобто сама програма їх не поставить — потрібна команда цього менеджера",
+              "Програма встановлена неправильно, і це повідомлення про помилку"
+            ],
+            "answer": 2,
+            "explain": "Рядок описує, хто відповідає за оновлення, і це не діагноз поломки: у тому самому виводі нижче стоїть «No installation issues found.». Фонове самооновлення є лише в рідної установки через claude.ai/install.sh. Для Homebrew чи WinGet оновлення приходить командою brew upgrade або winget upgrade; можна також попросити Claude Code виконувати цю команду за тебе змінною CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE=1, тож «назавжди вимкнені» — теж неправда."
+          },
+          {
+            "q": "У людини активна підписка Claude Max, а Claude Code повертає помилку авторизації. У файлі ~/.zshrc з минулої роботи лишився рядок export ANTHROPIC_API_KEY=... Що відбувається?",
+            "options": [
+              "Ключ API стоїть у порядку пріоритету вище за підписку, тому використовується він, а не вона",
+              "Два способи входу конфліктують, і Claude Code не використовує жодного",
+              "Підписка Max не підтримує Claude Code",
+              "Файл ~/.zshrc на авторизацію не впливає взагалі"
+            ],
+            "answer": 0,
+            "explain": "Claude Code перебирає джерела входу згори вниз і бере перше знайдене. ANTHROPIC_API_KEY стоїть третім, вхід через браузер із підпискою — сьомим, тому після одного підтвердження ключа підписка не використовується взагалі. Якщо ключ від закритої або простроченої організації, це виглядає як помилка авторизації при живій підписці. Ліки з документації: unset ANTHROPIC_API_KEY, прибрати рядок із ~/.zshrc і перевірити командою /status. Файли ~/.zshrc і ~/.bashrc виконуються при відкритті термінала, тому впливають прямо."
+          },
+          {
+            "q": "Встановлення завершилось без помилок, але в терміналі claude --version дає «command not found: claude». З чого почати?",
+            "options": [
+              "Перевстановити програму ще раз тим самим способом",
+              "Закрити термінал, відкрити новий і повторити перевірку — а якщо не допомогло, додати папку установки в PATH",
+              "Перезавантажити комп'ютер і встановити іншу операційну систему",
+              "Запустити встановлення через sudo, щоб вистачило прав"
+            ],
+            "answer": 1,
+            "explain": "Це повідомлення про пошук, а не про поломку установки: оболонка перебрала папки зі списку PATH і не знайшла файла з таким іменем. Інсталятор кладе програму в ~/.local/bin і дописує цю папку в PATH, але вже відкрите вікно термінала про зміну не знає — тому новий термінал закриває половину випадків. Якщо не допомогло, папку додають руками рядком export PATH=\"$HOME/.local/bin:$PATH\" у ~/.zshrc. Перевстановлення нічого не змінить, а sudo при встановленні через npm документація прямо забороняє."
+          },
+          {
+            "q": "Людина зареєструвалась на claude.ai, користується безкоштовним планом і хоче поставити Claude Code. Що на неї чекає?",
+            "options": [
+              "Усе працюватиме, безкоштовний план лише повільніший",
+              "Claude Code взагалі не встановиться на безкоштовному плані",
+              "Встановити вийде, а працювати не буде: потрібен Pro, Max, Team, Enterprise або Console",
+              "Працюватиме перші сім днів як пробний період"
+            ],
+            "answer": 2,
+            "explain": "Встановлення й обліковий запис — різні речі: файл програми ставиться на будь-якому плані, бо це звичайне завантаження файла. Але документація каже прямо, що безкоштовний план claude.ai доступу до Claude Code не включає, тому робота впреться у вхід. Про пробний період і про «повільніше» документація не говорить нічого — це і є та вигадка, яку варто перевіряти джерелом. Перевірити свій стан можна командою claude auth status --text: рядок Login method називає тип акаунта."
+          },
+          {
+            "q": "Команда claude setup-token надрукувала в термінал довгий рядок-токен. Що з ним треба зробити?",
+            "options": [
+              "Нічого: команда вже зберегла його на комп'ютері",
+              "Скопіювати самому й покласти у змінну оточення CLAUDE_CODE_OAUTH_TOKEN, бо команда його нікуди не зберігає",
+              "Вставити його назад у термінал, щоб підтвердити вхід",
+              "Опублікувати його в репозиторії проєкту, щоб команда мала доступ"
+            ],
+            "answer": 1,
+            "explain": "Документація зазначає це окремо: команда друкує токен і не зберігає його ніде — тому вікно термінала з ним закривати не варто, доки не скопіював. Місце токена — змінна оточення CLAUDE_CODE_OAUTH_TOKEN там, де немає браузера: сервер збірки, скрипт, автоматичний запуск. Публікувати його не можна ні в якому вигляді: це такий самий доступ до твого акаунта, як пароль, виданий на рік."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>

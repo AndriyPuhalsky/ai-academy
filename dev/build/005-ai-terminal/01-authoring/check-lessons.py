@@ -94,6 +94,15 @@ def check(path):
         except json.JSONDecodeError as e:
             errs.append(f"quizData — зламаний JSON: {e}")
 
+    # --- апостроф: тільки U+0027 ---
+    # U+02BC (ʼ) пролазить сам при наборі українською, а в Literata / IBM Plex Sans
+    # рендериться з розривами: «комп ′ютер». Знайшов автор c01 на живій сторінці,
+    # автор c06 показав, що скрипт його не ловив.
+    for ch, name in (("\u02bc", "U+02BC"), ("\u2019", "U+2019"), ("\u2018", "U+2018")):
+        n = src.count(ch)
+        if n:
+            errs.append(f"апостроф {name} — {n} входжень; має бути тільки ' (U+0027)")
+
     # --- мова ---
     low = src.lower()
     for b in BANNED:

@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 2 · Що таке Claude Code — AI Термінал</title>
+  <meta name="description"
+    content="Чим агент відрізняється від чату й від автодоповнення в редакторі, як влаштований агентний цикл, де саме виконується код, які поверхні Claude Code існують і чому цей курс лише про термінал." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="c02" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 02</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 1 · Старт з нуля</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Що таке Claude Code</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Початковий · 8 блоків · ≈ 35 хв читання</p>
+        <p class="mt-6 text-lg">
+          Claude Code найчастіше описують як «чат у терміналі». Це найдорожча помилка на старті:
+          людина пише одне речення, чекає відповіді текстом, вручну вставляє свій код у запит —
+          і не розуміє, навіщо взагалі було ставити окрему програму. Цей модуль існує, щоб такої
+          помилки не сталося: він пояснює, з чим саме ти маєш справу, ще до встановлення.
+        </p>
+        <p>
+          Тут не буде команд, які треба вивчити напам'ять. Буде одна ментальна модель — і саме
+          вона визначає, чи будеш ти отримувати від інструмента користь, чи витрачати на нього час.
+        </p>
+
+        <div class="callout">
+          <span class="callout-title">Що в цьому модулі є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> встановлення — це модуль 3, а перша власна сесія — модуль 4.
+            Тут ти нічого не ставиш і нічого не ламаєш.
+          </p>
+          <p>
+            <strong>Є:</strong> чим агент відрізняється від чату й від підказок у редакторі ·
+            агентний цикл, розібраний на справжньому запуску · де фізично виконується код ·
+            чесна розмова про «vibe coding» · перелік поверхонь Claude Code і причина, чому
+            курс лише про термінал.
+          </p>
+        </div>
+
+        <div class="callout callout-sand">
+          <span class="callout-title">Про свіжість фактів у цьому курсі</span>
+          <p>
+            Claude Code змінюється щотижня. Тому кожен екран у цьому уроці підписаний тим, де і
+            коли його знято, а кожне твердження взяте або з офіційної документації
+            <code>code.claude.com/docs</code>, прочитаної 4 вересня 2026 року, або з живого
+            запуску команди на машині автора. Якщо в тебе на екрані буде трохи інакше — спершу
+            подивись на версію: майже завжди різниця саме в ній.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
+          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+
+          <p>
+            Є три різні речі, які легко сплутати, бо всі три «розуміють текст» і всі три
+            пов'язані зі штучним інтелектом:
+          </p>
+
+          <ul>
+            <li><strong>Чат</strong> — вікно, де ти пишеш запитання й отримуєш відповідь текстом.
+              Наприклад, <code>claude.ai</code> у браузері.</li>
+            <li><strong>Підказки в редакторі коду</strong> — інструмент, який дописує рядок за
+              тебе, поки ти друкуєш. Документація Claude Code називає такі інструменти
+              <em>inline code assistants</em>.</li>
+            <li><strong>Агент</strong> — програма, яка сама читає файли, сама запускає команди,
+              сама вносить зміни й сама перевіряє, що вийшло. Claude Code — саме це.</li>
+          </ul>
+
+          <p>
+            Офіційне визначення з документації дослівно: Claude Code — це «агентний асистент,
+            який працює у твоєму терміналі», і хоча він найсильніший у роботі з кодом,
+            він «може допомогти з будь-чим, що ти можеш зробити з командного рядка: писати
+            документацію, запускати збірки, шукати у файлах, досліджувати теми».
+          </p>
+
+          <h3>Різниця, яку видно в таблиці</h3>
+
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Чат</th>
+                <th>Підказки в редакторі</th>
+                <th>Агент</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Що бачить</td>
+                <td>лише те, що ти вставив у вікно</td>
+                <td>лише відкритий зараз файл</td>
+                <td>файли твоєї папки, термінал, історію змін у git</td>
+              </tr>
+              <tr>
+                <td>Що робить</td>
+                <td>друкує текст</td>
+                <td>дописує текст у редакторі</td>
+                <td>читає, редагує, запускає команди, перевіряє</td>
+              </tr>
+              <tr>
+                <td>Хто виконує роботу</td>
+                <td>ти, руками</td>
+                <td>ти, руками</td>
+                <td>він — у межах дозволів, які ти дав</td>
+              </tr>
+              <tr>
+                <td>Чим закінчується</td>
+                <td>відповіддю на екрані</td>
+                <td>вставленим фрагментом</td>
+                <td>зміненими файлами на диску</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p class="diagram-caption" style="text-align:left">
+            <strong>git</strong> — програма, яка веде історію змін проєкту: хто, що і коли
+            змінив, і як повернутись назад. Якщо ти нею не користуєшся, цей рядок таблиці
+            тебе не стосується; агент від цього не перестає працювати.
+          </p>
+
+          <p>
+            Документація робить це порівняння прямо у двох місцях. Перше: «На відміну від
+            чат-бота, який відповідає на питання й чекає, Claude Code може читати твої файли,
+            запускати команди, вносити зміни й самостійно доводити задачу до кінця, поки ти
+            дивишся, скеровуєш або взагалі відходиш». Друге, про редактор: «Це відрізняється
+            від вбудованих асистентів коду, які бачать лише поточний файл».
+          </p>
+
+          <h3>Чому це не термінологія, а гроші й час</h3>
+
+          <p>
+            Від того, за що ти вважаєш інструмент, залежить, як ти формулюєш задачу — а від
+            формулювання залежить результат.
+          </p>
+
+          <ul>
+            <li>Вважаєш чатом → пишеш «як полагодити кнопку?» → отримуєш текст, який доводиться
+              вручну переносити у файли. Робота лишається на тобі.</li>
+            <li>Вважаєш агентом → пишеш «на сайті не працює кнопка надсилання, код у папці
+              <code>src/</code>, розберися й полагодь» → отримуєш змінені файли й пояснення,
+              що саме змінено.</li>
+          </ul>
+
+          <p>
+            Документація називає цей підхід <strong>«делегуй, а не диктуй»</strong> і дає
+            дослівний приклад: «Оформлення замовлення зламане для користувачів із простроченими
+            картками. Відповідний код у <code>src/payments/</code>. Можеш розібратися й
+            полагодити?» — і додає: «Тобі не потрібно вказувати, які файли читати й які команди
+            запускати. Claude з'ясує це сам».
+          </p>
+
+          <h3>Одне слово, яке варто запам'ятати</h3>
+
+          <p>
+            Документація називає Claude Code <strong>agentic harness</strong> — «агентною
+            обв'язкою» навколо моделі: «вона дає інструменти, керування контекстом і середовище
+            виконання, які перетворюють мовну модель на дієздатного агента».
+          </p>
+
+          <p>
+            Звідси головний висновок модуля: <strong>модель у чаті й модель у Claude Code — та
+            сама</strong>. Різна обв'язка. Тому не має сенсу питати «чи Claude Code розумніший
+            за чат» — питання в тому, що йому дозволено робити руками.
+          </p>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
+          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Claude Code — це одна програма з іменем <code>claude</code>. У модулі 1 ти вже бачив
+            команду <code>which</code>, яка відповідає на питання «де саме лежить ця програма»,
+            і <code>--version</code>, яка друкує номер версії. Ось вони на машині, де знімався
+            цей курс.
+          </p>
+
+          <figure class="term term--cmd" id="t1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t1t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t1t"><span class="term__line"><span class="term__meta">anna@MacBook-Air ~ %</span> <span class="term__in">which claude</span></span>
+<span class="term__line">/opt/homebrew/bin/claude</span>
+<span class="term__line"><span class="term__meta">anna@MacBook-Air ~ %</span> <span class="term__in">claude --version</span></span>
+<span class="term__line">2.1.236 (Claude Code)</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Живий запуск 4 вересня 2026 року: macOS 26.5.2, збірка Claude Code
+            <strong>2.1.236</strong>, поставлена через homebrew. Замінене рівно одне — ім'я
+            користувача й комп'ютера в запрошенні: у справжньому виводі там дані автора курсу,
+            тут скрізь <code>anna</code> і <code>MacBook-Air</code>. Решта дослівна.
+            <strong>У тебе цієї відповіді ще не буде</strong> — встановлення в модулі 3.
+          </p>
+
+          <h3>Програма сама каже, що вона не чат</h3>
+
+          <p>
+            Якщо запустити <code>claude --help</code>, перші рядки описують призначення програми.
+            Читаються вони так: за замовчуванням запускається <em>інтерактивна сесія</em> — тобто
+            діалог, у якому ти сидиш і дивишся; а ключ <code>-p</code> (він же
+            <code>--print</code>) дає <em>неінтерактивний</em> режим — коли команда відпрацювала
+            й вийшла, як звичайна утиліта.
+          </p>
+
+          <figure class="term term--cmd" id="t2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t2t">Claude Code 2.1.236 · перші рядки --help · знято 2026-09-03</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t2t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --help</span></span>
+<span class="term__line">Usage: claude [options] [command] [prompt]</span>
+<span class="term__line"></span>
+<span class="term__line">Claude Code - starts an interactive session by default, use -p/--print for</span>
+<span class="term__line">non-interactive output</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Перші чотири рядки з <code>claude --help</code>, знятого 3 вересня 2026 року на
+            збірці <strong>2.1.236</strong>. Повний вивід цієї команди — 243 рядки: 62 ключі
+            й 13 підкоманд. Розбирати його весь тут не треба; мета
+            цього екрана — показати, що це інструмент, а не одна кнопка. Навігацією по ньому
+            займається модуль 5.
+          </p>
+
+          <h3>Найкоротший доказ, що це агент</h3>
+
+          <p>
+            Ось справжній запуск. У папці лежить один файл <code>notes.txt</code> на два рядки.
+            Людина не відкривала його, не копіювала вміст у запит і взагалі не казала, як
+            рахувати рядки — вона поставила питання й отримала відповідь.
+          </p>
+
+          <figure class="term term--cmd" id="t3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t3t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t3t"><span class="term__line"><span class="term__meta">anna@MacBook-Air c02demo %</span> <span class="term__in">ls</span></span>
+<span class="term__line">notes.txt</span>
+<span class="term__line"><span class="term__meta">anna@MacBook-Air c02demo %</span> <span class="term__in">claude -p "Скільки рядків у файлі notes.txt? Відповідь: одне число."</span></span>
+<span class="term__line">2</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Живий запуск 4 вересня 2026 року, macOS 26.5.2, Claude Code 2.1.236. Вивід дослівний:
+            програма надрукувала рівно один символ <code>2</code> і завершилась. Порівняй із чатом:
+            у чат довелось би вставити вміст файла, інакше відповіді не буде — чат до твого диска
+            не має доступу взагалі.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Чому тут немає знімка «агент у роботі»</span>
+            <p>
+              Інтерактивний екран Claude Code — рухома картинка: рядки з'являються, оновлюються
+              й зникають, поки агент працює. Текстом такий екран не знімається, а домальовувати
+              його з голови цей курс не буде: правило простих слів — <strong>жодного вигаданого
+              виводу</strong>. Тому в модулі 2 показані ті екрани, які реально знімаються, а
+              живий інтерактивний екран ти побачиш власними очима в модулі 4, коли запустиш
+              <code>claude</code> у себе.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
+          <h2><span class="lesson-no">3</span>Як це працює</h2>
+
+          <p>
+            Усередині Claude Code крутиться одна й та сама послідовність, і документація називає
+            її <strong>агентним циклом</strong> (agentic loop). Фаз рівно три:
+          </p>
+
+          <ol>
+            <li><strong>зібрати контекст</strong> — подивитись, що взагалі є: які файли, що в
+              них, що каже git, що відповіла попередня команда;</li>
+            <li><strong>діяти</strong> — прочитати файл, змінити його, запустити команду;</li>
+            <li><strong>перевірити результат</strong> — запустити тест, подивитись на вивід,
+              переконатись, що вийшло те, що треба.</li>
+          </ol>
+
+          <p>
+            Документація одразу застерігає: фази «зливаються» одна з одною й повторюються.
+            Питання про код може обмежитись першою фазою. Виправлення помилки прокрутить усі три
+            кілька разів поспіль.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart LR
+  P["Твій запит"] --> G["1. Зібрати контекст"]
+  G --> A["2. Діяти інструментом"]
+  A --> V["3. Перевірити результат"]
+  V -->|"ще не сходиться"| G
+  V -->|"готово"| D["Відповідь тобі"]
+  U["Ти будь-якої миті: Esc або нове речення"] -.-> A
+  style A fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Агентний цикл із документації. Стрілка знизу — ти: втрутитись можна будь-якої миті
+            </p>
+          </div>
+
+          <h3>Той самий цикл на живому запуску</h3>
+
+          <p>
+            Запит із блоку 2 запустили ще раз — цього разу з ключем
+            <code>--output-format stream-json</code>, який замість короткої відповіді друкує
+            службовий журнал: які інструменти агент викликав і що отримав у відповідь. Ось що там
+            було, у порядку подій:
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Крок</th>
+                <th>Що зробив агент</th>
+                <th>Що отримав</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>склав команду терміналу, щоб порахувати рядки й заразом зазирнути в останній
+                  байт файла</td>
+                <td><strong>відмову</strong>: одна частина команди потребувала окремого дозволу</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>переписав команду без забороненої частини й запустив знову</td>
+                <td>розмір файла й число <code>2</code></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>прочитав сам файл цілком</td>
+                <td>два рядки тексту</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>надрукував відповідь</td>
+                <td><code>2</code></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p class="diagram-caption" style="text-align:left">
+            Розшифровка службового журналу справжнього запуску 4 вересня 2026 року
+            (macOS 26.5.2, Claude Code 2.1.236). Сам журнал — суцільний JSON, читати його людині
+            незручно, тому тут переказ подій, а не знімок екрана. У підсумковому рядку журнал
+            назвав це чотирма ходами і 12,6 секунди.
+            <strong>Той самий запит іншого разу може дати іншу послідовність кроків</strong> —
+            агент вирішує це на місці, а не виконує заготовлений сценарій.
+          </p>
+
+          <p>
+            У цих чотирьох рядках видно все, заради чого написаний модуль. Крок 1 — фаза «зібрати
+            контекст»: агент не знав, скільки рядків, і пішов дивитись. Відмова на кроці 1 — це
+            <strong>система дозволів</strong>: інструмент не отримав права на частину команди й
+            чесно про це сказав (докладно — модуль 7). Крок 2 — агент не зупинився й не поскаржився,
+            а <strong>переформулював</strong> дію. Крок 3 — перевірка того, що він порахував.
+            Крок 4 — відповідь.
+          </p>
+
+          <h3>Ти теж усередині циклу</h3>
+
+          <p>
+            Документація формулює це дослівно: «Ти теж частина цього циклу». Скерувати агента
+            можна двома різними діями, і новачки знають лише про першу:
+          </p>
+
+          <ul>
+            <li><strong><code>Esc</code></strong> — зупиняє Claude негайно. Інструмент, який
+              виконувався цієї миті, скасовується, і програма чекає на твою наступну вказівку.</li>
+            <li><strong>набрати текст і натиснути <code>Enter</code></strong> — надсилає
+              виправлення, <em>не</em> зупиняючи поточну дію. Claude прочитає його, щойно
+              завершить те, що зараз робить, і врахує, обираючи наступний крок.</li>
+          </ul>
+
+          <p>
+            Це не «аварійне гальмо», а звичайний режим роботи. Дивитись, як агент іде не туди, і
+            мовчки чекати кінця — найпоширеніша помилка перших днів.
+          </p>
+
+          <h3>Дві частини, з яких складається агент</h3>
+
+          <p>
+            Цикл рухають два компоненти: <strong>моделі</strong>, які міркують, і
+            <strong>інструменти</strong>, які діють. Документація каже про це різко й точно:
+            «Без інструментів Claude може лише відповісти текстом».
+          </p>
+
+          <p>
+            Вбудовані інструменти документація ділить на п'ять категорій — кожна дає свій рівень
+            самостійності:
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Категорія</th>
+                <th>Що дозволяє</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Робота з файлами</td>
+                <td>читати файли, редагувати код, створювати нові файли, перейменовувати</td>
+              </tr>
+              <tr>
+                <td>Пошук</td>
+                <td>знаходити файли за шаблоном, шукати за вмістом, вивчати структуру проєкту</td>
+              </tr>
+              <tr>
+                <td>Виконання</td>
+                <td>запускати команди терміналу, піднімати сервери, ганяти тести, працювати з git</td>
+              </tr>
+              <tr>
+                <td>Вебдоступ</td>
+                <td>шукати в інтернеті, читати документацію, дивитись текст помилки</td>
+              </tr>
+              <tr>
+                <td>Розуміння коду</td>
+                <td>бачити помилки типів після правок, переходити до визначень, шукати
+                  використання</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Це основа, до якої пізніше додаються навички (skills), під'єднання зовнішніх
+            сервісів через MCP, перехоплювачі подій (hooks) і субагенти — кожному з цих слів
+            присвячений окремий модуль, з 14-го по 18-й. Зараз достатньо знати, що вони
+            надбудовуються над тим самим циклом, а не замінюють його.
+          </p>
+
+          <h3>До чого агент має доступ, коли ти запускаєш його в папці</h3>
+
+          <p>
+            Перелік із документації, дослівно за змістом:
+          </p>
+
+          <ul>
+            <li><strong>твій проєкт</strong> — файли в папці, з якої ти запустив, і в її
+              підпапках; інші файли — лише з твого дозволу;</li>
+            <li><strong>твій термінал</strong> — будь-яка команда, яку міг би виконати ти;</li>
+            <li><strong>стан git</strong> — поточна гілка, незбережені зміни, історія комітів;</li>
+            <li><strong>файл <code>CLAUDE.md</code></strong> — твої постійні інструкції для
+              проєкту (модуль 12);</li>
+            <li><strong>автоматична пам'ять</strong> — те, що Claude сам занотував про твої
+              звички під час роботи (модуль 12);</li>
+            <li><strong>розширення, які ти налаштував</strong> — зовнішні сервіси, навички,
+              субагенти, керування браузером.</li>
+          </ul>
+
+          <p>
+            Зверни увагу на перший пункт: доступ починається з <strong>тієї папки, у якій ти
+            набрав <code>claude</code></strong>, а не з усього комп'ютера. Це головна причина,
+            чому модуль 1 стільки уваги приділив поточній папці.
+          </p>
+
+          <h3>Де фізично виконується код</h3>
+
+          <p>
+            Це питання здається технічним, а насправді воно про безпеку: від відповіді залежить,
+            чиї файли зміняться. Документація називає три середовища виконання.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  M["Модель Claude — міркує"] --> H["Claude Code — інструменти, контекст, середовище виконання"]
+  T["Інструменти — діють"] --> H
+  H --> L["Local — код виконується на твоїй машині"]
+  H --> C["Cloud — код виконується на віддалених машинах"]
+  H --> R["Remote Control — код на твоїй машині, керування з браузера"]
+  style H fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Обв'язка та сама, цикл той самий — змінюється лише те, де виконується код
+            </p>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Середовище</th>
+                <th>Де виконується код</th>
+                <th>Навіщо</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Local</td>
+                <td>твоя машина</td>
+                <td>режим за замовчуванням: повний доступ до твоїх файлів та інструментів</td>
+              </tr>
+              <tr>
+                <td>Cloud</td>
+                <td>віртуальні машини Anthropic або сервери твоєї організації</td>
+                <td>віддати задачу й піти; працювати з репозиторієм, якого немає локально</td>
+              </tr>
+              <tr>
+                <td>Remote Control</td>
+                <td>твоя машина, керована з браузера</td>
+                <td>користуватись вебінтерфейсом, лишаючи файли й виконання в себе</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Увесь цей курс — про <strong>Local</strong>. Хмарні й віддалені варіанти оглядово
+            розібрані в модулі 20.
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
+          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+
+          <p>
+            Claude Code ще не встановлений, тому вправа цього модуля — не про нього, а про тебе:
+            навчитись формулювати задачу так, як її розуміє агент. Це вміння дає більше, ніж
+            знання команд, і саме воно відрізняє людину, якій інструмент допомагає, від людини,
+            яка з ним воює.
+          </p>
+
+          <h3>Крок 1. Зроби папку для вправ</h3>
+
+          <p>
+            Відкрий термінал (модуль 1) і набери три команди, натискаючи <code>Enter</code> після
+            кожної. Перша створює папку, друга заходить у неї, третя друкує, де ти опинився.
+          </p>
+
+          <figure class="term term--cmd" id="t4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t4t">macOS 26.5.2 · zsh · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t4t"><span class="term__line"><span class="term__meta">anna@MacBook-Air ~ %</span> <span class="term__in">mkdir ait-practice</span></span>
+<span class="term__line"><span class="term__meta">anna@MacBook-Air ~ %</span> <span class="term__in">cd ait-practice</span></span>
+<span class="term__line"><span class="term__meta">anna@MacBook-Air ait-practice %</span> <span class="term__in">pwd</span></span>
+<span class="term__line">/Users/anna/ait-practice</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Живий запуск 4 вересня 2026 року, macOS 26.5.2, оболонка zsh. Ім'я користувача в
+            запрошенні й у шляху замінене на <code>anna</code>, решта дослівна. На Windows
+            у PowerShell ті самі три команди працюють так само, тільки шлях виглядатиме як
+            <code>C:\Users\Anna\ait-practice</code>.
+          </p>
+
+          <h3>Крок 2. Напиши одну задачу двома способами</h3>
+
+          <p>
+            Візьми будь-яку справу зі свого життя, у якій є комп'ютер: розібрати папку
+            «Завантаження», зробити з фотографій альбом, полагодити щось на сайті, зібрати звіт
+            із трьох файлів. Створи в папці <code>ait-practice</code> файл <code>task.txt</code>
+            (найлегше — через будь-який текстовий редактор) і напиши в ньому дві версії
+            <strong>однієї й тієї самої</strong> задачі.
+          </p>
+
+          <ul>
+            <li><strong>Диктант.</strong> Ти вказуєш кожен крок: який файл відкрити, який рядок
+              змінити, яку команду виконати.</li>
+            <li><strong>Делегування.</strong> Ти описуєш, <em>що не так</em> і <em>що вважатимеш
+              зробленим</em>, а спосіб лишаєш агентові. Зразок із документації:
+              «Оформлення замовлення зламане для користувачів із простроченими картками.
+              Відповідний код у <code>src/payments/</code>. Можеш розібратися й полагодити?»</li>
+          </ul>
+
+          <p>
+            Друге формулювання довше за перше на одне речення, і саме воно працює краще. Перевір
+            свій варіант делегування за трьома питаннями: чи названо симптом · чи вказано, де
+            приблизно шукати · чи сказано, за якою ознакою вважати задачу закритою.
+          </p>
+
+          <h3>Крок 3. Додай до задачі перевірку</h3>
+
+          <p>
+            Допиши в <code>task.txt</code> третій рядок: <strong>як ти сам зрозумієш, що задача
+            зроблена</strong>. Не «має працювати», а щось таке, що можна побачити: сторінка
+            відкривається без помилки, у папці лишились тільки файли за 2026 рік, тест дає
+            «пройдено».
+          </p>
+
+          <p>
+            Це не формальність. Документація формулює причину так: «Claude зупиняється, коли
+            робота <em>виглядає</em> зробленою. Без перевірки, яку він може запустити, "виглядає
+            зробленою" — єдиний доступний сигнал, і роль перевіряльника лишається тобі: кожна
+            помилка чекає, поки ти її помітиш». До цього ми повернемось у блоці 6.
+          </p>
+
+          <h3>Крок 4. Обери свою поверхню</h3>
+
+          <p>
+            Claude Code існує не лише в терміналі. Ось повний перелік із документації, станом на
+            4 вересня 2026 року:
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Поверхня</th>
+                <th>Для чого вона, за документацією</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>CLI</strong> — термінал; від англійського
+                  <em>command line interface</em>, тобто «інтерфейс командного рядка»</td>
+                <td>робота в терміналі, скрипти, віддалені сервери. Дає повний набір можливостей</td>
+              </tr>
+              <tr>
+                <td><strong>Desktop</strong> — застосунок</td>
+                <td>візуальний перегляд змін, кілька сесій поруч, налаштоване середовище</td>
+              </tr>
+              <tr>
+                <td><strong>VS Code</strong></td>
+                <td>робота всередині редактора без переходу в термінал</td>
+              </tr>
+              <tr>
+                <td><strong>JetBrains</strong></td>
+                <td>те саме для IntelliJ, PyCharm, WebStorm та інших їхніх середовищ</td>
+              </tr>
+              <tr>
+                <td><strong>Web</strong></td>
+                <td>довгі задачі, які не треба скеровувати; робота триває, навіть коли ти
+                  від'єднався</td>
+              </tr>
+              <tr>
+                <td><strong>Mobile</strong></td>
+                <td>запустити й наглядати за задачею з телефона, поки ти не за комп'ютером</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Окремо документація перелічує інтеграції — Chrome, GitHub Actions, GitLab CI/CD,
+            автоматичний Code Review на кожен запит змін, Slack і Claude Tag. Їх курс торкається
+            в модулях 18 і 19.
+          </p>
+
+          <p>
+            Запиши собі відповідь на питання «де я працюватиму». Якщо вагаєшся — документація дає
+            пряму пораду: «Якщо не знаєш, з чого почати, встанови CLI й запусти його в папці
+            проєкту».
+          </p>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
+          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            У цьому модулі перевіряти треба дві різні речі: чи зробилась вправа й чи склалась
+            ментальна модель. Перше робить команда, друге — чотири питання.
+          </p>
+
+          <h3>Перевірка вправи</h3>
+
+          <p>
+            Перебуваючи в папці <code>ait-practice</code>, набери <code>ls</code>. Ця команда
+            друкує перелік того, що лежить у поточній папці. Якщо файл створився — його ім'я
+            з'явиться у відповіді.
+          </p>
+
+          <figure class="term term--cmd" id="t5">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t5t">macOS 26.5.2 · zsh · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t5t"><span class="term__line"><span class="term__meta">anna@MacBook-Air ait-practice %</span> <span class="term__in">ls</span></span>
+<span class="term__line">task.txt</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Живий запуск 4 вересня 2026 року, macOS 26.5.2. Порожня відповідь означала б, що файл
+            зберігся не туди — найчастіше в папку, яку редактор запропонував за замовчуванням.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Ще одна корисна перевірка — і її нормальний результат</span>
+            <p>
+              Набери <code>claude --version</code>. Якщо Claude Code ще не встановлений, ти
+              побачиш повідомлення виду <code>zsh: command not found: claude</code>. Це
+              <strong>очікувана відповідь на цьому етапі курсу</strong>, а не поломка: у модулі 1
+              розібрано, що вона означає «оболонка перебрала папки зі списку <code>PATH</code> і
+              не знайшла програми з таким іменем». Встановлення — наступний модуль.
+            </p>
+          </div>
+
+          <h3>Перевірка розуміння</h3>
+
+          <p>
+            Дай собі відповідь уголос або на папері. Якщо на якесь питання відповіді немає —
+            повернись до названого блоку, це швидше, ніж наздоганяти пізніше.
+          </p>
+
+          <ol>
+            <li>Чому чат не може порахувати рядки у твоєму файлі, а Claude Code може? (блок 1 і
+              блок 2)</li>
+            <li>Назви три фази агентного циклу й скажи, яка з них найчастіше пропускається без
+              твоєї участі. (блок 3)</li>
+            <li>Чим <code>Esc</code> відрізняється від «набрати виправлення й натиснути
+              <code>Enter</code>»? (блок 3)</li>
+            <li>Твій код виконується на твоїй машині чи на чужій, якщо ти працюєш у терміналі?
+              А якщо у вебверсії? (блок 3)</li>
+          </ol>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
+          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+
+          <h3>1. Ставитись до агента як до чату</h3>
+
+          <p>
+            Найпоширеніше. Виглядає так: людина пише одне коротке речення на кшталт «як
+            виправити цю помилку?», отримує пораду текстом і йде робити руками. Інструмент при
+            цьому не зробив нічого з того, заради чого існує.
+          </p>
+
+          <p>
+            <strong>Ознака:</strong> ти читаєш відповідь і сам переносиш її у файли.
+            <strong>Виправлення:</strong> формулюй задачу, а не питання. «Полагодь» замість
+            «як полагодити».
+          </p>
+
+          <h3>2. Вручну вставляти код у запит</h3>
+
+          <p>
+            Звичка з інструментів, які бачать лише відкритий файл. Людина копіює три екрани коду
+            в запит, боячись, що інакше агент не зрозуміє. Документація каже прямо:
+            «Claude Code читає файли твого проєкту за потреби. Тобі не треба додавати контекст
+            вручну».
+          </p>
+
+          <p>
+            Шкода від цієї звички не лише в часі: усе вставлене займає місце в контекстному вікні,
+            а воно скінченне й коштує грошей. Про це — модулі 6 і 11.
+          </p>
+
+          <h3>3. Боятись перервати</h3>
+
+          <p>
+            Людина бачить, що агент іде не туди, і сидить, чекаючи, поки він закінчить. Утрачений
+            час плюс зіпсований контекст. <code>Esc</code> — штатний спосіб керування, а не
+            аварійна кнопка; про це прямо написано в документації, і саме тому переривання
+            розібране в блоці 3, а не в кінці курсу.
+          </p>
+
+          <h3>4. Плутати Claude Code з Claude у браузері</h3>
+
+          <p>
+            Назви схожі, суть різна. У терміналі код виконується <strong>на твоїй машині</strong>,
+            і зміни відбуваються у твоїх файлах. У вебверсії
+            <code>claude.ai/code</code> сесія працює <strong>в хмарі</strong>, на віддаленій
+            машині. Наслідки різні буквально в усьому: що зміниться, що видно, що лишиться після
+            від'єднання.
+          </p>
+
+          <h3>5. Vibe coding: де він працює, а де ні</h3>
+
+          <p>
+            <strong>Vibe coding</strong> («кодинг на відчуттях») — вислів спільноти для способу
+            роботи, у якому людина описує бажаний результат словами й приймає те, що вийшло,
+            не читаючи код.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Чесно про джерело терміна</span>
+            <p>
+              Слова <em>vibe</em> немає в документації Claude Code взагалі. Перевірено двічі:
+              дослідники курсу пройшли 13 сторінок документації та її повний покажчик
+              3 вересня 2026 року, і ще раз — 4 вересня, пошуком по завантажених сторінках
+              <code>overview</code>, <code>quickstart</code>, <code>how-claude-code-works</code>,
+              <code>best-practices</code>, <code>common-workflows</code> і покажчику
+              <code>llms.txt</code>. Нуль збігів. Тобто це термін спільноти, а не назва режиму в
+              продукті: шукати кнопку «vibe» немає сенсу.
+            </p>
+          </div>
+
+          <p>
+            <strong>Де такий спосіб роботи справді працює.</strong> Сама документація описує
+            саме його як нормальний: «Замість того щоб писати код самому й просити Claude його
+            переглянути, ти описуєш, чого хочеш, і Claude сам з'ясовує, як це зробити». Тобто
+            описувати результат словами — не помилка, а задум інструмента. Це добре працює там,
+            де ціна помилки низька й видима одразу: чернетки, разові скрипти, обробка своїх
+            файлів, навчальні проєкти, прототип, який ти сам і подивишся.
+          </p>
+
+          <p>
+            <strong>Де він ламається.</strong> Документація називає цю пастку окремим іменем —
+            <em>the trust-then-verify gap</em>, «розрив між довірою і перевіркою»: «Claude видає
+            реалізацію, яка виглядає переконливо, але не враховує граничних випадків». І дає
+            рецепт одним реченням: «Завжди забезпечуй перевірку — тести, скрипти, знімки екрана.
+            <strong>Якщо ти не можеш це перевірити, не випускай це</strong>».
+          </p>
+
+          <p>
+            Звідси чесна межа, і вона проходить не там, де здається. Не «маленький проєкт можна,
+            великий не можна», а:
+          </p>
+
+          <ul>
+            <li><strong>є перевірка</strong>, яку можна запустити й отримати «пройшло / не
+              пройшло» → працювати словами можна, і це нормальний режим;</li>
+            <li><strong>перевірки немає</strong>, а результат бачать інші люди, гроші чи чужі
+              дані → перевіряльником стаєш ти, і кожна пропущена помилка чекає, поки ти її
+              помітиш.</li>
+          </ul>
+
+          <p>
+            Третя фаза циклу — «перевірити результат» — не випадково стоїть у самій основі
+            інструмента. Vibe coding не поганий і не хороший; він рівно настільки надійний,
+            наскільки надійна перевірка, яку ти йому дав.
+          </p>
+
+          <h3>6. Чекати, що агент прочитає думки</h3>
+
+          <p>
+            Протилежна крайність до диктанту. «Зроби мені гарно» не працює з тієї ж причини, з
+            якої не спрацювало б із людиною: немає ані симптому, ані ознаки готовності.
+            Документація радить думати про це «як про делегування здібному колезі»: контекст і
+            напрямок — від тебе, деталі — від нього.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
+          <h2><span class="lesson-no">7</span>Часті питання</h2>
+
+          <h3>Чи треба вміти програмувати?</h3>
+          <p>
+            Щоб пройти цей курс — ні. Документація описує Claude Code ширше за код: він
+            «допоможе з будь-чим, що ти можеш зробити з командного рядка: писати документацію,
+            запускати збірки, шукати у файлах, досліджувати теми». Але є чесна поправка з блоку 6:
+            чим менше ти розумієш у предметі, тим важливіше мати перевірку, яку можна запустити.
+            Без розуміння й без перевірки лишається тільки віра, що вийшло.
+          </p>
+
+          <h3>Чому курс лише про термінал, якщо є застосунок і розширення?</h3>
+          <p>
+            Дві причини, обидві з документації. Перша: «CLI — найповніша поверхня для роботи в
+            терміналі», і частина можливостей існує лише там. Друга, важливіша: «Інтерфейс
+            визначає, як ти бачиш Claude і взаємодієш із ним, але агентний цикл під ним
+            ідентичний». Тобто вивчене в терміналі переноситься на застосунок, розширення й
+            вебверсію. У зворотний бік це працює гірше: у застосунку багато механізмів заховано,
+            і коли щось піде не так, дивитись буде нікуди.
+          </p>
+
+          <h3>А зовсім без термінала можна?</h3>
+          <p>
+            Можна. Документація каже дослівно: «Якщо ти волієш не користуватися терміналом,
+            Desktop дає той самий рушій із графічним інтерфейсом». Порада курсу все одно
+            лишається: пройди хоча б перші модулі в терміналі, а потім обирай. Рішення, ухвалене
+            після того, як ти побачив обидва варіанти, коштує дешевше.
+          </p>
+
+          <h3>Чи бачить Claude Code увесь мій комп'ютер?</h3>
+          <p>
+            Ні. Доступ починається з папки, у якій ти запустив <code>claude</code>, і поширюється
+            на її підпапки; інші місця — «лише з твого дозволу». Плюс термінал і стан git у цій
+            папці. Як саме влаштовані дозволи, що таке захищені шляхи й чому в блоці 3 агент
+            отримав відмову — модуль 7, один із найважливіших у курсі.
+          </p>
+
+          <h3>Це те саме, що Claude у браузері, тільки в іншому вікні?</h3>
+          <p>
+            Ні, і різниця не косметична. Модель та сама, обв'язка різна: у чаті немає доступу до
+            твоїх файлів і терміналу. Плюс різне середовище виконання — термінал працює на твоїй
+            машині, <code>claude.ai/code</code> у хмарі. Це різні наслідки для файлів, для
+            приватності й для того, що станеться, коли ти закриєш ноутбук.
+          </p>
+
+          <h3>Скільки це коштує?</h3>
+          <p>
+            У курсі під це є окремий модуль 11 — там і про підписки, і про те, як не спалити
+            ліміт за годину. Тут одна деталь, яку варто знати вже зараз: різні плани відкривають
+            різні можливості на різних поверхнях, і документація позначає це прямо в таблиці
+            платформ. Конкретних чисел цей курс не наводить свідомо: вони змінюються швидше, ніж
+            встигає оновитись будь-який навчальний матеріал.
+          </p>
+
+          <h3>Версія на екранах у мене інша. Це проблема?</h3>
+          <p>
+            Ні, і цього варто чекати. Документація випереджає будь-яку встановлену збірку: на
+            3 вересня 2026 року розрив між документацією та збіркою, на якій знімався цей курс,
+            складав близько двадцяти версій. Тому в курсі біля кожного екрана стоїть версія, а
+            головна навичка, яку він дає, — <strong>звіряти факт живою командою, а не статтею</strong>.
+            Окремий модуль 17 присвячений саме цьому.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
+          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Якщо після цього модуля ти можеш пояснити знайомому, чому Claude Code не чат, і чому
+            задачу для нього формулюють інакше, ніж питання для пошуковика, — модуль зробив свою
+            роботу.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Підсумок модуля</span>
+            <ul>
+              <li>Claude Code — <strong>агент</strong>: він сам читає файли, запускає команди,
+                вносить зміни й перевіряє результат. Чат друкує текст, підказки в редакторі
+                бачать лише відкритий файл.</li>
+              <li>Модель та сама, що в чаті. Різниця — в <strong>обв'язці</strong>: інструменти,
+                керування контекстом, середовище виконання. Документація називає це
+                <em>agentic harness</em>.</li>
+              <li><strong>Агентний цикл — три фази:</strong> зібрати контекст → діяти →
+                перевірити результат, і по колу, доки не зійдеться.</li>
+              <li>Ти всередині циклу: <code>Esc</code> зупиняє негайно, набраний текст із
+                <code>Enter</code> скеровує, не зупиняючи поточної дії. Обидва способи —
+                штатні.</li>
+              <li>Без інструментів модель уміє лише відповідати текстом. Інструментів п'ять
+                категорій: файли, пошук, виконання, веб, розуміння коду.</li>
+              <li>Доступ агента починається з <strong>папки, у якій ти його запустив</strong>.</li>
+              <li>Середовищ виконання три: Local, Cloud, Remote Control. Курс — про Local.</li>
+              <li>Поверхонь шість: CLI, Desktop, VS Code, JetBrains, Web, Mobile. Цикл під ними
+                однаковий, тому вивчене в терміналі переноситься на решту.</li>
+              <li><strong>Vibe coding</strong> — термін спільноти, у документації його немає.
+                Працює там, де є перевірка; ламається там, де її немає. Правило з документації:
+                не можеш перевірити — не випускай.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Далі — <strong>модуль 3 «Встановлення й перший вхід»</strong>: чотири операційні
+            системи, різниця між каналами оновлення (і чому вона важливіша, ніж здається),
+            підписка проти ключа доступу, команда <code>claude doctor</code> для перевірки
+            встановлення й окрема історія про те, чому одна з поширених установок не оновлюється
+            сама.
+          </p>
+          <p>
+            Файл <code>task.txt</code>, який ти написав у блоці 4, не видаляй. У модулі 4 ти
+            даси цю саму задачу агентові й побачиш різницю між двома формулюваннями на власному
+            прикладі.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять на
+            назви: до кожної відповіді одразу з'являється пояснення, чому решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Ти написав «на сайті не працює кнопка надсилання, код у папці src/, розберися й полагодь» — і не вставив у запит жодного рядка коду. Що зробить Claude Code?",
+            "options": [
+              "Попросить вставити вміст файлів, бо без цього він нічого не бачить",
+              "Сам знайде й прочитає потрібні файли в папці, з якої його запустили, і працюватиме з ними",
+              "Відповість загальною порадою, як таке зазвичай лагодять",
+              "Відмовиться працювати, поки не вказати точний файл і номер рядка"
+            ],
+            "answer": 1,
+            "explain": "Це і є різниця між агентом і чатом. Документація формулює прямо: «Claude Code читає файли твого проєкту за потреби, тобі не треба додавати контекст вручну». Перший і третій варіанти описують поведінку чату, у якого доступу до диска немає взагалі. Четвертий описує диктант — саме той стиль, від якого документація відмовляє формулою «делегуй, а не диктуй»."
+          },
+          {
+            "q": "У живому запуску з блоку 3 агент запустив команду, отримав відмову через дозволи, переписав команду й довів задачу до кінця. Як це слід читати?",
+            "options": [
+              "Це збій: коректно налаштований агент не повинен отримувати відмов",
+              "Це нормальна робота циклу: дія — результат — нове рішення на основі результату",
+              "Це означає, що прав бракує і треба вимкнути перевірку дозволів",
+              "Це помилка в запиті людини: задачу сформулювали неправильно"
+            ],
+            "answer": 1,
+            "explain": "Кожен виклик інструмента повертає інформацію, яка живить наступний крок, — саме так документація описує агентний цикл. Відмова теж інформація, і агент на неї відреагував: переписав команду. Перший варіант плутає обмеження з поломкою; третій — типова хибна реакція, після якої зникає весь захист (модуль 7 показує, чому вимикання дозволів не є рішенням); четвертий не тримається, бо задача була виконана з тим самим формулюванням."
+          },
+          {
+            "q": "Знайомий каже: «У Claude Code, певно, розумніша модель, ніж у чаті». Що відповісти?",
+            "options": [
+              "Так, у терміналі працює окрема модель для коду",
+              "Модель може бути та сама; різниця в обв'язці — інструментах, керуванні контекстом і середовищі виконання",
+              "Ні, у терміналі модель слабша, зате швидша",
+              "Питання не має сенсу: у Claude Code моделі немає взагалі"
+            ],
+            "answer": 1,
+            "explain": "Документація називає Claude Code «агентною обв'язкою» (agentic harness) навколо моделі: вона «дає інструменти, керування контекстом і середовище виконання, які перетворюють мовну модель на дієздатного агента». Тобто відрізняється не інтелект, а те, що дозволено робити руками. Перший і третій варіанти вигадують неіснуючий поділ моделей за поверхнями; четвертий відкидає перший із двох компонентів циклу — моделі, які міркують."
+          },
+          {
+            "q": "Агент іде не туди. Ти набираєш виправлення й тиснеш Enter, не натискаючи Esc. Що станеться?",
+            "options": [
+              "Поточна дія обірветься так само, як від Esc",
+              "Нічого: поки агент працює, ввід не приймається",
+              "Поточна дія довиконається, а виправлення агент прочитає одразу після неї й врахує на наступному кроці",
+              "Виправлення потрапить у чергу й буде прочитане аж наприкінці всієї задачі"
+            ],
+            "answer": 2,
+            "explain": "Документація розрізняє два способи скерувати: Esc зупиняє негайно й скасовує виклик інструмента, що виконується, а набраний текст із Enter надсилається без зупинки — Claude прочитає його, щойно завершить поточну дію, і врахує, обираючи наступний крок. Це різні інструменти для різних ситуацій: перший — коли напрямок хибний, другий — коли треба уточнити на ходу."
+          },
+          {
+            "q": "Коли робота «словами, не читаючи код» стає небезпечною?",
+            "options": [
+              "Коли проєкт великий: на малих проєктах так робити можна завжди",
+              "Коли немає перевірки, яку можна запустити й отримати «пройшло» чи «не пройшло»",
+              "Коли працюєш у терміналі, а не в застосунку з візуальним переглядом змін",
+              "Коли модель не найпотужніша з доступних"
+            ],
+            "answer": 1,
+            "explain": "Документація називає цю пастку «розривом між довірою і перевіркою»: результат виглядає переконливо, але не враховує граничних випадків. Рецепт там же — «завжди забезпечуй перевірку; якщо не можеш перевірити, не випускай». Межа проходить по наявності перевірки, а не по розміру проєкту, не по поверхні й не по моделі: без перевірки «виглядає зробленою» лишається єдиним сигналом, і роль перевіряльника дістається тобі."
+          },
+          {
+            "q": "Ти працюєш у Claude Code у терміналі, а колега — у вебверсії на claude.ai/code. Чия машина виконує команди?",
+            "options": [
+              "В обох випадках команди виконуються на серверах Anthropic",
+              "В обох випадках — на машині людини, різниця лише у вигляді вікна",
+              "У тебе — твоя машина; у колеги — віддалена машина в хмарі",
+              "У тебе — твоя машина; у колеги команди не виконуються взагалі, лише генерується текст"
+            ],
+            "answer": 2,
+            "explain": "Документація називає три середовища виконання: Local — твоя машина, Cloud — віртуальні машини Anthropic або сервери організації, Remote Control — твоя машина під керуванням із браузера. Термінал — це Local, вебверсія — Cloud. Різниця не косметична: від неї залежить, чиї файли зміняться і що станеться з роботою, коли ти від'єднаєшся. Четвертий варіант хибний тому, що хмарна сесія теж виконує команди — але не в тебе, а на віддаленій машині."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
