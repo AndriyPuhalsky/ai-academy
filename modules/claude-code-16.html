@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 16 · Перехоплювачі подій (hooks) — AI Термінал</title>
+  <meta name="description"
+    content="Перехоплювачі подій у Claude Code: три рівні конфігурації, matcher, JSON на вході й на виході, семантика кодів виходу (чому exit 1 нічого не блокує), вісім подій, які потрібні насправді, і безпека хуків." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="c16" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 16</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 3 · Налаштування під себе</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Перехоплювачі подій (hooks)</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Просунутий · 8 блоків · ≈ 50 хв читання</p>
+        <p class="mt-6 text-lg">
+          Усе, що ти налаштовував досі, працює через модель. <code>CLAUDE.md</code> — це текст, який
+          Claude читає й здебільшого враховує. Навичка — теж текст, який він вирішує підвантажити.
+          Навіть правила дозволів спрацьовують тоді, коли модель уже вирішила щось зробити.
+          Перехоплювач подій (англійською hook, «гачок») влаштований інакше: це
+          <strong>твоя власна програма, яку Claude Code запускає сам</strong> у чітко визначений
+          момент своєї роботи. Вона виконується завжди й однаково, що б модель не вирішила.
+        </p>
+        <p>
+          Різниця між «попросити» і «зробити» — це те, заради чого модуль існує. Офіційна
+          документація каже це прямо у двох місцях сторінки про пам'ять: інструкції в
+          <code>CLAUDE.md</code> Claude трактує «як контекст, а не як примусову конфігурацію»,
+          і «щоб заблокувати дію незалежно від того, що вирішить Claude, використовуй хук
+          <code>PreToolUse</code>». Інструкція — прохання. Перехоплювач — механізм.
+        </p>
+
+        <div class="callout callout-sand">
+          <span class="callout-title">Одразу головне: <code>exit 1</code> нічого не блокує</span>
+          <p>
+            У світі командного рядка код завершення <code>1</code> означає «помилка» — так поводиться
+            майже кожна програма. У перехоплювачах Claude Code це не так: код <code>1</code>
+            <strong>не блокує дію</strong>, вона проходить далі. Блокує тільки код <code>2</code>.
+            Через це людина пише «заборону», бачить, що скрипт відпрацював, і живе з відчуттям
+            захисту, якого немає. Повний розбір — у блоці 3, а перевірка своїми руками — у блоці 5.
+          </p>
+        </div>
+
+        <div class="callout">
+          <span class="callout-title">Що в цьому модулі є, а чого немає</span>
+          <p>
+            <strong>Є:</strong> три рівні конфігурації хука · як обчислюється <code>matcher</code> ·
+            що приходить на вхід і що можна віддати на вихід · точна семантика кодів завершення ·
+            вісім подій, які потрібні насправді · три робочі приклади · безпека перехоплювачів ·
+            і те, як перевірити хук, не довіряючи йому наосліп.
+          </p>
+          <p>
+            <strong>Немає:</strong> будови теки <code>.claude/</code> й порядку перекриття файлів
+            налаштувань — це модуль 13. Немає навичок, слеш-команд і плагінів — модуль 14. Немає
+            субагентів і worktrees — модуль 15. Немає повної таблиці всіх подій: вона в довіднику,
+            і причина в блоці 3. Немає загальної безпеки Claude Code — модуль 22.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- ============ 1 ============ -->
+        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
+          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+
+          <p>
+            Уяви три дрібниці, які псують роботу щодня.
+          </p>
+          <ul>
+            <li>
+              Claude виправив файл — і форматування поїхало. Ти щоразу пишеш «прогони форматер»,
+              а він то робить це, то ні.
+            </li>
+            <li>
+              У проєкті є команда, яку виконувати не можна ніколи. Ти написав про це в
+              <code>CLAUDE.md</code>. Здебільшого допомагає. «Здебільшого» — не те слово, яке
+              хочеться чути про видалення файлів.
+            </li>
+            <li>
+              Claude чекає твоєї відповіді, а ти дивишся в інше вікно й не бачиш цього п'ять хвилин.
+            </li>
+          </ul>
+          <p>
+            Усі три задачі мають одну спільну рису: потрібно, щоб щось відбувалось
+            <strong>у певний момент</strong> і <strong>без участі моделі</strong>. Саме це роблять
+            перехоплювачі подій.
+          </p>
+
+          <h3>Дві частини одного поняття</h3>
+          <p>
+            Слово «hook» описує зв'язку з двох речей, і плутати їх дорого:
+          </p>
+          <ul>
+            <li>
+              <strong>подія (hook event)</strong> — момент у житті сесії, який Claude Code оголошує:
+              «сесія почалась», «зараз буде виклик інструмента», «файл змінено», «я закінчив
+              відповідати». Подій рівно 33, і в блоці 2 буде видно, чому це число треба перевіряти
+              на своїй версії;
+            </li>
+            <li>
+              <strong>обробник (hook handler)</strong> — те, що виконається, коли подія настане.
+              Найчастіше це твій скрипт, але не тільки: обробником може бути й HTTP-адреса, і
+              інструмент MCP-сервера, і навіть окремий запит до моделі.
+            </li>
+          </ul>
+
+          <h3>Чого перехоплювач не робить</h3>
+          <p>
+            Перехоплювач уміє <strong>звузити</strong> те, що дозволено, але не вміє
+            <strong>розширити</strong>. Документація формулює це так: хук, що повертає рішення
+            <code>deny</code>, блокує інструмент навіть у режимі <code>bypassPermissions</code> і
+            навіть із прапорцем <code>--dangerously-skip-permissions</code>. А от зворотного немає:
+            хук із рішенням <code>allow</code> не скасовує заборонних правил із налаштувань і не
+            прибирає запит для MCP-інструментів, позначених як такі, що вимагають участі людини.
+          </p>
+          <p>
+            Друга межа тонша. В обробника є поле <code>if</code>, яке фільтрує виклик точніше —
+            наприклад, «тільки коли Bash запускає <code>git</code>». Документація прямо називає цей
+            фільтр «best effort»: коли Claude Code не може визначити, що саме виконає команда
+            (наприклад, у ній є змінна <code>$TOOL</code>), він запускає хук про всяк випадок. І
+            додає висновок, який варто прочитати двічі: <strong>для жорсткої заборони чи дозволу
+            користуйся системою дозволів, а не хуком.</strong> Хук — це страховка й автоматизація,
+            а не паркан.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Обробник виконується з твоїми повними правами</span>
+            <p>
+              Дослівне попередження документації: командні хуки виконують команди оболонки
+              <strong>з повними правами твого користувача</strong> — вони можуть змінити, видалити
+              або прочитати будь-що, до чого має доступ твій обліковий запис. Це не «налаштування»,
+              це виконання коду. Тому в блоці 3 є окремий розділ про безпеку, і читати його
+              треба до того, як ставити перший перехоплювач, а не після.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- ============ 2 ============ -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
+          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Головного екрана цього модуля — меню <code>/hooks</code> — тут не буде, і на це є
+            причина. <code>/hooks</code> малюється всередині сесії, перемальовується на місці й не
+            існує як текст, який можна зняти командою. Тому далі — те, що знімається чесно:
+            реакція <code>claude doctor</code> на зіпсовану конфігурацію хука і перевірка скрипта
+            власними руками. Меню <code>/hooks</code> описане словами в блоці 5.
+          </p>
+
+          <h3>Екран, який показує головне число модуля</h3>
+          <p>
+            У теці проєкту лежить файл <code>.claude/settings.json</code>, у якому назва події
+            написана з помилкою — <code>PreToolUseX</code> замість <code>PreToolUse</code>.
+            Ось що на це каже <code>claude doctor</code>:
+          </p>
+
+          <figure class="term term--cmd" id="p1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p1t">claude doctor · Claude Code 2.1.236 · macOS 26.5.2</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude doctor</span></span>
+<span class="term__line"><span class="term__meta">…</span></span>
+<span class="term__line"><span class="term__err">Invalid settings</span></span>
+<span class="term__line">- /private/tmp/c16-hooks-demo/proj/.claude/settings.json ›</span>
+<span class="term__line">hooks.PreToolUseX: Unknown hook event "PreToolUseX" was ignored. Valid</span>
+<span class="term__line">events: PreToolUse, PostToolUse, PostToolUseFailure, PostToolBatch,</span>
+<span class="term__line">Notification, UserPromptSubmit, UserPromptExpansion, SessionStart,</span>
+<span class="term__line">SessionEnd, Stop, StopFailure, SubagentStart, SubagentStop, PreCompact,</span>
+<span class="term__line">PostCompact, PermissionRequest, PermissionDenied, Setup, TeammateIdle,</span>
+<span class="term__line">TaskCreated, TaskCompleted, Elicitation, ElicitationResult, ConfigChange,</span>
+<span class="term__line">WorktreeCreate, WorktreeRemove, InstructionsLoaded, CwdChanged,</span>
+<span class="term__line">FileChanged, DirectoryAdded, MessageDisplay</span></pre>
+          </figure>
+
+          <p class="text-sm text-muted">
+            Знято 2026-09-04, Claude Code 2.1.236, macOS 26.5.2. Перенесення довгого рядка — це
+            перенесення термінала, у файлі він один. Рядок <code>…</code> позначає решту виводу
+            <code>claude doctor</code>, яка до хуків стосунку не має.
+          </p>
+
+          <h3>33 і 31 — обидва числа правильні</h3>
+          <p>
+            Перерахуй назви в цьому переліку: їх <strong>31</strong>. А на сторінці офіційної
+            документації «Hooks reference» подій <strong>33</strong> — це прямий перерахунок
+            заголовків розділу «Hook events» станом на 2026-09-04. Розбіжність рівно у дві події:
+            <code>PreModelSwitch</code> і <code>PostModelSwitch</code>.
+          </p>
+          <p>
+            Це не помилка документації й не помилка програми. Обидві ці події, за словами тієї ж
+            сторінки, <strong>потребують Claude Code v2.1.251 або новішої</strong>, а встановлена
+            збірка — 2.1.236. Документація описує наступну версію; програма чесно перелічує те, що
+            вміє сама. Перевірити це можна не вірою, а командою:
+          </p>
+
+          <figure class="term term--cmd" id="p2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p2t">чи знає моя збірка про цю подію · 2.1.236 · macOS 26.5.2</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p2t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c PreModelSwitch</span></span>
+<span class="term__line">0</span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c InstructionsLoaded</span></span>
+<span class="term__line">21</span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c ZzzNotAnEventName</span></span>
+<span class="term__line">0</span></pre>
+          </figure>
+
+          <p>
+            Розберемо по рядках. <code>which claude</code> дає повний шлях до встановленої програми.
+            <code>strings</code> дістає з двійкового файла всі текстові рядки. <code>grep -c</code>
+            рахує, скільки разів у них трапилось слово. Подія <code>InstructionsLoaded</code> —
+            21 згадка, тобто збірка про неї знає. <code>PreModelSwitch</code> — нуль. Третій рядок
+            обов'язковий: це вигадана назва, і вона теж дає нуль. Без цієї контрольної перевірки
+            «нуль» нічого не доводить — може, команда взагалі не працює.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Чому це головний урок модуля, а не дрібниця</span>
+            <p>
+              Довідник цього курсу описує <strong>33 події</strong> — за документацією. Твоя
+              програма може знати 31, 33 або більше: це залежить від версії, яка стоїть саме в тебе.
+              Тому будь-яка стаття про хуки (включно з цією сторінкою) без номера версії поруч —
+              не факт, а знімок минулого. Звіряй живою командою.
+            </p>
+            <p>
+              Для повноти: у Homebrew каска <code>claude-code</code> на 2026-09-04 давала
+              <strong>2.1.236</strong>, а каска <code>claude-code@latest</code> —
+              <strong>2.1.251</strong>. Тобто дві «зниклі» події вже існували в іншому каналі
+              оновлень того самого дня.
+            </p>
+          </div>
+
+          <h3>Другий екран: помилка, через яку хук мовчить</h3>
+          <p>
+            Найпоширеніша помилка в конфігурації — записати <code>matcher</code> списком, як
+            здається природним. Ось що на це відповідає <code>claude doctor</code>:
+          </p>
+
+          <figure class="term term--err" id="p3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p3t">matcher списком замість рядка · 2.1.236 · macOS 26.5.2</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p3t"><span class="term__line"><span class="term__err">Invalid settings</span></span>
+<span class="term__line">- /private/tmp/c16-hooks-demo/proj/.claude/settings.json ›</span>
+<span class="term__line">hooks.PreToolUse.0.matcher: Expected string, but received array</span>
+<span class="term__line">  <span class="term__meta">Suggested fix: Hooks use a matcher + hooks array. The matcher is a</span></span>
+<span class="term__line">  <span class="term__meta">string: a tool name ("Bash"), pipe-separated list ("Edit|Write"), or</span></span>
+<span class="term__line">  <span class="term__meta">empty to match all.</span></span></pre>
+          </figure>
+
+          <p>
+            Два спостереження, які варті більше за саме повідомлення. Перше:
+            <code>claude doctor</code> називає <strong>точну адресу поля</strong> —
+            <code>hooks.PreToolUse.0.matcher</code>, де <code>0</code> це номер групи в масиві. Друге:
+            він пропонує виправлення. Ця команда читає файли налаштувань поточної теки й нічого не
+            запускає, тому вона безпечна й нею варто перевіряти кожну свою правку.
+          </p>
+          <p>
+            Але є пастка, про яку варто знати саме тут: наприкінці того самого виводу
+            <code>claude doctor</code> друкує рядок <code>No installation issues found.</code> —
+            навіть коли вище він щойно показав зламані налаштування. Це два різні розділи звіту.
+            Людина, яка дивиться на останній рядок, зробить хибний висновок. Докладніше про
+            діагностику — модуль 17.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- ============ 3 ============ -->
+        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
+          <h2><span class="lesson-no">3</span>Як це працює</h2>
+
+          <p>
+            Конфігурація перехоплювача має рівно <strong>три рівні вкладеності</strong>, і майже всі
+            помилки новачків — це переплутані рівні. Спочатку картина цілком, потім кожен рівень
+            окремо.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  E["Рівень 1 · Подія: PreToolUse"] --> M["Рівень 2 · Група фільтра: matcher = Bash"]
+  M --> H["Рівень 3 · Обробник: type = command"]
+  H --> IN["На вхід у стандартний потік: JSON про подію"]
+  IN --> S["Твій скрипт"]
+  S --> O1["stdout: JSON з рішенням"]
+  S --> O2["код завершення: 0 / 2 / інший"]
+  O1 --> D["Claude Code вирішує, чи дія відбудеться"]
+  O2 --> D
+  style E fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style D fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Подія каже «коли», фільтр — «за яких умов», обробник — «що зробити»; назад скрипт
+              говорить двома каналами одразу: текстом на stdout і кодом завершення.
+            </p>
+          </div>
+
+          <p>
+            У файлі налаштувань це виглядає так. Тут перехоплювач запускає скрипт після кожної
+            правки файла:
+          </p>
+
+<pre><code>{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/check-style.sh",
+            "args": []
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+
+          <p>
+            Зверни увагу на слово <code>hooks</code>, яке трапляється двічі. Зовнішнє — це загальний
+            розділ налаштувань. Внутрішнє — це список обробників усередині однієї групи фільтра.
+            Між ними стоїть назва події (<code>PostToolUse</code>) і поле <code>matcher</code>.
+            Якщо в твоєму файлі вже є розділ <code>hooks</code>, нову подію додають
+            <strong>сусіднім ключем усередині нього</strong>, а не другим розділом
+            <code>hooks</code> — другого не буде, JSON цього не дозволяє.
+          </p>
+
+          <h3>Рівень 1: де живе перехоплювач</h3>
+          <p>
+            Місце файла вирішує, на що саме хук впливає. Документація перелічує сім місць:
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Де оголошено</th>
+                <th>На що поширюється</th>
+                <th>Чи їде разом із проєктом</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>~/.claude/settings.json</code></td>
+                <td>усі твої проєкти</td>
+                <td>ні, лише на цій машині</td>
+              </tr>
+              <tr>
+                <td><code>.claude/settings.json</code></td>
+                <td>один проєкт</td>
+                <td><strong>так</strong>, комітиться в репозиторій</td>
+              </tr>
+              <tr>
+                <td><code>.claude/settings.local.json</code></td>
+                <td>один проєкт</td>
+                <td>ні, Claude Code додає його у виключення git</td>
+              </tr>
+              <tr>
+                <td>кероване налаштування (managed policy)</td>
+                <td>уся організація</td>
+                <td>так, під контролем адміністратора</td>
+              </tr>
+              <tr>
+                <td><code>hooks/hooks.json</code> плагіна</td>
+                <td>поки плагін увімкнений</td>
+                <td>так, у складі плагіна</td>
+              </tr>
+              <tr>
+                <td>frontmatter навички</td>
+                <td>решта сесії після виклику навички</td>
+                <td>так, у файлі навички</td>
+              </tr>
+              <tr>
+                <td>frontmatter субагента</td>
+                <td>лише поки той субагент працює</td>
+                <td>так, у файлі агента</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Три деталі з цієї таблиці, які легко пропустити. Хук із навички
+            <strong>лишається зареєстрованим до кінця сесії</strong>, а не тільки на її хід; зняти
+            його після першого вдалого запуску можна полем <code>once: true</code>, і це поле
+            працює <strong>лише</strong> в навичках — у файлах налаштувань і в агентах воно
+            ігнорується. Хук субагента, навпаки, зникає разом із субагентом, і подія
+            <code>Stop</code>, оголошена там, автоматично перетворюється на
+            <code>SubagentStop</code>. І третє: хуки з різних файлів
+            <strong>складаються, а не заміняють одне одного</strong>, а однаковий обробник,
+            оголошений у двох файлах налаштувань, виконається один раз (копія з плагіна чи навички
+            лишається окремою).
+          </p>
+
+          <h3>Рівень 2: matcher, і чому він поводиться неочікувано</h3>
+          <p>
+            <code>matcher</code> — це <strong>рядок</strong>, ніколи не список (саме тому екран із
+            блоку 2 показує помилку схеми). А от <em>як</em> цей рядок читається, залежить від
+            символів у ньому:
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Що написано</th>
+                <th>Як прочитається</th>
+                <th>Приклад</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>"*"</code>, <code>""</code> або поля немає</td>
+                <td>збігається з усім</td>
+                <td>спрацьовує на кожну появу події</td>
+              </tr>
+              <tr>
+                <td>лише літери, цифри, <code>_</code>, <code>-</code>, пробіли, коми, <code>|</code></td>
+                <td><strong>точний</strong> рядок або список точних рядків</td>
+                <td><code>Bash</code> · <code>Edit|Write</code> · <code>Edit, Write</code></td>
+              </tr>
+              <tr>
+                <td>є будь-який інший символ</td>
+                <td><strong>регулярний вираз</strong>, неприкріплений до країв</td>
+                <td><code>^Notebook</code> · <code>mcp__memory__.*</code></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            «Неприкріплений до країв» означає, що збіг шукається будь-де всередині назви. Тому
+            <code>Edit.*</code> зловить і <code>Edit</code>, і <code>NotebookEdit</code>. Треба
+            рівно один інструмент — пиши <code>^Edit$</code>. І навпаки: голе <code>Edit</code> без
+            спецсимволів — це точний збіг, і <code>NotebookEdit</code> воно не зловить. Логіка
+            неочевидна в обидва боки, тому її варто перечитати перед першим хуком.
+          </p>
+          <p>
+            Окремий випадок — інструменти MCP-серверів (модуль 18). Їхні назви мають вигляд
+            <code>mcp__сервер__інструмент</code>. Щоб зловити всі інструменти сервера,
+            <code>.*</code> обов'язковий: <code>mcp__memory__.*</code>. Написане без нього
+            <code>mcp__memory</code> — це точний рядок, який не збігається ні з чим, і хук мовчки
+            не спрацює жодного разу.
+          </p>
+          <p class="text-sm text-muted">
+            Дві версійні межі з документації: коми як роздільник і терпимість до пробілів навколо
+            них з'явились у v2.1.191, а дефіси в наборі точного збігу — у v2.1.195. На старіших
+            збірках <code>code-reviewer</code> читається як регулярний вираз і ловить ще й
+            <code>senior-code-reviewer</code>.
+          </p>
+
+          <h3>Рівень 3: п'ять типів обробників</h3>
+          <table>
+            <thead>
+              <tr>
+                <th><code>type</code></th>
+                <th>Що це</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>command</code></td>
+                <td>команда оболонки або твій скрипт. Вхід приходить у стандартний потік вводу, відповідь — через stdout і код завершення. Це те, з чого починають усі</td>
+              </tr>
+              <tr>
+                <td><code>http</code></td>
+                <td>той самий JSON іде POST-запитом на URL; тіло відповіді читається за тим самим форматом, що й stdout скрипта</td>
+              </tr>
+              <tr>
+                <td><code>mcp_tool</code></td>
+                <td>виклик інструмента вже підключеного MCP-сервера; його текстовий вивід трактується як stdout командного хука</td>
+              </tr>
+              <tr>
+                <td><code>prompt</code></td>
+                <td>одноходовий запит до моделі, яка повертає рішення у форматі JSON. Для випадків, де правило не формалізується</td>
+              </tr>
+              <tr>
+                <td><code>agent</code></td>
+                <td>окремий субагент з інструментами, який перевіряє умову перед відповіддю. Документація позначає це як експериментальне</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Усі обробники, що збіглися, виконуються <strong>паралельно</strong> — порядок між ними
+            не визначений. Практичний наслідок: якщо два хуки одночасно переписують аргументи того
+            самого виклику полем <code>updatedInput</code>, виграє той, що завершиться останнім, і
+            вгадати який — неможливо. Не став двох переписувачів на один інструмент.
+          </p>
+
+          <h3>Що приходить на вхід</h3>
+          <p>
+            Скрипт отримує один об'єкт JSON у стандартний потік вводу. У кожній події є спільні
+            поля: <code>session_id</code>, <code>transcript_path</code> (шлях до файла розмови),
+            <code>cwd</code> (поточна тека) і <code>hook_event_name</code>. Далі йдуть поля самої
+            події: у <code>PreToolUse</code> це <code>tool_name</code> і <code>tool_input</code>,
+            у <code>UserPromptSubmit</code> — <code>prompt</code>, у
+            <code>InstructionsLoaded</code> — <code>file_path</code> і <code>load_reason</code>.
+            Приклад того, що приходить на <code>InstructionsLoaded</code>, дослівно з документації:
+          </p>
+
+<pre><code>{
+  "session_id": "abc123",
+  "transcript_path": "/Users/.../.claude/projects/.../transcript.jsonl",
+  "cwd": "/Users/my-project",
+  "hook_event_name": "InstructionsLoaded",
+  "file_path": "/Users/my-project/CLAUDE.md",
+  "memory_type": "Project",
+  "load_reason": "session_start"
+}</code></pre>
+
+          <h3>Що можна віддати на вихід — і чому <code>exit 1</code> нічого не робить</h3>
+          <p>
+            Каналів назад два, і вони працюють разом. Перший — код завершення.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  A["Скрипт завершився"] --> B{"Код завершення"}
+  B -->|"0"| C["Успіх. Рішення бере з JSON на stdout, якщо він там є"]
+  B -->|"2"| D["Блокує дію. Навіть allow у JSON цього не перекриє"]
+  B -->|"1 або будь-який інший"| E{"Чи є на stdout правильний JSON?"}
+  E -->|"так"| F["Код ігнорується, вирішує JSON"]
+  E -->|"ні"| G["Неблокуюча помилка: дія проходить"]
+  G --> H["У розмові: hook error + перший рядок stderr"]
+  style D fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style G fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Дві гілки праворуч — та сама пастка: скрипт «спрацював», а дія відбулась.
+            </p>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Код</th>
+                <th>Що означає</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>0</strong></td>
+                <td>Успіх. Штатний код, коли ти друкуєш JSON. На більшості подій stdout іде тільки в лог відлагодження й у розмові не показується. Винятки, де звичайний текст зі stdout стає контекстом для Claude, — рівно чотири: <code>UserPromptSubmit</code>, <code>UserPromptExpansion</code>, <code>SessionStart</code>, <code>PostModelSwitch</code>. stderr при коді 0 Claude не бачить ніколи</td>
+              </tr>
+              <tr>
+                <td><strong>2</strong></td>
+                <td>Блокуюча помилка. На подіях, що вміють блокувати, блокує <strong>незалежно від JSON</strong>. Текстом блокування стає <code>reason</code> із JSON, а якщо його немає — твій stderr</td>
+              </tr>
+              <tr>
+                <td><strong>будь-який інший</strong></td>
+                <td>Сам по собі <strong>не блокує</strong>. Якщо на stdout правильний JSON — код ігнорується й вирішує JSON. Якщо ні — «неблокуюча помилка»: дія проходить, а в розмові з'являється <code>hook error</code> і перший рядок stderr із префіксом <code>Failed with non-blocking status code:</code></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Дослівне попередження документації</span>
+            <p>
+              «Для більшості подій код 2 — єдиний код, який блокує сам по собі. Без правильного
+              JSON на stdout Claude Code трактує код 1 як неблокуючу помилку й виконує дію далі,
+              хоча 1 — звичний Unix-код помилки. Якщо твій хук має забезпечувати політику,
+              використовуй <code>exit 2</code>.» Єдиний виняток у всій системі —
+              <code>WorktreeCreate</code>, де будь-який ненульовий код скасовує створення worktree.
+            </p>
+          </div>
+
+          <p>
+            Другий канал — JSON на стандартному виводі. Він дає тонше керування, ніж «так або ні».
+            Кілька полів, які працюють майже всюди:
+          </p>
+          <ul>
+            <li>
+              <code>continue: false</code> — Claude повністю припиняє обробку. Має пріоритет над
+              будь-якими іншими рішеннями. Разом із ним <code>stopReason</code> — повідомлення
+              людині (Claude його не бачить);
+            </li>
+            <li>
+              <code>systemMessage</code> — попередження, яке побачиш ти;
+            </li>
+            <li>
+              <code>hookSpecificOutput.additionalContext</code> — рядок, який потрапить у контекст
+              Claude як системне нагадування. Документація радить писати
+              <strong>фактами</strong> («The deployment target is production»), а не наказами:
+              текст у вигляді позасмугових системних команд спрацьовує на захист від підміни
+              інструкцій, і Claude покаже його тобі замість того, щоб урахувати;
+            </li>
+            <li>
+              <code>terminalSequence</code> — керуюча послідовність термінала, яку Claude Code
+              виведе за тебе (заголовок вікна, сигнал, сповіщення робочого столу). Це
+              <strong>єдиний</strong> робочий шлях: хуки виконуються без керуючого термінала, і
+              запис у <code>/dev/tty</code> у них не працює;
+            </li>
+            <li>
+              <code>suppressOutput</code> — поле приймається, але <strong>не робить нічого</strong>.
+              Документація каже це прямо.
+            </li>
+          </ul>
+          <p>
+            Обмеження, про яке варто знати заздалегідь: рядки виводу хука
+            (<code>additionalContext</code>, <code>systemMessage</code>, звичайний stdout)
+            обрізаються на <strong>10 000 символів</strong>. Надлишок записується у файл, а Claude
+            отримує короткий уривок і шлях до нього.
+          </p>
+          <p class="text-sm text-muted">
+            Як Claude Code розрізняє JSON і звичайний текст (пробіли по краях не рахуються):
+            починається з <code>{</code> <strong>і</strong> закінчується <code>}</code> — читається
+            як JSON; починається з <code>{</code>, але не закінчується <code>}</code> — звичайний
+            текст; починається з будь-чого іншого — теж звичайний текст, включно з масивом JSON.
+          </p>
+
+          <h3>Дві форми запису команди</h3>
+          <p>
+            Обробник <code>command</code> має дві форми, і від вибору залежить, чи виживе шлях із
+            пробілом.
+          </p>
+          <ul>
+            <li>
+              <strong>Пряма форма</strong> — коли є поле <code>args</code>. Claude Code знаходить
+              <code>command</code> як виконуваний файл і запускає його напряму, без оболонки. Кожен
+              елемент <code>args</code> стає рівно одним аргументом, лапки й <code>$</code>
+              проходять дослівно. Документація радить ставити <code>args</code> завжди, коли в
+              шляху є підстановка на кшталт <code>${CLAUDE_PROJECT_DIR}</code>.
+            </li>
+            <li>
+              <strong>Форма оболонки</strong> — коли <code>args</code> немає. Рядок іде в
+              <code>sh -c</code> на macOS і Linux, у Git Bash на Windows або в PowerShell, якщо
+              Git Bash не встановлено. Оболонка сама розбирає рядок, тому працюють конвеєри
+              <code>|</code>, <code>&amp;&amp;</code> й перенаправлення — але шлях із пробілом
+              треба брати в лапки самому.
+            </li>
+          </ul>
+          <p>
+            Підстановок шляху три: <code>${CLAUDE_PROJECT_DIR}</code> — корінь проєкту,
+            <code>${CLAUDE_PLUGIN_ROOT}</code> і <code>${CLAUDE_PLUGIN_DATA}</code> — для плагінів.
+            Окрема пастка для worktrees (модуль 15): <code>${CLAUDE_PROJECT_DIR}</code>
+            <strong>лишається там, де сесія стартувала</strong>, а поточну теку Claude віддає полем
+            <code>cwd</code> вхідного JSON.
+          </p>
+
+          <h3>Вісім подій, з яких варто починати</h3>
+          <p>
+            Подій 33, але щоденну користь дають вісім. Решта потрібна тоді, коли ти вже знаєш, що
+            саме шукаєш.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Подія</th>
+                <th>Коли спрацьовує</th>
+                <th>Що з нею роблять</th>
+                <th>Чи блокує</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>SessionStart</code></td>
+                <td>сесія почалась або відновилась</td>
+                <td>підкласти свіжий контекст: гілку, відкриті задачі, стан середовища</td>
+                <td>ні</td>
+              </tr>
+              <tr>
+                <td><code>InstructionsLoaded</code></td>
+                <td>завантажено <code>CLAUDE.md</code> або файл правил</td>
+                <td>журнал: який саме файл, коли й чому. Найкращий перший хук — він нічого не змінює</td>
+                <td>ні, взагалі</td>
+              </tr>
+              <tr>
+                <td><code>UserPromptSubmit</code></td>
+                <td>ти надіслав промпт, до обробки</td>
+                <td>додати контекст до запиту або відхилити його</td>
+                <td><strong>так</strong> — і промпт стирається</td>
+              </tr>
+              <tr>
+                <td><code>PreToolUse</code></td>
+                <td>перед виконанням виклику інструмента</td>
+                <td>гейт: дозволити, заборонити, спитати, переписати аргументи</td>
+                <td><strong>так</strong></td>
+              </tr>
+              <tr>
+                <td><code>PostToolUse</code></td>
+                <td>після успішного виклику інструмента</td>
+                <td>форматер, лінтер, тести; підмінити результат; додати контекст</td>
+                <td>ні, інструмент уже відпрацював</td>
+              </tr>
+              <tr>
+                <td><code>Notification</code></td>
+                <td>Claude Code надсилає сповіщення</td>
+                <td>сповіщення робочого столу, коли Claude чекає на тебе</td>
+                <td>ні</td>
+              </tr>
+              <tr>
+                <td><code>Stop</code></td>
+                <td>Claude закінчив відповідати</td>
+                <td>перевірка «а робота справді доведена?» з поверненням у роботу</td>
+                <td><strong>так</strong>, але зі стелею</td>
+              </tr>
+              <tr>
+                <td><code>SessionEnd</code></td>
+                <td>сесія завершується</td>
+                <td>прибирання, підсумковий запис у журнал</td>
+                <td>ні</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Три уточнення до цієї таблиці, кожне з яких колись когось здивує.
+            <code>PreToolUse</code> спрацьовує <strong>раніше за будь-яку перевірку режиму
+            дозволів</strong> — у всіх режимах без винятку. <code>PostToolUse</code> не може
+            скасувати дію: інструмент уже виконався, і код 2 тут лише покаже твій stderr моделі.
+            А <code>Stop</code> має захист від нескінченного циклу: після
+            <strong>восьми блокувань поспіль</strong> Claude Code перекриває хук і завершує хід.
+            Щоб не впертись у цю стелю, у вхідному JSON є поле <code>stop_hook_active</code> —
+            якщо воно <code>true</code>, твій скрипт має вийти з кодом 0 і дати сесії зупинитись.
+          </p>
+
+          <h3>Решта 25 подій — коротко, докладно в довіднику</h3>
+          <p>
+            Повна таблиця (коли спрацьовує · за чим фільтрує · що приходить на вхід · що можна на
+            виході) живе в довіднику курсу
+            <a href="../claude-code-ref-hooks.html">«Усі події хуків»</a>. Тримати її в уроці
+            немає сенсу: до такої таблиці повертаються, а не вчать напам'ять. Ось карта, щоб було
+            зрозуміло, що там шукати:
+          </p>
+          <ul>
+            <li>
+              <strong>сесія й оточення:</strong> <code>Setup</code> ·
+              <code>ConfigChange</code> · <code>CwdChanged</code> · <code>DirectoryAdded</code> ·
+              <code>FileChanged</code>;
+            </li>
+            <li>
+              <strong>хід розмови:</strong> <code>UserPromptExpansion</code> ·
+              <code>MessageDisplay</code> · <code>StopFailure</code>;
+            </li>
+            <li>
+              <strong>інструменти й дозволи:</strong> <code>PermissionRequest</code> ·
+              <code>PermissionDenied</code> · <code>PostToolUseFailure</code> ·
+              <code>PostToolBatch</code>;
+            </li>
+            <li>
+              <strong>субагенти й задачі:</strong> <code>SubagentStart</code> ·
+              <code>SubagentStop</code> · <code>TaskCreated</code> · <code>TaskCompleted</code> ·
+              <code>TeammateIdle</code>;
+            </li>
+            <li>
+              <strong>окремі копії репозиторію:</strong> <code>WorktreeCreate</code> ·
+              <code>WorktreeRemove</code>;
+            </li>
+            <li>
+              <strong>ущільнення контексту:</strong> <code>PreCompact</code> ·
+              <code>PostCompact</code>;
+            </li>
+            <li>
+              <strong>зміна моделі:</strong> <code>PreModelSwitch</code> ·
+              <code>PostModelSwitch</code> (обидві потребують v2.1.251+);
+            </li>
+            <li>
+              <strong>діалоги MCP-серверів:</strong> <code>Elicitation</code> ·
+              <code>ElicitationResult</code>.
+            </li>
+          </ul>
+          <p>
+            Дві з них варто назвати вголос уже тут. <code>ConfigChange</code> спрацьовує на кожну
+            зміну файла налаштувань під час сесії — <strong>крім</strong> керованих, що приїхали
+            від адміністратора; це готовий журнал «хто й коли змінив конфігурацію».
+            А <code>WorktreeCreate</code> — єдина подія, чий хук
+            <strong>повністю заміняє стандартну поведінку git</strong>: якщо ти його поставив,
+            створення копії репозиторію робить твій скрипт, а не Claude Code.
+          </p>
+
+          <h3>Чим це небезпечно</h3>
+          <p>
+            Перехоплювач — це виконання коду, і три факти про нього треба знати до першого запуску.
+          </p>
+          <p>
+            <strong>Перше: твої повні права.</strong> Обробник виконується від твого імені й може
+            зробити все, що можеш ти. Тому «скопіював хук з інтернету» — це те саме, що «запустив
+            скрипт з інтернету».
+          </p>
+          <p>
+            <strong>Друге: пісочниця для Bash хуків не накриває.</strong> У Claude Code є
+            пісочниця, яка обмежує команди, що виконує сам агент (модуль 8). Перехоплювачі
+            працюють <strong>поза нею</strong>. Документація каже це між іншим, але однозначно:
+            пісочниця забороняє запис у файли, звідки Claude Code читає конфігурацію, бо команда,
+            яка могла б їх правити, «додала б хук або MCP-сервер, який Claude Code виконує поза
+            пісочницею». І прямо тому сторінка про ізоляцію вимагає контейнер або віртуальну
+            машину для запусків із <code>--dangerously-skip-permissions</code> — дослівно, «щоб
+            файлові інструменти, MCP-сервери <strong>й хуки</strong> теж були всередині межі».
+          </p>
+          <p>
+            <strong>Третє, і найгостріше: довіра до теки працює по-різному.</strong> В
+            інтерактивній сесії Claude Code <strong>притримує хуки з усіх файлів налаштувань</strong>,
+            включно з твоїм власним <code>~/.claude/settings.json</code>, доки ти не приймеш діалог
+            довіри до теки. А в сесії <code>claude -p</code> (запуск без діалогу, модуль 19) діалогу
+            немає взагалі й тека вважається довіреною — отже, хуки, закомічені в
+            <code>.claude/settings.json</code> <strong>чужого репозиторію</strong>, виконаються.
+          </p>
+          <div class="callout">
+            <span class="callout-title">Що з цим робити практично</span>
+            <p>
+              Перед тим як запускати <code>claude -p</code> над репозиторієм, який писав не ти,
+              документація радить три шляхи: переглянути його теку <code>.claude/</code> вручну;
+              стартувати з <code>--bare</code>; або вимкнути хуки на цей один запуск —
+              <code>claude -p "…" --settings '{"disableAllHooks": true}'</code>.
+            </p>
+            <p>
+              Далі — звичайна гігієна скриптів із документації: перевіряй вхідні дані, завжди бери
+              змінні в лапки (<code>"$VAR"</code>, а не <code>$VAR</code>), відсікай <code>..</code>
+              у шляхах, вживай абсолютні шляхи й не чіпай <code>.env</code>, теку <code>.git/</code>
+              та ключі.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- ============ 4 ============ -->
+        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
+          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+
+          <p>
+            Перший перехоплювач має бути таким, який <strong>нічого не змінює</strong>. Тому почнемо
+            з події <code>InstructionsLoaded</code>: вона взагалі не вміє блокувати й існує
+            виключно для спостереження. Хук лише запише у файл, які інструкції Claude Code
+            завантажив, коли й чому. Якщо рядки з'явились — механізм працює, і далі можна ставити
+            щось серйозніше.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Вправу роби в окремій тимчасовій теці</span>
+            <p>
+              Не в робочому проєкті. Перехоплювач — це код, який виконується сам, і перші спроби
+              краще ставити там, де помилка нічого не коштує. Тека, яку не шкода видалити, підходить
+              найкраще.
+            </p>
+          </div>
+
+          <h3>Крок 1. Створи теку для вправи</h3>
+          <p>
+            Відкрий термінал (модуль 1) і набери ці рядки, натискаючи Enter після кожного:
+          </p>
+
+<pre><code>mkdir -p ~/hooks-demo/.claude/hooks
+cd ~/hooks-demo</code></pre>
+
+          <p>
+            <code>mkdir -p</code> створює теку разом з усіма вкладеними; <code>~</code> — це твоя
+            домашня тека. Далі всі команди виконуються з <code>~/hooks-demo</code>.
+          </p>
+
+          <h3>Крок 2. Поклади файл інструкцій, щоб було що завантажувати</h3>
+
+<pre><code>echo "Цей проєкт існує тільки для вправи з перехоплювачами." &gt; CLAUDE.md</code></pre>
+
+          <p>
+            Знак <code>&gt;</code> означає «записати вивід команди у файл». Тепер у теці є
+            <code>CLAUDE.md</code>, який Claude Code завантажить на старті сесії — і саме це
+            завантаження стане нашою подією.
+          </p>
+
+          <h3>Крок 3. Опиши перехоплювач</h3>
+          <p>
+            Створи файл <code>.claude/settings.json</code> у цій самій теці з таким вмістом:
+          </p>
+
+<pre><code>{
+  "hooks": {
+    "InstructionsLoaded": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '[.load_reason, .memory_type, .file_path] | @tsv' &gt;&gt; /tmp/claude-hooks.log"
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+
+          <p>
+            Розберемо рядок <code>command</code>. <code>jq</code> — це маленька програма для роботи
+            з JSON; вона читає наш вхідний об'єкт зі стандартного потоку й дістає з нього три поля:
+            причину завантаження, область файла (<code>Project</code>, <code>User</code>,
+            <code>Local</code> або <code>Managed</code>) і сам шлях.
+            <code>@tsv</code> склеює їх через табуляцію. <code>&gt;&gt;</code> дописує результат у
+            кінець файла <code>/tmp/claude-hooks.log</code>, не затираючи попереднє.
+            Порожній <code>matcher</code> означає «на будь-яку причину завантаження».
+          </p>
+          <p>
+            <code>jq</code> має бути встановлений. На macOS 26.5.2 він уже є в системі — перевірити
+            можна командою <code>jq --version</code> (на цій машині вона віддала
+            <code>jq-1.7.1-apple</code>). Якщо команда каже «command not found», постав
+            <code>jq</code> тим самим способом, яким ставив інші програми у модулі 3, або замінюй
+            <code>jq</code> у прикладах на Python чи Node.
+          </p>
+
+          <h3>Крок 4. Запусти сесію й прийми довіру до теки</h3>
+
+<pre><code>claude</code></pre>
+
+          <p>
+            Перший запуск у новій теці майже напевно покаже <strong>діалог довіри до робочої
+            теки</strong> — він не з'явиться лише тоді, коли довіреною вже позначена тека вище.
+            Це не формальність: доки ти його не прийняв, Claude Code
+            <strong>притримує хуки з усіх файлів налаштувань</strong> — навіть ті, що лежать у
+            твоїй домашній теці. Прийми довіру, напиши моделі будь-що коротке (наприклад,
+            <code>привіт</code>) і вийди командою <code>/exit</code>.
+          </p>
+
+          <h3>Крок 5. Подивись, що записалось</h3>
+
+<pre><code>cat /tmp/claude-hooks.log</code></pre>
+
+          <p>
+            Якщо у файлі з'явився рядок із <code>session_start</code>, словом
+            <code>Project</code> і шляхом до твого <code>CLAUDE.md</code> — перехоплювач працює.
+            Це і є твоя перша перевірка: не «здається, спрацював», а рядок у файлі.
+          </p>
+          <p class="text-sm text-muted">
+            Дослівного знімка цього файла тут немає з двох причин: у шляху стоїть ім'я
+            користувача машини, на якій знімався матеріал, а сам запуск сесії вимагає входу в
+            обліковий запис, тож відтворити його в ізольованому оточенні не вийшло. Назви полів
+            (<code>load_reason</code>, <code>memory_type</code>, <code>file_path</code>) узяті зі
+            схеми входу цієї події в документації, а не з пам'яті. Домальовувати вивід у курсі про
+            «звіряй живою командою» гірше, ніж його не показати.
+          </p>
+
+          <h3>Крок 6. Тепер — перехоплювач, який щось вирішує</h3>
+          <p>
+            Створи файл <code>.claude/hooks/no-rm-rf.sh</code> з таким вмістом:
+          </p>
+
+<pre><code>#!/bin/bash
+input=$(cat)
+command=$(echo "$input" | jq -r '.tool_input.command')
+
+case "$command" in
+  *"rm -rf"*)
+    echo "Hook: rm -rf is not allowed in this project" &gt;&amp;2
+    exit 2
+    ;;
+esac
+
+exit 0</code></pre>
+
+          <p>
+            Що тут відбувається. <code>input=$(cat)</code> читає весь вхідний JSON у змінну.
+            <code>jq -r '.tool_input.command'</code> дістає з нього саме ту команду, яку Claude
+            збирається виконати. Далі <code>case</code> перевіряє, чи є в ній підрядок
+            <code>rm -rf</code>. Якщо є — скрипт друкує пояснення в потік помилок
+            (<code>&gt;&amp;2</code>) і завершується <strong>кодом 2</strong>. Якщо немає —
+            <code>exit 0</code>.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title"><code>exit 0</code> означає «я не маю думки», а не «дозволяю»</span>
+            <p>
+              Це важлива тонкість. Вихід із кодом 0 і без JSON не схвалює дію — він нічого не
+              вирішує, і далі працює звичайний потік дозволів. Перехоплювач може
+              <strong>заборонити</strong>, але його мовчання дозволом не є.
+            </p>
+          </div>
+
+          <p>
+            Зроби файл виконуваним і додай подію в налаштування:
+          </p>
+
+<pre><code>chmod +x .claude/hooks/no-rm-rf.sh</code></pre>
+
+          <p>
+            У <code>.claude/settings.json</code> подія <code>PreToolUse</code> додається
+            <strong>сусіднім ключем</strong> усередині того самого розділу <code>hooks</code>:
+          </p>
+
+<pre><code>{
+  "hooks": {
+    "InstructionsLoaded": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '[.load_reason, .memory_type, .file_path] | @tsv' &gt;&gt; /tmp/claude-hooks.log"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(rm *)",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/no-rm-rf.sh",
+            "args": []
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+
+          <p>
+            Поле <code>if</code> тут не обов'язкове — воно економить запуски: без нього скрипт
+            стартував би на кожну команду Bash, а з ним — лише коли Claude Code бачить у команді
+            <code>rm</code>. Пам'ятай про його межу з блоку 1: цей фільтр приблизний, і коли
+            програма не може розібрати команду, вона запускає хук про всяк випадок.
+            <code>"args": []</code> перемикає обробник у пряму форму, щоб шлях із підстановкою
+            <code>${CLAUDE_PROJECT_DIR}</code> не довелось брати в лапки.
+          </p>
+
+          <h3>Крок 7. Прибери за собою</h3>
+          <p>
+            Коли вправа закінчена, видали теку: <code>rm -rf ~/hooks-demo</code>. І пересвідчись,
+            що в робочому проєкті цих файлів немає: хук, забутий у чужій теці, — це той самий
+            код, що виконується сам, тільки без твоєї уваги.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- ============ 5 ============ -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
+          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Перехоплювачі мовчазні за конструкцією: коли все добре, вони не показують нічого. Це
+            зручно в роботі й жахливо при налаштуванні, бо «нічого не сталось» і «хук не спрацював»
+            виглядають однаково. Тому перевірок чотири, і робити їх варто саме в такому порядку.
+          </p>
+
+          <h3>Перевірка 1: запусти скрипт руками</h3>
+          <p>
+            Найдешевша й найчесніша. Твій хук — це звичайна програма, яка читає JSON зі стандартного
+            потоку. Отже, її можна запустити без Claude Code взагалі, підсунувши приклад вхідних
+            даних. Саме це радить документація, і саме так знімався екран нижче:
+          </p>
+
+          <figure class="term term--cmd" id="p4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p4t">перевірка хука без Claude Code · macOS 26.5.2 · jq-1.7.1-apple</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p4t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf build"}}' | .claude/hooks/no-rm-rf.sh</span></span>
+<span class="term__line"><span class="term__err">Hook: rm -rf is not allowed in this project</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">echo $?</span></span>
+<span class="term__line"><span class="term__ok">2</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">echo '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' | .claude/hooks/no-rm-rf.sh</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">echo $?</span></span>
+<span class="term__line"><span class="term__ok">0</span></span></pre>
+          </figure>
+
+          <p>
+            <code>echo $?</code> друкує код завершення останньої команди — це вбудована змінна
+            оболонки. Небезпечна команда дала <strong>2</strong> (блокує), звичайна —
+            <strong>0</strong> (рішення немає). Якби на місці двійки була одиниця, ти б побачив це
+            тут, за півсекунди, а не через тиждень, коли гейт не спрацює.
+          </p>
+          <p class="text-sm text-muted">
+            Знято 2026-09-04 на macOS 26.5.2 у тимчасовій теці; скрипт — той самий, що в кроці 6
+            блоку 4.
+          </p>
+
+          <h3>Перевірка 2: меню <code>/hooks</code></h3>
+          <p>
+            У сесії набери <code>/hooks</code>. Відкриється перелік усіх подій із кількістю
+            налаштованих обробників біля кожної; у подію можна провалитись до її фільтрів, а в
+            фільтр — до конкретного обробника. Кожен обробник підписаний
+            <strong>типом у квадратних дужках</strong> і <strong>джерелом</strong>, звідки він
+            приїхав: <code>User Settings</code> (з <code>~/.claude/settings.json</code>),
+            <code>Project Settings</code>, <code>Local Settings</code>,
+            <code>Plugin Hooks</code> або <code>Session Hooks</code> (зареєстрований у пам'яті на
+            цю сесію — так виглядає хук із навички). Детальний вигляд показує подію, фільтр, тип,
+            файл-джерело й повну команду.
+          </p>
+          <p>
+            Головне про це меню: воно <strong>тільки для читання</strong>. Додати, змінити чи
+            видалити хук через нього не можна — тільки правкою JSON. Тому знімка цього екрана в
+            уроці немає: він малюється всередині сесії й не існує як текст, який можна зняти
+            командою.
+          </p>
+          <p>
+            Якщо меню каже, що хуків немає, а ти щойно їх описав: перевір, що файл лежить там, де
+            треба (<code>.claude/settings.json</code> для проєкту,
+            <code>~/.claude/settings.json</code> для всіх твоїх проєктів), і що JSON правильний —
+            зайва кома після останнього елемента й коментарі там заборонені. Правки файлів
+            зазвичай підхоплюються самі; якщо через кілька секунд нічого не змінилось,
+            перезапусти сесію.
+          </p>
+
+          <h3>Перевірка 3: <code>claude doctor</code></h3>
+          <p>
+            Ця команда читає файли налаштувань поточної теки й нічого не запускає, тому нею
+            безпечно перевіряти кожну правку. Вона ловить саме ті помилки, від яких хук мовчить:
+            назву події з одруківкою, <code>matcher</code> списком замість рядка, неправильні типи
+            полів. Обидва приклади — у блоці 2. Ще раз про пастку: рядок
+            <code>No installation issues found.</code> наприкінці стосується
+            <strong>встановлення</strong>, а не налаштувань, і з'являється навіть тоді, коли вище
+            надруковано <code>Invalid settings</code>.
+          </p>
+
+          <h3>Перевірка 4: лог відлагодження</h3>
+          <p>
+            Коли конфігурація правильна, скрипт руками працює, а ефекту немає — лишається дивитись,
+            що бачить сама програма. Запусти сесію так:
+          </p>
+
+<pre><code>claude --debug-file /tmp/claude.log</code></pre>
+
+          <p>
+            У лог потрапляють подробиці виконання: які хуки збіглися, їхні коди завершення, повний
+            stdout і stderr. Дивитись його зручно в другому вікні термінала командою
+            <code>tail -f /tmp/claude.log</code> — вона показує нові рядки в реальному часі.
+            Документація наводить приклад того, як виглядає вдалий запуск хука
+            <code>PostToolUse</code> на інструменті <code>Write</code>, чия команда надрукувала
+            слово <code>hook-ran</code>:
+          </p>
+
+<pre><code>2026-07-19T02:03:24.382Z [DEBUG] Hook output does not start with {, treating as plain text
+2026-07-19T02:03:24.382Z [DEBUG] Hook PostToolUse:Write (PostToolUse) success:
+hook-ran</code></pre>
+
+          <p class="text-sm text-muted">
+            Це приклад із документації, а не знімок з цієї машини. Прапорець <code>--debug</code>
+            без імені файла теж працює, але <strong>нічого не друкує в термінал</strong> — лог
+            лягає в <code>~/.claude/debug/</code>. Якщо сесія вже запущена без прапорця, увімкнути
+            запис можна командою <code>/debug</code>.
+          </p>
+          <p>
+            І остання дрібниця: подивитись, чим закінчився запуск хука в самій розмові, можна
+            переглядом транскрипту — <code>Ctrl+O</code>. Вдалий запуск не покаже
+            <strong>нічого</strong>. Блокування покаже причину. Неблокуюча помилка покаже
+            <code>hook error</code> і перший рядок stderr.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- ============ 6 ============ -->
+        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
+          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+
+          <h3>1. <code>exit 1</code> замість <code>exit 2</code></h3>
+          <p>
+            Найдорожча помилка модуля, і вона повторюється частіше за решту разом узятих. Людина
+            пише «заборону», ставить звичний код помилки <code>1</code>, бачить у логах, що скрипт
+            відпрацював, і вважає питання закритим. Насправді дія проходить щоразу. Перевірка —
+            одна команда з блоку 5: запусти скрипт руками й подивись на <code>echo $?</code>.
+          </p>
+
+          <h3>2. Одруківка в шляху або забутий <code>chmod +x</code></h3>
+          <p>
+            У цих двох випадків однаковий симптом: гейт тихо вимкнено. Ось як це виглядає, якщо
+            перевірити шлях руками — саме те, що робить Claude Code, коли запускає обробник у формі
+            оболонки:
+          </p>
+
+          <figure class="term term--err" id="p5">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p5t">шлях із помилкою · macOS 26.5.2</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p5t"><span class="term__line"><span class="term__meta">$</span> sh -c '.claude/hooks/no-rm-rff.sh'</span>
+<span class="term__line"><span class="term__err">sh: .claude/hooks/no-rm-rff.sh: No such file or directory</span></span>
+<span class="term__line"><span class="term__meta">$</span> echo $?</span>
+<span class="term__line"><span class="term__err">127</span></span></pre>
+          </figure>
+
+          <p>
+            Код <strong>127</strong> — «команду не знайдено», код <strong>126</strong> — «файл є,
+            але не виконуваний» (це і є забутий <code>chmod +x</code>). Обидва — «будь-які інші»
+            коди з таблиці блоку 3, тобто <strong>не блокують</strong>. У розмові з'явиться рядок
+            на кшталт <code>Failed with non-blocking status code: /bin/sh: /path/to/hook.sh: No such
+            file or directory</code>, і документація радить прямо: налаштувавши гейт,
+            <strong>перевір саме перший його запуск</strong> на наявність цього повідомлення.
+          </p>
+
+          <h3>3. <code>matcher</code> для MCP-інструмента без <code>.*</code></h3>
+          <p>
+            <code>"mcp__supabase"</code> не збігається ні з чим: у ньому немає спецсимволів, тому
+            він читається як точний рядок, а справжні назви мають вигляд
+            <code>mcp__supabase__list_tables</code>. Треба
+            <code>"mcp__supabase__.*"</code>.
+          </p>
+
+          <h3>4. <code>matcher</code> списком</h3>
+          <p>
+            <code>"matcher": ["Edit", "Write"]</code> виглядає природно й не працює: поле мусить
+            бути рядком — <code>"Edit|Write"</code>. Це помилка схеми, а не мовчазний недогляд:
+            <code>claude doctor</code> показує її точною адресою поля (блок 2).
+          </p>
+
+          <h3>5. Поле <code>if</code> на події, яка не про інструменти</h3>
+          <p>
+            <code>if</code> працює <strong>лише</strong> на подіях інструментів:
+            <code>PreToolUse</code>, <code>PostToolUse</code>, <code>PostToolUseFailure</code>,
+            <code>PermissionRequest</code>, <code>PermissionDenied</code>. Поставлений на
+            <code>Stop</code> чи <code>SessionStart</code>, він призводить до того, що хук
+            <strong>не виконається жодного разу</strong>. Помилки при цьому немає — саме тому пастка
+            й збиває з пантелику. Ще одне обмеження: одне поле <code>if</code> — це рівно одне
+            правило, ніяких <code>&amp;&amp;</code> чи <code>||</code>; для двох умов роблять два
+            обробники.
+          </p>
+
+          <h3>6. Профіль оболонки друкує текст на старті</h3>
+          <p>
+            Хук у формі оболонки виконується в неінтерактивній оболонці, але деякі налаштування
+            все одно підвантажують твій <code>~/.zshrc</code> чи <code>~/.bashrc</code>. Якщо там є
+            беззастережний <code>echo</code>, його рядок приклеїться перед твоїм JSON:
+          </p>
+
+<pre><code>Shell ready on arm64
+{"decision": "block", "reason": "Not allowed"}</code></pre>
+
+          <p>
+            Такий вивід уже не починається з <code>{</code>, тому Claude Code вважає його звичайним
+            текстом і рішення ігнорує — <strong>мовчки</strong>, бо при коді 0 у розмові про це
+            нічого не буде. Лікується обгортанням привітання у перевірку інтерактивності:
+          </p>
+
+<pre><code># у ~/.zshrc або ~/.bashrc
+if [[ $- == *i* ]]; then
+  echo "Shell ready"
+fi</code></pre>
+
+          <h3>7. Хук на <code>Stop</code>, який не дає сесії завершитись</h3>
+          <p>
+            Claude ніби працює нескінченно, а потім хід уривається з попередженням. Це стеля
+            <strong>восьми блокувань поспіль</strong>. Правильний скрипт першим ділом дивиться на
+            поле <code>stop_hook_active</code> у вхідному JSON і виходить, якщо там
+            <code>true</code>:
+          </p>
+
+<pre><code>#!/bin/bash
+INPUT=$(cat)
+if [ "$(echo "$INPUT" | jq -r '.stop_hook_active')" = "true" ]; then
+  exit 0
+fi
+# далі решта логіки хука</code></pre>
+
+          <h3>8. Очікування, що stdout хука з'явиться в розмові</h3>
+          <p>
+            На більшості подій його там не буде ніколи — він іде в лог відлагодження. Винятків
+            чотири, вони названі в таблиці кодів завершення в блоці 3.
+          </p>
+
+          <h3>9. Хук у чужому репозиторії й <code>claude -p</code></h3>
+          <p>
+            Повторимо, бо це коштує найдорожче: у сесії <code>claude -p</code> тека вважається
+            довіреною без питань, і хуки, закомічені в <code>.claude/settings.json</code> чужого
+            проєкту, виконаються з твоїми правами. Перед автоматичним запуском над незнайомим
+            репозиторієм — переглянути його <code>.claude/</code>, або <code>--bare</code>, або
+            <code>--settings '{"disableAllHooks": true}'</code>.
+          </p>
+
+          <h3>10. Спроба вимкнути один хук</h3>
+          <p>
+            Такої можливості немає. <code>"disableAllHooks": true</code> вимикає
+            <strong>всі</strong>; окремий хук прибирають видаленням його запису з JSON. І окремо:
+            якщо хуки налаштовані керованою політикою організації, вимкнути їх з боку користувача
+            не вийде — <code>disableAllHooks</code> діє на них лише з керованого рівня.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- ============ 7 ============ -->
+        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
+          <h2><span class="lesson-no">7</span>Часті питання</h2>
+
+          <h3>Коли писати правило в <code>CLAUDE.md</code>, а коли робити хук?</h3>
+          <p>
+            Документація дає чіткий критерій. Якщо інструкція описує <strong>як робити</strong>
+            («у цьому проєкті тести запускають командою <code>bun test</code>») — це
+            <code>CLAUDE.md</code>: він завантажується без запуску скриптів і саме для цього
+            призначений. Якщо інструкція вимагає, щоб щось відбувалось
+            <strong>у конкретний момент</strong> («перед кожним комітом», «після кожної правки
+            файла») — це хук: він виконується на фіксованій точці життєвого циклу незалежно від
+            того, що вирішить Claude. Модуль 12 — про перше, цей — про друге.
+          </p>
+
+          <h3>Скільки подій у моїй версії?</h3>
+          <p>
+            Перевіряється двома командами, обидві з блоку 2. Перша:
+            <code>claude doctor</code> у теці, де у файлі налаштувань навмисно написана неіснуюча
+            назва події, — програма надрукує повний перелік тих, які знає. Друга:
+            <code>strings "$(which claude)" | grep -c НазваПодії</code> — з обов'язковою
+            контрольною вигаданою назвою, яка мусить дати нуль.
+          </p>
+
+          <h3>Чи потрібен <code>jq</code>?</h3>
+          <p>
+            Для прикладів у цьому уроці — так, бо вони розбирають JSON у скриптах на Bash. На
+            macOS 26.5.2 <code>jq</code> уже є в системі. Якщо його немає, обробником може бути
+            будь-яка програма, що вміє читати стандартний потік: Python, Node, власний виконуваний
+            файл. Тип <code>command</code> нічого не знає про мову — він запускає те, що ти
+            вказав.
+          </p>
+
+          <h3>Правку файла з хуками треба підхоплювати перезапуском?</h3>
+          <p>
+            Зазвичай ні — Claude Code стежить за файлами налаштувань і підхоплює зміни сам.
+            Якщо через кілька секунд <code>/hooks</code> нового хука не показує, вартовий міг
+            пропустити зміну: перезапусти сесію.
+          </p>
+
+          <h3>Чи може хук дозволити те, що заборонено правилами дозволів?</h3>
+          <p>
+            Ні. Перехоплювачі вміють <strong>затягувати</strong> обмеження, але не послаблювати їх.
+            Рішення <code>deny</code> з хука блокує інструмент навіть у режимі
+            <code>bypassPermissions</code>; рішення <code>allow</code> не скасовує заборонних
+            правил із налаштувань. Це навмисна асиметрія: організація може закрити щось так, щоб
+            людина не відкрила це зміною свого режиму дозволів.
+          </p>
+
+          <h3>Як зробити сповіщення на робочому столі?</h3>
+          <p>
+            Полем <code>terminalSequence</code> у JSON-відповіді. Наївний шлях —
+            «надрукувати керуючу послідовність у <code>/dev/tty</code>» — не працює: на macOS і
+            Linux хуки виконуються у власній сесії без керуючого термінала, а на Windows
+            <code>/dev/tty</code> немає взагалі. Поле приймає обмежений набір послідовностей
+            (заголовки вікна й сповіщення різних терміналів плюс звуковий сигнал); усе поза
+            переліком ігнорується. Дві межі: Claude Code виводить послідовність
+            <strong>лише в інтерактивній сесії</strong> — у <code>claude -p</code> поле ігнорується;
+            і командний хук на <code>WorktreeCreate</code> не може повернути JSON узагалі, бо його
+            stdout читається як шлях до нової копії репозиторію.
+          </p>
+
+          <h3>Хуки працюють на Windows?</h3>
+          <p>
+            Так. У формі оболонки команда йде в Git Bash, а якщо його не встановлено — у
+            PowerShell; окремому обробнику можна задати <code>"shell": "powershell"</code> явно.
+            Дві специфічні пастки, обидві з документації: у прямій формі
+            (<code>args</code>) <code>command</code> має вказувати на справжній виконуваний файл, а
+            <code>.cmd</code> і <code>.bat</code>-обгортки з <code>node_modules/.bin</code>
+            запустити напряму не можна; і в PowerShell не можна писати
+            <code>$CLAUDE_PROJECT_DIR</code> без фігурних дужок — PowerShell вважає це порожньою
+            змінною. Пиши <code>${CLAUDE_PROJECT_DIR}</code> або <code>$env:CLAUDE_PROJECT_DIR</code>.
+          </p>
+          <p class="text-sm text-muted">
+            Ці факти взяті з документації дослівно: власного знімка з Windows у цьому курсі немає,
+            уся жива перевірка велась на macOS 26.5.2.
+          </p>
+
+          <h3>Чи можна щось сказати перевіряльнику дій в автоматичному режимі?</h3>
+          <p>
+            Так, і рівно одним способом — полем <code>classifierContext</code> у відповіді хука
+            <code>PostToolUse</code>. Класифікатор автоматичного режиму (модуль 7) не бачить
+            результатів роботи інструментів, тому це єдиний легальний канал розповісти йому щось
+            про виклик, який щойно відбувся («цей запит виконувався на тестовій базі, а не на
+            бойовій»). Поле потребує версії 2.1.236 або новішої, обмежене 2 000 символами на один
+            виклик, і класифікатор трактує його як <strong>неперевірений</strong> контекст: намір
+            користувача таким записом не встановлюється.
+          </p>
+
+          <h3>Хук — це те саме, що навичка чи субагент?</h3>
+          <p>
+            Ні, і різниця в тому, <strong>хто вирішує</strong>. Навичку (модуль 14) підвантажує
+            модель, коли вважає її доречною. Субагента (модуль 15) вона ж і породжує. Перехоплювач
+            запускає <strong>сама програма</strong> на фіксованій події, і думка моделі тут ні на
+            що не впливає. Тому хуки й придатні для політики, а навички — для знань.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- ============ 8 ============ -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
+          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+
+          <p>П'ять речей, які варто винести з цього модуля.</p>
+          <ol>
+            <li>
+              <strong>Хук — це код, а не налаштування.</strong> Він виконується з твоїми повними
+              правами, поза пісочницею Bash, і тому «скопіював з інтернету» тут означає те саме, що
+              «запустив з інтернету».
+            </li>
+            <li>
+              <strong>Три рівні: подія, фільтр, обробник.</strong> Подія каже коли,
+              <code>matcher</code> — за яких умов, обробник — що зробити. <code>matcher</code>
+              завжди рядок; зі спецсимволами він стає регулярним виразом і починає ловити зайве.
+            </li>
+            <li>
+              <strong>Блокує тільки <code>exit 2</code>.</strong> Код 1 — неблокуюча помилка: дія
+              проходить. <code>exit 0</code> без JSON означає «рішення немає», а не «дозволяю».
+            </li>
+            <li>
+              <strong>Перевіряй скрипт руками до того, як довіряти йому.</strong> Один
+              <code>echo</code> з прикладом JSON і <code>echo $?</code> ловлять більшість помилок
+              за півсекунди; <code>claude doctor</code> ловить помилки конфігурації;
+              <code>--debug-file</code> показує решту.
+            </li>
+            <li>
+              <strong>Число подій залежить від версії.</strong> 33 у документації на 2026-09-04,
+              31 у встановленій 2.1.236 — і те й те правда. Будь-яка стаття про хуки без версії
+              поруч не є фактом.
+            </li>
+          </ol>
+
+          <div class="callout">
+            <span class="callout-title">Куди далі</span>
+            <p>
+              Повна таблиця всіх подій — довідник
+              <a href="../claude-code-ref-hooks.html">«Усі події хуків»</a>: коли спрацьовує, за чим
+              фільтрує, що приходить на вхід, що можна віддати на виході.
+            </p>
+            <p>
+              Наступний модуль — <strong>17, «Коли все зламалось: діагностика»</strong>. Він
+              продовжує те, з чого починався цей: <code>claude doctor</code>,
+              <code>--safe-mode</code>, <code>--debug</code>, <code>--setting-sources</code> і
+              головна навичка курсу — розуміти, який саме конфіг переміг і чому жива команда каже
+              не те саме, що стаття в мережі.
+            </p>
+          </div>
+
+          <p class="text-sm text-muted">
+            Джерела цього модуля: офіційні сторінки
+            <a href="https://code.claude.com/docs/en/hooks" rel="noopener">«Hooks reference»</a> і
+            <a href="https://code.claude.com/docs/en/hooks-guide" rel="noopener">«Automate actions with hooks»</a>,
+            прочитані 2026-09-04; власні запуски на Claude Code 2.1.236, macOS 26.5.2.
+            Якщо у твоїй версії щось відрізняється — вір своїй команді, а не цій сторінці.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- ============ КВІЗ ============ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Перевір себе</h2>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Учень написав перехоплювач PreToolUse, який на небезпечній команді друкує пояснення в потік помилок і завершується кодом 1. Скрипт перевірений, шлях правильний, у лозі видно, що він запускається. Що насправді відбувається з небезпечною командою?",
+            "options": [
+              "Вона блокується, але повідомлення про це не показується в розмові",
+              "Вона блокується лише в автоматичному режимі дозволів",
+              "Вона виконується: код 1 — це неблокуюча помилка, дія проходить далі",
+              "Claude Code повністю припиняє обробку й завершує сесію"
+            ],
+            "answer": 2,
+            "explain": "Блокує тільки код 2. Код 1 — звичний Unix-код помилки, але тут він потрапляє в категорію «будь-який інший»: дія відбувається, а в розмові з'являється hook error із префіксом Failed with non-blocking status code. Варіант про блокування без повідомлення хибний, бо повідомлення при коді 2 якраз є — ним стає stderr скрипта. Режим дозволів на семантику кодів не впливає взагалі. Повне припинення обробки робить поле continue: false у JSON, а не код завершення."
+          },
+          {
+            "q": "На сторінці офіційної документації подій 33, а claude doctor на встановленій збірці 2.1.236 перелічує 31. Як це трактувати?",
+            "options": [
+              "Документація описує новішу версію: обидві відсутні події потребують 2.1.251, тому у встановленій збірці їх ще немає",
+              "Документація застаріла, подій насправді завжди 31",
+              "claude doctor перелічує лише ті події, для яких уже налаштовані хуки",
+              "Дві події приховані й вмикаються окремим прапорцем командного рядка"
+            ],
+            "answer": 0,
+            "explain": "Розбіжність рівно у PreModelSwitch і PostModelSwitch, і та сама документація каже, що обидві потребують v2.1.251 або новішої. Це розрив версій, а не чиясь помилка, тому варіант про застарілу документацію хибний. Перелік у doctor — це перелік подій, які збірка знає, а не тих, що налаштовані: у теці з прикладу був налаштований рівно один хук. Прапорця, який «вмикає» події, не існує; перевірити наявність події у своїй збірці можна командою strings з контрольною вигаданою назвою."
+          },
+          {
+            "q": "Хук має логувати всі виклики інструментів MCP-сервера memory. Автор написав \"matcher\": \"mcp__memory\" — і хук не спрацьовує жодного разу. Чому?",
+            "options": [
+              "Інструменти MCP-серверів не породжують подій хуків узагалі",
+              "Для MCP потрібен обробник типу mcp_tool, а не command",
+              "matcher треба записати списком усіх інструментів сервера",
+              "У цьому рядку немає спецсимволів, тому він читається як точний збіг, а справжні назви інструментів мають вигляд mcp__memory__назва"
+            ],
+            "answer": 3,
+            "explain": "Правило обчислення matcher залежить від символів: лише літери, цифри, підкреслення, дефіси, пробіли, коми й вертикальна риска дають точний збіг, а будь-який інший символ перетворює рядок на регулярний вираз. Тому потрібне mcp__memory__.* — крапка й зірочка запускають режим регулярного виразу. Інструменти MCP події породжують, як і будь-які інші. Тип mcp_tool — це те, ЩО виконується у відповідь на подію, а не спосіб фільтрувати. А списком matcher записати не можна взагалі: це помилка схеми, яку claude doctor показує окремо."
+          },
+          {
+            "q": "Хук на подію Stop із полем \"if\": \"Bash(git *)\" не виконується взагалі, і жодної помилки ніде немає. Що не так?",
+            "options": [
+              "Поле if не дозволяє зірочку в шаблоні",
+              "if обчислюється лише на подіях інструментів, тому на Stop хук із ним не виконається жодного разу",
+              "Подія Stop не підтримує обробники типу command",
+              "Забутий matcher: без нього подія не спрацьовує"
+            ],
+            "answer": 1,
+            "explain": "Список подій, де if має сенс, закритий: PreToolUse, PostToolUse, PostToolUseFailure, PermissionRequest, PermissionDenied. На решті подій хук із цим полем мовчки не виконується — саме мовчазність робить пастку неприємною. Зірочка в шаблоні дозволу навпаки штатна. Обробники command на Stop працюють. А відсутній matcher означає «збігається з усім», тобто подія спрацьовувала б частіше, а не рідше."
+          },
+          {
+            "q": "Організація хоче закрити небезпечну дію так, щоб її не можна було відкрити зміною свого режиму дозволів. Що з переліченого правда про перехоплювачі?",
+            "options": [
+              "Хук із рішенням allow скасовує заборонні правила з файлів налаштувань",
+              "У режимі bypassPermissions хуки не виконуються взагалі",
+              "Хуки обчислюються після перевірки режиму дозволів, тому в bypassPermissions вони не встигають спрацювати",
+              "PreToolUse спрацьовує раніше за будь-яку перевірку режиму, і його рішення deny блокує інструмент навіть у bypassPermissions"
+            ],
+            "answer": 3,
+            "explain": "Асиметрія навмисна: хуки вміють затягувати обмеження, але не послаблювати їх. Тому рішення deny працює в усіх режимах, включно з bypassPermissions і запуском із --dangerously-skip-permissions, а рішення allow не скасовує заборонних правил і не прибирає запиту для MCP-інструментів, що вимагають участі людини. Два варіанти про те, що хуки в bypassPermissions не виконуються або не встигають, суперечать порядку: PreToolUse стоїть перед перевіркою режиму, а не після неї."
+          },
+          {
+            "q": "Ти збираєшся прогнати claude -p над репозиторієм, який завантажив з інтернету. Що станеться з хуками, закоміченими в його файлі .claude/settings.json?",
+            "options": [
+              "Нічого: хуки з проєктних файлів виконуються лише після того, як ти приймеш діалог довіри до теки",
+              "Вони виконаються з твоїми правами: у сесії -p діалогу довіри немає, і тека вважається довіреною",
+              "Вони виконаються, але всередині пісочниці, тому нашкодити не зможуть",
+              "Claude Code відмовиться стартувати, доки ти не переглянеш цей файл вручну"
+            ],
+            "answer": 1,
+            "explain": "Довіра до теки працює по-різному залежно від типу сесії: в інтерактивній Claude Code притримує хуки з усіх файлів налаштувань до прийняття діалогу, а в -p чи SDK-сесії діалогу немає й тека вважається довіреною. Тому варіант про обов'язковий діалог правильний лише для інтерактивного запуску. Пісочниця тут не рятує: вона обмежує команди самого агента, а хуки виконуються поза нею — саме тому документація вимагає контейнер або віртуальну машину для автономних запусків. Відмови стартувати немає; захиститись треба самому — переглядом теки .claude, прапорцем --bare або --settings з disableAllHooks."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
