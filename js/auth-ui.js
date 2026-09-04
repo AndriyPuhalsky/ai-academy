@@ -469,6 +469,29 @@
 
   var stack = [];   // [{ el, opener, onClose, dismissible }]
 
+  /* ---------- Задача 004 п.4 · блокування прокрутки фону ----------
+     Лічильник живе в атрибуті <html>, а не в замиканні: модалку
+     «Написати нам» відкриває інший файл (js/contact.js), і два
+     незалежні лічильники знімали б блокування один одному.
+     Стилі — html.aia-scroll-lock у css/custom.css. */
+  function lockScroll() {
+    var root = document.documentElement;
+    var n = (parseInt(root.getAttribute("data-aia-lock"), 10) || 0) + 1;
+    root.setAttribute("data-aia-lock", String(n));
+    if (n > 1) return;
+    var sbw = window.innerWidth - root.clientWidth;
+    root.style.setProperty("--aia-sbw", (sbw > 0 ? sbw : 0) + "px");
+    root.classList.add("aia-scroll-lock");
+  }
+  function unlockScroll() {
+    var root = document.documentElement;
+    var n = (parseInt(root.getAttribute("data-aia-lock"), 10) || 0) - 1;
+    if (n > 0) { root.setAttribute("data-aia-lock", String(n)); return; }
+    root.removeAttribute("data-aia-lock");
+    root.classList.remove("aia-scroll-lock");
+    root.style.removeProperty("--aia-sbw");
+  }
+
   /* FIX-12 · список фокусовних має збігатися з тим, куди браузер справді
      пускає Tab: без inert-піддерев і без visibility:hidden. Інакше під час
      «Відкриваємо Google…» Tab виносив фокус за межі картки. */
@@ -532,6 +555,7 @@
       dismissible: opts.dismissible !== false   // дотик перед видачею: підложка не закриває
     };
     stack.push(entry);
+    lockScroll();
 
     // Фокус на КОНТЕЙНЕР картки, не в email і не на кнопку Google:
     // скрін-рідер читає назву діалогу, клавіатура не відправляє
@@ -556,6 +580,9 @@
     function finish() {
       if (done) return;
       done = true;
+      /* 004 п.4 · знімаємо блокування тільки коли підложки вже немає на
+         екрані, інакше фон почав би їхати під видимою модалкою. */
+      unlockScroll();
       if (el.parentNode) el.parentNode.removeChild(el);
       if (stack.length) {
         var below = stack[stack.length - 1].el;

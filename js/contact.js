@@ -108,6 +108,28 @@ function hasTurnstile() {
 
 /* ---------- Модальне вікно ---------- */
 
+/* Задача 004 п.4 · блокування прокрутки фону, поки модалка відкрита.
+   Лічильник — у data-aia-lock на <html>, спільний із js/auth-ui.js:
+   дві незалежні модалки не мають знімати блокування одна одній.
+   Стилі — html.aia-scroll-lock у css/custom.css. */
+function lockScroll() {
+  const root = document.documentElement;
+  const n = (parseInt(root.getAttribute("data-aia-lock"), 10) || 0) + 1;
+  root.setAttribute("data-aia-lock", String(n));
+  if (n > 1) return;
+  const sbw = window.innerWidth - root.clientWidth;
+  root.style.setProperty("--aia-sbw", (sbw > 0 ? sbw : 0) + "px");
+  root.classList.add("aia-scroll-lock");
+}
+function unlockScroll() {
+  const root = document.documentElement;
+  const n = (parseInt(root.getAttribute("data-aia-lock"), 10) || 0) - 1;
+  if (n > 0) { root.setAttribute("data-aia-lock", String(n)); return; }
+  root.removeAttribute("data-aia-lock");
+  root.classList.remove("aia-scroll-lock");
+  root.style.removeProperty("--aia-sbw");
+}
+
 function buildModal() {
   if (modalEl) return;
   modalEl = document.createElement("div");
@@ -173,6 +195,7 @@ function resetForm() {
 function openModal() {
   buildModal();
   resetForm();
+  if (modalEl.classList.contains("hidden")) lockScroll();
   modalEl.classList.remove("hidden");
   modalEl.classList.add("flex");
   renderTurnstile();
@@ -181,8 +204,12 @@ function openModal() {
 
 function closeModal() {
   if (!modalEl) return;
+  // Захист від подвійного зняття: Escape і клік по підложці можуть
+  // прилетіти на вже закриту модалку.
+  if (modalEl.classList.contains("hidden")) return;
   modalEl.classList.add("hidden");
   modalEl.classList.remove("flex");
+  unlockScroll();
 }
 
 function showError(msg) {
