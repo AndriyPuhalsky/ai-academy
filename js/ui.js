@@ -251,3 +251,70 @@
   document.addEventListener("aia:config-ready", bindReveals);
   document.addEventListener("aia:config-failed", bindReveals);
 })();
+
+
+/* ============================================================
+   ПОВЕДІНКА КОМПОНЕНТА «ТЕРМІНАЛ»
+   ------------------------------------------------------------
+   Тут НЕМАЄ анімації: рух лендінга живе в частині A, а на сторінках
+   уроків руху в терміналі немає взагалі.
+
+   Дві поведінки:
+     1. .term__copy — копіює ТІЛЬКИ введений текст (без префіксів
+        `$` / `>` і без виводу). Копіювати сесію разом із кроками
+        інструментів безглуздо, тому кнопка є лише в .term--cmd.
+     2. .term__more — розгортає стан 8 «довгий вивід». Без анімації
+        свідомо: анімувати height у блоці на 243 рядки = layout
+        thrashing без жодної користі.
+
+   ⚠ Слухач делегований на document, тому працює і для блоків, які
+   з'являться пізніше (рядки термінала народжуються після fetch конфіга).
+
+   Переїхало сюди з js/claude-code-motion.js 2026-09-04: той файл тягне
+   GSAP і потрібен лише лендінгу, а ця поведінка потрібна ще й усім
+   23 сторінкам модулів. ui.js підключений і там, і там.
+   Вимога до розмітки: #ariaLive на сторінці (є і на лендінгу, і в уроках).
+   ============================================================ */
+(function () {
+  "use strict";
+
+  function announce(msg) {
+    var live = document.getElementById("ariaLive");
+    if (!live) return;
+    live.textContent = "";
+    window.setTimeout(function () { live.textContent = msg; }, 30);
+  }
+
+  document.addEventListener("click", function (e) {
+    /* ---------- копіювання ---------- */
+    var copy = e.target.closest ? e.target.closest(".term__copy") : null;
+    if (copy) {
+      var block = copy.closest(".term");
+      var ins = block ? block.querySelectorAll(".term__body .term__in") : [];
+      var text = Array.prototype.map.call(ins, function (el) { return el.textContent; }).join("\n");
+      var ok = copy.getAttribute("data-ok") || "Скопійовано";
+      var fail = copy.getAttribute("data-fail") || "Не вдалося скопіювати";
+      var label = copy.textContent;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          copy.textContent = ok;
+          announce(ok);
+          window.setTimeout(function () { copy.textContent = label; }, 1600);
+        }).catch(function () { announce(fail); });
+      } else {
+        announce(fail);
+      }
+      return;
+    }
+
+    /* ---------- «показати все» ---------- */
+    var more = e.target.closest ? e.target.closest(".term__more") : null;
+    if (more) {
+      var term = more.closest(".term");
+      var open = term.classList.toggle("is-open");
+      more.setAttribute("aria-expanded", open ? "true" : "false");
+      var l = more.getAttribute(open ? "data-label-open" : "data-label-closed");
+      if (l) more.textContent = l;
+    }
+  });
+})();

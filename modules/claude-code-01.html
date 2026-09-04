@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 1 · Термінал з нуля — AI Термінал</title>
+  <meta name="description"
+    content="Що таке термінал і чому він не страшний: як відкрити його на macOS, Windows і Linux, що таке поточна папка, шлях і PATH, десять команд на весь курс і як зрозуміти, що команда зламалась." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="c01" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 01</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 1 · Старт з нуля</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Термінал з нуля</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Початковий · 8 блоків · ≈ 40 хв читання</p>
+        <p class="mt-6 text-lg">
+          Claude Code — програма без вікна з кнопками. Вона працює в терміналі, і поки термінал
+          лишається чорним прямокутником, у який страшно тицяти, весь курс стоїть на місці.
+          Тому починаємо не з Claude Code, а з самого вікна: що це, як його відкрити,
+          що в ньому набирати і як зрозуміти, що пішло не так.
+        </p>
+        <p>
+          Anthropic — компанія, яка робить Claude, — написала під цю саму задачу окрему сторінку
+          документації для людей, що термінал ніколи не відкривали. Це не випадковість: без
+          цього кроку решта не працює. Тут та сама тема, тільки ширше й українською.
+        </p>
+
+        <div class="callout">
+          <span class="callout-title">Що в цьому модулі є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> встановлення Claude Code — це модуль 3. Тут ти не встановлюєш
+            нічого й нічого не ламаєш.
+          </p>
+          <p>
+            <strong>Є:</strong> сам термінал — вікно, поточна папка, шлях, <code>PATH</code>,
+            десять команд, яких вистачить на всі 22 модулі, і вміння прочитати повідомлення
+            про помилку замість того, щоб його лякатись.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
+          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+
+          <p>
+            Майже всі програми, якими ти користуєшся щодня, влаштовані однаково: є вікно, у ньому
+            кнопки й меню, ти натискаєш — щось відбувається. Термінал влаштований інакше. У ньому
+            немає кнопок узагалі.
+          </p>
+
+          <p>
+            <strong>Термінал</strong> (terminal; ще кажуть «командний рядок», англійською
+            <em>command line</em>) — це вікно, у якому ти спілкуєшся з комп'ютером текстом.
+            Ти набираєш рядок, натискаєш <code>Enter</code>, комп'ютер виконує написане й друкує
+            відповідь текстом же. Далі знову чекає на тебе. І так по колу.
+          </p>
+
+          <p>
+            У цьому уроці кілька разів трапиться фраза «виконай команду». Вона означає рівно одне:
+            <strong>набрати текст у вікні термінала й натиснути <code>Enter</code></strong>. Нічого,
+            крім цих двох дій, за нею не ховається.
+          </p>
+
+          <h3>Чому Claude Code живе саме там</h3>
+
+          <p>
+            Claude Code — це помічник, який читає файли на твоєму комп'ютері, пропонує зміни й
+            запускає команди. Щоб робити це, йому потрібен доступ до папки, у якій ти працюєш, і
+            спосіб показувати тобі кожен свій крок текстом. Термінал дає і те, і те.
+          </p>
+
+          <p>
+            Документація Claude Code окремо зазначає: <strong>термінал не єдиний спосіб</strong> —
+            є ще застосунок для комп'ютера, розширення для редакторів коду й вебверсія. Курс усе
+            одно про термінал, бо в ньому видно всі механізми, які в застосунку заховані. Про
+            поверхні докладно — у модулі 2; коротка відповідь «чи можна взагалі без термінала» —
+            у блоці 7.
+          </p>
+
+          <h3>Три речі, які треба знати, і все</h3>
+
+          <p>
+            Термінал здається складним, бо в нього немає підказок на екрані. Але щоб пройти цей
+            курс, тобі потрібні відповіді лише на три питання, і на кожне є одна коротка команда:
+          </p>
+
+          <ul>
+            <li><strong>Де я зараз?</strong> — у якій папці термінал стоїть цієї миті.</li>
+            <li><strong>Що тут лежить?</strong> — які файли й папки поруч.</li>
+            <li><strong>Як перейти в іншу папку?</strong></li>
+          </ul>
+
+          <p>
+            Решта — деталі, які додаються потроху. Далі в уроці ці три питання і їхні команди
+            повторяться кілька разів навмисно.
+          </p>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
+          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Коли ти відкриваєш термінал, у вікні вже щось написано — рядок, який закінчується
+            символом і миготливою рискою. Цей рядок називають <strong>запрошенням</strong>
+            (англійською <em>prompt</em>). Його друкує сам комп'ютер, і означає він «я готовий,
+            пиши».
+          </p>
+
+          <p>
+            Вигляд запрошення різний на різних системах, і це перше місце, де новачки плутаються.
+            Типовий вигляд на macOS:
+          </p>
+
+          <p><code>anna@MacBook-Air ~ %</code></p>
+
+          <p>Читається так:</p>
+
+          <ul>
+            <li><code>anna</code> — ім'я користувача, під яким ти зайшов у комп'ютер;</li>
+            <li><code>MacBook-Air</code> — ім'я самого комп'ютера;</li>
+            <li><code>~</code> — папка, у якій термінал стоїть зараз (про сам символ
+              <code>~</code> — у блоці 3);</li>
+            <li><code>%</code> — межа: усе, що після неї, набираєш ти.</li>
+          </ul>
+
+          <p>
+            На Linux і в багатьох інструкціях в інтернеті замість <code>%</code> стоїть
+            <code>$</code>. На Windows у PowerShell запрошення виглядає зовсім інакше —
+            <code>PS C:\Users\Anna&gt;</code>. Символ різний, зміст той самий.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Головне про запрошення</span>
+            <p>
+              <strong>Запрошення не набирають.</strong> Якщо в інструкції написано
+              <code>$ pwd</code>, у термінал іде тільки <code>pwd</code>. Знак
+              <code>$</code> чи <code>%</code> — це те, що комп'ютер уже надрукував сам.
+              Скопійований разом із командою, він дає помилку — і саме цю помилку ти побачиш
+              у блоці 6.
+            </p>
+            <p>
+              У блоках термінала на цьому сайті кнопка «Копіювати» бере <em>лише</em> набраний
+              текст, без запрошення й без відповіді. Її можна тиснути без побоювань.
+            </p>
+          </div>
+
+          <h3>Перші три команди — наживо</h3>
+
+          <p>
+            Нижче справжній вивід справжнього термінала. Спершу <code>pwd</code> питає «де я»,
+            потім <code>cd</code> переходить у папку, <code>ls</code> показує, що в ній лежить.
+            Читай зверху вниз: рядки із <code>%</code> — те, що набрала людина; рядки без
+            <code>%</code> — те, що відповів комп'ютер.
+          </p>
+
+          <figure class="term term--cmd" id="t1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t1t">macOS 26.5.2 · zsh 5.9 · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t1t"><span class="term__line"><span class="term__meta">anna@MacBook-Air ~ %</span> <span class="term__in">pwd</span></span>
+<span class="term__line">/Users/anna</span>
+<span class="term__line"><span class="term__meta">anna@MacBook-Air ~ %</span> <span class="term__in">cd my-site</span></span>
+<span class="term__line"><span class="term__meta">anna@MacBook-Air my-site %</span> <span class="term__in">pwd</span></span>
+<span class="term__line">/Users/anna/my-site</span>
+<span class="term__line"><span class="term__meta">anna@MacBook-Air my-site %</span> <span class="term__in">ls</span></span>
+<span class="term__line">images  index.html      README.md       style.css</span>
+<span class="term__line"><span class="term__meta">anna@MacBook-Air my-site %</span> <span class="term__in">cd images</span></span>
+<span class="term__line"><span class="term__meta">anna@MacBook-Air images %</span> <span class="term__in">pwd</span></span>
+<span class="term__line">/Users/anna/my-site/images</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято на живій машині: macOS 26.5.2, оболонка zsh 5.9, 4 вересня 2026 року.
+            Замінене рівно одне — ім'я користувача й комп'ютера: у справжньому виводі там ім'я
+            автора курсу, тут скрізь <code>anna</code> і <code>MacBook-Air</code>, щоб приклад
+            читався однаково в усіх. Решта — дослівно, включно з відступами.
+          </p>
+
+          <p>
+            Зверни увагу на дві речі. Перша: після <code>cd my-site</code> змінилось саме
+            <strong>запрошення</strong> — там, де було <code>~</code>, стало <code>my-site</code>.
+            Термінал постійно показує, де ти зараз, ти лише навчись це читати. Друга:
+            <code>cd</code> нічого не надрукував у відповідь. Це не помилка — про мовчання
+            буде окремо в блоці 5.
+          </p>
+
+          <h3>Що набирати, чого не набирати</h3>
+
+          <table>
+            <thead>
+              <tr>
+                <th>У блоці написано</th>
+                <th>Ти набираєш</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>anna@MacBook-Air ~ % pwd</code></td>
+                <td><code>pwd</code></td>
+              </tr>
+              <tr>
+                <td><code>$ cd my-site</code></td>
+                <td><code>cd my-site</code></td>
+              </tr>
+              <tr>
+                <td><code>/Users/anna</code></td>
+                <td>нічого — це відповідь комп'ютера</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
+          <h2><span class="lesson-no">3</span>Як це працює</h2>
+
+          <p>
+            У терміналі два поняття роблять 90 % роботи: <strong>де ти стоїш</strong> і
+            <strong>де система шукає програми</strong>. Розберемо обидва.
+          </p>
+
+          <h3>Папки — це дерево, і ти завжди в одній із гілок</h3>
+
+          <p>
+            Файли на комп'ютері складені в папки, папки — в інші папки. Виходить дерево, у якого
+            є один корінь. На macOS і Linux корінь позначається однією скісною рискою:
+            <code>/</code>. На Windows коренів кілька, по одному на диск: <code>C:\</code>,
+            <code>D:\</code> тощо.
+          </p>
+
+          <p>
+            <strong>Шлях</strong> (path) — це адреса файла чи папки в цьому дереві, записана
+            через розділювач. На macOS і Linux розділювач — <code>/</code>, на Windows —
+            зворотна риска <code>\</code>. Приклад шляху на macOS:
+            <code>/Users/anna/my-site/README.md</code> означає «від кореня → папка
+            <code>Users</code> → папка <code>anna</code> → папка <code>my-site</code> → файл
+            <code>README.md</code>».
+          </p>
+
+          <p>
+            <strong>Домашня папка</strong> (home directory) — папка, яка належить особисто тобі:
+            там твій робочий стіл, завантаження, документи. На macOS її шлях —
+            <code>/Users/твоє-ім'я</code>, і в ній лежать знайомі <code>Desktop</code>,
+            <code>Documents</code>, <code>Downloads</code>, <code>Pictures</code>. Записувати
+            цей шлях повністю щоразу незручно, тому для нього є скорочення — <strong>символ
+            <code>~</code></strong> (тильда). <code>~/my-site</code> і
+            <code>/Users/anna/my-site</code> — те саме місце.
+          </p>
+
+          <p>
+            <strong>Поточна папка</strong> (current directory, ще кажуть «робоча папка») — та,
+            у якій термінал стоїть цієї секунди. Це найважливіше поняття всього блоку: майже
+            кожна команда працює <em>відносно</em> неї. Набрати <code>ls</code> у двох різних
+            папках — дві різні відповіді.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  R["/ — корінь диска"] --> U["/Users — папки всіх користувачів"]
+  U --> H["/Users/anna — домашня папка, скорочено ~"]
+  H --> DK["Desktop"]
+  H --> DL["Downloads"]
+  H --> MS["my-site ← поточна папка"]
+  MS --> IM["images"]
+  MS --> RD["README.md"]
+  MS --> IX["index.html"]
+  style MS fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Поточна папка — це позначка «ти тут» на цьому дереві. <code>cd</code> її пересуває
+            </p>
+          </div>
+
+          <p>
+            Звідси два способи назвати те саме місце:
+          </p>
+
+          <ul>
+            <li><strong>Абсолютний шлях</strong> починається від кореня й не залежить від того,
+              де ти стоїш: <code>/Users/anna/my-site/images</code>. Працює завжди.</li>
+            <li><strong>Відносний шлях</strong> відлічується від поточної папки. Стоячи в
+              <code>~/my-site</code>, достатньо написати <code>images</code>. Стоячи деінде —
+              та сама команда не спрацює.</li>
+          </ul>
+
+          <p>
+            У відносних шляхах є два спеціальні імені, які означають папки, а не файли:
+            <code>.</code> (одна крапка) — «поточна папка», <code>..</code> (дві крапки) —
+            «папка на рівень вище». Тому <code>cd ..</code> піднімає тебе вгору по дереву, а
+            <code>open .</code> на macOS відкриває поточну папку у Finder.
+          </p>
+
+          <h3>PATH: як система знаходить програму за іменем</h3>
+
+          <p>
+            Коли ти набираєш <code>claude</code> і тиснеш <code>Enter</code>, комп'ютер має
+            зрозуміти, <em>яку саме програму</em> ти маєш на увазі. Файла з таким іменем у
+            поточній папці немає — і все одно вона запускається. Механізм такий.
+          </p>
+
+          <p>
+            Програму, яка приймає твої команди й вирішує, що з ними робити, називають
+            <strong>оболонкою</strong> (shell). На сучасних macOS оболонка за замовчуванням —
+            <strong>zsh</strong>, на більшості Linux — <strong>bash</strong>, на Windows —
+            <strong>PowerShell</strong>. Оболонка діє за таким порядком:
+          </p>
+
+          <ol>
+            <li>Перевіряє, чи це не її власна вбудована команда. Наприклад,
+              <code>cd</code> — вбудована: окремої програми <code>cd</code> на диску не
+              існує, оболонка виконує її сама.</li>
+            <li>Якщо ні — бере список папок, у яких належить шукати програми. Цей список
+              зберігається в <strong><code>PATH</code></strong> (читається «пас» або «пат»)
+              і є звичайним рядком із адресами папок, склеєних двокрапками.</li>
+            <li>Проходить по цих папках <strong>зліва направо</strong> і запускає
+              <strong>перший</strong> знайдений файл із потрібним іменем.</li>
+            <li>Якщо список скінчився, а файла немає — друкує
+              <code>command not found</code>.</li>
+          </ol>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  A["Ти набрав claude і натиснув Enter"] --> B{"Це вбудована команда оболонки?"}
+  B -->|"так, як cd"| C["Оболонка виконує сама"]
+  B -->|"ні"| D["Іде по папках зі списку PATH, зліва направо"]
+  D --> E{"Знайшла файл з іменем claude?"}
+  E -->|"так"| F["Запускає перший знайдений і зупиняє пошук"]
+  E -->|"ні, папки скінчились"| G["Друкує command not found"]
+  style D fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style G stroke:#D97757
+            </pre>
+            <p class="diagram-caption">
+              Шлях однієї команди від <code>Enter</code> до запуску — або до помилки
+            </p>
+          </div>
+
+          <p>
+            Подивитись на це можна двома командами. <code>cat /etc/paths</code> друкує базовий
+            перелік папок, з якого macOS складає <code>PATH</code>. <code>which</code> відповідає
+            на питання «а де саме лежить ця програма» — тобто показує результат того самого пошуку.
+          </p>
+
+          <figure class="term term--cmd" id="t2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t2t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t2t"><span class="term__line"><span class="term__meta">%</span> <span class="term__in">cat /etc/paths</span></span>
+<span class="term__line">/usr/local/bin</span>
+<span class="term__line">/System/Cryptexes/App/usr/bin</span>
+<span class="term__line">/usr/bin</span>
+<span class="term__line">/bin</span>
+<span class="term__line">/usr/sbin</span>
+<span class="term__line">/sbin</span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">which claude</span></span>
+<span class="term__line">/opt/homebrew/bin/claude</span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude --version</span></span>
+<span class="term__line"><span class="term__ok">2.1.236 (Claude Code)</span></span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято на macOS 26.5.2, Claude Code версії 2.1.236, 4 вересня 2026 року. Запрошення
+            скорочене до одного символу <code>%</code>, щоб рядки помістились у ширину блоку.
+            На твоєму комп'ютері <code>which claude</code> покаже інший шлях — це нормально:
+            програму можна встановити в різні папки, і саме тому список <code>PATH</code> існує.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Навіщо це знати вже зараз</span>
+            <p>
+              У модулі 3 ти встановиш Claude Code, і найчастіша проблема на цьому кроці — рівно
+              одна: програма встановилась, але оболонка її не бачить. Документація Claude Code
+              описує це прямим текстом: якщо після встановлення з'являється
+              <code>command not found: claude</code>, це означає, що «папка, у яку інсталятор
+              поклав <code>claude</code>, не входить у <code>PATH</code>». Тепер ця фраза для
+              тебе не набір слів.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
+          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+
+          <p>
+            Далі — дії на твоєму комп'ютері. Нічого з переліченого не змінює систему й не
+            встановлює програм: ти створиш одну папку й подивишся на неї.
+          </p>
+
+          <h3>Крок 1. Відкрити термінал</h3>
+
+          <p>
+            Спосіб залежить від системи. Три варіанти нижче взяті з офіційної інструкції
+            Claude Code для тих, хто термінал не відкривав.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Система</th>
+                <th>Як відкрити</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>macOS</td>
+                <td>Натисни <code>Cmd</code> + <code>Пробіл</code> — відкриється пошук Spotlight.
+                  Набери <code>Terminal</code> і натисни <code>Enter</code>.</td>
+              </tr>
+              <tr>
+                <td>Linux</td>
+                <td>Натисни <code>Ctrl</code> + <code>Alt</code> + <code>T</code>. Якщо не спрацювало —
+                  знайди «Terminal» у меню програм.</td>
+              </tr>
+              <tr>
+                <td>Windows</td>
+                <td>Натисни <code>Win</code> + <code>X</code> і вибери в меню
+                  <strong>Windows PowerShell</strong> (або <strong>Terminal</strong>).</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            З'явиться вікно з миготливою рискою. Це і є термінал — місце, куди ти набираєш команди.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Windows: PowerShell чи CMD — це різні речі</span>
+            <p>
+              У Windows два схожих на вигляд вікна: <strong>PowerShell</strong> і
+              <strong>CMD</strong>. Команди в них різні. Документація Claude Code дає ознаку,
+              за якою їх відрізнити на око:
+            </p>
+            <ul>
+              <li><strong>PowerShell</strong> показує на початку рядка
+                <code>PS C:\Users\YourName&gt;</code>;</li>
+              <li><strong>CMD</strong> показує <code>C:\Users\YourName&gt;</code> — той самий
+                рядок, але <strong>без <code>PS</code></strong>.</li>
+            </ul>
+            <p>
+              Курс і всі інструкції Claude Code розраховані на PowerShell. Побачив рядок без
+              <code>PS</code> — закрий це вікно й відкрий PowerShell.
+            </p>
+          </div>
+
+          <h3>Крок 2. Дізнатись, де ти опинився</h3>
+
+          <p>
+            Набери <code>pwd</code> і натисни <code>Enter</code>. Термінал надрукує шлях поточної
+            папки — щойно відкрите вікно майже завжди стартує в домашній папці, тобто ти побачиш
+            щось на кшталт <code>/Users/твоє-ім'я</code> (macOS) або
+            <code>C:\Users\ТвоєІм'я</code> (Windows).
+          </p>
+
+          <h3>Крок 3. Подивитись, що навколо</h3>
+
+          <p>
+            Набери <code>ls</code> і <code>Enter</code>. Побачиш перелік файлів і папок — ті самі
+            <code>Desktop</code>, <code>Documents</code>, <code>Downloads</code>, які ти звик
+            бачити у файловому менеджері. Це та сама домашня папка, вигляд інший.
+          </p>
+
+          <p>
+            На Windows у PowerShell працює команда <code>dir</code>; <code>ls</code> там теж
+            працює, але це <strong>псевдонім лише для Windows</strong> — на macOS і Linux у
+            PowerShell його немає. Це задокументовано Microsoft окремим рядком, і це рідкісний
+            випадок, коли одне й те саме слово поводиться по-різному на різних системах.
+          </p>
+
+          <h3>Крок 4. Створити папку й зайти в неї</h3>
+
+          <p>Три команди підряд, кожна з <code>Enter</code> у кінці:</p>
+
+          <ol>
+            <li><code>mkdir my-site</code> — створює папку з іменем <code>my-site</code>
+              всередині поточної. У відповідь термінал промовчить.</li>
+            <li><code>cd my-site</code> — переходить у неї. Запрошення зміниться: замість
+              <code>~</code> з'явиться <code>my-site</code>.</li>
+            <li><code>pwd</code> — надрукує повний шлях, і ти побачиш, що справді там.</li>
+          </ol>
+
+          <p>
+            Щоб повернутись назад, набери <code>cd ..</code> — на рівень вище. А
+            <code>cd</code> без нічого поверне тебе в домашню папку з будь-якого місця.
+          </p>
+
+          <h3>Десять команд, яких вистачить на весь курс</h3>
+
+          <p>
+            Це не список для заучування. Це картка, до якої повертаються. У курсі з 22 модулів
+            ти майже не вийдеш за її межі — усе решта робитиме Claude Code.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Команда</th>
+                <th>Що робить</th>
+                <th>Коли знадобиться</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>pwd</code></td>
+                <td>друкує шлях поточної папки</td>
+                <td>щоразу, коли не впевнений, де ти</td>
+              </tr>
+              <tr>
+                <td><code>ls</code></td>
+                <td>перелічує файли й папки поруч</td>
+                <td>перевірити, що файл існує</td>
+              </tr>
+              <tr>
+                <td><code>ls -a</code></td>
+                <td>те саме, разом із прихованими</td>
+                <td>побачити <code>.claude</code> — папку налаштувань із модуля 13</td>
+              </tr>
+              <tr>
+                <td><code>cd&nbsp;&lt;папка&gt;</code></td>
+                <td>перейти в папку</td>
+                <td>зайти в проєкт перед запуском Claude Code</td>
+              </tr>
+              <tr>
+                <td><code>cd ..</code></td>
+                <td>вийти на рівень вище</td>
+                <td>зайшов не туди</td>
+              </tr>
+              <tr>
+                <td><code>mkdir&nbsp;&lt;ім'я&gt;</code></td>
+                <td>створити папку</td>
+                <td>завести місце під новий проєкт</td>
+              </tr>
+              <tr>
+                <td><code>cat&nbsp;&lt;файл&gt;</code></td>
+                <td>надрукувати вміст файла у вікно</td>
+                <td>швидко зазирнути у файл, не відкриваючи редактор</td>
+              </tr>
+              <tr>
+                <td><code>which&nbsp;&lt;програма&gt;</code></td>
+                <td>показує, де лежить програма</td>
+                <td>перевірити, чи система бачить <code>claude</code></td>
+              </tr>
+              <tr>
+                <td><code>echo $PATH</code></td>
+                <td>друкує список папок, у яких шукаються програми</td>
+                <td>коли <code>command not found</code>, а програма встановлена</td>
+              </tr>
+              <tr>
+                <td><code>clear</code></td>
+                <td>очищає вікно</td>
+                <td>коли на екрані вже нічого не розібрати</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            До них — три поєднання клавіш, які працюють у терміналі й усередині Claude Code:
+          </p>
+
+          <ul>
+            <li><code>↑</code> і <code>↓</code> — гортають попередні команди. Набирати те саме
+              вдруге не треба.</li>
+            <li><code>Tab</code> — дописує почате ім'я файла чи папки. Набери <code>cd my-</code>,
+              натисни <code>Tab</code> — оболонка допише решту сама, якщо варіант однозначний.
+              Це найшвидший спосіб не робити друкарських помилок у шляхах.</li>
+            <li><code>Ctrl</code> + <code>C</code> — перериває те, що зараз виконується. Якщо
+              команда «зависла» або друкує нескінченний потік тексту, це кнопка «стоп».</li>
+          </ul>
+
+          <div class="callout">
+            <span class="callout-title">Три клавіші окремо — для Claude Code</span>
+            <p>
+              Документація Claude Code називає їх прямо, і вони стануть у пригоді з модуля 4:
+              мишкою в терміналі клікати не можна, переміщення — стрілками;
+              <code>Esc</code> перериває Claude, якщо він щось робить; вийти з Claude Code можна
+              командою <code>exit</code> або двома натисканнями <code>Ctrl</code> + <code>D</code>
+              на порожньому рядку.
+            </p>
+          </div>
+
+          <h3>Windows: те саме іншими словами</h3>
+
+          <p>
+            PowerShell розуміє більшість цих імен, але не всі й не всюди. Нижче — те, що прямо
+            задокументовано; решту команд для Windows шукай у документації, а не вгадуй.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Треба</th>
+                <th>PowerShell</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>де я</td>
+                <td><code>pwd</code> — псевдонім <code>Get-Location</code>, працює на всіх
+                  системах</td>
+              </tr>
+              <tr>
+                <td>що тут лежить</td>
+                <td><code>dir</code> — на всіх системах; <code>ls</code> — теж, але
+                  <strong>лише на Windows</strong></td>
+              </tr>
+              <tr>
+                <td>перейти в папку</td>
+                <td><code>cd</code> — псевдонім <code>Set-Location</code>. Без аргументу
+                  переходить у домашню папку</td>
+              </tr>
+              <tr>
+                <td>де лежить програма</td>
+                <td><code>Get-Command git | Select-Object Source</code> — саме так це радить
+                  робити документація Claude Code</td>
+              </tr>
+              <tr>
+                <td>подивитись PATH</td>
+                <td><code>[Environment]::GetEnvironmentVariable('PATH', 'User')</code> — з тієї
+                  самої документації</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p class="diagram-caption" style="text-align:left">
+            Псевдоніми звірені з документацією Microsoft для PowerShell 7.6 (сторінки
+            <code>Get-Location</code>, <code>Set-Location</code>, <code>Get-ChildItem</code>,
+            редакція серпня 2026). Два останні рядки — дослівні команди з документації Claude Code.
+            Вивід цих команд у курсі не показаний: автор працює на macOS, а вигадувати екрани
+            Windows заборонено правилами курсу.
+          </p>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
+          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            У графічних програмах результат видно одразу: файл з'явився в папці, галочка стала
+            зеленою. Термінал так не робить, і це збиває з пантелику найбільше.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Правило мовчання</span>
+            <p>
+              <strong>Більшість команд, які спрацювали, не друкують нічого.</strong> Порожня
+              відповідь означає «зроблено», а не «не працює». Термінал озивається переважно
+              тоді, коли є що сказати, — і найчастіше це помилка.
+            </p>
+          </div>
+
+          <p>
+            Перевірено наживо: <code>mkdir images</code> і <code>touch quiet.txt</code> на
+            macOS 26.5.2 друкують у відповідь порожній рядок — рівно нічого. Папка при цьому
+            створена, файл створений.
+          </p>
+
+          <p>
+            Тому перевірка в терміналі — окрема дія, і робиться вона іншою командою. Три питання
+            і три відповіді, які варто запам'ятати як пару:
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Питання</th>
+                <th>Команда, яка відповідає</th>
+                <th>Як прочитати відповідь</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Я в потрібній папці?</td>
+                <td><code>pwd</code></td>
+                <td>надрукований шлях або збігається з очікуваним, або ні</td>
+              </tr>
+              <tr>
+                <td>Файл справді створений?</td>
+                <td><code>ls&nbsp;&lt;ім'я&gt;</code></td>
+                <td>ім'я надруковане — файл є; <code>No such file</code> — файла немає</td>
+              </tr>
+              <tr>
+                <td>Система бачить програму?</td>
+                <td><code>which&nbsp;&lt;програма&gt;</code></td>
+                <td>шлях надрукований — бачить; порожньо — не бачить</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <figure class="term term--cmd" id="t3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t3t">перевірка після кроку 4 · macOS 26.5.2 · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t3t"><span class="term__line"><span class="term__meta">%</span> <span class="term__in">pwd</span></span>
+<span class="term__line">/Users/anna/my-site</span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">ls README.md</span></span>
+<span class="term__line"><span class="term__ok">README.md</span></span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">cat README.md</span></span>
+<span class="term__line"># my-site</span>
+<span class="term__line"></span>
+<span class="term__line">Сторінка про мене.</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято на macOS 26.5.2, 4 вересня 2026 року; ім'я користувача в шляху замінене на
+            <code>anna</code>. Порожній рядок посередині — справжній порожній рядок усередині
+            файла, а не помилка відображення.
+          </p>
+
+          <p>
+            І ще одна перевірка, яка стане звичкою з модуля 3: майже кожна консольна програма
+            вміє назвати свою версію у відповідь на <code>--version</code>. Якщо
+            <code>claude --version</code> друкує номер — програма встановлена й запускається.
+            У блоці 3 вище вона надрукувала <code>2.1.236 (Claude Code)</code>.
+          </p>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
+          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+
+          <p>
+            Повідомлення про помилку в терміналі виглядає страшніше, ніж є. Насправді це коротка
+            англійська фраза, і варіантів її небагато. Нижче чотири найчастіші, зняті на живій
+            машині — не переказ, а те, що справді з'явилось на екрані.
+          </p>
+
+          <figure class="term term--err" id="t4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t4t">чотири помилки · macOS 26.5.2 · zsh 5.9 · знято 2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t4t"><span class="term__line"><span class="term__meta">%</span> <span class="term__in">clade</span></span>
+<span class="term__line"><span class="term__err">zsh: command not found: clade</span></span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">cd ~/my-sitte</span></span>
+<span class="term__line"><span class="term__err">cd: no such file or directory: /Users/anna/my-sitte</span></span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">ls readme.txt</span></span>
+<span class="term__line"><span class="term__err">ls: readme.txt: No such file or directory</span></span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">$ pwd</span></span>
+<span class="term__line"><span class="term__err">zsh: command not found: $</span></span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято на macOS 26.5.2, оболонка zsh 5.9, 4 вересня 2026 року; ім'я користувача
+            замінене на <code>anna</code>. На Linux із bash формулювання відрізняються словами
+            (<code>bash: clade: command not found</code>), зміст той самий.
+          </p>
+
+          <h3>Що кожна з них означає</h3>
+
+          <ul>
+            <li>
+              <strong><code>command not found</code></strong> — «я шукав програму з таким іменем
+              у всіх папках зі списку <code>PATH</code> і не знайшов». Три причини, у порядку
+              ймовірності: друкарська помилка в імені (<code>clade</code> замість
+              <code>claude</code>); програма не встановлена; програма встановлена, але в папку,
+              якої немає в <code>PATH</code> — це і є той випадок із блоку 3.
+            </li>
+            <li>
+              <strong><code>no such file or directory</code></strong> після <code>cd</code> —
+              «такої папки за цією адресою немає». Причини дві: помилка в назві або ти не там,
+              де думав. Перевір командою <code>pwd</code>, а потім <code>ls</code>.
+            </li>
+            <li>
+              <strong><code>No such file or directory</code></strong> після <code>ls</code> чи
+              <code>cat</code> — те саме про файл. Найчастіше винен регістр літер або зайвий
+              пробіл у назві.
+            </li>
+            <li>
+              <strong><code>command not found: $</code></strong> — класика: разом із командою
+              скопійований символ запрошення. Оболонка чесно спробувала знайти програму з іменем
+              <code>$</code>. Копіюй те, що після <code>$</code> або <code>%</code>.
+            </li>
+          </ul>
+
+          <h3>Пробіл в імені папки ламає команду</h3>
+
+          <p>
+            Оболонка ріже набраний рядок на шматки по пробілах: перший шматок — команда, решта —
+            її аргументи. Тому <code>cd My Folder</code> для неї — не «зайди в папку
+            <em>My&nbsp;Folder</em>», а «зайди в <em>My</em>, і ось тобі ще слово
+            <em>Folder</em>». На macOS ця ситуація дає повідомлення
+            <code>cd: string not in pwd: My</code> — перевірено наживо.
+          </p>
+
+          <p>
+            Розв'язок — лапки: <code>cd "My Folder"</code> працює. Те саме стосується імен з
+            українськими літерами й пробілами: <code>cd "Мої фото"</code>. Проблема не в
+            кирилиці й не в пробілах — вони дозволені; проблема в тому, як оболонка ділить рядок.
+          </p>
+
+          <h3>Ще чотири речі, які збивають з пантелику</h3>
+
+          <ul>
+            <li>
+              <strong>Файли, що починаються з крапки, не показує <code>ls</code>.</strong>
+              Перевірено: у папці з файлом <code>.secret</code> команда <code>ls</code> його не
+              згадує, а <code>ls -a</code> показує. Так само поводиться папка
+              <code>.claude</code>, у якій живуть налаштування Claude Code — тому в модулях
+              далі командою буде саме <code>ls -a</code>.
+            </li>
+            <li>
+              <strong>macOS не розрізняє великі й малі літери в іменах файлів, а Linux
+              розрізняє.</strong> Перевірено на macOS 26.5.2: <code>ls readme.md</code> знаходить
+              файл, який насправді називається <code>README.md</code>. На сервері з Linux та сама
+              команда дасть <code>No such file</code>. Тому в іменах файлів варто триматись
+              одного регістру — це вже ламало живі сайти.
+            </li>
+            <li>
+              <strong>У терміналі немає «скасувати».</strong> Немає кошика й немає
+              <code>Cmd</code>&nbsp;+&nbsp;<code>Z</code>. Команда, яка видаляє, видаляє одразу й
+              назавжди. Звідси правило на весь курс: <em>не запускай команду, змісту якої не
+              розумієш</em> — навіть якщо її дав Claude. У модулі 7 буде видно, що Claude Code
+              побудований навколо цього самого правила: він показує намір і питає дозволу.
+            </li>
+            <li>
+              <strong>Мишка не працює так, як ти звик.</strong> Документація Claude Code каже це
+              прямо: клікати по тексту в терміналі не можна, переміщення — стрілками. Виділити й
+              скопіювати текст мишкою зазвичай виходить, а от поставити курсор посеред рядка
+              кліком — ні.
+            </li>
+          </ul>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
+          <h2><span class="lesson-no">7</span>Часті питання</h2>
+
+          <h3>Я можу щось зламати?</h3>
+          <p>
+            Командами з цього уроку — ні. <code>pwd</code>, <code>ls</code>, <code>cd</code>,
+            <code>which</code>, <code>echo</code>, <code>cat</code>, <code>clear</code> нічого не
+            змінюють: вони дивляться й друкують. <code>mkdir</code> створює папку. Небезпечні
+            команди в терміналі є, вони видаляють файли без підтвердження — і саме тому діє
+            правило з блоку 6: не виконуй того, чого не розумієш. Коли трапиться незнайома
+            команда, спитай у Claude, що вона робить, до того як натиснути <code>Enter</code>.
+          </p>
+
+          <h3>Чи обов'язково знати англійську?</h3>
+          <p>
+            На рівні впізнавання десятка слів — так, і цей десяток уже перед тобою. Команди — це
+            скорочення англійських слів: <code>pwd</code> = <em>print working directory</em>,
+            <code>ls</code> = <em>list</em>, <code>cd</code> = <em>change directory</em>,
+            <code>mkdir</code> = <em>make directory</em>, <code>cat</code> = <em>concatenate</em>.
+            Повідомлення про помилки теж англійською, але їх небагато, і чотири найчастіші
+            розібрані в блоці 6.
+          </p>
+
+          <h3>Обов'язково стандартний Terminal, чи можна інший?</h3>
+          <p>
+            Інструкція Claude Code для новачків називає стандартні застосунки — Terminal на macOS,
+            типовий термінал дистрибутива на Linux, PowerShell на Windows. Курс знімався саме в
+            стандартному терміналі macOS. Інші термінали існують і працюють; поки ти не знаєш, чим
+            вони відрізняються, різниці для тебе немає — бери стандартний і не витрачай на це
+            рішення увагу.
+          </p>
+
+          <h3>А без термінала зовсім не можна?</h3>
+          <p>
+            Можна. Документація Claude Code окремо зазначає: є застосунок для комп'ютера
+            (desktop app) для macOS і Windows, який дозволяє обійтися без термінала, на Linux він
+            ставиться через <code>apt</code>. Є розширення для редакторів VS Code і JetBrains, є
+            вебверсія. Курс лишається про термінал, бо в ньому видно, що саме відбувається, — а
+            навички звідти переносяться на всі решта поверхонь. У зворотний бік це не працює.
+          </p>
+
+          <h3>Чому в мене на екрані все не так, як у прикладах?</h3>
+          <p>
+            Найімовірніші причини три, і жодна не є поломкою. Інша система — у Windows усе інакше
+            від запрошення до команд. Інша оболонка — на старих macOS за замовчуванням був bash, і
+            в повідомленнях замість <code>zsh:</code> стоятиме <code>bash:</code>. Інша поточна
+            папка — <code>ls</code> у різних папках друкує різне, і це головна причина
+            «у мене не так».
+          </p>
+
+          <h3>Термінал завис. Що робити?</h3>
+          <p>
+            Натисни <code>Ctrl</code> + <code>C</code> — це перериває те, що зараз виконується, і
+            повертає запрошення. Працює і в самому терміналі, і в багатьох програмах усередині
+            нього. Всередині Claude Code для переривання є ще <code>Esc</code> — з ним познайомимось
+            у модулі 4.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
+          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Якщо після цього уроку ти вмієш відкрити термінал, сказати, у якій ти папці, перейти
+            в іншу й прочитати повідомлення про помилку — модуль зробив свою роботу. Решта
+            додасться під час курсу.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Підсумок модуля</span>
+            <ul>
+              <li>Термінал — вікно, у якому ти пишеш команду, тиснеш <code>Enter</code> і читаєш
+                текстову відповідь. «Виконати команду» означає рівно ці дві дії.</li>
+              <li>Запрошення (<code>%</code>, <code>$</code> або <code>PS C:\…&gt;</code>) друкує
+                комп'ютер — його не набирають і не копіюють.</li>
+              <li>Термінал завжди стоїть у якійсь <strong>поточній папці</strong>, і майже кожна
+                команда працює відносно неї. <code>pwd</code> каже, де ти; <code>cd</code>
+                пересуває; <code>~</code> — скорочення домашньої папки.</li>
+              <li><code>PATH</code> — список папок, у яких оболонка шукає програми зліва направо.
+                Не знайшла — друкує <code>command not found</code>. Це повідомлення про пошук,
+                а не про поломку.</li>
+              <li>Мовчання у відповідь означає успіх. Перевірка — окрема команда:
+                <code>pwd</code>, <code>ls</code>, <code>which</code>,
+                <code>--version</code>.</li>
+              <li>Десять команд із блоку 4 закривають увесь курс. Решту роботи робитиме
+                Claude Code.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Далі — <strong>модуль 2 «Що таке Claude Code»</strong>: чим агент відрізняється від
+            чату й від автодоповнення в редакторі, що таке агентний цикл і які взагалі бувають
+            поверхні Claude Code. Встановлення — у модулі 3, і на той момент фраза
+            «додай папку в <code>PATH</code>» вже не буде для тебе загадкою.
+          </p>
+          <p>
+            До того часу лишається одна корисна звичка: коли відкриваєш термінал, першою командою
+            набирай <code>pwd</code>. Вона займає секунду й знімає половину майбутніх питань.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять на
+            назви: до кожної відповіді одразу з'являється пояснення, чому решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "В інструкції написано «$ pwd». Ти скопіював рядок цілком, разом зі знаком долара, і вставив у термінал. Що станеться?",
+            "options": [
+              "Нічого особливого: термінал ігнорує знак долара",
+              "Помилка: оболонка спробує знайти програму з іменем «$» і не знайде",
+              "Команда виконається двічі",
+              "Термінал попросить пароль адміністратора"
+            ],
+            "answer": 1,
+            "explain": "Знак $ (на macOS зазвичай %) — це запрошення, яке комп'ютер друкує сам перед тим, як чекати на твій текст. Оболонка не знає, що це «лише оформлення»: вона ріже рядок по пробілах, бере перший шматок за команду й шукає програму з іменем «$». У блоці 6 показаний справжній вивід цієї ситуації: zsh: command not found: $. Копіювати треба лише те, що після запрошення."
+          },
+          {
+            "q": "Ти набрав mkdir photos, натиснув Enter — і термінал не надрукував нічого. Що це означає?",
+            "options": [
+              "Папка створена: мовчання у відповідь означає, що команда спрацювала",
+              "Команда не спрацювала — при успіху термінал завжди щось друкує",
+              "Треба натиснути Enter ще раз",
+              "Термінал завис"
+            ],
+            "answer": 0,
+            "explain": "Більшість команд друкують щось лише тоді, коли є що сказати, — і найчастіше це помилка. Порожня відповідь означає «зроблено». Саме тому перевірка в терміналі — окрема дія іншою командою: набери ls і подивись, чи з'явилась папка в переліку. Пригадай «правило мовчання» з блоку 5."
+          },
+          {
+            "q": "Ти встановив програму, а термінал відповідає «zsh: command not found: claude». Що це повідомлення каже точно?",
+            "options": [
+              "Програма встановилась із помилкою і зламана",
+              "Оболонка перебрала всі папки зі списку PATH і не знайшла в них файла з таким іменем",
+              "Немає доступу до інтернету",
+              "Не вистачає прав адміністратора"
+            ],
+            "answer": 1,
+            "explain": "Це повідомлення про пошук, а не про поломку. Оболонка йде по папках зі списку PATH зліва направо; якщо список скінчився, а файла немає — вона друкує саме це. Причин три: друкарська помилка в імені, програма справді не встановлена, або встановлена в папку, якої немає в PATH. Третій випадок найчастіший після встановлення — про нього прямо попереджає документація Claude Code."
+          },
+          {
+            "q": "У тебе є папка з іменем «Мої фото». Команда cd Мої фото дає помилку. Чому?",
+            "options": [
+              "Кирилицю в іменах папок використовувати не можна",
+              "Пробіли в іменах папок заборонені",
+              "Оболонка ріже рядок по пробілах, тому бачить тут два окремі аргументи замість одного імені",
+              "Треба писати ім'я папки великими літерами"
+            ],
+            "answer": 2,
+            "explain": "І кирилиця, і пробіли в іменах дозволені — проблема не в них. Оболонка ділить набраний рядок на шматки по пробілах: перший шматок вважає командою, решту — окремими аргументами. Тому вона намагається зайти в папку «Мої», а слово «фото» лишається зайвим. Розв'язок — лапки: cd \"Мої фото\"."
+          },
+          {
+            "q": "Ти в папці ~/my-site/images. Набираєш cd .. і ще раз cd .. Де ти опинишся?",
+            "options": [
+              "У ~/my-site",
+              "У домашній папці, тобто /Users/anna",
+              "У корені диска, тобто /",
+              "Там само: cd .. з підпапки не працює"
+            ],
+            "answer": 1,
+            "explain": "Дві крапки означають «папка на рівень вище», і кожен cd .. піднімає рівно на один рівень: images → my-site → домашня папка. Перший варіант був би правильним після одного cd .., а не двох. До кореня «/» звідси треба ще кілька рівнів. Той самий результат дала б одна команда cd ~ — вона повертає в домашню папку з будь-якого місця."
+          },
+          {
+            "q": "Людина на Windows не може встановити Claude Code: команда з документації не спрацьовує. На екрані вона бачить рядок «C:\\Users\\Anna>». Що не так?",
+            "options": [
+              "Це CMD, а не PowerShell: PowerShell показує на початку рядка «PS»",
+              "Не вистачає прав адміністратора",
+              "Windows не підтримується взагалі",
+              "Треба спочатку встановити Git"
+            ],
+            "answer": 0,
+            "explain": "Документація Claude Code дає точну ознаку: PowerShell показує «PS C:\\Users\\YourName>», а CMD — той самий рядок без «PS». Вікна схожі, але команди в них різні, тому команда для PowerShell у CMD не спрацює. Права адміністратора для цього встановлення не потрібні, Windows підтримується, а Git для Windows у документації позначений як необов'язковий крок."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
