@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 19 · Запуск без діалогу: Claude як утиліта — AI Термінал</title>
+  <meta name="description"
+    content="claude -p: неінтерактивний запуск Claude Code. Формати виводу text, json і stream-json, коди виходу разом із 143, конвеєр і stdin, режим --bare, GitHub Actions і GitLab CI, Code Review на пул-реквесті та огляд Agent SDK." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="c19" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 19</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 4 · Інструменти й
+          автоматизація</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Запуск без діалогу: Claude як
+          утиліта</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Середній · 8 блоків · ≈ 50 хв читання</p>
+        <p class="mt-6 text-lg">
+          Усі попередні модулі описували розмову: ти пишеш, Claude Code відповідає, показує кроки,
+          питає дозволу, ти тиснеш «так». Розмову не можна вставити у файл зі скриптом і не можна
+          доручити серверу, який запускає перевірки після кожної твоєї зміни в коді. Цей модуль про
+          те, як та сама програма перетворюється на звичайну команду: приймає завдання рядком,
+          друкує відповідь текстом і завершується числом, за яким скрипт розуміє «вийшло» чи «ні».
+        </p>
+        <p>
+          Це один із двох модулів про автоматизацію, і вони поділені за дуже простою межею:
+          <strong>тут запуск робиш ти</strong> — руками, скриптом або подією в репозиторії.
+          Про те, як Claude Code працює, коли тебе взагалі немає за комп'ютером (розписання,
+          канали в месенджерах, віддалені сесії), — наступний, двадцятий модуль.
+        </p>
+
+        <div class="callout">
+          <span class="callout-title">Що в цьому модулі є, а чого немає</span>
+          <p>
+            <strong>Є:</strong> прапорець <code>-p</code> (він же <code>--print</code>) ·
+            стандартний ввід, стандартний вивід і конвеєр (pipe) · три формати відповіді
+            (<code>text</code>, <code>json</code>, <code>stream-json</code>) · коди виходу, включно
+            з рідкісним <code>143</code> · структурована відповідь за схемою
+            (<code>--json-schema</code>) · режим <code>--bare</code> і чому в скрипті він майже
+            завжди правильний · безпека чужого репозиторію · GitHub Actions і GitLab CI ·
+            автоматична рецензія пул-реквеста · Agent SDK оглядово.
+          </p>
+          <p>
+            <strong>Немає:</strong> завдань за розписанням, <code>/loop</code>, хмарних Routines,
+            каналів (Telegram, Discord), Remote Control і віддалених поверхонь — це
+            <strong>модуль 20</strong>. Режими дозволів розібрані в модулях
+            <strong>7</strong> і <strong>8</strong>, зовнішні інструменти MCP — у
+            <strong>18</strong>, перехоплювачі подій (hooks) — у <strong>16</strong>; тут вони
+            з'являються лише там, де від них залежить безпека неінтерактивного запуску.
+          </p>
+        </div>
+
+        <div class="callout callout-sand">
+          <span class="callout-title">Про екрани в цьому уроці</span>
+          <p>
+            Усі п'ять блоків термінала — <strong>живі запуски 2026-09-04 на Claude Code 2.1.236,
+              macOS 26.5.2</strong>, у порожній тестовій теці <code>/private/tmp/c19-demo</code>.
+            Два перші — це один справжній оплачений запуск: команда й відповідь на неї, а ціна
+            видна прямо у виводі. Решта три не роблять жодного запиту до моделі й тому нічого
+            не коштують: Claude Code відкидає такі команди ще на розборі аргументів.
+          </p>
+          <p>
+            Приклади, які взяті з документації й <strong>не запускались на цій машині</strong>
+            (конвеєр з файлом, YAML для GitHub і GitLab), стоять звичайним блоком коду, а не
+            блоком «термінал». Так видно різницю між «я це бачив» і «так написано в доксах».
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
+          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+
+          <p>
+            Уяви три задачі, які трапляються щотижня в будь-якому проєкті:
+          </p>
+
+          <ul>
+            <li>перед відправкою змін перевірити їх на друкарські помилки — не очима, а автоматично;</li>
+            <li>отримати збірку, яка впала з двома екранами незрозумілого тексту, і швидко зрозуміти,
+              у чому корінь;</li>
+            <li>щоб кожну пропозицію змін у спільному проєкті хтось прочитав першим — навіть коли
+              всі зайняті.</li>
+          </ul>
+
+          <p>
+            Кожну з них Claude Code вміє. Але в тому вигляді, у якому ти працював із ним досі,
+            кожна вимагає, щоб <strong>жива людина сиділа перед вікном</strong>: відкрила сесію,
+            вставила текст, прочитала відповідь, натиснула «дозволити». Автоматизувати діалог
+            неможливо — його можна лише повторювати руками.
+          </p>
+
+          <p>
+            Прапорець <code>-p</code> прибирає діалог. Claude Code отримує завдання одним рядком,
+            виконує його й завершується. Ніякого екрана, ніяких кроків, ніякого «продовжити?».
+            На виході — текст, який можна зберегти у файл, передати іншій програмі або показати
+            в журналі сервера.
+          </p>
+
+          <h3>Три слова, без яких далі буде незрозуміло</h3>
+
+          <p>
+            Це поняття не про Claude Code — вони старші за нього років на п'ятдесят і стосуються
+            будь-якої програми в терміналі. Якщо ти їх уже знаєш, наступні три абзаци можна
+            прогорнути.
+          </p>
+
+          <ul>
+            <li>
+              <strong>Стандартний вивід (stdout)</strong> — це те, що програма друкує в термінал.
+              Той самий текст можна не показувати на екрані, а покласти у файл: знак
+              <code>&gt;</code> після команди означає «замість екрана — у цей файл».
+              Наприклад, <code>ls &gt; список.txt</code> не покаже нічого, але створить файл
+              зі списком.
+            </li>
+            <li>
+              <strong>Стандартний ввід (stdin)</strong> — це те, що програма отримує «на вхід»,
+              не з клавіатури, а від іншої програми або з файла.
+            </li>
+            <li>
+              <strong>Конвеєр, або pipe</strong> — вертикальна риска <code>|</code> між двома
+              командами. Вона з'єднує вивід лівої зі вводом правої: «візьми те, що надрукувала
+              перша команда, і віддай другій». На клавіатурі цей знак зазвичай там само, де
+              зворотний слеш.
+            </li>
+          </ul>
+
+          <p>
+            І четверте, найважливіше для цього модуля:
+          </p>
+
+          <ul>
+            <li>
+              <strong>Код виходу (exit code)</strong> — число, яке команда лишає після себе.
+              <strong>Нуль означає «все гаразд»</strong>, будь-яке інше число — «щось пішло не так».
+              Число не друкується на екрані; його дивляться окремою командою
+              <code>echo $?</code> одразу після виконаної. Саме на цьому числі тримається вся
+              автоматизація: скрипт не вміє читати текст, зате вміє порівняти число з нулем.
+            </li>
+          </ul>
+
+          <p>
+            Документація Claude Code формулює це в одне речення: програма завершується кодом
+            <code>0</code> при успіху й ненульовим при збої, «тож ваші скрипти можуть розгалужуватись
+            за статусом виходу».
+          </p>
+
+          <h3>Що таке CI і до чого тут він</h3>
+
+          <p>
+            <strong>CI</strong> (continuous integration, «безперервна інтеграція») — це сервіс, який
+            після кожної твоєї зміни в коді сам запускає перевірки: збирає проєкт, ганяє тести,
+            перевіряє стиль. Ти нічого не натискаєш — сервіс помічає зміну й запускає перелік
+            команд, описаний у файлі всередині твого ж репозиторію. У GitHub це називається
+            GitHub Actions, у GitLab — GitLab CI/CD.
+          </p>
+
+          <p>
+          <p>
+            Ще два слова з того самого світу, бо далі вони трапляться десятки разів.
+            <strong>Репозиторій</strong> — тека проєкту під наглядом git, системи контролю
+            версій: вона пам'ятає кожну зміну й того, хто її вніс. <strong>Пул-реквест</strong>
+            (pull request; у GitLab його називають merge request) — заявка «я зробив зміни в
+            окремій гілці, прошу влити їх в основну». Саме на сторінці такої заявки колеги
+            дивляться різницю в коді й лишають зауваження — і саме туди вміє писати Claude Code.
+            Докладно про роботу з git — модуль 21.
+          </p>
+
+            Для CI будь-який інструмент — це команда, яка щось робить і повертає код виходу.
+            Тому <code>claude -p</code> вставляється туди рівно так само, як <code>npm test</code>
+            або <code>ls</code>. Уся друга половина цього модуля — про наслідки цього факту:
+            і про те, що він дає, і про те, чим він небезпечний.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Одна фраза, яку варто запам'ятати</span>
+            <p>
+              <code>-p</code> не робить Claude Code «слабшим» чи «іншим». Це той самий агент із тими
+              самими інструментами й тими самими правами. Зникає лише <strong>той, хто дивиться на
+                екран і каже «ні»</strong>. Усе, що в діалозі вирішувала людина, у цьому режимі
+              вирішують налаштування — або не вирішує ніхто.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
+          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Найкоротший неінтерактивний запуск виглядає так. Тека порожня, у ній немає ні
+            <code>.claude</code>, ні <code>CLAUDE.md</code>, ні <code>.mcp.json</code> — це
+            навмисно, щоб на вивід не впливало нічого зайвого.
+          </p>
+
+          <figure class="term term--cmd" id="p1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p1t">одне завдання, відповідь у JSON · 2.1.236</span>
+              <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude -p "Reply with exactly: OK" --output-format json --model haiku</span></span></pre>
+          </figure>
+
+          <p>
+            Три частини цього рядка: <code>-p</code> вимикає діалог і вмикає друк відповіді,
+            <code>--output-format json</code> просить не голий текст, а структуру з метаданими,
+            <code>--model haiku</code> садить запуск на легшу модель, щоб він коштував менше —
+            про вибір моделі був модуль 10.
+            Відповідь приходить одним довгим рядком; нижче — той самий вивід, пропущений через
+            <code>python3 -m json.tool</code>, щоб він розклався по рядках, і скорочений: із нього
+            прибрано поля з таймінгами, повторний розріз <code>iterations</code> і технічні
+            ідентифікатори. Нічого не додано.
+          </p>
+
+          <figure class="term" id="p2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p2t">справжня відповідь, скорочена · 2.1.236</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p2t"><span class="term__line">{</span>
+<span class="term__line">    "is_error": false,</span>
+<span class="term__line">    "num_turns": 1,</span>
+<span class="term__line">    "stop_reason": "end_turn",</span>
+<span class="term__line">    "session_id": "7ed5005c-...-eb3aaf5567aa",</span>
+<span class="term__line">    "total_cost_usd": 0.0189734,</span>
+<span class="term__line">    "usage": {</span>
+<span class="term__line">        "input_tokens": 10,</span>
+<span class="term__line">        "cache_creation_input_tokens": 8018,</span>
+<span class="term__line">        "cache_read_input_tokens": 18134,</span>
+<span class="term__line">        "output_tokens": 38</span>
+<span class="term__line">    },</span>
+<span class="term__line">    "permission_denials": [],</span>
+<span class="term__line">    "subtype": "success",</span>
+<span class="term__line">    "api_error_status": null,</span>
+<span class="term__line">    <span class="term__ok">"result": "OK",</span></span>
+<span class="term__line">    "type": "result"</span>
+<span class="term__line">}</span></pre>
+          </figure>
+
+          <p>
+            Читається це так:
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Поле</th>
+                <th>Що воно означає</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>result</code></td>
+                <td>сама відповідь. Те, що в режимі <code>text</code> було б єдиним, що ти побачив</td>
+              </tr>
+              <tr>
+                <td><code>is_error</code></td>
+                <td><code>false</code> — робота завершилась нормально</td>
+              </tr>
+              <tr>
+                <td><code>num_turns</code></td>
+                <td>скільки ходів знадобилось. Одне питання без інструментів — один хід</td>
+              </tr>
+              <tr>
+                <td><code>session_id</code></td>
+                <td>ідентифікатор розмови. Саме за ним її можна продовжити наступною командою</td>
+              </tr>
+              <tr>
+                <td><code>total_cost_usd</code></td>
+                <td>вартість цього запуску в доларах. Документація попереджає: це
+                  <strong>оцінка з боку клієнта</strong>, вона може розійтися з реальним рахунком
+                </td>
+              </tr>
+              <tr>
+                <td><code>permission_denials</code></td>
+                <td>перелік дій, у яких було відмовлено. Порожній — нічого не блокувалось</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            І тут — перший неприємний сюрприз, який видно тільки на справжніх числах. Відповідь
+            складалась із двох літер, а коштувала <strong>близько двох центів</strong>. Причина в
+            рядку <code>cache_creation_input_tokens: 8018</code>: у контекст поїхав увесь стартовий
+            вантаж сесії — системна частина, файли пам'яті, описи інструментів. Відповідь коротка,
+            підготовка до неї — ні. Про те, чим це лікується, — далі, коли зайде мова про
+            <code>--bare</code>.
+          </p>
+
+          <h3>Три екрани помилок, які нічого не коштують</h3>
+
+          <p>
+            Наступні три блоки зняті так само наживо, але жоден із них не звертається до моделі:
+            Claude Code відкидає команду ще на розборі аргументів. Це важлива властивість — на таких
+            запусках можна безпечно перевіряти свої припущення.
+          </p>
+
+          <p>
+            Перший — найчастіша причина, чому приклад із документації не працює в новачка.
+            Прапорець <code>--bare</code> (про нього блок 3) навмисно не читає ні збережений вхід,
+            ні системне сховище паролів:
+          </p>
+
+          <figure class="term term--err" id="p3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p3t">--bare без ключа API · 2.1.236, macOS 26.5.2</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p3t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --bare -p "Say OK" --allowedTools "Read"</span></span>
+<span class="term__line"><span class="term__err">Not logged in · Please run /login</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">echo $?</span></span>
+<span class="term__line">1</span></pre>
+          </figure>
+
+          <p>
+            Машина, на якій це знято, увійшла за підпискою й в інтерактивному режимі працює
+            бездоганно. Але <code>--bare</code> «збереженого входу» не бачить: він приймає лише
+            ключ API у змінній середовища. Порада «спробуй перезайти» тут не допомагає — потрібен
+            інший спосіб автентифікації.
+          </p>
+
+          <p>
+            Другий екран — про структурований вивід. Прапорець <code>--json-schema</code> просить
+            відповідь заданої форми, і Claude Code перевіряє саму схему <strong>до</strong> запуску.
+            Дві помилки, які легко сплутати, дають два різні повідомлення:
+          </p>
+
+          <figure class="term term--err" id="p4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p4t">дві різні поломки схеми · 2.1.236</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p4t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude -p "x" --json-schema 'not-a-schema'</span></span>
+<span class="term__line"><span class="term__err">Error: --json-schema is not valid JSON: JSON Parse error: Unexpected identifier "not"</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude -p "x" --json-schema '{"type": 5}'</span></span>
+<span class="term__line"><span class="term__err">Error: --json-schema is not a valid JSON Schema: data/type must be equal to one of</span></span>
+<span class="term__line"><span class="term__err">the allowed values, data/type must be array, data/type must match a schema in anyOf</span></span></pre>
+          </figure>
+
+          <p>
+            Обидва запуски завершились кодом <code>1</code>. Перший каже «це взагалі не JSON»,
+            другий — «JSON правильний, але як опис форми він недійсний». Друге повідомлення
+            дослівно збігається з тим, що обіцяє документація, плюс діагностика від перевірки схеми.
+            Останній рядок довелось перенести на два — у терміналі він один.
+          </p>
+
+          <p>
+            Третій екран — той, заради якого цей курс узагалі існує. У документації на 2026-09-04
+            описаний прапорець <code>--permission-prompts</code> із приміткою «потребує Claude Code
+            v2.1.259 або новішої». Ось що він робить у встановленій 2.1.236:
+          </p>
+
+          <figure class="term term--err" id="p5">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p5t">прапорець із доксів, якого немає у збірці · 2.1.236</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p5t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude -p "x" --permission-prompts none</span></span>
+<span class="term__line"><span class="term__err">error: unknown option '--permission-prompts'</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">echo $?</span></span>
+<span class="term__line">1</span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c -- "--permission-prompts"</span></span>
+<span class="term__line">0</span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c -- "--zzqq-not-a-flag"</span></span>
+<span class="term__line">0</span></pre>
+          </figure>
+
+          <p>
+            Останні дві команди — це перевірка, яка стане в пригоді ще багато разів.
+            <code>strings</code> дістає з програми всі текстові рядки, <code>grep -c</code>
+            рахує збіги, а <code>$(which claude)</code> підставляє шлях до тієї копії
+            <code>claude</code>, яка справді запускається. Нуль означає «цієї назви в моїй збірці
+            немає». Останній рядок — контрольний: вигадана назва теж дає нуль, отже перевірка
+            працює, а не завжди друкує нуль.
+          </p>
+
+          <p>
+            Висновок, який варто винести за межі цього прапорця: <strong>документація описує
+              найсвіжішу версію, а в тебе встановлена та, що встановлена</strong>. Розрив у пару
+            десятків версій — норма, а не аварія. Тому в скрипті, який має працювати на чужих
+            машинах, кожен нечастий прапорець варто перевірити такою парою команд.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
+          <h2><span class="lesson-no">3</span>Як це працює</h2>
+
+          <p>
+            Усередині <code>claude -p</code> — той самий агентний цикл, що й у сесії: модель читає
+            завдання, викликає інструменти, дивиться на результат, повторює. Відрізняються
+            «краї»: звідки береться завдання й куди дівається відповідь.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  A["Скрипт, термінал або CI запускає claude -p"] --> B{"Є прапорець --bare?"}
+  B -->|"ні"| C["Вантажить .claude/settings.json, .mcp.json і CLAUDE.md цієї теки"]
+  B -->|"так"| D["З теки не вантажить нічого; вхід тільки через ANTHROPIC_API_KEY"]
+  C --> E["Агентний цикл: читає файли, править, запускає команди"]
+  D --> E
+  E --> F["Формат відповіді: text, json або stream-json"]
+  F --> G["stdout: відповідь, яку можна зберегти або передати далі"]
+  F --> H["Код виходу: 0 успіх, ненульовий збій, 143 зупинено сигналом"]
+  style E fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">Шлях одного неінтерактивного запуску. Розвилка на початку —
+              найважливіше рішення всього модуля.</p>
+          </div>
+
+          <h3>Що вантажиться, якщо не сказати інакше</h3>
+
+          <p>
+            Без <code>--bare</code> неінтерактивний запуск підбирає <strong>рівно той самий
+              контекст, що й інтерактивна сесія</strong>: перехоплювачі подій з
+            <code>.claude/settings.json</code> проєкту, зовнішні сервери з <code>.mcp.json</code>,
+            файл пам'яті <code>CLAUDE.md</code>, навички, власні команди, субагентів, плагіни.
+          </p>
+
+          <p>
+            Для роботи у власному проєкті це зручно. Для чужого репозиторію це головна небезпека
+            всього модуля, і документація каже про неї прямо: без <code>--bare</code> сесія
+            <code>-p</code> виконує хуки з налаштувань проєкту й підключає сервери з його
+            <code>.mcp.json</code> <strong>навіть у теці, якій ти ніколи не давав довіри</strong>.
+            Ні діалогу довіри до робочої теки, ні окремого схвалення кожного сервера в цьому режимі
+            немає — показати їх нікому.
+          </p>
+
+          <p>
+            Те саме написано в довідці самої програми. Ось дослівний фрагмент опису
+            <code>-p</code> зі знімка <code>claude --help</code>, знятого 2026-09-03 на версії
+            2.1.236:
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">З довідки claude --help, 2.1.236</span>
+            <p>
+              <em>«Note: The workspace trust dialog is skipped when Claude is run in non-interactive
+                mode (via -p, or when stdout is not a TTY, e.g. piped or redirected output). Only use
+                this in directories you trust. Settings files that fail validation are silently
+                ignored in this mode (no error dialog is shown).»</em>
+            </p>
+            <p>
+              «Діалог довіри до робочої теки пропускається в неінтерактивному режимі — через
+              <code>-p</code> або коли вивід не є терміналом, тобто перенаправлений чи переданий
+              далі конвеєром. Використовуйте це лише в теках, яким довіряєте. Файли налаштувань,
+              які не пройшли перевірку, у цьому режимі мовчки ігноруються, без вікна помилки.»
+            </p>
+          </div>
+
+          <p>
+            Зверни увагу на другу половину: діалог довіри пропускається не лише через
+            <code>-p</code>, а й тоді, коли вивід перенаправлений. Тобто <code>claude &gt;
+            звіт.txt</code> у чужому репозиторії теж стартує без питання про довіру — сесія
+            лишається інтерактивною, але цього запобіжника в ній уже немає.
+          </p>
+
+          <h3>Чотири способи запустити чужий репозиторій і не постраждати</h3>
+
+          <p>
+            Документація дозволів перелічує їх поіменно. Вони не взаємозамінні:
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Спосіб</th>
+                <th>Що саме закриває</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>--bare</code></td>
+                <td>найширший: із проєкту не читаються ні хуки, ні навички, ні команди, ні
+                  субагенти, ні плагіни, ні сервери <code>.mcp.json</code>. Але блок
+                  <code>env</code> і кілька помічників у налаштуваннях проєкту все одно діють</td>
+              </tr>
+              <tr>
+                <td><code>--setting-sources user</code></td>
+                <td>Claude Code не читає ні файли налаштувань проєкту, ні його
+                  <code>.mcp.json</code>, лишаючи твої власні</td>
+              </tr>
+              <tr>
+                <td><code>--settings '{"disableAllHooks": true}'</code></td>
+                <td>вимикає перехоплювачі подій саме для цього запуску. Той самий ключ у твоїх
+                  користувацьких налаштуваннях <strong>не рятує</strong>: налаштування проєкту
+                  сильніші й можуть повернути <code>false</code></td>
+              </tr>
+              <tr>
+                <td><code>disabledMcpjsonServers</code></td>
+                <td>ключ у налаштуваннях, який відхиляє конкретний сервер із <code>.mcp.json</code>
+                  за іменем — у сесіях будь-якого типу</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Найпростіша звичка: <strong>у скрипті й у CI писати <code>--bare</code>, доки не
+              з'ясувалось, що чогось бракує.</strong> Документація каже про нього дослівно:
+            «рекомендований режим для скриптових і SDK-викликів, і в майбутньому релізі стане
+            дефолтом для <code>-p</code>».
+          </p>
+
+          <p>
+            Ціна цього рішення — автентифікація. У режимі <code>--bare</code> Claude Code
+            <strong>ніколи</strong> не читає ні збережений вхід за підпискою, ні системне сховище
+            паролів. Потрібен ключ API у змінній <code>ANTHROPIC_API_KEY</code>. Це рівно той екран
+            помилки, який ти бачив у блоці 2.
+          </p>
+
+          <h3>Три формати відповіді</h3>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Формат</th>
+                <th>Що друкує</th>
+                <th>Коли брати</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>text</code></td>
+                <td>лише текст відповіді. Це значення за замовчуванням</td>
+                <td>коли відповідь читатиме людина або вона одразу йде у файл</td>
+              </tr>
+              <tr>
+                <td><code>json</code></td>
+                <td>один об'єкт із відповіддю, ідентифікатором сесії, вартістю й лічильниками</td>
+                <td>коли відповідь читатиме програма</td>
+              </tr>
+              <tr>
+                <td><code>stream-json</code></td>
+                <td>потік подій, по одному JSON-об'єкту на рядок, у міру роботи</td>
+                <td>коли треба показувати хід роботи, доки він триває</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Потоковий формат вмикається разом із двома супутніми прапорцями:
+            <code>--output-format stream-json --verbose --include-partial-messages</code>.
+            Останній рядок потоку — подія <code>result</code> із фінальним текстом і метаданими,
+            тобто те саме, що дав би формат <code>json</code>.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Обережно з потоком у навчальних і публічних матеріалах</span>
+            <p>
+              Перша ж подія потоку (<code>system/init</code>) містить перелік того, що завантажилось
+              на цій машині: сервери MCP, плагіни, навички, субагенти, ідентифікатор сесії й локальні
+              шляхи. Це зручно для діагностики й геть незручно для скріншота в чаті: разом із
+              подією поїде мапа твоєї робочої машини.
+            </p>
+            <p>
+              Корисний побічний ефект того самого: у полі <code>mcp_server_errors</code> видно
+              записи <code>--mcp-config</code>, які не пройшли перевірку й були пропущені. Поле
+              з'являється лише за наявності помилок, тому перевірка в CI звучить як «масив не
+              порожній — валимо збірку». Потребує версії 2.1.219 або новішої.
+            </p>
+          </div>
+
+          <h3>Коди виходу</h3>
+
+          <ul>
+            <li><code>0</code> — успіх;</li>
+            <li>будь-яке інше число — збій. Помилка в самих аргументах друкується в потік помилок
+              (stderr) ще до старту, а поломка вже під час роботи — наприклад, відсутня
+              автентифікація — друкується як <strong>результат</strong> у звичайний вивід;</li>
+            <li><code>143</code> — окремий випадок: процес зупинили сигналом SIGTERM. Так робить
+              CI, коли спрацював таймаут завдання, і так робить <code>kill</code>. Хід, що тривав,
+              лишається незавершеним, результат не записується. Щоб завершити хід коректно,
+              документація радить SIGINT замість SIGTERM.</li>
+          </ul>
+
+          <h3>Конвеєр: подати дані на вхід</h3>
+
+          <p>
+            Неінтерактивний режим читає стандартний ввід, тому в Claude Code можна «влити» вміст
+            файла або вивід іншої команди. Приклад із документації — пояснити, чому впала збірка:
+          </p>
+
+          <pre><code>cat build-error.txt | claude -p 'concisely explain the root cause of this build error' &gt; output.txt</code></pre>
+
+          <p>
+            Читається зліва направо: <code>cat</code> друкує вміст файла, конвеєр віддає його
+            Claude Code, той пояснює причину, а знак <code>&gt;</code> кладе пояснення у файл
+            <code>output.txt</code>. Замість <code>build-error.txt</code> постав будь-який свій файл.
+          </p>
+
+          <p>
+            Обмеження, про яке краще знати заздалегідь: <strong>переданий конвеєром ввід обмежений
+              10 МБ</strong>. Більше — і Claude Code завершиться з виразною помилкою й ненульовим
+            кодом. Для великих файлів документація радить не вливати їх у конвеєр, а назвати
+            шлях у самому завданні: нехай агент прочитає файл сам.
+          </p>
+
+          <p>
+            Той самий підхід перетворює Claude Code на команду проєкту. Приклад із документації для
+            файла <code>package.json</code> — «лінтер друкарських помилок», який дивиться лише на
+            твої зміни відносно основної гілки:
+          </p>
+
+          <pre><code>{
+  "scripts": {
+    "lint:claude": "git diff main | claude -p \"you are a typo linter. for each typo in this diff, report filename:line on one line and the issue on the next. return nothing else.\""
+  }
+}</code></pre>
+
+          <p>
+            Запускається це командою <code>npm run lint:claude</code>. Документація окремо пояснює
+            два рішення в цьому рядку: різницю подають конвеєром, щоб агенту не знадобився дозвіл
+            на запуск команд, а подвійні лапки екранують, щоб рядок працював і на Windows.
+          </p>
+
+          <h3>Те саме, але на чужій машині: CI</h3>
+
+          <p>
+            Далі — той самий <code>claude -p</code>, тільки запускає його не ти, а сервіс.
+            Для GitHub є готова дія (action) <code>anthropics/claude-code-action</code>: ти
+            кладеш у репозиторій невеликий файл-опис, і далі все відбувається саме.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart LR
+  A["Хтось пише @claude у коментарі до задачі або PR"] --> B["GitHub бачить подію й запускає робочий процес"]
+  B --> C["Перевірки: чи має автор права на запис і чи це не бот"]
+  C --> D["actions/checkout: копія репозиторію на машині GitHub"]
+  D --> E["anthropics/claude-code-action, всередині той самий claude -p"]
+  E --> F["Відповідь коментарем у тій самій задачі або PR"]
+  style E fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">Інтерактивний режим дії GitHub: запуск від згадки
+              <code>@claude</code>. Автоматичний режим влаштований так само, але замість згадки
+              спрацьовує будь-яка подія, а завдання задане заздалегідь.
+            </p>
+          </div>
+
+          <p>
+            Найшвидший спосіб це підключити — команда <code>/install-github-app</code>, набрана
+            прямо в сесії Claude Code: вона встановить застосунок GitHub, збереже секрет із ключем і
+            відкриє готовий пул-реквест із файлами робочих процесів. Потрібні права адміністратора
+            репозиторію. Ручний шлях описаний окремо: встановити застосунок, додати секрет, скопіювати
+            файл робочого процесу самому.
+          </p>
+
+          <p>
+            Ось найкоротший робочий файл із документації. Він живе за адресою
+            <code>.github/workflows/claude.yml</code> у твоєму ж репозиторії:
+          </p>
+
+          <pre><code>name: Claude Code
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+jobs:
+  claude:
+    if: contains(github.event.comment.body, '@claude')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}</code></pre>
+
+          <p>
+            Що тут не «шаблонний шум», а сенс: <code>on</code> перелічує події, на які реагувати;
+            <code>if</code> не дає запускати машину на коментарях без згадки; <code>permissions</code>
+            видає рівно ті права, які потрібні; <code>actions/checkout</code> кладе на машину копію
+            репозиторію; рядок із <code>secrets.</code> підставляє ключ, збережений у налаштуваннях
+            репозиторію. <strong>Ключ у сам файл не пишуть ніколи</strong> — файл лежить у
+            репозиторії, а секрети GitHub зберігає окремо й не показує в журналах.
+          </p>
+
+          <p>
+            Два режими дії розрізняються однією ознакою — наявністю поля <code>prompt</code>:
+          </p>
+
+          <ul>
+            <li><strong>інтерактивний</strong> (поля <code>prompt</code> немає): Claude чекає на
+              згадку <code>@claude</code> у коментарі, у рецензії або в тексті щойно відкритої
+              задачі, і відповідає коментарем там само;</li>
+            <li><strong>автоматичний</strong> (поле <code>prompt</code> є): завдання задане
+              заздалегідь, згадка не потрібна, а результат за замовчуванням лягає в журнал запуску,
+              а не в коментар.</li>
+          </ul>
+
+          <p>
+            Перед кожним запуском дія перевіряє того, хто його спричинив: у автора має бути право
+            запису в репозиторій, і він не має бути ботом. Друга перевірка існує рівно для того,
+            щоб два боти не зациклились, викликаючи один одного.
+          </p>
+
+          <p>
+            Аргументи командного рядка передаються полем <code>claude_args</code> — тобто все, що ти
+            вмієш робити прапорцями локально, працює й тут:
+          </p>
+
+          <pre><code>claude_args: "--max-turns 5 --model claude-sonnet-5 --mcp-config /path/to/config.json"</code></pre>
+
+          <h3>GitLab CI/CD</h3>
+
+          <p>
+            Для GitLab готової «дії» немає — там завдання описують кроками звичайного скрипта.
+            Інтеграція <strong>у стані бета</strong> і, за словами документації, підтримується самим
+            GitLab, а не Anthropic. Її суть — той самий виклик, який ти вже бачив:
+          </p>
+
+          <pre><code>script:
+  - &gt;
+    claude
+    -p "${AI_FLOW_INPUT:-'Review this MR and implement the requested changes'}"
+    --permission-mode acceptEdits
+    --allowedTools "Bash Read Edit Write mcp__gitlab"
+    --debug</code></pre>
+
+          <p>
+            Перед цим кроком у файлі стоїть встановлення Claude Code офіційним інсталятором і
+            рядок, який додає теку <code>~/.local/bin</code> у <code>PATH</code> — саме туди
+            інсталятор кладе програму, і в базовому образі ця тека в <code>PATH</code> не значиться.
+            Ключ <code>ANTHROPIC_API_KEY</code> додається в налаштуваннях проєкту як
+            <strong>замаскована змінна</strong>, щоб не потрапити в журнали.
+          </p>
+
+          <h3>Рецензія пул-реквеста</h3>
+
+          <p>
+            Це окремий продукт, який теж варто знати на ім'я, щоб не переплутати з попередніми
+            двома. <strong>Code Review</strong> — керований сервіс: він сам аналізує пул-реквести й
+            лишає зауваження прямо на тих рядках коду, де знайшов проблему. Свій файл робочого
+            процесу для цього не потрібен.
+          </p>
+
+          <p>
+            Стан на 2026-09-04 за документацією: <strong>research preview</strong>, доступний на
+            планах Team і Enterprise, недоступний організаціям із режимом нульового зберігання даних.
+            Кожна знахідка позначається рівнем: 🔴 важлива (помилка, яку варто виправити до злиття),
+            🟡 дрібниця, 🟣 наявна раніше (помилка в коді, яку цей пул-реквест не приносив).
+            Перевірка <strong>ніколи не блокує злиття</strong> — вона завершується нейтральним
+            результатом навмисно, щоб не ламати наявні процеси команди.
+          </p>
+
+          <p>
+            Налаштовується не через <code>CLAUDE.md</code>, а окремим файлом <code>REVIEW.md</code>
+            у корені репозиторію: у ньому пишуть, що саме команда хоче бачити позначеним і з якою
+            суворістю. Документація зазначає, що <code>@</code>-імпорти в цьому файлі
+            <strong>не розгортаються</strong> — правила треба класти в нього самого.
+          </p>
+
+          <p>
+            Якщо плану Team немає, те саме доступне локально командою <code>/code-review</code>
+            прямо в сесії: вона рецензує коміти твоєї гілки й незбережені зміни, працює фоновим
+            субагентом у власному контекстному вікні, а прапорець <code>--fix</code> одразу
+            застосовує знайдене. Псевдонім — <code>/review</code>.
+          </p>
+
+          <h3>Agent SDK — коли командного рядка мало</h3>
+
+          <p>
+            Agent SDK — це <strong>той самий Claude Code у вигляді бібліотеки</strong>, яку ти
+            підключаєш до власної програми: ті самі інструменти, той самий агентний цикл, те саме
+            керування контекстом. Він існує для двох мов: <code>claude-agent-sdk</code> для Python
+            і <code>@anthropic-ai/claude-agent-sdk</code> для TypeScript.
+          </p>
+
+          <p>
+            Вибір між ним і <code>-p</code> документація описує коротко: командний рядок — для
+            інтерактивної роботи й разових задач, SDK — коли ти будуєш власний застосунок і не
+            хочеш писати цикл викликів інструментів самостійно. І окремо: <strong>щоб керувати тим
+              самим циклом із будь-якої іншої мови, документація радить запускати CLI
+              підпроцесом</strong> — із <code>-p</code> і <code>--output-format json</code>.
+            Тобто те, що ти вивчив у цьому модулі, і є універсальним інтерфейсом.
+          </p>
+
+          <p>
+            Одне обмеження, яке варто знати наперед: без окремого погодження Anthropic не дозволяє
+            стороннім розробникам пропонувати в своїх продуктах вхід через <code>claude.ai</code>
+            і ліміти підписки. Для власного застосунку на SDK передбачений ключ API.
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
+          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+
+          <div class="callout">
+            <span class="callout-title">Перед початком — про витрати</span>
+            <p>
+              Кроки 2–6 роблять справжні запити до моделі й витрачають твій ліміт або гроші так
+              само, як звичайна сесія. Завдання нижче навмисно крихітні. Якщо хочеш заощадити,
+              додай до кожного <code>--model haiku</code>, як у блоці 2.
+            </p>
+          </div>
+
+          <h3>Крок 1. Окрема тека, щоб нічого не заважало</h3>
+
+          <p>
+            Створи порожню теку й зайди в неї. Дві команди, набрати одну за одною й натиснути
+            <code>Enter</code>:
+          </p>
+
+          <pre><code>mkdir -p ~/claude-headless
+cd ~/claude-headless</code></pre>
+
+          <p>
+            <code>mkdir</code> створює теку, <code>-p</code> тут означає «не лаятись, якщо вона вже
+            є» (це інший <code>-p</code>, не той, що в Claude Code — збіг літери), <code>~</code> —
+            твоя домашня тека. Навіщо порожня: у ній немає ні <code>CLAUDE.md</code>, ні
+            <code>.claude/</code>, тому на результат не впливає нічого, крім твоєї команди.
+          </p>
+
+          <h3>Крок 2. Найпростіший запуск</h3>
+
+          <pre><code>claude -p "Напиши одним реченням, що робить команда ls"</code></pre>
+
+          <p>
+            На екрані з'явиться лише текст відповіді — без рамок, без кроків, без питань.
+            Сесія завершилась.
+          </p>
+
+          <h3>Крок 3. Подивитись код виходу</h3>
+
+          <p>
+            Одразу після попередньої команди, не запускаючи нічого іншого:
+          </p>
+
+          <pre><code>echo $?</code></pre>
+
+          <p>
+            Має надрукуватись <code>0</code>. Тепер зроби помилку навмисно й повтори перевірку:
+          </p>
+
+          <pre><code>claude -p "x" --output-format bogus
+echo $?</code></pre>
+
+          <p>
+            Тепер буде <code>1</code>, а перед ним — рядок, у якому Claude Code перелічує допустимі
+            значення. Це та сама пара, якою перевіряють будь-який прапорець: запусти з навмисно
+            неправильним значенням і подивись, чи взагалі програма про нього знає.
+          </p>
+
+          <h3>Крок 4. Відповідь у JSON і як дістати з неї потрібне</h3>
+
+          <pre><code>claude -p "Скажи слово ГОТОВО і нічого більше" --output-format json</code></pre>
+
+          <p>
+            На екрані — довгий рядок JSON. Щоб дістати з нього лише відповідь, його треба
+            передати конвеєром програмі, яка вміє читати JSON. Класичний вибір — <code>jq</code>,
+            але вона за замовчуванням не встановлена. Тому спершу спробуй її:
+          </p>
+
+          <pre><code>claude -p "Скажи слово ГОТОВО і нічого більше" --output-format json | jq -r '.result'</code></pre>
+
+          <p>
+            Якщо у відповідь прилетить <code>command not found</code> зі згадкою <code>jq</code> — це не поломка, а
+            відсутня програма (повідомлення про пошук у <code>PATH</code> розбиралось у модулі 1).
+            Її можна встановити, а можна обійтись тим, що вже є на будь-якому macOS і Linux:
+          </p>
+
+          <pre><code>claude -p "Скажи слово ГОТОВО і нічого більше" --output-format json | python3 -c "import json,sys; print(json.load(sys.stdin)['result'])"</code></pre>
+
+          <p>
+            Обидва варіанти роблять одне: беруть з об'єкта поле <code>result</code> і друкують його
+            без лапок.
+          </p>
+
+          <h3>Крок 5. Подати файл на вхід</h3>
+
+          <p>
+            Створи маленький файл із помилкою й попроси пояснити його, не називаючи шляху:
+          </p>
+
+          <pre><code>echo "TypeError: cannot read property 'name' of undefined" &gt; error.txt
+cat error.txt | claude -p "поясни українською, що означає ця помилка і з чого почати пошук"</code></pre>
+
+          <p>
+            Claude Code отримав текст помилки стандартним вводом — жодного дозволу на читання файлів
+            для цього не знадобилось. Це і є причина, з якої документація радить подавати різницю
+            коду конвеєром, а не просити агента прочитати її самому.
+          </p>
+
+          <h3>Крок 6. Скрипт, який перевіряє код виходу</h3>
+
+          <p>
+            Створи файл <code>check.sh</code> і поклади в нього ось це. Назва латиницею й імена
+            змінних латиницею — не примха: оболонка не приймає кириличних імен змінних і
+            відповість <code>command not found</code> на першому ж рядку.
+          </p>
+
+          <pre><code>#!/bin/bash
+answer=$(claude -p "$1" --output-format json)
+code=$?
+
+if [ $code -ne 0 ]; then
+  echo "Claude завершився з кодом $code" &gt;&amp;2
+  exit $code
+fi
+
+echo "$answer" | python3 -c "import json,sys; print(json.load(sys.stdin)['result'])"</code></pre>
+
+          <p>
+            Запускається так: <code>bash check.sh "склади список файлів у цій теці"</code>.
+            Тут <code>"$1"</code> означає «перший аргумент, переданий скрипту», <code>-ne 0</code> —
+            «не дорівнює нулю», а <code>&gt;&amp;2</code> відправляє повідомлення в потік помилок,
+            щоб воно не змішалось із корисним виводом. Це кістяк будь-якої обгортки: спитати,
+            перевірити число, і тільки потім користуватись відповіддю.
+          </p>
+
+          <h3>Крок 7 (необов'язковий). Якщо в тебе є репозиторій на GitHub</h3>
+
+          <p>
+            Відкрий у ньому звичайну інтерактивну сесію <code>claude</code> й набери
+            <code>/install-github-app</code>. Знадобляться права адміністратора репозиторію й
+            встановлений GitHub CLI (<code>gh</code>) з виконаним <code>gh auth login</code> —
+            Claude Code перевірить його наявність і попередить, якщо не знайде. Далі — за
+            підказками; наприкінці відкриється готовий пул-реквест із файлами робочих процесів.
+            Поки він не злитий, нічого не змінюється.
+          </p>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
+          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            У неінтерактивному режимі немає екрана, який показав би, що коїться. Тому питання
+            «а чи спрацювало?» тут вирішується не враженням, а конкретними командами.
+          </p>
+
+          <h3>Чи завершилось успішно</h3>
+
+          <pre><code>echo $?</code></pre>
+
+          <p>
+            Нуль — так. Ненульове число — ні, і ось як його читати:
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Що бачиш</th>
+                <th>Що це означає</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>0</code></td>
+                <td>усе гаразд</td>
+              </tr>
+              <tr>
+                <td><code>1</code> і повідомлення до старту</td>
+                <td>помилка в самих аргументах: невідомий прапорець, недопустиме значення,
+                  зламана схема</td>
+              </tr>
+              <tr>
+                <td><code>1</code> і повідомлення в звичайному виводі</td>
+                <td>збій уже під час роботи. Класичний випадок — відсутня автентифікація</td>
+              </tr>
+              <tr>
+                <td><code>143</code></td>
+                <td>процес зупинили сигналом. У CI це майже завжди таймаут завдання</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Чи не помилився агент усередині успішного запуску</h3>
+
+          <p>
+            Код виходу каже про запуск, а не про зміст. У форматі <code>json</code> є окреме поле:
+          </p>
+
+          <pre><code>claude -p "твоє завдання" --output-format json | jq -r '.is_error'</code></pre>
+
+          <p>
+            Поруч варто дивитись на <code>permission_denials</code>: якщо масив не порожній, агенту
+            щось заборонили, і зробив він менше, ніж ти просив.
+          </p>
+
+          <h3>Чи існує прапорець у твоїй збірці</h3>
+
+          <p>
+            Дві незалежні перевірки, обидві безкоштовні. Перша — запустити команду з цим прапорцем
+            і подивитись на реакцію. <strong>Додавати до неї <code>--help</code> не можна</strong>:
+            за наявності <code>--help</code> Claude Code глушить помилку про невідомий прапорець і
+            друкує звичайну довідку, ніби прапорець існує. Ця пастка розібрана в модулі 17.
+          </p>
+
+          <p>
+            Друга — пошук по самій програмі, як у блоці 2:
+          </p>
+
+          <pre><code>strings "$(which claude)" | grep -c -- "--назва-прапорця"
+strings "$(which claude)" | grep -c -- "--вигадана-назва"</code></pre>
+
+          <p>
+            Перший рядок має дати число більше нуля, другий — нуль. Без другого рядка перевірка
+            нічого не доводить: раптом вона завжди друкує нуль.
+          </p>
+
+          <h3>Чи не втягнув запуск чужі налаштування</h3>
+
+          <p>
+            Найпростіша відповідь: якщо ти написав <code>--bare</code>, не втягнув, бо цей режим
+            із теки не читає нічого. Якщо не писав — подивись сам, що там лежить, перш ніж
+            запускати:
+          </p>
+
+          <pre><code>ls -la .claude
+cat .mcp.json</code></pre>
+
+          <p>
+            Відповідь <code>No such file or directory</code> на обидві команди — добра новина: у репозиторії
+            немає ні налаштувань із перехоплювачами подій, ні описів зовнішніх серверів.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Чого перевірка <code>claude doctor</code> тут не дасть</span>
+            <p>
+              У модулі 17 показано, що <code>claude doctor</code> завершується кодом <code>0</code>
+              навіть тоді, коли знайшов зламані налаштування. Як «ворота» в CI він непридатний:
+              його код виходу не несе результату перевірки. Дивитись треба на текст, який він
+              надрукував, а не на число після нього.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
+          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+
+          <h3>1. <code>--bare</code> плюс підписка дорівнює «не працює»</h3>
+
+          <p>
+            Найчастіша причина, чому приклад із документації не запускається в новачка. Bare-режим
+            не читає ні збережений вхід за підпискою, ні системне сховище паролів — <em>ніколи</em>,
+            і це не помилка, а задум. Треба або ключ API у змінній <code>ANTHROPIC_API_KEY</code>,
+            або прибрати <code>--bare</code>.
+          </p>
+
+          <p>
+            Окремо: довгий токен, який видає команда <code>claude setup-token</code> (він діє рік і
+            дозволяє автентифікацію підпискою в CI), <strong>bare-режим теж не читає</strong> —
+            документація каже про це прямим текстом.
+          </p>
+
+          <h3>2. «У CI ж ізольовано» — ні</h3>
+
+          <p>
+            Без <code>--bare</code> запуск <code>-p</code> у склонованому репозиторії підтягне його
+            <code>.claude/</code> і його <code>.mcp.json</code>, не спитавши. Діалогу довіри в цьому
+            режимі не існує. Чотири способи це закрити — у блоці 3; найкоротший з них
+            <code>--bare</code>.
+          </p>
+
+          <h3>3. <code>--continue</code> як перевірка «чи є попередня розмова»</h3>
+
+          <p>
+            Здається логічним: запустити <code>claude -p --continue</code>, і якщо продовжувати
+            нічого — отримати помилку. Насправді <strong>помилки не буде</strong>: у теці без
+            жодної збереженої сесії запуск мовчки починає нову розмову й створює новий запис.
+            Перевірено двічі, у двох порожніх теках, на 2.1.236.
+          </p>
+
+          <p>
+            Наслідок для скрипта: <code>--continue</code> не годиться як перевірка існування сесії.
+            Якщо тобі потрібна саме конкретна розмова, збережи її ідентифікатор із поля
+            <code>session_id</code> і продовжуй через <code>--resume</code> — тоді код виходу
+            справді щось означатиме.
+          </p>
+
+          <h3>4. Фоновий сервер, запущений усередині запуску, помирає</h3>
+
+          <p>
+            Якщо агент під час роботи підняв щось у фоні — сервер розробки, спостерігач за
+            файлами, — ця оболонка вбивається <strong>приблизно через п'ять секунд</strong> після
+            того, як Claude Code віддав фінальну відповідь і ввід закрився. П'ять секунд —
+            навмисна пауза, щоб задача, яка закінчується одразу після результату, встигла
+            надрукувати своє.
+          </p>
+
+          <p>
+            Фонові субагенти й робочі процеси з цього правила виключені: їхній результат є частиною
+            фінальної відповіді, тому <code>claude -p</code> на них чекає. Але й це очікування
+            обмежене — за замовчуванням десять хвилин безперервного простою, щоб застряглий
+            субагент не тримав процес вічно.
+          </p>
+
+          <h3>5. Обгортка, яка ковтає помилку</h3>
+
+          <p>
+            Класика: скрипт запускає <code>claude -p</code>, а далі перевіряє власне припущення —
+            наприклад, чи з'явився файл — і сам вирішує, чим завершитись. Код виходу Claude Code
+            при цьому не читається взагалі, і збій автентифікації виглядає так само, як успішна
+            робота з порожнім результатом. Перевіряй число, як у кроці 6 попереднього блоку.
+          </p>
+
+          <h3>6. Таймаут у CI, який виглядає як загадковий збій</h3>
+
+          <p>
+            Завдання впало, у журналі — обрубаний вивід і код <code>143</code>. Це не поломка
+            Claude Code: <code>143</code> означає, що процес зупинили сигналом SIGTERM, а так робить
+            саме CI, коли вичерпався ліміт часу. Лікується або збільшенням ліміту, або звуженням
+            завдання, або прапорцем <code>--max-turns</code>, який обмежує кількість ходів.
+          </p>
+
+          <h3>Ще три, коротко</h3>
+
+          <ul>
+            <li>
+              <strong>Прапорець <code>--worktree</code> в CI протікає.</strong> Неінтерактивний
+              запуск із ним <em>не прибирає</em> за собою робочі копії й лишає замок
+              <code>git worktree lock</code>. На сервері, який запускається сотні разів, це
+              повільне заповнення диска. Він же пропускає перевірку довіри до теки, тоді як
+              інтерактивний <code>--worktree</code> її не пропускає.
+            </li>
+            <li>
+              <strong>Сповіщення з перехоплювача подій у CI не працюють у принципі.</strong>
+              Налаштування <code>terminalSequence</code>, яким хук подає сигнал термінала,
+              у режимі <code>-p</code> і в Agent SDK ігнорується. Слухати нікому.
+            </li>
+            <li>
+              <strong>Хуки типу <code>PermissionRequest</code> у <code>-p</code> здебільшого
+                не спрацьовують.</strong> Вони вимагають, щоб запуском керував Agent SDK із
+              власним оброблювачем дозволів; у звичайному <code>claude -p</code> потрібен
+              <code>PreToolUse</code>. А у фонових субагентів правило суворіше: якщо жоден хук
+              не дав рішення, виклик <strong>відхиляється</strong>.
+            </li>
+          </ul>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
+          <h2><span class="lesson-no">7</span>Часті питання</h2>
+
+          <h3>Мені потрібен ключ API, щоб користуватись <code>-p</code>?</h3>
+
+          <p>
+            На своїй машині — ні. Звичайний <code>claude -p</code> користується тим самим входом,
+            що й інтерактивна сесія, тобто твоєю підпискою. Ключ API стає потрібен у двох випадках:
+            коли ти додаєш <code>--bare</code>, і коли запуск відбувається на чужій машині, де
+            жодного входу немає.
+          </p>
+
+          <p>
+            Для другого випадку є проміжний варіант: команда <code>claude setup-token</code>
+            видає токен на рік, який автентифікує саме твою підписку (потрібен план Pro, Max, Team
+            або Enterprise). Токен <strong>ніде не зберігається</strong> — його друкують один раз,
+            і його треба одразу покласти в змінну <code>CLAUDE_CODE_OAUTH_TOKEN</code> там, де він
+            потрібен. Обмеження: він уміє лише робити запити до моделі, тому віддалені сесії й
+            конектори <code>claude.ai</code> через нього не працюють. І, повторюючись, у
+            <code>--bare</code> він не читається.
+          </p>
+
+          <h3>Чи можна виконати слеш-команду через <code>-p</code>?</h3>
+
+          <p>
+            Частково — і це дуже корисно знати. Навички й власні команди працюють: досить вписати
+            <code>/назва</code> в текст завдання, і Claude Code розгорне її перед запуском.
+            Кілька вбудованих команд приймають значення аргументом: <code>/model sonnet</code>,
+            <code>/effort</code>, <code>/fast</code>, <code>/color</code>, <code>/rename</code>;
+            <code>/mcp</code> без аргументів друкує текстовий підсумок стану серверів. Змінити
+            налаштування можна через <code>/config ключ=значення</code>.
+          </p>
+
+          <p>
+            Що не працює: команди, які існують лише в терміналі, — наприклад <code>/login</code>.
+            Автори сусідніх модулів цього курсу натрапили на ще дві межі на версії 2.1.236:
+            <code>/status</code> і <code>/hooks</code> відповідають дослівним
+            <code>isn't available in this environment</code>, а <code>claude -p "/doctor"</code>
+            <strong>зависає</strong> — запуск довелось обірвати через дві хвилини.
+          </p>
+
+          <h3>Скільки коштує один такий запуск?</h3>
+
+          <p>
+            Стільки ж, скільки та сама робота в сесії, — плюс вартість стартового вантажу, який
+            їде в контекст щоразу заново. У прикладі з блоку 2 на дволітерну відповідь пішло
+            понад вісім тисяч токенів на створення кеша, і саме вони склали майже всю ціну.
+          </p>
+
+          <p>
+            Три способи це зменшити: <code>--bare</code> (не вантажить пам'ять, навички й плагіни),
+            дешевша модель через <code>--model</code>, і менше ходів через <code>--max-turns</code>.
+            Є ще прямий запобіжник — <code>--max-budget-usd</code> зі стелею витрат; він працює
+            лише разом із <code>-p</code>, а витрати субагентів рахуються в ту саму стелю. Коли
+            стеля вибрана, спроба породити субагента падає з повідомленням
+            <code>Budget limit reached</code>. Потребує версії 2.1.217 або новішої. Докладно про
+            гроші й ліміти — модуль 11.
+          </p>
+
+          <h3>Чим <code>-p</code> відрізняється від Agent SDK?</h3>
+
+          <p>
+            Формою, а не змістом. <code>-p</code> — це команда, яку викликає скрипт; SDK — це
+            бібліотека, яку ти підключаєш до своєї програми на Python або TypeScript і керуєш
+            агентом зсередини процесу. Якщо твоя мова не Python і не TypeScript, документація радить
+            саме <code>-p</code> з <code>--output-format json</code>, запущений підпроцесом, —
+            і це не обхідний шлях, а офіційна рекомендація.
+          </p>
+
+          <h3>А GitHub Actions, GitLab CI і Code Review — це три різні речі?</h3>
+
+          <p>
+            Так, і плутанина між ними коштує часу. GitHub Actions і GitLab CI — це <em>твої</em>
+            робочі процеси на <em>твоїй</em> інфраструктурі: ти пишеш файл, ти обираєш події, ти
+            платиш за хвилини роботи машин. Code Review — керований сервіс Anthropic для
+            пул-реквестів на GitHub: свого файла робочого процесу не потрібно, але потрібен план
+            Team або Enterprise. Локальна команда <code>/code-review</code> — четверта річ,
+            вона працює в твоїй сесії й нічого нікуди не публікує, доки її не попросили.
+          </p>
+
+          <h3>Що станеться, якщо в чужому репозиторії лежить шкідливий хук?</h3>
+
+          <p>
+            У неінтерактивному запуску без захисту — він виконається, без питання й без
+            повідомлення. Це найреальніший вектор атаки з усіх, названих у цьому курсі, і саме тому
+            він проговорюється двічі: тут і в модулі 22, де розбирається безпека загалом. Правило
+            одне: <strong>перш ніж запускати <code>-p</code> у чужому коді, подивись, що в його
+              <code>.claude/</code></strong> — або запускай із <code>--bare</code>.
+          </p>
+
+          <h3>Чи працює це на Windows?</h3>
+
+          <p>
+            Так, з однією історичною поправкою, яку варто знати, якщо в тебе стара збірка: до версії
+            2.1.211 нечитабельний стандартний ввід на Windows валив сесію або змушував її мовчки
+            завершитись без жодного виводу. У свіжих версіях Claude Code у такому випадку друкує
+            попередження в потік помилок і продовжує роботу з тим завданням, яке передане
+            в командному рядку.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
+          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Головна зміна цього модуля — не новий прапорець, а зміна ролі. Досі Claude Code був
+            співрозмовником, і всі рішення про безпеку ухвалювала людина, дивлячись на екран.
+            У неінтерактивному режимі того, хто дивиться, немає. Тому все, що раніше вирішувалось
+            натисканням «ні», тепер вирішується заздалегідь — прапорцями й налаштуваннями.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Підсумок модуля</span>
+            <ul>
+              <li><code>claude -p "завдання"</code> виконує роботу без діалогу, друкує відповідь у
+                стандартний вивід і завершується кодом: <code>0</code> — успіх, ненульовий — збій,
+                <code>143</code> — зупинено сигналом (у CI це майже завжди таймаут).</li>
+              <li>Три формати: <code>text</code> для людини, <code>json</code> для програми,
+                <code>stream-json</code> для показу ходу роботи. У <code>json</code> лежать
+                <code>result</code>, <code>is_error</code>, <code>session_id</code>,
+                <code>total_cost_usd</code> — остання цифра є оцінкою, а не рахунком.</li>
+              <li>Неінтерактивний запуск <strong>читає теку, у якій стоїть</strong>: хуки,
+                <code>.mcp.json</code>, <code>CLAUDE.md</code> — без діалогу довіри й без питань.
+                <code>--bare</code> цього не робить і саме тому рекомендований для скриптів; ціна —
+                потрібен ключ API.</li>
+              <li>Ввід можна подати конвеєром (обмеження 10 МБ), вивід — покласти у файл. Це і
+                перетворює агента на звичайну команду поруч із <code>git</code> і
+                <code>npm</code>.</li>
+              <li>У CI все те саме: GitHub Actions через
+                <code>anthropics/claude-code-action</code> і <code>/install-github-app</code>,
+                GitLab CI через звичайний крок скрипта. Ключі — тільки в секретах, ніколи у файлі
+                робочого процесу.</li>
+              <li>Code Review — окремий керований сервіс для пул-реквестів (Team і Enterprise,
+                research preview), налаштовується файлом <code>REVIEW.md</code> і не блокує злиття.
+                Локальний аналог без нього — команда <code>/code-review</code>.</li>
+              <li>Agent SDK — той самий Claude Code як бібліотека для Python і TypeScript. З інших
+                мов офіційна рекомендація — викликати <code>-p</code> підпроцесом.</li>
+              <li>Прапорець із документації може ще не існувати у твоїй збірці. Перевіряти —
+                запуском без <code>--help</code> і пошуком <code>strings</code> із контрольною
+                вигаданою назвою.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+
+          <p>
+            Далі — <strong>модуль 20 «Коли Claude працює без тебе»</strong>. Тут запуск завжди
+            починався з твоєї дії: ти набрав команду, ти злив пул-реквест, ти поставив коментар.
+            У наступному модулі зникає й це: завдання за розписанням, хмарні запуски без увімкненої
+            машини, канали в месенджерах, які самі штовхають повідомлення в сесію, і віддалене
+            керування. Там же — чесне порівняння трьох різних механізмів розписання, які легко
+            сплутати між собою.
+          </p>
+
+          <p>
+            А до того варто зробити одну маленьку річ: узяти будь-яку рутинну перевірку у своєму
+            проєкті — стиль коміт-повідомлень, друкарські помилки в документації, забуті
+            <code>TODO</code> — і оформити її одним рядком у <code>package.json</code> або в
+            крихітному скрипті. Автоматизація починається не з CI, а з першої команди, яку більше
+            не треба набирати руками.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань про те, що відбувається насправді, а не про назви прапорців. До кожної
+            відповіді одразу з'являється пояснення, чому решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "У тебе підписка Max, інтерактивний claude працює бездоганно. Ти скопіював із документації рядок claude --bare -p \"Summarize README.md\" --allowedTools \"Read\" — і отримав відмову. Чому?",
+            "options": [
+              "Прапорець --allowedTools несумісний із --bare",
+              "Bare-режим не читає ні збережений вхід за підпискою, ні системне сховище паролів — потрібен ANTHROPIC_API_KEY",
+              "README.md треба спочатку додати через --add-dir",
+              "Підписка Max не дозволяє неінтерактивні запуски"
+            ],
+            "answer": 1,
+            "explain": "Так це й виглядає наживо: на версії 2.1.236 команда друкує «Not logged in · Please run /login» і завершується кодом 1. Bare-режим навмисно не читає ні OAuth, ні keychain — це записано і в довідці claude --help, і в документації. Відповідь про несумісність із --allowedTools хибна: саме ця пара стоїть у прикладі документації. Додавання теки через --add-dir тут ні до чого — файл лежить у поточній теці. А заборони на неінтерактивні запуски для підписок не існує: без --bare той самий рядок працює."
+          },
+          {
+            "q": "Крок CI із claude -p впав, у журналі обрубаний вивід і код виходу 143. Що сталось?",
+            "options": [
+              "Процес зупинили сигналом SIGTERM — у CI це майже завжди таймаут завдання",
+              "Скінчились гроші на рахунку",
+              "Claude Code не знайшов файл, названий у завданні",
+              "Помилка в аргументах команди"
+            ],
+            "answer": 0,
+            "explain": "143 — окремий, добре задокументований випадок: SIGTERM. Хід, що тривав, лишається незавершеним, результат не записується, а обрубаний вивід — саме ознака зупинки посеред роботи. Помилка в аргументах виглядає інакше: повідомлення друкується в потік помилок ще до старту, і код при цьому 1, а не 143. Збій усередині запуску (нема грошей, нема автентифікації, нема файла) теж дає ненульовий код, але повідомлення про причину друкується як результат — тобто в журналі був би текст, а не обрив."
+          },
+          {
+            "q": "Скрипт має продовжити попередню розмову, якщо вона є, і почати нову, якщо її немає. Автор написав claude -p --continue і планує розгалужитись за кодом виходу. Що буде в теці без жодної збереженої сесії?",
+            "options": [
+              "Помилка й ненульовий код — саме те, на що розраховує скрипт",
+              "Claude Code запитає, чи створити нову сесію",
+              "Мовчки почнеться нова розмова, код виходу 0 — розгалуження не спрацює ніколи",
+              "Запуск зависне до таймауту"
+            ],
+            "answer": 2,
+            "explain": "Це перевірено наживо двічі, у двох порожніх теках на версії 2.1.236: --continue у теці без сесій не помиляється, а мовчки починає нову розмову й створює новий запис. Тому як перевірка «сесія існує» він не годиться взагалі: код виходу буде нульовим в обох випадках. Питання Claude Code у цьому режимі поставити нікому — діалогу немає за визначенням. Ознакою, що дає чесний код виходу, є --resume із конкретним ідентифікатором, збереженим із поля session_id."
+          },
+          {
+            "q": "Ти клонував чужий репозиторій, щоб швидко розібратись у ньому, і запустив у його теці claude -p \"опиши архітектуру\". У репозиторії лежить .claude/settings.json із перехоплювачем подій і .mcp.json із зовнішнім сервером. Що станеться?",
+            "options": [
+              "Claude Code покаже діалог довіри до теки й дочекається твоєї відповіді",
+              "І хук, і сервер будуть проігноровані, бо тека не позначена довіреною",
+              "Хук виконається, а сервер вимагатиме окремого схвалення",
+              "І хук виконається, і сервер підключиться — без питання й без діалогу"
+            ],
+            "answer": 3,
+            "explain": "Діалог довіри до робочої теки в неінтерактивному режимі не показується взагалі — це записано і в довідці самої програми, і в документації дозволів: сесія -p виконує хуки з налаштувань проєкту й підключає сервери з .mcp.json навіть у теці, якій ти ніколи не давав довіри. Показувати діалог нікому, тому й варіанти про очікування відповіді та про окреме схвалення хибні. Варіант «усе проігнорується» описує поведінку --bare, а не поведінку за замовчуванням. Закрити це можна чотирма способами: --bare, --setting-sources user, --settings з disableAllHooks або ключем disabledMcpjsonServers."
+          },
+          {
+            "q": "У документації описаний прапорець із приміткою «потребує v2.1.259 або новішої». Твій claude --version каже 2.1.236. Як переконатись, що прапорця в тебе немає, не витрачаючи запитів до моделі?",
+            "options": [
+              "Запустити команду з цим прапорцем і додати --help — якщо друкується довідка, прапорець є",
+              "Запустити команду з прапорцем без --help і окремо порахувати збіги в бінарнику через strings, обов'язково з контрольною вигаданою назвою",
+              "Подивитись у claude doctor: він показує перелік доступних прапорців",
+              "Ніяк: єдиний спосіб — оновитись і порівняти поведінку"
+            ],
+            "answer": 1,
+            "explain": "Обидві перевірки безкоштовні, бо жодна не звертається до моделі: запуск із невідомим прапорцем віддає «error: unknown option» і код 1 ще на розборі аргументів, а strings із grep -c рахує входження назви в самій програмі (для цього прапорця вийшло 0). Контрольна вигадана назва обов'язкова — без неї нуль нічого не доводить. Варіант із --help хибний і саме тому небезпечний: за наявності --help помилка про невідомий прапорець глушиться й друкується звичайна довідка, ніби прапорець існує. Перелік прапорців claude doctor не друкує — він перевіряє встановлення й налаштування."
+          },
+          {
+            "q": "У завданні для claude -p ти попросив підняти сервер розробки й перевірити сторінку. Агент повідомив, що сервер запущено, робота завершилась успішно, але через кілька секунд сервер помер. Чому?",
+            "options": [
+              "Фонову оболонку вбиває сам Claude Code приблизно через п'ять секунд після фінальної відповіді",
+              "Сервер не міг стартувати без дозволу, і його зупинив класифікатор",
+              "Це помилка версії 2.1.236, у свіжіших виправлено",
+              "Код виходу був ненульовим, тому система прибрала всі дочірні процеси"
+            ],
+            "answer": 0,
+            "explain": "Це задокументована поведінка неінтерактивного режиму: фонова Bash-задача, запущена під час роботи, завершується приблизно через п'ять секунд після того, як Claude Code віддав фінальний результат і ввід закрився. Пауза існує навмисно — щоб задача, яка закінчується одразу після результату, встигла надрукувати свій вивід. Виняток зроблено лише для фонових субагентів і робочих процесів, бо їхній результат є частиною відповіді. Варіант про дозволи не пояснює, чому сервер спочатку працював, а варіант про код виходу переплутує причину з наслідком: запуск завершився успішно."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>

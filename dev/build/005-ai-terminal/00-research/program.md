@@ -97,7 +97,7 @@ hook-подій. Насправді — 22 модулі, **шість** режи
 | --- | ----- | ---- | ------------ |
 | `c18` | MCP: зовнішні інструменти | `modules/claude-code-18.html` | Що це насправді · `claude mcp add` і всі форми · транспорти · scope (local / project / user) · `.mcp.json` · `/mcp` · OAuth · tool search і відкладені інструменти · живі приклади (Chrome, Supabase) · **prompt injection через MCP** |
 | `c19` | Headless і CI: Claude як утиліта | `modules/claude-code-19.html` | `claude -p` · `--output-format json` / `stream-json` · exit-коди · pipe · GitHub Actions і GitLab CI · Code Review на PR · Agent SDK оглядово |
-| `c20` | Коли Claude працює без тебе | `modules/claude-code-20.html` | Три механізми розписання й **як обрати між ними** · `/loop`, `/schedule`, Routines, scheduled tasks · Channels (Telegram / Discord / webhooks) · віддалені поверхні: `--cloud`, `--teleport`, Remote Control, Dispatch, `/desktop` · tunnels |
+| `c20` | Коли Claude працює без тебе | `modules/claude-code-20.html` | Три механізми розписання й **як обрати між ними** · `/loop`, `/schedule`, Routines, scheduled tasks · Channels (Telegram / Discord / webhooks) · віддалені поверхні: `--cloud`, `--teleport`, Remote Control, Dispatch, `/desktop` · ~~tunnels~~ (**такої функції не існує** — перевірено автором `c20` 2026-09-04 грепом по 14 сторінках доксів і `llms.txt`: слово трапляється лише про корпоративний проксі, інтерфейси `utun` і як **заборонену** дію «Opening a tunnel or reverse shell». Пункт закрито з іншого боку — розділом «чому Remote Control не потребує ні тунелю, ні відкритого порту») |
 
 **Обов'язково в `c19` і `c22` — найгостріша безпекова знахідка всього дослідження:**
 `claude -p` **без `--bare` виконує хуки й підключає MCP-сервери з чужого репозиторію без
