@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 10 · Моделі й мислення — AI Термінал</title>
+  <meta name="description"
+    content="Чим відрізняються Opus, Sonnet, Haiku і Fable, як працює /model і opusplan, що насправді роблять рівні зусиль і extended thinking, коли вмикати fast mode і як обрати модель під конкретну задачу." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="c10" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 10</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 2 · Контекст, дозволи, гроші</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Моделі й мислення</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Середній · 8 блоків · ≈ 45 хв читання</p>
+        <p class="mt-6 text-lg">
+          Claude Code — це програма на твоєму комп'ютері, але думає за тебе не вона. Текст пише
+          <strong>модель</strong> — вона працює на серверах Anthropic, і моделей там кілька, різних за
+          силою, швидкістю й ціною. Поряд є другий регулятор: скільки моделі дозволено міркувати перед
+          тим, як відповісти. Цей модуль про обидва: що вони насправді роблять, як їх перемкнути й
+          як не заплатити зайвого за звичку тримати найдорожче «про всяк випадок».
+        </p>
+
+        <div class="callout">
+          <span class="callout-title">Що в цьому модулі є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> цін у гривнях і доларах, лімітів підписок, команд <code>/usage</code> і
+            <code>/cost</code> — це модуль 11. Немає контекстного вікна й компакції — це модуль 6; тут лише
+            той його шматок, який залежить від вибору моделі.
+          </p>
+          <p>
+            <strong>Є:</strong> чотири сімейства моделей і чим вони відрізняються · команда
+            <code>/model</code> і режим <code>opusplan</code> · рівні зусиль (<code>/effort</code>) і
+            розширене міркування · швидкий режим (<code>/fast</code>) · правило вибору під конкретну задачу.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
+          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+
+          <p>
+            До цього моменту курс говорив «Claude робить», ніби Claude — одна річ. Насправді речей дві,
+            і вони живуть у різних місцях.
+          </p>
+
+          <p>
+            <strong>Claude Code</strong> — програма, встановлена на твоєму комп'ютері. Вона читає файли,
+            запускає команди, питає дозволу, малює екран. Сама вона нічого не вигадує.
+          </p>
+
+          <p>
+            <strong>Модель</strong> (англійською <em>model</em>) — велика програма на серверах Anthropic,
+            натренована на текстах. Саме вона отримує твій запит разом з усім контекстом сесії й повертає
+            відповідь: пояснення, план дій або команду «прочитай ось цей файл». Claude Code — руки, модель — голова.
+          </p>
+
+          <p>
+            Голів у Anthropic не одна. Вони різні за глибиною міркування, за швидкістю й за тим, скільки
+            коштує кожне слово. І це не абстрактна деталь: від вибору залежить, чи впорається помічник із
+            твоєю задачею з першого разу і як швидко ти впрешся в межу свого тарифу.
+          </p>
+
+          <h3>Чотири сімейства</h3>
+
+          <p>
+            Моделі згруповані в сімейства. У кожного сімейства є коротке ім'я —
+            <strong>аліас</strong> (англійською <em>alias</em>, «псевдонім»), і саме його ти набираєш замість
+            повної назви з номером версії. Ось як їх описує документація Claude Code:
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Аліас</th>
+                <th>Для чого, за документацією</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>fable</code></td>
+                <td>«для найважчих і найдовших задач» — тримає довгі самостійні сесії, досліджує перед тим,
+                  як діяти, і перевіряє власну роботу частіше за менші моделі</td>
+              </tr>
+              <tr>
+                <td><code>opus</code></td>
+                <td>«для складних міркувань»</td>
+              </tr>
+              <tr>
+                <td><code>sonnet</code></td>
+                <td>«для щоденних задач кодування»</td>
+              </tr>
+              <tr>
+                <td><code>haiku</code></td>
+                <td>«швидка й економна модель для простих задач»</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Порядок у таблиці — від найпотужнішого до найлегшого, і водночас від найдорожчого до
+            найдешевшого. Це не збіг: глибше міркування означає більше витрачених токенів (одиниць тексту,
+            якими модель усе рахує — вони докладно розібрані в модулі 6), а токени і є те, за що ти платиш
+            або що витрачаєш із ліміту підписки.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Аліас не дорівнює версії</span>
+            <p>
+              <code>opus</code> — це не назва моделі, а вказівка «дай мені найновіший Opus, доступний у
+              моєму випадку». Через рік за тим самим словом стоятиме інша модель. Документація каже прямо:
+              аліаси вказують на рекомендовану версію й <strong>з часом змінюються</strong>. Щоб закріпитись
+              за конкретною версією, треба писати повне ім'я — наприклад <code>claude-opus-5</code>.
+            </p>
+            <p>
+              Тому в цьому уроці номери версій згадуються рідко: вони застаріють швидше за все інше.
+              Актуальний перелік завжди показує сам пікер <code>/model</code> на твоїй машині.
+            </p>
+          </div>
+
+          <h3>Другий регулятор: скільки думати</h3>
+
+          <p>
+            Вибір моделі — не єдина ручка. Є друга, і новачки про неї зазвичай не знають:
+            <strong>рівень зусиль</strong> (англійською <em>effort level</em>). Він каже моделі, наскільки
+            глибоко дозволено міркувати перед відповіддю. П'ять рівнів: <code>low</code>, <code>medium</code>,
+            <code>high</code>, <code>xhigh</code>, <code>max</code>.
+          </p>
+
+          <p>
+            Поряд із ним існує <strong>розширене міркування</strong> (англійською <em>extended thinking</em>) —
+            те, що модель «промовляє собі» перед відповіддю. Воно увімкнене за замовчуванням, і його можна
+            вимкнути тумблером. Але це саме тумблер «так або ні», а не третій регулятор глибини: глибиною
+            керує рівень зусиль.
+          </p>
+
+          <p>
+            У старих статтях в інтернеті ці дві речі часто змальовані як «режими мислення», між якими
+            перемикаються. Це застаріле уявлення. Насправді це <strong>одна вісь плюс один тумблер</strong>,
+            і саме так їх описує документація сьогодні.
+          </p>
+
+          <h3>Чому чужий скріншот тобі не підходить</h3>
+
+          <p>
+            Модель, з якої стартує твоя сесія, залежить від типу акаунта. Документація перелічує це прямо:
+          </p>
+
+          <ul>
+            <li><strong>Pro і Team Standard</strong> — стартують на Sonnet 5;</li>
+            <li><strong>Max, Team Premium, Enterprise і Anthropic API</strong> — стартують на Opus 5;</li>
+            <li>у Microsoft Foundry дефолт ще інший — Sonnet 4.5.</li>
+          </ul>
+
+          <p>
+            Більшість людей, які проходять цей курс, будуть на Pro — тобто на Sonnet. Більшість авторів
+            туторіалів сидять на Max — тобто на Opus. Звідси половина питань «а чому в мене не так, як
+            на відео». Відповідь майже завжди: у вас різні акаунти, а не різні налаштування.
+          </p>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
+          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Головний екран цієї теми — пікер моделей, який відкриває команда <code>/model</code> без
+            аргументів усередині сесії. Знімка цього екрана в уроці не буде, і на це є причина: він
+            інтерактивний. Він перемальовується під стрілки, показує різні рядки різним акаунтам і не
+            існує як текст, який можна зняти командою. Домальований «приблизно такий» екран у курсі,
+            що вчить звіряти факти живою командою, був би гірший за його відсутність.
+          </p>
+
+          <p>Тому — словами, за документацією:</p>
+
+          <ul>
+            <li>пікер показує <strong>список моделей, доступних саме твоєму акаунту</strong>. Те, що
+              заборонене організацією, у списку не з'являється взагалі;</li>
+            <li><strong>стрілки вліво й вправо</strong> в пікері рухають повзунок рівня зусиль — тобто
+              модель і глибину міркування обирають на одному екрані;</li>
+            <li><strong><code>Enter</code></strong> перемикає модель <em>і зберігає її як твій дефолт для
+              нових сесій</em>;</li>
+            <li><strong><code>s</code></strong> на рядку перемикає модель <em>лише на поточну сесію</em>;</li>
+            <li>ціни за мільйон токенів показуються в рядках <strong>лише тоді, коли Claude Code
+              звертається напряму до Anthropic API</strong>. На сторонніх постачальниках цін немає, бо
+              там платиш не Anthropic;</li>
+            <li>рядок Fable може мати позначку «Requires usage credits» — про це в блоці 6.</li>
+          </ul>
+
+          <p>
+            Що <em>можна</em> зняти — це довідку самої програми. Ось два рядки з <code>claude --help</code>
+            про обидві наші ручки. Між ними у справжньому виводі — ще шість десятків опцій; я вирізав їх
+            і позначив розрив трикрапкою.
+          </p>
+
+          <figure class="term term--cmd" id="t1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t1t">Claude Code 2.1.236 · macOS 26.5.2 · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --help</span></span>
+<span class="term__line">  --effort &lt;level&gt;                      Effort level for the current session</span>
+<span class="term__line">                                        (low, medium, high, xhigh, max)</span>
+<span class="term__line"><span class="term__meta">  …</span></span>
+<span class="term__line">  --model &lt;model&gt;                       Model for the current session. Provide</span>
+<span class="term__line">                                        an alias for the latest model (e.g.</span>
+<span class="term__line">                                        'fable', 'opus', or 'sonnet') or a</span>
+<span class="term__line">                                        model's full name (e.g.</span>
+<span class="term__line">                                        'claude-fable-5').</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Дослівний вивід на збірці 2.1.236, macOS 26.5.2, 4 вересня 2026 року. Трикрапка в третьому
+            рядку — моя позначка вирізаного шматка, у справжньому виводі її немає.
+          </p>
+
+          <h3>Хто відповів насправді</h3>
+
+          <p>
+            Є спосіб побачити модель без будь-якого інтерактивного екрана — і він же найчесніший, бо
+            показує не налаштування, а факт. Прапорець <code>-p</code> (від <em>print</em>) запускає
+            Claude Code без сесії: він відповідає один раз і виходить. А
+            <code>--output-format json</code> просить віддати відповідь машинним форматом, у якому серед
+            іншого є розділ <code>modelUsage</code> — перелік моделей, які реально відпрацювали цей запит.
+          </p>
+
+          <p>
+            Нижче — справжній запуск. Другою командою я витягнув із збереженого файла лише два поля:
+            розмір контекстного вікна й канонічне ім'я моделі.
+          </p>
+
+          <figure class="term" id="t2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t2t">Claude Code 2.1.236 · macOS 26.5.2 · підписка Max · 2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t2t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --output-format json -p "Reply with the single word: ok" &gt; default.json</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">grep -o '"canonicalModel":"[^"]*"\|"contextWindow":[0-9]*' default.json</span></span>
+<span class="term__line">"contextWindow":200000</span>
+<span class="term__line">"canonicalModel":"claude-haiku-4-5"</span>
+<span class="term__line">"contextWindow":1000000</span>
+<span class="term__line">"canonicalModel":"claude-opus-5"</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято 2026-09-04 на збірці 2.1.236, macOS 26.5.2, акаунт із підпискою Max. Прапорця
+            <code>--model</code> у команді немає — модель обрана дефолтом акаунта.
+          </p>
+
+          <p>Два висновки з чотирьох рядків, і обидва неочевидні:</p>
+
+          <ol>
+            <li>
+              <strong>Дефолтом виявився Opus 5</strong> — рівно те, що документація обіцяє акаунтам Max.
+              На акаунті Pro тут стояв би <code>claude-sonnet-5</code>. Це перевірка типу акаунта
+              однією командою, без здогадок.
+            </li>
+            <li>
+              <strong>Моделей у списку дві.</strong> Крім тієї, яку я обрав, відпрацювала ще Haiku 4.5.
+              Це не помилка: документація прямо каже, що Haiku обслуговує «фонову функціональність»
+              Claude Code — короткі службові задачі на кшталт підсумовування попередніх розмов.
+              Тобто маленька модель тихо працює поруч завжди, і це нормально.
+            </li>
+          </ol>
+
+          <p>
+            Заодно видно розмір контекстного вікна кожної: у Haiku 4.5 — 200 000 токенів, в Opus 5 на
+            цьому акаунті — 1 000 000. Про мільйон і про те, кому він дістається, — у блоці 7.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
+          <h2><span class="lesson-no">3</span>Як це працює</h2>
+
+          <p>
+            Питання «яка в мене зараз модель» має неочевидну відповідь, бо на неї впливають щонайменше
+            п'ять місць, і між ними є суворий порядок старшинства. Ось він, від найсильнішого до
+            найслабшого.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  A["Запускаєш claude"] --> B{"Є прапорець --model при запуску?"}
+  B -->|"так"| M1["Ця модель, тільки на цю сесію"]
+  B -->|"ні"| C{"Задана змінна середовища ANTHROPIC_MODEL?"}
+  C -->|"так"| M2["Модель зі змінної, на кожен запуск у цьому терміналі"]
+  C -->|"ні"| D{"Є поле model у файлі налаштувань? Саме його пише Enter у пікері /model"}
+  D -->|"так"| M3["Модель, яку ти зберіг як дефолт"]
+  D -->|"ні"| E{"Організація задала свою дефолтну модель?"}
+  E -->|"так"| M4["Модель організації"]
+  E -->|"ні"| F{"Задана змінна ANTHROPIC_DEFAULT_MODEL? Потрібна версія 2.1.236 або новіша"}
+  F -->|"так"| M5["Модель зі змінної"]
+  F -->|"ні"| G["Дефолт за типом акаунта: Pro і Team Standard - Sonnet 5, Max і Enterprise - Opus 5"]
+  M1 --> H["Усередині сесії /model перемикає будь-коли й перебиває все вище"]
+  M2 --> H
+  M3 --> H
+  M4 --> H
+  M5 --> H
+  G --> H
+  style G fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style H fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Порядок старшинства при виборі моделі. Найчастіша причина «чому в мене не та модель» —
+              забуте поле <code>model</code> у налаштуваннях, збережене колись натисканням
+              <code>Enter</code> у пікері
+            </p>
+          </div>
+
+          <p>
+            Окремо стоїть <strong>відновлення сесії</strong>. Якщо ти повертаєшся в стару розмову через
+            <code>claude --resume</code>, <code>--continue</code> або пікер <code>/resume</code> (це модуль 9),
+            сесія стартує на тій моделі, з якою її зберегли, а не на твоїй поточній. Логіка проста: інакше
+            вибір, зроблений в одному вікні, мовчки міняв би модель у всіх старих розмовах.
+          </p>
+
+          <h3>Що насправді робить рівень зусиль</h3>
+
+          <p>
+            Тут ховається найпоширеніша хибна модель у голові. Здається, що «рівень зусиль» — це
+            лічильник: поставив більше, отримав більше міркування. Насправді документація називає механізм
+            <strong>адаптивним міркуванням</strong> (англійською <em>adaptive reasoning</em>): модель
+            вирішує на <em>кожному кроці окремо</em>, чи треба думати й скільки. Рівень зусиль задає
+            стелю й загальну схильність, а не фіксовану кількість.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  A["Твій запит"] --> B{"Розширене міркування увімкнене?"}
+  B -->|"ні, ти вимкнув тумблер"| C["Модель відповідає без міркування. На частині моделей рівень вище high у цьому стані дасть помилку"]
+  B -->|"так, це стан за замовчуванням"| D["Рівень зусиль задає стелю глибини"]
+  D --> E{"Модель оцінює складність цього конкретного кроку"}
+  E -->|"крок простий"| F["Думає мало або не думає взагалі"]
+  E -->|"крок складний"| G["Думає довго. Токени міркування тарифікуються як вихідні"]
+  F --> H["Відповідь"]
+  G --> H
+  style D fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style G stroke:#D97757
+            </pre>
+            <p class="diagram-caption">
+              Рівень зусиль не змушує думати — він дозволяє. Рішення «думати чи ні» модель ухвалює сама
+              на кожному кроці
+            </p>
+          </div>
+
+          <p>
+            Наслідок, який заощадить тобі гроші: <strong>поставити <code>max</code> на просту задачу
+            здебільшого не дасть нічого</strong>, крім потенційної затримки. А на складній — дасть
+            помітно більше витрачених токенів. Це не теорія, у блоці 5 буде заміряний приклад.
+          </p>
+
+          <h3>Які рівні кому доступні</h3>
+
+          <p>
+            Набір рівнів залежить від моделі. Документація на 4 вересня 2026 року дає таку картину:
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Моделі</th>
+                <th>Доступні рівні</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Fable 5.1, Fable 5, Opus 5, Sonnet 5, Opus 4.8, Opus 4.7</td>
+                <td><code>low</code>, <code>medium</code>, <code>high</code>, <code>xhigh</code>, <code>max</code></td>
+              </tr>
+              <tr>
+                <td>Opus 4.6, Sonnet 4.6</td>
+                <td><code>low</code>, <code>medium</code>, <code>high</code>, <code>max</code> — без <code>xhigh</code></td>
+              </tr>
+              <tr>
+                <td>Решта моделей</td>
+                <td>рівні зусиль не підтримуються взагалі</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Якщо задати рівень, якого модель не має, Claude Code не лається — він мовчки бере найвищий
+            підтримуваний рівень не вище заданого. Наприклад <code>xhigh</code> на Opus 4.6 виконається
+            як <code>high</code>.
+          </p>
+
+          <p>
+            <strong>Дефолтний рівень — <code>high</code></strong> на всіх моделях, що підтримують зусилля.
+            Виняток один: Opus 4.7, у якого дефолт <code>xhigh</code>.
+          </p>
+
+          <h3>Що означає кожен рівень</h3>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Рівень</th>
+                <th>Коли брати, за документацією</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>low</code></td>
+                <td>короткі вузькі задачі, де важлива швидкість відповіді й не важлива глибина</td>
+              </tr>
+              <tr>
+                <td><code>medium</code></td>
+                <td>зменшує витрату токенів там, де можна поступитись частиною якості</td>
+              </tr>
+              <tr>
+                <td><code>high</code></td>
+                <td>баланс витрат і якості. Дефолт на всіх моделях, крім Opus 4.7</td>
+              </tr>
+              <tr>
+                <td><code>xhigh</code></td>
+                <td>глибше міркування за більші витрати</td>
+              </tr>
+              <tr>
+                <td><code>max</code></td>
+                <td>«може покращити результат на вимогливих задачах, але дає спадну віддачу й схильний до
+                  надмірного обмірковування. Перевір, перш ніж вмикати скрізь» — це майже дослівна цитата</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Є ще шостий пункт у меню <code>/effort</code> — <code>ultracode</code>. Це не рівень моделі,
+            а налаштування самого Claude Code: він надсилає <code>xhigh</code> і додатково просить Claude
+            будувати динамічний план роботи для великих задач. Потребує версії 2.1.203 або новішої.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Шкала не спільна для всіх моделей</span>
+            <p>
+              Документація зазначає окремо: шкала зусиль <strong>калібрується під кожну модель</strong>,
+              тому однакова назва рівня не означає однакової кількості міркування на різних моделях.
+              <code>high</code> на Haiku і <code>high</code> на Opus — різні речі.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
+          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+
+          <p>
+            Далі — п'ять коротких дій на своєму комп'ютері. Вони нічого не ламають і не міняють у твоєму
+            проєкті: усе, чого вони торкаються, — це налаштування самого Claude Code.
+          </p>
+
+          <h3>Крок 1. Запустись із явно вказаною моделлю</h3>
+
+          <p>
+            Перейди в будь-яку папку з проєктом і запусти Claude Code з прапорцем. Дві команди йдуть
+            одна за одною: спершу перехід у папку, потім запуск. Кнопка «Копіювати» віддасть обидві.
+          </p>
+
+          <figure class="term term--cmd" id="t3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t3t">запуск на конкретній моделі й конкретному рівні зусиль</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t3t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">cd ~/my-site</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --model sonnet --effort low</span></span></pre>
+          </figure>
+
+          <p>
+            Заміни <code>~/my-site</code> на свою папку. Обидва прапорці діють <strong>тільки на цю
+            сесію</strong> — нічого не збережеться, коли ти вийдеш. Це найбезпечніший спосіб спробувати.
+          </p>
+
+          <h3>Крок 2. Подивись, що показує заголовок сесії</h3>
+
+          <p>
+            Після запуску Claude Code друкує шапку сесії. Поряд з іменем моделі там стоїть рівень зусиль —
+            документація наводить приклад формулювання «with low effort». Рівень також коротко з'являється
+            внизу екрана при старті й щоразу, коли ти його міняєш.
+          </p>
+
+          <h3>Крок 3. Відкрий пікер моделей</h3>
+
+          <p>
+            Усередині сесії набери <code>/model</code> без нічого й натисни <code>Enter</code>. Відкриється
+            список. Походи по ньому стрілками вгору-вниз, потім натисни <strong>стрілку вправо</strong> —
+            зміниться повзунок рівня зусиль, не модель. Це та сама ручка, що й <code>--effort</code>.
+          </p>
+
+          <p>
+            Коли захочеш вийти без змін — <code>Esc</code>. Якщо ж вирішиш перемкнутись, вибирай свідомо:
+            <code>s</code> — тільки на цю сесію, <code>Enter</code> — і на всі майбутні теж.
+          </p>
+
+          <h3>Крок 4. Зміни рівень зусиль окремою командою</h3>
+
+          <p>
+            Набери <code>/effort</code> без аргументів — відкриється повзунок. Або одразу з рівнем:
+            <code>/effort low</code>. Команда розуміє ще два слова: <code>/effort status</code> друкує
+            поточний рівень, а <code>/effort auto</code> скидає збережений рівень для активної моделі.
+          </p>
+
+          <p>
+            Тут є деталь, про яку варто знати наперед. Коли ти ставиш <code>low</code>, <code>medium</code>,
+            <code>high</code> або <code>xhigh</code> в інтерактивній сесії, Claude Code
+            <strong>запам'ятовує рівень для цієї моделі</strong> й застосує його наступного разу. А от
+            <code>max</code> — навпаки, діє лише на поточну сесію. Тобто «поставив <code>low</code> і
+            забув» — цілком реальний сценарій, а «поставив <code>max</code> назавжди» — ні.
+          </p>
+
+          <h3>Крок 5. Попроси подумати глибше рівно один раз</h3>
+
+          <p>
+            Якщо глибше міркування потрібне на одному конкретному запиті, а не на всій сесії, встав у
+            текст запиту слово <code>ultrathink</code> — будь-де в реченні. Claude Code розпізнає його як
+            ключове й додає інструкцію подумати глибше. Рівень зусиль при цьому не змінюється.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">«think hard» не працює, і це задокументовано</span>
+            <p>
+              В інтернеті гуляють поради писати «think», «think hard», «think more» для глибшого
+              міркування. Документація Claude Code відповідає на це прямо: розпізнається
+              <strong>лише <code>ultrathink</code></strong>, а решта фраз проходять як звичайний текст
+              запиту. Перевіряй такі поради на сторінці <code>model-config</code>, а не в статтях.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
+          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Налаштування, яке не видно, легко уявити собі не таким, як воно є. Ось три способи спитати
+            замість того, щоб здогадуватись.
+          </p>
+
+          <h3>Спосіб 1: усередині сесії</h3>
+
+          <ul>
+            <li><code>/status</code> — відкриває вкладку стану: версія, модель, акаунт, зв'язок;</li>
+            <li>шапка сесії — модель і рівень зусиль поруч із нею;</li>
+            <li><code>/effort status</code> — друкує поточний рівень;</li>
+            <li>рядок стану (англійською <em>status line</em>), якщо ти його налаштував, теж показує модель;</li>
+            <li>значок <code>↯</code> біля поля вводу означає, що ввімкнено швидкий режим.</li>
+          </ul>
+
+          <h3>Спосіб 2: не заходячи в сесію</h3>
+
+          <p>
+            Той самий прийом, що в блоці 2: <code>-p</code> плюс <code>--output-format json</code>. Він
+            відповідає не на питання «що я налаштував», а на питання «хто реально відповів», а це різні
+            питання: організація може підмінити модель, автоматичний перехід може перекинути сесію на
+            іншу — і налаштування при цьому лишиться колишнім.
+          </p>
+
+          <h3>Спосіб 3: заміряти, що дає рівень зусиль</h3>
+
+          <p>
+            Це найцікавіша перевірка, бо руйнує кілька міфів одразу. Я двічі поставив одній і тій самій
+            моделі (Sonnet 5) одне й те саме питання — скільки є способів замостити дошку 6×6 кістками
+            доміно 2×1, рахувати в голові, без коду. Різниця між запусками рівно одна:
+            <code>--effort low</code> проти <code>--effort max</code>.
+          </p>
+
+          <figure class="term" id="t4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t4t">два запуски однієї моделі · 2.1.236 · macOS 26.5.2 · 2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t4t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">grep -o '"result":"[^"]*"\|"thinking_tokens":[0-9]*\|"duration_ms":[0-9]*' eff-low.json</span></span>
+<span class="term__line">"thinking_tokens":0</span>
+<span class="term__line">"result":"6154028096"</span>
+<span class="term__line">"duration_ms":1974</span>
+<span class="term__line"></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">grep -o '"result":"[^"]*"\|"thinking_tokens":[0-9]*\|"duration_ms":[0-9]*' eff-max.json</span></span>
+<span class="term__line">"thinking_tokens":2209</span>
+<span class="term__line">"result":"6728"</span>
+<span class="term__line">"duration_ms":24601</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Файли <code>eff-low.json</code> і <code>eff-max.json</code> — збережений вивід двох запусків
+            <code>claude --model sonnet --effort low|max --output-format json -p "…"</code> на збірці
+            2.1.236, macOS 26.5.2, 4 вересня 2026 року. Показані лише три поля з кожного файла.
+          </p>
+
+          <p>Читається так:</p>
+
+          <ul>
+            <li><strong><code>thinking_tokens</code></strong> — скільки токенів модель витратила на
+              міркування. На <code>low</code> — нуль, тобто вона не думала взагалі. На <code>max</code> —
+              2209;</li>
+            <li><strong><code>duration_ms</code></strong> — тривалість у мілісекундах: 2 секунди проти 25;</li>
+            <li><strong><code>result</code></strong> — сама відповідь. На <code>low</code> модель видала
+              6&nbsp;154&nbsp;028&nbsp;096 — це правильне число, але для дошки 8×8, не 6×6. На
+              <code>max</code> — 6728, і це правильна відповідь на поставлене питання.
+            </li>
+          </ul>
+
+          <div class="callout">
+            <span class="callout-title">Чесна межа цього досліду</span>
+            <p>
+              Це <strong>один</strong> запуск на кожному рівні, а модель імовірнісна: повторивши те саме,
+              ти можеш отримати інші числа. У мене під час підготовки уроку був і запуск, де
+              <code>low</code> дав правильні 6728. Дослід показує <em>механізм</em> — рівень зусиль
+              справді керує кількістю міркування, і без міркування модель відповідає з пам'яті, — а не
+              гарантію, що <code>low</code> завжди помиляється.
+            </p>
+            <p>
+              Ще одне спостереження звідти ж: на легшому питанні (дошка 4×4) навіть
+              <code>max</code> дав <code>thinking_tokens: 0</code> — модель вирішила, що думати нема над чим.
+              Це і є адаптивне міркування з блоку 3, видиме в числах.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
+          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+
+          <h3>1. Помилка в назві моделі не ловиться при запуску</h3>
+
+          <p>
+            Здається, що програма перевірить назву й скаже «такої моделі немає». З прапорцем
+            <code>--model</code> — не скаже. Документація формулює це прямо: локальна перевірка назви
+            <strong>не поширюється</strong> на прапорець <code>--model</code>, змінну
+            <code>ANTHROPIC_MODEL</code> і поле <code>model</code> у налаштуваннях. Помилка вилізе аж на
+            першому запиті.
+          </p>
+
+          <p>Ось як це виглядає наживо. Я набрав <code>claud</code> замість <code>claude</code> у назві моделі:</p>
+
+          <figure class="term term--err" id="t5">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t5t">друкарська помилка в назві моделі · 2.1.236 · macOS 26.5.2 · 2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t5t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --model claud-sonnet-5 -p "Reply ok"</span></span>
+<span class="term__line"><span class="term__err">"claud-sonnet-5" is not a model this version of Claude Code recognizes, so auto-compact</span></span>
+<span class="term__line"><span class="term__err">will keep this session within 200k tokens (the context window it assumes).</span></span>
+<span class="term__line">[claude-code:unrecognized_model] {"model":"claud-sonnet-5","query_source":"sdk"}</span>
+<span class="term__line"><span class="term__err">There's an issue with the selected model (claud-sonnet-5). It may not exist or you may</span></span>
+<span class="term__line"><span class="term__err">not have access to it. Run --model to pick a different model.</span></span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Дослівний вивід, збірка 2.1.236, macOS 26.5.2, 4 вересня 2026 року. Довге перше повідомлення
+            в оригіналі — один суцільний рядок; я розбив його переносами, щоб читалось, і скоротив хвіст
+            із порадами про змінні середовища.
+          </p>
+
+          <p>
+            Зверни увагу на неочевидний бік: перш ніж поскаржитись, програма
+            <strong>припустила контекстне вікно 200 тисяч токенів</strong> — бо не знає цієї моделі й
+            бере обережну оцінку. Тобто одруківка тихо змінює ще й поведінку компакції з модуля 6.
+            Ліки прості: не набирай назви руками, обирай у <code>/model</code>.
+          </p>
+
+          <h3>2. <code>Enter</code> у пікері змінює життя, а не сесію</h3>
+
+          <p>
+            Найпоширеніша пастка теми. Людина одноразово перемикається на потужнішу модель «подивитись»,
+            тисне <code>Enter</code> — і Claude Code записує цю модель у налаштування як дефолт для всіх
+            майбутніх сесій. Далі вона тижнями працює на дорогій моделі й дивується витраті ліміту.
+          </p>
+
+          <p>
+            Для «лише зараз» є клавіша <code>s</code>. Для запуску без наслідків — прапорець
+            <code>--model</code>, який діє тільки на одну сесію. Якщо підозрюєш, що дефолт колись
+            зберігся випадково, найшвидша перевірка — запусти <code>claude</code> у новій папці без
+            прапорців і подивись, що в шапці.
+          </p>
+
+          <h3>3. <code>max</code> «бо найкраще»</h3>
+
+          <p>
+            Токени міркування тарифікуються <strong>як вихідні</strong> — тобто за найдорожчою ставкою.
+            Документація додає, що дефолтний бюджет міркування може складати «десятки тисяч токенів на
+            запит». Дослід із блоку 5 показує решту: на легкій задачі <code>max</code> не дав нічого,
+            бо модель усе одно не стала думати, а на важкій — 2209 токенів міркування й 25 секунд
+            замість 2.
+          </p>
+
+          <p>
+            <code>max</code> — інструмент для окремих важких моментів, а не постійний режим. Саме тому
+            він і зроблений сесійним: Claude Code не збереже його як дефолт, навіть якщо ти захочеш.
+          </p>
+
+          <h3>4. Перемикання посеред задачі коштує дорожче, ніж здається</h3>
+
+          <p>
+            У кожної моделі свій кеш. Документація формулює наслідок прямо: після перемикання через
+            <code>/model</code> наступний запит <strong>перечитує всю історію розмови без жодного
+            влучання в кеш</strong>, хоча текст той самий. Те саме, з невеликими винятками, стосується
+            й зміни рівня зусиль. Тому Claude Code, поки кеш ще теплий, питає підтвердження — і це
+            питання не варто проклацувати автоматично.
+          </p>
+
+          <p>
+            Практичний висновок: обирай модель і рівень <strong>на початку</strong> сесії, а не на
+            двадцятому кроці. Скільки саме це коштує — у модулі 11.
+          </p>
+
+          <h3>5. Швидкий режим — не безкоштовна швидкість</h3>
+
+          <p>
+            <strong>Швидкий режим</strong> (англійською <em>fast mode</em>) вмикається командою
+            <code>/fast</code>. Це <em>не окрема модель</em>: документація каже, що це той самий Claude
+            Opus з іншою конфігурацією звернення — до 2,5 раза швидше, «ідентична якість і можливості».
+            Працює лише на Opus 5 і Opus 4.8; якщо ти на іншій моделі, увімкнення швидкого режиму
+            <strong>перемкне тебе на Opus</strong>.
+          </p>
+
+          <p>Три речі, через які на ньому обпікаються:</p>
+
+          <ul>
+            <li>
+              <strong>На підписках він оплачується не підпискою.</strong> Для Pro, Max, Team і Enterprise
+              швидкий режим доступний лише через <em>usage credits</em> — окремий платний баланс понад
+              включене в план. Поки їх не ввімкнено, <code>/fast</code> відповідає дослівно:
+              <code>Fast mode requires usage credits · /usage-credits to turn them on</code>.
+            </li>
+            <li>
+              <strong>Токен коштує дорожче.</strong> Документація наводить конкретні ставки й зазначає, що
+              вони «пласкі на все вікно в мільйон токенів». Числа — у модулі 11 і на сторінці
+              <code>fast-mode</code> доксів.
+            </li>
+            <li>
+              <strong>Вмикати посеред довгої розмови найдорожче.</strong> Перше ввімкнення в розмові
+              оплачує повний накопичений контекст за швидкою ставкою. Плата стягується один раз на
+              розмову, тож вимкнути й увімкнути знову вже не дорого — але перший раз краще на початку сесії.
+            </li>
+          </ul>
+
+          <h3>6. Модель раптом стала іншою сама</h3>
+
+          <p>
+            Буває й таке, і це не збій. Fable-моделі та Opus 5 працюють із класифікаторами безпеки. Коли
+            класифікатор позначає запит — найчастіше це теми кібербезпеки й біології, — Claude Code
+            переганяє запит на іншу модель і пише про це в стрічці. Далі сесія
+            <strong>продовжується на новій моделі</strong>, доки ти не повернеш свою через
+            <code>/model</code>.
+          </p>
+
+          <p>
+            Неочевидний бік: спрацювати може <strong>найперший запит сесії</strong>, ще до того, як ти
+            щось написав, — бо перший запит несе контекст робочої папки, включно з <code>CLAUDE.md</code>
+            і станом git. Репозиторій із матеріалами з безпеки вмикає класифікатор сам по собі.
+            Щоб перевірити, чи справа в твоїх налаштуваннях, документація радить запустити
+            <code>claude --safe-mode</code>. Якщо перемикання не подобається, його можна замінити на
+            запитання: <code>/config</code> → вимкнути «Switch models when a message is flagged».
+          </p>
+
+          <h3>7. Opus на плані Pro</h3>
+
+          <p>
+            План Pro не включає Opus. Спроба обрати його дає дослівне повідомлення
+            <code>Claude Opus is not available with the Claude Pro plan</code>. Документація додає
+            неочевидну деталь: якщо ти <em>щойно</em> підвищив тарифний план, а помилка лишається, треба
+            вийти й зайти знову — <code>/logout</code>, потім <code>/login</code>. Збережений токен
+            пам'ятає план на момент входу.
+          </p>
+
+          <h3>8. Fable ніде не є дефолтом</h3>
+
+          <p>
+            Документація каже про це окремо: жодна модель Fable не є дефолтом для будь-якого плану чи
+            постачальника. Її треба обрати явно — <code>/model fable</code> або
+            <code>claude --model fable</code>. І тут же друга пастка: на частині планів використання
+            Fable оплачується з usage credits, і тоді в пікері на її рядку стоїть напис
+            «Requires usage credits», а перед першим таким запитом Claude Code питає згоди.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Версія важить: <code>fable</code> — не завжди Fable 5.1</span>
+            <p>
+              На 4 вересня 2026 року документація каже, що аліас <code>fable</code> веде на Fable 5.1,
+              а <strong>до версії 2.1.255 він вів на Fable 5</strong>. Збірка, на якій знято всі екрани
+              цього уроку, — 2.1.236. Тобто на ній те саме слово <code>fable</code> дає іншу модель, ніж
+              описано в доксах.
+            </p>
+            <p>
+              Це не помилка доксів і не помилка курсу — це нормальний розрив між документацією й
+              встановленою в тебе версією. Перевірка на своїй машині: <code>claude --version</code>.
+              Якщо номер менший за той, що названий у доксах поряд із фічею, фічі в тебе поки немає.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
+          <h2><span class="lesson-no">7</span>Часті питання</h2>
+
+          <h3>Яку модель узяти, якщо не знаєш, яку взяти?</h3>
+
+          <p>
+            Документація дає коротку відповідь у розділі про витрати: «Sonnet добре справляється з
+            більшістю задач кодування й коштує менше за Opus. Лишай Opus для складних архітектурних
+            рішень або багатокрокових міркувань». Для дрібних допоміжних задач там же радять
+            <code>haiku</code>.
+          </p>
+
+          <p>
+            Практичне правило, яке з цього виходить: <strong>стартуй на дефолті свого акаунта</strong>,
+            і піднімайся на щабель вище лише тоді, коли бачиш, що помічник плутається на конкретній
+            задачі. Зворотний шлях — тримати найважчу модель постійно — коштує ліміту й часу, а виграє
+            рідко.
+          </p>
+
+          <h3>А що таке <code>opusplan</code>?</h3>
+
+          <p>
+            Це готовий гібрид, зроблений рівно під ситуацію «думати треба дорого, а робити дешево».
+            У режимі плану (модуль 8) він працює на <code>opus</code>, а щойно план схвалено й
+            починається виконання — автоматично перемикається на <code>sonnet</code>.
+          </p>
+
+          <p>
+            Одна деталь, про яку варто знати: кожен вхід і вихід із режиму плану — це перемикання
+            моделі, тобто новий кеш. Тому <code>opusplan</code> вигідний на задачах, де план один і
+            великий, і невигідний, якщо ти щохвилини стрибаєш у режим плану й назад.
+          </p>
+
+          <h3>Чи можна взагалі вимкнути міркування?</h3>
+
+          <p>Так, трьома способами, і в кожного своя область дії:</p>
+
+          <ul>
+            <li><code>Option+T</code> на macOS або <code>Alt+T</code> на Windows і Linux — тумблер на
+              поточну сесію;</li>
+            <li><code>/config</code> → перемикач режиму мислення — зберігається як
+              <code>alwaysThinkingEnabled</code> у твоєму файлі налаштувань;</li>
+            <li>змінна середовища <code>MAX_THINKING_TOKENS=0</code>.</li>
+          </ul>
+
+          <p>
+            Два обмеження. Перше: <strong>на Fable 5.1 і Fable 5 міркування вимкнути не можна</strong> —
+            жоден із трьох способів там не діє. Друге, менш очевидне: з вимкненим міркуванням рівень
+            зусиль вище <code>high</code> частина моделей не приймає. Свіжі версії Claude Code самі
+            надсилають <code>high</code> замість вищого рівня, а старіші повертали помилку
+            <code>Effort 'xhigh' isn't available with thinking turned off on this model</code>.
+          </p>
+
+          <p>
+            І окремо: <strong>ти платиш за токени міркування навіть тоді, коли їх не бачиш.</strong>
+            Claude Code за замовчуванням згортає міркування; <code>Ctrl+O</code> розгортає його сірим
+            курсивом. Згорнуте не означає безкоштовне.
+          </p>
+
+          <h3>Що це за «мільйон токенів», про який згадував модуль 6?</h3>
+
+          <p>
+            Контекстне вікно — це стеля обсягу, який модель бачить за раз (модуль 6). Стандартна стеля —
+            200 тисяч токенів, але частина моделей уміє мільйон: Fable 5.1, Fable 5, Sonnet 5, Opus 4.6
+            і новіші, Sonnet 4.6.
+          </p>
+
+          <p>Хто це отримує — залежить від плану, і документація дає таблицю:</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>План</th>
+                <th>Opus із вікном 1M</th>
+                <th>Sonnet 4.6 із вікном 1M</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Max, Team, Enterprise</td>
+                <td>включено в підписку</td>
+                <td>за usage credits</td>
+              </tr>
+              <tr>
+                <td>Pro</td>
+                <td>за usage credits</td>
+                <td>за usage credits</td>
+              </tr>
+              <tr>
+                <td>API і оплата за використання</td>
+                <td>повний доступ</td>
+                <td>повний доступ</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Обирається мільйон суфіксом <code>[1m]</code> у назві моделі: <code>/model opus[1m]</code>,
+            <code>/model sonnet[1m]</code> або навіть <code>/model claude-opus-4-8[1m]</code>. Якщо в
+            пікері таких рядків немає — твій акаунт їх не має.
+          </p>
+
+          <p>
+            <strong>Sonnet 5 — виняток.</strong> На Anthropic API він завжди працює з вікном на мільйон:
+            варіанта на 200 тисяч не існує, суфікс <code>[1m]</code> йому не потрібен і usage credits теж.
+            Саме звідси взявся поріг автокомпакції «приблизно 967 тисяч» із модуля 6. Мій запуск у блоці 2
+            це підтверджує з іншого боку: <code>"contextWindow":1000000</code> проти
+            <code>"contextWindow":200000</code> у Haiku.
+          </p>
+
+          <p>
+            Зворотний вимикач теж є: змінна <code>CLAUDE_CODE_DISABLE_1M_CONTEXT=1</code> тримає всі
+            моделі на 200 тисячах і прибирає варіанти <code>[1m]</code> з пікера. Знадобиться, якщо
+            треба навмисно обмежити витрати.
+          </p>
+
+          <h3>Чому в мене в пікері менше моделей, ніж у документації?</h3>
+
+          <p>Причин чотири, і всі законні:</p>
+
+          <ol>
+            <li><strong>План.</strong> Pro не має Opus;</li>
+            <li><strong>Версія Claude Code.</strong> Кожна нова модель вимагає мінімальної версії, і
+              сервер це перевіряє. Помилка виглядає як
+              <code>Claude Code 2.1.219 does not support this model; version 2.1.255 or newer is required</code>;</li>
+            <li><strong>Обмеження організації.</strong> Адміністратор може лишити білий список моделей —
+              заборонене в пікері не показується взагалі. Haiku при цьому вимкнути не можна, щоб у
+              кожного лишалась хоч одна робоча модель;</li>
+            <li><strong>Постачальник.</strong> Через Amazon Bedrock, Google Cloud чи Microsoft Foundry
+              набір інший, і навіть аліаси там ведуть на інші версії.</li>
+          </ol>
+
+          <h3>Є ще способи поєднати сильну модель зі слабкою?</h3>
+
+          <p>
+            Є, і документація зводить їх в одну таблицю. Різниця в тому, <em>коли</em> вмикається сильніша
+            модель:
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Спосіб</th>
+                <th>Коли працює сильніша модель</th>
+                <th>Хто це запускає</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/model</code></td>
+                <td>з наступного запиту й далі</td>
+                <td>ти</td>
+              </tr>
+              <tr>
+                <td><code>opusplan</code></td>
+                <td>у режимі плану, потім повернення на Sonnet</td>
+                <td>вмикається входом у режим плану</td>
+              </tr>
+              <tr>
+                <td>Субагенти з полем <code>model</code></td>
+                <td>на всю делеговану підзадачу</td>
+                <td>Claude делегує, або ти викликаєш (модуль 15)</td>
+              </tr>
+              <tr>
+                <td>Дорадник (<code>/advisor</code>)</td>
+                <td>у моменти прийняття рішень усередині задачі</td>
+                <td>Claude сам кличе, коли потрібна порада</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Дорадник — експериментальна можливість і потребує Anthropic API. Токени він витрачає окремо,
+            за ставками своєї моделі. Для новачка це поки що радше «знай, що таке буває», ніж робочий
+            інструмент; повний опис — сторінка <code>advisor</code> в офіційній документації.
+          </p>
+
+          <h3>Що робити, коли пишуть про ліміт?</h3>
+
+          <p>
+            Коротко, бо тема цілком належить модулю 11: повідомлення бувають двох сортів, і вони
+            вимагають різних дій. «You've hit your Opus limit» чи «your Sonnet limit» —
+            <strong>модельний</strong> ліміт, і перемикання через <code>/model</code> на модель з іншого
+            сімейства повертає тебе до роботи. А «You've hit your session limit» чи «your weekly limit» —
+            загальний ліміт плану, спільний для всіх моделей; там <code>/model</code> не рятує взагалі.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
+          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+
+          <p>Що варто винести з цього модуля:</p>
+
+          <ul>
+            <li><strong>Ручок дві, не одна:</strong> яка модель відповідає і скільки їй дозволено думати.
+              Друга ручка дешевша й часто корисніша за першу.</li>
+            <li><strong>Аліаси <code>opus</code>, <code>sonnet</code>, <code>haiku</code>,
+              <code>fable</code> — рухома ціль.</strong> Вони вказують на найновішу версію сімейства й з
+              часом змінюються. Точна прив'язка — тільки повним іменем.</li>
+            <li><strong>Дефолт залежить від акаунта:</strong> Pro і Team Standard стартують на Sonnet 5,
+              Max і Enterprise — на Opus 5. Тому чужі скріншоти не збігаються з твоїм екраном.</li>
+            <li><strong>Рівень зусиль не змушує думати, а дозволяє.</strong> Модель вирішує на кожному
+              кроці сама; на легкому питанні навіть <code>max</code> може не витратити жодного токена
+              міркування.</li>
+            <li><strong><code>Enter</code> у пікері зберігає дефолт назавжди, <code>s</code> — на сесію.</strong>
+              Це найдорожча одна клавіша в усьому модулі.</li>
+            <li><strong>Швидкий режим — не безкоштовний і не інша модель.</strong> На підписці він іде
+              з окремого платного балансу, а не з плану.</li>
+            <li><strong>Перемикання посеред задачі скидає кеш</strong> і змушує перечитати всю розмову.
+              Обирай на початку.</li>
+          </ul>
+
+          <div class="callout">
+            <span class="callout-title">Одне речення, якщо запам'ятовувати лише одне</span>
+            <p>
+              Стартуй на дефолті свого акаунта з рівнем зусиль <code>high</code>, піднімай рівень точково
+              словом <code>ultrathink</code> у запиті, а модель міняй тільки тоді, коли бачиш, що поточна
+              не витягує задачу.
+            </p>
+          </div>
+
+          <h3>Наступний крок</h3>
+
+          <p>
+            Цей модуль весь час упирався в межу «а скільки це коштує» й відсилав далі. Далі — і є
+            <strong>модуль 11 «Скільки це коштує»</strong>: ліміти підписок і як вони насправді
+            влаштовані, <code>/usage</code> і <code>/cost</code>, кешування запитів, ціна контексту й
+            те, як не спалити тижневий ліміт за один вечір.
+          </p>
+
+          <p>
+            А якщо хочеш перевірити щось із цього уроку на своїй машині прямо зараз, найкорисніша
+            перевірка — <code>claude --version</code> поряд із номером версії, який документація вимагає
+            для потрібної тобі фічі. Половина розбіжностей «у мене не так, як написано» пояснюється
+            саме цим числом.
+          </p>
+        </section>
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять на назви:
+            до кожної відповіді одразу з'являється пояснення, чому решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Людина подивилась відео, де автор працює на Opus, відкрила /model у себе й побачила, що сесія йде на Sonnet 5. Вона нічого не налаштовувала. Що сталось?",
+            "options": [
+              "Claude Code зламався і скинув налаштування",
+              "У неї план Pro або Team Standard, а там дефолт саме Sonnet 5 — автор відео на іншому плані",
+              "Opus доступний лише в перші дні після встановлення",
+              "Sonnet 5 підставляється, коли немає інтернету"
+            ],
+            "answer": 1,
+            "explain": "Дефолтна модель визначається типом акаунта: Pro і Team Standard стартують на Sonnet 5, а Max, Team Premium, Enterprise і Anthropic API — на Opus 5. Нічого не ламалось і нічого не скидалось. Варіанти про строк і про інтернет вигадані: Claude Code без мережі не працює взагалі, а обмеження за часом у моделей немає. Пригадай блок 1 і схему старшинства в блоці 3."
+          },
+          {
+            "q": "Людина відкрила /model, обрала потужнішу модель «на один раз подивитись» і натиснула Enter. Через тиждень вона помічає, що ліміт закінчується вдвічі швидше. Чому?",
+            "options": [
+              "Enter у пікері зберігає обрану модель як дефолт для всіх нових сесій",
+              "Пікер /model завжди вмикає максимальний рівень зусиль",
+              "Одноразовий вибір діє рівно сім днів, потім скидається",
+              "Перемикання моделі назавжди вимикає кешування запитів"
+            ],
+            "answer": 0,
+            "explain": "Enter у пікері не лише перемикає модель, а й записує її в поле model твоїх налаштувань — тобто вона стає дефолтом для кожної нової сесії. Для разового вибору є клавіша s або прапорець --model при запуску. Рівень зусиль пікер не чіпає, поки ти не рухнеш повзунок стрілками. Строку в сім днів не існує. Кеш після перемикання справді скидається, але одноразово, а не назавжди — це граблі 4 з блоку 6."
+          },
+          {
+            "q": "Учень поставив --effort max, задав легке питання і побачив у виводі \"thinking_tokens\":0. Він вирішив, що прапорець не спрацював. Що насправді?",
+            "options": [
+              "Прапорець справді ігнорується, поки не перезапустити сесію",
+              "max працює тільки на Opus, а на решті моделей мовчки вимикається",
+              "Рівень зусиль задає стелю глибини, а рішення думати чи ні модель ухвалює сама на кожному кроці — на легкому кроці вона може не думати взагалі",
+              "Поле thinking_tokens показує лише міркування, яке ти розгорнув через Ctrl+O"
+            ],
+            "answer": 2,
+            "explain": "Документація називає цей механізм адаптивним міркуванням: модель сама вирішує, чи потрібне міркування на кожному конкретному кроці, а рівень зусиль лише задає стелю. Саме це видно в замірі з блоку 5: на легкому питанні навіть max дав нуль токенів міркування, а на важкому — 2209. Прапорець працює одразу, без перезапуску. Рівні зусиль підтримує не тільки Opus. А thinking_tokens рахує всі токени міркування незалежно від того, згорнуте воно на екрані чи ні — за них платять у будь-якому разі."
+          },
+          {
+            "q": "Людина працює третю годину над однією задачею на Sonnet, упирається в складне місце й перемикається на Opus командою /model. Claude Code питає підтвердження. Що станеться після підтвердження, крім зміни моделі?",
+            "options": [
+              "Нічого особливого: історія розмови продовжиться далі",
+              "Наступний запит перечитає всю історію розмови без жодного влучання в кеш, бо в кожної моделі свій кеш",
+              "Уся попередня історія буде видалена — нова модель починає з чистого аркуша",
+              "Сесія перезапуститься і доведеться заново давати дозволи"
+            ],
+            "answer": 1,
+            "explain": "У кожної моделі власний кеш, тому після перемикання наступний запит читає весь накопичений контекст наново, хоча текст той самий. Саме тому Claude Code питає підтвердження, поки кеш ще теплий. Історія при цьому нікуди не дівається — вона перечитується наново (варіант про видалення хибний), і сесія не перезапускається, дозволи лишаються. Це аргумент за те, щоб обирати модель на початку роботи, а не посеред неї."
+          },
+          {
+            "q": "На плані Max людина вмикає /fast, щоб працювати швидше, і бачить повідомлення «Fast mode requires usage credits». Що це означає?",
+            "options": [
+              "Швидкий режим доступний лише організаціям, приватним акаунтам — ні",
+              "Треба оновити Claude Code до новішої версії",
+              "Швидкий режим на підписках оплачується з окремого платного балансу понад план, і його спершу треба ввімкнути",
+              "Закінчився тижневий ліміт, і треба почекати до скидання"
+            ],
+            "answer": 2,
+            "explain": "На підписках Pro, Max, Team і Enterprise швидкий режим не входить у ліміти плану — він іде через usage credits, тобто платне використання понад включене. Поки цей баланс не ввімкнено, /fast відповідає рівно цим текстом і пропонує команду /usage-credits. Це не питання версії й не тижневий ліміт (у нього інші повідомлення — див. блок 7). Приватним акаунтам режим доступний; окремого дозволу власника потребують якраз організації на Team і Enterprise."
+          },
+          {
+            "q": "Учень читає в документації про Fable 5.1, набирає claude --model fable і отримує іншу модель, ніж описано. Його версія — 2.1.236. Що це?",
+            "options": [
+              "Документація помилкова, треба писати в підтримку",
+              "Аліас fable веде на Fable 5.1 починаючи з версії 2.1.255, а на старішій збірці той самий аліас дає Fable 5",
+              "Fable доступний тільки через Anthropic API, а на підписці аліас підміняється на Opus",
+              "Треба вказувати аліас великими літерами: FABLE"
+            ],
+            "answer": 1,
+            "explain": "Це нормальний розрив між документацією й встановленою збіркою: докси описують найсвіжішу версію, а аліаси з часом переїжджають на новіші моделі. Документація прямо каже, що до v2.1.255 аліас fable вів на Fable 5. Перевірка на своїй машині — claude --version. Писати в підтримку тут нема про що; регістр літер в аліасах ролі не грає; а Fable доступний не лише через API, хоча на частині планів оплачується з usage credits."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>

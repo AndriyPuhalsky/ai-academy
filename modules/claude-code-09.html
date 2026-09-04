@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 9 · Сесії, історія, відкат — AI Термінал</title>
+  <meta name="description"
+    content="Як повернутись до вчорашньої розмови з Claude Code: claude -c і claude -r, меню /rewind і чекпойнти коду, /export, де історія лежить на диску і чого відкат не повертає." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="c09" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 09</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 2 · Контекст, дозволи, гроші</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Сесії, історія, відкат</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Середній · 8 блоків · ≈ 45 хв читання</p>
+        <p class="mt-6 text-lg">
+          Вісім попередніх модулів вчили керувати однією розмовою: що в неї потрапляє, що
+          Claude дозволено робити, як він планує. Цей модуль про те, що з розмовою стається,
+          коли ти закриваєш вікно, і що робити, коли Claude уже змінив файли, а зміни виявились
+          неправильними. Дві теми, які на перший погляд не пов'язані, насправді тримаються
+          одного механізму — і саме тому вони в одному уроці.
+        </p>
+        <p>
+          Тут немає нічого небезпечного: майже все, що робиться в цьому модулі, — це читання
+          власного диска й повернення до вже написаного. Одна команда в блоці 5 видаляє дані,
+          і вона розібрана окремо, разом зі своїм режимом «показати, але не чіпати».
+        </p>
+
+        <div class="callout">
+          <span class="callout-title">Що в цьому модулі є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> роботи з git — це система контролю версій, окрема програма,
+            про неї в модулі 21. Немає паралельних сесій і worktrees — модуль 15. Немає
+            <code>/compact</code> і того, як стискається контекст, — це модуль 6, тут на нього
+            лише посилаємось.
+          </p>
+          <p>
+            <strong>Є:</strong> сесія як поняття, <code>claude --continue</code> і
+            <code>claude --resume</code>, меню <code>/rewind</code> і чекпойнти коду,
+            <code>/export</code>, місце на диску, де все це фізично лежить, скільки воно там
+            живе — і чесний перелік того, чого відкат <em>не</em> повертає.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
+          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+
+          <p>
+            Уяви звичайний робочий день. Ти півтори години пояснював Claude Code структуру свого
+            проєкту, він прочитав десяток файлів, ви разом дійшли до робочого рішення. Ти закрив
+            вікно термінала. Наступного ранку відкриваєш його знову — і бачиш порожній екран.
+          </p>
+
+          <p>
+            Питання, на які відповідає цей модуль, звучать так:
+          </p>
+
+          <ul>
+            <li><strong>Та розмова ще існує?</strong> Так. І її можна відкрити знову однією командою.</li>
+            <li><strong>Claude написав у файли дурницю. Це можна скасувати?</strong> Здебільшого так —
+              але <em>не завжди</em>, і межа тут не очевидна навіть для тих, хто користується
+              Claude Code місяцями.</li>
+            <li><strong>Де все це лежить і скільки воно там живе?</strong> На твоєму диску, у
+              звичайних текстових файлах, за замовчуванням 30 днів.</li>
+          </ul>
+
+          <h3>Що таке сесія</h3>
+
+          <p>
+            <strong>Сесія</strong> (session) — це одна збережена розмова з Claude Code, прив'язана
+            до однієї папки. Документація формулює це так: «A session is a saved conversation tied
+            to a project directory» — сесія це збережена розмова, прив'язана до папки проєкту.
+          </p>
+
+          <p>
+            Два слова тут важать однаково. <strong>Збережена</strong> — Claude Code пише розмову на
+            диск безперервно, поки ти працюєш, а не в момент виходу; тому навіть аварійне закриття
+            вікна її не втрачає. <strong>Прив'язана до папки</strong> — сесії, розпочаті в
+            <code>~/my-site</code>, не видно з <code>~/other-project</code> за замовчуванням. Це
+            найчастіша причина фрази «моя розмова зникла», і повернемось до неї в блоці 6.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Три різні речі, які легко злити в одну</span>
+            <p>
+              Claude Code зберігає <strong>три</strong> окремі види історії, і плутанина між ними
+              псує половину спроб щось відновити:
+            </p>
+            <ul>
+              <li><strong>Розмова</strong> — усі повідомлення, виклики інструментів і їхні
+                результати. Повертається командами <code>claude --continue</code> і
+                <code>claude --resume</code>.</li>
+              <li><strong>Стан файлів</strong> — знімки вмісту файлів, які Claude редагував.
+                Повертається меню <code>/rewind</code>.</li>
+              <li><strong>Історія набраного</strong> — те, що ти сам друкував у полі вводу.
+                Повертається стрілкою <code>↑</code>.</li>
+            </ul>
+            <p>
+              Вони лежать у трьох різних місцях на диску, і одне можна втратити, зберігши інше.
+              Схема — у блоці 3.
+            </p>
+          </div>
+
+          <h3>Чому відкат — це не система контролю версій</h3>
+
+          <p>
+            Документація Claude Code каже це прямим текстом: чекпойнти — «not a replacement for
+            version control», не заміна системі контролю версій. Вони розраховані на швидке
+            повернення в межах однієї сесії: «designed for quick, session-level recovery».
+          </p>
+
+          <p>
+            Якщо слово «git» тобі поки нічого не каже — нічого страшного, у модулі 21 буде окрема
+            розмова. Поки що достатньо запам'ятати межу: те, що описано в цьому уроці, живе на
+            твоєму комп'ютері обмежену кількість днів і не переживає ані переїзду на інший
+            комп'ютер, ані видалення папки з історією.
+          </p>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
+          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Почнемо з того, що видно в терміналі до запуску Claude Code. Команда
+            <code>claude --help</code> друкує довідку — на цій збірці рівно 62 опції. П'ять із них
+            стосуються сесій; нижче витяг саме з цих п'яти, решта 57 пропущена.
+          </p>
+
+          <figure class="term term--cmd" id="s1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="s1t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04 · витяг</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="s1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --help</span></span>
+<span class="term__line">  -c, --continue                        Continue the most recent conversation in</span>
+<span class="term__line">                                        the current directory</span>
+<span class="term__line">  --fork-session                        When resuming, create a new session ID</span>
+<span class="term__line">                                        instead of reusing the original (use</span>
+<span class="term__line">                                        with --resume or --continue)</span>
+<span class="term__line">  -n, --name &lt;name&gt;                     Set a display name for this session</span>
+<span class="term__line">                                        (shown in the prompt box, /resume</span>
+<span class="term__line">                                        picker, and terminal title)</span>
+<span class="term__line">  -r, --resume [value]                  Resume a conversation by session ID, or</span>
+<span class="term__line">                                        open interactive picker with optional</span>
+<span class="term__line">                                        search term</span>
+<span class="term__line">  --session-id &lt;uuid&gt;                   Use a specific session ID for the</span>
+<span class="term__line">                                        conversation (must be a valid UUID)</span></pre>
+          </figure>
+
+          <p>
+            Переклад тих самих рядків: <code>-c</code> продовжує останню розмову в поточній папці;
+            <code>-r</code> відновлює розмову за ідентифікатором або відкриває інтерактивний
+            перелік; <code>-n</code> дає сесії ім'я; <code>--fork-session</code> при відновленні
+            створює копію замість продовження оригіналу; <code>--session-id</code> задає
+            конкретний ідентифікатор наперед.
+          </p>
+
+          <p>
+            <strong>Ідентифікатор сесії</strong> (session ID) — це довгий рядок із цифр і літер
+            на кшталт <code>55f7c810-b95b-4d1a-93ab-6339284c08f3</code>. Формат називається UUID;
+            його призначення — бути унікальним, а не читабельним. Саме тому в Claude Code є ще й
+            імена: людині зручніше набрати <code>claude --resume auth-refactor</code>.
+          </p>
+
+          <h3>Де це фізично лежить</h3>
+
+          <p>
+            Наступний блок знятий у порожній тестовій папці <code>/private/tmp/site-demo</code>,
+            у якій перед тим один раз запустили Claude Code. Спершу <code>pwd</code> показує, у
+            якій папці ми стоїмо, потім <code>ls</code> показує вміст папки, у якій Claude Code
+            зберіг розмову.
+          </p>
+
+          <figure class="term" id="s2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="s2t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="s2t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">pwd</span></span>
+<span class="term__line">/private/tmp/site-demo</span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">ls ~/.claude/projects/-private-tmp-site-demo</span></span>
+<span class="term__line">55f7c810-b95b-4d1a-93ab-6339284c08f3.jsonl</span>
+<span class="term__line">memory</span></pre>
+          </figure>
+
+          <p>
+            Порівняй два рядки уважно. Шлях до робочої папки —
+            <code>/private/tmp/site-demo</code>. Ім'я папки з історією —
+            <code>-private-tmp-site-demo</code>. Це той самий шлях, у якому кожен символ, що не є
+            літерою чи цифрою, замінений на дефіс. Правило дослівне з документації: «where
+            <code>&lt;project&gt;</code> is your working directory path with non-alphanumeric
+            characters replaced by <code>-</code>».
+          </p>
+
+          <p>
+            Файл <code>55f7c810-….jsonl</code> — це і є збережена розмова. Розширення
+            <code>.jsonl</code> означає «по одному об'єкту JSON на рядок»: кожен рядок описує одне
+            повідомлення, один виклик інструмента або службовий запис. Папка <code>memory</code>
+            поруч — це автопам'ять, окрема тема модуля 12.
+          </p>
+
+          <h3>Коли команда не знаходить сесію</h3>
+
+          <p>
+            Це єдина помилка, яку в цьому модулі варто вміти впізнавати. Вона трапляється, коли
+            ідентифікатор набраний із помилкою, коли сесія вже видалена за строком зберігання або
+            коли її створювали на іншому комп'ютері.
+          </p>
+
+          <figure class="term term--err" id="s3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="s3t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="s3t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --resume 11111111-1111-1111-1111-111111111111</span></span>
+<span class="term__line"><span class="term__err">No conversation found with session ID: 11111111-1111-1111-1111-111111111111</span></span></pre>
+          </figure>
+
+          <p>
+            Програма друкує це повідомлення й завершується з кодом <code>1</code> — перевірено
+            запуском на цій же збірці. Код завершення — це число, яке програма віддає системі,
+            коли закінчує роботу; <code>0</code> означає «все добре», будь-яке інше — «ні». Для
+            людини за клавіатурою достатньо самого тексту повідомлення.
+          </p>
+
+          <h3>Чому далі немає знімків екрана</h3>
+
+          <p>
+            Дві головні речі цього модуля — <strong>перелік сесій</strong> (session picker) і
+            <strong>меню відкату</strong> — інтерактивні. Вони перемальовуються прямо у вікні,
+            реагують на стрілки й не існують як текст, який можна зняти командою. Курс тримається
+            правила «жодного вигаданого виводу», тому далі вони описані словами, а назви пунктів
+            наведені дослівно з документації.
+          </p>
+
+          <p>
+            <strong>Перелік сесій</strong> відкривається командою <code>claude --resume</code> без
+            аргументів або командою <code>/resume</code> всередині сесії. Кожен рядок показує ім'я
+            сесії (якщо ти його задав), інакше — автоматично згенерований заголовок, стислий опис
+            розмови або перший промпт; поруч час від останньої активності, гілка git і розмір
+            файла. Клавіші всередині переліку:
+          </p>
+
+          <table>
+            <thead>
+              <tr><th>Клавіша</th><th>Що робить</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>↑</code> / <code>↓</code></td><td>рух по переліку</td></tr>
+              <tr><td><code>→</code> / <code>←</code></td><td>розгорнути або згорнути групу рядків</td></tr>
+              <tr><td><code>Enter</code></td><td>відновити вибрану сесію</td></tr>
+              <tr><td><code>Space</code></td><td>показати вміст сесії, не виходячи з переліку</td></tr>
+              <tr><td><code>Ctrl</code> + <code>R</code></td><td>перейменувати вибрану сесію</td></tr>
+              <tr><td><code>/</code> або будь-яка друкована літера</td><td>пошук по переліку</td></tr>
+              <tr><td><code>Ctrl</code> + <code>A</code></td><td>показати сесії з <strong>усіх</strong> проєктів на цьому комп'ютері</td></tr>
+              <tr><td><code>Ctrl</code> + <code>W</code></td><td>показати сесії з усіх робочих копій цього репозиторію</td></tr>
+              <tr><td><code>Ctrl</code> + <code>B</code></td><td>лишити тільки сесії з поточної гілки git</td></tr>
+              <tr><td><code>Esc</code></td><td>вийти з переліку або з пошуку</td></tr>
+            </tbody>
+          </table>
+
+          <p class="diagram-caption" style="text-align:left">
+            Джерело: розділ «Use the session picker» офіційної документації, звірено 2026-09-04.
+            <code>Ctrl</code> + <code>A</code> — та сама клавіша, якої найчастіше бракує людині,
+            що запустила Claude Code не в тій папці.
+          </p>
+
+          <p>
+            У поле пошуку цього переліку можна вставити <strong>посилання на пул-реквест</strong>
+            з GitHub, GitHub Enterprise, GitLab або Bitbucket — і Claude Code знайде сесію, яка
+            цей пул-реквест створила. Якщо слова «пул-реквест» тобі поки нічого не кажуть, це
+            нормально: тема модуля 21.
+          </p>
+
+          <p>
+            <strong>Меню відкату</strong> відкривається командою <code>/rewind</code> або
+            подвійним <code>Esc</code> при порожньому полі вводу (умову про порожнє поле розібрано
+            в модулі 4). У ньому перелічені всі твої промпти цієї сесії; ти обираєш точку, а потім
+            одну з дій. Дії названі так — дослівно:
+          </p>
+
+          <table>
+            <thead>
+              <tr><th>Пункт меню</th><th>Що станеться</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>Restore code and conversation</code></td><td>повернути й файли, і розмову до вибраної точки</td></tr>
+              <tr><td><code>Restore conversation</code></td><td>повернути розмову, файли лишити як є</td></tr>
+              <tr><td><code>Restore code</code></td><td>повернути файли, розмову лишити як є</td></tr>
+              <tr><td><code>Summarize from here</code></td><td>стиснути в підсумок усе <em>після</em> вибраної точки</td></tr>
+              <tr><td><code>Summarize up to here</code></td><td>стиснути в підсумок усе <em>до</em> вибраної точки</td></tr>
+              <tr><td><code>Never mind</code></td><td>вийти, нічого не змінюючи</td></tr>
+            </tbody>
+          </table>
+
+          <p class="diagram-caption" style="text-align:left">
+            Джерело: сторінка «Checkpointing» офіційної документації, звірено 2026-09-04.
+          </p>
+
+          <p>
+            Два пункти з відновленням коду <strong>з'являються не завжди</strong>: документація
+            зазначає, що вони видимі лише тоді, коли у вибраній точці справді є відстежені зміни
+            файлів. Якщо після цієї точки Claude нічого не редагував, у меню лишаться тільки
+            <code>Restore conversation</code>, два пункти зі стисненням і <code>Never mind</code>.
+            Це не поломка — це відповідь «повертати нічого».
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
+          <h2><span class="lesson-no">3</span>Як це працює</h2>
+
+          <p>
+            Три види історії з блоку 1 лежать у трьох різних місцях усередині папки
+            <code>~/.claude</code>. Символ <code>~</code> — скорочення твоєї домашньої папки, про
+            нього був модуль 1. Крапка на початку імені <code>.claude</code> означає, що папка
+            прихована: у файловому менеджері її за замовчуванням не видно, у терміналі вона
+            звичайна.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  S["Сесія: одна розмова в одній папці"] --> T["Транскрипт розмови у ~/.claude/projects/ПРОЄКТ/ID.jsonl"]
+  S --> C["Знімки файлів у ~/.claude/file-history/"]
+  S --> H["Промпти, які ти набирав, у ~/.claude/history.jsonl"]
+  T --> RT["claude -c та claude -r повертають розмову"]
+  C --> RC["/rewind повертає вміст файлів"]
+  H --> RH["Стрілка вгору повертає набране"]
+  style S fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Три сховища, три способи повернення. Видалити одне — не означає втратити інші
+            </p>
+          </div>
+
+          <h3>Транскрипт: сама розмова</h3>
+
+          <p>
+            <strong>Транскрипт</strong> (transcript) — файл, у який Claude Code пише розмову
+            безперервно, поки ти працюєш. Один файл на одну сесію. Що про нього треба знати:
+          </p>
+
+          <ul>
+            <li>лежить у <code>~/.claude/projects/ПРОЄКТ/ІДЕНТИФІКАТОР.jsonl</code>, де
+              <code>ПРОЄКТ</code> — перетворений шлях робочої папки з блоку 2;</li>
+            <li>якщо перетворене ім'я виходить довшим за <strong>200 символів</strong>, Claude Code
+              обрізає його до 200 і додає хеш повного шляху, щоб уміститись в обмеження файлової
+              системи;</li>
+            <li>усередині — по одному об'єкту JSON на рядок: повідомлення, виклик інструмента,
+              службовий запис;</li>
+            <li>формат <strong>внутрішній і змінюється між версіями</strong>. Документація
+              попереджає дослівно: «scripts that parse these files directly can break on any
+              release» — скрипти, які читають ці файли напряму, можуть зламатись на будь-якому
+              оновленні. Тому для скриптів є окремі інтерфейси, про них у блоці 7.</li>
+          </ul>
+
+          <h3>Чекпойнти: знімки файлів</h3>
+
+          <p>
+            <strong>Чекпойнт</strong> (checkpoint, «точка збереження») — знімок стану коду.
+            Механіка коротка й повністю передбачувана:
+          </p>
+
+          <ul>
+            <li>знімок робиться <strong>перед кожним твоїм промптом</strong>, автоматично, без
+              команди;</li>
+            <li>зберігаються знімки для <strong>100 останніх</strong> чекпойнтів сесії;</li>
+            <li>чекпойнти зберігаються <em>разом із розмовою</em>, тому <code>/rewind</code>
+              працює й після того, як ти відновив сесію наступного дня;</li>
+            <li>самі знімки файлів лежать у <code>~/.claude/file-history/</code>: у переліку
+              «що ти втратиш, якщо видалиш» документація підписує цю папку як «Checkpoint restore
+              for past sessions».</li>
+          </ul>
+
+          <p>
+            Ключове слово в першому пункті — <strong>перед промптом</strong>. Чекпойнт фіксує стан
+            «до того, як ти попросив». Тому відкат до точки означає «поверни файли такими, якими
+            вони були, коли я писав оце повідомлення».
+          </p>
+
+          <h3>Історія набраного</h3>
+
+          <p>
+            Твої власні промпти живуть окремо від розмов — в одному файлі
+            <code>~/.claude/history.jsonl</code>. Документація описує його як «Every prompt you've
+            typed, with timestamp and project path. Used for up-arrow recall»: кожен набраний
+            промпт із часовою міткою й шляхом проєкту, для повернення стрілкою вгору. Перевірено
+            на живому файлі 2026-09-04: у кожному записі справді є поля
+            <code>display</code>, <code>timestamp</code>, <code>project</code> і
+            <code>sessionId</code>.
+          </p>
+
+          <p>
+            Практичний наслідок: <strong>історія вводу зберігається окремо для кожної робочої
+            папки</strong>, і стрілка <code>↑</code> дістає промпти з <em>минулих</em> сесій цієї
+            ж папки, а не лише поточної. Після <code>/clear</code> перелік починається з промптів
+            нової сесії, а старі йдуть під ними. Пошук по цій історії — <code>Ctrl</code> +
+            <code>R</code>.
+          </p>
+
+          <h3>Чотири схожі команди, які роблять різне</h3>
+
+          <p>
+            Тут найлегше заплутатись, бо всі чотири «щось роблять зі старою розмовою».
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  Q{"Що саме тобі треба?"}
+  Q -->|"продовжити останню розмову тут"| A["claude --continue, коротко -c"]
+  Q -->|"обрати з переліку або за іменем"| B["claude --resume, коротко -r"]
+  Q -->|"спробувати інший шлях, зберігши цей"| C["/branch у сесії або --fork-session"]
+  Q -->|"віддати підзадачу, лишившись тут"| D["/fork або /subtask"]
+  style Q fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Розвилка на чотири гілки. Перші дві повертають тебе в стару розмову, дві інші
+              створюють копію
+            </p>
+          </div>
+
+          <table>
+            <thead>
+              <tr><th>Команда</th><th>Що робить</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>claude --continue</code></td>
+                <td>відкриває <strong>останню</strong> інтерактивну розмову цієї папки. Нічого не питає</td>
+              </tr>
+              <tr>
+                <td><code>claude --resume</code></td>
+                <td>відкриває перелік. З аргументом — відновлює за ім'ям або ідентифікатором одразу</td>
+              </tr>
+              <tr>
+                <td><code>/branch [ім'я]</code></td>
+                <td>копіює розмову й <strong>переводить тебе в копію</strong>. Оригінал лишається цілим і далі видимий у переліку</td>
+              </tr>
+              <tr>
+                <td><code>claude --continue --fork-session</code></td>
+                <td>те саме розгалуження, але з командного рядка: при відновленні створюється новий ідентифікатор замість продовження старого</td>
+              </tr>
+              <tr>
+                <td><code>/fork [промпт]</code></td>
+                <td>копіює розмову у <strong>фонову</strong> сесію, а ти лишаєшся тут. Потребує версії 2.1.212 або новішої</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Одна деталь про <code>/branch</code>, яку варто знати заздалегідь: він працює
+            <em>усередині того самого запущеного процесу</em>, тому дозволи, видані на цю сесію
+            («Allow for this session» з модуля 7), переїжджають у гілку разом із тобою. А от
+            <code>--fork-session</code> запускає окремий процес, і там дозволи доведеться давати
+            заново. Підтвердження команди <code>/branch</code> друкує <strong>два</strong>
+            ідентифікатори: нової гілки й оригіналу.
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
+          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+
+          <p>
+            Вправа займає близько десяти хвилин і не вимагає справжнього проєкту. Роби її в
+            тестовій папці — так спокійніше.
+          </p>
+
+          <h3>Крок 1. Створи тестову папку й зайди в неї</h3>
+
+          <p>
+            Набери в терміналі два рядки, кожен окремо, після кожного — <code>Enter</code>. Перший
+            створює папку в домашній директорії, другий у неї переходить.
+          </p>
+
+          <figure class="term term--cmd" id="s4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="s4t">створення тестової папки · macOS, Linux</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="s4t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">mkdir -p ~/claude-sesii</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">cd ~/claude-sesii</span></span></pre>
+          </figure>
+
+          <p>
+            На Windows у PowerShell ті самі дві команди працюють так само:
+            <code>mkdir</code> створює папку, <code>cd</code> у неї переходить.
+          </p>
+
+          <h3>Крок 2. Запусти сесію з іменем</h3>
+
+          <p>
+            Набери <code>claude -n perevirka-sesij</code> і натисни <code>Enter</code>. Прапорець
+            <code>-n</code> дає сесії ім'я, яке буде видно і в полі вводу, і потім у переліку
+            сесій. Ім'я пиши латиницею без пробілів — так його зручніше набирати при відновленні.
+          </p>
+
+          <h3>Крок 3. Попроси щось маленьке</h3>
+
+          <p>
+            Наприклад: <code>create a file notes.txt with three lines about this course</code>.
+            Дай дозвіл, якщо Claude його спитає (модуль 7 про те, чому питає не завжди). Потім
+            попроси ще одну зміну — <code>add a fourth line</code>. Дві правки потрібні, щоб у
+            меню відкату було між чим обирати.
+          </p>
+
+          <h3>Крок 4. Вийди</h3>
+
+          <p>
+            Набери <code>/exit</code> і натисни <code>Enter</code>. Ти повернувся в звичайний
+            термінал.
+          </p>
+
+          <h3>Крок 5. Поверни розмову</h3>
+
+          <p>
+            Набери <code>claude -c</code>. Claude Code відкриє останню розмову цієї папки — з усією
+            історією, включно з викликами інструментів. Спробуй одразу другий шлях: вийди знову й
+            набери <code>claude -r perevirka-sesij</code>, тобто відновлення за ім'ям.
+          </p>
+
+          <h3>Крок 6. Подивись меню відкату</h3>
+
+          <p>
+            У сесії набери <code>/rewind</code> і натисни <code>Enter</code>. З'явиться перелік
+            твоїх промптів. Постав вибір на <em>першому</em> промпті й подивись, які дії пропонує
+            меню. Обери <code>Restore code</code> — файл <code>notes.txt</code> повернеться до
+            стану «до першої правки», а розмова лишиться на місці.
+          </p>
+
+          <p>
+            Якщо повертати нічого не хочеш — обери <code>Never mind</code>. Цей пункт існує саме
+            для того, щоб можна було зазирнути й вийти.
+          </p>
+
+          <h3>Крок 7. Збережи розмову в файл</h3>
+
+          <p>
+            Набери <code>/export rozmova.txt</code>. Команда запише розмову звичайним текстом у
+            файл із цим іменем. Без імені файла <code>/export</code> відкриє діалог із двома
+            варіантами: скопіювати розмову в буфер обміну або зберегти у файл.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Що саме ти щойно зробив</span>
+            <p>
+              Ти пройшов повне коло: створив сесію з іменем, вийшов, повернувся двома різними
+              способами, відкотив файл до попереднього стану й вивантажив розмову назовні. Це вся
+              щоденна робота з сесіями. Решта модуля — про межі й про те, чого ці інструменти
+              не вміють.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
+          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Здогадки тут не потрібні: у кожного питання цього модуля є команда, яка відповідає
+            «так» або «ні».
+          </p>
+
+          <h3>Сесія справді збереглась?</h3>
+
+          <p>
+            Дізнайся шлях робочої папки командою <code>pwd</code>, переклади його за правилом з
+            блоку 2 (кожен символ, який не літера й не цифра, стає дефісом) і подивись, чи є така
+            папка всередині <code>~/.claude/projects</code>. Для папки
+            <code>/Users/anna/claude-sesii</code> команда буде така:
+          </p>
+
+          <p><code>ls ~/.claude/projects/-Users-anna-claude-sesii</code></p>
+
+          <p>
+            Один файл <code>.jsonl</code> — одна збережена сесія. Якщо папки немає взагалі,
+            <code>ls</code> скаже <code>No such file or directory</code> — тобто в цій папці
+            Claude Code ще не запускався.
+          </p>
+
+          <h3>Ідентифікатор правильний?</h3>
+
+          <p>
+            Команда <code>claude --resume &lt;ідентифікатор&gt;</code> відповідає однозначно:
+            або відкриває розмову, або друкує <code>No conversation found with session ID:</code>
+            і виходить. Проміжного стану немає. Знімок цієї помилки — у блоці 2.
+          </p>
+
+          <h3>Що взагалі накопичилось по цьому проєкту?</h3>
+
+          <p>
+            Є команда, яка вміє <strong>показати перелік усього збереженого стану проєкту, нічого
+            не видаляючи</strong>. Вона ж уміє це видаляти, тому спершу подивись її довідку:
+          </p>
+
+          <figure class="term term--cmd" id="s5">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="s5t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="s5t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude project purge --help</span></span>
+<span class="term__line">Usage: claude project purge [options] [path]</span>
+<span class="term__line"></span>
+<span class="term__line">Delete all Claude Code state for a project (transcripts, tasks, file history,</span>
+<span class="term__line">config entry)</span>
+<span class="term__line"></span>
+<span class="term__line">Options:</span>
+<span class="term__line">  --all              Purge state for every project (mutually exclusive with</span>
+<span class="term__line">                     [path])</span>
+<span class="term__line">  --dry-run          List what would be deleted without deleting anything</span>
+<span class="term__line">  -h, --help         Display help for command</span>
+<span class="term__line">  -i, --interactive  Prompt for each item before deleting</span>
+<span class="term__line">  -y, --yes          Skip confirmation prompt</span></pre>
+          </figure>
+
+          <p>
+            Прапорець <code>--dry-run</code> перекладається як «пробний прогін»: команда друкує
+            повний перелік того, що <em>було б</em> видалено, і не чіпає нічого. Це і є безпечний
+            спосіб подивитись, скільки місця займає історія одного проєкту:
+            <code>claude project purge ~/claude-sesii --dry-run</code>.
+          </p>
+
+          <p>
+            У переліку буде чотири види записів: папка з транскриптами й автопам'яттю, запис
+            проєкту у файлі <code>~/.claude.json</code> (там зберігається довіра до папки, історія
+            й налаштування MCP-серверів), кількість промптів у
+            <code>history.jsonl</code>, які стосуються цього проєкту, і підсумковий рядок
+            <code>Dry run: N item(s) would be deleted.</code> Документація окремо зазначає, що
+            папки <code>shell-snapshots/</code> і <code>backups/</code> ця команда не чіпає, бо
+            вони не прив'язані до проєкту.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Правило для цієї команди</span>
+            <p>
+              <strong>Спершу <code>--dry-run</code>, і тільки потім без нього.</strong> Без
+              <code>--dry-run</code> команда друкує той самий перелік і питає
+              <code>[y/N]</code>; підтвердження <code>y</code> видаляє все перелічене без
+              можливості повернути. Прапорця <code>-y</code>, який пропускає це питання, у щоденній
+              роботі краще не торкатись — він існує для скриптів.
+            </p>
+          </div>
+
+          <h3>Відкат справді відпрацював повністю?</h3>
+
+          <p>
+            Після <code>Restore code</code> прочитай рядок, який Claude Code надрукував. Якщо там
+            є слово <code>skipped</code> — частина файлів <strong>не</strong> повернулась. Що це
+            означає й що з цим робити — наступний блок.
+          </p>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
+          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+
+          <h3>1. Найдорожча: відкат не повертає того, що зробила команда оболонки</h3>
+
+          <p>
+            Чекпойнти відстежують <strong>лише правки, зроблені інструментами редагування
+            файлів</strong>. Якщо Claude виконав команду в терміналі — <code>rm</code> (видалити),
+            <code>mv</code> (перемістити), <code>cp</code> (скопіювати) — ці зміни в чекпойнт не
+            потрапляють. Документація формулює це без пом'якшень: «These file modifications cannot
+            be undone through rewind».
+          </p>
+
+          <p>
+            Пастка в тому, що зовні різниці немає: обидва варіанти виглядають як крок у
+            перебігу роботи. Практичний висновок один — <em>перед</em> тим, як дозволити команду,
+            яка видаляє або переміщує файли, май іншу страховку, ніж <code>/rewind</code>.
+          </p>
+
+          <h3>2. Правки субагентів здебільшого не відновлюються</h3>
+
+          <p>
+            <strong>Субагент</strong> (subagent) — це окремий помічник, якому Claude віддає
+            частину роботи; повна тема модуля 15. Документація каже: субагент редагує файли тими
+            самими інструментами, але його правки зазвичай <em>не потрапляють</em> у чекпойнти
+            твоєї сесії. Виняток рівно один — «foreground forked skill», тобто навичка, запущена
+            в передньому плані під час твого ж ходу: її правки відкат повертає як звичайні. У всіх
+            інших випадках, включно з фоновими, документація радить повертати зміни через систему
+            контролю версій.
+          </p>
+
+          <h3>3. Символьні посилання й жорсткі посилання пропускаються</h3>
+
+          <p>
+            <strong>Символьне посилання</strong> (symlink) — файл, який насправді вказує на інший
+            файл, як ярлик. <strong>Жорстке посилання</strong> (hard link) — два імені для одного
+            й того самого вмісту на диску. Такі шляхи <code>/rewind</code> не відновлює: він їх
+            пропускає й друкує попередження. Дослівний текст із документації:
+          </p>
+
+          <p>
+            <code>Restored the code, but skipped 2 files: the tracked path is (or became) a link
+            or other non-regular file, its directory changed since the checkpoint, or its backup
+            could not be safely read. Skipped files were left untouched — run with --debug for the
+            paths.</code>
+          </p>
+
+          <p>
+            Повідомлення називає лише <em>кількість</em>. Щоб дізнатись імена, треба увімкнути
+            діагностичний журнал командою <code>/debug</code> <strong>до</strong> відкату — тоді
+            шляхи будуть у файлі <code>~/.claude/debug/&lt;ідентифікатор&gt;.txt</code>. Другий
+            шлях, який пропонує документація для macOS і Linux: <code>find . -type l</code> знайде
+            символьні посилання, <code>find . -type f -links +1</code> — жорсткі. Це не рідкісний
+            випадок: так виглядають конфіги, розставлені менеджером dotfiles, і файли, які
+            пакетний менеджер pnpm розкладає жорсткими посиланнями.
+          </p>
+
+          <h3>4. «Моя сесія зникла» — насправді ти в іншій папці</h3>
+
+          <p>
+            Сесії прив'язані до папки. <code>claude -c</code>, запущений на рівень вище або в
+            сусідньому проєкті, шукає розмови <em>тієї</em> папки й твоєї не знайде. Рятує
+            <code>claude --resume</code> і <code>Ctrl</code> + <code>A</code> у переліку —
+            він показує сесії з усіх проєктів комп'ютера.
+          </p>
+
+          <p>
+            Окремо: перевірено на збірці 2.1.236, що <code>claude -p --continue</code> у папці, де
+            сесій ще не було, <strong>не друкує помилки</strong> — він мовчки починає нову
+            розмову. Тобто відсутність повідомлення про помилку не є доказом, що ти щось
+            продовжив. Доказ — наявність твоєї історії на екрані.
+          </p>
+
+          <h3>5. Сесії, запущені через <code>-p</code>, у переліку не видно</h3>
+
+          <p>
+            Режим <code>claude -p</code> (одноразовий неінтерактивний запуск, повна тема модуля 19)
+            створює справжні сесії, але Claude Code <strong>не показує їх у переліку й не
+            підхоплює через <code>claude --continue</code></strong>. Відновити таку сесію можна
+            лише за ідентифікатором: <code>claude --resume &lt;ідентифікатор&gt;</code>. Так само
+            <code>--continue</code> пропускає фонові сесії й сесії, чий перший промпт був
+            <code>/loop</code>.
+          </p>
+
+          <h3>6. Відновив через перелік — а режим дозволів інший</h3>
+
+          <p>
+            Тонкість, яку неможливо вгадати. Коли ти відновлюєш сесію <em>командою</em> —
+            <code>claude --continue</code> або <code>claude --resume &lt;ідентифікатор&gt;</code> —
+            Claude Code повертає той режим дозволів, у якому сесія була. Коли ти обираєш сесію
+            <em>з переліку</em> (або пишеш <code>/resume</code> всередині сесії), збережений режим
+            <strong>не відновлюється</strong>: сесія стартує в тому режимі, у якому стартувала б
+            нова.
+          </p>
+
+          <p>
+            Із цього правила є винятки, і вони в той самий бік: сесія, що завершилась у
+            <code>bypassPermissions</code> або в режимі плану, після відновлення з термінала теж
+            отримає звичайний стартовий режим, а не свій колишній. Режим <code>auto</code>
+            повертається, якщо акаунт і далі йому відповідає. Про самі режими — модуль 7.
+          </p>
+
+          <h3>7. Прапорці запуску при відновленні не повертаються</h3>
+
+          <p>
+            Якщо сесія залежала від <code>--mcp-config</code>, <code>--settings</code>,
+            <code>--plugin-dir</code>, <code>--fallback-model</code> або папок, доданих через
+            <code>--add-dir</code>, — усе це треба передати <strong>знову</strong>. Файли
+            налаштувань (<code>settings.json</code> і <code>settings.local.json</code>)
+            перечитуються самі, їх передавати не треба.
+          </p>
+
+          <h3>8. Спроба читати <code>.jsonl</code> власним скриптом</h3>
+
+          <p>
+            Спокуса зрозуміла: файл текстовий, формат на вигляд простий. Документація попереджає
+            прямо, що формат внутрішній і змінюється між релізами. Для машинного читання є чотири
+            штатні інтерфейси — вони в блоці 7.
+          </p>
+
+          <h3>9. Дві сесії з тим самим ідентифікатором у двох вікнах</h3>
+
+          <p>
+            Якщо відновити ту саму сесію у двох терміналах без розгалуження, повідомлення з обох
+            вікон переплітаються в один транскрипт. Якщо треба два паралельні шляхи — для цього
+            й існує <code>/branch</code> або <code>--fork-session</code>.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Одним рядком: що відкат повертає, а що ні</span>
+            <table>
+              <thead>
+                <tr><th>Зміна</th><th><code>/rewind</code></th></tr>
+              </thead>
+              <tbody>
+                <tr><td>правка файла інструментом редагування</td><td>повертає</td></tr>
+                <tr><td><code>rm</code>, <code>mv</code>, <code>cp</code> через оболонку</td><td>не повертає</td></tr>
+                <tr><td>правка субагента (крім навички в передньому плані)</td><td>не повертає</td></tr>
+                <tr><td>твоя власна правка у редакторі поза Claude Code</td><td>не повертає</td></tr>
+                <tr><td>символьне або жорстке посилання</td><td>пропускає й попереджає</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
+          <h2><span class="lesson-no">7</span>Часті питання</h2>
+
+          <h3>Скільки часу зберігаються мої розмови?</h3>
+          <p>
+            За замовчуванням <strong>30 днів</strong>. Період регулюється ключем
+            <code>cleanupPeriodDays</code> у файлі налаштувань; мінімум — 1 день, значення
+            <code>0</code> дає помилку перевірки. Разом із сесією через той самий строк
+            видаляються і її чекпойнти. Про сам файл налаштувань — модуль 13.
+          </p>
+
+          <h3>Це приватно? Хто ще бачить ці файли?</h3>
+          <p>
+            Файли лежать на твоєму комп'ютері, але документація каже прямо:
+            «Transcripts and history are not encrypted at rest. OS file permissions are the only
+            protection» — транскрипти й історія не зашифровані, єдиний захист — права доступу
+            операційної системи. І далі окремо: якщо інструмент прочитав файл
+            <code>.env</code> або команда надрукувала пароль чи ключ, це значення
+            <strong>потрапляє в транскрипт</strong>. Тому: не тримай історію на спільному
+            комп'ютері безстроково, за потреби зменш <code>cleanupPeriodDays</code>, а прибрати
+            все по конкретному проєкту можна командою <code>claude project purge</code> з блоку 5.
+          </p>
+
+          <h3>Як віддати розмову скрипту, а не людині?</h3>
+          <p>
+            <code>/export</code> для цього не призначений: він робить «rendered transcript for a
+            person to read» — читабельний текст для людини. Для машини документація перелічує
+            чотири інші шляхи: запуск <code>claude -p</code> з
+            <code>--output-format json</code> або <code>stream-json</code>; запит до наявної сесії
+            через <code>claude -p --resume &lt;ідентифікатор&gt;</code>; поле
+            <code>transcript_path</code>, яке отримують перехоплювачі подій (hooks) і рядок стану;
+            і Agent SDK. Готовий приклад із документації:
+            <code>claude -p --resume &lt;session-id&gt; --output-format json "summarize what we
+            changed" | jq -r '.result'</code>. Модулі 16 і 19 розбирають це докладно.
+          </p>
+
+          <h3>Чи можна відновити сесію на іншому комп'ютері?</h3>
+          <p>
+            Ні. Claude Code зберігає транскрипти локально, тому відновлювати сесію треба на тій
+            машині, де вона працювала. Це один із чотирьох випадків, які документація називає
+            причиною повідомлення <code>No conversation found with session ID</code>; решта три —
+            помилка в ідентифікаторі, вичерпаний строк зберігання й дубльовані копії папки
+            проєкту.
+          </p>
+
+          <h3>Чим <code>Summarize</code> у меню відкату відрізняється від <code>/compact</code>?</h3>
+          <p>
+            Масштабом. <code>/compact</code> з модуля 6 стискає всю розмову; два пункти
+            <code>Summarize from here</code> і <code>Summarize up to here</code> стискають лише
+            частину — після вибраної точки або до неї. Документація називає це «like a targeted
+            <code>/compact</code>». Зручно, коли довга налагоджувальна частина посередині вже не
+            потрібна, а початкові вказівки треба зберегти дослівно.
+          </p>
+          <p>
+            Обидва пункти лишають у розмові позначку <code>Summarized conversation</code> на місці
+            стиснутих повідомлень, а самі повідомлення нікуди не зникають із транскрипту на диску.
+            Файли на диску стиснення не змінює взагалі.
+          </p>
+
+          <h3>Чому кажуть, що <code>/rewind</code> дешевший за <code>/compact</code>?</h3>
+          <p>
+            Через кеш. Документація пояснює: «Rewinding truncates back to a prefix that is already
+            cached, rather than building a new one» — відкат обрізає розмову до початку, який уже
+            є в кеші, а стиснення будує новий. Тому, коли ти хочеш відмовитись від напрямку, у
+            який пішов, відкат вигідніший за стиснення. Ціна контексту — тема модуля 11.
+          </p>
+
+          <h3>Я запустив <code>/clear</code> і зрозумів, що поспішив. Розмова втрачена?</h3>
+          <p>
+            Ні. <code>/clear</code> зберігає попередню розмову — її можна відкрити через
+            <code>/resume</code>. А в тому самому запущеному Claude Code є коротший шлях: у меню
+            <code>/rewind</code> угорі переліку з'являється додатковий рядок
+            <code>/resume &lt;session-id&gt; (previous session)</code>. Цей рядок доступний, поки
+            ти не вийшов і не відновив іншу сесію, і потребує версії 2.1.191 або новішої.
+          </p>
+
+          <h3>Що це за діалог «Resume from summary» при відкритті старої сесії?</h3>
+          <p>
+            Він з'являється на планах Pro і Max, коли ти відновлюєш сесію, яка простояла більше
+            приблизно години й важить понад 100 000 токенів. Три варіанти в ньому — компроміс між
+            повнотою й ціною кожного наступного запиту. Розбір самого діалогу — у модулі 6, разом
+            із рештою розмови про контекстне вікно.
+          </p>
+
+          <h3>Чи є у цих команд коротші назви?</h3>
+          <p>
+            Є, і в документації вони названі псевдонімами. <code>/rewind</code> — це також
+            <code>/checkpoint</code> і <code>/undo</code>. <code>/resume</code> — також
+            <code>/continue</code>. <code>/clear</code> — також <code>/reset</code> і
+            <code>/new</code>. Повний перелік псевдонімів — у довіднику команд цього курсу.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
+          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Головне, що дає цей модуль, — спокій двох видів. Перший: закрити вікно термінала
+            більше не страшно, бо розмова повертається однією командою. Другий, важливіший: ти
+            тепер знаєш точну межу відкату й не покладаєшся на нього там, де він не працює.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Підсумок модуля</span>
+            <ul>
+              <li><strong>Сесія</strong> — збережена розмова, прив'язана до папки. Пишеться на диск
+                безперервно, а не при виході.</li>
+              <li><code>claude -c</code> продовжує останню розмову цієї папки;
+                <code>claude -r</code> відкриває перелік або відновлює за ім'ям чи ідентифікатором.</li>
+              <li><code>/branch</code> копіює розмову й переводить тебе в копію;
+                <code>--fork-session</code> робить те саме з командного рядка, але в окремому
+                процесі й без виданих раніше дозволів.</li>
+              <li><strong>Чекпойнт</strong> знімається перед кожним твоїм промптом; зберігаються
+                100 останніх. Меню <code>/rewind</code> дає шість дій, зокрема часткове стиснення
+                розмови.</li>
+              <li><strong>Відкат не повертає</strong> змін, зроблених командами оболонки, правок
+                більшості субагентів, зовнішніх правок; символьні й жорсткі посилання він
+                пропускає з попередженням <code>Restored the code, but skipped N files</code>.</li>
+              <li>Розмови лежать у <code>~/.claude/projects/ПРОЄКТ/ІДЕНТИФІКАТОР.jsonl</code>,
+                знімки файлів — у <code>~/.claude/file-history/</code>, набрані промпти — у
+                <code>~/.claude/history.jsonl</code>. Строк зберігання — 30 днів
+                (<code>cleanupPeriodDays</code>).</li>
+              <li>Транскрипти не шифруються. Прибрати стан проєкту — <code>claude project
+                purge</code>, і спершу завжди з <code>--dry-run</code>.</li>
+              <li>Чекпойнти — не заміна системі контролю версій. Це слова самої документації, а
+                не обережність курсу.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Далі — <strong>модуль 10 «Моделі й мислення»</strong>: чим Opus відрізняється від
+            Sonnet і Haiku, що таке рівні мислення й навіщо їх перемикати, як обрати модель під
+            задачу. Там же з'ясується, чому розмір контекстного вікна залежить від обраної моделі —
+            питання, яке залишив відкритим модуль 6.
+          </p>
+          <p>
+            Корисна звичка, яку варто завести вже зараз: давати сесіям імена. Одна секунда на
+            <code>claude -n</code> при старті економить хвилини пошуку в переліку через тиждень,
+            коли розмов там буде тридцять.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння меж інструментів, а не
+            пам'ять на назви прапорців: до кожної відповіді одразу з'являється пояснення, чому
+            решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Claude виконав команду rm old-logo.png, щоб прибрати зайвий файл, і ти це підтвердив. Через хвилину стало зрозуміло, що файл був потрібен. Ти відкриваєш /rewind і відкочуєш код до точки перед тим промптом. Що станеться з файлом?",
+            "options": [
+              "Файл повернеться: відкат відновлює стан папки на момент чекпойнта",
+              "Файл не повернеться: чекпойнти відстежують лише правки інструментами редагування, а не зміни від команд оболонки",
+              "Файл повернеться, але з порожнім вмістом",
+              "Відкат узагалі не запуститься, поки в сесії була команда rm"
+            ],
+            "answer": 1,
+            "explain": "Документація формулює це прямо: зміни, зроблені bash-командами на кшталт rm, mv і cp, через відкат скасувати неможливо. Чекпойнт знімає вміст лише тих файлів, які правились інструментами редагування Claude. Відкат при цьому спокійно запуститься й відзвітує про успіх — саме тому пастка й дорога: на екрані все виглядає так, ніби спрацювало. Порожнього вмісту теж не буде: файла більше не існує. Це і є причина, чому в блоці 1 сказано, що чекпойнти не замінюють систему контролю версій."
+          },
+          {
+            "q": "Учора ти працював у папці ~/shop і закінчив довгу розмову. Сьогодні ти відкрив термінал, опинився в домашній папці й набрав claude -c. Історії немає. Що сталось?",
+            "options": [
+              "Сесія видалилась при виході з Claude Code",
+              "Розмови зберігаються лише поки термінал відкритий",
+              "Сесії прив'язані до папки: у домашній папці claude -c шукає розмови домашньої папки, а не ~/shop",
+              "Потрібен платний план, щоб сесії зберігались між днями"
+            ],
+            "answer": 2,
+            "explain": "Сесія прив'язана до робочої папки — це визначення з документації. claude -c продовжує останню розмову саме поточної папки, тому в домашній папці твоєї вчорашньої розмови немає. Виправляється двома способами: перейти в ~/shop і повторити claude -c, або відкрити claude --resume і натиснути Ctrl+A, щоб побачити сесії з усіх проєктів комп'ютера. Розмова при цьому нікуди не зникла: вона записується на диск безперервно й живе там 30 днів за замовчуванням. План підписки на збереження сесій не впливає."
+          },
+          {
+            "q": "Ти хочеш спробувати інший підхід до задачі, але зберегти нинішню розмову недоторканою, щоб можна було повернутись. Що з цього робить саме це?",
+            "options": [
+              "/clear — почати з чистого контексту",
+              "/branch — створити копію розмови й перейти в неї, лишивши оригінал у переліку",
+              "/rewind з пунктом Restore conversation",
+              "/export — зберегти розмову у файл і продовжити"
+            ],
+            "answer": 1,
+            "explain": "/branch копіює розмову до поточної точки, переводить тебе в копію, а оригінал лишає незмінним на диску й видимим у переліку сесій; підтвердження друкує два ідентифікатори — нової гілки й оригіналу. /clear не створює копії й не дає паралельного шляху: він починає порожній контекст (хоча попередню розмову теж зберігає). Restore conversation відкочує ту саму розмову назад, тобто нічого паралельного не з'являється. /export пише текстовий файл для читання людиною й на саму сесію не впливає."
+          },
+          {
+            "q": "Після пункту Restore code Claude Code надрукував рядок «Restored the code, but skipped 2 files…». Що це означає і що робити далі?",
+            "options": [
+              "Відкат провалився повністю, треба повторити його ще раз",
+              "Два файли були зайняті іншою програмою, достатньо закрити редактор і повторити",
+              "Два відстежені шляхи виявились посиланнями або змінились інакше: їх лишили як є, а імена можна дістати з журналу /debug",
+              "Це попередження про те, що чекпойнтів у сесії лишилось лише два"
+            ],
+            "answer": 2,
+            "explain": "Повідомлення означає частковий відкат: решта файлів повернулась, а перелічені пропущені, бо шлях є або став символьним чи жорстким посиланням, його папка змінилась із моменту чекпойнта, або резервну копію не вдалось безпечно прочитати. Пропущені файли лишаються з поточним вмістом. Повторення відкату нічого не змінить — причина не в тимчасовій зайнятості файлів. Кількість чекпойнтів тут ні до чого: їх зберігається 100 останніх. Щоб дізнатись саме імена пропущених файлів, треба увімкнути /debug ДО відкату — саме повідомлення називає лише число."
+          },
+          {
+            "q": "Ти працював у режимі дозволів bypassPermissions, вийшов, а наступного дня відкрив claude --resume, обрав ту сесію з переліку стрілками й натиснув Enter. У якому режимі дозволів вона стартує?",
+            "options": [
+              "У bypassPermissions — режим зберігається разом із сесією",
+              "У тому режимі, у якому стартувала б нова сесія: через перелік збережений режим не відновлюється",
+              "Claude Code спитає, який режим обрати",
+              "У режимі плану — це аварійний режим за замовчуванням"
+            ],
+            "answer": 1,
+            "explain": "Документація розводить два шляхи відновлення. Командою (claude --continue або claude --resume з ідентифікатором) режим здебільшого повертається. Вибором із переліку — ні: сесія стартує в режимі, у якому стартувала б нова з тієї ж командної стрічки. До того ж bypassPermissions не повертається навіть через команду: щоб він діяв знову, його треба ввімкнути прапорцем при запуску або через defaultMode у налаштуваннях. Питання при відновленні Claude Code не ставить, і в режим плану сам не переходить."
+          },
+          {
+            "q": "Ти написав скрипт, який читає файли ~/.claude/projects/…/*.jsonl і будує з них звіт про роботу за тиждень. Що не так із цим планом?",
+            "options": [
+              "Нічого: це і є офіційний спосіб дістати дані сесій",
+              "Ці файли зашифровані, скрипт їх не прочитає",
+              "Формат записів внутрішній і змінюється між версіями, тому скрипт може зламатись на будь-якому оновленні; для машинного читання є окремі інтерфейси",
+              "Файли видаляються одразу після виходу з сесії, читати нічого"
+            ],
+            "answer": 2,
+            "explain": "Документація попереджає про це дослівно: формат записів внутрішній для Claude Code і змінюється між версіями, тому скрипти, що читають ці файли напряму, можуть зламатись на будь-якому релізі. Замість цього названо чотири штатні інтерфейси: claude -p з --output-format json або stream-json, запит до наявної сесії через claude -p --resume, поле transcript_path у хуках і рядку стану, і Agent SDK. Файли не зашифровані — навпаки, документація окремо попереджає, що вони лежать у відкритому вигляді й захищені лише правами доступу. І вони не видаляються при виході: типовий строк зберігання — 30 днів."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
