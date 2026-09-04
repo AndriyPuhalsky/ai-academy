@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 13 · Уся .claude/ і settings.json — AI Термінал</title>
+  <meta name="description"
+    content="Папка .claude/ і чотири файли налаштувань: хто на кого впливає, у якому порядку вони перекривають один одного, сімнадцять ключів, які справді потрібні, і як своєю командою побачити, чий конфіг переміг." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="c13" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 13</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 3 · Налаштування під себе</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Уся <code
+            class="font-mono text-2xl sm:text-4xl">.claude/</code> і <code
+            class="font-mono text-2xl sm:text-4xl">settings.json</code></h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Середній · 8 блоків · ≈ 45 хв читання</p>
+        <p class="mt-6 text-lg">
+          Досі ти приймав рішення щоразу заново: яку модель узяти, що дозволити, куди пустити
+          Claude Code. Налаштування — це спосіб записати рішення один раз, щоб воно діяло саме.
+          Але записане не завжди діє, і в цьому вся складність теми: файлів налаштувань не один,
+          а чотири, вони перекривають один одного за суворим порядком, а коли твоє значення
+          програло — ніхто про це не повідомляє. Цей модуль вчить не переліку ключів, а вмінню
+          відповісти на питання <strong>«чому воно не діє і чий конфіг переміг»</strong>.
+        </p>
+
+        <div class="callout callout-sand">
+          <span class="callout-title">Одразу головне: команди <code>claude config</code> більше не існує</span>
+          <p>
+            Якщо ти читав будь-який туторіал із рядком <code>claude config set -g theme dark</code> —
+            він мертвий. Такої підкоманди в Claude Code немає. Найгірше в цьому те, що
+            <code>claude config --help</code> <strong>не падає з помилкою</strong>: він друкує
+            звичайну довідку, ніби все гаразд. Дослівний вивід — у блоці 2, з поясненням, чому так.
+          </p>
+          <p>
+            Налаштування змінюють двома способами: командою <code>/config</code> усередині сесії
+            або редагуванням файла <code>settings.json</code> руками. Цей урок — про другий спосіб,
+            бо він охоплює все, а меню <code>/config</code> — лише кілька особистих опцій.
+          </p>
+        </div>
+
+        <div class="callout">
+          <span class="callout-title">Що в цьому модулі є, а чого немає</span>
+          <p>
+            <strong>Є:</strong> що таке папка <code>.claude/</code> і що в ній лежить · чотири файли
+            налаштувань і на кого кожен впливає · порядок перекриття й чому списки поводяться інакше
+            за решту ключів · сімнадцять ключів, які справді потрібні · <code>/config</code> і
+            <code>--settings</code> · як своєю командою побачити, що завантажилось · що робить
+            Claude Code зі зламаним файлом · ключі каналу оновлень.
+          </p>
+          <p>
+            <strong>Немає:</strong> <code>CLAUDE.md</code> і пам'яті — це <strong>модуль 12</strong>;
+            синтаксису правил дозволів (<code>Bash(npm run *)</code> тощо) — це
+            <strong>модуль 7</strong>; перехоплювачів подій (hooks) — <strong>модуль 16</strong>;
+            навичок і плагінів — <strong>модуль 14</strong>; MCP — <strong>модуль 18</strong>;
+            глибокої діагностики — <strong>модуль 17</strong>. І немає вичерпної таблиці ключів:
+            їх понад дві сотні, вони живуть у довіднику
+            <a href="../claude-code-ref-settings.html">«Ключі settings.json»</a>.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
+          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+
+          <p>
+            Почнемо з факту, який дивує майже всіх: <strong>установка Claude Code не створює жодного
+              файла налаштувань</strong>. Це дослівна позиція документації. Тобто перший запуск працює
+            на вбудованих значеннях, і поки тебе все влаштовує, налаштувань у тебе немає взагалі —
+            і це нормальний стан, а не недоробка.
+          </p>
+
+          <p>
+            Файли з'являються тоді, коли з'являється потреба. Три типові потреби:
+          </p>
+
+          <ul>
+            <li><strong>«Перестань питати про одне й те саме».</strong> Ти дозволяєш Claude Code
+              запускати твої тести без запиту — і це рішення треба десь зберегти.</li>
+            <li><strong>«У цьому проєкті працюємо так».</strong> Команда домовилась про однакові
+              дозволи й однакову модель — і домовленість треба покласти в репозиторій, а не
+              переказувати кожному новачкові.</li>
+            <li><strong>«Мені особисто зручніше інакше».</strong> Своя тема оформлення, свій рядок
+              стану, своя модель — але не для всієї команди, а тільки для себе.</li>
+          </ul>
+
+          <p>
+            Три потреби — три різні адресати: ти на цій машині, проєкт для всіх, ти в цьому проєкті.
+            Саме тому файлів налаштувань кілька, а не один. І саме тому виникає питання, з якого
+            цей модуль почався: <em>коли те саме написано у двох файлах, чиє значення переможе?</em>
+          </p>
+
+          <h3>Що таке файл налаштувань фізично</h3>
+
+          <p>
+            Це звичайний текстовий файл у форматі <strong>JSON</strong> (вимовляється «джейсон»).
+            JSON — це спосіб записати налаштування так, щоб їх читала програма. Виглядає він так:
+          </p>
+
+          <pre><code>{
+  "theme": "dark",
+  "cleanupPeriodDays": 30
+}</code></pre>
+
+          <p>
+            Усе, що треба про нього знати новачкові:
+          </p>
+
+          <ul>
+            <li>увесь вміст обгорнутий у фігурні дужки <code>{ }</code>;</li>
+            <li>усередині — пари <code>"ключ": значення</code>, розділені комами;</li>
+            <li>назва ключа завжди в подвійних лапках; текстове значення — теж, а число й
+              <code>true</code>/<code>false</code> — без лапок;</li>
+            <li>значенням може бути не тільки число чи текст, а й вкладений блок у
+              своїх фігурних дужках або список у квадратних <code>[ ]</code>.</li>
+          </ul>
+
+          <div class="callout">
+            <span class="callout-title">Два правила, на яких ламаються всі</span>
+            <p>
+              Claude Code читає <strong>строгий</strong> JSON. У ньому <strong>немає коментарів</strong>
+              (рядок, що починається з <code>//</code>, — це помилка) і <strong>не можна лишати кому
+                після останнього елемента</strong>. Обидві звички приходять із мов програмування, де так
+              робити можна; тут вони перетворюють файл на нечитабельний.
+            </p>
+            <p>
+              Наслідок сильніший, ніж здається: зламаний файл не діє <em>цілком</em> — не «частина
+              налаштувань не спрацювала», а весь файл пропущений. У блоці 2 показано, як це виглядає
+              на екрані.
+            </p>
+          </div>
+
+          <h3>Три слова, які знадобляться далі</h3>
+
+          <p>
+            Ці три поняття будуть у кожному наступному блоці, тому вводимо їх зараз.
+          </p>
+
+          <ul>
+            <li><strong>Область дії (scope)</strong> — на кого поширюється те, що ти записав:
+              на тебе на всій машині, на всіх у цьому проєкті, на тебе в цьому проєкті або
+              на всю організацію.</li>
+            <li><strong>Перекриття (precedence)</strong> — правило, за яким обирається одне значення,
+              коли той самий ключ заданий у кількох місцях. Це не «останній виграє» і не «найновіший
+              виграє», а фіксований порядок рівнів.</li>
+            <li><strong>Керовані налаштування (managed settings)</strong> — файл, який на твою машину
+              кладе роботодавець або організація. Ти його не створюєш і не редагуєш, а він перекриває
+              все, що написав ти. Якщо Claude Code у тебе особистий, керованих налаштувань у тебе
+              немає — але знати про них варто, бо саме вони пояснюють ситуацію «на роботі поводиться
+              інакше, ніж удома».</li>
+          </ul>
+
+          <p>
+            Далі — те, як це виглядає в терміналі.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
+          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Почнемо з екрана, який коштує дорожче за всі інші в цьому модулі, — з того, як виглядає
+            <strong>застаріла інструкція, що вдає робочу</strong>.
+          </p>
+
+          <h3>Підкоманди <code>config</code> немає, але помилки теж немає</h3>
+
+          <figure class="term" id="p1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p1t">claude config --help · Claude Code 2.1.236, macOS 26.5.2,
+                2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude config --help</span></span>
+<span class="term__line">Usage: claude [options] [command] [prompt]</span>
+<span class="term__line"> </span>
+<span class="term__line">Claude Code - starts an interactive session by default, use -p/--print for</span>
+<span class="term__line">non-interactive output</span>
+<span class="term__line"> </span>
+<span class="term__line">Arguments:</span>
+<span class="term__line">  prompt                                Your prompt</span>
+<span class="term__line"><span class="term__meta">…далі йде звичайна довідка на 62 опції…</span></span></pre>
+          </figure>
+
+          <p>
+            Придивись до третього рядка знизу: <code>Arguments: prompt — Your prompt</code>.
+            Це і є пояснення. Claude Code розбирає слово <code>config</code> не як назву підкоманди
+            (бо такої підкоманди немає), а як <strong>перше слово твого завдання</strong> — тобто як
+            текст, який ти хочеш надіслати моделі. А <code>--help</code> перехоплює запуск раніше й
+            друкує довідку. Виходить видимість успіху: команда «спрацювала», екран заповнився
+            корисним текстом, і людина йде далі впевненою, що <code>claude config</code> існує.
+          </p>
+
+          <p>
+            Живий перелік підкоманд на версії 2.1.236 — <strong>тринадцять</strong> штук:
+            <code>agents</code>, <code>auth</code>, <code>auto-mode</code>, <code>doctor</code>,
+            <code>gateway</code>, <code>import</code>, <code>install</code>, <code>mcp</code>,
+            <code>plugin</code>, <code>project</code>, <code>setup-token</code>,
+            <code>ultrareview</code>, <code>update</code>. Слова <code>config</code> серед них немає.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Не перевіряй це набором <code>claude config set …</code> без
+              <code>--help</code></span>
+            <p>
+              Без <code>--help</code> той самий рядок перетвориться на завдання для агента: Claude Code
+              візьме «config set theme dark» за твій запит і піде його виконувати — витрачаючи ліміт
+              і, можливо, правлячи щось у папці. Перевіряй наявність підкоманди переліком
+              <code>Commands:</code> у виводі <code>claude --help</code>, а не спробою її запустити.
+            </p>
+          </div>
+
+          <h3>Як виглядає зламаний файл налаштувань</h3>
+
+          <p>
+            Другий екран знято в тимчасовій папці, у яку навмисно покладено файл
+            <code>.claude/settings.json</code> із зайвою комою після останнього рядка. Команда
+            <code>claude doctor</code> перевіряє стан установки й читає файли налаштувань поточної
+            папки — у власній довідці Claude Code це сказано дослівно: «Reads settings files in the
+            current directory without a trust prompt».
+          </p>
+
+          <figure class="term" id="p2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p2t">claude doctor у папці зі зламаним файлом · 2.1.236, macOS 26.5.2,
+                2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p2t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude doctor</span></span>
+<span class="term__line">Claude Code doctor</span>
+<span class="term__line"> </span>
+<span class="term__line">Running: package-manager (2.1.236)</span>
+<span class="term__line">Platform: darwin-arm64</span>
+<span class="term__line">Package manager: homebrew</span>
+<span class="term__line"><span class="term__meta">…</span></span>
+<span class="term__line"><span class="term__err">Invalid settings</span></span>
+<span class="term__line"><span class="term__err">- /Users/anna/claude-lab/.claude/settings.json: Invalid or malformed JSON</span></span>
+<span class="term__line"><span class="term__meta">…</span></span>
+<span class="term__line"><span class="term__ok">No installation issues found.</span></span></pre>
+          </figure>
+
+          <p class="text-sm text-muted">
+            Вивід скорочено в позначених <code>…</code> місцях, а довгий шлях до тимчасової папки
+            замінено на короткий <code>/Users/anna/claude-lab</code>. Решта рядків — дослівні.
+          </p>
+
+          <p>
+            Зверни увагу на останній рядок: <strong>«No installation issues found»</strong> стоїть
+            поруч зі знайденою помилкою. Суперечності тут немає — <code>claude doctor</code>
+            розділяє «проблеми встановлення» і «проблеми налаштувань» у два різні розділи. Якщо
+            читати лише останній рядок, можна вирішити, що все гаразд.
+          </p>
+
+          <h3>Три екрани, яких у цьому уроці немає, і чому</h3>
+
+          <p>
+            Три найважливіші екрани теми — інтерактивні: вони малюються всередині сесії й не
+            існують як текст, який можна зняти командою. Домальовувати їх у курсі про свіжість
+            фактів було б дивно, тому описуємо словами, а дослівні рядки даємо в
+            <code>&lt;code&gt;</code>.
+          </p>
+
+          <ul>
+            <li><strong>Вікно <code>Settings Error</code>.</strong> Якщо на старті інтерактивної
+              сесії Claude Code знаходить зламаний файл користувача, проєкту або локальний, він
+              показує діалог із трьома виходами: полагодити файл з допомогою Claude, вийти або
+              працювати далі без зламаних налаштувань. У запуску з <code>-p</code> (без інтерфейсу)
+              діалогу немає взагалі: програма мовчки пропускає зламане й працює далі. Саме тому
+              документація радить після такого запуску виконати <code>claude doctor</code> —
+              інакше про пропущене не дізнаєшся ніяк.</li>
+            <li><strong>Вкладка <code>Status</code> у <code>/status</code>.</strong> Там є рядок
+              <code>Setting sources</code>, який перелічує кожен файл налаштувань, завантажений
+              у цю сесію: <code>User settings</code>, <code>Project local settings</code> і так далі.
+              Коли діють керовані налаштування, у дужках показано, яким шляхом вони приїхали.</li>
+            <li><strong>Вкладка <code>Config</code> у <code>/config</code>.</strong> Це короткий
+              список особистих опцій — тема, режим редактора, докладність виводу, — а не перегляд
+              вмісту твого <code>settings.json</code>. Обидві вкладки відкриває той самий діалог:
+              <code>/status</code> і <code>/config</code> — це одне вікно, різні вкладки.</li>
+          </ul>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
+          <h2><span class="lesson-no">3</span>Як це працює</h2>
+
+          <p>
+            Тепер по порядку: які файли існують, де вони лежать і хто кого перекриває.
+          </p>
+
+          <h3>Чотири файли й п'ятий, керований</h3>
+
+          <p>
+            Два слова з таблиці нижче варто пояснити наперед. <strong>Репозиторій</strong> — це
+            папка проєкту під наглядом системи контролю версій git: вона зберігає історію змін і
+            дозволяє кільком людям працювати над одним кодом. <strong>Закомітити</strong> файл —
+            записати його в цю історію, тобто зробити спільним для всіх, хто скопіює проєкт собі.
+            Якщо ти git не використовуєш, ці рядки тебе не стосуються: файли з таблиці однаково
+            працюють і в звичайній папці.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Файл</th>
+                <th>На кого впливає</th>
+                <th>Для чого</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>~/.claude/settings.json</code><br /><span class="text-faint">користувацький</span></td>
+                <td>на тебе, у кожному проєкті цієї машини</td>
+                <td>особисті вподобання: тема, модель за замовчуванням, свої правила дозволів</td>
+              </tr>
+              <tr>
+                <td><code>.claude/settings.json</code><br /><span class="text-faint">спільний проєктний</span></td>
+                <td>на всіх, хто працює в цій папці; у git-репозиторії — на всіх, хто його клонував,
+                  якщо файл закомічений</td>
+                <td>командні дозволи, перехоплювачі подій, плагіни, змінні середовища проєкту</td>
+              </tr>
+              <tr>
+                <td><code>.claude/settings.local.json</code><br /><span class="text-faint">локальний</span></td>
+                <td>тільки на тебе й тільки в цьому проєкті</td>
+                <td>особисті винятки з командних домовленостей і проби перед тим, як ділитись</td>
+              </tr>
+              <tr>
+                <td><code>managed-settings.json</code><br /><span class="text-faint">керований</span></td>
+                <td>на всіх, кому його розгорнула організація</td>
+                <td>політика безпеки; майже нічого з написаного тобою його не перекриває</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Знак <code>~</code> означає домашню папку користувача. На Windows <code>~/.claude</code> —
+            це <code>%USERPROFILE%\.claude</code>. Якщо треба перенести всю конфігурацію в інше місце
+            (наприклад, тримати робочий і особистий акаунти окремо), для цього є змінна середовища
+            <code>CLAUDE_CONFIG_DIR</code>: вона переносить і налаштування, і історію сесій, і плагіни.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Ці файли не з'являться самі, доки ти чогось не зробиш</span>
+            <p>
+              <code>~/.claude/settings.json</code> Claude Code створює сам, коли ти вперше змінюєш
+              у меню <code>/config</code> опцію, що зберігається в користувацькому файлі, — наприклад
+              тему. А <code>.claude/settings.local.json</code> з'являється тоді, коли ти вперше
+              відповідаєш на запит дозволу «так, і більше не питай»: саме туди Claude Code записує
+              це рішення як правило <code>allow</code>.
+            </p>
+          </div>
+
+          <h3>Що ще лежить у папці <code>.claude/</code></h3>
+
+          <p>
+            <code>settings.json</code> — не єдиний її мешканець. Папка <code>.claude/</code> існує
+            у двох примірниках одночасно: глобальна в домашній папці (<code>~/.claude/</code>) і
+            проєктна в папці проєкту. Ось що в них буває — з позначкою, чи має воно їхати в
+            репозиторій разом із кодом.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Файл або папка</th>
+                <th>Де буває</th>
+                <th>Комітити</th>
+                <th>Що робить</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>CLAUDE.md</code></td>
+                <td>проєкт і глобально</td>
+                <td>так</td>
+                <td>інструкції, що вантажаться щосесії (модуль 12)</td>
+              </tr>
+              <tr>
+                <td><code>rules/*.md</code></td>
+                <td>проєкт і глобально</td>
+                <td>так</td>
+                <td>тематичні інструкції, за бажанням прив'язані до шляхів (модуль 12)</td>
+              </tr>
+              <tr>
+                <td><code>settings.json</code></td>
+                <td>проєкт і глобально</td>
+                <td>так</td>
+                <td>дозволи, перехоплювачі подій, змінні середовища, модель за замовчуванням</td>
+              </tr>
+              <tr>
+                <td><code>settings.local.json</code></td>
+                <td>тільки проєкт</td>
+                <td>ні</td>
+                <td>твої особисті перекриття в цьому проєкті</td>
+              </tr>
+              <tr>
+                <td><code>.mcp.json</code></td>
+                <td>тільки проєкт, у <strong>корені</strong> репозиторію</td>
+                <td>так</td>
+                <td>зовнішні інструменти MCP для команди (модуль 18)</td>
+              </tr>
+              <tr>
+                <td><code>skills/&lt;назва&gt;/SKILL.md</code></td>
+                <td>проєкт і глобально</td>
+                <td>так</td>
+                <td>навички, що викликаються як <code>/назва</code> (модуль 14)</td>
+              </tr>
+              <tr>
+                <td><code>commands/*.md</code></td>
+                <td>проєкт і глобально</td>
+                <td>так</td>
+                <td>однофайлові промпти; той самий механізм, що й навички</td>
+              </tr>
+              <tr>
+                <td><code>agents/*.md</code></td>
+                <td>проєкт і глобально</td>
+                <td>так</td>
+                <td>субагенти зі своїм промптом та інструментами (модуль 15)</td>
+              </tr>
+              <tr>
+                <td><code>output-styles/*.md</code></td>
+                <td>проєкт і глобально</td>
+                <td>так</td>
+                <td>свої секції системного промпту — тон і формат відповідей</td>
+              </tr>
+              <tr>
+                <td><code>workflows/*.js</code></td>
+                <td>проєкт і глобально</td>
+                <td>так</td>
+                <td>динамічні сценарії; кожен файл стає командою <code>/назва</code></td>
+              </tr>
+              <tr>
+                <td><code>agent-memory/&lt;назва&gt;/</code></td>
+                <td>проєкт і глобально</td>
+                <td>так</td>
+                <td>постійна пам'ять субагентів</td>
+              </tr>
+              <tr>
+                <td><code>~/.claude.json</code></td>
+                <td>тільки глобально</td>
+                <td>ні</td>
+                <td>стан програми: вхід, персональні сервери MCP, перемикачі інтерфейсу</td>
+              </tr>
+              <tr>
+                <td><code>keybindings.json</code>, <code>themes/*.json</code></td>
+                <td>тільки глобально</td>
+                <td>ні</td>
+                <td>свої гарячі клавіші й свої теми оформлення</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Два файли навмисно живуть <em>поза</em> папкою: <code>.mcp.json</code> і
+            <code>CLAUDE.local.md</code> лежать у корені проєкту, а не всередині
+            <code>.claude/</code>. Це не дрібниця — покладений «логічно», всередину папки,
+            <code>.mcp.json</code> не завантажиться взагалі.
+          </p>
+
+          <h3>Порядок перекриття: хто кого перебиває</h3>
+
+          <p>
+            Коли той самий ключ заданий у кількох місцях, Claude Code бере значення з найвищого
+            рівня, який його задає. Порядок фіксований — від найсильнішого до найслабшого.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  A["1. Керовані налаштування організації"] --> B["2. Прапорці запуску: --settings, --model"]
+  B --> C["3. .claude/settings.local.json — твій файл у цьому проєкті"]
+  C --> D["4. .claude/settings.json — спільний файл проєкту"]
+  D --> E["5. ~/.claude/settings.json — твій файл на всю машину"]
+  style A fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style E fill:#1E1B18,stroke:#3A342E,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Ключ, заданий вище, перекриває той самий ключ нижче. Стрілка тут означає «сильніший
+              за», а не послідовність кроків.
+            </p>
+          </div>
+
+          <p>
+            Логіка в цьому порядку є, і вона допомагає його запам'ятати: <strong>чим вужче коло
+              людей, яких стосується файл, тим він сильніший</strong> — крім найвищого рівня, де
+            організація перебиває всіх свідомо. Твій особистий файл у проєкті сильніший за спільний
+            файл команди, спільний файл команди — сильніший за твої загальні вподобання.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Списки — виняток: вони зливаються, а не перекриваються</span>
+            <p>
+              Якщо ключ містить <em>список</em> — наприклад <code>permissions.allow</code>, —
+              Claude Code не обирає один із файлів, а <strong>об'єднує</strong> списки з усіх.
+              Тобто твої дозволи додаються до командних, а не замінюють їх. Це часте джерело
+              подиву: людина прибирає правило зі свого файла й дивується, що воно й далі діє —
+              бо воно приїхало з проєктного.
+            </p>
+            <p>
+              У кількох ключів, що містять моделі (<code>fallbackModel</code>,
+              <code>modelPicker</code>, <code>availableModels</code>, <code>modelSettings</code>),
+              власні правила: там позиція в списку має значення, тому береться значення цілком
+              з одного файла.
+            </p>
+          </div>
+
+          <h3>Змінні середовища — не рівень у цьому стосі</h3>
+
+          <p>
+            Змінна середовища (environment variable) — це значення, яке ти задаєш у терміналі перед
+            запуском програми; у модулі 1 ти вже бачив одну таку — <code>PATH</code>. Частина
+            налаштувань Claude Code має і ключ у файлі, і парну змінну.
+          </p>
+
+          <p>
+            Спокуса вважати, що змінні стоять десь у стосі вище або нижче за файли. Документація
+            каже прямо: <strong>вони не є рівнем</strong>. Хто виграє, вирішується <em>для кожної
+              пари окремо</em>. Приклад із доксів: <code>ANTHROPIC_MODEL</code>, експортована в твоїй
+            оболонці, перебиває ключ <code>model</code> з будь-якого файла, а
+            <code>ANTHROPIC_DEFAULT_MODEL</code> діє тільки тоді, коли жоден файл
+            <code>model</code> не задає. Дві схожі змінні — дві різні поведінки.
+          </p>
+
+          <p>
+            Окремий випадок — блок <code>env</code> усередині файла налаштувань. Він поводиться
+            як звичайний ключ і підкоряється порядку перекриття, а значення з нього
+            <strong>перезаписує</strong> те, що ти експортував в оболонці.
+          </p>
+
+          <h3>Де саме Claude Code шукає ці файли</h3>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  S["Запуск claude у папці проєкту"] --> H["Домашня папка: ~/.claude/settings.json"]
+  S --> W["Робоча папка сесії: .claude/settings.json"]
+  S --> R["Корінь git-репозиторію: .claude/settings.local.json"]
+  S --> M["Системна папка ОС: managed-settings.json"]
+  H --> X["Один набір значень на цю сесію"]
+  W --> X
+  R --> X
+  M --> X
+  style X fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Спільний проєктний файл читається з робочої папки сесії, а локальний — з кореня
+              git-репозиторію. Це різні місця, і саме тут людина найчастіше шукає файл не там.
+            </p>
+          </div>
+
+          <p>
+            Розберемо праву гілку окремо, бо вона неочевидна. Якщо ти запустив Claude Code у
+            <em>підпапці</em> git-репозиторію, локальний файл він читає й пише
+            <strong>в корені репозиторію</strong>, а видане тобою «більше не питай» діє на весь
+            репозиторій. Так поводяться версії <strong>починаючи з 2.1.211</strong>; раніше файл
+            лежав у тій папці, звідки стартувала сесія, і старий файл далі читається — але при збігу
+            ключів виграє той, що в корені.
+          </p>
+
+          <p>
+            Є винятки, коли локальний файл лишається поруч зі спільним: поза git-репозиторієм,
+            коли коренем репозиторію є твоя домашня папка, на Windows, а також коли корінь
+            репозиторію (або його <code>.git</code> чи <code>.claude</code>) належить іншому
+            користувачу системи.
+          </p>
+
+          <h3>Сімнадцять ключів, які справді потрібні</h3>
+
+          <p>
+            Повний перелік налаштувань на 2026-09-04 містить <strong>223 ключі</strong> — це
+            прямий підрахунок рядків таблиці «All settings» офіційного довідника. Знімок тієї самої
+            сторінки, зроблений <strong>днем раніше</strong>, містив 222: за добу додався рівно один
+            ключ, <code>permissions.blockReadsOutsideWorkingDirectories</code>. Це найкраща ілюстрація
+            того, чому цей курс просить звірятись із джерелом, а не з пам'яттю.
+          </p>
+
+          <p>
+            Учити всі 223 не треба й не варто. Робочий набір, якого вистачає на перший рік:
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Ключ</th>
+                <th>Що робить</th>
+                <th>Де можна задавати</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>model</code></td>
+                <td>з якої моделі стартує сесія</td>
+                <td>будь-який файл</td>
+              </tr>
+              <tr>
+                <td><code>effortLevel</code></td>
+                <td>рівень зусиль за замовчуванням для моделей без власного збереженого рівня</td>
+                <td>будь-який файл</td>
+              </tr>
+              <tr>
+                <td><code>permissions.allow</code> · <code>.ask</code> · <code>.deny</code></td>
+                <td>дозволити без запиту · завжди питати · заборонити перелічені виклики
+                  інструментів (синтаксис — модуль 7)</td>
+                <td>будь-який файл</td>
+              </tr>
+              <tr>
+                <td><code>permissions.defaultMode</code></td>
+                <td>у якому режимі дозволів стартують нові сесії</td>
+                <td>будь-який файл, <strong>але з пасткою</strong> — див. блок 6</td>
+              </tr>
+              <tr>
+                <td><code>permissions.additionalDirectories</code></td>
+                <td>доступ до папок за межами поточної</td>
+                <td>будь-який файл</td>
+              </tr>
+              <tr>
+                <td><code>env</code></td>
+                <td>змінні середовища для кожної сесії та її підпроцесів</td>
+                <td>будь-який файл</td>
+              </tr>
+              <tr>
+                <td><code>hooks</code></td>
+                <td>твої власні команди на подіях життєвого циклу (модуль 16)</td>
+                <td>будь-який файл</td>
+              </tr>
+              <tr>
+                <td><code>statusLine</code></td>
+                <td>своя команда, що малює рядок стану під полем вводу</td>
+                <td>будь-який файл</td>
+              </tr>
+              <tr>
+                <td><code>outputStyle</code></td>
+                <td>роль, тон і формат відповідей</td>
+                <td>будь-який файл</td>
+              </tr>
+              <tr>
+                <td><code>theme</code></td>
+                <td>колірна тема інтерфейсу, вбудована або своя</td>
+                <td>будь-який файл</td>
+              </tr>
+              <tr>
+                <td><code>enabledMcpjsonServers</code></td>
+                <td>які сервери з проєктного <code>.mcp.json</code> схвалені (модуль 18)</td>
+                <td>будь-який файл</td>
+              </tr>
+              <tr>
+                <td><code>enabledPlugins</code></td>
+                <td>які плагіни ввімкнені (модуль 14)</td>
+                <td>будь-який файл</td>
+              </tr>
+              <tr>
+                <td><code>autoMemoryEnabled</code></td>
+                <td>вмикає й вимикає автопам'ять (модуль 12)</td>
+                <td>будь-який файл</td>
+              </tr>
+              <tr>
+                <td><code>autoCompactWindow</code></td>
+                <td>наскільки повним стає контекст до автоматичної компакції (модуль 6)</td>
+                <td>будь-який файл</td>
+              </tr>
+              <tr>
+                <td><code>cleanupPeriodDays</code></td>
+                <td>скільки днів зберігаються транскрипти сесій (модуль 9)</td>
+                <td>будь-який файл</td>
+              </tr>
+              <tr>
+                <td><code>attribution</code></td>
+                <td>підпис Claude Code у комітах і описах pull request</td>
+                <td>будь-який файл</td>
+              </tr>
+              <tr>
+                <td><code>autoUpdatesChannel</code></td>
+                <td>канал оновлень: <code>latest</code> або <code>stable</code> (модуль 3)</td>
+                <td>будь-який файл</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Колонка «де можна задавати» — не прикраса. У довіднику вона називається
+            <strong>Scope</strong> і має п'ять можливих значень: <code>Any file</code> (усі чотири
+            файли), <code>User, local, or managed</code>, <code>User or managed</code>,
+            <code>Managed</code> (лише організація) і <code>Global config</code> (лише
+            <code>~/.claude.json</code>). Ключ, у якого стоїть щось інше, ніж <code>Any file</code>,
+            <strong>не спрацює зі спільного файла проєкту</strong> — і мовчки, без попередження.
+            Це головна причина ситуації «закомітив налаштування, а в колег воно не діє».
+          </p>
+
+          <h3>Ключі, що керують оновленнями</h3>
+
+          <p>
+            У модулі 3 ти вже бачив, що канал <code>latest</code> і канал <code>stable</code>
+            розходяться на десяток версій. Цими налаштуваннями керують так:
+          </p>
+
+          <ul>
+            <li><code>autoUpdatesChannel</code> — <code>"latest"</code> (за замовчуванням) або
+              <code>"stable"</code>: версія приблизно тижневої давнини, з якої відкинуті релізи
+              з великими регресіями;</li>
+            <li><code>minimumVersion</code> — не давати автооновленню поставити щось нижче за
+              вказану версію;</li>
+            <li><code>requiredMinimumVersion</code> і <code>requiredMaximumVersion</code> —
+              відмовлятись стартувати на надто старій або надто новій версії. Обидва —
+              <strong>лише керовані</strong>: у своєму файлі їх писати марно;</li>
+            <li>змінна <code>DISABLE_AUTOUPDATER=1</code> вимикає фонові автооновлення, але
+              <code>claude update</code> руками далі працює; <code>DISABLE_UPDATES=1</code>
+              суворіша — вона блокує й ручне оновлення, і <code>claude install</code>;</li>
+            <li><code>CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE=1</code> дозволяє Claude Code самому
+              запускати оновлення твого пакетного менеджера у фоні — це стосується Homebrew і
+              WinGet.</li>
+          </ul>
+
+          <p>
+            Поруч живуть ще дві змінні, які часто шукають саме тут:
+            <code>USE_BUILTIN_RIPGREP=0</code> перемикає пошук по файлах на системний
+            <code>rg</code> замість вбудованого, а <code>CLAUDE_CODE_GIT_BASH_PATH</code> —
+            тільки для Windows: шлях до <code>bash.exe</code> з Git Bash, коли той установлений,
+            але не в <code>PATH</code>.
+          </p>
+
+          <h3>Сім ключів, де суворіше значення перемагає організацію</h3>
+
+          <p>
+            Правило «керовані налаштування перебивають усе» має точний перелік винятків. Для семи
+            ключів, пов'язаних із безпекою, Claude Code бере <strong>суворіше</strong> значення
+            навіть із нижчого рівня: <code>disableClaudeAiConnectors</code>,
+            <code>enableArtifact</code>, <code>isolatePeerMachines</code>,
+            <code>remoteControlAtStartup</code>, <code>crossSessionInbound</code>,
+            <code>useAutoModeDuringPlan</code>, <code>syncClaudeAiSkills</code>. Тобто заборонити
+            собі щось ти можеш завжди, а дозволити собі те, що заборонила організація, — ні.
+            Логіка одна: послаблення вгору не піднімається, посилення — піднімається.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
+          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+
+          <p>
+            Зробимо тренувальну папку, покладемо в неї налаштування, зламаємо їх навмисно й
+            полагодимо. Нічого з твоїх робочих проєктів це не зачепить.
+          </p>
+
+          <h3>Крок 1. Тренувальна папка</h3>
+
+          <p>
+            Відкрий термінал і виконай два рядки нижче. Перший створює папку
+            <code>claude-lab</code> у твоїй домашній папці разом із вкладеною <code>.claude</code>,
+            другий переводить тебе всередину.
+          </p>
+
+          <figure class="term term--cmd" id="p3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p3t">тренувальна папка</span>
+              <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p3t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">mkdir -p ~/claude-lab/.claude</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">cd ~/claude-lab</span></span></pre>
+          </figure>
+
+          <p>
+            Крапка на початку імені <code>.claude</code> робить папку прихованою: у Finder і в
+            звичайному <code>ls</code> її не видно. Щоб побачити — набери <code>ls -a</code> і
+            натисни Enter.
+          </p>
+
+          <h3>Крок 2. Перший файл налаштувань</h3>
+
+          <p>
+            Створи файл <code>~/claude-lab/.claude/settings.json</code> у будь-якому текстовому
+            редакторі й поклади в нього такий вміст:
+          </p>
+
+          <pre><code>{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)"
+    ]
+  },
+  "cleanupPeriodDays": 7
+}</code></pre>
+
+          <p>
+            Що тут написано. Правило <code>deny</code> забороняє читати файли
+            <code>.env</code> — у них зазвичай лежать паролі й ключі доступу, і найдешевший спосіб
+            не злити їх у транскрипт сесії — не давати їх читати взагалі (синтаксис таких правил —
+            модуль 7). Ключ <code>cleanupPeriodDays: 7</code> каже зберігати транскрипти тиждень
+            замість стандартних тридцяти днів.
+          </p>
+
+          <p>
+            Рядок <code>$schema</code> — необов'язковий, але корисний: він указує редакторові на
+            опубліковану схему налаштувань, і редактор починає підказувати назви ключів і
+            підкреслювати помилки. Про його межу — у блоці 6.
+          </p>
+
+          <h3>Крок 3. Перевір, що файл читається</h3>
+
+          <p>
+            Не запускаючи сесію, у тій самій папці набери <code>claude doctor</code> і натисни Enter.
+            Якщо у виводі <strong>немає розділу <code>Invalid settings</code></strong> — файл
+            коректний. Мовчання тут означає «все гаразд»; це та сама логіка мовчання, що й у
+            звичайних команд термінала з модуля 1.
+          </p>
+
+          <h3>Крок 4. Зламай навмисно</h3>
+
+          <p>
+            Тепер додай кому після останнього ключа — так, щоб було
+            <code>"cleanupPeriodDays": 7,</code> — збережи файл і виконай <code>claude doctor</code>
+            ще раз. Ти маєш побачити рядок <code>Invalid or malformed JSON</code> з повним шляхом до
+            свого файла, як на екрані в блоці 2.
+          </p>
+
+          <p>
+            Це вправа не заради вправи. Ти щойно побачив своїми очима головну властивість теми:
+            <strong>помилка в одному символі вимикає весь файл</strong>, і без окремої перевірки про
+            це не дізнаєшся.
+          </p>
+
+          <h3>Крок 5. Признач значення, яке видно</h3>
+
+          <p>
+            Прибери зайву кому й додай до файла ще один ключ — <code>"spinnerTipsEnabled": false</code>.
+            Він вимикає короткі підказки, які Claude Code показує під індикатором роботи. Запусти
+            <code>claude</code> у цій папці й подивись: підказки під спінером зникли.
+          </p>
+
+          <p>
+            Тепер створи поруч файл <code>.claude/settings.local.json</code> із вмістом
+            <code>{ "spinnerTipsEnabled": true }</code> і перезапусти сесію. Підказки повернулись —
+            бо локальний файл стоїть у стосі <strong>вище</strong> за спільний проєктний. Це і є
+            перекриття, побачене на власні очі.
+          </p>
+
+          <h3>Крок 6. Прибери за собою</h3>
+
+          <p>
+            Тренувальна папка більше не потрібна: видали <code>~/claude-lab</code> цілком.
+            Якщо ти встиг запустити в ній сесію, у твоїй домашній папці лишиться ще й транскрипт —
+            прибрати його штатно можна командою <code>claude project purge ~/claude-lab</code>
+            (вона друкує повний план видалення й питає підтвердження, а з ключем
+            <code>--dry-run</code> показує план і нічого не чіпає).
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
+          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Тема налаштувань небезпечна саме тим, що помилка мовчазна. Тому перевірка тут не
+            «на всякий випадок», а частина роботи. Чотири інструменти, від найдешевшого.
+          </p>
+
+          <h3><code>claude doctor</code> — не заходячи в сесію</h3>
+
+          <p>
+            Ця команда читає файли налаштувань поточної папки й друкує діагностику. Вона знаходить
+            не тільки зламаний JSON, а й окремі значення, які не проходять перевірку. Екран нижче
+            знятий у папці, де в коректному з погляду синтаксису файлі стояло
+            <code>"cleanupPeriodDays": 0</code>:
+          </p>
+
+          <figure class="term" id="p4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p4t">claude doctor про неприйнятне значення · 2.1.236, macOS 26.5.2,
+                2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p4t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude doctor</span></span>
+<span class="term__line"><span class="term__meta">…</span></span>
+<span class="term__line"><span class="term__err">Invalid settings</span></span>
+<span class="term__line"><span class="term__err">- /Users/anna/claude-lab/.claude/settings.json › cleanupPeriodDays: Number must be</span></span>
+<span class="term__line"><span class="term__err">  greater than or equal to 0</span></span>
+<span class="term__line">  Suggested fix: cleanupPeriodDays must be at least 1. To keep transcripts for a</span>
+<span class="term__line">  long time, set a large number (e.g. 3650 for ~10 years). <span class="term__meta">…</span></span></pre>
+          </figure>
+
+          <p class="text-sm text-muted">
+            Довгі рядки перенесені, кінець підказки скорочено, шлях до тимчасової папки замінено на
+            <code>/Users/anna/claude-lab</code>. У тому ж файлі була ще одна помилка — невідома назва
+            події для перехоплювача, — і <code>claude doctor</code> надрукував про неї окремий рядок
+            вище; тут його пропущено, бо він про тему модуля 16. Решта — дослівно.
+          </p>
+
+          <p>
+            Тут видно три корисні речі одразу: <strong>який файл</strong>, <strong>який саме
+              ключ</strong> (після знака <code>›</code>) і <strong>що з ним не так</strong>, разом із
+            запропонованим виправленням. Для решти файла це не фатально: коли ламається окреме
+            значення, а не весь JSON, Claude Code пропускає це значення й лишає файл чинним —
+            у документації такий випадок називається <code>Settings Warning</code>, на відміну від
+            <code>Settings Error</code>.
+          </p>
+
+          <h3><code>/status</code> — які файли взагалі завантажились</h3>
+
+          <p>
+            Усередині сесії набери <code>/status</code>. На вкладці <code>Status</code> є рядок
+            <code>Setting sources</code> — перелік завантажених файлів. Він відповідає на питання
+            «чи мій файл прочитано взагалі».
+          </p>
+
+          <p>
+            Чого він <strong>не</strong> показує — який саме файл дав який ключ. Тобто «мій файл
+            прочитано» і «моє значення перемогло» — два різні факти, і <code>/status</code>
+            підтверджує лише перший. Для другого доводиться йти від зворотного: подивитись у стос
+            перекриття й перевірити файли вище свого.
+          </p>
+
+          <h3>Ще чотири команди, кожна про своє</h3>
+
+          <ul>
+            <li><code>/permissions</code> — підсумкові правила дозволів, що діють зараз (після
+              злиття всіх файлів);</li>
+            <li><code>/hooks</code> — які перехоплювачі подій зареєстровані й з якого файла
+              приїхали;</li>
+            <li><code>/mcp</code> — які сервери MCP підключені й у якому вони стані;</li>
+            <li><code>/context</code> — що реально потрапило в контекст: інструкції, навички,
+              файли пам'яті.</li>
+          </ul>
+
+          <p>
+            Повний розбір діагностики — модуль 17. Тут важливе одне: <strong>для кожної частини
+              конфігурації є своя команда, яка показує підсумок, а не твій намір</strong>.
+          </p>
+
+          <h3>Перевірка, чи локальний файл справді поза git</h3>
+
+          <p>
+            Коли Claude Code сам створює <code>.claude/settings.local.json</code> у
+            git-репозиторії, він одноразово додає рядок <code>**/.claude/settings.local.json</code>
+            до твоїх <em>глобальних</em> git-виключень — файла <code>~/.config/git/ignore</code>
+            (або того, на який указує налаштування <code>core.excludesFile</code>). Перевірити, що
+            це справді сталось, можна однією командою в папці репозиторію:
+            <code>git check-ignore -v .claude/settings.local.json</code>. Якщо правило діє, вона
+            надрукує рядок виду
+            <code>/Users/anna/.config/git/ignore:1:**/.claude/settings.local.json</code> — тобто
+            назве файл із правилом, номер рядка й саме правило. Якщо вона не друкує нічого, файл
+            <strong>не</strong> виключений, і найближчий коміт забере твої особисті налаштування
+            в репозиторій.
+          </p>
+
+          <h3>Чи знає твоя збірка про цей ключ</h3>
+
+          <p>
+            Окрема ситуація: у документації ключ описаний, а в тебе не діє. Причина часто не в
+            помилці, а в різниці версій — документація описує найновіший випуск, а в тебе стоїть
+            старіший. Прапорець можна перевірити запуском, а ключ налаштувань запустити не можна.
+            Обхід — пошук назви всередині самого файла програми:
+          </p>
+
+          <figure class="term" id="p5">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p5t">чи є назва ключа у встановленій збірці · 2.1.236, macOS 26.5.2,
+                2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p5t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c statusLine</span></span>
+<span class="term__line">33</span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c blockReadsOutsideWorkingDirectories</span></span>
+<span class="term__line">0</span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c vygadanyjKljuch</span></span>
+<span class="term__line">0</span></pre>
+          </figure>
+
+          <p>
+            Читається це так. <code>strings</code> дістає з двійкового файла всі текстові шматки,
+            <code>grep -c</code> рахує, у скількох рядках трапилась назва. Ключ
+            <code>statusLine</code> знайдений 33 рази — збірка про нього знає.
+            <code>blockReadsOutsideWorkingDirectories</code> — нуль: саме той ключ, що з'явився в
+            довіднику 2026-09-04 і потребує версії 2.1.257, а тут стоїть 2.1.236. Третій рядок —
+            контрольний: вигадана назва теж дає нуль, і це доводить, що метод відрізняє наявне від
+            вигаданого, а не друкує нулі завжди.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Чесна межа цього прийому</span>
+            <p>
+              Число більше за нуль доводить, що <strong>назва є всередині збірки</strong>. Воно не
+              доводить, що можливість доступна саме твоєму акаунту чи твоєму плану. І нуль не завжди
+              означає «немає»: назва може складатись у програмі з частин. Тому це не заміна
+              документації, а швидка відповідь на питання «моя версія взагалі чула це слово».
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
+          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+
+          <p>
+            Усі сім пунктів нижче об'єднує одна риса: <strong>жоден із них не дає помилки</strong>.
+            Налаштування виглядає записаним і не діє.
+          </p>
+
+          <h3>1. <code>"auto"</code> і <code>"bypassPermissions"</code> із проєктного файла не діють</h3>
+
+          <p>
+            Найгостріша пастка теми. Значення <code>auto</code> і <code>bypassPermissions</code>
+            ключа <code>permissions.defaultMode</code> <strong>не спрацьовують зі спільного
+              проєктного або локального файла</strong>. Сесія тихо стартує в звичайному ручному
+            режимі, а людина впевнена, що налаштувала автоматичний.
+          </p>
+
+          <p>
+            Правильне місце для них — твій користувацький файл <code>~/.claude/settings.json</code>
+            або керовані налаштування; на одну сесію те саме дає прапорець
+            <code>--permission-mode</code>. Причина обмеження зрозуміла, якщо подумати про
+            безпеку: інакше будь-який склонований із мережі репозиторій міг би сам собі видати
+            повну свободу дій одним закоміченим файлом.
+          </p>
+
+          <p>
+            Тонкість, яку варто знати: для <code>bypassPermissions</code> це обмеження з'явилось
+            <strong>у версії 2.1.257</strong>. До неї значення діяло з будь-якого файла. Тобто на
+            старішій збірці ти побачиш стару поведінку — і це не привід шукати помилку в себе.
+          </p>
+
+          <h3>2. <code>~/.claude.json</code> — це не файл налаштувань</h3>
+
+          <p>
+            Два файли з дуже схожими іменами роблять різні речі:
+            <code>~/.claude/settings.json</code> — твої налаштування, а <code>~/.claude.json</code>
+            (окремий файл поруч із папкою) — внутрішній стан програми: вхід, персональні сервери
+            MCP, перемикачі інтерфейсу. Ключі <code>permissions</code>, <code>hooks</code> і
+            <code>env</code>, покладені в <code>~/.claude.json</code>, ігноруються повністю.
+            Документація виносить цей випадок в окремий рядок таблиці типових причин — тобто
+            спотикаються на ньому регулярно.
+          </p>
+
+          <h3>3. Закомітив ключ — а в команди не діє</h3>
+
+          <p>
+            Дві різні причини, і лікуються вони по-різному.
+          </p>
+
+          <ul>
+            <li><strong>Ключ не можна задавати зі спільного файла.</strong> Це видно в колонці
+              <code>Scope</code> довідника: усе, крім <code>Any file</code>, зі спільного проєктного
+              файла не працює. Лікування — перенести ключ у користувацький файл кожного або в
+              керовані налаштування.</li>
+            <li><strong>Ключ чекає на довіру до папки.</strong> Правила <code>permissions.allow</code>,
+              <code>permissions.additionalDirectories</code>, <code>extraKnownMarketplaces</code> і
+              більшість значень <code>env</code> діють лише після того, як людина підтвердила довіру
+              до цієї робочої папки. До того моменту вона й далі бачить запити дозволу. Правила
+              <code>deny</code> і <code>ask</code>, навпаки, діють одразу — заборона не чекає ні на
+              що.</li>
+          </ul>
+
+          <h3>4. Проєктний файл не може задати частину змінних середовища</h3>
+
+          <p>
+            Та сама логіка, що й у пункті 1, але про блок <code>env</code>. Проєктний і локальний
+            файли <strong>не можуть</strong> задавати змінні, якими репозиторій не має права
+            керувати: ті, що вирішують, куди Claude Code пише свої файли
+            (<code>CLAUDE_CONFIG_DIR</code>, <code>HOME</code>, <code>TMPDIR</code>, сімейство
+            <code>XDG_*</code>), ті, що вивантажують вміст сесії назовні, і ті, що змінюють спосіб
+            запуску. Claude Code відкидає такий рядок і пише попередження, яке видно лише з
+            <code>claude --debug</code>. Задавати їх треба в оболонці, у користувацькому файлі або
+            в керованих налаштуваннях.
+          </p>
+
+          <h3>5. Шукаєш локальний файл не в тій папці</h3>
+
+          <p>
+            Ти запустив Claude Code у підпапці репозиторію, відповів «більше не питай» — і йдеш
+            шукати <code>.claude/settings.local.json</code> поруч. А він у <strong>корені
+              репозиторію</strong> (версії від 2.1.211). Ще один бік тієї самої монети: якщо ти
+            створив цей файл <strong>руками</strong>, а Claude Code у нього ще жодного разу не
+            писав, то й у git-виключення він його не додавав. Такий файл треба ігнорувати самому,
+            інакше твої особисті дозволи поїдуть у репозиторій із першим же комітом.
+          </p>
+
+          <h3>6. Редактор підкреслює ключ червоним, а ключ робочий</h3>
+
+          <p>
+            Рядок <code>$schema</code> дає редакторові підказки — і разом із ними джерело хибної
+            тривоги. Опублікована схема налаштувань <strong>відстає від релізів</strong>, тому
+            попередження на щойно задокументований ключ не означає, що конфігурація зламана.
+            Це прямо сказано в документації. Перевіряти треба не кольором підкреслення, а
+            командою <code>claude doctor</code>.
+          </p>
+
+          <h3>7. Правка не діє, бо ключ читається лише на старті</h3>
+
+          <p>
+            За замовчуванням Claude Code стежить за файлами налаштувань і підхоплює більшість
+            змін <strong>без перезапуску</strong> — включно з <code>permissions</code> і
+            <code>hooks</code>. Але кілька ключів читаються один раз, на старті сесії, і правка
+            посеред роботи їх не зачепить:
+          </p>
+
+          <ul>
+            <li><code>model</code> — щоб змінити модель усередині сесії, є команда
+              <code>/model</code>;</li>
+            <li><code>effortLevel</code> і <code>modelSettings</code> — для них є
+              <code>/effort</code>;</li>
+            <li><code>outputStyle</code> — він частина системного промпту, тому нова
+              величина застосується після <code>/clear</code> або перезапуску.</li>
+          </ul>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
+          <h2><span class="lesson-no">7</span>Часті питання</h2>
+
+          <h3>У мене немає жодного файла налаштувань. Це нормально?</h3>
+
+          <p>
+            Так. Установка не створює жодного з них, і Claude Code повністю працездатний на
+            вбудованих значеннях. Файл з'являється тоді, коли ти вперше змінюєш опцію в
+            <code>/config</code> або вперше кажеш «більше не питай» на запиті дозволу.
+          </p>
+
+          <h3>Чи треба класти <code>.claude/settings.json</code> у репозиторій?</h3>
+
+          <p>
+            Якщо ви працюєте командою — так, у цьому й сенс цього файла: усі, хто склонував
+            репозиторій, отримують однакові дозволи, перехоплювачі подій, змінні середовища й
+            плагіни. Особисті винятки кожен тримає у своєму
+            <code>.claude/settings.local.json</code>, і комітити їх не треба.
+          </p>
+
+          <h3>Як спробувати налаштування, нічого не зберігаючи?</h3>
+
+          <p>
+            Прапорцем <code>--settings</code> при запуску: він приймає або шлях до файла, або
+            JSON прямо в рядку. Значення діє одну сесію й не пишеться в жоден файл. У стосі
+            перекриття він стоїть вище за всі твої файли й нижче за керовані налаштування.
+            Приклад із документації: <code>claude --settings '{"model": "claude-opus-4-8"}'</code>.
+          </p>
+
+          <p>
+            Частина ключів має ще й власний прапорець (<code>--model</code> для <code>model</code>,
+            <code>--effort</code> для <code>effortLevel</code>) або парну змінну середовища
+            (<code>ANTHROPIC_MODEL</code>). Задавати <code>Managed</code>- і
+            <code>Global config</code>-ключі через <code>--settings</code> не можна.
+          </p>
+
+          <h3>Як подивитись, чи винен у дивній поведінці мій конфіг?</h3>
+
+          <p>
+            Запусти <code>claude --safe-mode</code> — сесія стартує з вимкненими <em>усіма</em>
+            кастомізаціями: <code>CLAUDE.md</code>, навичками, плагінами, перехоплювачами подій,
+            серверами MCP, своїми командами й агентами. Якщо проблема зникла — причина в одному з
+            вимкнених шарів. Вхід, вибір моделі, вбудовані інструменти й дозволи в цьому режимі
+            працюють як звичайно, а керована політика організації лишається чинною.
+          </p>
+
+          <p>
+            Точніший інструмент — <code>--setting-sources</code>: він приймає перелік із
+            <code>user</code>, <code>project</code>, <code>local</code> і завантажує тільки названі
+            рівні. Так можна вимкнути рівно один шар і подивитись, що зміниться. А зовсім чисту
+            перевірку дає запуск із порожньою конфігураційною папкою:
+            <code>cd /tmp &amp;&amp; CLAUDE_CONFIG_DIR=/tmp/claude-clean claude</code> — ця сесія не
+            бачить нічого з твоєї <code>~/.claude</code> (першого разу вона попросить вибрати тему
+            й увійти — це ознака, що чиста папка справді діє).
+          </p>
+
+          <h3>Мене цікавить ключ, якого немає в переліку з блоку 3. Де його шукати?</h3>
+
+          <p>
+            У довіднику <a href="../claude-code-ref-settings.html">«Ключі settings.json»</a> —
+            там повний перелік із коротким описом кожного й колонкою області дії. Довідник не
+            проходять і не здають: до нього повертаються. У самій документації те саме живе на
+            сторінці <code>settings-reference</code>, і саме її варто відкривати, коли треба
+            дослівне формулювання й позначка «потрібна версія не нижче за».
+          </p>
+
+          <h3>Чому в мене на роботі Claude Code поводиться інакше, ніж удома?</h3>
+
+          <p>
+            Найімовірніше, на робочій машині розгорнуті керовані налаштування. Перевірка — рядок
+            <code>Setting sources</code> у <code>/status</code>: він назве кероване джерело, якщо
+            воно діє. Змінити його зі свого боку не вийде за конструкцією — крім семи «суворіших»
+            ключів із кінця блоку 3. Це не поломка, це політика організації.
+          </p>
+
+          <h3>Скільки взагалі є ключів і чи треба їх знати?</h3>
+
+          <p>
+            На 2026-09-04 їх 223, і кількість змінюється: за добу до того їх було 222.
+            Знати їх напам'ять не треба нікому — це довідкова інформація за визначенням. Знати
+            треба інше: як улаштований порядок перекриття, як подивитись область дії ключа й
+            якою командою перевірити, що твій файл прочитано.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
+          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Що варто винести з модуля</span>
+            <ul>
+              <li><strong>Підкоманди <code>claude config</code> не існує</strong>, а
+                <code>claude config --help</code> друкує звичайну довідку, бо слово
+                <code>config</code> розбирається як текст твого завдання. Будь-яка інструкція з
+                <code>claude config set</code> застаріла.</li>
+              <li><strong>Файлів налаштувань чотири</strong>: користувацький, спільний проєктний,
+                локальний і керований. Чим вужче коло людей, тим сильніший файл, а керований
+                перебиває всіх.</li>
+              <li><strong>Списки зливаються, а не перекриваються.</strong> Твій
+                <code>permissions.allow</code> додається до командного, а не замінює його.</li>
+              <li><strong>Змінні середовища — не рівень у стосі.</strong> Хто виграє, вирішується
+                для кожної пари «змінна — ключ» окремо.</li>
+              <li><strong>Колонка <code>Scope</code> вирішує долю закоміченого ключа.</strong> Усе,
+                крім <code>Any file</code>, зі спільного проєктного файла мовчки не діє — як
+                <code>auto</code> й <code>bypassPermissions</code>.</li>
+              <li><strong>Перевірка — окрема дія.</strong> <code>claude doctor</code> — до сесії,
+                <code>/status</code> — які файли завантажені, <code>/permissions</code>,
+                <code>/hooks</code>, <code>/mcp</code>, <code>/context</code> — по своїй частині.</li>
+              <li><strong>Ключів 223, і їх кількість змінюється щодня.</strong> Вичерпний перелік —
+                у довіднику, а не в пам'яті.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+
+          <p>
+            Далі — <strong>модуль 14 «Навички, команди, плагіни»</strong>: як покласти в
+            <code>.claude/skills/</code> власну навичку, викликати її як <code>/назва</code> і
+            поділитись нею з командою. Папку, у якій це все живе, ти щойно розібрав, тому там
+            лишиться сам вміст.
+          </p>
+
+          <p>
+            А корисна звичка з цього модуля одна й дешева: <strong>після кожної правки файла
+              налаштувань виконуй <code>claude doctor</code> у тій самій папці</strong>. Це п'ять
+            секунд, і саме вони відрізняють «я налаштував» від «я думаю, що налаштував».
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять на назви
+            ключів: до кожної відповіді одразу з'являється пояснення, чому решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Людина знайшла в інтернеті пораду «claude config set -g theme dark». Вона виконала claude config --help, побачила довгий текст довідки без жодної помилки і зробила висновок, що команда існує. Де помилка?",
+            "options": [
+              "Помилки немає: довідка надрукувалась, отже підкоманда config працює",
+              "Підкоманди config не існує; слово config розібралось як текст завдання, а --help перехопив запуск і надрукував кореневу довідку",
+              "Потрібні права адміністратора, тому команда мовчки нічого не зробила",
+              "Треба було написати claude configure замість claude config"
+            ],
+            "answer": 1,
+            "explain": "У кореневій довідці є рядок «Arguments: prompt — Your prompt»: усе, що не збіглося з назвою підкоманди, Claude Code вважає початком твого завдання. Підкоманд у версії 2.1.236 тринадцять, і config серед них немає. Права адміністратора тут ні до чого, а «claude configure» — теж неіснуюча назва. Головний висновок блоку 2: відсутність помилки не є доказом того, що команда існує."
+          },
+          {
+            "q": "Команда закомітила в репозиторій .claude/settings.json із рядком \"defaultMode\": \"auto\" всередині permissions. Усі клонували, у всіх сесія стартує в звичайному ручному режимі, помилок ніхто не бачив. Що сталось?",
+            "options": [
+              "Файл зламаний, і Claude Code пропустив його цілком",
+              "Значення auto не діє зі спільного проєктного й локального файлів — його місце в користувацькому файлі або в керованих налаштуваннях",
+              "Потрібен перезапуск термінала, щоб значення підхопилось",
+              "Ключ називається інакше, правильна назва — permissions.mode"
+            ],
+            "answer": 1,
+            "explain": "Це найгостріша пастка модуля: значення auto і bypassPermissions ключа permissions.defaultMode зі спільного або локального файла мовчки не спрацьовують, і жодного попередження при цьому немає. Якби файл був зламаний, claude doctor надрукував би розділ Invalid settings. Перезапуск не допоможе, бо справа не в кешуванні, а в області дії. Назва ключа правильна. Обмеження існує заради безпеки: інакше склонований репозиторій сам собі видавав би повну свободу дій."
+          },
+          {
+            "q": "Ти прибрав правило Bash(npm run test) зі свого ~/.claude/settings.json, перезапустив сесію — а Claude Code далі запускає тести без запиту. Найімовірніша причина?",
+            "options": [
+              "Правило приїхало з іншого файла: списки на кшталт permissions.allow зливаються з усіх рівнів, а не перекриваються",
+              "Claude Code кешує дозволи і забуде правило через 30 днів",
+              "Файл ~/.claude/settings.json узагалі не читається — читається тільки проєктний",
+              "Треба було видалити весь блок permissions, а не один рядок"
+            ],
+            "answer": 0,
+            "explain": "Списки — виняток із правила перекриття: Claude Code об'єднує їх з усіх файлів, тому те саме правило могло приїхати з .claude/settings.json команди або з .claude/settings.local.json, куди його записала твоя ж відповідь «так, і більше не питай». Кешу дозволів із строком 30 днів не існує (30 днів — це cleanupPeriodDays, строк зберігання транскриптів). Користувацький файл читається завжди. Видалення всього блоку permissions не допомогло б із тієї самої причини: правило не у твоєму файлі. Перевірка — /permissions, вона показує підсумок після злиття."
+          },
+          {
+            "q": "Ти дописав ключ у settings.json, а на всяк випадок поставив над ним рядок з поясненням, що починається з //. Що станеться?",
+            "options": [
+              "Нічого: коментарі в цьому файлі дозволені",
+              "Коментар потрапить у контекст сесії як інструкція для Claude",
+              "Claude Code видалить рядок з коментарем при наступному записі у файл",
+              "Файл перестане бути коректним JSON, і Claude Code пропустить його цілком — не окремий ключ, а весь файл"
+            ],
+            "answer": 3,
+            "explain": "Файли налаштувань — строгий JSON: ні коментарів, ні коми після останнього елемента. Помилка в одному символі вимикає файл повністю, а не той ключ, біля якого вона стоїть. В інтерактивній сесії про це скаже вікно Settings Error, а в запуску з -p вікна немає взагалі — там зламане пропускається мовчки, і побачити це можна лише командою claude doctor. Коментарі, які потрапляють у контекст як інструкції, — це CLAUDE.md, інший файл і інша тема (модуль 12)."
+          },
+          {
+            "q": "У документації описаний ключ, ти прописав його точно за прикладом, claude doctor мовчить, але поведінка не змінилась. Яка перевірка тут доречніша за решту?",
+            "options": [
+              "Перевстановити Claude Code — файл програми пошкоджений",
+              "Подивитись, чи не підкреслює редактор цей ключ як невідомий: підкреслення означає, що ключа не існує",
+              "Порахувати, чи знає про назву ключа сама встановлена збірка: strings \"$(which claude)\" | grep -c <назва>, і поруч контрольний запуск із вигаданою назвою",
+              "Видалити всі інші ключі з файла, щоб вони не заважали"
+            ],
+            "answer": 2,
+            "explain": "Документація описує найновіший випуск, а на машині зазвичай стоїть старіший — саме так виглядає «ключ є в доксах і не діє в тебе». Пошук назви всередині двійкового файла відповідає на питання «чи чула про це слово моя версія», а контрольний запуск із вигаданою назвою доводить, що метод не друкує нулі завжди. Підкреслення в редакторі доказом не є: опублікована схема відстає від релізів, і документація прямо про це попереджає. Перевстановлення не змінить версію, а видалення сусідніх ключів нічого не з'ясує, бо claude doctor уже сказав, що файл коректний."
+          },
+          {
+            "q": "Claude Code сам створив .claude/settings.local.json у твоєму git-репозиторії. Що з ним треба зробити перед комітом?",
+            "options": [
+              "Нічого: при першому власному записі Claude Code додає цей файл у глобальні git-виключення, і перевірити це можна командою git check-ignore -v",
+              "Обов'язково закомітити, інакше колеги не отримають твоїх дозволів",
+              "Перейменувати на settings.json, бо файлів з двома крапками git не бачить",
+              "Перенести його в ~/.claude/, бо в проєкті локальних файлів не буває"
+            ],
+            "answer": 0,
+            "explain": "Коли Claude Code сам уперше пише в цей файл, він додає рядок **/.claude/settings.local.json до твоїх глобальних git-виключень, тож файл не потрапляє в коміти в жодному репозиторії. Перевірка — git check-ignore -v .claude/settings.local.json: вона назве файл із правилом і номер рядка. Комітити його не треба за призначенням: це особисті перекриття, спільне лежить у .claude/settings.json. Перейменування зробило б з особистого файла командний. Важливий виняток: якщо ти створив файл руками й Claude Code у нього ще не писав, у виключення він не потрапив — тоді додай його в .gitignore сам."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>

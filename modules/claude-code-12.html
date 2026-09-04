@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 12 · CLAUDE.md і пам'ять — AI Термінал</title>
+  <meta name="description"
+    content="Як зробити, щоб Claude Code не забував правила твого проєкту між сесіями: файл CLAUDE.md, команди /init і /memory, чотири локації завантаження, імпорти через @, автоматична пам'ять і чого в ці файли писати не варто." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#7A7164", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="c12" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 12</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 3 · Налаштування під себе</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">CLAUDE.md і пам'ять</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Середній · 8 блоків · ≈ 45 хв читання</p>
+        <p class="mt-6 text-lg">
+          Кожна нова сесія Claude Code починається з чистого аркуша: він не пам'ятає ні вчорашньої
+          розмови, ні того, що ти виправляв утретє поспіль. Тому в кожного, хто працює з ним
+          більше тижня, з'являється одна й та сама втома — пояснювати ті самі речі спочатку.
+          Цей модуль про два механізми, які цю втому знімають: файл <code>CLAUDE.md</code>, який
+          пишеш ти, і автоматичну пам'ять, яку веде сам Claude.
+        </p>
+        <p>
+          Це перший модуль третьої фази курсу. Далі буде вся тека <code>.claude/</code> і файл
+          налаштувань, навички, субагенти й перехоплювачі подій — але починається налаштування
+          під себе саме звідси, бо <code>CLAUDE.md</code> дає найбільший результат за найменшу
+          роботу: один текстовий файл, який ти пишеш звичайними словами.
+        </p>
+
+        <div class="callout callout-sand">
+          <span class="callout-title">Звідки взяті факти цього модуля</span>
+          <p>
+            Усі твердження звірені з офіційною сторінкою документації
+            <a href="https://code.claude.com/docs/en/memory">code.claude.com/docs/en/memory</a>
+            і сусідніми сторінками <code>commands</code>, <code>prompt-caching</code>,
+            <code>errors</code> та <code>debug-your-config</code> — прочитано <strong>2026-09-04</strong>.
+            Усі екрани в цьому уроці зняті того самого дня на <strong>macOS 26.5.2</strong>,
+            Claude Code <strong>2.1.236</strong>, у порожніх тестових теках.
+          </p>
+          <p>
+            Дві команди цієї теми — <code>/memory</code> і <code>/context</code> — живуть усередині
+            сесії й перемальовують екран на місці. Зняти їх текстом неможливо, тому вони описані
+            словами, а не домальовані. Правило курсу тут важливіше за красиву картинку.
+          </p>
+        </div>
+
+        <div class="callout">
+          <span class="callout-title">Що в цьому модулі є, а чого немає</span>
+          <p>
+            <strong>Є:</strong> навіщо потрібен <code>CLAUDE.md</code> і чим він відрізняється від
+            автоматичної пам'яті · чотири місця, де ці файли лежать, і в якому порядку вони
+            вантажаться · команди <code>/init</code> і <code>/memory</code> · як писати правила,
+            яких справді дотримуються · імпорти через <code>@</code> · тека
+            <code>.claude/rules/</code> і правила, прив'язані до шляхів · автоматична пам'ять:
+            що вона зберігає, де лежить і як її вимкнути · чого в ці файли писати не варто.
+          </p>
+          <p>
+            <strong>Немає:</strong> самої теки <code>.claude/</code> як структури й файлу
+            <code>settings.json</code> — це <strong>модуль 13</strong>; навичок
+            (<code>SKILL.md</code>) — це <strong>модуль 14</strong>; перехоплювачів подій
+            (hooks) — це <strong>модуль 16</strong>. Тут вони згадуються рівно тоді, коли
+            відповідають на питання «а що робити, якщо інструкції недостатньо».
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
+          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+
+          <p>
+            У модулі 6 ти вже бачив головну властивість роботи з мовною моделлю: у неї немає
+            пам'яті між запитами, тому весь потрібний текст їде в кожному запиті наново. Звідси
+            випливає й межа сесії: коли ти закрив вікно й відкрив нове, попередня розмова в
+            контекст не потрапляє. Для Claude Code це означає буквально таке: щоранку він
+            уперше бачить твій проєкт.
+          </p>
+
+          <p>
+            Документація формулює це першим реченням сторінки про пам'ять: кожна сесія починається
+            зі свіжого контекстного вікна, і є рівно <strong>два механізми</strong>, які переносять
+            знання через цю межу.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>&nbsp;</th>
+                <th><code>CLAUDE.md</code></th>
+                <th>Автоматична пам'ять (auto memory)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Хто пише</td>
+                <td>ти</td>
+                <td>Claude</td>
+              </tr>
+              <tr>
+                <td>Що всередині</td>
+                <td>інструкції й правила</td>
+                <td>висновки й закономірності</td>
+              </tr>
+              <tr>
+                <td>На що поширюється</td>
+                <td>проєкт, твій обліковий запис або вся організація</td>
+                <td>один репозиторій, спільна для всіх його робочих копій</td>
+              </tr>
+              <tr>
+                <td>Коли вантажиться</td>
+                <td>у кожну сесію повністю</td>
+                <td>у кожну сесію, але лише перші 200 рядків покажчика (або перші 25 КБ)</td>
+              </tr>
+              <tr>
+                <td>Для чого</td>
+                <td>стандарти коду, робочі процеси, будова проєкту</td>
+                <td>твої вподобання, твої виправлення, контекст, якого немає в коді</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            <strong>Репозиторій</strong> (repository) — це папка проєкту під наглядом системи
+            контролю версій git; якщо ти git не використовуєш, автоматична пам'ять прив'яжеться
+            до кореневої папки проєкту. Докладніше про сесії та про те, де фізично лежить
+            історія, було в модулі 9.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Головне речення всього модуля</span>
+            <p>
+              Обидва механізми Claude сприймає як <strong>контекст, а не як конфігурацію</strong>.
+              Документація каже це прямим текстом: щоб дію було заблоковано незалежно від того,
+              що вирішить Claude, потрібен перехоплювач події <code>PreToolUse</code> — тобто
+              програма, яку Claude Code запускає перед кожним викликом інструмента (модуль 16),
+              або правило дозволів із модуля 7.
+            </p>
+            <p>
+              Різниця практична. Рядок «ніколи не видаляй файли в <code>build/</code>» у
+              <code>CLAUDE.md</code> — це прохання, яке виконується майже завжди. Те саме правило
+              в <code>permissions.deny</code> — це заборона, яка виконується завжди. Плутати ці
+              дві речі дорого.
+            </p>
+          </div>
+
+          <h3>Коли дописувати в CLAUDE.md</h3>
+
+          <p>
+            Найчастіша помилка новачка — сісти й написати сторінку «про проєкт» одразу. Корисніше
+            інше правило: <code>CLAUDE.md</code> — це місце, куди ти записуєш те, що інакше
+            довелося б пояснювати вдруге. Документація називає чотири моменти, коли варто дописати
+            рядок:
+          </p>
+
+          <ul>
+            <li>Claude зробив ту саму помилку <strong>вдруге</strong>;</li>
+            <li>рецензія коду виявила те, що Claude мав би знати про цей проєкт;</li>
+            <li>ти набираєш у чаті те саме уточнення, яке набирав минулої сесії;</li>
+            <li>новому колезі знадобився б той самий контекст, щоб почати працювати.</li>
+          </ul>
+
+          <p>
+            І зворотне правило: якщо запис — це багатокрокова процедура або він потрібен лише
+            в одній частині проєкту, йому місце не тут. Процедура — це навичка (модуль 14),
+            а прив'язане до частини проєкту правило — це файл у <code>.claude/rules/</code>
+            з полем <code>paths</code>, про який далі в блоці 3.
+          </p>
+
+          <h3>Чого в ці файли писати не варто</h3>
+
+          <p>
+            Місце в <code>CLAUDE.md</code> коштує контексту в кожній сесії, тому список
+            «не писати» такий самий важливий, як список «писати».
+          </p>
+
+          <table>
+            <thead>
+              <tr><th>Не пиши сюди</th><th>Чому й куди натомість</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Те, що видно з самого коду: перелік тек, список залежностей, огляд
+                  архітектури</td>
+                <td>Claude прочитає це за секунду сам. Команда <code>/doctor</code> уміє
+                  підрізати закомічений файл саме за цією ознакою</td>
+              </tr>
+              <tr>
+                <td>Багатокрокові процедури: «як випустити реліз», «як налаштувати
+                  оточення»</td>
+                <td>Це навичка (модуль 14): вона вантажиться тоді, коли справді потрібна,
+                  а не щосесії</td>
+              </tr>
+              <tr>
+                <td>Правила, що стосуються однієї частини проєкту</td>
+                <td>Файл у <code>.claude/rules/</code> з полем <code>paths</code> — блок 3</td>
+              </tr>
+              <tr>
+                <td>Заборони, які мусять виконуватись залізно</td>
+                <td>Дозволи (модуль 7) або перехоплювач події (модуль 16). Інструкція —
+                  це прохання</td>
+              </tr>
+              <tr>
+                <td>Паролі, ключі доступу, персональні дані</td>
+                <td>Файл потрапляє в кожну розмову, а розмови записуються в транскрипт,
+                  який не шифрується (модуль 22)</td>
+              </tr>
+              <tr>
+                <td>Те саме, що вже написано в іншому файлі пам'яті</td>
+                <td>Дублювання рано чи пізно розходиться, а суперечливі правила Claude
+                  розв'язує довільно — див. блок 6</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
+          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Найпростіший спосіб побачити, що <code>CLAUDE.md</code> справді працює, — поставити в
+            нього правило-маркер: щось безглузде, чого Claude ніколи не зробив би сам. Далі —
+            дослівний запис такої перевірки в порожній тестовій теці.
+          </p>
+
+          <p>
+            У теці два файли: <code>CLAUDE.md</code> з одним правилом і рядком
+            <code>@style.md</code>, і сам <code>style.md</code> з другим правилом. Символ
+            <code>@</code> перед шляхом означає імпорт — про нього далі в блоці 3. Прапорець
+            <code>-p</code> у команді означає «постав одне питання, надрукуй відповідь і вийди»:
+            так результат видно текстом, без інтерактивного екрана. Цьому режиму присвячений
+            модуль 19.
+          </p>
+
+          <figure class="term" id="p1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p1t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">cat CLAUDE.md</span></span>
+<span class="term__line"># Правила проєкту</span>
+<span class="term__line"></span>
+<span class="term__line">- Кожну відповідь починай зі слова ЧОВЕН.</span>
+<span class="term__line"></span>
+<span class="term__line">@style.md</span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">cat style.md</span></span>
+<span class="term__line">- Наприкінці кожної відповіді додавай окремий рядок: Кінець.</span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude -p "Скільки буде два плюс два?"</span></span>
+<span class="term__line"><span class="term__ok">ЧОВЕН</span></span>
+<span class="term__line"></span>
+<span class="term__line">Два плюс два дорівнює **4**.</span>
+<span class="term__line"></span>
+<span class="term__line"><span class="term__ok">Кінець.</span></span></pre>
+          </figure>
+
+          <p>
+            Один запуск довів одразу дві речі. Перше: файл <code>CLAUDE.md</code> прочитаний —
+            відповідь починається зі слова, яке жодна модель не поставила б сама. Друге:
+            імпорт спрацював — правило про рядок «Кінець» лежало в <em>іншому</em> файлі, і
+            Claude його теж отримав.
+          </p>
+
+          <p>
+            Контрольний запуск. Та сама команда, те саме питання, але порожня тека без
+            <code>CLAUDE.md</code>:
+          </p>
+
+          <figure class="term" id="p2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p2t">та сама команда в теці без CLAUDE.md · 2.1.236 · 2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p2t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude -p "Скільки буде два плюс два?"</span></span>
+<span class="term__line">Два плюс два дорівнює **4**.</span></pre>
+          </figure>
+
+          <p>
+            Різниця в двох словах — і саме вона є доказом. Без контрольного запуску перший екран
+            нічого не доводив би: мало як воно там вийшло.
+          </p>
+
+          <h3>Два екрани, які показати текстом неможливо</h3>
+
+          <p>
+            Обидві команди цієї теми працюють усередині сесії й перемальовують екран на місці.
+            Тому далі — опис із документації, а не знімок.
+          </p>
+
+          <p>
+            <strong><code>/memory</code></strong> показує перелік місць, де живуть файли пам'яті —
+            і твої особисті, і проєктні, включно з тими файлами, яких ще <em>не існує</em>.
+            Вибираєш рядок — файл відкривається в твоєму редакторі, а якщо його не було, він
+            спершу створюється. Там само стоїть перемикач автоматичної пам'яті й пункт «відкрити
+            теку автоматичної пам'яті». Якщо редактор графічний (наприклад VS Code), файл
+            відкривається окремим вікном і сесією можна користуватись далі; якщо редактор
+            термінальний (наприклад Vim), він займає термінал до виходу з нього.
+          </p>
+
+          <p>
+            <strong><code>/context</code></strong> малює сітку того, що зараз реально займає
+            контекстне вікно, з розбивкою за категоріями. У ній є секція <strong>Memory
+            files</strong> — саме вона відповідає на питання «мій файл узагалі завантажився?».
+            Це різні команди з різними задачами: <code>/memory</code> показує, <em>де лежать</em>
+            файли, <code>/context</code> — <em>що потрапило</em> в сесію. Плутанина між ними
+            коштує години пошуку неіснуючої проблеми.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
+          <h2><span class="lesson-no">3</span>Як це працює</h2>
+
+          <h3>Чотири місця, звідки беруться інструкції</h3>
+
+          <p>
+            Файл <code>CLAUDE.md</code> може лежати в кількох місцях, і кожне має свою зону
+            дії. Документація перелічує їх у порядку завантаження — від найширшого до
+            найвужчого.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  A["Керована політика організації: CLAUDE.md, який ставить айтішник компанії"] --> B["~/.claude/CLAUDE.md — твої правила для всіх проєктів"]
+  B --> C["./CLAUDE.md або ./.claude/CLAUDE.md — правила проєкту, їдуть у git"]
+  C --> D["./CLAUDE.local.md — особисте для цього проєкту, у .gitignore"]
+  D --> E["Контекст сесії: усі чотири склеєні один за одним"]
+  style E fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Порядок завантаження. Файли не перекривають один одного, а склеюються: те, що
+              ближче до твоєї робочої папки, Claude читає останнім
+            </p>
+          </div>
+
+          <table>
+            <thead>
+              <tr><th>Зона</th><th>Де лежить</th><th>Для чого</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Організація</td>
+                <td>macOS: <code>/Library/Application Support/ClaudeCode/CLAUDE.md</code> ·
+                  Linux і WSL: <code>/etc/claude-code/CLAUDE.md</code> ·
+                  Windows: <code>C:\Program Files\ClaudeCode\CLAUDE.md</code></td>
+                <td>стандарти й вимоги компанії. Такий файл <strong>не можна виключити</strong>
+                  особистими налаштуваннями</td>
+              </tr>
+              <tr>
+                <td>Твій обліковий запис</td>
+                <td><code>~/.claude/CLAUDE.md</code></td>
+                <td>твої особисті вподобання в усіх проєктах на цій машині</td>
+              </tr>
+              <tr>
+                <td>Проєкт</td>
+                <td><code>./CLAUDE.md</code> <em>або</em> <code>./.claude/CLAUDE.md</code></td>
+                <td>спільні правила команди, їдуть у систему контролю версій</td>
+              </tr>
+              <tr>
+                <td>Особисте в проєкті</td>
+                <td><code>./CLAUDE.local.md</code></td>
+                <td>твої адреси тестових серверів, улюблені тестові дані. Додати в
+                  <code>.gitignore</code> — це файл зі списком того, що git не має
+                  забирати в спільний репозиторій</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Обидва варіанти проєктного файла — <code>./CLAUDE.md</code> і
+            <code>./.claude/CLAUDE.md</code> — рівноправні. «Правильного» серед них немає: обирай
+            той, який менше засмічує корінь проєкту.
+          </p>
+
+          <h3>Як саме вони склеюються</h3>
+
+          <p>
+            Claude Code бере <code>CLAUDE.md</code> і <code>CLAUDE.local.md</code> із твоєї
+            поточної папки й <strong>з кожної папки над нею</strong>. Запустив у
+            <code>foo/bar/</code> — підтягнуться і <code>foo/bar/CLAUDE.md</code>, і
+            <code>foo/CLAUDE.md</code>.
+          </p>
+
+          <ul>
+            <li>усі знайдені файли <strong>склеюються</strong> в контекст, а не перекривають
+              один одного;</li>
+            <li>порядок — від кореня файлової системи вниз до твоєї робочої папки, тобто
+              інструкції, ближчі до місця запуску, Claude читає останніми;</li>
+            <li>у межах однієї папки <code>CLAUDE.local.md</code> дописується <em>після</em>
+              <code>CLAUDE.md</code>;</li>
+            <li>файли у <strong>підпапках</strong> вантажаться інакше — не на старті, а
+              на вимогу: коли Claude справді читає якийсь файл у тій підпапці.</li>
+          </ul>
+
+          <h3>Імпорти через @</h3>
+
+          <p>
+            Усередині <code>CLAUDE.md</code> можна послатись на інший файл рядком
+            <code>@шлях/до/файла</code> — і його вміст розгорнеться в контекст разом із головним
+            файлом. Правила, які варто знати одразу:
+          </p>
+
+          <ul>
+            <li>відносний шлях рахується <strong>від файла з імпортом</strong>, а не від папки,
+              у якій ти запустив Claude Code;</li>
+            <li>імпортований файл може імпортувати наступний — максимум <strong>чотири
+              стрибки</strong> вглиб;</li>
+            <li>розбір імпортів <strong>пропускає код у зворотних лапках і блоки коду</strong>.
+              Тобто <code>@README</code> у звичайному тексті імпортує файл, а той самий
+              <code>@README</code> у зворотних лапках лишається звичайним текстом. Це і спосіб
+              згадати шлях, не імпортуючи його, і пастка: згадав файл у реченні — отримав його
+              вміст у контексті;</li>
+            <li>імпорт у <strong>проєктному</strong> файлі, шлях якого веде за межі робочої
+              папки (наприклад у твою домашню теку), вважається зовнішнім. Такий імпорт
+              один раз показує діалог схвалення з переліком файлів; якщо відмовитись, імпорти
+              лишаються вимкненими, і діалог більше не з'явиться. Захист від того, щоб чужий
+              файл у спільному репозиторії тягнув щось із твоєї машини.</li>
+          </ul>
+
+          <div class="callout">
+            <span class="callout-title">Імпорти не економлять контекст</span>
+            <p>
+              Найпоширеніша ілюзія навколо <code>@</code>: люди розбивають довгий
+              <code>CLAUDE.md</code> на п'ять файлів і вважають, що полегшили сесію. Ні:
+              імпортовані файли розгортаються й потрапляють у контекст <strong>на старті</strong>,
+              разом із головним. Виграш тут організаційний — читати легше, — а не в токенах.
+              Механізм, який справді економить, — наступний.
+            </p>
+          </div>
+
+          <h3>Тека .claude/rules/ і правила, прив'язані до шляхів</h3>
+
+          <p>
+            Для великих проєктів інструкції розкладають по окремих файлах у теці
+            <code>.claude/rules/</code>: <code>testing.md</code>, <code>api-design.md</code> і так
+            далі. Усі файли <code>.md</code> знаходяться рекурсивно, тобто вкладені папки
+            всередині <code>rules/</code> теж працюють.
+          </p>
+
+          <p>
+            Головне тут — поле <code>paths</code> у <strong>заголовку файла</strong> (frontmatter —
+            невеликий службовий блок у форматі YAML на початку файла, відбитий рядками з трьох
+            дефісів). Правило з таким полем потрапляє в контекст лише тоді, коли Claude працює з
+            файлами, що збігаються з шаблоном:
+          </p>
+
+          <figure class="term" id="p3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p3t">приклад із документації: .claude/rules/api.md</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p3t"><span class="term__line">---</span>
+<span class="term__line">paths:</span>
+<span class="term__line">  - "src/api/**/*.ts"</span>
+<span class="term__line">---</span>
+<span class="term__line"></span>
+<span class="term__line"># API Development Rules</span>
+<span class="term__line"></span>
+<span class="term__line">- All API endpoints must include input validation</span>
+<span class="term__line">- Use the standard error response format</span></pre>
+          </figure>
+
+          <p>
+            Запис <code>src/api/**/*.ts</code> — це <strong>шаблон шляху</strong> (glob), де
+            <code>**</code> означає «будь-яка глибина вкладених папок», а <code>*</code> —
+            «будь-яке ім'я». Правило без поля <code>paths</code> вантажиться завжди, нарівні з
+            <code>.claude/CLAUDE.md</code>. Особисті правила для всіх проєктів кладуть у
+            <code>~/.claude/rules/</code>; вони читаються перед проєктними, тобто проєктні
+            мають вищий пріоритет.
+          </p>
+
+          <h3>Автоматична пам'ять</h3>
+
+          <p>
+            Другий механізм працює без тебе. Поки ви працюєте, Claude сам вирішує, що з розмови
+            варто зберегти на майбутнє, і записує це в окремі файли. Документація називає чотири
+            типи таких нотаток — тип пишеться в полі <code>type</code> у заголовку файла:
+          </p>
+
+          <table>
+            <thead>
+              <tr><th>Тип</th><th>Що туди йде</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>user</code></td><td>твоя роль, досвід, робочі вподобання</td></tr>
+              <tr><td><code>feedback</code></td><td>виправлення, які ти даєш, і підходи, які ти
+                схвалив</td></tr>
+              <tr><td><code>project</code></td><td>поточна робота, терміни й рішення, яких не
+                видно ні в коді, ні в історії git</td></tr>
+              <tr><td><code>reference</code></td><td>де шукати інформацію поза проєктом:
+                трекер задач, панель моніторингу</td></tr>
+            </tbody>
+          </table>
+
+          <p>
+            Claude свідомо пропускає те, що можна вивести з самого коду — будову проєкту, шляхи
+            до файлів, рецепти виправлення багів, — і те, що вже написано в твоєму
+            <code>CLAUDE.md</code>. Зберігає він не щосесії, а лише коли вважає, що факт стане в
+            пригоді наступного разу.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  S["Сесія Claude Code"] --> M["CLAUDE.md: те, що написав ти"]
+  S --> A["Автоматична пам'ять: те, що записав Claude"]
+  M --> M1["Вантажиться повністю, у кожну сесію"]
+  A --> A1["MEMORY.md — покажчик, перші 200 рядків або 25 КБ"]
+  A --> A2["Файли за темами — читаються на вимогу, не на старті"]
+  A1 --> P["~/.claude/projects/ІМ'Я-ПРОЄКТУ/memory/"]
+  A2 --> P
+  style S fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Два механізми поруч. Різниця, яка найдорожче коштує: покажчик пам'яті вантажиться
+              не весь, а перші 200 рядків
+            </p>
+          </div>
+
+          <ul>
+            <li>лежить у <code>~/.claude/projects/ІМ'Я-ПРОЄКТУ/memory/</code>, де ім'я проєкту
+              виводиться з git-репозиторію. Наслідок: усі робочі копії одного репозиторію
+              (worktrees, модуль 15) ділять <strong>одну</strong> пам'ять;</li>
+            <li>усередині — покажчик <code>MEMORY.md</code> по одному рядку на нотатку й окремі
+              файли за темами;</li>
+            <li>у кожну сесію вантажаться <strong>перші 200 рядків</strong> покажчика
+              <strong>або перші 25 КБ</strong>, що настане раніше. Файли за темами на старті не
+              вантажаться — Claude читає їх сам, коли вони знадобляться;</li>
+            <li>усе це — звичайні текстові файли: їх можна читати, правити й видаляти руками;</li>
+            <li>пам'ять <strong>машинно-локальна</strong>: між комп'ютерами не синхронізується;</li>
+            <li>Claude Code прибирає старі транскрипти розмов за строком
+              <code>cleanupPeriodDays</code>, але теку пам'яті з цього прибирання
+              <strong>виключено</strong>: <code>MEMORY.md</code> і файли за темами лишаються,
+              доки ти або Claude їх не змінить чи не видалить.</li>
+          </ul>
+
+          <p>
+            Вимкнути її можна двома способами: перемикачем у <code>/memory</code>, який запише
+            <code>autoMemoryEnabled</code> у твої налаштування, або змінною середовища
+            <code>CLAUDE_CODE_DISABLE_AUTO_MEMORY=1</code>. Перенести в іншу теку —
+            ключем <code>autoMemoryDirectory</code>. Про самі налаштування — у модулі 13.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
+          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+
+          <p>
+            Далі — шість кроків на своєму комп'ютері. Роби їх у справжньому проєкті, з яким
+            працюєш, або створи для проби порожню папку з парою файлів: результат буде видно
+            в обох випадках.
+          </p>
+
+          <h3>Крок 1. Запусти Claude Code в папці проєкту</h3>
+
+          <p>
+            Відкрий термінал, зайди в папку проєкту командою <code>cd</code> і набери
+            <code>claude</code>, потім натисни Enter. Це те саме, що ти робив у модулі 4.
+          </p>
+
+          <h3>Крок 2. Набери /init і натисни Enter</h3>
+
+          <p>
+            Команда <code>/init</code> читає твій проєкт і сама створює стартовий
+            <code>CLAUDE.md</code>: команди запуску й тестів, будову проєкту, домовленості, які
+            вона знайшла в коді. Якщо <code>CLAUDE.md</code> уже існує, вона
+            <strong>не перезаписує</strong> його, а пропонує доповнення. Дорогою вона зазирає
+            в правила інших інструментів, якщо вони є в репозиторії:
+            <code>.cursor/rules/</code>, <code>.cursorrules</code>,
+            <code>.github/copilot-instructions.md</code>.
+          </p>
+
+          <p>
+            Ось що <code>/init</code> зробив у тестовому проєкті з чотирьох файлів
+            (<code>index.html</code>, <code>style.css</code>, <code>app.js</code>,
+            <code>README.md</code>) — і скільки рядків вийшло:
+          </p>
+
+          <figure class="term term--cmd" id="p4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p4t">результат /init · macOS 26.5.2 · Claude Code 2.1.236 · 2026-09-04</span>
+              <button type="button" class="term__copy"
+                      data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p4t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">wc -l CLAUDE.md</span></span>
+<span class="term__line">      26 CLAUDE.md</span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">head -12 CLAUDE.md</span></span>
+<span class="term__line"># CLAUDE.md</span>
+<span class="term__line"></span>
+<span class="term__line">This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.</span>
+<span class="term__line"></span>
+<span class="term__line">## Запуск</span>
+<span class="term__line"></span>
+<span class="term__line">```bash</span>
+<span class="term__line">python3 -m http.server 8000</span>
+<span class="term__line">```</span>
+<span class="term__line"></span>
+<span class="term__line">Далі відкрити http://localhost:8000. Іншого способу запуску немає.</span></pre>
+          </figure>
+
+          <p>
+            Двадцять шість рядків на проєкт із чотирьох файлів — приблизно та щільність, до якої
+            варто прагнути. Команд збірки й тестів у файлі немає, бо їх немає в самому проєкті:
+            вигадувати їх було б шкідливо.
+          </p>
+
+          <h3>Крок 3. Перечитай згенероване й викинь зайве</h3>
+
+          <p>
+            <code>/init</code> дає чернетку, а не готовий файл. Прибери з нього те, що Claude і
+            так побачить у коді за секунду (перелік папок, список залежностей), і додай те, чого
+            він побачити не може: чому зроблено саме так, які місця ламкі, які домовленості
+            команди відрізняються від типових.
+          </p>
+
+          <h3>Крок 4. Напиши одне правило так, щоб його можна було перевірити</h3>
+
+          <p>
+            Документація дає три пари «погано / добре». Різниця в них одна: правило або можна
+            перевірити, або ні.
+          </p>
+
+          <table>
+            <thead>
+              <tr><th>Розмито</th><th>Перевірювано</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>«Форматуй код правильно»</td><td>«Відступ — два пробіли»</td></tr>
+              <tr><td>«Перевіряй свої зміни»</td><td>«Перед комітом запускай <code>npm test</code>»
+                (коміт — збережена порція змін у git)</td></tr>
+              <tr><td>«Тримай файли в порядку»</td><td>«Обробники API лежать у <code>src/api/handlers/</code>»</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Крок 5. Перезапусти сесію</h3>
+
+          <p>
+            Це той крок, який пропускають усі. Кореневий <code>CLAUDE.md</code> читається
+            <strong>один раз на старті сесії</strong>. Правка, зроблена посеред роботи, до
+            поточної розмови не потрапить. Нова редакція завантажиться після <code>/clear</code>,
+            після <code>/compact</code> або після перезапуску програми.
+          </p>
+
+          <h3>Крок 6. Подивись, що зберіг Claude сам</h3>
+
+          <p>
+            Набери <code>/memory</code> і вибери пункт із текою автоматичної пам'яті. Якщо ти
+            працюєш у цьому проєкті вперше, тека буде порожня — це нормально. Заглянь туди ще раз
+            через тиждень: побачиш, які саме твої виправлення Claude вирішив запам'ятати.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
+          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            «Здається, він мене слухається» — не перевірка. Нижче чотири способи отримати
+            відповідь «так» або «ні».
+          </p>
+
+          <h3>1. /context, секція Memory files</h3>
+
+          <p>
+            Головна перевірка. Набери <code>/context</code> у сесії й знайди секцію
+            <strong>Memory files</strong>: у ній перелічено те, що справді потрапило в контекст.
+            Немає твого файла в цьому переліку — Claude його не бачить, і далі шукати треба не
+            формулювання, а <em>розташування</em> файла. Сторінка документації про діагностику
+            конфігурації радить починати саме з цієї команди.
+          </p>
+
+          <h3>2. Правило-маркер</h3>
+
+          <p>
+            Той самий прийом, що в блоці 2, і він працює на будь-якій машині. Тимчасово додай у
+            <code>CLAUDE.md</code> рядок на кшталт «кожну відповідь починай зі слова ЧОВЕН»,
+            перезапусти сесію, постав будь-яке питання. Слово з'явилось — файл читається.
+            Після перевірки рядок прибери.
+          </p>
+
+          <h3>3. Подивись, де фізично лежить автоматична пам'ять</h3>
+
+          <p>
+            Тека пам'яті створюється поруч із транскриптом розмови в
+            <code>~/.claude/projects/</code>. Ось дослівний вміст після <strong>однієї</strong>
+            сесії в тестовій теці: файл <code>.jsonl</code> — це запис розмови (модуль 9), а
+            <code>memory</code> — та сама тека автоматичної пам'яті, ще порожня.
+          </p>
+
+          <figure class="term" id="p5">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p5t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p5t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">ls -a ~/.claude/projects/-private-tmp-aia-c12-demo-demo-site</span></span>
+<span class="term__line">.</span>
+<span class="term__line">..</span>
+<span class="term__line">e480928d-0d8d-4695-9a9d-8c3e5dd9b850.jsonl</span>
+<span class="term__line"><span class="term__ok">memory</span></span></pre>
+          </figure>
+
+          <p>
+            Ім'я теки — це шлях робочої папки, у якому скісні риски замінені на дефіси. У себе
+            ти знайдеш свою теку тим самим <code>ls ~/.claude/projects/</code>. Порожня тека
+            <code>memory</code> означає рівно те, що написано: сесія була, а зберігати Claude
+            поки нічого не вирішив.
+          </p>
+
+          <h3>4. /doctor і --safe-mode, коли щось не сходиться</h3>
+
+          <p>
+            Команда <code>/doctor</code> у сесії, крім іншого, звіряє локальні
+            <code>CLAUDE.md</code> з тими, що лежать у репозиторії, і пропонує підрізати
+            закомічений файл — вирізати те, що Claude і так виводить із коду, лишивши
+            застереження, причини й домовленості. Ця конкретна перевірка потребує версії
+            <strong>2.1.206</strong> або новішої.
+          </p>
+
+          <p>
+            Якщо поведінка Claude Code взагалі незрозуміла, є важчий інструмент:
+            <code>claude --safe-mode</code> стартує сесію з вимкненими всіма налаштуваннями —
+            і <code>CLAUDE.md</code>, і навичками, і плагінами, і перехоплювачами подій. Зникла
+            проблема в безпечному режимі — причина в одному з твоїх файлів. Це вже тема модуля 17.
+          </p>
+
+          <table>
+            <thead>
+              <tr><th>Симптом</th><th>Перший крок</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>«Він не дотримується мого правила»</td>
+                <td><code>/context</code> → секція Memory files: файл узагалі завантажився?</td>
+              </tr>
+              <tr>
+                <td>Файл завантажився, а правила не видно</td>
+                <td>перечитати формулювання: воно перевірюване? чи немає суперечності з іншим файлом?</td>
+              </tr>
+              <tr>
+                <td>«Не знаю, що Claude про мене записав»</td>
+                <td><code>/memory</code> → тека автоматичної пам'яті</td>
+              </tr>
+              <tr>
+                <td>Дивна поведінка без видимої причини</td>
+                <td><code>claude --safe-mode</code>, потім вмикати назад по одному</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
+          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+
+          <h3>1. «Написав у CLAUDE.md — значить, виконається»</h3>
+
+          <p>
+            Найдорожча помилка теми. Вміст <code>CLAUDE.md</code> подається моделі як
+            <strong>повідомлення користувача після системного промпту</strong>, а не як частина
+            самого системного промпту. Системний промпт (system prompt) — це службова
+            інструкція, яку Claude Code підставляє попереду будь-якої розмови; вона має
+            найбільшу вагу, і твій файл до неї не належить. Документація каже прямо: суворого дотримання не
+            гарантовано, надто для розмитих і суперечливих формулювань.
+          </p>
+
+          <p>
+            Що робити: формулювати перевірювано. А якщо щось мусить статися завжди й у певний
+            момент — перед кожним комітом, після кожної правки файла — це не інструкція, а
+            перехоплювач події (модуль 16) або правило дозволів (модуль 7).
+          </p>
+
+          <h3>2. Роздутий файл</h3>
+
+          <p>
+            Ціль — <strong>до 200 рядків</strong> на один <code>CLAUDE.md</code>. Довший файл
+            з'їдає більше контексту і, за формулюванням документації, <em>знижує</em>
+            дотримання інструкцій: чим більше правил, тим менше уваги кожному. Тут інтуїція
+            працює навпаки: детальніше не означає краще.
+          </p>
+
+          <p>
+            Жорсткіша межа теж є: файл більший за <strong>4 МіБ</strong> (мебібайт, трохи більше за
+            чотири мегабайти) Claude Code пропускає цілком. Вихід із роздутого файла — правила з полем <code>paths</code> у
+            <code>.claude/rules/</code> або навички.
+          </p>
+
+          <h3>3. Правка посеред сесії не діє</h3>
+
+          <p>
+            Кореневий і твій особистий <code>CLAUDE.md</code> читаються один раз на старті й далі
+            тримаються в пам'яті процесу. Правка посеред сесії <strong>не застосовується</strong>:
+            Claude продовжує працювати з тією редакцією, яка завантажилась на старті. Нова
+            редакція підхоплюється на наступному <code>/clear</code>, <code>/compact</code> або
+            після перезапуску. Це прямо написано на сторінці про кешування промпту.
+          </p>
+
+          <p>
+            Виняток — вкладені <code>CLAUDE.md</code> у підпапках і правила з <code>paths</code>:
+            вони вантажаться пізніше, тому правка <em>до</em> їхнього завантаження діє, а після —
+            уже ні.
+          </p>
+
+          <h3>4. Інструкція «зникла» після /compact</h3>
+
+          <p>
+            Кореневий <code>CLAUDE.md</code> ущільнення контексту переживає: Claude Code
+            перечитує його з диска й вставляє в сесію заново. Тож якщо після
+            <code>/compact</code> правило перестало діяти, воно майже напевно було дане голосом
+            у чаті, а не записане у файл. Лікується перенесенням у файл.
+          </p>
+
+          <h3>5. Вкладений CLAUDE.md, який мовчить</h3>
+
+          <p>
+            У теці <code>src/api/</code> лежить свій <code>CLAUDE.md</code>, Claude створює там
+            новий файл — і правил не дотримується. Причина не в помилці: вкладені файли
+            вантажаться, коли Claude <strong>читає</strong> файл у тій теці інструментом читання.
+            Ні створення файла, ні запис у теку їх не піднімають.
+          </p>
+
+          <h3>6. AGENTS.md, який ніхто не читає</h3>
+
+          <p>
+            Якщо в репозиторії вже є <code>AGENTS.md</code> для інших агентів,
+            <strong>Claude Code його не читає</strong> — він читає <code>CLAUDE.md</code>.
+            Місток простий: створити <code>CLAUDE.md</code>, першим рядком поставити
+            <code>@AGENTS.md</code>, а нижче дописати те, що стосується лише Claude. Замість
+            імпорту можна зробити символьне посилання (symlink) командою
+            <code>ln -s AGENTS.md CLAUDE.md</code> — вона в разі успіху нічого не друкує. На
+            Windows для символьних посилань потрібні права адміністратора або режим розробника,
+            тому там надійніший варіант з <code>@AGENTS.md</code>.
+          </p>
+
+          <h3>7. Суперечливі правила</h3>
+
+          <p>
+            Якщо два правила суперечать одне одному, Claude може обрати будь-яке з них.
+            Це трапляється непомітно: правило в особистому <code>~/.claude/CLAUDE.md</code>
+            конфліктує з проєктним, а обидва писались у різні місяці. Раз на кілька місяців
+            варто перечитати свої файли й повикидати застаріле.
+          </p>
+
+          <h3>8. Хвіст MEMORY.md, якого немає в сесії</h3>
+
+          <p>
+            Покажчик автоматичної пам'яті вантажиться не весь: перші 200 рядків або 25 КБ.
+            Якщо Claude записав туди 260-й рядок, запис збережеться на диску, але в сесію
+            не потрапить. Починаючи з версії <strong>2.1.210</strong>, Claude Code повертає
+            Claude помилку одразу після такого запису з вимогою переписати покажчик коротше;
+            до 2.1.210 хвіст мовчки зникав. Помилка приходить у розмову, а не банером у
+            терміналі, тому побачити її можна лише в самому транскрипті.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
+          <h2><span class="lesson-no">7</span>Часті питання</h2>
+
+          <p>
+            <strong>Що покласти в <code>CLAUDE.md</code>, а що в
+            <code>~/.claude/CLAUDE.md</code>?</strong> У проєктний — те, що стосується всіх, хто
+            працює над цим кодом: команди запуску, домовленості, будову. В особистий — те, що
+            стосується тебе в усіх проєктах: улюблений стиль, твої інструменти. Проєктний файл
+            їде в систему контролю версій, особистий лишається на твоїй машині.
+          </p>
+
+          <p>
+            <strong>Чи комітити ці файли?</strong> <code>CLAUDE.md</code> і
+            <code>.claude/rules/*.md</code> — так, це спільне надбання команди.
+            <code>CLAUDE.local.md</code> — ні, його місце в <code>.gitignore</code>.
+          </p>
+
+          <p>
+            <strong>Я працюю в кількох робочих копіях одного репозиторію. Чому мій
+            <code>CLAUDE.local.md</code> є лише в одній?</strong> Бо він у <code>.gitignore</code>,
+            тобто фізично існує тільки там, де ти його створив. Документація радить обхід:
+            тримати особисті інструкції в домашній теці й імпортувати їх рядком
+            <code>@~/.claude/мої-інструкції.md</code>.
+          </p>
+
+          <p>
+            <strong>Чи можна лишити в <code>CLAUDE.md</code> нотатку для людей, не витрачаючи
+            токени?</strong> Так. Блокові коментарі <code>&lt;!-- … --&gt;</code> вирізаються з
+            файла до того, як він потрапляє в контекст. Коментарі всередині блоків коду
+            зберігаються.
+          </p>
+
+          <p>
+            <strong>У монорепозиторії — одному великому репозиторії, де поруч живуть проєкти
+            кількох команд, — підтягуються чужі <code>CLAUDE.md</code>. Як їх відрізати?</strong> Ключем налаштувань <code>claudeMdExcludes</code>: перелік шляхів
+            або шаблонів, які пропускати. Його логічно класти в
+            <code>.claude/settings.local.json</code>, щоб виняток лишався на твоїй машині.
+            Керований файл організації виключити не можна — так і задумано.
+          </p>
+
+          <p>
+            <strong>Чи бачить субагент мою автоматичну пам'ять?</strong> Субагент — це окрема
+            підрозмова, якій Claude віддає частину роботи. Ні, не бачить: пам'ять головної
+            розмови в субагентів не потрапляє; виняток — відгалуження розмови, яке успадковує
+            весь батьківський контекст. Субагент може мати власну пам'ять — про це в модулі 15.
+          </p>
+
+          <p>
+            <strong>Чи безпечно тримати в цих файлах щось приватне?</strong> Ні. Ані файли
+            пам'яті, ані транскрипти розмов не шифруються: єдиний захист — права доступу
+            операційної системи. Паролям, ключам і персональним даним тут не місце. Ця тема
+            повністю розібрана в модулі 22.
+          </p>
+
+          <p>
+            <strong>Чи можна попросити «запам'ятай це» словами?</strong> Так. Фраза на кшталт
+            «запам'ятай, що тести не запускаються без увімкненої локальної бази даних» іде в
+            автоматичну пам'ять. Якщо
+            запис має потрапити саме в <code>CLAUDE.md</code>, це треба сказати прямо: «додай це
+            в CLAUDE.md», — або відредагувати файл самому через <code>/memory</code>.
+          </p>
+
+          <p>
+            <strong>Чи бачу я, коли Claude щось запам'ятав?</strong> Так: в інтерфейсі з'являються
+            повідомлення на кшталт «Saved 2 memories» або «Recalled 2 memories». Це і є момент,
+            коли він пише або читає теку пам'яті.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
+          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+
+          <ul>
+            <li>Пам'ять між сесіями тримають два механізми: <code>CLAUDE.md</code>, який пишеш
+              ти, і автоматична пам'ять, яку веде Claude.</li>
+            <li>Обидва — <strong>контекст, а не конфігурація</strong>. Гарантію дають дозволи й
+              перехоплювачі подій, а не текст інструкції.</li>
+            <li>Файли лежать у чотирьох зонах — організація, твій обліковий запис, проєкт,
+              особисте в проєкті — і <strong>склеюються</strong>, а не перекривають одне одного.</li>
+            <li>Ціль розміру — <strong>до 200 рядків</strong>. Довший файл коштує більше й
+              працює гірше.</li>
+            <li>Імпорти через <code>@</code> дають порядок, але не економію: усе розгортається
+              на старті. Економію дають правила з <code>paths</code> у
+              <code>.claude/rules/</code>.</li>
+            <li>Правка кореневого файла посеред сесії не діє — потрібен <code>/clear</code>,
+              <code>/compact</code> або перезапуск.</li>
+            <li>Перевірка одна й та сама на всі випадки: <code>/context</code>, секція
+              <strong>Memory files</strong>.</li>
+          </ul>
+
+          <div class="callout">
+            <span class="callout-title">Що зробити сьогодні</span>
+            <p>
+              Запусти <code>/init</code> у проєкті, з яким справді працюєш. Перечитай згенероване,
+              викинь усе, що Claude і так побачить у коді, і додай <strong>один</strong> рядок,
+              якого він побачити не міг: місце, де твій проєкт поводиться не так, як очікує
+              людина збоку. Одного такого рядка часто вистачає, щоб різниця стала помітною.
+            </p>
+          </div>
+
+          <p>
+            <strong>Наступний модуль — 13, «Уся <code>.claude/</code> і
+            <code>settings.json</code>».</strong> Тут ти навчився розповідати Claude про проєкт;
+            там — налаштовувати саму програму: що всередині теки <code>.claude/</code>, чим
+            <code>settings.json</code> відрізняється від <code>settings.local.json</code>,
+            який файл виграє при суперечці й які приблизно п'ятнадцять ключів із двох із
+            гаком сотень справді потрібні на початку.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Перевір себе</h2>
+          <p>Шість питань на розуміння. Правильну відповідь видно одразу, з поясненням.</p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Людина дописала правило в кореневий CLAUDE.md, не виходячи з сесії, і Claude його не виконує. Що сталось?",
+            "options": [
+              "Правило треба продублювати в ~/.claude/CLAUDE.md",
+              "Файл перевищив 200 рядків, тому не завантажився",
+              "Кореневий CLAUDE.md читається один раз на старті сесії; нова редакція діє після /clear, /compact або перезапуску",
+              "CLAUDE.md працює тільки в git-репозиторії"
+            ],
+            "answer": 2,
+            "explain": "Сторінка документації про кешування промпту каже це дослівно: кореневий і особистий CLAUDE.md читаються один раз на старті й тримаються в пам'яті процесу, тому правка посеред сесії не застосовується. Ліміт у 200 рядків — це рекомендація, а не поріг завантаження (пропускається лише файл понад 4 МіБ). Дублювання в особистий файл нічого не змінить, бо той теж читається на старті. Git для CLAUDE.md не потрібен."
+          },
+          {
+            "q": "Щоб зменшити витрату контексту, людина розбила довгий CLAUDE.md на п'ять файлів і підключила їх через @. Що вийшло насправді?",
+            "options": [
+              "Витрата не змінилась: імпортовані файли розгортаються на старті разом із головним",
+              "Контекст зменшився приблизно вп'ятеро",
+              "Імпортовані файли вантажаться лише на вимогу, тому економія є",
+              "Claude Code перестане читати головний файл"
+            ],
+            "answer": 0,
+            "explain": "Імпорт через @ — це організація, а не економія: документація прямо пише, що імпортовані файли розгортаються й потрапляють у контекст на старті разом із файлом, який на них посилається. «На вимогу» вантажаться інші речі — вкладені CLAUDE.md у підпапках і правила з полем paths у .claude/rules/. Саме вони й дають реальну економію."
+          },
+          {
+            "q": "Правило мусить виконуватись завжди, без винятків: не чіпати теку з продовими конфігами. Куди його писати?",
+            "options": [
+              "У CLAUDE.md великими літерами і зі знаками оклику",
+              "У CLAUDE.md і продублювати в CLAUDE.local.md",
+              "В автоматичну пам'ять, бо її веде сам Claude",
+              "У правила дозволів або в перехоплювач події: CLAUDE.md гарантії не дає"
+            ],
+            "answer": 3,
+            "explain": "CLAUDE.md подається як контекст, а не як конфігурація, і документація прямо каже, що суворого дотримання не гарантовано. Великі літери, дублювання у двох файлах і запис в автоматичну пам'ять природу механізму не змінюють — усе це лишається проханням. Технічну гарантію дають дозволи (модуль 7) і перехоплювачі подій (модуль 16)."
+          },
+          {
+            "q": "Покажчик автоматичної пам'яті MEMORY.md розрісся до 260 рядків. Що з ним станеться?",
+            "options": [
+              "Запис не збережеться, Claude Code його відхилить",
+              "Завантажаться перші 200 рядків, а решта мовчки не потрапить у сесію",
+              "Claude Code сам обріже файл до 200 рядків на диску",
+              "Нічого: ліміт стосується CLAUDE.md, а не MEMORY.md"
+            ],
+            "answer": 1,
+            "explain": "У сесію вантажаться перші 200 рядків MEMORY.md або перші 25 КБ, що настане раніше; запис на диску при цьому успішний, тобто файл цілий, а от його хвіст у розмову не потрапляє. З версії 2.1.210 Claude Code після такого запису повертає Claude помилку з вимогою переписати покажчик коротше, але сам файл не ріже. Ліміт саме на MEMORY.md: у CLAUDE.md рекомендація 200 рядків і жорстка межа 4 МіБ — це інші числа й інший механізм."
+          },
+          {
+            "q": "У CLAUDE.md є речення: «Огляд проєкту дивись у @README». Що зробить Claude Code на старті сесії?",
+            "options": [
+              "Нічого: @ працює тільки в першому рядку файла",
+              "Покаже помилку, бо в шляху немає розширення файла",
+              "Розгорне вміст README у контекст: @ поза зворотними лапками означає імпорт",
+              "Запитає дозволу, бо будь-який імпорт вимагає підтвердження"
+            ],
+            "answer": 2,
+            "explain": "Розбір імпортів працює будь-де у файлі й пропускає лише код у зворотних лапках і блоки коду. Тобто @README у звичайному реченні імпортує файл, а `@README` у лапках лишається текстом — це і є спосіб згадати шлях, не тягнучи його вміст. Діалог схвалення показується не для будь-якого імпорту, а лише для зовнішнього: коли шлях у проєктному файлі веде за межі робочої папки."
+          },
+          {
+            "q": "У теці src/api/ лежить власний CLAUDE.md. Claude створив там новий файл і його правил не дотримався. Чому?",
+            "options": [
+              "Вкладений CLAUDE.md вантажиться, коли Claude читає файл у тій теці; створення файла його не піднімає",
+              "Вкладених CLAUDE.md не буває: файл може лежати тільки в корені проєкту",
+              "Вкладені файли працюють лише за наявності поля paths у заголовку",
+              "Файл треба було назвати CLAUDE.local.md"
+            ],
+            "answer": 0,
+            "explain": "Файли в підпапках вантажаться на вимогу — у момент, коли Claude читає файл у тій підпапці інструментом читання, а не на старті сесії й не тоді, коли він там щось створює чи записує. Вкладені CLAUDE.md існують і працюють; поле paths — це механізм інших файлів, із теки .claude/rules/; а CLAUDE.local.md — це особистий файл рівня проєкту, а не спосіб полагодити вкладену теку."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
