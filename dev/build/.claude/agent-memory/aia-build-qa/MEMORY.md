@@ -5,3 +5,6 @@
 - [Класи дефектів, що повторюються](project_recurring_defect_classes.md) — таблиці без обгортки на 390, стан появи поза DOM, напівпрозора шапка; і що тут платформне
 - [Як міряти CLS у цьому оточенні](method_cls_measurement.md) — layout-shift API мовчить у фоновому вікні; міряти геометрію пробниками ⚠️ пункт про resize_window застарів
 - [Гостьові тести — на localhost](method_guest_tests_on_localhost.md) — інший origin рятує живу сесію тестового акаунта на превʼю
+- [A/B-доказ для CSS-фіксів](method_ab_css_proof.md) — знімати правило через CSSOM і перезаміряти; контроль обовʼязковий; у фоні transition не тікає
+- [Симуляція прогресу через hydrate](method_progress_simulation.md) — стан «залогінений» без входу; ⛔ не перезаписувати completedSet — це функція
+- [Межа: акаунт створює власник](feedback_account_creation_boundary.md) — дозвіл у task.md знімає питання про базу, але не про дію; що робити натомість
