@@ -314,18 +314,30 @@
     host.classList.remove("cc-map__reserve");
 
     /* Іспит — окремий вузол ПОЗА фазами. Інша геометрія: без leader,
-       без номера, з видимим кінцем осі (рішення власника). */
+       без номера, з видимим кінцем осі (рішення власника).
+       D-02: вузол — посилання, а не глухий блок. Геометрія лишається
+       та сама, змінюється лише тег `div` → `a`; hover і focus-visible
+       повторюють поведінку рядків модулів (`a.cc-row__link`, css:498-503).
+       Носій бейджа порожній, але присутній завжди — щоб refreshProgress
+       міг дописати «пройдено» без перебудови вузла, як у рядках. */
     var examHost = $("#ccExam");
     if (examHost && exam) {
+      var examDone = done.has(exam.id);
       examHost.innerHTML =
         '<span class="cc-node cc-exam__node" aria-hidden="true"></span>' +
         '<div class="cc-grid__rail"></div>' +
         '<div class="cc-grid__body">' +
-          '<div class="cc-exam__box">' +
-            '<h3 class="cc-exam__title">' + esc(exam.title) + "</h3>" +
+          '<a class="cc-exam__box' + (examDone ? " cc-exam--done" : "") + '"' +
+            ' href="' + esc(exam.slug) + '" data-module-id="' + esc(exam.id) + '">' +
+            '<div class="cc-exam__head">' +
+              '<h3 class="cc-exam__title">' + esc(exam.title) + "</h3>" +
+              '<span class="cc-exam__badge">' +
+                (examDone ? rowBadge(exam, true, false, false) : "") +
+              "</span>" +
+            "</div>" +
             '<p class="cc-exam__text">' + esc(exam.text) + "</p>" +
             '<p class="cc-exam__meta">' + esc(exam.meta) + "</p>" +
-          "</div></div>";
+          "</a></div>";
     }
     document.dispatchEvent(new CustomEvent("cc:map-rendered"));
   }
@@ -338,19 +350,23 @@
   function refreshProgress() {
     if (!cfg) return;
     var done = completedSet();
-    var modules = cfg.modules.filter(function (m) { return m.kind !== "exam"; });
+    /* «Почати звідси» рахується тільки по модулях: іспит не може бути
+       точкою входу гостя. А ось позначку «пройдено» він отримує нарівні
+       з модулями — тому нижче фільтра іспиту вже немає (D-02). */
+    var lessons = cfg.modules.filter(function (m) { return m.kind !== "exam"; });
     var startId = null;
-    for (var i = 0; i < modules.length; i++) {
-      if (modules[i].status === "ready" && !done.has(modules[i].id)) { startId = modules[i].id; break; }
+    for (var i = 0; i < lessons.length; i++) {
+      if (lessons[i].status === "ready" && !done.has(lessons[i].id)) { startId = lessons[i].id; break; }
     }
-    modules.forEach(function (m) {
-      var li = document.querySelector('.cc-row[data-module-id="' + m.id + '"]');
-      if (!li) return;
+    cfg.modules.forEach(function (m) {
+      var host = document.querySelector('[data-module-id="' + m.id + '"]');
+      if (!host) return;
+      var isExam = m.kind === "exam";
       var isDone = done.has(m.id);
       var isSoon = m.status === "soon";
-      li.classList.toggle("cc-row--done", isDone);
-      var badge = li.querySelector(".cc-row__badge");
-      if (badge) badge.innerHTML = rowBadge(m, isDone, isSoon, m.id === startId);
+      host.classList.toggle(isExam ? "cc-exam--done" : "cc-row--done", isDone);
+      var badge = host.querySelector(isExam ? ".cc-exam__badge" : ".cc-row__badge");
+      if (badge) badge.innerHTML = rowBadge(m, isDone, isSoon, !isExam && m.id === startId);
     });
     updateNavProgress(cfg);
   }
