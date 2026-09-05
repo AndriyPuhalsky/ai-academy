@@ -11,6 +11,14 @@ SQL-міграції в Supabase, деплої/оновлення Edge Functions
 
 ## 2026-09-05
 
+- **Прибрано тестовий акаунт QA-прогону 005 повністю** — власник виконав у SQL Editor
+  `delete from auth.users where id = '<uuid тестового профілю>'` (файл із запобіжником —
+  `dev/build/005-ai-terminal/02-backend/db/005-4-cleanup-qa-account.sql`, каскад звірено з
+  `pg_constraint`). Зникли каскадом: `profiles` 1 («QA Тест 005»), `enrollments` 3,
+  `progress` 23, `quiz_attempts` 24, `certificates` 1 (сертифікат кола 3 QA). Перевірено
+  кореневою сесією через MCP після виконання: усі лічильники 0, `profiles` знову **5**,
+  `certificates` **0** — база в стані до QA-прогонів 005. Схема, політики, функції не
+  змінювались.
 - **Застосовано `005-3-cleanup-qa-certificate.sql`** — з `public.certificates` прибрано
   єдиний рядок, створений наскрізним QA-прогоном задачі 005 (тестовий акаунт,
   `full_name` = `QA Тест 005`, виданий 2026-09-05, курс «AI Термінал»). Виконано **з
