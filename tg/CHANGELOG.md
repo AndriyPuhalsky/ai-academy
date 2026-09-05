@@ -11,6 +11,46 @@ SQL-міграції в Supabase, деплої/оновлення Edge Functions
 
 ## 2026-09-05
 
+- **Реліз у прод: задача 005 «AI Термінал» — третій курс на сайті, разом із закритою 004
+  і PDF-фіксами сертифіката.** Мерж `dev` → `main` — `cdf71a8`, **свідомо `--no-ff`**:
+  fast-forward дав би `main` той самий SHA, що й `dev`, і Workers Builds не зібрав би
+  нового білда (пастка 003, запис 2026-08-26). Merge-коміт = новий SHA на `main`, check-run
+  `Workers Builds: ai-academy` → `success`, прод оновився **менш ніж за хвилину** після
+  push. Мерж — за прямим дорученням власника («мержи дев в майн»), після відкладення
+  напередодні ввечері. **SQL-міграцій у складі релізу немає, Edge Functions не деплоїлись,
+  секрети не змінювались** — `005-1`/`005-2` і чистка QA-акаунта застосовані раніше окремо
+  (записи нижче та 2026-09-03).
+- **Нове в роздачі сайту:** `claude-code.html`, `claude-code.config.json`, три довідники
+  `claude-code-ref-commands.html` / `-ref-hooks.html` / `-ref-settings.html`,
+  `css/claude-code.css`, `js/claude-code-motion.js`, `js/claude-code-render.js` і
+  `modules/claude-code-01…23.html` (23 файли). `.assetsignore` не чіпався.
+  **Змінені спільні файли** (зачіпають AI Академію й AI Architect теж): `index.html`,
+  `architect.html`, `config.json`, `architect.config.json`, `certificate.html`, `verify.html`,
+  `roadmap.html`, `roadmap.json`, `css/custom.css`, `js/auth-ui.js`, `js/certificate.js`,
+  `js/contact.js`, `js/module.js`, `js/roadmap-render.js`, `js/ui.js` — плюс **усі 34 уроки
+  двох старих курсів** (`modules/architect-01…22`, `modules/module-01…12`: це закрита 004 —
+  зум, контраст `faint`, та футерні посилання). Ключове для двох старих курсів:
+  `css/custom.css` дістав три additive-правила `overflow-wrap` (регресії немає, A/B у QA),
+  `js/certificate.js` + `certificate.html` — PDF JPEG 0,42 МБ замість 27 МБ PNG,
+  `doc.link` на `/verify`, QR через `qrcode@1.4.4` (попередній `1.5.3/build/` на CDN
+  віддавав 404, тобто **QR у проді не працював ніколи** — сертифікатів у проді ще не було).
+- **Версії на проді:** AI Академія `0.3.0` → **`0.4.1`**, AI Architect `1.2.0` → **`1.3.1`**,
+  AI Термінал **`1.0.1`** (новий), `site.updated` = `2026-09-05` у трьох конфігах;
+  `roadmap.json` не змінювався: пункт `terminal-course` там уже `done` з 2026-09-04
+  (`4d5e422`), `meta.updated` = `2026-09-04` — роадмап випередив реліз на день.
+- **Перевірка прода після деплою (curl, 16:26–16:30):** три конфіги віддають нові версії ·
+  200: `/`, `/architect`, `/claude-code`, `/modules/claude-code-01`,
+  `/modules/claude-code-23`, три довідники `/claude-code-ref-*`, `/certificate`, `/verify`,
+  `/roadmap`, `/css/custom.css`, `/css/claude-code.css`, `/js/certificate.js` ·
+  404 приватне: `/CLAUDE.md`, `/dev/build/CLAUDE.md`, `/dev/build/JOURNAL.md`,
+  `/tg/CHANGELOG.md`, `/.claude/agents/aia-build-pm.md`, `/wrangler.toml`, `/.assetsignore` ·
+  404 регістр: `/CSS/custom.css`, `/JS/auth.js`, `/Claude-Code.html` · `/claude-code.html`
+  → 307 (як і решта `.html`) · **SHA-1 файлів на проді = `main`** для `claude-code.html`,
+  `claude-code.config.json`, `js/certificate.js`, `css/custom.css`, `certificate.html`,
+  `index.html`, `modules/claude-code-23.html` · CDN `qrcode@1.4.4/build/qrcode.min.js` → 200.
+  Пастка самої перевірки: `curl` без `-L` на `.html`-адресу дає SHA-1 порожнього тіла
+  (`da39a3ee…`) — це редірект 307, а не розбіжність файлів.
+
 - **Прибрано тестовий акаунт QA-прогону 005 повністю** — власник виконав у SQL Editor
   `delete from auth.users where id = '<uuid тестового профілю>'` (файл із запобіжником —
   `dev/build/005-ai-terminal/02-backend/db/005-4-cleanup-qa-account.sql`, каскад звірено з
