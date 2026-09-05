@@ -37,7 +37,14 @@ Supabase (auth/прогрес/сертифікати) + Telegram Edge Function (
   чи службовий файл у корені стане доступним по URL, поки його не додати в `.assetsignore`
   (синтаксис як у `.gitignore`). Уже виключені: `dev/`, `tg/`, `.claude/`, `.mcp.json`,
   `CLAUDE.md`, `wrangler.toml`, `deploy-guide.local.html`. Свідомо роздаються:
-  `config.json` і `architect.config.json` (сайт їх fetch-ить) та `readme.md`.
+  три конфіги (`config.json`, `architect.config.json`, `claude-code.config.json` — сайт
+  їх fetch-ить), `readme.md` і `sitemap.xml`.
+- **`sitemap.xml` у корені — статичний, руками (з 2026-09-05, у проді з мержу `60317fb`).**
+  65 адрес: три лендінги, `/roadmap`, `/verify`, три довідники, 57 уроків — у канонічній
+  формі **без `.html`** (Workers віддає 307 на `.html`-форму). `/certificate` свідомо
+  не включений (особиста сторінка за входом). Нова публічна сторінка = новий `<url>` у
+  sitemap, інакше її ніхто не подасть на індексацію; `lastmod` — дата коміту файла
+  (для лендінгів — дата їхнього конфіга). `robots.txt` немає.
   Перевірка після зміни — `curl -s -o /dev/null -w '%{http_code}' <url>` на dev-превʼю,
   до мержу в `main`.
 
@@ -417,6 +424,11 @@ Supabase (auth/прогрес/сертифікати) + Telegram Edge Function (
   `172.67.190.19` / `104.21.57.106`, сертифікат `CN=ai-academia.com.ua` від Google Trust
   Services дійсний 2026-08-18 → 2026-11-16, HTTPS віддає 200. Хвіст із SSL/поширенням DNS
   більше не відкритий.
+- **Другий мерж дня 2026-09-05 — `60317fb` (`--no-ff`): `sitemap.xml` + документи після
+  релізу 005.** Прод звірено: `/sitemap.xml` 200 `application/xml`, побайтово = репозиторій,
+  усі 65 адрес на проді 200, `CLAUDE.md` 404. Власник подає sitemap на індексацію сам.
+  План `dev/claude-code-course-plan.local.md` того ж дня прибраний у Кошик як виконаний;
+  короткий запис зі станом «зроблено» — у `dev/ideas.local.md`.
 - **Версії платформ (2026-09-05, у проді з мержу `cdf71a8`):** AI Академія `0.4.1` · AI Architect `1.3.1` ·
   AI Термінал `1.0.1` — підняті патчем разом із PDF/CSS-фіксами, що зачіпають усі три курси.
   `site.updated` = `2026-09-05` у трьох конфігах, а `meta.updated` у `roadmap.json` лишився
