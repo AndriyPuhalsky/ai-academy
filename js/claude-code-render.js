@@ -72,6 +72,110 @@
   }
 
   /* ============================================================
+     ПІЛЮЛЯ ПРОГРЕСУ В ШАПЦІ (#navProgress)
+     ------------------------------------------------------------
+     Шість функцій нижче скопійовані ДОСЛІВНО з js/config.js:336–415
+     (разом із коментарями). Дублювання свідоме — рішення PM у плані
+     005, контракт К1: підключити сюди js/config.js не можна, бо він
+     сам малює [data-site] / [data-link] і карту фаз, які на цій
+     сторінці вже обслуговує цей рендерер — вийшов би подвійний рендер
+     і другий aia:config-ready.
+
+     Ключ кеша спільний зі сторінками уроків курсу: і тут, і там
+     data-config закінчується на "claude-code.config.json", тому
+     .split("/").pop() дає той самий рядок. Резерв ширини працює вже
+     з першого візиту на лендінг, якщо людина була на уроці.
+
+     total = cfg.modules.length = 23, разом з іспитом c23: сторінки
+     уроків рахують так само, і два різні числа в одній шапці на
+     сусідніх сторінках були б дефектом.
+     ============================================================ */
+
+  // Кеш — окремий на кожен курс: у config.json 12 модулів, в architect 22.
+  // Значення — не сам прогрес, а лише ДОВЖИНА тексту в символах (13 або 14),
+  // тобто в localStorage не осідає, скільки саме модулів людина пройшла.
+  var NAVPROG_KEY = "aia:navProgress:" + CONFIG_URL.split("/").pop();
+  var NAVPROG_MAX_WAIT = 8000;   // страховка, якщо гідратації не буде взагалі
+
+  function navProgressText(doneCount, total) {
+    return "Прогрес: " + doneCount + "/" + total;
+  }
+
+  function readNavProgressChars() {
+    try {
+      var v = parseInt(localStorage.getItem(NAVPROG_KEY), 10);
+      return (v >= 12 && v <= 24) ? v : 0;   // 12 = «Прогрес: 1/9», 24 — з великим запасом
+    } catch (e) { return 0; }                // приватний режим — просто без кеша
+  }
+
+  function rememberNavProgress(chars) {
+    try { localStorage.setItem(NAVPROG_KEY, String(chars)); } catch (e) { /* приватний режим */ }
+  }
+
+  function forgetNavProgress() {
+    try { localStorage.removeItem(NAVPROG_KEY); } catch (e) { /* приватний режим */ }
+  }
+
+  // Двійник guessLoggedIn() із js/auth-ui.js: там він приватний, а цей файл
+  // виконується РАНІШЕ за auth-ui.js, тож позичити його нізвідки. Обидва
+  // питають одне: чи лежить у сховищі ключ сесії supabase-js.
+  function hasAuthToken() {
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        if (/^sb-.*-auth-token$/.test(localStorage.key(i))) return true;
+      }
+    } catch (e) { return false; }
+    return false;
+  }
+
+  function progressHydrated() {
+    return !!(window.AIAProgress && window.AIAProgress.isHydrated && window.AIAProgress.isHydrated());
+  }
+
+  function reserveNavProgress() {
+    var pill = document.getElementById("navProgress");
+    if (!pill || !pill.hidden) return;
+    var chars = readNavProgressChars();
+    if (!chars || !hasAuthToken()) return;   // гість або перший візит — місця не тримаємо
+    pill.style.setProperty("--navprog-ch", String(chars));
+    pill.setAttribute("data-reserved", "");
+    pill.hidden = false;
+    // Якщо прогрес не приїде взагалі (js/auth.js не піднявся, CDN Supabase
+    // недоступний) — резерв не має лишитись невидимою дірою назавжди.
+    setTimeout(function () {
+      if (!progressHydrated() && pill.hasAttribute("data-reserved")) {
+        pill.removeAttribute("data-reserved");
+        pill.hidden = true;
+      }
+    }, NAVPROG_MAX_WAIT);
+  }
+
+  function updateNavProgress(conf) {
+    var pill = document.getElementById("navProgress");
+    var total = ((conf && conf.modules) || []).length;
+    if (!pill || !total) return;
+    // Рахуємо лише модулі ЦЬОГО курсу (перетин зі списком конфіга),
+    // а не всі завершені id — інакше прогрес іншого курсу домішувався б (напр. 19/12).
+    var done = completedSet();
+    var doneCount = conf.modules.filter(function (m) { return done.has(m.id); }).length;
+    if (doneCount > 0) {
+      var text = navProgressText(doneCount, total);
+      // Знімаємо резерв і показуємо текст одним заходом: обидва стани — той
+      // самий бокс тієї самої ширини, бо резервували рівно довжину тексту.
+      pill.removeAttribute("data-reserved");
+      pill.hidden = false;
+      pill.textContent = text;
+      rememberNavProgress(text.length);
+    } else if (progressHydrated()) {
+      // Нуль означає «нічого не пройдено» тільки ПІСЛЯ гідратації: до неї кеш
+      // прогресу порожній у всіх, і згортати зарезервоване місце ще зарано.
+      pill.removeAttribute("data-reserved");
+      pill.hidden = true;
+      forgetNavProgress();
+    }
+  }
+
+  /* ============================================================
      БЛОК ТЕРМІНАЛА: рядки сесії з даних
      ------------------------------------------------------------
      ПРАВИЛА, ЯКІ ТУТ ЗАШИТІ (їх ламати не можна):
@@ -248,6 +352,7 @@
       var badge = li.querySelector(".cc-row__badge");
       if (badge) badge.innerHTML = rowBadge(m, isDone, isSoon, m.id === startId);
     });
+    updateNavProgress(cfg);
   }
 
   /* ============================================================
@@ -454,6 +559,11 @@
   }
 
   /* ---------- старт ---------- */
+
+  // Синхронно, ще під час парсингу сторінки: резерв місця під пілюлю прогресу
+  // має потрапити в перше малювання, інакше він сам стане зсувом (js/config.js:435).
+  reserveNavProgress();
+
   fetch(CONFIG_URL, { cache: "no-store" })
     .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(function (data) {
@@ -461,6 +571,10 @@
       renderRest();
       renderHeroTerminal();
       renderMap();
+      // Прогрес міг гідруватись ДО приходу конфіга — тоді події aia:progress
+      // вже не буде, і пілюлю нікому заповнити. Другий виклик закриває саме
+      // цей порядок; зворотний порядок закриває слухач унизу файла.
+      updateNavProgress(cfg);
       document.dispatchEvent(new CustomEvent("cc:rendered"));
       /* Перемикання широкого / вузького варіанта сесії — це зміна
          ВМІСТУ, а не стилю, тому вимагає перерендеру. */
