@@ -295,6 +295,17 @@
     return (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
   }
 
+  // Геометрія аркуша: вузол шаблона 1123×794 px кладеться в PDF як A4-ландшафт
+  // 297×210 мм (це той самий аркуш при 96 dpi, тому пропорції збігаються).
+  var PAGE_W_MM = 297;
+  var PAGE_H_MM = 210;
+
+  // Якість JPEG для сторінок сертифіката. PNG тут давав ~28 МБ на два аркуші
+  // (html2canvas scale:2 → растр ~2246×1588 px без стиснення), а таку пошту
+  // частина скриньок просто відкидає. 0.9 — межа, нижче якої моноширинний
+  // код перевірки починає «пливти»; це документ, не ілюстрація.
+  var JPEG_QUALITY = 0.9;
+
   function downloadPdf(cert, btn) {
     if (!window.jspdf || !window.html2canvas) {
       alert("Бібліотеки для PDF ще вантажаться — спробуй за секунду.");
@@ -320,9 +331,12 @@
               n1.remove(); n2.remove();
               var jsPDF = window.jspdf.jsPDF;
               var doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-              doc.addImage(c1.toDataURL("image/png"), "PNG", 0, 0, 297, 210);
+              // JPEG, а не PNG: обидва канваси знімаються з непрозорим фоном
+              // (backgroundColor вище), тому чорних ділянок — типової пастки
+              // JPEG на прозорому канвасі — тут не виникає.
+              doc.addImage(c1.toDataURL("image/jpeg", JPEG_QUALITY), "JPEG", 0, 0, PAGE_W_MM, PAGE_H_MM);
               doc.addPage();
-              doc.addImage(c2.toDataURL("image/png"), "PNG", 0, 0, 297, 210);
+              doc.addImage(c2.toDataURL("image/jpeg", JPEG_QUALITY), "JPEG", 0, 0, PAGE_W_MM, PAGE_H_MM);
               doc.save("Сертифікат — " + course + ".pdf");
             });
           });
