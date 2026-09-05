@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 7 · Дозволи й межа довіри — AI Термінал</title>
+  <meta name="description"
+    content="Шість режимів дозволів Claude Code, правила allow / ask / deny, захищені й критичні шляхи, модель-класифікатор в auto mode, --add-dir і чому --dangerously-skip-permissions не є рішенням." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="c07" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 07</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 2 · Контекст, дозволи, гроші</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Дозволи й межа довіри</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Середній · 8 блоків · ≈ 45 хв читання</p>
+        <p class="mt-6 text-lg">
+          Claude Code не радить, що зробити, — він робить. Читає твої файли, переписує їх, запускає
+          команди в терміналі, ходить у мережу. Тому в ньому є окремий механізм, який вирішує, що
+          можна виконати мовчки, що спитати в тебе, а що не виконувати ніколи. Цей механізм
+          називається <strong>дозволами</strong>, і цей модуль — про те, як він влаштований і як
+          пересунути межу під себе.
+        </p>
+        <p>
+          Питання цього модуля не «чи довіряти Claude». Довіра — не перемикач, вона має межу, і межу
+          проводиш ти. Далі — з чого вона складається, де вона стоїть за замовчуванням і що робити,
+          щоб вона стояла там, де тобі спокійно.
+        </p>
+
+        <div class="callout callout-sand">
+          <span class="callout-title">Одна річ, яку варто знати ще до першого абзацу</span>
+          <p>
+            На підписках Pro, Max і Team свіжа версія Claude Code стартує <strong>не в тому режимі,
+            де він питає тебе про кожну дію</strong>. Вбудований стартовий режим там —
+            <code>auto</code>, у якому рішення «можна чи не можна» приймає окрема модель, а не ти.
+            Це задокументовано прямо, і про це прямо ж написано в документації дозволів.
+          </p>
+          <p>
+            Тому перше практичне вміння цього модуля — подивитись, у якому режимі ти зараз, і вміти
+            його змінити. Усе інше нашаровується зверху.
+          </p>
+        </div>
+
+        <div class="callout">
+          <span class="callout-title">Що в цьому модулі є, а чого немає</span>
+          <p>
+            <strong>Є:</strong> шість режимів дозволів і чим вони відрізняються · правила
+            <code>allow</code> / <code>ask</code> / <code>deny</code> і команда
+            <code>/permissions</code> · захищені (protected) і критичні (critical) шляхи —
+            запобіжники, які не вимикаються · класифікатор в режимі <code>auto</code> ·
+            <code>--add-dir</code> · <code>--dangerously-skip-permissions</code> і чому це не
+            розв'язок проблеми.
+          </p>
+          <p>
+            <strong>Немає:</strong> режиму плану (plan mode) як способу працювати й
+            <strong>пісочниці</strong> (sandbox) — це модуль 8. Тут <code>plan</code> згадується
+            лише як один із шести режимів у списку, не більше.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
+          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+
+          <p>
+            Коли Claude Code щось робить, він робить це <strong>інструментами</strong> (англійською
+            <em>tools</em>). Інструмент — це одна конкретна здатність: прочитати файл
+            (<code>Read</code>), змінити файл (<code>Edit</code>), запустити команду в терміналі
+            (<code>Bash</code>), завантажити сторінку з інтернету (<code>WebFetch</code>). Кожен
+            крок, який ти бачиш у сесії, — це виклик одного інструмента.
+          </p>
+
+          <p>
+            Система дозволів стоїть рівно між наміром і виконанням: <strong>перед кожним викликом
+            інструмента</strong> Claude Code вирішує, виконати його мовчки, показати тобі запит або
+            відмовити. Це вирішує не модель. Документація каже про це прямо:
+            «Permission rules are enforced by Claude Code, not by the model» — правила дозволів
+            виконує сама програма, а не Claude.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Чому це важлива відмінність</span>
+            <p>
+              Ти можеш написати в <code>CLAUDE.md</code> (файл із інструкціями для Claude, модуль 12)
+              «ніколи не видаляй файли» — і це вплине на те, <em>що Claude намагатиметься зробити</em>,
+              але не на те, <em>що йому дозволено</em>. Інструкції формують намір; дозволи — межу.
+              Щоб справді щось заборонити, потрібне правило, а не прохання.
+            </p>
+          </div>
+
+          <h3>Три шари, з яких складається межа</h3>
+
+          <p>
+            Механізм має три рівні, і плутанина між ними — джерело майже всіх непорозумінь у цій темі.
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Три шари, з яких складається межа">
+          <table>
+            <thead>
+              <tr>
+                <th>Шар</th>
+                <th>Що вирішує</th>
+                <th>Хто його ставить</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Режим дозволів</strong></td>
+                <td>базову політику: питати про все, питати про частину, не питати</td>
+                <td>ти — клавішами, прапорцем при запуску або файлом налаштувань</td>
+              </tr>
+              <tr>
+                <td><strong>Правила</strong> (<code>allow</code>, <code>ask</code>, <code>deny</code>)</td>
+                <td>точкові винятки: «цю команду — завжди можна», «цю — завжди питай», «цю — ніколи»</td>
+                <td>ти — через <code>/permissions</code> або файл налаштувань</td>
+              </tr>
+              <tr>
+                <td><strong>Запобіжники</strong> (захищені й критичні шляхи)</td>
+                <td>кілька дій, які не схвалюються автоматично ніколи й ніде</td>
+                <td>ніхто — вони вбудовані й не налаштовуються</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>
+            Режим задає тло. Правила — це виїмки в тлі. Запобіжники стоять під усім і не вимикаються
+            жодним режимом і жодним правилом. Далі кожен шар розібраний окремо.
+          </p>
+
+          <h3>Що станеться, якщо цього не знати</h3>
+
+          <p>
+            Три найчастіші наслідки, і всі три люди сприймають як «баг»:
+          </p>
+
+          <ul>
+            <li>людина вважає, що бачить кожну дію, — а сесія стартувала в <code>auto</code>, і
+              більшість дій пройшла без неї;</li>
+            <li>людина написала правило, яке, на її думку, дозволяє одну команду, — а воно
+              дозволяє цілу родину команд, включно з <code>git push</code>;</li>
+            <li>людина сказала «нічого не пушити» словами в чаті, отримала згоду — і через дві
+              години Claude запушив. Це не збій: у блоці 6 показано, куди дівається така межа.</li>
+          </ul>
+
+          <p>
+            Кожен із цих випадків у цьому модулі має точну причину й точний фікс.
+          </p>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
+          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Почнемо з того, що можна перевірити прямо зараз, не заходячи в сесію. Сама програма
+            вміє назвати перелік режимів, які приймає. Нижче — справжній вивід із живої машини.
+          </p>
+
+          <figure class="term term--cmd" id="p1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p1t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude --version</span></span>
+<span class="term__line"><span class="term__ok">2.1.236 (Claude Code)</span></span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude --help | grep -A3 -- "--permission-mode"</span></span>
+<span class="term__line">  --permission-mode &lt;mode&gt;              Permission mode to use for the session</span>
+<span class="term__line">                                        (choices: "acceptEdits", "auto",</span>
+<span class="term__line">                                        "bypassPermissions", "manual",</span>
+<span class="term__line">                                        "dontAsk", "plan")</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято на macOS 26.5.2, Claude Code 2.1.236, 4 вересня 2026 року. Команда
+            <code>grep</code> тут відбирає з довгого тексту довідки потрібний рядок і три наступні —
+            з нею ти вже знайомий за модулем 1.
+          </p>
+
+          <p>
+            Шість значень: <code>acceptEdits</code>, <code>auto</code>,
+            <code>bypassPermissions</code>, <code>manual</code>, <code>dontAsk</code>,
+            <code>plan</code>. Це і є шість режимів дозволів. Але тут же ховається перша знахідка
+            курсу.
+          </p>
+
+          <h3>Сьомий рядок, якого немає в списку</h3>
+
+          <p>
+            Документація Claude Code майже скрізь пише інше слово — <code>default</code>. Перевіримо
+            обидва: спершу свідомо неправильне значення, потім <code>default</code>.
+          </p>
+
+          <figure class="term term--cmd" id="p2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p2t">перевірка значень · macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p2t"><span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude --permission-mode bogus</span></span>
+<span class="term__line"><span class="term__err">error: option '--permission-mode &lt;mode&gt;' argument 'bogus' is invalid. Allowed choices are acceptEdits, auto, bypassPermissions, manual, dontAsk, plan.</span></span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude --permission-mode default --help</span></span>
+<span class="term__line">Usage: claude [options] [command] [prompt]</span>
+<span class="term__line"><span class="term__meta">(помилки немає — значення прийняте, хоча в списку choices його немає)</span></span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято на macOS 26.5.2, Claude Code 2.1.236, 4 вересня 2026 року. Останній рядок —
+            підпис автора, а не вивід програми: <code>claude --permission-mode default --help</code>
+            друкує звичайну довідку й мовчки приймає значення.
+          </p>
+
+          <p>
+            Отже: <strong>режимів шість, а рядків, які програма приймає, сім.</strong>
+            <code>default</code> і <code>manual</code> — це одне й те саме, і в документації
+            сказано, чому так: назва режиму в інтерфейсі — <strong>Manual</strong>, а його
+            значення в налаштуваннях — <code>default</code>. Псевдонім <code>manual</code> і сама
+            мітка Manual з'явились у версії 2.1.200; у старіших збірках є лише <code>default</code>.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Це і є теза всього курсу, у мініатюрі</span>
+            <p>
+              Довідка <code>--help</code> показує шість значень і ховає <code>default</code>. Дослідник
+              курсу перевірив ще одну, приховану підкоманду тієї самої збірки —
+              <code>claude remote-control --help</code> — і там список навпаки:
+              <code>default</code> є, <code>manual</code> немає. Два довідники всередині
+              <strong>однієї програми</strong> суперечать один одному, і обидва неповні: насправді
+              приймаються обидва рядки.
+            </p>
+            <p>
+              Висновок робочий, не філософський: <strong>перевіряй живою командою, а не статтею</strong> —
+              навіть офіційною. У блоці 5 буде показано, як саме перевіряти.
+            </p>
+          </div>
+
+          <h3>Як режим видно всередині сесії</h3>
+
+          <p>
+            Усередині запущеного Claude Code активний режим написаний у рядку стану внизу екрана.
+            Документація наводить ці рядки дослівно:
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Як режим видно всередині сесії">
+          <table>
+            <thead>
+              <tr>
+                <th>Режим</th>
+                <th>Рядок стану</th>
+                <th>Що йде без питання</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>default</code> (він же <code>manual</code>, у інтерфейсі <strong>Manual</strong>)</td>
+                <td><code>⏸ manual mode on</code></td>
+                <td>лише читання</td>
+              </tr>
+              <tr>
+                <td><code>acceptEdits</code></td>
+                <td><code>⏵⏵ accept edits on</code></td>
+                <td>читання, правки файлів і побутові файлові команди</td>
+              </tr>
+              <tr>
+                <td><code>plan</code></td>
+                <td><code>⏸ plan mode on</code></td>
+                <td>читання плюс команди, схвалені класифікатором (модуль 8)</td>
+              </tr>
+              <tr>
+                <td><code>auto</code></td>
+                <td><code>⏵⏵ auto mode on</code></td>
+                <td>усе, з фоновими перевірками безпеки</td>
+              </tr>
+              <tr>
+                <td><code>dontAsk</code></td>
+                <td><code>⏵⏵ don't ask on</code></td>
+                <td>лише те, що ти дозволив наперед</td>
+              </tr>
+              <tr>
+                <td><code>bypassPermissions</code></td>
+                <td><code>⏵⏵ bypass permissions on</code></td>
+                <td>усе</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p class="diagram-caption" style="text-align:left">
+            Рядки стану наведені дослівно з документації
+            <code>code.claude.com/docs/en/permission-modes</code>, звірено 4 вересня 2026 року.
+            Знімка екрана сесії тут навмисно немає: рядок стану живе всередині інтерактивного
+            вікна, зняти його командою неможливо, а домальовувати екрани в цьому курсі заборонено.
+          </p>
+
+          <h3>Три прапорці, які варто впізнавати з першого погляду</h3>
+
+          <figure class="term term--cmd" id="p3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p3t">рядки з довідки · macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p3t"><span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude --help | grep -E -- "^  --add-dir|^  --allow-dangerously|^  --dangerously-skip"</span></span>
+<span class="term__line">  --add-dir &lt;directories...&gt;            Additional directories to allow tool</span>
+<span class="term__line">  --allow-dangerously-skip-permissions  Enable bypassing all permission checks</span>
+<span class="term__line">  --dangerously-skip-permissions        Bypass all permission checks.</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято на macOS 26.5.2, Claude Code 2.1.236, 4 вересня 2026 року. Довідка переносить
+            описи на наступні рядки, тому тут видно лише перший рядок опису кожного прапорця —
+            повний текст друкує <code>claude --help</code> без <code>grep</code>.
+          </p>
+
+          <p>
+            Два з цих трьох прапорців схожі до сплутування, а роблять різне — і саме на цьому
+            найчастіше спотикаються. Розбір обох — у блоці 6, повністю про них — у блоці 7.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
+          <h2><span class="lesson-no">3</span>Як це працює</h2>
+
+          <h3>Шість режимів: що кожен означає</h3>
+
+          <p>
+            Режим — це базова політика на всю сесію. Він не про «наскільки Claude розумний», а про
+            те, скільки разів тебе спитають.
+          </p>
+
+          <ul>
+            <li>
+              <strong><code>default</code> / Manual</strong> — без питання йде тільки читання. Усе,
+              що змінює файли, запускає команди чи ходить у мережу, показує тобі запит. Це режим,
+              у якому вчаться й у якому працюють над чужим або чутливим кодом.
+            </li>
+            <li>
+              <strong><code>acceptEdits</code></strong> — правки файлів у робочій папці йдуть без
+              питання. Документація перелічує ще й побутові команди, які цей режим схвалює
+              автоматично: <code>mkdir</code>, <code>touch</code>, <code>rm</code>,
+              <code>rmdir</code>, <code>mv</code>, <code>cp</code>, <code>sed</code> —
+              <strong>лише для шляхів усередині робочої папки або доданих папок</strong>. Решта
+              команд усе одно питає.
+            </li>
+            <li>
+              <strong><code>plan</code></strong> — Claude досліджує й пише план, але не змінює твій
+              код. Це тема модуля 8; тут він у списку заради повноти.
+            </li>
+            <li>
+              <strong><code>auto</code></strong> — тебе не питають, дії рецензує окрема модель
+              (класифікатор). Розібраний нижче окремо, бо це найскладніший режим і водночас
+              стартовий на підписках.
+            </li>
+            <li>
+              <strong><code>dontAsk</code></strong> — дзеркало Manual: усе, що <em>питало б</em>,
+              автоматично <strong>відхиляється</strong>. Працює тільки те, що ти дозволив наперед
+              правилами <code>allow</code>, плюс вбудований набір команд читання. Сесія ніколи не
+              зупиняється й нічого не чекає — тому цей режим і роблять для автоматичних запусків
+              без людини.
+            </li>
+            <li>
+              <strong><code>bypassPermissions</code></strong> — перевірок немає. Документація
+              радить його <strong>лише</strong> для ізольованих контейнерів і віртуальних машин.
+              Детально — у блоці 7.
+            </li>
+          </ul>
+
+          <h3>Як перемикати режим і чому <code>dontAsk</code> ніколи не трапляється сам</h3>
+
+          <p>
+            Усередині сесії режими перемикає поєднання клавіш <code>Shift</code> + <code>Tab</code>.
+            Порядок задокументований точно: із <code>auto</code> перше натискання переводить у
+            <code>default</code>, далі цикл іде <code>default</code> → <code>acceptEdits</code> →
+            <code>plan</code> → знову <code>default</code>.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart LR
+  A["auto"] -->|"Shift+Tab"| B["default / Manual"]
+  B -->|"Shift+Tab"| C["acceptEdits"]
+  C -->|"Shift+Tab"| D["plan"]
+  D -->|"Shift+Tab"| B
+  E["dontAsk — у циклі не буває ніколи, тільки прапорцем"]
+  style B fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style E stroke:#D97757
+            </pre>
+            <p class="diagram-caption">
+              Базовий цикл <code>Shift</code> + <code>Tab</code>. Необов'язкові режими вставляються
+              після <code>plan</code>: спершу <code>bypassPermissions</code>, останнім
+              <code>auto</code> — і лише тоді, коли вони взагалі доступні сесії
+            </p>
+          </div>
+
+          <p>
+            Із цього випливає практичний висновок: <strong><code>dontAsk</code> шукати в циклі
+            марно</strong> — його там немає ніколи. Він вмикається тільки запуском:
+            <code>claude --permission-mode dontAsk</code>. А <code>bypassPermissions</code>
+            з'являється в циклі лише тоді, коли сесія вже запущена з одним із дозвільних
+            прапорців або з відповідним значенням у налаштуваннях користувача чи організації —
+            увійти в нього посеред звичайної сесії, яка стартувала без цього, неможливо.
+          </p>
+
+          <h3>З яким режимом сесія стартує</h3>
+
+          <p>
+            Claude Code бере режим із <strong>першого рядка, який підійшов</strong>, згори вниз:
+          </p>
+
+          <ol>
+            <li>прапорець <code>--permission-mode</code> або
+              <code>--dangerously-skip-permissions</code> при запуску;</li>
+            <li>значення <code>permissions.defaultMode</code> у файлі налаштувань;</li>
+            <li>вбудоване значення за замовчуванням.</li>
+          </ol>
+
+          <p>
+            Вбудоване значення теж не одне. Документація дає таблицю, і тут теж виграє перший
+            рядок, що збігся:
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: З яким режимом сесія стартує">
+          <table>
+            <thead>
+              <tr>
+                <th>Як ти запускаєш Claude Code</th>
+                <th>Стартовий режим</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>у будь-якому файлі налаштувань стоїть <code>disableAutoMode: "disable"</code></td>
+                <td><code>default</code></td>
+              </tr>
+              <tr>
+                <td>вимкнене отримання фіче-прапорців</td>
+                <td><code>default</code></td>
+              </tr>
+              <tr>
+                <td><strong>перша сесія після встановлення або оновлення</strong></td>
+                <td><code>default</code></td>
+              </tr>
+              <tr>
+                <td><code>claude -p</code> (запуск без діалогу, модуль 19) або Agent SDK</td>
+                <td><code>default</code></td>
+              </tr>
+              <tr>
+                <td>Bedrock, Google Cloud Agent Platform, Microsoft Foundry, Claude Platform on AWS, gateway</td>
+                <td><code>default</code></td>
+              </tr>
+              <tr>
+                <td><strong>підписка Pro, Max або Team, у терміналі чи у VS Code</strong></td>
+                <td><code>auto</code></td>
+              </tr>
+              <tr>
+                <td>план Enterprise або ключ Claude Console API</td>
+                <td><code>default</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p class="diagram-caption" style="text-align:left">
+            Таблиця з <code>code.claude.com/docs/en/permission-modes</code>, звірено 4 вересня 2026
+            року. Вбудований старт в <code>auto</code> потребує Claude Code 2.1.228 або новішої на
+            macOS, Linux і WSL і 2.1.233 на рідному Windows; на старіших збірках вбудований старт —
+            Manual.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Звідси — найдивніший ефект першого тижня</span>
+            <p>
+              <strong>Перша сесія після встановлення стартує в Manual, а друга вже в
+              <code>auto</code></strong> (якщо в тебе підписка Pro, Max або Team). Тобто на першому
+              запуску діалоги дозволу є, а назавтра вони зникають — і людині здається, що вона щось
+              зламала. Не зламала: збіглись два різні рядки таблиці вище.
+            </p>
+          </div>
+
+          <h3>Правила: <code>deny</code>, <code>ask</code>, <code>allow</code></h3>
+
+          <p>
+            Правило — це рядок, який описує інструмент і, за бажанням, конкретне його застосування.
+            Формат — <code>Інструмент</code> або <code>Інструмент(уточнення)</code>:
+          </p>
+
+          <ul>
+            <li><code>Bash(npm run build)</code> — рівно ця команда;</li>
+            <li><code>Read(./.env)</code> — читання файла <code>.env</code> у поточній папці;</li>
+            <li><code>WebFetch(domain:example.com)</code> — звернення до цього домену;</li>
+            <li><code>Bash</code> без дужок — усі команди в терміналі; <code>Bash(*)</code> означає
+              те саме.</li>
+          </ul>
+
+          <p>
+            Правил три види. <strong><code>deny</code></strong> забороняє,
+            <strong><code>ask</code></strong> змушує спитати, <strong><code>allow</code></strong>
+            дозволяє без питання. Порядок перевірки задокументований і незмінний:
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">deny → ask → allow, перший збіг вирішує</span>
+            <p>
+              <strong>Специфічність не важить.</strong> Широке правило <code>deny</code> на
+              <code>Bash(aws *)</code> заблокує команду навіть тоді, коли вузьке
+              <code>allow</code> на <code>Bash(aws s3 ls)</code> теж підходить. Тобто винятків
+              усередині заборони бути не може: заборона — це заборона.
+            </p>
+            <p>
+              Два наслідки, які варто запам'ятати як пару: <strong><code>deny</code> діє в усіх
+              режимах, включно з <code>bypassPermissions</code></strong>, а
+              <strong><code>allow</code> у <code>bypassPermissions</code> не діє взагалі</strong> —
+              там і без нього все дозволено.
+            </p>
+          </div>
+
+          <p>
+            Ще одна деталь, яка дивує: <strong>голе ім'я інструмента в <code>deny</code> прибирає
+            цей інструмент із поля зору Claude повністю</strong>. Правило <code>Bash</code> у
+            заборонах означає не «Bash буде блокуватись», а «Claude узагалі не знає, що вміє
+            запускати команди». Правило з уточненням — <code>Bash(rm *)</code> — навпаки, лишає
+            інструмент і блокує тільки збіги.
+          </p>
+
+          <h3>Зірочка в правилі: місце має значення</h3>
+
+          <p>
+            <code>*</code> означає «будь-який текст, включно з пробілами». Через це правило легко
+            написати ширшим, ніж збирався. Документація дає таблицю збігів; ось найкорисніші рядки
+            з неї:
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Зірочка в правилі: місце має значення">
+          <table>
+            <thead>
+              <tr>
+                <th>Ти написав</th>
+                <th>Підходить</th>
+                <th>Не підходить</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Bash(npm run build)</code></td>
+                <td><code>npm run build</code></td>
+                <td><code>npm run build --watch</code></td>
+              </tr>
+              <tr>
+                <td><code>Bash(npm run *)</code></td>
+                <td><code>npm run build</code>, <code>npm run test --watch</code>, <code>npm run</code></td>
+                <td><code>npm install</code></td>
+              </tr>
+              <tr>
+                <td><code>Bash(git log * main)</code></td>
+                <td><code>git log --oneline main</code>, <code>git log -5 main</code></td>
+                <td><code>git log main</code>, <code>git push origin main</code></td>
+              </tr>
+              <tr>
+                <td><code>Bash(git * main)</code></td>
+                <td><code>git merge main</code>, <strong><code>git push origin main</code></strong></td>
+                <td><code>git log</code></td>
+              </tr>
+              <tr>
+                <td><code>Bash(ls *)</code></td>
+                <td><code>ls -la</code>, <code>ls</code></td>
+                <td><code>lsof</code></td>
+              </tr>
+              <tr>
+                <td><code>Bash(ls*)</code></td>
+                <td><code>ls -la</code>, <strong><code>lsof</code></strong></td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>
+            Два правила читання цієї таблиці. Перше: <strong>усе до першої зірочки звіряється
+            дослівно</strong>, тому саме слова перед нею й обмежують правило —
+            <code>Bash(git * main)</code> обмежує лише кінець команди, а підкоманду віддає зірочці.
+            Друге: <strong>пробіл перед кінцевою зірочкою — частина правила</strong>, тому
+            <code>Bash(ls *)</code> не зачіпає <code>lsof</code>, а <code>Bash(ls*)</code> зачіпає.
+          </p>
+
+          <h3>Вбудований набір команд читання</h3>
+
+          <p>
+            Частину команд Claude Code вважає безпечними за побудовою й виконує без запиту
+            <strong>в будь-якому режимі</strong>. Документація перелічує серед них
+            <code>ls</code>, <code>cat</code>, <code>echo</code>, <code>pwd</code>,
+            <code>head</code>, <code>tail</code>, <code>grep</code>, <code>find</code>,
+            <code>wc</code>, <code>which</code>, <code>diff</code>, <code>stat</code>,
+            <code>du</code>, <code>cd</code> і форми <code>git</code>, що лише читають. Перелік
+            <strong>не налаштовується</strong>: щоб про якусь із них питали, треба додати на неї
+            правило <code>ask</code> або <code>deny</code>.
+          </p>
+
+          <p>
+            Але навіть ці команди іноді питають, і це не збій. Задокументовані випадки:
+            команда довша за <strong>10 000 символів</strong> (розбір не встигає її прочитати);
+            незахищений шаблон із зірочкою для команди, у якої є прапорці запису
+            (<code>find</code>, <code>sort</code>, <code>sed</code>, <code>git</code> — бо шаблон
+            може розкритись у щось на кшталт <code>-delete</code>); <code>docker</code> із
+            прапорцем, що вказує на інший сервіс; <code>file</code> із прапорцями, які відкривають
+            шляхи; мережеві шляхи у Windows.
+          </p>
+
+          <p>
+            Окремо варто знати про перенаправлення виводу. Запис <code>ls &gt; out.txt</code>
+            перевіряється <strong>як запис у файл</strong>, а не як читання: правило
+            <code>Bash(git commit *)</code> дозволяє команду, а не її ціль. Виняток —
+            <code>/dev/null</code>: ця ціль не перевіряється.
+          </p>
+
+          <h3>Режим <code>auto</code>: рецензент замість тебе</h3>
+
+          <p>
+            У режимі <code>auto</code> запити зникають не тому, що перевірок немає, а тому, що їх
+            робить <strong>класифікатор</strong> — окрема модель, яка дивиться на дію до її
+            виконання й вирішує, пропустити чи заблокувати. За замовчуванням це Claude Sonnet 5,
+            а не та модель, якою працює твоя сесія.
+          </p>
+
+          <p>
+            Порядок рішення задокументований чотирма кроками, і виграє перший, що збігся:
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  A["Claude хоче виконати дію"] --> B{"Є твоє правило deny / ask / allow?"}
+  B -->|"так"| C["Перший збіг вирішує: deny блокує, ask питає, allow пропускає"]
+  B -->|"ні"| D{"Це читання або правка у робочій папці?"}
+  D -->|"так"| E["Виконується без питання"]
+  D -->|"ні"| F["Дію рецензує класифікатор"]
+  F --> G{"Класифікатор пропускає?"}
+  G -->|"так"| H["Дія виконується"]
+  G -->|"ні"| I["Claude отримує відмову і пробує інший шлях"]
+  style F fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style I stroke:#D97757
+            </pre>
+            <p class="diagram-caption">
+              Порядок рішення в режимі <code>auto</code>. Запис у захищені шляхи йде до
+              класифікатора навіть тоді, коли на нього є правило <code>allow</code>
+            </p>
+          </div>
+
+          <p>
+            Причина відмови, яку бачить Claude, у більшості сесій — фіксований текст
+            <code>Blocked by classifier</code>, без пояснення: класифікатор оцінює дію за
+            внутрішньою шкалою, а не пише есе. Це задокументовано, починаючи з версії 2.1.208.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Що класифікатор бачить, а чого не бачить</span>
+            <p>
+              Він бачить твої повідомлення, виклики інструментів і вміст <code>CLAUDE.md</code>.
+              <strong>Результати інструментів із нього вирізані</strong> — документація формулює
+              це так: «Tool results are stripped, so hostile content in a file or web page can't
+              manipulate it directly». Тобто ворожий текст усередині файла або вебсторінки не може
+              звертатись до класифікатора напряму й умовляти його.
+            </p>
+            <p>
+              Це і є відповідь на питання «а якщо в чужому файлі буде написано «ігноруй усі правила»».
+              Така атака називається <strong>підсадка інструкцій</strong> (англійською
+              <em>prompt injection</em>), і саме через неї результати інструментів до рецензента
+              не потрапляють.
+            </p>
+          </div>
+
+          <p>
+            У класифікатора є ще дві властивості, про які краще дізнатись заздалегідь, ніж під час
+            роботи. Перша: <strong>входячи в <code>auto</code>, Claude Code скидає широкі
+            <code>allow</code>-правила</strong>, які дають довільне виконання коду —
+            <code>Bash(*)</code>, <code>PowerShell(*)</code>, шаблонні інтерпретатори на кшталт
+            <code>Bash(python*)</code>, команди пакетних менеджерів, правила на <code>Agent</code>
+            і <code>Monitor</code>. Вузькі, як <code>Bash(npm test)</code>, лишаються; скинуті
+            повертаються, щойно ти вийдеш із <code>auto</code>.
+          </p>
+
+          <p>
+            Друга: <strong>у <code>auto</code> є вбудований відкат</strong>. Якщо класифікатор
+            заблокував дію 3 рази поспіль або 20 разів сумарно, режим ставиться на паузу й запити
+            повертаються до тебе. Пороги <strong>не налаштовуються</strong>. Будь-яка дозволена дія
+            обнуляє лічильник «поспіль», а сумарний живе до кінця сесії.
+          </p>
+
+          <h3>Запобіжники, які не вимикаються</h3>
+
+          <p>
+            Це третій шар, і він найважливіший для спокою. Дві групи шляхів мають окремий захист,
+            що стоїть <strong>вище за твої правила</strong>.
+          </p>
+
+          <p>
+            <strong>Захищені шляхи (protected paths)</strong> — місця, запис у які не схвалюється
+            автоматично. Це стан репозиторію й конфігурація самої програми. Каталоги:
+            <code>.git</code>, <code>.config/git</code>, <code>.vscode</code>, <code>.idea</code>,
+            <code>.husky</code>, <code>.cargo</code>, <code>.devcontainer</code>,
+            <code>.yarn</code>, <code>.mvn</code> і <code>.claude</code> (крім
+            <code>.claude/worktrees</code>). Файли: <code>.gitconfig</code>,
+            <code>.gitmodules</code>, <code>.bashrc</code>, <code>.zshrc</code>,
+            <code>.profile</code>, <code>.envrc</code>, <code>.npmrc</code>,
+            <code>.mcp.json</code>, <code>.claude.json</code> та інші — повний перелік у
+            документації.
+          </p>
+
+          <p>
+            Ключова деталь, через яку люди помиляються:
+            <strong>правила <code>allow</code> не пре-схвалюють запис у захищені шляхи</strong>.
+            Перевірка виконується <em>до</em> того, як програма дивиться на твої дозволи, тому
+            рядок <code>Edit(.claude/**)</code> у налаштуваннях нічого тут не змінює. Що
+            відбувається натомість — залежить від режиму:
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Запобіжники, які не вимикаються — правила allow не пре-схвалюють запис у захищені шляхи">
+          <table>
+            <thead>
+              <tr>
+                <th>Режим</th>
+                <th>Запис у захищений шлях</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>default</code>, <code>acceptEdits</code></td>
+                <td>питає тебе</td>
+              </tr>
+              <tr>
+                <td><code>plan</code></td>
+                <td>іде до класифікатора або питає — залежно від сесії (модуль 8)</td>
+              </tr>
+              <tr>
+                <td><code>auto</code></td>
+                <td>іде до класифікатора</td>
+              </tr>
+              <tr>
+                <td><code>dontAsk</code></td>
+                <td>відхиляє</td>
+              </tr>
+              <tr>
+                <td><code>bypassPermissions</code></td>
+                <td><strong>дозволяє</strong></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>
+            <strong>Критичні шляхи (critical paths)</strong> — інша група й інша логіка. Тут ідеться
+            тільки про видалення: <code>rm</code> і <code>rmdir</code>. Документація формулює це як
+            <em>circuit breaker</em>, запобіжник проти помилки моделі: <strong>ані правило
+            <code>allow</code>, ані перехоплювач подій (hook) із відповіддю «дозволити» не схвалять
+            видалення критичного шляху</strong>.
+          </p>
+
+          <p>Критичним вважається:</p>
+
+          <ul>
+            <li>корінь файлової системи;</li>
+            <li>будь-яка папка першого рівня від кореня — <code>/usr</code>, <code>/etc</code>,
+              <code>/data</code>;</li>
+            <li>твоя домашня папка;</li>
+            <li>корені дисків Windows і їхні папки першого рівня — <code>C:\</code>,
+              <code>C:\Windows</code>;</li>
+            <li>твоя робоча папка та її батьківські папки;</li>
+            <li>додаткові робочі папки та їхні батьківські — але лише коли видалення записане
+              шаблоном, як <code>rm -rf &lt;папка&gt;/*</code>;</li>
+            <li>шаблон одразу під змінною оболонки: <code>rm -rf "$DIR"/*</code>. Причина точна —
+              якщо змінна виявиться порожньою, команда перетвориться на видалення від кореня.</li>
+          </ul>
+
+          <p>
+            І окремо: <strong>сховати видалення в підстановці не виходить</strong>. Записи
+            <code>$(...)</code>, зворотні лапки й <code>&lt;(...)</code> перевірку не обходять —
+            програма знаходить критичне видалення й усередині підстановки, і будь-де в тій самій
+            команді.
+          </p>
+
+          <p>
+            Що станеться з таким видаленням — теж залежить від режиму, і саме тут ховається
+            найконтрінтуїтивніший рядок усього модуля:
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Запобіжники, які не вимикаються — Що станеться з таким видаленням">
+          <table>
+            <thead>
+              <tr>
+                <th>Режим</th>
+                <th>Видалення критичного шляху</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>default</code>, <code>acceptEdits</code></td>
+                <td>питає тебе</td>
+              </tr>
+              <tr>
+                <td><code>plan</code></td>
+                <td>питає тебе (або йде до класифікатора)</td>
+              </tr>
+              <tr>
+                <td><code>auto</code></td>
+                <td>іде до класифікатора</td>
+              </tr>
+              <tr>
+                <td><code>dontAsk</code></td>
+                <td>відхиляє</td>
+              </tr>
+              <tr>
+                <td><code>bypassPermissions</code></td>
+                <td><strong>питає тебе</strong></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p class="diagram-caption" style="text-align:left">
+            Обидві таблиці — з <code>code.claude.com/docs/en/permission-modes</code>, розділи
+            «Protected paths» і «Critical paths», звірено 4 вересня 2026 року.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Асиметрія, яку легко зрозуміти навпаки</span>
+            <p>
+              У режимі <code>bypassPermissions</code> <strong><code>rm -rf ~</code> усе одно
+              спитає</strong> (критичний шлях), а <strong>запис у <code>.git</code> пройде
+              мовчки</strong> (захищений шлях у цьому режимі дозволений). Тобто «режим без
+              перевірок» захищає тебе саме там, де ти цього не чекаєш, і не захищає там, де
+              здається, що захистить.
+            </p>
+          </div>
+
+          <h3>Додаткові папки: <code>--add-dir</code></h3>
+
+          <p>
+            За замовчуванням Claude бачить файли тієї папки, у якій ти його запустив. Розширити це
+            можна трьома способами: прапорцем <code>--add-dir &lt;шлях&gt;</code> при запуску,
+            командою <code>/add-dir &lt;шлях&gt;</code> усередині сесії або ключем
+            <code>additionalDirectories</code> у файлі налаштувань.
+          </p>
+
+          <p>
+            Головне про них сказано в документації одним реченням і його варто прочитати двічі:
+            <strong>додана папка дає доступ до файлів, а не до конфігурації</strong>. Дослівно:
+            «Most <code>.claude/</code> configuration is not discovered from the added directory».
+            Кілька винятків усе ж є — з папок, доданих саме прапорцем або командою, підхоплюються
+            навички (skills), файли команд і субагенти; ключі налаштувань, крім двох про плагіни,
+            не підхоплюються. Папки, перелічені в <code>additionalDirectories</code> у
+            налаштуваннях, не дають навіть цього — тільки доступ до файлів.
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
+          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+
+          <p>
+            Чотири кроки. Жоден нічого не видаляє й не встановлює: ти дивишся, у якому режимі
+            працюєш, ставиш собі стартовий режим і додаєш одне правило-запобіжник.
+          </p>
+
+          <h3>Крок 1. Подивитись, у якому режимі ти зараз</h3>
+
+          <p>
+            Запусти Claude Code у будь-якій своїй папці: набери <code>claude</code> і натисни
+            <code>Enter</code>. Подивись на нижню частину вікна — там рядок стану з таблиці блоку 2.
+            Побачив <code>⏵⏵ auto mode on</code> — сесія рецензується класифікатором, а не тобою.
+            Побачив <code>⏸ manual mode on</code> — тебе питатимуть про кожну дію, що змінює
+            файли або запускає команди.
+          </p>
+
+          <p>
+            Натисни <code>Shift</code> + <code>Tab</code> кілька разів і подивись, як рядок стану
+            змінюється. Це нічого не ламає: перемикання режиму діє лише на цю сесію.
+          </p>
+
+          <h3>Крок 2. Задати собі стартовий режим</h3>
+
+          <p>
+            Найпростіший спосіб на один запуск — прапорець. Вийди з Claude Code
+            (<code>/exit</code> або <code>Ctrl</code> + <code>D</code> двічі) і запусти так:
+          </p>
+
+          <p><code>claude --permission-mode default</code></p>
+
+          <p>
+            Щоб <strong>кожна</strong> сесія на цьому комп'ютері стартувала в Manual, потрібен файл
+            налаштувань користувача — <code>~/.claude/settings.json</code>. Нагадування з модуля 1:
+            <code>~</code> — це скорочення твоєї домашньої папки, а папка <code>.claude</code>
+            починається з крапки, тому <code>ls</code> її не показує, а <code>ls -a</code> показує.
+            Докладно цей файл розібраний у модулі 13; тут потрібні три рядки:
+          </p>
+
+          <pre><code>{
+  "permissions": {
+    "defaultMode": "default"
+  }
+}</code></pre>
+
+          <p>
+            Якщо файл уже існує й у ньому щось є — не переписуй його цілком, додай ключ
+            <code>permissions</code> усередину наявних фігурних дужок. Формат тут строгий: це JSON,
+            зайва або пропущена кома робить файл нечитабельним.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Найважливіша пастка цього кроку</span>
+            <p>
+              Значення <code>"auto"</code> і <code>"bypassPermissions"</code>
+              <strong>не діють</strong> із файлів <code>.claude/settings.json</code> і
+              <code>.claude/settings.local.json</code> усередині проєкту. Помилки не буде: з
+              <code>"auto"</code> Claude Code візьме вбудоване значення, а з
+              <code>"bypassPermissions"</code> стартує в Manual. Ці два значення живуть тільки в
+              <code>~/.claude/settings.json</code> або в керованих налаштуваннях організації.
+            </p>
+            <p>
+              Решта значень — <code>default</code>, <code>manual</code>, <code>acceptEdits</code>,
+              <code>plan</code>, <code>dontAsk</code> — працюють з будь-якого файла налаштувань.
+            </p>
+          </div>
+
+          <h3>Крок 3. Відкрити <code>/permissions</code> і подивитись, що там уже є</h3>
+
+          <p>
+            Усередині сесії набери <code>/permissions</code> і натисни <code>Enter</code>.
+            Відкриється діалог, у якому видно всі правила <strong>і файл, з якого кожне
+            прийшло</strong> — це найшвидший спосіб зрозуміти, звідки взялось правило, якого ти не
+            писав. У діалозі ж додають і прибирають правила, керують робочими папками й дивляться
+            вкладку <strong>Recently denied</strong> — перелік нещодавно заблокованих дій. Коли
+            режим <code>auto</code> доступний сесії, з'являється ще вкладка <strong>Auto
+            mode</strong> з правилами класифікатора.
+          </p>
+
+          <p>
+            Знімка цього діалога в курсі немає навмисно: він інтерактивний і живе всередині вікна
+            сесії, тож зняти його командою неможливо, а домальовувати екрани тут заборонено.
+            Опис узятий із документації команд, звіреної 4 вересня 2026 року.
+          </p>
+
+          <h3>Крок 4. Поставити собі один людський чекпойнт</h3>
+
+          <p>
+            Найкорисніше перше правило — зупинка перед відправкою коду назовні. Додай у свій файл
+            налаштувань:
+          </p>
+
+          <pre><code>{
+  "permissions": {
+    "ask": [
+      "Bash(git push *)",
+      "Bash(gh pr create *)"
+    ]
+  }
+}</code></pre>
+
+          <p>
+            Документація прямо каже, навіщо саме <code>ask</code>: правила, що дивляться на вміст
+            команди, перевіряються <strong>до класифікатора</strong> й завжди дають запит — навіть у
+            режимі <code>auto</code>, бо явне <code>ask</code> — це твоя заявлена воля, щоб тебе
+            спитали. Якщо потрібна не зупинка, а тверда заборона, ті самі рядки ставляться в
+            <code>deny</code>: тоді дія не виконається взагалі й у жодному режимі.
+          </p>
+
+          <h3>Необов'язково, але варте десяти хвилин</h3>
+
+          <p>
+            У режимі <code>auto</code> рішення про твої дії приймають за списком правил, і цей
+            список можна прочитати. Команда <code>claude auto-mode defaults</code> друкує його
+            цілком у форматі JSON. Файл великий (близько 63 кілобайтів на перевіреній збірці), тому
+            зручніше спершу зберегти його у файл, а потім дивитись частинами:
+          </p>
+
+          <figure class="term term--cmd" id="p4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p4t">правила класифікатора · macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p4t"><span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude auto-mode defaults &gt; rules.json</span></span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">python3 -c "import json;d=json.load(open('rules.json'));print({k: len(v) for k,v in d.items()})"</span></span>
+<span class="term__line">{'allow': 17, 'soft_deny': 66, 'hard_deny': 1, 'environment': 20}</span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">python3 -c "import json;d=json.load(open('rules.json'));[print(r.split(' [')[0]) for r in d['soft_deny'][:6]]"</span></span>
+<span class="term__line">Git Destructive</span>
+<span class="term__line">Code That Leaks When Run</span>
+<span class="term__line">Code from External</span>
+<span class="term__line">Cloud Storage Mass Delete</span>
+<span class="term__line">Production Deploy</span>
+<span class="term__line">Remote Shell Writes</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято на macOS 26.5.2, Claude Code 2.1.236, 4 вересня 2026 року. Другий і четвертий
+            рядки — однорядкові програми на Python, який на macOS уже встановлений: перша друкує,
+            скільки правил у кожному списку, друга — назви перших шести правил із групи
+            <code>soft_deny</code>. Числа збіглися з тими, які дослідник курсу зняв 3 вересня, —
+            за добу набір правил не змінився.
+          </p>
+
+          <p>
+            Груп чотири: <code>allow</code> — те, що класифікатор пропускає свідомо,
+            <code>soft_deny</code> — блокування, яке знімається, коли ти назвав дію і її ціль
+            прямо, <code>hard_deny</code> — найсуворіша група, у ній рівно одне правило, і воно про
+            витік даних за межу довіри, і <code>environment</code> — опис того, що вважається
+            «твоєю» інфраструктурою. Щоб прочитати одне правило повністю, є прапорець
+            <code>--label</code>: <code>claude auto-mode defaults --label 'Git Destructive'</code>
+            (потребує версії 2.1.208 або новішої).
+          </p>
+
+          <p>
+            Читати всі 84 правила трьох перших груп не треба. Достатньо один раз побачити, що це не магія й не
+            «інтуїція моделі», а список, який ти можеш відкрити.
+          </p>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
+          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            У темі дозволів здогадки коштують найдорожче: помилка тут не видно доти, доки не стане
+            пізно. Тому кожен крок блоку 4 має свою перевірку.
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Як перевірити, що вийшло">
+          <table>
+            <thead>
+              <tr>
+                <th>Питання</th>
+                <th>Чим перевіряється</th>
+                <th>Як прочитати відповідь</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>У якому режимі сесія зараз?</td>
+                <td>рядок стану внизу вікна</td>
+                <td><code>⏸ manual mode on</code> — питають тебе; <code>⏵⏵ auto mode on</code> — рецензує класифікатор</td>
+              </tr>
+              <tr>
+                <td>Мій <code>defaultMode</code> справді застосувався?</td>
+                <td>вийти й запустити <code>claude</code> заново, подивитись рядок стану</td>
+                <td>стартовий режим змінився — застосувався; лишився старий — див. пастку про <code>auto</code></td>
+              </tr>
+              <tr>
+                <td>Моє правило існує й звідки воно?</td>
+                <td><code>/permissions</code></td>
+                <td>у діалозі видно і правило, і файл, з якого воно прийшло</td>
+              </tr>
+              <tr>
+                <td>Які правила класифікатора діють насправді?</td>
+                <td><code>claude auto-mode config</code></td>
+                <td>друкує підсумковий набір: твої налаштування там, де ти їх задав, вбудовані — де ні</td>
+              </tr>
+              <tr>
+                <td>Що саме заблокувало дію?</td>
+                <td><code>/permissions</code> → вкладка <strong>Recently denied</strong></td>
+                <td>перелік відхилених дій; клавіша <code>r</code> позначає дію на повтор із ручним схваленням</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <h3>Окрема навичка: перевірити, чи існує прапорець у <em>твоїй</em> збірці</h3>
+
+          <p>
+            Документація описує найсвіжішу версію, а в тебе встановлена та, яка встановлена. Розрив
+            буває у два десятки версій. Найшвидша перевірка — запустити прапорець і подивитись,
+            чи програма про нього знає. Один нюанс робить цю перевірку оманливою, і його краще
+            знати:
+          </p>
+
+          <figure class="term term--cmd" id="p5">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p5t">чи є прапорець у цій збірці · macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p5t"><span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude --restricted --help</span></span>
+<span class="term__line">Usage: claude [options] [command] [prompt]</span>
+<span class="term__line"><span class="term__meta">(жодної помилки — виглядає так, ніби прапорець існує)</span></span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude --restricted</span></span>
+<span class="term__line"><span class="term__err">error: unknown option '--restricted'</span></span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято на macOS 26.5.2, Claude Code 2.1.236, 4 вересня 2026 року. Третій рядок — підпис
+            автора, решта — дослівний вивід. Прапорець <code>--restricted</code> є в документації
+            й потребує версії 2.1.248 або новішої; у збірці 2.1.236 його немає.
+          </p>
+
+          <p>
+            Висновок практичний: <strong>перевіряти прапорець разом із <code>--help</code> не
+            можна</strong>. Коли <code>--help</code> присутній, невідомий прапорець мовчки
+            ігнорується й друкується звичайна довідка — і це виглядає як підтвердження. Запуск без
+            <code>--help</code> дає чесну відповідь: <code>error: unknown option</code>.
+          </p>
+
+          <p>
+            Виняток, який теж видно на екранах цього модуля: <strong>невірне
+            <em>значення</em></strong> у відомого прапорця ловиться навіть із <code>--help</code> —
+            саме тому <code>claude --permission-mode bogus --help</code> у блоці 2 таки лається.
+            Перевірка значення й перевірка імені прапорця — це два різні механізми.
+          </p>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
+          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+
+          <h3>1. <code>"defaultMode": "auto"</code> у проєкті мовчки не діє</h3>
+          <p>
+            Людина кладе цей рядок у <code>.claude/settings.json</code> свого проєкту, запускає
+            сесію — і вона стартує в Manual. Ні помилки, ні попередження. Причина зафіксована в
+            документації як типова проблема: значення <code>auto</code> не береться з проєктних
+            файлів (те саме стосується <code>bypassPermissions</code>). Фікс —
+            <strong>перенести ключ у <code>~/.claude/settings.json</code></strong>.
+          </p>
+
+          <h3>2. У <code>allow</code> стоїть <code>Bash(*)</code>, а в <code>auto</code> все одно блокує</h3>
+          <p>
+            Це не збій і не «класифікатор перестарався». Входячи в режим <code>auto</code>,
+            Claude Code <strong>скидає широкі дозволи</strong>, що дають довільне виконання коду —
+            <code>Bash(*)</code>, <code>PowerShell(*)</code>, <code>Bash(python*)</code>, команди
+            пакетних менеджерів, <code>Agent</code>, <code>Monitor</code>. Вузькі правила
+            лишаються. Скинуті повертаються, щойно ти вийдеш з <code>auto</code>. Фікс — писати
+            вузько: <code>Bash(npm test)</code> замість <code>Bash(*)</code>.
+          </p>
+
+          <h3>3. Межа, сказана словами, гине при стисканні розмови</h3>
+          <p>
+            Класифікатор поважає межі, які ти назвав у чаті: сказав «не пуш» — і відповідні дії
+            блокуються, навіть якщо за вбудованими правилами вони дозволені. Але межа
+            <strong>не зберігається як правило</strong>. Класифікатор перечитує її з тексту розмови
+            щоразу. А розмова має обмежений обсяг, і коли він закінчується, старі повідомлення
+            <strong>стискаються</strong> (це компакція, модуль 6) — разом із твоєю фразою.
+          </p>
+          <p>
+            Документація каже це прямо: «a boundary can be lost if context compaction removes the
+            message that stated it». Далі Claude діє так, ніби межі не було. Фікс —
+            <strong>правило <code>deny</code> або <code>ask</code> замість слів</strong>: воно
+            лежить у файлі, а не в пам'яті розмови. Це найтонший і найважливіший нюанс безпеки в
+            усьому курсі.
+          </p>
+
+          <h3>4. <code>dontAsk</code> шукають у циклі <code>Shift</code> + <code>Tab</code></h3>
+          <p>
+            Його там немає ніколи — це задокументовано окремим реченням. Єдиний шлях:
+            <code>claude --permission-mode dontAsk</code>.
+          </p>
+
+          <h3>5. Плутають <code>--dangerously-skip-permissions</code> і <code>--allow-dangerously-skip-permissions</code></h3>
+          <p>
+            Перший <strong>вмикає</strong> режим без перевірок — він рівнозначний
+            <code>--permission-mode bypassPermissions</code>. Другий лише
+            <strong>додає цей режим у цикл</strong> <code>Shift</code> + <code>Tab</code>, не
+            вмикаючи його. Різниця в одному слові на початку, а наслідок протилежний.
+          </p>
+
+          <h3>6. Думають, що <code>bypassPermissions</code> — це «взагалі все»</h3>
+          <p>
+            Ні. <code>rm -rf ~</code> усе одно спитає (критичний шлях), явні правила
+            <code>ask</code> усе одно спитають, правила <code>deny</code> усе одно заблокують, а
+            запит із інструмента, який вимагає відповіді людини, все одно з'явиться. Натомість
+            запис у <code>.git</code> і <code>.claude</code> у цьому режимі проходить без питання —
+            хоча в усіх інших режимах він або питає, або йде до класифікатора.
+          </p>
+
+          <h3>7. Запускають <code>--dangerously-skip-permissions</code> під <code>sudo</code></h3>
+          <p>
+            На Linux і macOS Claude Code відмовляється стартувати з-під <code>root</code> або
+            <code>sudo</code> в цьому режимі й друкує дослівно:
+          </p>
+          <p><code>--dangerously-skip-permissions cannot be used with root/sudo privileges for security reasons</code></p>
+          <p>
+            Перевірка автоматично пропускається всередині розпізнаного ізольованого середовища.
+            Офіційна порада для контейнера — конфігурація dev container, де програма працює не від
+            <code>root</code>.
+          </p>
+
+          <h3>8. Після блокування здаються</h3>
+          <p>
+            Коли класифікатор щось заблокував, дія не зникає: вона потрапляє у
+            <code>/permissions</code> → вкладка <strong>Recently denied</strong>. Клавіша
+            <code>r</code> позначає її на повтор із ручним схваленням — після виходу з діалогу
+            Claude Code повідомляє моделі, що дію можна спробувати ще раз. Про це не здогадуються,
+            бо на екрані видно лише коротке повідомлення на кшталт
+            <code>bash denied by auto mode · Blocked by classifier · /permissions</code>.
+          </p>
+
+          <h3>9. Пишуть правило, ширше за задумане</h3>
+          <p>
+            <code>Bash(git * main)</code> виглядає як «git-команди з main», а насправді дозволяє
+            й <code>git push origin main</code>, бо зірочка стоїть <em>перед</em> підкомандою.
+            Claude Code попереджає про такі правила при старті, але попередження легко проґавити.
+            Правило: зірочка йде <strong>після</strong> підкоманди, не перед нею.
+          </p>
+
+          <h3>10. Чекають, що <code>--add-dir</code> підтягне налаштування</h3>
+          <p>
+            Додана папка дає доступ до <strong>файлів</strong>. Її <code>.claude/settings.json</code>
+            з правилами й перехоплювачами не підхоплюється — і це навмисно, бо інакше додавання
+            чужої папки мовчки міняло б твої дозволи.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
+          <h2><span class="lesson-no">7</span>Часті питання</h2>
+
+          <h3>Чи можна вимкнути всі ці питання назавжди?</h3>
+          <p>
+            Такий прапорець існує, і його назва — попередження сама по собі:
+            <code>--dangerously-skip-permissions</code>, «небезпечно пропустити дозволи». Він
+            рівнозначний <code>--permission-mode bypassPermissions</code>. Ось що варто знати,
+            перш ніж його набирати.
+          </p>
+          <ul>
+            <li>
+              <strong>Він не робить Claude обережнішим — він прибирає перевірки.</strong>
+              Документація формулює це без пом'якшення: «<code>bypassPermissions</code> offers no
+              protection against prompt injection or unintended actions» — жодного захисту від
+              підсадки інструкцій і від ненавмисних дій.
+            </li>
+            <li>
+              <strong>Документація одразу пропонує заміну, і це не «будь обережним».</strong>
+              Дослівно: «For background safety checks with far fewer permission prompts, use auto
+              mode instead» — фонові перевірки безпеки з набагато меншою кількістю запитів дає
+              режим <code>auto</code>. Тобто задача «менше питань» уже має розв'язок, і це не
+              вимкнення перевірок.
+            </li>
+            <li>
+              <strong>Він призначений для ізольованого середовища, а не для твого ноутбука.</strong>
+              Документація обмежує його контейнерами, віртуальними машинами й dev-контейнерами без
+              доступу до інтернету — тобто місцями, де програма фізично не може дістати твої файли.
+            </li>
+            <li>
+              <strong>Програма сама ставить перепони.</strong> Перший інтерактивний запуск показує
+              діалог прийняття відповідальності; відмова означає вихід. Під <code>root</code> або
+              <code>sudo</code> запуск блокується. Адміністратор організації може вимкнути цей
+              режим повністю ключем <code>permissions.disableBypassPermissionsMode</code>.
+            </li>
+          </ul>
+          <p>
+            Чесна альтернатива для локальної роботи — не «вимкнути перевірки», а
+            <strong>обмежити те, до чого команда взагалі має доступ</strong>. Такий механізм у
+            Claude Code є, називається пісочницею (sandbox) і працює на macOS, Linux і WSL2. Це
+            тема наступного модуля: там пісочниця розібрана як повноцінна заміна цьому прапорцю.
+          </p>
+
+          <h3>Якщо я в <code>auto</code>, то я в безпеці?</h3>
+          <p>
+            Ні, і документація каже це попередженням, а не дрібним шрифтом: «Auto mode reduces
+            permission prompts but does not guarantee safety» — режим зменшує кількість запитів, але
+            не гарантує безпеки. Його призначення — задачі, де ти довіряєш загальному напрямку, а не
+            заміна перегляду на чутливих операціях. Для чутливих речей є <code>ask</code> і
+            <code>deny</code>, які класифікатор не може обійти.
+          </p>
+
+          <h3>Класифікатор коштує грошей?</h3>
+          <p>
+            Залежить від того, як ти платиш. На планах Enterprise і на акаунтах, що працюють через
+            Claude API, Claude Platform on AWS, Amazon Bedrock, Google Cloud Agent Platform або
+            Microsoft Foundry, <strong>виклики класифікатора рахуються у твоє споживання
+            токенів</strong>, і кожна перевірка додає ще один обмін із сервером перед виконанням.
+            Читання й правки в робочій папці класифікатор оминають, тому основна вартість припадає
+            на команди в терміналі й мережеві дії. Гроші та ліміти повністю розібрані в модулі 11.
+          </p>
+
+          <h3>Чи діють мої заборони, якщо хтось запустить сесію в обхід?</h3>
+          <p>
+            Правила <code>deny</code> діють у всіх режимах, включно з
+            <code>bypassPermissions</code>, і перевіряються до класифікатора. Але вони живуть у
+            файлі налаштувань, а файл можна змінити — тому справжня межа для організації
+            описується не проєктним файлом, а керованими налаштуваннями (managed settings), які
+            локально не перебиваються. Це тема модуля 22.
+          </p>
+
+          <h3>Чому мене питає про команду, яка нічого не змінює?</h3>
+          <p>
+            Три найчастіші задокументовані причини. Команда довша за 10 000 символів — розбір її не
+            дочитує й на всяк випадок питає. У команді є незахищений шаблон із зірочкою, а сама
+            команда вміє й писати (<code>find</code>, <code>sed</code>, <code>git</code>) — шаблон
+            міг би розкритись у щось руйнівне. Або в команді є перенаправлення виводу
+            (<code>&gt;</code>, <code>&gt;&gt;</code>, <code>2&gt;</code>) — воно перевіряється як
+            запис у файл, і питають саме про ціль.
+          </p>
+
+          <h3>Є спосіб зменшити кількість запитів, не міняючи режим?</h3>
+          <p>
+            Так: точні <code>allow</code>-правила на те, що ти й так завжди дозволяєш. Щоб не
+            складати їх руками, у Claude Code є вбудована навичка
+            <code>/fewer-permission-prompts</code> — вона переглядає твої попередні сесії, знаходить
+            часті команди читання й пропонує з них список дозволів для
+            <code>.claude/settings.json</code> проєкту. Опис узятий із документації команд,
+            звіреної 4 вересня 2026 року.
+          </p>
+
+          <h3>Я натиснув «Yes, and don't ask again». Де це збереглось?</h3>
+          <p>
+            У файлі <code>.claude/settings.local.json</code> у корені твого git-репозиторію, і діє
+            воно на весь репозиторій — включно з сесіями, запущеними у вкладених папках. Але не
+            все зберігається: схвалення команди чи домену зберігається назавжди, а схвалення
+            <strong>правки файла</strong> живе лише до кінця сесії й у файл не пишеться.
+          </p>
+
+          <h3>А якщо я хочу заборонити Claude один інструмент цілком?</h3>
+          <p>
+            Постав його голе ім'я в <code>deny</code> — наприклад <code>WebFetch</code>. Тоді
+            інструмент прибирається з поля зору Claude взагалі: він не блокується, він для моделі
+            не існує. Це найчистіший спосіб, коли інструмент не потрібен у принципі, а не
+            «здебільшого».
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
+          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Якщо після цього модуля ти вмієш назвати режим своєї сесії, змінити його, написати одне
+            правило <code>ask</code> і пояснити, чому «я сказав йому не пушити» не є гарантією —
+            модуль зробив свою роботу.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Підсумок модуля</span>
+            <ul>
+              <li>Дозволи виконує <strong>програма</strong>, а не модель. Інструкції формують
+                намір, правила — межу.</li>
+              <li>Режимів <strong>шість</strong>, а рядків, які приймає CLI, — <strong>сім</strong>:
+                <code>default</code> і <code>manual</code> означають одне й те саме.</li>
+              <li>На Pro, Max і Team вбудований стартовий режим — <code>auto</code>. Але
+                <strong>перша сесія після встановлення</strong> стартує в Manual, і тому режим
+                «змінюється сам» на другий день.</li>
+              <li><code>dontAsk</code> у циклі <code>Shift</code> + <code>Tab</code> не буває
+                ніколи; <code>bypassPermissions</code> з'являється лише в сесії, запущеній з
+                відповідним прапорцем.</li>
+              <li>Правила перевіряються в порядку <strong>deny → ask → allow</strong>, перший збіг
+                вирішує, специфічність не важить. <code>deny</code> діє навіть у
+                <code>bypassPermissions</code>; <code>allow</code> там не діє.</li>
+              <li>Місце зірочки в правилі вирішує все: <code>Bash(git * main)</code> дозволяє
+                й <code>git push origin main</code>.</li>
+              <li><strong>Захищені шляхи</strong> (<code>.git</code>, <code>.claude</code>,
+                <code>.zshrc</code> та інші) не пре-схвалюються правилом <code>allow</code>:
+                перевірка йде раніше. <strong>Критичні шляхи</strong> захищені від
+                <code>rm</code> навіть проти <code>allow</code> і перехоплювача подій.</li>
+              <li>У <code>bypassPermissions</code> <code>rm -rf ~</code> усе одно спитає, а запис
+                у <code>.git</code> пройде. Асиметрія протилежна інтуїції.</li>
+              <li>Межа, сказана словами в чаті, <strong>гине при компакції</strong>. Гарантія — це
+                <code>deny</code> або <code>ask</code> у файлі.</li>
+              <li>У <code>auto</code> широкі <code>allow</code>-правила скидаються, а після
+                3 блокувань поспіль або 20 сумарно режим сам ставиться на паузу.</li>
+              <li><code>--dangerously-skip-permissions</code> не дає захисту від підсадки
+                інструкцій; документація радить натомість <code>auto</code>, а для локальної
+                ізоляції — пісочницю.</li>
+              <li><code>--add-dir</code> дає доступ до файлів, а не до конфігурації.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Далі — <strong>модуль 8 «Режим плану й пісочниця»</strong>. Там дві теми, які тут
+            свідомо не розкривались: <em>plan mode</em> як спосіб думати перед тим, як щось міняти,
+            і <strong>пісочниця</strong> — окремий шар, який обмежує не «чи виконати команду», а
+            «куди вона зможе дотягнутись, коли вже виконується». Документація формулює різницю
+            прямо: «<code>/sandbox</code> is not a permission mode». Саме пісочниця й є тією чесною
+            альтернативою, яку тут обіцяно замість вимкнення дозволів.
+          </p>
+          <p>
+            До того часу — одна звичка, яка займає дві секунди: перш ніж дати Claude довгу задачу,
+            подивись на рядок стану внизу вікна. Ти маєш знати, хто в цій сесії приймає рішення.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять на назви
+            прапорців: до кожної відповіді одразу з'являється пояснення, чому решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Людина поклала «\"defaultMode\": \"auto\"» у файл .claude/settings.json свого проєкту. Сесія стартує в Manual, жодної помилки на екрані немає. Що сталось?",
+            "options": [
+              "У файлі помилка формату JSON, тому він не читається взагалі",
+              "Потрібно перезапустити комп'ютер, щоб налаштування підхопились",
+              "Значення auto не береться з проєктних файлів налаштувань — воно діє лише з ~/.claude/settings.json або керованих налаштувань",
+              "Режим auto доступний тільки на плані Enterprise"
+            ],
+            "answer": 2,
+            "explain": "Це задокументовано як типова проблема: значення «auto» і «bypassPermissions» не діють із .claude/settings.json і .claude/settings.local.json — Claude Code мовчки бере вбудоване значення. Помилка формату дала б інший симптом: програма поскаржилась би на нечитабельні налаштування. Перезапуск нічого не змінює, бо файл читається щоразу при старті сесії. А auto доступний на всіх планах — навпаки, саме на Pro, Max і Team він є вбудованим стартовим режимом."
+          },
+          {
+            "q": "У налаштуваннях людини стоїть правило allow «Bash(*)». Вона переходить у режим auto — і команди все одно блокуються. Чому?",
+            "options": [
+              "Правило записане неправильно: треба «Bash» без дужок",
+              "Входячи в auto, Claude Code скидає широкі allow-правила, що дають довільне виконання коду, і повертає їх при виході",
+              "У режимі auto правила allow не існують узагалі",
+              "Класифікатор має вищий пріоритет за будь-яке правило"
+            ],
+            "answer": 1,
+            "explain": "«Bash(*)» рівнозначне «Bash» — обидві форми записані правильно, тому відповідь «треба Bash без дужок» хибна. Правила allow в auto працюють, але саме широкі скидаються: «Bash(*)», «PowerShell(*)», шаблонні інтерпретатори на кшталт «Bash(python*)», команди пакетних менеджерів, Agent і Monitor. Вузькі, як «Bash(npm test)», лишаються — тому відповідь про вищий пріоритет класифікатора теж хибна: він не перебиває правила, він стоїть після них у порядку рішення. Скинуті правила повертаються, щойно ти вийдеш із auto."
+          },
+          {
+            "q": "На початку довгої сесії людина написала «нічого не пушити без мого дозволу». Claude погодився. Через дві години він запушив. Що сталось?",
+            "options": [
+              "Межа зі слів зберігається лише в тексті розмови; компакція викинула те повідомлення, і класифікатор більше його не бачив",
+              "Claude вирішив, що умова виконана, і зняв обмеження сам",
+              "Такі фрази взагалі не впливають на поведінку — це лише ввічливість",
+              "Правило зникло, бо людина перемкнула режим"
+            ],
+            "answer": 0,
+            "explain": "Межі, названі словами, класифікатор справді поважає — тому варіант «такі фрази взагалі не впливають» хибний. Але вони не зберігаються як правило: класифікатор перечитує їх із транскрипту щоразу, і документація прямо каже, що межу можна втратити, якщо компакція прибрала повідомлення, яке її встановило. Варіант «Claude вирішив, що умова виконана» хибний окремо: у документації сказано, що власне судження Claude про виконання умови межу не знімає. Перемикання режиму тут ні до чого. Фікс один — правило deny або ask у файлі налаштувань, бо воно живе не в пам'яті розмови."
+          },
+          {
+            "q": "Сесія запущена з --dangerously-skip-permissions. Claude пропонує виконати «rm -rf ~». Що зробить Claude Code?",
+            "options": [
+              "Виконає мовчки — у цьому режимі перевірок немає",
+              "Відхилить без питання й завершить сесію",
+              "Виконає, але спершу зробить резервну копію",
+              "Спитає дозволу: домашня папка — критичний шлях, а їх не схвалює автоматично жоден режим"
+            ],
+            "answer": 3,
+            "explain": "Критичні шляхи — це вбудований запобіжник проти помилки моделі: ані правило allow, ані перехоплювач подій не схвалять «rm» чи «rmdir» по них. Домашня папка входить у перелік критичних, тому навіть у bypassPermissions Claude Code запитає тебе. Відхилення без питання дає інший режим — dontAsk. Резервних копій програма не робить. Пригадай асиметрію з блоку 3: у цьому ж режимі запис у .git, навпаки, пройде без питання."
+          },
+          {
+            "q": "Людина хоче, щоб Claude не робив «git push» ніколи — у жодному режимі й незалежно від того, що вона сама напише в чаті. Що обрати?",
+            "options": [
+              "Написати про це в CLAUDE.md",
+              "Сказати про це на початку кожної сесії",
+              "Додати правило deny «Bash(git push *)»",
+              "Перейти в режим acceptEdits"
+            ],
+            "answer": 2,
+            "explain": "Правила deny перевіряються першими, блокують у всіх режимах — включно з bypassPermissions — і не залежать від тексту розмови. CLAUDE.md формує намір Claude, але не межу: документація прямо каже, що правила виконує програма, а не модель. Слова в чаті працюють, доки їх не з'їла компакція. А acceptEdits узагалі про інше: він схвалює правки файлів, а не забороняє команди."
+          },
+          {
+            "q": "У списку allow стоїть правило «Bash(git * main)». Людина вважає, що дозволила лише перегляд гілки main. Що це правило дозволяє насправді?",
+            "options": [
+              "Тільки команду «git log main»",
+              "Будь-яку git-підкоманду, що закінчується на main, включно з «git push origin main»",
+              "Усі git-команди взагалі, включно з «git log»",
+              "Нічого: таке правило вважається помилковим і ігнорується"
+            ],
+            "answer": 1,
+            "explain": "Усе до першої зірочки звіряється дослівно, тому обмежують правило саме слова перед нею — тут це лише «git». Зірочка стоїть на місці підкоманди, тож підходить і «git merge main», і «git push origin main». «git log main» без зірочки посередині якраз НЕ підходить, а «git log» без «main» у кінці — теж ні, тому відповіді «тільки git log main» і «усі git-команди взагалі» хибні. Правило не ігнорується, але Claude Code попереджає при старті про зірочку, поставлену перед підкомандою. Правило: зірочка йде після підкоманди."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <!-- D-03: вхід у три довідники з будь-якого уроку. Підписи живуть у
+         claude-code.config.json → site.ref* і підставляються через data-site
+         (js/config.js, fillStatic); текст у розмітці — той самий рядок, як
+         запасний варіант, коли конфіг не приїхав. Той самий прийом, що вже
+         стоїть на data-site="name" і data-site="shortName" у шапці. -->
+    <nav aria-label="Довідники курсу"
+      class="mx-auto flex max-w-[88rem] flex-wrap items-center gap-x-6 gap-y-1 border-b border-line/60 px-5 py-4 sm:px-8">
+      <span class="font-mono text-xs uppercase tracking-[0.14em] text-faint" data-site="refsLabel">Довідники</span>
+      <a href="../claude-code-ref-commands.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refCommands">Усі команди й клавіші</a>
+      <a href="../claude-code-ref-hooks.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refHooks">Таблиця подій</a>
+      <a href="../claude-code-ref-settings.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refSettings">Ключі settings.json</a>
+    </nav>
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>

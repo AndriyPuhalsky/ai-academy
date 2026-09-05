@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="claude-code.config.json" data-own-title>
+
+<head>
+  <meta charset="UTF-8" />
+  <!-- Без обмежень масштабу: сторінка народжується без дефекту WCAG 1.4.4. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Усі події хуків — довідник · AI Термінал</title>
+  <meta name="description"
+    content="Повна таблиця всіх 33 подій перехоплювачів (hooks) Claude Code: коли спрацьовує, за чим фільтрує matcher, що приходить на вхід, що можна віддати на виході. Плюс те, чого немає в жодній таблиці документації: події без matcher, межі поля if і дефолтні таймаути." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="css/custom.css" />
+</head>
+
+<body class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+      Текст цього довідника читається й без нього.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <a href="claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Довідник</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="claude-code.html#refs" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          довідників</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[260px,1fr] lg:gap-12">
+
+    <!-- ЗМІСТ СТОРІНКИ (статичний: js/module.js тут не підключений).
+         Підписи пунктів перенесені дослівно з колишнього розділу «Зміст» усередині статті. -->
+    <nav aria-label="Зміст довідника" class="border-b border-line/60 py-6 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:overflow-y-auto lg:border-b-0 lg:py-10">
+      <p class="mb-3 font-mono text-xs uppercase tracking-[0.18em] text-faint">Зміст</p>
+      <ul class="grid gap-2 text-sm text-muted">
+        <li><a href="#how" class="transition hover:text-ivory">Як влаштована ця сторінка</a></li>
+        <li><a href="#nomatcher" class="transition hover:text-ivory">Три речі, яких немає в жодній таблиці документації</a>
+          <span class="mt-0.5 block text-xs text-faint">— події без
+            <code>matcher</code>, межі поля <code>if</code>, дефолтні таймаути</span></li>
+        <li><a href="#common-in" class="transition hover:text-ivory">Спільні поля входу</a>
+          <span class="mt-0.5 block text-xs text-faint">— те, що приходить кожній події</span></li>
+        <li><a href="#common-out" class="transition hover:text-ivory">Спільні поля виходу й коди завершення</a></li>
+        <li><a href="#events" class="transition hover:text-ivory">Повна таблиця 33 подій</a>:
+          <span class="mt-0.5 block text-xs text-faint">
+            <a href="#g-session" class="transition hover:text-ivory">сесія й оточення</a> ·
+            <a href="#g-talk" class="transition hover:text-ivory">хід розмови</a> ·
+            <a href="#g-tools" class="transition hover:text-ivory">інструменти й дозволи</a> ·
+            <a href="#g-agents" class="transition hover:text-ivory">субагенти й задачі</a> ·
+            <a href="#g-worktree" class="transition hover:text-ivory">копії репозиторію</a> ·
+            <a href="#g-model" class="transition hover:text-ivory">зміна моделі</a> ·
+            <a href="#g-mcp" class="transition hover:text-ivory">діалоги MCP</a></span></li>
+        <li><a href="#block" class="transition hover:text-ivory">Хто блокує, а хто ні</a>
+          <span class="mt-0.5 block text-xs text-faint">— 15 подій проти 18</span></li>
+        <li><a href="#types" class="transition hover:text-ivory">П'ять типів обробників</a>
+          <span class="mt-0.5 block text-xs text-faint">і фонові хуки</span></li>
+        <li><a href="#where" class="transition hover:text-ivory">Де оголошується хук</a>
+          <span class="mt-0.5 block text-xs text-faint">і що з довірою до теки</span></li>
+        <li><a href="#versions" class="transition hover:text-ivory">Межі версій</a>
+          <span class="mt-0.5 block text-xs text-faint">— що з чого працює</span></li>
+        <li><a href="#check" class="transition hover:text-ivory">Перевір свою збірку</a>
+          <span class="mt-0.5 block text-xs text-faint">— дві безкоштовні команди</span></li>
+        <li><a href="#nothere" class="transition hover:text-ivory">Чого тут немає</a></li>
+      </ul>
+      <p class="mt-6 border-t border-line/60 pt-4 text-sm">
+        <a href="claude-code.html" class="text-muted transition hover:text-ivory">← До курсу</a>
+      </p>
+    </nav>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-4xl">
+
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Довідник курсу</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Усі події хуків</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">
+          33 події за документацією на 2026-09-04; встановлена 2.1.236 знає 31
+        </p>
+
+        <p class="mt-6 text-lg">
+          <strong>Перехоплювач подій</strong> (hook) — це твоя команда, яку Claude Code запускає сам,
+          коли в сесії стається щось конкретне: почалась сесія, викликається інструмент, агент
+          закінчив відповідати. Ця сторінка — таблиця всіх подій, на які можна почепити таку
+          команду: коли кожна спрацьовує, за чим фільтрує, що приходить на вхід і що можна віддати
+          на виході.
+        </p>
+
+        <p>
+          Тут немає тесту, немає позначки «пройдено» і цієї сторінки немає в сертифікаті. Довідник
+          не проходять — до нього повертаються. Якщо ти ще не робив жодного перехоплювача, спершу
+          прочитай модуль <a href="modules/claude-code-16.html">16 «Перехоплювачі подій (hooks)»</a>:
+          там пояснено, як влаштований файл налаштувань, що таке matcher і чому <code>exit 1</code>
+          нічого не блокує. Сюди повертайся по подробиці.
+        </p>
+
+        <section id="how" class="scroll-mt-24">
+        <h2>Як влаштована ця сторінка</h2>
+
+        <p>
+          Перехоплювач описується трьома рівнями вкладеності, і колонки таблиці повторюють ці рівні:
+        </p>
+
+        <div class="diagram">
+          <pre class="mermaid">
+flowchart TD
+  E["Подія — КОЛИ запускати: PreToolUse"] --> M["matcher — ЗА ЯКИХ УМОВ: лише Bash"]
+  M --> H["Обробник — ЩО ЗАПУСТИТИ: команда, HTTP, MCP, промпт, агент"]
+  H --> I["Вхід: JSON у стандартний потік вводу"]
+  I --> S["Твоя команда"]
+  S --> O["Вихід: JSON на stdout + код завершення"]
+  O --> D["Claude Code вирішує, що робити далі"]
+  style E fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style D fill:#2A211C,stroke:#D97757,color:#F0EEE6
+          </pre>
+          <p class="diagram-caption">
+            Три рівні конфігурації й два канали відповіді. Колонки великої таблиці нижче —
+            це «коли», «за яких умов», «що приходить» і «що можна віддати».
+          </p>
+        </div>
+
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Як влаштована ця сторінка">
+        <table>
+          <thead>
+            <tr>
+              <th>Колонка</th>
+              <th>Що в ній</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Подія</td>
+              <td>назва, яку пишуть ключем у <code>"hooks"</code>. Регістр важливий</td>
+            </tr>
+            <tr>
+              <td>Коли спрацьовує</td>
+              <td>момент у житті сесії. Якщо подія з'явилась у певній версії — версія вказана тут же</td>
+            </tr>
+            <tr>
+              <td>matcher</td>
+              <td>за яким полем фільтрує група і які значення в нього кладуть. «немає» означає, що
+                поле <strong>мовчки ігнорується</strong> — див. <a href="#nomatcher">перший розділ нижче</a></td>
+            </tr>
+            <tr>
+              <td>Вхід</td>
+              <td>поля JSON <strong>додатково</strong> до <a href="#common-in">спільних</a>, які приходять усім подіям</td>
+            </tr>
+            <tr>
+              <td>Вихід</td>
+              <td>що можна віддати назад і чи блокує подія дію. «без рішення» означає, що хук —
+                лише спостерігач: журнал, сповіщення, прибирання</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+        </section>
+
+        <hr />
+
+        <section id="nomatcher" class="scroll-mt-24">
+        <h2>Три речі, яких немає в жодній таблиці документації</h2>
+
+        <p>
+          Ці три обмеження в документації розкидані по різних розділах, і кожне з них ламає хук
+          <strong>мовчки</strong>: помилки немає, хук не запускається — і все. Тому вони йдуть першими.
+        </p>
+
+        <h3>1. Десять подій не мають <code>matcher</code> — і доданий ігнорується без попередження</h3>
+
+        <p>
+          Документація каже це одним рядком: «якщо додати поле <code>matcher</code> до події, яка його
+          не підтримує, воно мовчки ігнорується». Наслідок: хук, який ти вважав вузьким,
+          спрацьовує <strong>щоразу</strong>. Ось повний список таких подій:
+        </p>
+
+        <div class="tokens">
+          <span>UserPromptSubmit</span><span>PostToolBatch</span><span>Stop</span><span>TeammateIdle</span>
+          <span>TaskCreated</span><span>TaskCompleted</span><span>WorktreeCreate</span><span>WorktreeRemove</span>
+          <span>MessageDisplay</span><span>CwdChanged</span>
+        </div>
+
+        <p>
+          Фільтрувати їх можна тільки всередині власного скрипта: прочитати JSON зі стандартного
+          потоку вводу й вийти з кодом 0, якщо подія не та, яку ти чекав.
+        </p>
+
+        <h3>2. Поле <code>if</code> працює рівно на п'яти подіях</h3>
+
+        <p>
+          <code>if</code> — це другий, точніший фільтр обробника: він написаний синтаксисом правил
+          дозволів (<code>"Bash(git *)"</code>, <code>"Edit(*.ts)"</code>) і дивиться не лише на назву
+          інструмента, а й на його аргументи. Але працює він <strong>тільки на подіях про інструменти</strong>:
+        </p>
+
+        <div class="tokens">
+          <span>PreToolUse</span><span>PostToolUse</span><span>PostToolUseFailure</span>
+          <span>PermissionRequest</span><span>PermissionDenied</span>
+        </div>
+
+        <p>
+          Дослівно з документації: «On other events, a hook with <code>if</code> set never runs» —
+          на будь-якій іншій події хук із <code>if</code> <strong>не виконається жодного разу</strong>.
+          Не помилка, не попередження, не рядок у журналі: тиша. Якщо твій хук на
+          <code>SessionStart</code> чи <code>Stop</code> ніколи не спрацьовує — перше, на що варто
+          подивитись, це чи не лишилось у ньому <code>if</code>.
+        </p>
+
+        <p>Ще три правила <code>if</code>, на яких спотикаються:</p>
+
+        <ul>
+          <li><strong>Одне правило на обробник.</strong> Немає ні <code>&amp;&amp;</code>, ні
+            <code>||</code>, ні списку. Треба дві умови — пиши два обробники.</li>
+          <li><strong>Фільтр приблизний за задумом.</strong> Коли Claude Code не може розібрати, які
+            саме команди запустить рядок Bash (наприклад, там <code>$TOOL git push</code>), він
+            <strong>запускає хук на всяк випадок</strong>. Через це <code>if</code> не годиться як
+            жорсткий заборонний бар'єр — для заборони є система дозволів.</li>
+          <li><strong>Тека без глибини.</strong> <code>"Edit(src/**)"</code> накриває теку
+            <code>src</code> лише в робочій теці. Щоб накрити <code>src</code> на будь-якій глибині,
+            пиши <code>"Edit(**/src/**)"</code>. До версії 2.1.214 поведінка була протилежна.</li>
+        </ul>
+
+        <h3>3. Дефолтний <code>timeout</code> різний — і не завжди 600 секунд</h3>
+
+        <p>
+          Таймаут задають полем <code>timeout</code> в обробнику, у секундах. Коли поля немає,
+          Claude Code бере одне з цих значень:
+        </p>
+
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця дефолтних таймаутів">
+          <table class="min-w-[40rem]">
+            <thead>
+              <tr>
+                <th>Випадок</th>
+                <th>Дефолтний таймаут</th>
+                <th>Що з цього виходить</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>command</code>, <code>http</code>, <code>mcp_tool</code></td>
+                <td>600 с</td>
+                <td>десять хвилин — базове значення для більшості подій</td>
+              </tr>
+              <tr>
+                <td><code>prompt</code></td>
+                <td>30 с</td>
+                <td>обробник-промпт іде до швидкої моделі</td>
+              </tr>
+              <tr>
+                <td><code>agent</code></td>
+                <td>60 с</td>
+                <td>обробник-агент устигає зробити кілька викликів інструментів</td>
+              </tr>
+              <tr>
+                <td>події <code>UserPromptSubmit</code>, <code>PreModelSwitch</code>,
+                  <code>PostModelSwitch</code></td>
+                <td>30 с</td>
+                <td>знижений дефолт для <code>command</code>/<code>http</code>/<code>mcp_tool</code>:
+                  ці події тримають сесію, поки хук не відповість</td>
+              </tr>
+              <tr>
+                <td>подія <code>MessageDisplay</code></td>
+                <td>10 с</td>
+                <td>хук стоїть між моделлю й екраном; при таймауті показується оригінальний текст</td>
+              </tr>
+              <tr>
+                <td>подія <code>SessionEnd</code></td>
+                <td>1,5 с на ВСІ хуки разом</td>
+                <td>спільний бюджет, а не на кожен хук. Явний <code>timeout</code> у налаштуваннях
+                  піднімає бюджет до цього значення, максимум до 60 с</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          Що робить таймаут, теж залежить від події. На більшості — хук скасовується, його вивід
+          відкидається, і <strong>рішення не виноситься взагалі</strong>. Два винятки варто знати
+          напам'ять: на <code>PreToolUse</code> хук, який завис, <strong>не блокує</strong> виклик
+          (не розраховуй на завислий скрипт як на гейт), а на <code>PreModelSwitch</code>, навпаки,
+          скасований по таймауту хук <strong>блокує</strong> перемикання моделі.
+        </p>
+
+        <p>
+          Таймаут не діє на фоновий хук — той, що запущений із <code>"async": true</code>.
+        </p>
+        </section>
+
+        <hr />
+
+        <section id="common-in" class="scroll-mt-24">
+        <h2>Спільні поля входу</h2>
+
+        <p>
+          Хук отримує JSON у стандартний потік вводу (для <code>http</code>-обробника — тілом
+          POST-запиту). Ці поля приходять усім подіям; те, що специфічне для події, — у великій
+          таблиці нижче.
+        </p>
+
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця спільних полів входу">
+          <table class="min-w-[42rem]">
+            <thead>
+              <tr>
+                <th>Поле</th>
+                <th>Що в ньому</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>session_id</code></td>
+                <td>ідентифікатор поточної сесії</td>
+              </tr>
+              <tr>
+                <td><code>prompt_id</code></td>
+                <td>UUID промпта, який обробляється зараз. Збігається з атрибутом <code>prompt.id</code>
+                  у телеметрії OpenTelemetry. Немає, поки не було першого вводу</td>
+              </tr>
+              <tr>
+                <td><code>transcript_path</code></td>
+                <td>шлях до файла розмови. ⚠ Файл пишеться асинхронно й може відставати від пам'яті:
+                  якщо потрібен останній текст поточного ходу, бери <code>last_assistant_message</code>
+                  з входу події <code>Stop</code>, а не читай транскрипт</td>
+              </tr>
+              <tr>
+                <td><code>cwd</code></td>
+                <td>робоча тека на момент запуску хука</td>
+              </tr>
+              <tr>
+                <td><code>permission_mode</code></td>
+                <td>режим дозволів: <code>default</code>, <code>plan</code>, <code>acceptEdits</code>,
+                  <code>auto</code>, <code>dontAsk</code>, <code>bypassPermissions</code>. ⚠ Режим,
+                  підписаний у програмі як <strong>Manual</strong>, приходить сюди як
+                  <code>default</code>, а не <code>manual</code>. Приходить не всім подіям</td>
+              </tr>
+              <tr>
+                <td><code>effort</code></td>
+                <td>об'єкт із полем <code>level</code>: <code>low</code>, <code>medium</code>,
+                  <code>high</code>, <code>xhigh</code>, <code>max</code>. Якщо модель не підтримує
+                  заданий рівень, тут стоїть той, що реально відпрацював</td>
+              </tr>
+              <tr>
+                <td><code>hook_event_name</code></td>
+                <td>назва події, яка спрацювала</td>
+              </tr>
+              <tr>
+                <td><code>agent_id</code></td>
+                <td>тільки коли хук спрацював усередині субагента. Так відрізняють виклик із
+                  субагента від виклику з головної розмови</td>
+              </tr>
+              <tr>
+                <td><code>agent_type</code></td>
+                <td>ім'я агента (<code>Explore</code>, <code>security-reviewer</code>). Приходить,
+                  коли сесія запущена з <code>--agent</code> або хук спрацював у субагенті</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          Змінної середовища <code>$CLAUDE_MODEL</code> не існує. Поточну модель бачить лише
+          <code>SessionStart</code> (поле <code>model</code>, і не завжди), а стежити за нею впродовж
+          сесії треба хуком <code>PostModelSwitch</code> — у нього приходять <code>from_model</code> і
+          <code>to_model</code>.
+        </p>
+        </section>
+
+        <section id="common-out" class="scroll-mt-24">
+        <h2>Спільні поля виходу й коди завершення</h2>
+
+        <p>
+          Хук відповідає двома каналами одразу: текстом на stdout і кодом завершення. Якщо на stdout
+          лежить JSON (текст починається з <code>{</code> і закінчується <code>}</code>), Claude Code
+          читає з нього поля. Ці поля приймають усі події — хоч частина подій їх відкидає, і в таблиці
+          подій це зазначено.
+        </p>
+
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця спільних полів виходу">
+          <table class="min-w-[42rem]">
+            <thead>
+              <tr>
+                <th>Поле</th>
+                <th>Що робить</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>continue</code></td>
+                <td>за замовчуванням <code>true</code>. <code>false</code> зупиняє обробку повністю й
+                  перебиває будь-яке рішення самої події</td>
+              </tr>
+              <tr>
+                <td><code>stopReason</code></td>
+                <td>текст, який побачить людина, коли <code>continue</code> дорівнює <code>false</code>.
+                  Моделі не показується</td>
+              </tr>
+              <tr>
+                <td><code>suppressOutput</code></td>
+                <td>⚠ не робить нічого. Поле приймається, але не діє: вивід успішного хука й так не
+                  показується в розмові, а лягає в журнал відлагодження</td>
+              </tr>
+              <tr>
+                <td><code>systemMessage</code></td>
+                <td>попередження, яке побачить людина</td>
+              </tr>
+              <tr>
+                <td><code>terminalSequence</code></td>
+                <td>escape-послідовність термінала: сповіщення робочого столу, заголовок вікна, звук.
+                  Дозволені лише OSC <code>0</code>/<code>1</code>/<code>2</code>/<code>9</code>/<code>99</code>/<code>777</code>
+                  і BEL; усе інше ігнорується цілком. Це єдиний законний спосіб «пікнути»: хуки
+                  працюють без керуючого термінала й писати в <code>/dev/tty</code> не можуть</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          Довжина рядків виходу (включно з <code>additionalContext</code> і <code>systemMessage</code>)
+          обмежена <strong>10 000 символів</strong>: довше зберігається у файл, а на місці лишається
+          початок і шлях до файла.
+        </p>
+
+        <h3>Коди завершення</h3>
+
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця кодів завершення">
+          <table class="min-w-[40rem]">
+            <thead>
+              <tr>
+                <th>Код</th>
+                <th>Що означає</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>0</code></td>
+                <td>успіх. Рішення береться з JSON на stdout, якщо він там є. На чотирьох подіях —
+                  <code>UserPromptSubmit</code>, <code>UserPromptExpansion</code>,
+                  <code>SessionStart</code>, <code>PostModelSwitch</code> — звичайний текст зі stdout
+                  їде в контекст моделі. На решті stdout видно лише в журналі відлагодження</td>
+              </tr>
+              <tr>
+                <td><code>2</code></td>
+                <td>блокуюча помилка. На подіях, які вміють блокувати, зупиняє дію — навіть якщо в
+                  JSON написано <code>allow</code>. Причину блокування бере з поля <code>reason</code>,
+                  а якщо його немає — зі stderr</td>
+              </tr>
+              <tr>
+                <td>будь-який інший<br />(зокрема <code>1</code>)</td>
+                <td>⚠ <strong>не блокує</strong>. Якщо на stdout є правильний JSON — вирішує він, а код
+                  ігнорується. Якщо JSON немає — дія проходить, а в розмові з'являється напис
+                  <code>hook error</code> із першим рядком stderr. Звичний Unix-код невдачі
+                  <code>1</code> тут нічого не забороняє</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </section>
+
+        <hr />
+
+        <section id="events" class="scroll-mt-24">
+        <h2>Повна таблиця: 33 події</h2>
+
+        <p>
+          Події згруповані так само, як у модулі 16, і всередині групи стоять у порядку життя сесії.
+          На вузькому екрані таблиці прокручуються вбік — їх можна тягнути пальцем або, ставши на
+          таблицю клавішею Tab, гортати стрілками.
+        </p>
+
+        <section id="g-session" class="scroll-mt-24">
+        <h3>Сесія й оточення — 8 подій</h3>
+
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця подій: сесія й оточення">
+          <table class="min-w-[54rem]">
+            <thead>
+              <tr>
+                <th>Подія</th>
+                <th>Коли спрацьовує</th>
+                <th>matcher</th>
+                <th>Вхід</th>
+                <th>Вихід</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>SessionStart</code></td>
+                <td>сесія почалась або відновилась. Спрацьовує щоразу, тому хук має бути швидким</td>
+                <td>як почалась сесія: <code>startup</code> · <code>resume</code> · <code>clear</code> ·
+                  <code>compact</code> · <code>fork</code>. До 2.1.214 форк повідомлявся як
+                  <code>resume</code></td>
+                <td><code>source</code>; іноді <code>model</code>, <code>agent_type</code>,
+                  <code>session_title</code>. При <code>resume</code>/<code>fork</code> із непорожньою
+                  розмовою ще чотири поля про ціну відновлення:
+                  <code>seconds_since_last_response</code>, <code>context_tokens</code>,
+                  <code>prompt_cache_likely_expired</code>, <code>estimated_cache_write_usd</code>
+                  (потребують 2.1.251+)</td>
+                <td>не блокує. <code>additionalContext</code> · <code>initialUserMessage</code>
+                  (перший хід у режимі <code>-p</code>) · <code>sessionTitle</code> ·
+                  <code>watchPaths</code> · <code>reloadSkills</code>. Звичайний текст зі stdout теж
+                  їде в контекст. ⚠ Підтримуються лише типи <code>command</code> і
+                  <code>mcp_tool</code>. Має <code>CLAUDE_ENV_FILE</code></td>
+              </tr>
+              <tr>
+                <td><code>Setup</code></td>
+                <td>тільки при <code>claude --init-only</code>, <code>claude -p --init</code> або
+                  <code>claude -p --maintenance</code>. На звичайному запуску <strong>не спрацьовує</strong></td>
+                <td>який прапорець запустив: <code>init</code> · <code>maintenance</code></td>
+                <td><code>trigger</code> зі значенням <code>init</code> або <code>maintenance</code></td>
+                <td>нічого: блокувати не може, увесь JSON відкидається на будь-якому коді завершення.
+                  Лише типи <code>command</code> і <code>mcp_tool</code>. Має <code>CLAUDE_ENV_FILE</code></td>
+              </tr>
+              <tr>
+                <td><code>InstructionsLoaded</code></td>
+                <td>у контекст завантажився <code>CLAUDE.md</code> або файл із
+                  <code>.claude/rules/*.md</code> — і на старті, і пізніше, коли Claude зайшов у
+                  підтеку зі своїм файлом</td>
+                <td>причина завантаження: <code>session_start</code> · <code>nested_traversal</code> ·
+                  <code>path_glob_match</code> · <code>include</code> · <code>compact</code></td>
+                <td><code>file_path</code>, <code>memory_type</code> (<code>User</code> /
+                  <code>Project</code> / <code>Local</code> / <code>Managed</code>),
+                  <code>load_reason</code>; іноді <code>globs</code>, <code>trigger_file_path</code>,
+                  <code>parent_file_path</code></td>
+                <td>без рішення взагалі: код завершення ігнорується, JSON відкидається. Виконується
+                  асинхронно. Це найбезпечніший перший хук: журнал «який файл інструкцій, коли й чому»</td>
+              </tr>
+              <tr>
+                <td><code>ConfigChange</code></td>
+                <td>під час сесії змінився файл налаштувань, керованої політики або файл навички.
+                  Документація з безпеки називає це штатним способом
+                  <strong>аудиту або блокування змін налаштувань під час сесії</strong></td>
+                <td>джерело: <code>user_settings</code> · <code>project_settings</code> ·
+                  <code>local_settings</code> · <code>policy_settings</code> · <code>skills</code></td>
+                <td><code>source</code>, іноді <code>file_path</code></td>
+                <td><strong>блокує</strong>: <code>exit 2</code> або <code>decision: "block"</code> не
+                  дає зміні застосуватись — крім <code>policy_settings</code>. ⚠ Не спрацьовує на
+                  серверні керовані налаштування й на політики, що приїхали з MDM (налаштування macOS,
+                  реєстр Windows): вони застосовуються без хука</td>
+              </tr>
+              <tr>
+                <td><code>CwdChanged</code></td>
+                <td>змінилась робоча тека — наприклад, Claude виконав <code>cd</code></td>
+                <td><strong>немає</strong> — спрацьовує на кожну зміну теки</td>
+                <td><code>old_cwd</code>, <code>new_cwd</code></td>
+                <td>без рішення, зміну теки не спинити. Читаються <code>watchPaths</code> (перезаписує
+                  динамічний список спостереження для <code>FileChanged</code>) і
+                  <code>systemMessage</code>; <code>continue</code> відкидається. Має
+                  <code>CLAUDE_ENV_FILE</code></td>
+              </tr>
+              <tr>
+                <td><code>DirectoryAdded</code></td>
+                <td>ти додав робочу теку посеред сесії командою <code>/add-dir</code> (або клієнт SDK
+                  зробив запит <code>register_repo_root</code>). ⚠ Не спрацьовує на прапорець
+                  <code>--add-dir</code> при старті — там працює <code>SessionStart</code></td>
+                <td>як саме додано: <code>slash_command</code> · <code>register_repo_root</code></td>
+                <td><code>directory</code>, <code>source</code></td>
+                <td>без рішення. Claude Code не чекає на хук: тека додається одразу, хук працює у
+                  фоні з дефолтним таймаутом 600 с. Пісочниця й дозволи вже оновлені, коли хук
+                  стартує; сам хук виконується поза пісочницею</td>
+              </tr>
+              <tr>
+                <td><code>FileChanged</code></td>
+                <td>змінився файл зі списку спостереження — <strong>ким завгодно</strong>: інструментом
+                  <code>Edit</code>, командою в <code>Bash</code> або сторонньою програмою. Це
+                  спостерігач файлової системи, а не перевірка викликів інструментів</td>
+                <td>дві ролі одразу: значення розбивається по <code>|</code> й кожен шматок стає
+                  <strong>буквальним ім'ям файла</strong> у списку спостереження
+                  (<code>".envrc|.env"</code>), і той самий рядок фільтрує, які групи запускати.
+                  Регулярні вирази тут марні: <code>^\.env</code> означатиме файл із такою назвою</td>
+                <td><code>file_path</code> (абсолютний шлях), <code>event</code></td>
+                <td>без рішення, зміну не скасувати. Читаються <code>watchPaths</code> і
+                  <code>systemMessage</code>. Має <code>CLAUDE_ENV_FILE</code>. ⚠ Скрипт, який сам
+                  переписує файл, викликає себе знову — потрібна перевірка «а чи є що міняти»</td>
+              </tr>
+              <tr>
+                <td><code>SessionEnd</code></td>
+                <td>сесія завершується</td>
+                <td>причина завершення: <code>clear</code> · <code>resume</code> · <code>logout</code> ·
+                  <code>prompt_input_exit</code> · <code>other</code>. Значення
+                  <code>bypass_permissions_disabled</code> прибрали у 2.1.234 — його треба забрати зі
+                  старих матчерів</td>
+                <td><code>reason</code></td>
+                <td>без рішення. ⚠ <strong>1,5 секунди на всі хуки разом</strong> — найжорсткіший
+                  бюджет із усіх подій; явний <code>timeout</code> піднімає його максимум до 60 с</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </section>
+
+        <section id="g-talk" class="scroll-mt-24">
+        <h3>Хід розмови — 7 подій</h3>
+
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця подій: хід розмови">
+          <table class="min-w-[54rem]">
+            <thead>
+              <tr>
+                <th>Подія</th>
+                <th>Коли спрацьовує</th>
+                <th>matcher</th>
+                <th>Вхід</th>
+                <th>Вихід</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>UserPromptSubmit</code></td>
+                <td>ти надіслав промпт, до того як його побачила модель</td>
+                <td><strong>немає</strong> — спрацьовує на кожен промпт</td>
+                <td><code>prompt</code> — текст, який ти надіслав</td>
+                <td><strong>блокує</strong>: <code>decision: "block"</code> + <code>reason</code>
+                  (промпт не обробляється й стирається з контексту), <code>suppressOriginalPrompt</code>
+                  ховає його з повідомлення про блокування. Додає контекст: звичайний stdout або
+                  <code>additionalContext</code>; є ще <code>sessionTitle</code>. ⚠ Таймаут 30 с, і при
+                  таймауті ввесь вивід відкидається — промпт піде до моделі без твого контексту</td>
+              </tr>
+              <tr>
+                <td><code>UserPromptExpansion</code></td>
+                <td>набрана команда розгортається в промпт: <code>/ім'я-навички</code>, власна команда,
+                  промпт MCP-сервера. Це шлях, якого <code>PreToolUse</code> не бачить, бо інструмент
+                  не викликається</td>
+                <td>ім'я команди (<code>command_name</code>). Порожній матчер — на кожну команду</td>
+                <td><code>expansion_type</code> (<code>slash_command</code> або <code>mcp_prompt</code>),
+                  <code>command_name</code>, <code>command_args</code>, <code>command_source</code>,
+                  <code>prompt</code></td>
+                <td><strong>блокує</strong> розгортання: <code>decision: "block"</code> +
+                  <code>reason</code>. Додає <code>additionalContext</code>; звичайний stdout теж їде
+                  в контекст</td>
+              </tr>
+              <tr>
+                <td><code>MessageDisplay</code></td>
+                <td>поки відповідь друкується на екран. Викликається порціями: щоразу, коли готова
+                  партія нових рядків. У <code>-p</code> і в SDK — один раз на все повідомлення</td>
+                <td><strong>немає</strong>. Повідомлення без тексту (лише виклики інструментів) події
+                  не дають</td>
+                <td>ідентифікатори ходу й повідомлення, <code>index</code>, <code>final</code>,
+                  <code>delta</code> — власне новий текст</td>
+                <td>не блокує. <code>displayContent</code> заміняє показаний текст —
+                  <strong>тільки на екрані</strong>: у транскрипті й у самої моделі лишається оригінал,
+                  докладний режим теж показує оригінал. ⚠ Таймаут 10 с; якщо хук упав або не встиг,
+                  показується оригінальний текст</td>
+              </tr>
+              <tr>
+                <td><code>Stop</code></td>
+                <td>головний агент закінчив відповідати. ⚠ Не спрацьовує, коли ти перервав його сам;
+                  помилка з боку API дає <code>StopFailure</code></td>
+                <td><strong>немає</strong></td>
+                <td><code>stop_hook_active</code> (уже <code>true</code>, якщо сесія триває саме через
+                  хук), <code>last_assistant_message</code>, <code>background_tasks</code>,
+                  <code>session_crons</code></td>
+                <td><strong>блокує зупинку</strong>: <code>decision: "block"</code> + обов'язковий
+                  <code>reason</code> — модель працює далі. М'якший варіант —
+                  <code>additionalContext</code>: розмова так само триває, але в стрічці це підказка,
+                  а не помилка. ⚠ Стеля — <strong>8 продовжень поспіль</strong>, далі Claude Code
+                  перекриває хук. Приклад із документації про великі репозиторії: хук отримує шлях до
+                  транскрипту, тож скрипт може переглянути сесію й запропонувати правку
+                  <code>CLAUDE.md</code>, «поки прогалина свіжа»</td>
+              </tr>
+              <tr>
+                <td><code>StopFailure</code></td>
+                <td>хід обірвався через помилку API замість нормального завершення</td>
+                <td>тип помилки: <code>rate_limit</code> · <code>overloaded</code> ·
+                  <code>authentication_failed</code> · <code>oauth_org_not_allowed</code> ·
+                  <code>account_on_hold</code> · <code>billing_error</code> ·
+                  <code>invalid_request</code> · <code>model_not_found</code> ·
+                  <code>server_error</code> · <code>max_output_tokens</code> · <code>unknown</code></td>
+                <td><code>error</code>; іноді <code>error_details</code>,
+                  <code>last_assistant_message</code></td>
+                <td>нічого: вивід і код завершення ігноруються повністю — крім
+                  <code>terminalSequence</code>. Подія для журналу й сповіщень</td>
+              </tr>
+              <tr>
+                <td><code>PreCompact</code></td>
+                <td>перед ущільненням контексту</td>
+                <td>що запустило ущільнення: <code>manual</code> (команда <code>/compact</code>) ·
+                  <code>auto</code> (вікно контексту заповнилось)</td>
+                <td><code>trigger</code>, <code>custom_instructions</code> (те, що ти дописав до
+                  <code>/compact</code>; при автоматичному — <code>null</code>)</td>
+                <td><strong>блокує</strong>: <code>exit 2</code> або <code>decision: "block"</code>.
+                  ⚠ Наслідок різний: якщо ущільнення запустилось завчасно, розмова триває
+                  неущільненою; якщо воно вже рятує від переповненого вікна — поточний запит впаде з
+                  помилкою. <code>systemMessage</code> і <code>continue</code> відкидаються</td>
+              </tr>
+              <tr>
+                <td><code>PostCompact</code></td>
+                <td>ущільнення завершилось</td>
+                <td>ті самі <code>manual</code> · <code>auto</code></td>
+                <td><code>trigger</code>, <code>compact_summary</code> — сам згенерований підсумок
+                  розмови</td>
+                <td>без рішення. <code>systemMessage</code> і <code>continue</code> відкидаються</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </section>
+
+        <section id="g-tools" class="scroll-mt-24">
+        <h3>Інструменти й дозволи — 7 подій</h3>
+
+        <p>
+          У всіх п'ятьох подіях про інструменти <code>matcher</code> фільтрує за назвою інструмента:
+          <code>Bash</code>, <code>Edit|Write</code>, <code>Read</code>, <code>Glob</code>,
+          <code>Grep</code>, <code>Agent</code>, <code>WebFetch</code>, <code>WebSearch</code>,
+          <code>AskUserQuestion</code>, <code>ExitPlanMode</code>, <code>PowerShell</code>,
+          <code>Workflow</code> і будь-який інструмент MCP. Інструменти MCP звуться
+          <code>mcp__сервер__інструмент</code>, і щоб накрити весь сервер, потрібне саме
+          <code>mcp__memory__.*</code>: без <code>.*</code> рядок читається як точна назва й не
+          збігається ні з чим.
+        </p>
+
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця подій: інструменти й дозволи">
+          <table class="min-w-[54rem]">
+            <thead>
+              <tr>
+                <th>Подія</th>
+                <th>Коли спрацьовує</th>
+                <th>matcher</th>
+                <th>Вхід</th>
+                <th>Вихід</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>PreToolUse</code></td>
+                <td>параметри виклику готові, сам виклик ще не пішов. Це найраніша точка: спрацьовує
+                  до будь-якої перевірки режиму дозволів</td>
+                <td>назва інструмента — будь-яка, крім <code>EndConversation</code></td>
+                <td><code>tool_name</code>, <code>tool_input</code>, <code>tool_use_id</code></td>
+                <td><strong>блокує</strong>. <code>permissionDecision</code>:
+                  <code>allow</code> · <code>deny</code> · <code>ask</code> · <code>defer</code>
+                  (відкласти виклик) + <code>permissionDecisionReason</code>. <code>updatedInput</code>
+                  переписує аргументи інструмента, <code>additionalContext</code> додає контекст.
+                  ⚠ Не спрацьовує на файли, підтягнуті через <code>@</code> у промпті: вони
+                  вставляються без виклику інструмента, і хук на <code>Read</code> їх не побачить</td>
+              </tr>
+              <tr>
+                <td><code>PermissionRequest</code></td>
+                <td>Claude Code збирається спитати в тебе дозволу</td>
+                <td>назва інструмента, ті самі значення</td>
+                <td><code>tool_name</code>, <code>tool_input</code> (без <code>tool_use_id</code>),
+                  іноді <code>permission_suggestions</code> — правила, які програма сама пропонує
+                  додати</td>
+                <td>відповідає замість тебе: <code>decision.behavior</code> — <code>allow</code> або
+                  <code>deny</code>, разом із <code>updatedInput</code>. ⚠ <code>exit 2</code> тут
+                  <strong>не працює взагалі</strong> — блокувати треба об'єктом <code>decision</code>.
+                  ⚠ У сесіях, де діалог показати нікому (фоновий субагент у <code>-p</code>), хуки
+                  все одно запускаються, і якщо жоден не дав рішення — виклик відхиляється</td>
+              </tr>
+              <tr>
+                <td><code>PostToolUse</code></td>
+                <td>інструмент успішно відпрацював</td>
+                <td>назва інструмента; <code>"*"</code> або відсутній матчер — після будь-якого</td>
+                <td><code>tool_input</code> (що пішло) і <code>tool_response</code> (що повернулось)</td>
+                <td>скасувати вже нічого не можна. <code>decision: "block"</code> + <code>reason</code>
+                  і <code>exit 2</code> показують текст моделі як зворотний зв'язок,
+                  <code>updatedToolOutput</code> підміняє результат, <code>additionalContext</code>
+                  додає контекст. Місце для форматера, лінтера, тестів</td>
+              </tr>
+              <tr>
+                <td><code>PostToolUseFailure</code></td>
+                <td>інструмент, який уже почав виконуватись, впав: помилка виконання або помилка від
+                  MCP-сервера</td>
+                <td>назва інструмента</td>
+                <td><code>tool_name</code>, <code>tool_input</code> і поля з описом помилки</td>
+                <td>не блокує. Текст іде моделі як зворотний зв'язок. ⚠ Не спрацьовує на відмови
+                  <strong>до</strong> виконання: невідома назва інструмента чи неправильні аргументи
+                  не дають ні цієї події, ні <code>PreToolUse</code>; відмова в дозволі дає
+                  <code>PreToolUse</code>, але не цю подію</td>
+              </tr>
+              <tr>
+                <td><code>PostToolBatch</code></td>
+                <td>один раз після того, як завершився <strong>весь</strong> пакет паралельних
+                  викликів, перед наступним запитом до моделі. <code>PostToolUse</code> у цей момент
+                  спрацьовує стільки разів, скільки було інструментів, і одночасно</td>
+                <td><strong>немає</strong></td>
+                <td><code>tool_calls</code> — масив із описом кожного виклику в пакеті</td>
+                <td><strong>блокує</strong>: <code>decision: "block"</code> зупиняє робочий цикл до
+                  наступного звернення до моделі. Місце для контексту, який залежить від
+                  <em>набору</em> інструментів, а не від одного</td>
+              </tr>
+              <tr>
+                <td><code>PermissionDenied</code></td>
+                <td>автоматичний режим відхилив виклик інструмента. ⚠ Тільки автоматичний: ручна
+                  відмова в діалозі, блокування хуком і правило <code>deny</code> сюди не потрапляють</td>
+                <td>назва інструмента</td>
+                <td><code>tool_name</code>, <code>tool_input</code>, <code>tool_use_id</code>,
+                  <code>reason</code></td>
+                <td>відмова вже сталась, код завершення й stderr ігноруються. Єдине рішення —
+                  <code>retry: true</code>: сказати моделі, що спробувати ще раз можна. Для відмов,
+                  винесених без вердикту перевіряльника, <code>retry</code> ігнорується</td>
+              </tr>
+              <tr>
+                <td><code>Notification</code></td>
+                <td>Claude Code надсилає сповіщення. Хук спрацьовує навіть тоді, коли сповіщення
+                  робочого столу вимкнені: налаштування міняє спосіб, а не сам факт події</td>
+                <td>тип сповіщення: <code>permission_prompt</code> · <code>idle_prompt</code> ·
+                  <code>auth_success</code> · <code>elicitation_dialog</code> ·
+                  <code>elicitation_url_dialog</code> · <code>elicitation_complete</code> ·
+                  <code>elicitation_response</code> · <code>agent_needs_input</code> ·
+                  <code>agent_completed</code> · <code>quota_auto_resume_fired</code> ·
+                  <code>quota_auto_resume_stale</code> · <code>quota_auto_resume_disabled</code></td>
+                <td><code>message</code>, <code>notification_type</code>, іноді <code>title</code></td>
+                <td>не блокує, код завершення й stderr ігноруються. Сповіщення робиться полем
+                  <code>terminalSequence</code>. ⚠ Тайминг: у терміналі <code>permission_prompt</code>
+                  чекає ~6 секунд без твого набору, а <code>idle_prompt</code> — ~60 секунд після
+                  відповіді. Потрібен сигнал одразу — бери <code>PermissionRequest</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </section>
+
+        <section id="g-agents" class="scroll-mt-24">
+        <h3>Субагенти й задачі — 5 подій</h3>
+
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця подій: субагенти й задачі">
+          <table class="min-w-[54rem]">
+            <thead>
+              <tr>
+                <th>Подія</th>
+                <th>Коли спрацьовує</th>
+                <th>matcher</th>
+                <th>Вхід</th>
+                <th>Вихід</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>SubagentStart</code></td>
+                <td>запущено субагента через інструмент <code>Agent</code></td>
+                <td>тип агента: <code>general-purpose</code>, <code>Explore</code>, <code>Plan</code>
+                  або поле <code>name</code> із frontmatter власного агента (не ім'я файла!).
+                  Плагінний агент має назву з двокрапкою, а двокрапка переводить рядок у режим
+                  регулярного виразу — тому пиши <code>^my-plugin:reviewer$</code></td>
+                <td><code>agent_id</code>, <code>agent_type</code></td>
+                <td>тільки контекст: <code>additionalContext</code>. Не блокує; stderr при
+                  <code>exit 2</code> побачить лише людина</td>
+              </tr>
+              <tr>
+                <td><code>SubagentStop</code></td>
+                <td>субагент закінчив відповідати</td>
+                <td>тип агента, ті самі значення</td>
+                <td><code>stop_hook_active</code>, <code>agent_id</code>, <code>agent_type</code>,
+                  <code>agent_transcript_path</code> (власний транскрипт субагента),
+                  <code>last_assistant_message</code></td>
+                <td><strong>блокує зупинку</strong> субагента: <code>decision: "block"</code> +
+                  <code>reason</code>; м'якше — <code>additionalContext</code>. Та сама стеля у
+                  8 продовжень</td>
+              </tr>
+              <tr>
+                <td><code>TaskCreated</code></td>
+                <td>створюється задача інструментом <code>TaskCreate</code>. У сесії без інструментів
+                  задач подія не спрацьовує</td>
+                <td><strong>немає</strong></td>
+                <td><code>task_id</code>, <code>task_subject</code>; іноді
+                  <code>task_description</code>, <code>teammate_name</code>, <code>team_name</code></td>
+                <td><strong>блокує</strong>: <code>exit 2</code> або <code>decision: "block"</code> —
+                  задача видаляється, а твій текст повертається моделі як помилка інструмента.
+                  ⚠ <code>continue: false</code> тут ігнорується. Місце для вимог до назви й опису</td>
+              </tr>
+              <tr>
+                <td><code>TaskCompleted</code></td>
+                <td>задачу позначають виконаною: або агент зробив це через <code>TaskUpdate</code>,
+                  або учасник команди агентів закінчив хід із незакритими задачами</td>
+                <td><strong>немає</strong></td>
+                <td>ті самі поля, що в <code>TaskCreated</code></td>
+                <td><strong>блокує</strong>: <code>exit 2</code> не дає закрити задачу й повертає
+                  stderr як пояснення; <code>{"continue": false, "stopReason": "…"}</code> зупиняє
+                  роботу зовсім. Місце для «спершу зелені тести»</td>
+              </tr>
+              <tr>
+                <td><code>TeammateIdle</code></td>
+                <td>учасник команди агентів закінчив хід і збирається піти в простій</td>
+                <td><strong>немає</strong></td>
+                <td><code>teammate_name</code>, <code>team_name</code></td>
+                <td><strong>блокує простій</strong>: <code>exit 2</code> — учасник отримує stderr як
+                  зауваження й працює далі; <code>{"continue": false, "stopReason": "…"}</code> —
+                  зупиняє його повністю</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </section>
+
+        <section id="g-worktree" class="scroll-mt-24">
+        <h3>Копії репозиторію — 2 події</h3>
+
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця подій: копії репозиторію">
+          <table class="min-w-[54rem]">
+            <thead>
+              <tr>
+                <th>Подія</th>
+                <th>Коли спрацьовує</th>
+                <th>matcher</th>
+                <th>Вхід</th>
+                <th>Вихід</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>WorktreeCreate</code></td>
+                <td>створюється окрема робоча копія репозиторію: <code>claude --worktree</code>,
+                  субагент з <code>isolation: "worktree"</code> або фонова сесія</td>
+                <td><strong>немає</strong></td>
+                <td><code>name</code> — слаг нової копії, заданий тобою або згенерований
+                  (наприклад, <code>bold-oak-a3f2</code>)</td>
+                <td>⚠ Єдина подія, чий хук <strong>повністю заміняє</strong> стандартну поведінку
+                  <code>git worktree</code> — саме так підключають SVN, Perforce чи Mercurial. Файл
+                  <code>.worktreeinclude</code> при цьому <strong>не обробляється</strong>: копіювати
+                  <code>.env</code> має твій скрипт. Хук мусить віддати шлях: обробник
+                  <code>command</code> — останнім непорожнім рядком stdout, <code>http</code> — полем
+                  <code>worktreePath</code>. Будь-який ненульовий код завершення = створення провалилось</td>
+              </tr>
+              <tr>
+                <td><code>WorktreeRemove</code></td>
+                <td>копію прибирають: ти вийшов із сесії <code>--worktree</code> й погодився видалити,
+                  субагент із власною копією закінчив, ти видалив фонову сесію</td>
+                <td><strong>немає</strong></td>
+                <td><code>worktree_path</code> — той самий шлях, який колись віддав
+                  <code>WorktreeCreate</code></td>
+                <td>без рішення, JSON відкидається, помилки видно лише в режимі відлагодження.
+                  Потрібен у парі з <code>WorktreeCreate</code>: для git прибирання робить сам
+                  Claude Code, а для чужої системи контролю версій — ніхто, і тека лишиться на диску</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </section>
+
+        <section id="g-model" class="scroll-mt-24">
+        <h3>Зміна моделі — 2 події</h3>
+
+        <div class="callout">
+          <span class="callout-title">Саме тут проходить розрив 33 / 31</span>
+          <p>
+            Обидві події підписані в документації як «requires Claude Code v2.1.251 or later».
+            У збірці <strong>2.1.236</strong>, на якій знімалися екрани цього курсу, їх немає —
+            перевірено 2026-09-04 двома незалежними способами: пошуком назв у самому виконуваному
+            файлі (нуль збігів на обидві, при 3–29 збігах на кожну з решти 31) і переліком подій,
+            який <code>claude doctor</code> друкує у відповідь на невідому назву події — у ньому 31 рядок.
+          </p>
+          <p>
+            Тому <strong>33 і 31 — обидва числа правильні</strong>: 33 — це документація на
+            2026-09-04, 31 — конкретна встановлена збірка. Як перевірити свою — у розділі
+            <a href="#check">«Перевір свою збірку»</a>.
+          </p>
+        </div>
+
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця подій: зміна моделі">
+          <table class="min-w-[54rem]">
+            <thead>
+              <tr>
+                <th>Подія</th>
+                <th>Коли спрацьовує</th>
+                <th>matcher</th>
+                <th>Вхід</th>
+                <th>Вихід</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>PreModelSwitch</code><br /><span class="text-faint">2.1.251+</span></td>
+                <td>перед тим, як застосувати зміну моделі, яку попросив ти або клієнт:
+                  <code>/model</code> і його меню, вибір через <code>Option+P</code> / <code>Alt+P</code>,
+                  налаштування «Model» у <code>/config</code>, увімкнення швидкого режиму, запит від
+                  SDK чи віддаленого керування. ⚠ На зміни, які Claude Code робить сам (автоматичний
+                  відкат, відновлення моделі при <code>resume</code>), <strong>не спрацьовує</strong></td>
+                <td>канонічна назва моделі, у яку перемикаємось: <code>claude-opus-5</code>,
+                  <code>claude-opus-4-6|claude-opus-5</code>, <code>.*opus.*</code>. Псевдонім
+                  (<code>opus</code>), повний ідентифікатор і назва конкретного постачальника
+                  зводяться до однієї канонічної назви. Якщо канонічну назву визначити не вдалось —
+                  запускаються <strong>всі</strong> хуки події, тому перевіряй ще й
+                  <code>to_model</code> у скрипті</td>
+                <td><code>from_model</code>, <code>to_model</code>, <code>requested_model</code>,
+                  <code>source</code>, а ще п'ять полів про ціну переїзду:
+                  <code>context_tokens</code>, <code>prompt_cache_warm</code>, <code>cache_ttl</code>,
+                  <code>estimated_cache_write_usd</code>, <code>pricing</code></td>
+                <td><strong>блокує</strong>: <code>permissionDecision</code>
+                  (<code>allow</code>/<code>deny</code>/<code>ask</code>) +
+                  <code>permissionDecisionReason</code>, або <code>decision: "block"</code>, або
+                  <code>exit 2</code>. ⚠ Таймаут 30 с, і хук, скасований по таймауту,
+                  <strong>теж блокує</strong> перемикання</td>
+              </tr>
+              <tr>
+                <td><code>PostModelSwitch</code><br /><span class="text-faint">2.1.251+</span></td>
+                <td>після того, як модель сесії змінилась — включно з автоматичним відкатом,
+                  входом і виходом із режиму плану при налаштуванні <code>opusplan</code> і
+                  відновленням моделі при <code>resume</code>. ⚠ Не спрацьовує, коли модель із
+                  ланцюжка запасних відпрацювала <em>один</em> хід: модель сесії при цьому не змінилась</td>
+                <td>та сама канонічна назва, ті самі правила</td>
+                <td>ті самі поля, що в <code>PreModelSwitch</code>, плюс два додаткові значення
+                  <code>source</code>: <code>auto</code> (Claude Code зробив сам) і <code>resume</code></td>
+                <td>заблокувати нічого не можна — модель уже змінилась. Тільки контекст:
+                  <code>additionalContext</code>, і звичайний stdout теж їде в контекст. Місце для
+                  вказівок, які залежать від моделі, без правок у <code>CLAUDE.md</code>. Таймаут 30 с</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </section>
+
+        <section id="g-mcp" class="scroll-mt-24">
+        <h3>Діалоги MCP-серверів — 2 події</h3>
+
+        <p>
+          MCP (Model Context Protocol) — спосіб під'єднати до Claude Code зовнішні сервери з
+          інструментами; про нього модуль <a href="modules/claude-code-18.html">18</a>. Такий сервер
+          може посеред роботи попросити ввід у людини — це й називається elicitation.
+        </p>
+
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця подій: діалоги MCP">
+          <table class="min-w-[54rem]">
+            <thead>
+              <tr>
+                <th>Подія</th>
+                <th>Коли спрацьовує</th>
+                <th>matcher</th>
+                <th>Вхід</th>
+                <th>Вихід</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Elicitation</code></td>
+                <td>MCP-сервер просить ввід посеред задачі. За замовчуванням Claude Code показує
+                  діалог людині; хук може відповісти замість неї й діалог не показувати взагалі</td>
+                <td>ім'я MCP-сервера</td>
+                <td><code>mcp_server_name</code>, <code>message</code>; іноді <code>mode</code>,
+                  <code>url</code>, <code>elicitation_id</code>, <code>requested_schema</code></td>
+                <td><strong>відповідає або блокує</strong>: <code>action</code> —
+                  <code>accept</code> / <code>decline</code> / <code>cancel</code>, і
+                  <code>content</code> зі значеннями полів форми при <code>accept</code>.
+                  <code>exit 2</code> — відмова</td>
+              </tr>
+              <tr>
+                <td><code>ElicitationResult</code></td>
+                <td>людина вже відповіла на діалог, відповідь ще не пішла назад серверу</td>
+                <td>ім'я MCP-сервера</td>
+                <td><code>mcp_server_name</code>, <code>action</code>; іноді <code>mode</code>,
+                  <code>elicitation_id</code>, <code>content</code></td>
+                <td><strong>блокує або переписує</strong>: <code>action</code> і <code>content</code>
+                  можуть замінити те, що ввела людина. <code>exit 2</code> блокує відповідь — вона
+                  перетворюється на відмову</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </section>
+        </section>
+
+        <hr />
+
+        <section id="block" class="scroll-mt-24">
+        <h2>Хто блокує, а хто ні</h2>
+
+        <p>
+          <strong>15 подій із 33 уміють сказати «стоп»</strong> — на них код завершення
+          <code>2</code> (а часто й <code>decision: "block"</code>) зупиняє дію:
+        </p>
+
+        <div class="tokens">
+          <span>PreToolUse</span><span>UserPromptSubmit</span><span>UserPromptExpansion</span>
+          <span>Stop</span><span>SubagentStop</span><span>TeammateIdle</span><span>TaskCreated</span>
+          <span>TaskCompleted</span><span>ConfigChange</span><span>PostToolBatch</span>
+          <span>PreCompact</span><span>PreModelSwitch</span><span>Elicitation</span>
+          <span>ElicitationResult</span><span>WorktreeCreate</span>
+        </div>
+
+        <p>
+          Решта 18 нічого не спиняють: подія або вже відбулась (<code>PostToolUse</code>,
+          <code>PostCompact</code>, <code>PostModelSwitch</code>), або її неможливо скасувати
+          (<code>Notification</code>, <code>SessionEnd</code>), або програма свідомо вимагає іншого
+          каналу. Дві пастки в цьому списку:
+        </p>
+
+        <ul>
+          <li><code>PermissionRequest</code> <strong>виглядає</strong> як гейт, але
+            <code>exit 2</code> на ньому не діє — рішення передається об'єктом
+            <code>decision.behavior</code>.</li>
+          <li><code>WorktreeCreate</code> «блокує» не так, як інші: там будь-який ненульовий код
+            завершення означає, що створення копії провалилось.</li>
+        </ul>
+        </section>
+
+        <section id="types" class="scroll-mt-24">
+        <h2>П'ять типів обробників</h2>
+
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця типів обробників">
+          <table class="min-w-[46rem]">
+            <thead>
+              <tr>
+                <th><code>type</code></th>
+                <th>Що це</th>
+                <th>Свої поля</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>command</code></td>
+                <td>команда оболонки або твій скрипт. Вхід — стандартний потік вводу, відповідь —
+                  stdout і код завершення</td>
+                <td><code>command</code>, <code>args</code> (з ним оболонка не бере участі зовсім),
+                  <code>async</code>, <code>asyncRewake</code>, <code>shell</code>
+                  (<code>bash</code> або <code>powershell</code>)</td>
+              </tr>
+              <tr>
+                <td><code>http</code></td>
+                <td>той самий JSON іде POST-запитом на адресу; відповідь читається з тіла</td>
+                <td>адреса й заголовки. Обмежуються налаштуваннями <code>allowedHttpHookUrls</code> і
+                  <code>httpHookAllowedEnvVars</code></td>
+              </tr>
+              <tr>
+                <td><code>mcp_tool</code></td>
+                <td>виклик інструмента на вже під'єднаному MCP-сервері; текст відповіді читається як
+                  stdout команди</td>
+                <td>сервер і назва інструмента</td>
+              </tr>
+              <tr>
+                <td><code>prompt</code></td>
+                <td>одноходовий запит до моделі, яка повертає рішення в JSON</td>
+                <td><code>prompt</code> (<code>$ARGUMENTS</code> підставляє вхідний JSON),
+                  <code>model</code>. Дефолтний таймаут 30 с</td>
+              </tr>
+              <tr>
+                <td><code>agent</code></td>
+                <td>субагент, який може читати файли й шукати по них, перш ніж вирішити.
+                  Експериментальний і може змінитись</td>
+                <td>ті самі <code>prompt</code> і <code>model</code>. Дефолтний таймаут 60 с</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Що варто знати про типи ще до першої спроби:</p>
+
+        <ul>
+          <li><strong>Дві події приймають лише два типи.</strong> <code>SessionStart</code> і
+            <code>Setup</code> працюють тільки з <code>command</code> і <code>mcp_tool</code>.</li>
+          <li><strong>Усі збіги виконуються паралельно.</strong> Однаковий обробник, оголошений у
+            кількох файлах налаштувань, запускається один раз; копії з плагіна чи навички
+            рахуються окремо.</li>
+          <li><strong><code>"async": true</code> — тільки для <code>command</code>.</strong> Фоновий
+            хук не блокує й не вирішує нічого: його <code>additionalContext</code> і
+            <code>systemMessage</code> доїдуть до моделі аж на наступному ході розмови, а таймаут
+            на нього не діє. Виняток — <code>asyncRewake</code>: такий хук, вийшовши з кодом
+            <code>2</code>, будить Claude одразу.</li>
+          <li><strong>Хук виконується без керуючого термінала.</strong> Писати escape-послідовності
+            в <code>/dev/tty</code> марно; для сповіщень є поле <code>terminalSequence</code>.</li>
+        </ul>
+        </section>
+
+        <section id="where" class="scroll-mt-24">
+        <h2>Де оголошується хук</h2>
+
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця місць оголошення хука">
+          <table class="min-w-[46rem]">
+            <thead>
+              <tr>
+                <th>Місце</th>
+                <th>На що поширюється</th>
+                <th>Чи їде разом із проєктом</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>~/.claude/settings.json</code></td>
+                <td>усі твої проєкти</td>
+                <td>ні, лише на цій машині</td>
+              </tr>
+              <tr>
+                <td><code>.claude/settings.json</code></td>
+                <td>один проєкт</td>
+                <td>так, комітиться в репозиторій</td>
+              </tr>
+              <tr>
+                <td><code>.claude/settings.local.json</code></td>
+                <td>один проєкт</td>
+                <td>ні, потрапляє в <code>.gitignore</code></td>
+              </tr>
+              <tr>
+                <td>керована політика організації</td>
+                <td>уся організація</td>
+                <td>так, нею керує адміністратор</td>
+              </tr>
+              <tr>
+                <td><code>hooks/hooks.json</code> плагіна</td>
+                <td>поки плагін увімкнений</td>
+                <td>так, разом із плагіном</td>
+              </tr>
+              <tr>
+                <td>frontmatter навички</td>
+                <td>решта сесії після виклику навички</td>
+                <td>так, усередині файла навички</td>
+              </tr>
+              <tr>
+                <td>frontmatter субагента</td>
+                <td>поки той субагент працює</td>
+                <td>так, усередині файла агента</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <ul>
+          <li><strong>Рівні складаються, а не заміняють один одного.</strong> Налаштування
+            користувача, проєкту й локальні додають свої хуки до керованих, а
+            <code>disableAllHooks</code> ззовні керованих налаштувань керовані хуки не вимикає.</li>
+          <li><strong>У субагентах виконуються ті самі хуки</strong> з файлів налаштувань, керованої
+            політики й плагінів. Вхідний JSON тоді несе <code>agent_id</code> і
+            <code>agent_type</code>, тож гейт на <code>PreToolUse</code> накриває субагентів
+            автоматично.</li>
+          <li><strong>Хук у frontmatter субагента живе, поки той працює</strong>, і подія
+            <code>Stop</code> там автоматично перетворюється на <code>SubagentStop</code>. Хук
+            навички, навпаки, лишається зареєстрованим до кінця сесії — прибрати його після першого
+            вдалого запуску можна полем <code>once: true</code> (працює <em>тільки</em> у
+            frontmatter навички).</li>
+          <li><strong>Довіра до теки — і тут дві різні відповіді.</strong> В інтерактивній сесії
+            Claude Code не запускає хуки з жодного файла налаштувань, поки ти не приймеш діалог
+            довіри до теки. А в <code>-p</code> і в SDK діалог не показується взагалі й тека
+            вважається довіреною — тому хуки, закомічені в чужому <code>.claude/settings.json</code>,
+            там виконаються. Перед <code>claude -p</code> над чужим репозиторієм документація радить
+            три речі: переглянути <code>.claude/</code>, запуститись із <code>--bare</code> або
+            додати <code>--settings '{"disableAllHooks": true}'</code>.</li>
+          <li><strong><code>allowManagedHooksOnly</code></strong> в керованих налаштуваннях блокує
+            твої хуки — користувацькі, проєктні, локальні й плагінні (крім плагінів, увімкнених
+            примусово самою організацією).</li>
+          <li><strong>Меню <code>/hooks</code> — тільки для читання.</strong> Воно показує всі
+            налаштовані хуки з позначкою типу й джерела (<code>User Settings</code>,
+            <code>Project Settings</code>, <code>Local Settings</code>, <code>Plugin Hooks</code>,
+            <code>Session Hooks</code>), але нічого не додає й не змінює: правити треба сам JSON.</li>
+        </ul>
+        </section>
+
+        <section id="versions" class="scroll-mt-24">
+        <h2>Межі версій</h2>
+
+        <p>
+          Перехоплювачі — та частина Claude Code, яка змінюється найшвидше. Ось усе, що документація
+          на 2026-09-04 позначає номером версії. Це не історія заради історії: якщо хук поводиться
+          не так, як тут написано, спершу подивись на свою версію.
+        </p>
+
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця меж версій">
+          <table class="min-w-[46rem]">
+            <thead>
+              <tr>
+                <th>Версія</th>
+                <th>Що змінилось</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>2.1.191+</td>
+                <td>у матчері можна розділяти значення комами й ставити пробіли навколо</td>
+              </tr>
+              <tr>
+                <td>2.1.195+</td>
+                <td>дефіс у назві потрапив до точного збігу. Раніше <code>code-reviewer</code>
+                  читався як регулярний вираз і ловив ще й <code>senior-code-reviewer</code></td>
+              </tr>
+              <tr>
+                <td>2.1.196+</td>
+                <td>у вхідному JSON з'явилось поле <code>prompt_id</code></td>
+              </tr>
+              <tr>
+                <td>2.1.198+</td>
+                <td>типи сповіщень <code>agent_needs_input</code> і <code>agent_completed</code></td>
+              </tr>
+              <tr>
+                <td>до 2.1.208</td>
+                <td>таймаут callback-хука SDK на <code>UserPromptSubmit</code> завершував хід
+                  помилкою виконання; тепер він блокує промпт, а сесія триває</td>
+              </tr>
+              <tr>
+                <td>до 2.1.214</td>
+                <td>три різні речі поводились інакше: форк сесії повідомлявся як <code>resume</code>;
+                  <code>"Edit(src/**)"</code> у полі <code>if</code> ловив теку <code>src</code> на
+                  будь-якій глибині; <code>exit 2</code> разом із неправильним JSON вважався
+                  <em>неблокуючою</em> помилкою — тобто дія проходила</td>
+              </tr>
+              <tr>
+                <td>2.1.216+</td>
+                <td>перед запуском <code>WorktreeRemove</code> для фонової сесії шлях перевіряється
+                  на символьні посилання</td>
+              </tr>
+              <tr>
+                <td>2.1.218+</td>
+                <td>хуки з frontmatter проєктного субагента більше не виконуються з недовіреної теки</td>
+              </tr>
+              <tr>
+                <td>2.1.233+</td>
+                <td><code>permission_prompt</code> спрацьовує й у сесіях, де дозволи питає застосунок
+                  (Claude Desktop, розширення VS Code)</td>
+              </tr>
+              <tr>
+                <td>2.1.234+</td>
+                <td>типи сповіщень <code>quota_auto_resume_*</code>; значення
+                  <code>bypass_permissions_disabled</code> у <code>SessionEnd</code>
+                  <strong>прибрано</strong></td>
+              </tr>
+              <tr>
+                <td>2.1.236+</td>
+                <td>поле <code>classifierContext</code> у виході <code>PostToolUse</code> — коротка
+                  записка перевіряльнику дій автоматичного режиму, а не моделі</td>
+              </tr>
+              <tr>
+                <td>2.1.246+</td>
+                <td><code>permission_prompt</code> для мережевого запиту команди з пісочниці</td>
+              </tr>
+              <tr>
+                <td>до 2.1.248</td>
+                <td>stdout, який не вдалося розібрати як JSON, вважався звичайним текстом; тепер це
+                  неблокуюча помилка</td>
+              </tr>
+              <tr>
+                <td>2.1.248+</td>
+                <td><code>agent_needs_input</code> ще й на питання про термінал учасника команди агентів</td>
+              </tr>
+              <tr>
+                <td><strong>2.1.251+</strong></td>
+                <td><strong>події <code>PreModelSwitch</code> і <code>PostModelSwitch</code></strong>,
+                  а також чотири поля про ціну відновлення в <code>SessionStart</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </section>
+
+        <section id="check" class="scroll-mt-24">
+        <h2>Перевір свою збірку</h2>
+
+        <p>
+          Дві команди, які не витрачають жодного токена й відповідають на питання «а що вміє саме
+          моя версія». Перша показує номер збірки:
+        </p>
+
+        <figure class="term term--cmd" id="p1">
+          <figcaption class="term__chrome">
+            <span class="term__dots" aria-hidden="true"></span>
+            <span class="term__title" id="p1t">номер встановленої збірки · macOS 26.5.2, 2026-09-04</span>
+            <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+          </figcaption>
+          <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --version</span></span>
+<span class="term__line">2.1.236 (Claude Code)</span></pre>
+        </figure>
+
+        <p>
+          Друга шукає назви подій усередині самого виконуваного файла. Перший рядок один раз
+          виписує всі текстові рядки програми у файл, другий перевіряє по списку, чого в ньому
+          немає. Це чесна перевірка <strong>встановленої</strong> збірки, а не документації:
+        </p>
+
+        <figure class="term term--cmd" id="p2">
+          <figcaption class="term__chrome">
+            <span class="term__dots" aria-hidden="true"></span>
+            <span class="term__title" id="p2t">яких подій немає у 2.1.236 · macOS 26.5.2, 2026-09-04</span>
+            <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+          </figcaption>
+          <pre class="term__body" tabindex="0" role="group" aria-labelledby="p2t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" &gt; /tmp/cc-strings.txt</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">for e in SessionStart Setup InstructionsLoaded UserPromptSubmit UserPromptExpansion MessageDisplay PreToolUse PermissionRequest PostToolUse PostToolUseFailure PostToolBatch PermissionDenied Notification SubagentStart SubagentStop TaskCreated TaskCompleted Stop StopFailure TeammateIdle ConfigChange CwdChanged DirectoryAdded FileChanged WorktreeCreate WorktreeRemove PreCompact PostCompact PreModelSwitch PostModelSwitch SessionEnd Elicitation ElicitationResult; do grep -q "$e" /tmp/cc-strings.txt || echo "немає: $e"; done</span></span>
+<span class="term__line"><span class="term__err">немає: PreModelSwitch</span></span>
+<span class="term__line"><span class="term__err">немає: PostModelSwitch</span></span></pre>
+        </figure>
+
+        <div class="callout callout-sand">
+          <span class="callout-title">Як це читати</span>
+          <p>
+            <code>strings</code> дістає з програми всі текстові рядки; <code>grep -q</code> мовчки
+            перевіряє, чи є там потрібний. Порожня відповідь означала б, що всі 33 події на місці.
+            Дві надруковані назви — це і є розрив: збірка 2.1.236 знає 31 подію з 33.
+          </p>
+          <p>
+            <strong>Межа методу:</strong> знайдений рядок доводить, що назва в програмі є, а не те,
+            що подія працює точно так, як описано. Зворотний бік надійніший: якщо назви немає —
+            події немає напевно. Для контролю варто прогнати той самий рядок із вигаданою назвою
+            (<code>ZzqqEventFake</code>) — вона мусить дати «немає».
+          </p>
+          <p>
+            Другий спосіб, без <code>strings</code>: написати в <code>.claude/settings.json</code>
+            неіснуючу подію й запустити <code>claude doctor</code> — програма надрукує перелік подій,
+            які знає. На 2.1.236 у ньому 31 рядок. ⚠ <code>claude doctor</code> виходить із кодом
+            <code>0</code> навіть тоді, коли знайшов зламані налаштування, тому як перевірку в
+            автоматичному конвеєрі його брати не можна.
+          </p>
+        </div>
+        </section>
+
+        <section id="nothere" class="scroll-mt-24">
+        <h2>Чого тут немає</h2>
+
+        <ul>
+          <li><strong>Як написати перший хук</strong> — це модуль
+            <a href="modules/claude-code-16.html">16 «Перехоплювачі подій (hooks)»</a>: приклади,
+            типові граблі, вправа на власній машині.</li>
+          <li><strong>Повні схеми <code>tool_input</code> для кожного інструмента</strong>
+            (<code>Bash</code>, <code>Edit</code>, <code>Read</code>, <code>Glob</code>,
+            <code>WebFetch</code> і решта) — вони різні в кожного інструмента й змінюються разом із
+            ними. Дивись розділ «PreToolUse input» на
+            <a href="https://code.claude.com/docs/en/hooks" target="_blank" rel="noopener noreferrer">сторінці документації</a>.</li>
+          <li><strong>Ключі <code>settings.json</code></strong> — окремий довідник
+            <a href="claude-code-ref-settings.html">«Ключі settings.json»</a>.</li>
+          <li><strong>Слеш-команди й гарячі клавіші</strong> — довідник
+            <a href="claude-code-ref-commands.html">«Усі команди й клавіші»</a>.</li>
+        </ul>
+
+        <div class="callout">
+          <span class="callout-title">Одне попередження, яке не можна пропустити</span>
+          <p>
+            Обробник типу <code>command</code> виконує команди оболонки <strong>з твоїми повними
+            правами</strong>: він може змінити, видалити або прочитати будь-що, до чого має доступ
+            твій обліковий запис. Хуки з чужого репозиторію, плагіна чи навички — це чужий код на
+            твоїй машині. Читай їх перед тим, як дозволити.
+          </p>
+        </div>
+        </section>
+
+        <p class="mt-10 font-mono text-xs text-faint">
+          Джерело: <a href="https://code.claude.com/docs/en/hooks" target="_blank"
+            rel="noopener noreferrer">code.claude.com/docs/en/hooks</a>, прочитано 2026-09-04 ·
+          перевірки запущені на macOS 26.5.2, Claude Code 2.1.236 · остання опублікована збірка того
+          ж дня — 2.1.260
+        </p>
+        <div class="callout">
+          <span class="callout-title">Звідки взяті числа й чому біля них дата</span>
+          <p>
+            Усе на цій сторінці — з живої сторінки документації
+            <a href="https://code.claude.com/docs/en/hooks" target="_blank"
+              rel="noopener noreferrer">code.claude.com/docs/en/hooks</a>, прочитаної
+            <strong>4 вересня 2026 року</strong>, плюс перевірки, запущені того ж дня на
+            <strong>macOS 26.5.2, Claude Code 2.1.236</strong>.
+          </p>
+          <p>
+            Перелік подій зростає майже щотижня. Тому кожне число тут стоїть із датою, а внизу
+            сторінки лежить розділ <a href="#check">«Перевір свою збірку»</a> — дві безкоштовні
+            команди, які показують, що вміє саме твоя версія, а не та, з якої писався цей текст.
+          </p>
+        </div>
+
+
+        <nav aria-label="Навігація довідника" class="ref-cards mt-10 grid gap-4 sm:grid-cols-2">
+          <a href="modules/claude-code-16.html"
+            class="rounded-xl border border-line bg-surface p-5 transition hover:border-line-strong">
+            <span class="font-mono text-xs uppercase tracking-[0.14em] text-faint">Урок за темою</span>
+            <span class="mt-1 block text-ivory">Модуль 16 · Перехоплювачі подій (hooks)</span>
+          </a>
+          <a href="claude-code.html#refs"
+            class="rounded-xl border border-line bg-surface p-5 transition hover:border-line-strong">
+            <span class="font-mono text-xs uppercase tracking-[0.14em] text-faint">Решта полиці</span>
+            <span class="mt-1 block text-ivory">Усі довідники курсу</span>
+          </a>
+        </nav>
+
+      </article>
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Довідник не має ні прогресу, ні квіза, тому js/module.js і js/quiz.js тут не потрібні.
+       progress.js лишається: js/config.js читає з нього пілюлю прогресу в шапці. -->
+  <script src="js/progress.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="js/mermaid-init.js"></script>
+  <script src="js/auth-ui.js"></script>
+  <script type="module" src="js/auth.js"></script>
+</body>
+
+</html>

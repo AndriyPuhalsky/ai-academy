@@ -13,6 +13,15 @@
   var currentId = document.body.getAttribute("data-module");
   var cfgCache = null;
 
+  /* Адреса лендінга СВОГО курсу. Донедавна вона була жорстко зашита на головну
+     AI Академії — через що з уроку AI Architect «На головну» вело на чужий курс,
+     і так само повело б з «AI Терміналу». Курсів стало три, тож адресу дає
+     конфіг (site.home); fallback зберігає стару поведінку для config.json. */
+  function homeHref(cfg) {
+    var h = cfg && cfg.site && cfg.site.home;
+    return "../" + (h || "index.html");
+  }
+
   var ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 
   function $(sel, root) { return (root || document).querySelector(sel); }
@@ -123,17 +132,21 @@
     var share = total ? Math.round((doneCount / total) * 100) : 0;
 
     var html =
-      '<a class="snav-home" href="../index.html">← На головну</a>' +
+      '<a class="snav-home" href="' + homeHref(cfg) + '">← На головну</a>' +
       '<div class="snav-progressbar" role="img" aria-label="Прогрес курсу: ' + share + '%">' +
         '<span style="width:' + share + '%"></span>' +
       "</div>" +
       '<p class="snav-count">' + doneCount + " з " + total + " модулів завершено</p>";
 
+    // Префікс уже містить пробіл — семантика та сама, що в js/config.js:227.
+    var trackWord = (cfg.site && cfg.site.trackWord != null) ? cfg.site.trackWord : "Трек ";
+
     tracks.forEach(function (t) {
       var own = modules.filter(function (m) { return m.track === t.id; });
       if (!own.length) return;
 
-      html += '<p class="snav-track">Трек ' + (ROMAN[t.order - 1] || t.order) + " · " + esc(t.title) + "</p>";
+      html += '<p class="snav-track">' + esc(trackWord) + (ROMAN[t.order - 1] || t.order) +
+              " · " + esc(t.title) + "</p>";
 
       own.forEach(function (m) {
         var isCurrent = m.id === currentId;
@@ -183,7 +196,7 @@
 
     // Ліва картка: попередній модуль або повернення на головну
     if (!prev) {
-      html += '<a class="mnav" href="../index.html">' +
+      html += '<a class="mnav" href="' + homeHref(cfg) + '">' +
         '<span class="mnav-label">← Назад</span>' +
         '<span class="mnav-title">Огляд курсу</span></a>';
     } else if (prev.status === "ready") {
@@ -259,7 +272,7 @@
       action = '<a href="../' + esc(prev.slug) + '" class="mt-5 inline-flex rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep">Перейти до Модуля ' + prev.number + " →</a>";
     } else {
       msg = "Цей модуль поки заблоковано.";
-      action = '<a href="../index.html" class="mt-5 inline-flex rounded-lg border border-line px-5 py-2.5 transition hover:border-clay/60">На головну</a>';
+      action = '<a href="' + homeHref(cfg) + '" class="mt-5 inline-flex rounded-lg border border-line px-5 py-2.5 transition hover:border-clay/60">На головну</a>';
     }
 
     var wrap = document.createElement("div");

@@ -3,7 +3,7 @@ name: aia-build-backend
 description: Агент №2 інженерного конвеєра AIA. Реалізує серверну частину задачі за контрактом даних із `01-plan.md`: схема Supabase, RLS, RPC, Edge Function у `tg/`, клієнтський шар доступу до даних у `js/`. Базу напряму НЕ змінює — пише SQL-міграції файлами з блоком відкату на затвердження власником, бо прод є єдиною базою з живими учнями й виданими сертифікатами. Працює ПАРАЛЕЛЬНО з фронтендером. Використовувати для будь-якої задачі AIA, що чіпає дані, авторизацію, прогрес, сертифікати або Telegram-бота.
 tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, Skill, mcp__supabase, mcp__claude-in-chrome, TodoWrite
 model: claude-opus-5
-effort: high
+effort: xhigh
 color: red
 memory: project
 skills:

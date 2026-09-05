@@ -1,0 +1,48 @@
+$ for c in attach logs stop respawn rm daemon remote-control self-hosted-runner; do claude $c --help; done
+# Підкоманди, ЯКИХ НЕМАЄ у списку "Commands:" виводу `claude --help` 2.1.236, але які існують.
+
+--- claude attach --help ---
+Usage: claude attach <id>
+
+  Open the background session in this terminal. ← returns to agent view, Ctrl+Z drops back to your shell. The session keeps running either way.
+
+--- claude logs --help ---
+Usage: claude logs <id>
+
+  Print the background session's recent terminal output.
+
+--- claude stop --help ---
+Usage: claude stop <id>
+
+  Stop a background session. Its conversation is kept; resume it later with `claude attach <id>`.
+
+--- claude respawn --help ---
+Usage: claude respawn <id>|--all
+
+  Restart a background session (or all of them) so it picks up the current Claude binary.
+
+--- claude rm --help ---
+Usage: claude rm <id>
+
+  Delete a background session and its worktree. Unlike `stop`, works on already-exited sessions.
+
+--- claude daemon --help ---
+Usage: claude daemon [subcommand] [options]
+
+Service lifecycle:
+  run [json-path]   Run the supervisor in the foreground (default when piped)
+  status            Show daemon pid, version, uptime
+  logs              Tail the daemon log (Ctrl-C to stop)
+  uninstall         Remove the background service (launchctl/systemd)
+  stop              Shut down the supervisor and terminate background sessions
+                      --any           also stop a transient (non-service) daemon
+                      --keep-workers  leave detached sessions running
+
+  Service install is disabled in this version — the daemon runs on demand
+  and exits when the last client disconnects.
+
+Options:
+  --json-path <p>   Config file (default: ~/.claude/daemon.json)
+  --log-file <p>    Log file (default: ~/.claude/daemon.log)
+  --help, -h        Show this help
+

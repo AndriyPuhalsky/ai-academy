@@ -1,0 +1,2228 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="claude-code.config.json" data-own-title>
+
+<head>
+  <meta charset="UTF-8" />
+  <!-- Без обмежень масштабу: заборона зуму порушує WCAG 1.4.4, і на цьому
+       сайті її вже знято задачею 004. Нова сторінка народжується без неї. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ключі settings.json — довідник · AI Термінал</title>
+  <meta name="description"
+    content="Повний перелік усіх 223 ключів settings.json Claude Code українською: що робить кожен, у якому файлі його можна задати і які дев'ять пасток роблять правильно написане налаштування недіючим. Звірено з документацією 2026-09-04." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="css/custom.css" />
+</head>
+
+<body class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Сторінка читається й без JavaScript — увімкнути його треба лише для входу в акаунт
+      і для кнопок копіювання.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА · та сама розмітка, що на сторінках модулів, без кнопки сайдбара:
+       у довідника немає ні прогресу, ні сусідніх уроків. -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <a href="claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Довідник</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="claude-code.html#refs" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">Усі
+          довідники</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      &#9888; Не вдалося завантажити <code>claude-code.config.json</code>. Сам довідник це не ламає —
+      зникають лише підписи в шапці й футері.
+    </div>
+  </div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[260px,1fr] lg:gap-12">
+
+    <!-- ЗМІСТ СТОРІНКИ (статичний: js/module.js тут не підключений).
+         Лічильники ключів («— 15 ключів») лишились у розділі #toc усередині статті. -->
+    <nav aria-label="Зміст довідника" class="border-b border-line/60 py-6 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:overflow-y-auto lg:border-b-0 lg:py-10">
+      <p class="mb-3 font-mono text-xs uppercase tracking-[0.18em] text-faint">Зміст</p>
+      <ul class="grid gap-1.5 text-sm text-muted">
+        <li><a href="#files" class="transition hover:text-ivory">Чотири файли — і хто на кого впливає</a></li>
+        <li><a href="#scopes" class="transition hover:text-ivory">Колонка «Область»: як її читати</a></li>
+        <li><a href="#traps" class="transition hover:text-ivory">Дев'ять пасток, через які правильний ключ не працює</a></li>
+        <li><a href="#examples" class="transition hover:text-ivory">Чотири готові приклади</a></li>
+        <li><a href="#toc" class="transition hover:text-ivory">Усі 223 ключі за темами</a></li>
+        <li class="pl-3 text-muted/90"><a href="#permissions" class="transition hover:text-ivory">Дозволи</a></li>
+        <li class="pl-3 text-muted/90"><a href="#sandbox" class="transition hover:text-ivory">Пісочниця</a></li>
+        <li class="pl-3 text-muted/90"><a href="#memory" class="transition hover:text-ivory">Пам'ять і контекст</a></li>
+        <li class="pl-3 text-muted/90"><a href="#interface" class="transition hover:text-ivory">Інтерфейс і термінал</a></li>
+        <li class="pl-3 text-muted/90"><a href="#model" class="transition hover:text-ivory">Моделі й відповіді</a></li>
+        <li class="pl-3 text-muted/90"><a href="#git" class="transition hover:text-ivory">Git і підпис комітів</a></li>
+        <li class="pl-3 text-muted/90"><a href="#hooks" class="transition hover:text-ivory">Перехоплювачі подій і автоматизація</a></li>
+        <li class="pl-3 text-muted/90"><a href="#plugins" class="transition hover:text-ivory">Плагіни й навички</a></li>
+        <li class="pl-3 text-muted/90"><a href="#mcp" class="transition hover:text-ivory">MCP — зовнішні інструменти</a></li>
+        <li class="pl-3 text-muted/90"><a href="#agents" class="transition hover:text-ivory">Агенти, сесії, worktrees</a></li>
+        <li class="pl-3 text-muted/90"><a href="#remote" class="transition hover:text-ivory">Віддалена робота, десктоп, сповіщення</a></li>
+        <li class="pl-3 text-muted/90"><a href="#auth" class="transition hover:text-ivory">Вхід і постачальники моделі</a></li>
+        <li class="pl-3 text-muted/90"><a href="#updates" class="transition hover:text-ivory">Оновлення й версії</a></li>
+        <li class="pl-3 text-muted/90"><a href="#tools" class="transition hover:text-ivory">Інструменти десктопа</a></li>
+        <li class="pl-3 text-muted/90"><a href="#privacy" class="transition hover:text-ivory">Приватність і телеметрія</a></li>
+        <li class="pl-3 text-muted/90"><a href="#enterprise" class="transition hover:text-ivory">Керовані налаштування організації</a></li>
+        <li class="pl-3 text-muted/90"><a href="#globalconfig" class="transition hover:text-ivory">Глобальний конфіг <code>~/.claude.json</code></a></li>
+        <li><a href="#notinlist" class="transition hover:text-ivory">Чого в цьому переліку немає</a></li>
+        <li><a href="#sources" class="transition hover:text-ivory">Звідки взято й коли перевірено</a></li>
+      </ul>
+      <p class="mt-6 border-t border-line/60 pt-4 text-sm">
+        <a href="claude-code.html" class="text-muted transition hover:text-ivory">← До курсу</a>
+      </p>
+    </nav>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-4xl">
+
+      <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Довідник · без тесту й без прогресу</p>
+      <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Ключі <code
+          class="text-[0.62em] align-middle">settings.json</code></h1>
+      <p class="mt-4 font-mono text-xs text-faint sm:text-sm">
+        223 ключі · звірено з документацією 2026-09-04 · перевірки на macOS 26.5.2, збірка Claude Code 2.1.236
+      </p>
+
+      <p class="mt-6 text-lg">
+        <code>settings.json</code> — текстовий файл, у якому записано, як поводиться Claude Code:
+        що йому дозволено робити без запитання, якою моделлю він відповідає, як виглядає екран.
+        Цей довідник перелічує всі ключі, які Claude Code із таких файлів читає, і для кожного
+        каже дві речі: що він робить і <strong>в якому саме файлі його має сенс писати</strong>.
+      </p>
+      <p>
+        Друга частина важливіша за першу. Найчастіша поразка з налаштуваннями — не помилка в
+        синтаксисі, а правильно написаний ключ у файлі, з якого він не діє. Помилки при цьому
+        немає: Claude Code мовчки читає файл далі. Тому колонка «Область» у кожній таблиці
+        стоїть поруч з описом, а перед таблицями йде розділ про дев'ять пасток.
+      </p>
+
+      <div class="callout">
+        <span class="callout-title">Це не урок — його не проходять</span>
+        <p>
+          Тут немає тесту, ця сторінка не рахується в прогрес і не входить у сертифікат.
+          Сюди повертаються з питанням «як називався той ключ» і йдуть далі.
+          Найшвидший спосіб — <code>Ctrl+F</code> (на Mac <code>Cmd+F</code>) і шматок назви.
+        </p>
+        <p>
+          Пояснення «навіщо це взагалі» живе в уроках: файли й порядок їх перекриття —
+          <a href="modules/claude-code-13.html">модуль 13</a>, дозволи —
+          <a href="modules/claude-code-07.html">модуль 7</a>, пісочниця —
+          <a href="modules/claude-code-08.html">модуль 8</a>,
+          перехоплювачі подій — <a href="modules/claude-code-16.html">модуль 16</a>.
+        </p>
+      </div>
+
+      <hr />
+
+      <section id="files" class="scroll-mt-24">
+        <h2>Чотири файли — і хто на кого впливає</h2>
+        <p>
+          Ключів багато, а файлів, у які їх пишуть, лише чотири. Плюс п'ятий, окремий,
+          для шести ключів — про нього в розділі
+          <a href="#globalconfig">«Глобальний конфіг»</a>.
+        </p>
+        <p>
+          Записи <code>~/.claude</code> означають теку <code>.claude</code> у твоїй домашній
+          папці; на Windows це <code>%USERPROFILE%\.claude</code>. А <code>.claude</code>
+          без тильди — тека всередині проєкту.
+        </p>
+
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Чотири файли налаштувань">
+        <table class="min-w-[42rem]">
+          <thead>
+            <tr><th>Файл</th><th>На кого впливає</th><th>Для чого</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>~/.claude/<wbr>settings.json</code><br /><span class="text-faint">свій, «user»</span></td>
+              <td>на тебе, у кожному проєкті цієї машини</td>
+              <td>особисті вподобання: тема, модель за замовчуванням, свої правила дозволів</td>
+            </tr>
+            <tr>
+              <td><code>.claude/<wbr>settings.json</code><br /><span class="text-faint">спільний проєктний</span></td>
+              <td>на всіх, хто працює в цій теці; у git-репозиторії — на всіх, хто його клонував, якщо файл закомічений</td>
+              <td>командні дозволи, перехоплювачі подій, плагіни, змінні середовища проєкту</td>
+            </tr>
+            <tr>
+              <td><code>.claude/<wbr>settings.local.json</code><br /><span class="text-faint">локальний</span></td>
+              <td>тільки на тебе й тільки в цьому проєкті</td>
+              <td>особисті винятки з командних домовленостей і проби перед тим, як ділитись</td>
+            </tr>
+            <tr>
+              <td><code>managed-settings.json</code><br /><span class="text-faint">керований</span></td>
+              <td>на всіх, кому його розгорнула організація</td>
+              <td>політика безпеки; майже нічого з написаного тобою його не перекриває</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+
+        <h3>Порядок перекриття</h3>
+        <p>
+          Коли той самий ключ трапляється в кількох місцях, виграє найвищий рівень із тих,
+          що його задають. Зверху вниз:
+        </p>
+        <ol>
+          <li><strong>керовані налаштування</strong> організації — їх не перекриває ніщо;</li>
+          <li><strong>аргументи командного рядка</strong> — прапорці, з якими ти запустив <code>claude</code>, на одну сесію;</li>
+          <li><strong>локальний</strong> <code>.claude/settings.local.json</code>;</li>
+          <li><strong>спільний проєктний</strong> <code>.claude/settings.json</code>;</li>
+          <li><strong>свій</strong> <code>~/.claude/settings.json</code>.</li>
+        </ol>
+        <p>
+          Змінні середовища в цьому стосі <strong>не рівень</strong>. Для кожної пари
+          «змінна + ключ» рішення своє: <code>ANTHROPIC_MODEL</code> з оболонки перебиває
+          ключ <code>model</code> з будь-якого файла, а <code>ANTHROPIC_DEFAULT_MODEL</code>
+          діє лише тоді, коли ключа <code>model</code> немає ніде.
+        </p>
+
+        <h3>Списки складаються, а не заміняють</h3>
+        <p>
+          Якщо той самий ключ-масив (наприклад, <code>permissions.allow</code>) заданий у
+          кількох файлах, Claude Code <strong>складає</strong> списки, а не бере один. Так само
+          складаються перехоплювачі подій і <code>claudeMdExcludes</code>. Винятків
+          чотири, і всі — про моделі: <code>fallbackModel</code>, <code>modelPicker</code>,
+          <code>availableModels</code> і <code>modelSettings</code> беруться цілком з одного
+          джерела.
+        </p>
+
+        <h3>Коли правка починає діяти</h3>
+        <p>
+          Claude Code стежить за файлами налаштувань і підхоплює більшість змін на льоту —
+          без перезапуску, включно з <code>permissions</code>, <code>hooks</code> і помічниками
+          облікових даних. Але три ключі читаються один раз, на старті сесії:
+        </p>
+        <ul>
+          <li><code>model</code> — міняється командою <code>/model</code> посеред сесії;</li>
+          <li><code>effortLevel</code> і <code>modelSettings</code> — командою <code>/effort</code>;</li>
+          <li><code>outputStyle</code> — це частина системного промпта, тож потрібен
+            <code>/clear</code> або перезапуск.</li>
+        </ul>
+        <p class="text-sm"><a href="#toc">&#8593; до переліку розділів</a></p>
+      </section>
+
+      <hr />
+
+      <section id="scopes" class="scroll-mt-24">
+        <h2>Колонка «Область»: як її читати</h2>
+        <p>
+          У кожній таблиці третя колонка каже, з якого файла ключ узагалі має силу.
+          П'ять можливих значень:
+        </p>
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Колонка «Область»: як її читати">
+        <table>
+          <thead>
+            <tr><th>Позначка</th><th>Що означає</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>будь-який</td>
+              <td>усі чотири файли: свій, спільний проєктний, локальний, керований</td>
+            </tr>
+            <tr>
+              <td>свій або керований</td>
+              <td>тільки <code>~/.claude/settings.json</code> або керовані налаштування.
+                <strong>Закомічений у репозиторій файл такий ключ не вмикає</strong> — це захист
+                від того, щоб чужий репозиторій міняв твою поведінку</td>
+            </tr>
+            <tr>
+              <td>свій, локальний, керований</td>
+              <td>усі, крім спільного проєктного <code>.claude/settings.json</code></td>
+            </tr>
+            <tr>
+              <td>лише керований</td>
+              <td>тільки те, що розгортає організація. Сам ти цей ключ не задаси</td>
+            </tr>
+            <tr>
+              <td><code>~/.claude.json</code></td>
+              <td>не <code>settings.json</code> взагалі, а окремий файл — див.
+                <a href="#globalconfig">останній розділ</a></td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+        <p>
+          Практичний висновок: якщо ключ у таблиці має область, відмінну від «будь-який», а ти
+          поклав його в проєктний файл — він не діє, і ніхто тобі про це не скаже.
+        </p>
+        <p class="text-sm"><a href="#toc">&#8593; до переліку розділів</a></p>
+      </section>
+
+      <hr />
+
+      <section id="traps" class="scroll-mt-24">
+        <h2>Дев'ять пасток, через які правильний ключ не працює</h2>
+        <p>
+          Усе нижче — не рідкісні випадки, а поведінка за замовчуванням, задокументована й
+          неочевидна. Якщо налаштування «не спрацювало», спершу шукай себе тут.
+        </p>
+
+        <h3 id="trap1" class="scroll-mt-24">1. <code>auto</code> і <code>bypassPermissions</code> із проєктного файла мовчки не діють</h3>
+        <p>
+          Ключ <code>permissions.defaultMode</code> задає режим, у якому стартує сесія.
+          Два його значення — <code>auto</code> і <code>bypassPermissions</code> — з
+          <code>.claude/settings.json</code> і <code>.claude/settings.local.json</code>
+          <strong>не застосовуються</strong>. Помилки немає, попередження немає; сесія
+          стартує у звичайному режимі, і людина думає, що режим зламався.
+        </p>
+        <p>
+          Куди класти: у <code>~/.claude/settings.json</code>, у керовані налаштування —
+          або передавати прапорцем <code>--permission-mode</code> на одну сесію.
+          До версії 2.1.257 <code>bypassPermissions</code> діяв із будь-якого файла;
+          саме тому старі поради в мережі суперечать нинішній поведінці.
+        </p>
+
+        <h3 id="trap2" class="scroll-mt-24">2. Пісочниця має власну, вужчу область</h3>
+        <p>
+          Ключів <code>sandbox.*</code> тридцять сім, і область у них не одна на всіх.
+          Дванадцять із них проєктний файл не вмикає.
+        </p>
+        <p>
+          <strong>Тільки з керованих налаштувань</strong> (чотири):
+          <code>sandbox.bwrapPath</code>, <code>sandbox.socatPath</code>,
+          <code>sandbox.filesystem.<wbr>allowManagedReadPathsOnly</code>,
+          <code>sandbox.network.<wbr>allowManagedDomainsOnly</code>.
+        </p>
+        <p>
+          <strong>Зі свого або керованого файла</strong> (вісім):
+          <code>sandbox.allowAppleEvents</code>,
+          <code>sandbox.ripgrep</code>,
+          <code>sandbox.filesystem.<wbr>disabled</code>,
+          <code>sandbox.network.<wbr>strictAllowlist</code>,
+          <code>sandbox.network.<wbr>tlsTerminate</code>,
+          <code>sandbox.credentials.<wbr>allowPlaintextInject</code>,
+          <code>sandbox.credentials.<wbr>awsPairs</code>,
+          <code>sandbox.credentials.<wbr>sigv4</code>.
+          Решта двадцять шість — з будь-якого файла, зокрема сам
+          <code>sandbox.credentials</code> і його підключі <code>files</code> та
+          <code>envVars</code>.
+        </p>
+        <p>
+          Це та сама пастка, що з <code>auto</code>: проєктний файл їх не вмикає.
+          Логіка одна — чужий репозиторій не повинен мати змоги послабити твою пісочницю.
+        </p>
+
+        <h3 id="trap3" class="scroll-mt-24">3. Сім ключів, де суворіше значення виграє в керованого</h3>
+        <p>
+          Загальне правило «керовані налаштування перекривають усе» має рівно сім винятків.
+          Для них Claude Code бере <strong>суворіше</strong> значення, звідки б воно не прийшло.
+          Це зроблено так, щоб політика організації не могла ввімкнути тобі те, що ти вимкнув
+          свідомо.
+        </p>
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: 3. Сім ключів, де суворіше значення виграє в керованого">
+        <table>
+          <thead>
+            <tr><th>Ключ</th><th>Яке значення виграє</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>disableClaudeAiConnectors</code></td>
+              <td><code>true</code> з будь-якої області — навіть якщо керований файл каже <code>false</code></td>
+            </tr>
+            <tr>
+              <td><code>enableArtifact</code></td>
+              <td><code>false</code> з будь-якої області (і <code>disableArtifact: true</code> звідусіль). Назад інструмент не вмикає ніщо</td>
+            </tr>
+            <tr>
+              <td><code>isolatePeerMachines</code></td>
+              <td><code>true</code> з будь-якої області</td>
+            </tr>
+            <tr>
+              <td><code>remoteControlAtStartup</code></td>
+              <td><code>false</code> із проєктного або локального файла. А ось <code>true</code> звідти <strong>ігнорується</strong>: репозиторій може вимкнути автопідключення для себе, але не може ввімкнути його тобі</td>
+            </tr>
+            <tr>
+              <td><code>crossSessionInbound</code></td>
+              <td>суворіше значення з проєктного або локального файла за драбиною <code>accept</code> &lt; <code>hold</code> &lt; <code>refuse</code></td>
+            </tr>
+            <tr>
+              <td><code>useAutoModeDuringPlan</code></td>
+              <td><code>false</code> з керованого джерела, <code>--settings</code>, свого або локального файла. Той самий <code>false</code> у спільному проєктному — ігнорується</td>
+            </tr>
+            <tr>
+              <td><code>syncClaudeAiSkills</code></td>
+              <td><code>false</code> з тих самих чотирьох джерел; зі спільного проєктного — ігнорується</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+
+        <h3 id="trap4" class="scroll-mt-24">4. Дві пари ключів про MCP, які легко сплутати</h3>
+        <p>
+          Імена відрізняються трьома літерами — <code>json</code> усередині, — а роблять різні
+          речі й лежать у різних файлах.
+        </p>
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Дві пари ключів MCP">
+        <table class="min-w-[42rem]">
+          <thead>
+            <tr><th>Пара</th><th>Де лежить</th><th>Що робить</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>disabledMcp<wbr>Servers</code><br /><code>enabledMcp<wbr>Servers</code></td>
+              <td><code>~/.claude.json</code>, окремо <strong>на кожен проєкт</strong>. Пише їх сам Claude Code, коли ти перемикаєш сервер у панелі <code>/mcp</code></td>
+              <td>Вимикає вже налаштований сервер, не втрачаючи його конфігурації.
+                <code>disabled…</code> — список відмов для серверів, увімкнених за замовчуванням;
+                <code>enabled…</code> — список згод для вбудованих серверів, вимкнених за замовчуванням.
+                Для кожного сервера читається рівно один із двох списків, тому вони не сперечаються</td>
+            </tr>
+            <tr>
+              <td><code>disabledMcpjson<wbr>Servers</code><br /><code>enabledMcpjson<wbr>Servers</code><br /><code>enableAllProject<wbr>McpServers</code></td>
+              <td>звичайні файли <code>settings.json</code></td>
+              <td>Схвалення або відмова серверам, які оголошені у файлі <code>.mcp.json</code>
+                самого проєкту, тобто прийшли разом із чужим репозиторієм</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+        <p>
+          Документація каже про них прямо: перша пара «не має стосунку» до другої.
+        </p>
+
+        <h3 id="trap5" class="scroll-mt-24">5. Правила <code>deny</code> не тримають довільні підпроцеси</h3>
+        <p>
+          Заборони <code>Read(...)</code> і <code>Edit(...)</code> діють на вбудовані файлові
+          інструменти Claude <strong>і</strong> на ті команди Bash, які Claude Code упізнає як
+          файлові — <code>cat</code>, <code>head</code>, <code>tail</code>, <code>sed</code>.
+          Вони <strong>не діють</strong> на довільний підпроцес: скрипт на Python чи Node, який
+          відкриває файл сам, пройде повз заборону.
+        </p>
+        <p>
+          Документація дає з цього рівно один вихід: якщо потрібна заборона на рівні
+          операційної системи — вмикай пісочницю (<code>sandbox.enabled</code>).
+          Заборона в <code>permissions.deny</code> — це межа для агента, а не для процесів.
+        </p>
+        <p>
+          Ще дві дрібниці того ж розділу. Перевірка файлових шляхів іде <strong>тільки</strong>
+          проти правил <code>Read(...)</code> і <code>Edit(...)</code>: якщо написати
+          <code>Write(docs/**)</code> чи <code>Glob(docs/**)</code>, правило приймуть, але ніколи
+          не звірятимуть — і на старті буде попередження. І шаблон <code>"*"</code> в імені
+          інструмента забороняє всі інструменти, а <code>"mcp__*"</code> — усі інструменти MCP.
+        </p>
+
+        <h3 id="trap6" class="scroll-mt-24">6. Одна скісна риска на початку шляху означає не те, що здається</h3>
+        <p>
+          <code>Read(/secrets/**)</code> у <strong>своєму</strong> файлі
+          <code>~/.claude/settings.json</code> захищає не теку <code>secrets</code> у проєкті,
+          а <code>~/.claude/secrets/**</code>. Одна скісна риска прив'язує шлях
+          <strong>до джерела налаштувань</strong>, а не до кореня диска.
+        </p>
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: 6. Одна скісна риска на початку шляху означає не те, що здається">
+        <table>
+          <thead>
+            <tr><th>Запис</th><th>Що означає</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>//шлях</code></td><td>абсолютний шлях від кореня файлової системи</td></tr>
+            <tr><td><code>~/шлях</code></td><td>від домашньої теки</td></tr>
+            <tr><td><code>/шлях</code></td><td>від того місця, з яким пов'язаний сам файл налаштувань</td></tr>
+            <tr><td><code>шлях</code> або <code>./шлях</code></td><td>від поточної теки</td></tr>
+          </tbody>
+        </table>
+        </div>
+        <p>
+          Тобто щоб правило зі свого файла діяло в кожному проєкті, потрібен запис із
+          <code>//</code> або з <code>~/</code>. На Windows шляхи нормалізуються до
+          POSIX-вигляду: <code>C:\Users\anna</code> стає <code>/c/Users/anna</code>, тож
+          усі <code>.env</code> на диску C — це <code>//c/**/.env</code>, а на всіх дисках —
+          <code>//**/.env</code>.
+        </p>
+
+        <h3 id="trap7" class="scroll-mt-24">7. Виключення <code>CLAUDE.md</code> складаються, а керовані не виключаються</h3>
+        <p>
+          <code>claudeMdExcludes</code> — список файлів пам'яті, які пропустити.
+          Списки з різних областей <strong>складаються</strong>, тому виключення з проєктного
+          файла не заміняє твоє, а додається до нього. Виключити керований
+          <code>CLAUDE.md</code>, який розгорнула організація, не можна взагалі —
+          виключення діють лише на свої, проєктні й локальні файли пам'яті.
+        </p>
+
+        <h3 id="trap8" class="scroll-mt-24">8. Зламаний файл: три різні реакції, і одна з них — мовчання</h3>
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: 8. Зламаний файл: три різні реакції, і одна з них — мовчання">
+        <table>
+          <thead>
+            <tr><th>Що сталось</th><th>Що ти побачиш</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>невалідний JSON або значення, яке схема відхиляє, у своєму, проєктному чи локальному файлі</td>
+              <td>на старті інтерактивної сесії — вікно <strong>Settings Error</strong> із вибором: полагодити за допомогою Claude, вийти або працювати без зламаних налаштувань</td>
+            </tr>
+            <tr>
+              <td>підводять лише окремі записи — наприклад, кривий рядок правила дозволу чи неіснуюча назва події</td>
+              <td><strong>Settings Warning</strong>: ці значення пропускаються, решта файла працює</td>
+            </tr>
+            <tr>
+              <td>не читається <code>~/.claude.json</code></td>
+              <td><strong>Configuration error</strong>: файл копіюється в <code>~/.claude/backups/</code> з міткою <code>.corrupted</code>, і тебе питають — вийти й полагодити руками чи скинути до типової конфігурації</td>
+            </tr>
+            <tr>
+              <td>те саме, але запуск неінтерактивний (<code>claude -p</code>)</td>
+              <td><strong>нічого.</strong> Вікна немає, зламане мовчки пропускається, робота йде далі</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+        <p>
+          Через останній рядок документація радить після такого запуску виконати
+          <code>claude doctor</code> — саме він показує перелік відхилених записів.
+          А <code>/status</code> усередині сесії показує, які файли взагалі завантажились.
+        </p>
+        <p>
+          Побічно: опублікована JSON-схема (<code>json.schemastore.org</code>) відстає від
+          релізів, тому підкреслений редактором «невідомий ключ» ще не означає помилку.
+        </p>
+
+        <h3 id="trap9" class="scroll-mt-24">9. Перелік випереджає твою збірку — і випереджає її сильно</h3>
+        <p>
+          Документація описує найсвіжішу версію. Встановлена на машині — майже завжди старіша.
+          На 4 вересня 2026 року розрив був такий: у каналі <code>latest</code> —
+          <strong>2.1.260</strong>, локально встановлено <strong>2.1.236</strong>. Двадцять
+          чотири версії різниці.
+        </p>
+        <p>
+          Наслідок практичний: щонайменше дев'ять ключів із цієї сторінки в збірці 2.1.236
+          не існує взагалі — <code>keybindingFlavor</code>, <code>modelPricing</code>,
+          <code>promptCacheTtl</code>, <code>subagentPromptCacheTtl</code>,
+          <code>managedSourcesBehavior</code>, <code>desktopSessionCleanupPeriodDays</code>,
+          <code>modelSettings</code>, <code>timeFormat</code> і
+          <code>permissions.<wbr>blockReadsOutsideWorkingDirectories</code>. У таблицях вони
+          позначені мінімальною версією.
+        </p>
+        <p>
+          Рух буває і в інший бік: <code>permissionExplainerEnabled</code> у збірці 2.1.236 ще
+          є, а у 2.1.257 його прибрали разом із поясненням команди по <code>Ctrl+E</code>.
+        </p>
+        <p>
+          Перевірити конкретний ключ на своїй машині можна без запуску Claude Code.
+          Команда <code>strings</code> дістає з бінарного файла всі текстові рядки, а
+          <code>grep -c</code> рахує, скільки разів у них трапилось слово. Нуль означає, що
+          твоя збірка про цей ключ не знає:
+        </p>
+
+        <figure class="term term--cmd" id="t1">
+          <figcaption class="term__chrome">
+            <span class="term__dots" aria-hidden="true"></span>
+            <span class="term__title" id="t1t">macOS 26.5.2 &middot; zsh 5.9 &middot; Claude Code 2.1.236 &middot; знято 2026-09-04</span>
+            <button type="button" class="term__copy" data-ok="Скопійовано">Копіювати</button>
+          </figcaption>
+          <pre class="term__body" tabindex="0" role="group" aria-labelledby="t1t"><span class="term__line"><span class="term__meta">anna@MacBook-Air ~ %</span> <span class="term__in">for k in spellcheck modelSettings timeFormat zzFakeKeyName; do printf '%-16s %s\n' "$k" "$(strings "$(which claude)" | grep -c "$k")"; done</span></span>
+<span class="term__line">spellcheck       31</span>
+<span class="term__line">modelSettings    0</span>
+<span class="term__line">timeFormat       0</span>
+<span class="term__line">zzFakeKeyName    0</span></pre>
+        </figure>
+
+        <p>
+          Читається так: <code>spellcheck</code> вимагає 2.1.235, встановлено 2.1.236 — ключ на
+          місці, 31 збіг. <code>modelSettings</code> вимагає 2.1.251, <code>timeFormat</code> —
+          2.1.257: обох немає. Останній рядок — контрольний: вигадана назва теж дає нуль,
+          і це доводить, що нуль означає «немає», а не «команда не спрацювала».
+          Без контрольного рядка перевірка нічого не варта.
+        </p>
+        <p>
+          Ім'я користувача в запрошенні на знімку замінене на вигадане — сама команда
+          домашнього шляху не друкує, бо бере <code>&quot;$(which claude)&quot;</code>
+          замість абсолютного шляху до програми.
+        </p>
+        <div class="callout">
+          <span class="callout-title">Межа цього способу</span>
+          <p>
+            <code>strings</code> шукає збіг підрядка, а не оголошення ключа. Тому короткі назви
+            зі звичайних англійських слів дають хибні спрацювання: <code>timeZone</code> у
+            збірці 2.1.236 показує 19 збігів, хоча сам ключ потребує 2.1.257 —
+            <code>timeZone</code> є стандартним параметром у JavaScript і трапляється в
+            бінарнику з іншого приводу. Нуль — доказ; ненульове число — лише привід перевірити
+            інакше.
+          </p>
+        </div>
+        <p class="text-sm"><a href="#toc">&#8593; до переліку розділів</a></p>
+      </section>
+
+      <hr />
+
+      <section id="examples" class="scroll-mt-24">
+        <h2>Чотири готові приклади</h2>
+        <p>
+          Ці фрагменти можна скопіювати у файл налаштувань як є. Якщо в тебе там уже щось
+          написано — злий об'єкти вручну, а не додавай другу пару фігурних дужок: у файлі
+          має бути один зовнішній об'єкт.
+        </p>
+
+        <h3>Закрити файли з секретами</h3>
+        <p>
+          Приклад із документації дослівно. Заборонені файли зникають і з пошуку, і з видачі
+          файлових інструментів; редагувати й створювати їх теж не можна.
+        </p>
+        <pre><code>{
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(./config/credentials.json)",
+      "Bash(curl *)"
+    ]
+  }
+}</code></pre>
+        <p>
+          Нагадування з <a href="#trap5">пастки 5</a>: це межа для агента, а не для процесів,
+          які він запускає.
+        </p>
+
+        <h3>Свій рядок стану</h3>
+        <p>
+          Показує назву моделі й відсоток заповнення контексту. Потрібна встановлена
+          програма <code>jq</code> — вона витягує значення з JSON, який Claude Code подає
+          скриптові на стандартний вхід. <code>padding</code> додає два символи відступу;
+          є ще <code>refreshInterval</code> у секундах, і менше за одиницю він не буває.
+        </p>
+        <pre><code>{
+  "statusLine": {
+    "type": "command",
+    "command": "jq -r '\"[\\(.model.display_name)] \\(.context_window.used_percentage // 0)% context\"'",
+    "padding": 2
+  }
+}</code></pre>
+
+        <h3>Прибрати підпис Claude із комітів</h3>
+        <p>
+          Щоб підпису не лишилось узагалі, потрібні всі три поля: порожній
+          <code>commit</code>, порожній <code>pr</code> і <code>sessionUrl: false</code>.
+          Старий ключ <code>includeCoAuthoredBy</code> усе ще читається, але щойно ти задаси
+          <code>attribution.commit</code> або <code>attribution.pr</code> — він ігнорується.
+        </p>
+        <pre><code>{
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  }
+}</code></pre>
+
+        <h3>Доступність</h3>
+        <p>
+          Плоский вивід без рамок і анімацій для програм читання з екрана, зменшений рух і
+          тема з кольорами, розрізненними при дальтонізмі. Є ще теми
+          <code>light-daltonized</code>, <code>dark-ansi</code> і <code>light-ansi</code>;
+          останні дві беруть кольори з палітри самого термінала.
+        </p>
+        <pre><code>{
+  "axScreenReader": true,
+  "prefersReducedMotion": true,
+  "theme": "dark-daltonized",
+  "preferredNotifChannel": "terminal_bell"
+}</code></pre>
+        <p class="text-sm"><a href="#toc">&#8593; до переліку розділів</a></p>
+      </section>
+
+      <hr />
+
+      <section id="toc" class="scroll-mt-24">
+        <h2>Усі 223 ключі за темами</h2>
+        <p>
+          Порядок розділів — від найпотрібнішого до найрідшого, а не за абеткою.
+          Усередині розділу ключі стоять так, як у документації.
+        </p>
+        <ul>
+              <li><a href="#permissions">Дозволи</a> <span class="text-faint">— 15 ключів</span></li>
+              <li><a href="#sandbox">Пісочниця</a> <span class="text-faint">— 38 ключів</span></li>
+              <li><a href="#memory">Пам'ять і контекст</a> <span class="text-faint">— 11 ключів</span></li>
+              <li><a href="#interface">Інтерфейс і термінал</a> <span class="text-faint">— 37 ключів</span></li>
+              <li><a href="#model">Моделі й відповіді</a> <span class="text-faint">— 20 ключів</span></li>
+              <li><a href="#git">Git і підпис комітів</a> <span class="text-faint">— 7 ключів</span></li>
+              <li><a href="#hooks">Перехоплювачі подій і автоматизація</a> <span class="text-faint">— 9 ключів</span></li>
+              <li><a href="#plugins">Плагіни й навички</a> <span class="text-faint">— 19 ключів</span></li>
+              <li><a href="#mcp">MCP — зовнішні інструменти</a> <span class="text-faint">— 8 ключів</span></li>
+              <li><a href="#agents">Агенти, сесії, worktrees</a> <span class="text-faint">— 11 ключів</span></li>
+              <li><a href="#remote">Віддалена робота, десктоп, сповіщення</a> <span class="text-faint">— 13 ключів</span></li>
+              <li><a href="#auth">Вхід і постачальники моделі</a> <span class="text-faint">— 8 ключів</span></li>
+              <li><a href="#updates">Оновлення й версії</a> <span class="text-faint">— 4 ключі</span></li>
+              <li><a href="#tools">Інструменти десктопа</a> <span class="text-faint">— 3 ключі</span></li>
+              <li><a href="#privacy">Приватність і телеметрія</a> <span class="text-faint">— 5 ключів</span></li>
+              <li><a href="#enterprise">Керовані налаштування організації</a> <span class="text-faint">— 9 ключів</span></li>
+              <li><a href="#globalconfig">Глобальний конфіг <code>~/.claude.json</code></a> <span class="text-faint">— 6 ключів</span></li>
+        </ul>
+      </section>
+
+      <hr />
+
+        <section id="permissions" class="scroll-mt-24">
+          <h2>Дозволи</h2>
+          <p>Що Claude робить без запитання, що з запитанням і що не робить ніколи. Найважливіша група на сторінці: помилка тут коштує не зручності, а безпеки.</p>
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Дозволи">
+            <table class="min-w-[42rem]">
+              <thead>
+                <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td><code>allowManagedPermissionRulesOnly</code></td>
+                <td>Зробити керовані налаштування єдиним джерелом правил дозволів.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>autoMode</code></td>
+                <td>Додати власні правила <code>allow</code> і <code>deny</code> до класифікатора автоматичного режиму.</td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>autoMode.<wbr>classifyAllShell</code></td>
+                <td>Проганяти через класифікатор кожну команду оболонки — навіть ту, що підпадає під вузьке правило <code>allow</code>. <span class="text-faint">потрібна 2.1.193+</span></td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>disableAutoMode</code></td>
+                <td>Прибрати автоматичний режим із циклу перемикання режимів.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>permissions</code></td>
+                <td>Кореневий об'єкт: правила <code>allow</code>, <code>ask</code>, <code>deny</code> і стартовий режим дозволів.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>permissions.<wbr>additionalDirectories</code></td>
+                <td>Дати Claude доступ до файлів у теках поза тією, де ти запустив сесію. Із закоміченого файла діє лише після того, як людина довірила теку.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>permissions.<wbr>allow</code></td>
+                <td>Дозволити перелічені виклики інструментів без запитання. Із закоміченого проєктного файла діє лише після діалогу довіри до теки.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>permissions.<wbr>ask</code></td>
+                <td>Завжди питати перед переліченими викликами — навіть у режимі, який пропустив би їх мовчки. У режимі <code>dontAsk</code> такий виклик замість запитання відхиляється.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>permissions.<wbr>blockReadsOutsideWorkingDirectories</code></td>
+                <td>Заборонити файловим інструментам читати поза робочими теками — у <strong>кожному</strong> режимі, включно з <code>bypassPermissions</code>. Якщо хоч одне джерело поставило <code>true</code>, заборона діє. <span class="text-faint">потрібна 2.1.257+</span></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>permissions.<wbr>defaultMode</code></td>
+                <td>Режим дозволів, у якому стартують нові сесії. <strong>Значення <code>auto</code> і <code>bypassPermissions</code> із проєктного й локального файлів не діють.</strong></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>permissions.<wbr>deny</code></td>
+                <td>Заблокувати перелічені виклики, у тому числі читання файлів із секретами. Діє в усіх режимах без винятку.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>permissions.<wbr>disableBypassPermissionsMode</code></td>
+                <td>Заборонити вхід у <code>bypassPermissions</code> будь-кому. Значення — рядок <code>"disable"</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>skipAutoPermissionPrompt</code></td>
+                <td>Пропустити разове повідомлення, яке з'являється, коли ти сам уперше вмикаєш автоматичний режим.</td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>skipDangerousModePermissionPrompt</code></td>
+                <td>Пропустити підтвердження перед входом у <code>bypassPermissions</code>. Claude Code сам пише сюди <code>true</code>, коли ти раз погодився.</td>
+                <td>свій, локальний, керований</td>
+              </tr>
+              <tr>
+                <td><code>useAutoModeDuringPlan</code></td>
+                <td>Дати класифікатору переглядати команди оболонки в режимі плану; <code>false</code> — питати замість цього.</td>
+                <td>свій, локальний, керований</td>
+              </tr>
+              </tbody>
+            </table>
+            </div>
+          <p class="text-sm"><a href="#toc">↑ до переліку розділів</a></p>
+        </section>
+
+        <hr />
+        <section id="sandbox" class="scroll-mt-24">
+          <h2>Пісочниця</h2>
+          <p>Ізоляція команд Bash від файлів, мережі й облікових даних. Працює на macOS, Linux і WSL2. Тридцять сім із тридцяти восьми ключів починаються з <code>sandbox.</code> — це один вкладений об'єкт, а не тридцять вісім окремих налаштувань.</p>
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Пісочниця">
+            <table class="min-w-[42rem]">
+              <thead>
+                <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td><code>sandbox</code></td>
+                <td>Кореневий об'єкт пісочниці: ізоляція команд Bash від файлової системи й мережі на macOS, Linux і WSL2.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>allowAppleEvents</code></td>
+                <td>Дозволити командам у пісочниці надсилати Apple Events на macOS — тобто керувати іншими застосунками.</td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>allowUnsandboxedCommands</code></td>
+                <td>Чи можна Claude перезапустити заблоковану команду поза пісочницею — чи це заборонено взагалі.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>autoAllowBashIfSandboxed</code></td>
+                <td>Виконувати команди в пісочниці без діалогу дозволу.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>bwrapPath</code></td>
+                <td>Шлях до бінарника bubblewrap поза <code>PATH</code>.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>credentials</code></td>
+                <td>Об'єкт: сховати або замаскувати файли й змінні з обліковими даними всередині пісочниці. <span class="text-faint">потрібна 2.1.187+</span></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>credentials.<wbr>allowPlaintextInject</code></td>
+                <td>Дозволити замаскованим обліковим даним доходити до сервісів по звичайному HTTP у довірених тестових мережах. <span class="text-faint">потрібна 2.1.199+</span></td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>credentials.<wbr>awsPairs</code></td>
+                <td>Зв'язати змінні з нестандартними іменами ключів AWS в одну обліковку для перепідписування запитів. <span class="text-faint">потрібна 2.1.224+</span></td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>credentials.<wbr>envVars</code></td>
+                <td>Прибрати або замаскувати змінну середовища всередині пісочниці.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>credentials.<wbr>files</code></td>
+                <td>Заблокувати або замаскувати читання конкретного файла з обліковими даними.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>credentials.<wbr>sigv4</code></td>
+                <td>Що робити з потоковими, presigned і SigV4A-запитами до AWS: валити чи пропускати як є. <span class="text-faint">потрібна 2.1.224+</span></td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>enabled</code></td>
+                <td>Увімкнути пісочницю для команд Bash.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>enableWeakerNestedSandbox</code></td>
+                <td>Запускати лінуксову пісочницю всередині непривілейованого контейнера. Назва чесна: захист від цього слабшає.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>enableWeakerNetworkIsolation</code></td>
+                <td>Дозволити <code>gh</code>, <code>gcloud</code> і <code>terraform</code> перевіряти TLS за проксі, який розшифровує трафік (macOS).</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>excludedCommands</code></td>
+                <td>Команди, які завжди виконуються <strong>поза</strong> пісочницею.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>failIfUnavailable</code></td>
+                <td>Відмовитись стартувати, якщо пісочницю підняти не вдалось, замість того щоб працювати без неї.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>filesystem</code></td>
+                <td>Об'єкт: які шляхи команди в пісочниці читають і куди пишуть.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>filesystem.<wbr>allowManagedReadPathsOnly</code></td>
+                <td>Не дати розробникам відкрити назад шляхи читання, які закрила організація.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>filesystem.<wbr>allowRead</code></td>
+                <td>Знову відкрити читання всередині області, закритої через <code>denyRead</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>filesystem.<wbr>allowWrite</code></td>
+                <td>Додати шляхи, куди команди в пісочниці можуть писати.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>filesystem.<wbr>denyRead</code></td>
+                <td>Заборонити читання конкретних шляхів.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>filesystem.<wbr>denyWrite</code></td>
+                <td>Заборонити запис у конкретні шляхи.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>filesystem.<wbr>disabled</code></td>
+                <td>Вимкнути ізоляцію файлової системи, залишивши мережеву. <span class="text-faint">потрібна 2.1.216+</span></td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>ignoreViolations</code></td>
+                <td>Не повідомляти про порушення для шляхів, які команда за задумом мацає.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>network</code></td>
+                <td>Об'єкт: до яких хостів, портів і сокетів дістаються команди в пісочниці.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>network.<wbr>allowAllUnixSockets</code></td>
+                <td>Дозволити всі Unix-сокети без переліку.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>network.<wbr>allowedDomains</code></td>
+                <td>Наперед дозволені домени, щоб команди не питали про них щоразу.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>network.<wbr>allowLocalBinding</code></td>
+                <td>Дозволити слухати порти на localhost (macOS).</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>network.<wbr>allowMachLookup</code></td>
+                <td>Дозволити інструментам macOS на кшталт iOS Simulator і Playwright дістатись своїх служб XPC.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>network.<wbr>allowManagedDomainsOnly</code></td>
+                <td>Замкнути мережевий білий список на керованих налаштуваннях.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>network.<wbr>allowUnixSockets</code></td>
+                <td>Перелік шляхів Unix-сокетів, якими можна користуватись (macOS).</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>network.<wbr>deniedDomains</code></td>
+                <td>Заборонені домени — навіть якщо вони підпадають під дозволений шаблон.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>network.<wbr>httpProxyPort</code></td>
+                <td>Пустити HTTP-трафік пісочниці через власний проксі.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>network.<wbr>socksProxyPort</code></td>
+                <td>Пустити SOCKS-трафік пісочниці через власний проксі.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>network.<wbr>strictAllowlist</code></td>
+                <td>Відхиляти хости поза списком замість того, щоб питати. <span class="text-faint">потрібна 2.1.219+</span></td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>network.<wbr>tlsTerminate</code></td>
+                <td>Дозволити проксі пісочниці розшифровувати TLS, щоб читати HTTPS-запити. <span class="text-faint">потрібна 2.1.199+</span></td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>ripgrep</code></td>
+                <td>Свій бінарник ripgrep усередині пісочниці.</td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>sandbox.<wbr>socatPath</code></td>
+                <td>Шлях до бінарника <code>socat</code> поза <code>PATH</code> для проксі пісочниці.</td>
+                <td>лише керований</td>
+              </tr>
+              </tbody>
+            </table>
+            </div>
+          <p class="text-sm"><a href="#toc">↑ до переліку розділів</a></p>
+        </section>
+
+        <hr />
+        <section id="memory" class="scroll-mt-24">
+          <h2>Пам'ять і контекст</h2>
+          <p>Що Claude пам'ятає між сесіями, коли стискає розмову й звідки бере <code>CLAUDE.md</code>.</p>
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Пам'ять і контекст">
+            <table class="min-w-[42rem]">
+              <thead>
+                <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td><code>autoCompactEnabled</code></td>
+                <td>Вимкнути або ввімкнути автоматичну компакцію розмови.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>autoCompactWindow</code></td>
+                <td>Наскільки повним стає контекст, перш ніж почнеться компакція.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>autoMemoryDirectory</code></td>
+                <td>Тека, у якій зберігається автоматична пам'ять.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>autoMemoryEnabled</code></td>
+                <td>Вимкнути або ввімкнути автоматичну пам'ять.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>claudeMd</code></td>
+                <td>Загальноорганізаційні інструкції <code>CLAUDE.md</code>, вставлені з керованих налаштувань.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>claudeMdExcludes</code></td>
+                <td>Які файли <code>CLAUDE.md</code> пропустити при завантаженні пам'яті. Масиви з різних областей <strong>складаються</strong>; керовані <code>CLAUDE.md</code> виключити не можна.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>env</code></td>
+                <td>Змінні середовища для кожної сесії та її підпроцесів. Сюди можна класти будь-яку змінну з довідника змінних середовища.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>fileCheckpointingEnabled</code></td>
+                <td>Вимкнути або ввімкнути знімки файлів, які відновлює <code>/rewind</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>plansDirectory</code></td>
+                <td>Куди режим плану пише файли планів.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>skillListingBudgetFraction</code></td>
+                <td>Скільки контексту резервувати під перелік навичок.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>skillListingMaxDescChars</code></td>
+                <td>Обмежити довжину опису кожної навички в переліку.</td>
+                <td>будь-який</td>
+              </tr>
+              </tbody>
+            </table>
+            </div>
+          <p class="text-sm"><a href="#toc">↑ до переліку розділів</a></p>
+        </section>
+
+        <hr />
+        <section id="interface" class="scroll-mt-24">
+          <h2>Інтерфейс і термінал</h2>
+          <p>Вигляд, клавіші, сповіщення, доступність. Найбільша група після пісочниці — і найбезпечніша для експериментів.</p>
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Інтерфейс і термінал">
+            <table class="min-w-[42rem]">
+              <thead>
+                <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td><code>askUserQuestionTimeout</code></td>
+                <td>Через скільки простою запитання без відповіді продовжується саме. <span class="text-faint">потрібна 2.1.200+</span></td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>autoContinueAtUsageLimit</code></td>
+                <td>Чекати у відкритій сесії й продовжити задачу самому, коли ліміт claude.ai скинеться. <span class="text-faint">потрібна 2.1.234+</span></td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>autoScrollEnabled</code></td>
+                <td>Їхати за новим виводом донизу в повноекранному рендерері.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>axScreenReader</code></td>
+                <td>Плоский вивід без декоративних рамок і анімацій — для програм читання з екрана. <span class="text-faint">потрібна 2.1.181+</span></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>companyAnnouncements</code></td>
+                <td>Показувати оголошення організації на старті.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>defaultShell</code></td>
+                <td>Що виконує команди, які ти набираєш із префіксом <code>!</code>: Bash чи PowerShell.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>dialogExpiry</code></td>
+                <td>Скільки чекати на відповідь Remote Control або SDK-хоста на переадресований діалог, перш ніж скасувати його. <span class="text-faint">потрібна 2.1.224+</span></td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>editorMode</code></td>
+                <td>Клавіші vim у полі вводу.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>emojiCompletionEnabled</code></td>
+                <td>Вимкнути підказки й заміну <code>:shortcode:</code> на емодзі в полі вводу. <span class="text-faint">потрібна 2.1.217+</span></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>fileSuggestion</code></td>
+                <td>Своя команда, що постачає автодоповнення файлів по <code>@</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>footerLinksRegexes</code></td>
+                <td>Перетворювати ідентифікатори задач і рецензій у виводі на клікабельні значки під полем вводу. <span class="text-faint">потрібна 2.1.176+</span></td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>keybindingFlavor</code></td>
+                <td>Зробити так, щоб <code>Ctrl+W</code> видаляв до попереднього пробілу, як у Bash, а не одне слово. <span class="text-faint">потрібна 2.1.238+</span></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>prefersReducedMotion</code></td>
+                <td>Зменшити або вимкнути анімації: спінер, мерехтіння, спалахи.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>promptSuggestionEnabled</code></td>
+                <td>Сховати сірі підказки промптів у полі вводу.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>respectGitignore</code></td>
+                <td>Не показувати файли з <code>.gitignore</code> у пікері по <code>@</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>respondToBashCommands</code></td>
+                <td>Не відповідати після того, як відпрацювала команда з префіксом <code>!</code>. <span class="text-faint">потрібна 2.1.186+</span></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>showClearContextOnPlanAccept</code></td>
+                <td>Показувати варіант «очистити контекст» на екрані прийняття плану.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>showTurnDuration</code></td>
+                <td>Сховати тривалість («Cooked for…») після кожної відповіді.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>spellcheck</code></td>
+                <td>Підкреслювати слова з помилками в полі вводу — перевіркою, яку ти встановив сам. <span class="text-faint">потрібна 2.1.235+</span></td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>spinnerTipsEnabled</code></td>
+                <td>Сховати підказки в спінері, поки Claude працює.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>spinnerTipsOverride</code></td>
+                <td>Додати свої підказки в ротацію спінера або замінити вбудовані.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>spinnerVerbs</code></td>
+                <td>Додати або замінити дієслова, що з'являються під час ходу.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>statusLine</code></td>
+                <td>Своя команда, яка малює рядок стану під полем вводу. Необов'язкові поля: <code>padding</code> у символах, <code>refreshInterval</code> у секундах (мінімум 1), <code>hideVimModeIndicator</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>subagentStatusLine</code></td>
+                <td>Своя команда, що переписує рядки в таблиці субагентів. На вхід іде JSON із масивом <code>tasks</code>, назад — рядки <code>{"id", "content"}</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>syntaxHighlightingDisabled</code></td>
+                <td>Вимкнути підсвітку синтаксису в дифах і блоках коду.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>terminalProgressBarEnabled</code></td>
+                <td>Сховати смужку прогресу в терміналах, які її підтримують.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>terminalTitleFromRename</code></td>
+                <td>Не давати <code>/rename</code> і <code>--name</code> міняти заголовок вкладки термінала.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>theme</code></td>
+                <td>Кольорова тема: <code>auto</code>, <code>dark</code>, <code>light</code>, <code>dark-daltonized</code>, <code>light-daltonized</code>, <code>dark-ansi</code>, <code>light-ansi</code> або власна <code>custom:&lt;slug&gt;</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>timeFormat</code></td>
+                <td>12- чи 24-годинний формат часу в інтерфейсі, UTC або власний шаблон strftime. <span class="text-faint">потрібна 2.1.257+</span></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>timeZone</code></td>
+                <td>Показувати час у часовому поясі, відмінному від системного. <span class="text-faint">потрібна 2.1.257+</span></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>tui</code></td>
+                <td>Який рендерер малює термінал: повноекранний чи класичний.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>verbose</code></td>
+                <td>Показувати повний вивід інструментів замість скорочених підсумків; <code>viewMode</code> має перевагу, якщо задані обидва.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>viewMode</code></td>
+                <td>Стартовий вигляд кожної сесії: звичайний, докладний або сфокусований.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>vimInsertModeRemaps</code></td>
+                <td>Призначити двоклавішну послідовність режиму INSERT (наприклад, <code>jj</code>) на Escape. <span class="text-faint">потрібна 2.1.208+</span></td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>voice</code></td>
+                <td>Голосове диктування: <code>enabled</code>, режим <code>hold</code> чи <code>tap</code>, <code>autoSubmit</code>. Цей об'єкт пише команда <code>/voice</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>voiceEnabled</code></td>
+                <td>Стара однокнопкова форма вмикання голосового диктування. <span class="text-faint">застарілий із 2.1.92</span></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>wheelScrollAccelerationEnabled</code></td>
+                <td>Вимкнути прискорення колеса миші в повноекранному рендерері. <span class="text-faint">потрібна 2.1.174+</span></td>
+                <td>будь-який</td>
+              </tr>
+              </tbody>
+            </table>
+            </div>
+          <p class="text-sm"><a href="#toc">↑ до переліку розділів</a></p>
+        </section>
+
+        <hr />
+        <section id="model" class="scroll-mt-24">
+          <h2>Моделі й відповіді</h2>
+          <p>Яка модель відповідає, як сильно вона думає й скільки живе кеш.</p>
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Моделі й відповіді">
+            <table class="min-w-[42rem]">
+              <thead>
+                <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td><code>advisorModel</code></td>
+                <td>Яка модель відповідає, коли Claude звертається до інструмента-порадника (advisor).</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>alwaysThinkingEnabled</code></td>
+                <td>Вимкнути розширене мислення (extended thinking) в усіх сесіях.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>availableModels</code></td>
+                <td>Обмежити перелік моделей, які людині взагалі дозволено обрати. Керована організацією версія цього списку не зливається з твоєю — вона застосовується як є.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>effortLevel</code></td>
+                <td>Рівень зусиль за замовчуванням для моделей, у яких немає власного збереженого рівня.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>enforceAvailableModels</code></td>
+                <td>Тримати варіант «Default» у пікері <code>/model</code> усередині списку <code>availableModels</code>. <span class="text-faint">потрібна 2.1.175+</span></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>fallbackModel</code></td>
+                <td>Запасні моделі на випадок, коли основна перевантажена. Це впорядкований ланцюг, тому значення береться цілком із найвищого файла, а не зливається.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>fastMode</code></td>
+                <td>Увімкнути швидкий режим у сесіях, де він доступний.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>fastModePerSessionOptIn</code></td>
+                <td>Вимагати вмикати швидкий режим щоразу заново, у кожній сесії.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>language</code></td>
+                <td>Відповідати мовою, відмінною від англійської.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>model</code></td>
+                <td>Модель, з якої стартує сесія.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>modelOverrides</code></td>
+                <td>Зіставити ідентифікатори моделей з ідентифікаторами твого постачальника — наприклад, з ARN у Amazon Bedrock.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>modelPicker</code></td>
+                <td>Які моделі показує пікер <code>/model</code>, у твоєму порядку й під твоїми підписами. Рядки з двох джерел не зливаються ніколи. <span class="text-faint">потрібна 2.1.242+</span></td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>modelPricing</code></td>
+                <td>Показувати витрати за контрактними цінами організації замість публічного прайс-листа. <span class="text-faint">потрібна 2.1.242+</span></td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>modelSettings</code></td>
+                <td>Збережений рівень зусиль окремо для кожної моделі; сюди пише команда <code>/effort</code>. <span class="text-faint">потрібна 2.1.251+</span></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>outputStyle</code></td>
+                <td>Змінити роль, тон і формат відповіді стилем виводу (output style).</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>promptCacheTtl</code></td>
+                <td>Скільки живе кеш промпта для основної розмови. <span class="text-faint">потрібна 2.1.242+</span></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>showThinkingSummaries</code></td>
+                <td>Показувати підсумки міркувань замість згорнутої заглушки.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>subagentPromptCacheTtl</code></td>
+                <td>Скільки живе кеш для субагентів та інших запитів поза основною розмовою. <span class="text-faint">потрібна 2.1.242+</span></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>switchModelsOnFlag</code></td>
+                <td>Перемикати модель автоматично чи спинятись, коли запит позначив класифікатор безпеки. <span class="text-faint">потрібна 2.1.170+</span></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>ultracode</code></td>
+                <td>Планувати робочий процес під кожну змістовну задачу, навіть коли про це не просили.</td>
+                <td>будь-який</td>
+              </tr>
+              </tbody>
+            </table>
+            </div>
+          <p class="text-sm"><a href="#toc">↑ до переліку розділів</a></p>
+        </section>
+
+        <hr />
+        <section id="git" class="scroll-mt-24">
+          <h2>Git і підпис комітів</h2>
+          <p>Чим Claude підписує коміти й описи pull request і що він знає про твій репозиторій.</p>
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Git і підпис комітів">
+            <table class="min-w-[42rem]">
+              <thead>
+                <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td><code>attribution</code></td>
+                <td>Об'єкт: як підписувати коміти й описи pull request. Щоб прибрати підпис геть, задай <code>commit</code> і <code>pr</code> порожніми рядками, а <code>sessionUrl</code> — <code>false</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>attribution.<wbr>commit</code></td>
+                <td>Змінити або сховати трейлер, який Claude Code додає в коміт.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>attribution.<wbr>pr</code></td>
+                <td>Змінити або сховати рядок підпису в описі pull request.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>attribution.<wbr>sessionUrl</code></td>
+                <td>Прибрати посилання на сесію claude.ai із хмарних комітів і комітів Remote Control.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>includeCoAuthoredBy</code></td>
+                <td>Старий перемикач підпису комітів і PR. Його замінив <code>attribution</code>; щойно ти задаси <code>attribution.commit</code> чи <code>.pr</code>, цей ключ ігнорується. <span class="text-faint">застарілий із 2.0.62</span></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>includeGitInstructions</code></td>
+                <td>Прибрати із системного промпта вбудовані інструкції про коміти й PR разом зі знімком <code>git status</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>prUrlTemplate</code></td>
+                <td>Спрямувати посилання на PR у внутрішній інструмент рецензування замість github.com. Підстановки: <code>{host}</code>, <code>{owner}</code>, <code>{repo}</code>, <code>{number}</code>, <code>{url}</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              </tbody>
+            </table>
+            </div>
+          <p class="text-sm"><a href="#toc">↑ до переліку розділів</a></p>
+        </section>
+
+        <hr />
+        <section id="hooks" class="scroll-mt-24">
+          <h2>Перехоплювачі подій і автоматизація</h2>
+          <p>Перехоплювачі подій (hooks) — власні команди, які Claude Code запускає у визначені моменти. Повна таблиця подій — в окремому довіднику.</p>
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Перехоплювачі подій і автоматизація">
+            <table class="min-w-[42rem]">
+              <thead>
+                <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td><code>allowedHttpHookUrls</code></td>
+                <td>Обмежити, на які URL можуть звертатись HTTP-перехоплювачі.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>allowManagedHooksOnly</code></td>
+                <td>Виконувати лише ті перехоплювачі, які розгорнула організація.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>disableAllHooks</code></td>
+                <td>Вимкнути одразу перехоплювачі, власний рядок стану й власну команду підказок файлів по <code>@</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>disableWorkflows</code></td>
+                <td>Вимкнути динамічні робочі процеси для всіх; для себе є <code>enableWorkflows</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>enableWorkflows</code></td>
+                <td>Увімкнути або вимкнути динамічні робочі процеси всупереч типовому значенню твого тарифу.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>hooks</code></td>
+                <td>Власні команди, промпти, агенти, HTTP-запити або інструменти MCP у точках життєвого циклу. Перехоплювачі з різних файлів <strong>складаються</strong>, а керовані не прибираються нічим.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>httpHookAllowedEnvVars</code></td>
+                <td>Обмежити, які змінні середовища HTTP-перехоплювачі можуть класти в заголовки.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>workflowKeywordTriggerEnabled</code></td>
+                <td>Чи запускає слово <code>ultracode</code> у промпті робочий процес. <span class="text-faint">потрібна 2.1.157+</span></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>workflowSizeGuideline</code></td>
+                <td>Скільки агентів Claude намагається задіяти в динамічному робочому процесі. <span class="text-faint">потрібна 2.1.219+</span></td>
+                <td>будь-який</td>
+              </tr>
+              </tbody>
+            </table>
+            </div>
+          <p class="text-sm"><a href="#toc">↑ до переліку розділів</a></p>
+        </section>
+
+        <hr />
+        <section id="plugins" class="scroll-mt-24">
+          <h2>Плагіни й навички</h2>
+          <p>Звідки беруться навички (skills), плагіни й маркетплейси і хто має право їх додавати.</p>
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Плагіни й навички">
+            <table class="min-w-[42rem]">
+              <thead>
+                <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td><code>allowedChannelPlugins</code></td>
+                <td>Замінити типовий білий список плагінів каналів, які можуть надсилати повідомлення.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>blockedMarketplaces</code></td>
+                <td>Заблокувати джерела маркетплейсів плагінів для організації.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>channelsEnabled</code></td>
+                <td>Дозволити канали в організації.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>disableBundledSkills</code></td>
+                <td>Вимкнути навички й робочі процеси, що йдуть у комплекті з Claude Code.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>disableCommandPluginSources</code></td>
+                <td>Заблокувати плагіни, які встановлюються запуском команди, оголошеної маркетплейсом.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>disableSkillShellExecution</code></td>
+                <td>Заборонити навичкам і власним командам виконувати вбудовану оболонку.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>enabledPlugins</code></td>
+                <td>Вмикати й вимикати окремі плагіни в межах області.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>extraKnownMarketplaces</code></td>
+                <td>Зареєструвати маркетплейси для репозиторію чи організації. Із закоміченого файла діє після діалогу довіри.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>pluginConfigs</code></td>
+                <td>Відповіді, які ти дав у діалозі налаштування плагіна.</td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>pluginSuggestionMarketplaces</code></td>
+                <td>Які маркетплейси можуть пропонувати встановлення плагінів у <code>/plugin</code>.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>pluginTrustMessage</code></td>
+                <td>Свій текст у попередженні про довіру до плагіна.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>skillOverrides</code></td>
+                <td>Сховати або згорнути навичку, не редагуючи її <code>SKILL.md</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>strictKnownMarketplaces</code></td>
+                <td>Білий список джерел маркетплейсів, які користувач може додавати й з яких може ставити плагіни.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>strictPluginOnlyCustomization</code></td>
+                <td>Заборонити навички, агентів, перехоплювачі й сервери MCP із користувацьких і проєктних джерел.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>strictPluginOnlyCustomization.<wbr>agents</code></td>
+                <td>Замкнути агентів на плагіни й керовані джерела.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>strictPluginOnlyCustomization.<wbr>hooks</code></td>
+                <td>Замкнути перехоплювачі на плагіни й керовані джерела.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>strictPluginOnlyCustomization.<wbr>mcp</code></td>
+                <td>Замкнути сервери MCP на плагіни й керовані джерела.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>strictPluginOnlyCustomization.<wbr>skills</code></td>
+                <td>Замкнути навички на плагіни й керовані джерела.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>syncClaudeAiSkills</code></td>
+                <td>Не завантажувати навички, увімкнені в акаунті claude.ai, і сховати вже синхронізовані.</td>
+                <td>свій, локальний, керований</td>
+              </tr>
+              </tbody>
+            </table>
+            </div>
+          <p class="text-sm"><a href="#toc">↑ до переліку розділів</a></p>
+        </section>
+
+        <hr />
+        <section id="mcp" class="scroll-mt-24">
+          <h2>MCP — зовнішні інструменти</h2>
+          <p>MCP (Model Context Protocol) — спосіб під'єднати до Claude Code зовнішні інструменти. Тут вісім ключів, і два з них легко сплутати з парою з <code>~/.claude.json</code> — див. пастку 4.</p>
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: MCP — зовнішні інструменти">
+            <table class="min-w-[42rem]">
+              <thead>
+                <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td><code>allowAllClaudeAiMcps</code></td>
+                <td>Вантажити конектори claude.ai, які Claude Code дістає сам, поруч із розгорнутим <code>managed-mcp.json</code>.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>allowedMcpServers</code></td>
+                <td>Білий список серверів MCP, якими взагалі можна користуватись.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>allowManagedMcpServersOnly</code></td>
+                <td>Зробити керований білий список MCP єдиним чинним.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>deniedMcpServers</code></td>
+                <td>Заблокувати конкретні сервери MCP за URL, командою або ім'ям.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>disableClaudeAiConnectors</code></td>
+                <td>Вимкнути конектори claude.ai, щоб Claude Code їх не діставав. <span class="text-faint">потрібна 2.1.182+</span></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>disabledMcpjsonServers</code></td>
+                <td>Відхилити конкретні сервери з проєктного <code>.mcp.json</code>. <strong>Не плутати</strong> з <code>disabledMcpServers</code> у <code>~/.claude.json</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>enableAllProjectMcpServers</code></td>
+                <td>Схвалити всі сервери з проєктних <code>.mcp.json</code> без запитання.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>enabledMcpjsonServers</code></td>
+                <td>Схвалити конкретні сервери з проєктного <code>.mcp.json</code>. <strong>Не плутати</strong> з <code>enabledMcpServers</code> у <code>~/.claude.json</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              </tbody>
+            </table>
+            </div>
+          <p class="text-sm"><a href="#toc">↑ до переліку розділів</a></p>
+        </section>
+
+        <hr />
+        <section id="agents" class="scroll-mt-24">
+          <h2>Агенти, сесії, worktrees</h2>
+          <p>Субагенти, повідомлення між сесіями й окремі робочі копії репозиторію (worktrees).</p>
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Агенти, сесії, worktrees">
+            <table class="min-w-[42rem]">
+              <thead>
+                <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td><code>agent</code></td>
+                <td>Стартувати кожну сесію як названий субагент — з його промптом, інструментами й моделлю.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>crossSessionInbound</code></td>
+                <td>Що робити з повідомленнями від твоїх інших сесій: доставляти, показувати сповіщення без доставки чи відхиляти. <span class="text-faint">потрібна 2.1.224+</span></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>disableAgentView</code></td>
+                <td>Вимкнути фонових агентів і панель агентів.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>isolatePeerMachines</code></td>
+                <td>Питати тебе, перш ніж Claude напише твоїй сесії на іншій машині.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>processWrapper</code></td>
+                <td>Запускати фонові процеси Claude Code через корпоративний лаунчер (macOS і Linux). <span class="text-faint">потрібна 2.1.210+</span></td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>teammateMode</code></td>
+                <td>Як показувати напарників у командах агентів.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>worktree</code></td>
+                <td>Об'єкт: як Claude Code створює git-worktrees (окремі робочі копії того самого репозиторію).</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>worktree.<wbr>baseRef</code></td>
+                <td>Від чого відгалужувати нові worktrees: від віддаленої типової гілки чи від локального HEAD.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>worktree.<wbr>bgIsolation</code></td>
+                <td>Дозволити фоновим сесіям правити основну робочу копію без окремого worktree.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>worktree.<wbr>sparsePaths</code></td>
+                <td>Викачувати в кожен worktree лише потрібні теки.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>worktree.<wbr>symlinkDirectories</code></td>
+                <td>Робити символьні посилання на великі теки замість того, щоб копіювати їх у кожен worktree.</td>
+                <td>будь-який</td>
+              </tr>
+              </tbody>
+            </table>
+            </div>
+          <p class="text-sm"><a href="#toc">↑ до переліку розділів</a></p>
+        </section>
+
+        <hr />
+        <section id="remote" class="scroll-mt-24">
+          <h2>Віддалена робота, десктоп, сповіщення</h2>
+          <p>Remote Control, Claude Desktop, push-сповіщення на телефон і дзвінок термінала.</p>
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Віддалена робота, десктоп, сповіщення">
+            <table class="min-w-[42rem]">
+              <thead>
+                <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td><code>agentPushNotifEnabled</code></td>
+                <td>Дозволити Claude надсилати push-сповіщення на телефон, коли він сам вирішить це зробити.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>awaySummaryEnabled</code></td>
+                <td>Вимкнути короткий підсумок сесії, який показується, коли ти повертаєшся в термінал.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>disableArtifact</code></td>
+                <td>Застарілий. Вимикати інструмент Artifact слід через <code>enableArtifact</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>disableDeepLinkRegistration</code></td>
+                <td>Не реєструвати обробник посилань <code>claude-cli://</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>disableDesktopLocalSessions</code></td>
+                <td>Вимкнути сесії Desktop Code, що виконуються на самому пристрої; SSH і хмара лишаються.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>disableRemoteControl</code></td>
+                <td>Вимкнути Remote Control скрізь, де він може запуститись.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>enableArtifact</code></td>
+                <td>Вимкнути інструмент Artifact значенням <code>false</code> з будь-якого файла; назад його не вмикає жоден файл. <span class="text-faint">потрібна 2.1.196+</span></td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>inputNeededNotifEnabled</code></td>
+                <td>Push-сповіщення, коли Claude чекає на тебе.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>preferredNotifChannel</code></td>
+                <td>Як повідомляти про завершення задачі: <code>auto</code>, <code>terminal_bell</code>, <code>iterm2</code>, <code>iterm2_with_bell</code>, <code>kitty</code>, <code>ghostty</code> або <code>notifications_disabled</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>remote.<wbr>defaultEnvironmentId</code></td>
+                <td>Типове хмарне середовище для <code>claude --cloud</code>. Свій ідентифікатор <code>ccpool_</code> читається лише з користувацьких, керованих налаштувань і <code>--settings</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>remoteControlAtStartup</code></td>
+                <td>Підключати Remote Control автоматично на старті сесії. <strong>Асиметричний:</strong> проєктний або локальний файл може вимкнути (<code>false</code>), але не може ввімкнути.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>sshConfigs</code></td>
+                <td>Додати SSH-підключення у випадайку середовищ Desktop.</td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>sshHostAllowlist</code></td>
+                <td>Обмежити, до яких хостів дістаються SSH-сесії Desktop.</td>
+                <td>лише керований</td>
+              </tr>
+              </tbody>
+            </table>
+            </div>
+          <p class="text-sm"><a href="#toc">↑ до переліку розділів</a></p>
+        </section>
+
+        <hr />
+        <section id="auth" class="scroll-mt-24">
+          <h2>Вхід і постачальники моделі</h2>
+          <p>Як здобуваються облікові дані. Майже все тут — для тих, хто працює не через підписку, а через API, Bedrock, Google Cloud або корпоративний шлюз.</p>
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Вхід і постачальники моделі">
+            <table class="min-w-[42rem]">
+              <thead>
+                <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td><code>apiKeyHelper</code></td>
+                <td>Своя команда, яка генерує обліковий ключ до API.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>awsAuthRefresh</code></td>
+                <td>Своя команда, що оновлює прострочені облікові дані Bedrock у <code>.aws</code>.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>awsCredentialExport</code></td>
+                <td>Своя команда, що віддає облікові дані Bedrock у форматі JSON.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>forceLoginGatewayUrl</code></td>
+                <td>URL шлюзу, до якого підключається екран входу.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>forceLoginMethod</code></td>
+                <td>Обмежити вхід: claude.ai, Claude Console або хмарний шлюз.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>forceLoginOrgUUID</code></td>
+                <td>Прив'язати входи через claude.ai до твоєї організації. Примусово діє лише з керованого джерела.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>gcpAuthRefresh</code></td>
+                <td>Своя команда, що оновлює облікові дані Google Cloud.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>otelHeadersHelper</code></td>
+                <td>Своя команда, що генерує ротовані заголовки OpenTelemetry.</td>
+                <td>будь-який</td>
+              </tr>
+              </tbody>
+            </table>
+            </div>
+          <p class="text-sm"><a href="#toc">↑ до переліку розділів</a></p>
+        </section>
+
+        <hr />
+        <section id="updates" class="scroll-mt-24">
+          <h2>Оновлення й версії</h2>
+          <p>Який канал оновлень і які версії організація взагалі дозволяє запускати.</p>
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Оновлення й версії">
+            <table class="min-w-[42rem]">
+              <thead>
+                <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td><code>autoUpdatesChannel</code></td>
+                <td>Слідувати каналу stable замість latest.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>minimumVersion</code></td>
+                <td>Не давати автооновленню встановити щось нижче за вказану версію.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>requiredMaximumVersion</code></td>
+                <td>Відмовлятись стартувати на версії, новішій за дозволену організацією. <span class="text-faint">потрібна 2.1.163+</span></td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>requiredMinimumVersion</code></td>
+                <td>Відмовлятись стартувати на версії, старішій за ту, якої вимагає організація. <span class="text-faint">потрібна 2.1.163+</span></td>
+                <td>лише керований</td>
+              </tr>
+              </tbody>
+            </table>
+            </div>
+          <p class="text-sm"><a href="#toc">↑ до переліку розділів</a></p>
+        </section>
+
+        <hr />
+        <section id="tools" class="scroll-mt-24">
+          <h2>Інструменти десктопа</h2>
+          <p>Три керовані ключі про панелі Claude Desktop: браузер і симулятор iOS.</p>
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Інструменти десктопа">
+            <table class="min-w-[42rem]">
+              <thead>
+                <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td><code>browserExternalPageTools</code></td>
+                <td>Не пускати інструменти Claude на зовнішні сторінки в панелі Browser у Desktop.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>disableBrowserExternalNavigation</code></td>
+                <td>Обмежити панель Browser у Desktop лише адресою localhost — і для людини, і для Claude.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>disableMobileSimulatorTools</code></td>
+                <td>Заблокувати інструменти Claude у панелі iOS Simulator у Desktop.</td>
+                <td>лише керований</td>
+              </tr>
+              </tbody>
+            </table>
+            </div>
+          <p class="text-sm"><a href="#toc">↑ до переліку розділів</a></p>
+        </section>
+
+        <hr />
+        <section id="privacy" class="scroll-mt-24">
+          <h2>Приватність і телеметрія</h2>
+          <p>Скільки днів живуть транскрипти сесій і що йде назовні.</p>
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Приватність і телеметрія">
+            <table class="min-w-[42rem]">
+              <thead>
+                <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td><code>cleanupPeriodDays</code></td>
+                <td>Скільки днів зберігаються транскрипти сесій до видалення.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>desktopSessionCleanupPeriodDays</code></td>
+                <td>Граничний вік транскриптів Claude Desktop і Cowork у днях. <span class="text-faint">потрібна 2.1.248+</span></td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>feedbackDrafts</code></td>
+                <td>Чи ставить Claude Code чернетки відгуків у чергу на твій перегляд.</td>
+                <td>свій або керований</td>
+              </tr>
+              <tr>
+                <td><code>feedbackSurveyRate</code></td>
+                <td>Як часто з'являється опитування про якість сесії.</td>
+                <td>будь-який</td>
+              </tr>
+              <tr>
+                <td><code>skipWebFetchPreflight</code></td>
+                <td>Пропускати перевірку імені хоста у WebFetch, коли Anthropic недоступна.</td>
+                <td>будь-який</td>
+              </tr>
+              </tbody>
+            </table>
+            </div>
+          <p class="text-sm"><a href="#toc">↑ до переліку розділів</a></p>
+        </section>
+
+        <hr />
+        <section id="enterprise" class="scroll-mt-24">
+          <h2>Керовані налаштування організації</h2>
+          <p>Дев'ять ключів, які можна задати <strong>тільки</strong> з керованого джерела. Пересічному читачеві вони не знадобляться — вони тут, щоб перелік був повний і щоб було видно, що саме адміністратор може закрити.</p>
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Керовані налаштування організації">
+            <table class="min-w-[42rem]">
+              <thead>
+                <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td><code>disableSideloadFlags</code></td>
+                <td>Відхиляти прапорці CLI, що підсовують плагіни, субагентів і сервери MCP збоку. <span class="text-faint">потрібна 2.1.193+</span></td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>forceRemoteSettingsRefresh</code></td>
+                <td>Блокувати старт, доки серверні керовані налаштування не завантажаться свіжими.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>managedSourcesBehavior</code></td>
+                <td>Складати всі керовані джерела, які ти розгортаєш, замість того щоб брати одне — найпріоритетніше. <span class="text-faint">потрібна 2.1.242+</span></td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>parentSettingsBehavior</code></td>
+                <td>Застосовувати чи відкидати обмеження, які передає SDK- або IDE-хост, коли розгорнуті керовані налаштування.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>policyHelper</code></td>
+                <td>Об'єкт: виконуваний файл, що обчислює керовані налаштування на старті.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>policyHelper.<wbr>path</code></td>
+                <td>Який саме виконуваний файл запускати.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>policyHelper.<wbr>refreshIntervalMs</code></td>
+                <td>Перезапускати помічника у фоні через заданий інтервал.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>policyHelper.<wbr>timeoutMs</code></td>
+                <td>Скільки чекати на відповідь помічника.</td>
+                <td>лише керований</td>
+              </tr>
+              <tr>
+                <td><code>wslInheritsWindowsSettings</code></td>
+                <td>Щоб WSL читав керовані налаштування з ланцюга політик Windows.</td>
+                <td>лише керований</td>
+              </tr>
+              </tbody>
+            </table>
+            </div>
+          <p class="text-sm"><a href="#toc">↑ до переліку розділів</a></p>
+        </section>
+
+        <hr />
+        <section id="globalconfig" class="scroll-mt-24">
+          <h2>Глобальний конфіг <code>~/.claude.json</code></h2>
+          <p>Шість ключів, які живуть <strong>не</strong> в <code>settings.json</code>, а в окремому файлі <code>~/.claude.json</code>. У будь-якому іншому файлі Claude Code їх ігнорує. Здебільшого їх пише сам <code>/config</code>.</p>
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Глобальний конфіг ~/.claude.json">
+            <table class="min-w-[42rem]">
+              <thead>
+                <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td><code>autoConnectIde</code></td>
+                <td>Автоматично підключатись до запущеного VS Code чи JetBrains із зовнішнього термінала.</td>
+                <td>~/.claude.json</td>
+              </tr>
+              <tr>
+                <td><code>autoInstallIdeExtension</code></td>
+                <td>Вимкнути автоматичне встановлення розширення IDE з термінала VS Code.</td>
+                <td>~/.claude.json</td>
+              </tr>
+              <tr>
+                <td><code>diffTool</code></td>
+                <td>Де відкриваються запропоновані Claude зміни: у переглядачі дифів VS Code, JetBrains чи в терміналі.</td>
+                <td>~/.claude.json</td>
+              </tr>
+              <tr>
+                <td><code>externalEditorContext</code></td>
+                <td>Показувати останню відповідь Claude коментарями, коли ти тиснеш <code>Ctrl+G</code> для редагування.</td>
+                <td>~/.claude.json</td>
+              </tr>
+              <tr>
+                <td><code>permissionExplainerEnabled</code></td>
+                <td>Пояснення команди по <code>Ctrl+E</code> в діалозі дозволу Bash і PowerShell. Разом із самим поясненням ключ прибрано — у нових збірках він не робить нічого. <span class="text-faint">прибраний у 2.1.257</span></td>
+                <td>~/.claude.json</td>
+              </tr>
+              <tr>
+                <td><code>teammateDefaultModel</code></td>
+                <td>Типова модель напарника в командах агентів. Ключа більше немає; як модель обирається тепер, каже документація про команди агентів. <span class="text-faint">прибраний у 2.1.234</span></td>
+                <td>~/.claude.json</td>
+              </tr>
+              </tbody>
+            </table>
+            </div>
+          <p class="text-sm"><a href="#toc">↑ до переліку розділів</a></p>
+        </section>
+
+        <hr />
+
+      <section id="notinlist" class="scroll-mt-24">
+        <h2>Чого в цьому переліку немає</h2>
+        <p>
+          Сторінка перелічує ключі <code>settings.json</code> — і тільки їх. Поруч живуть
+          чотири інші набори налаштувань, які теж міняють поведінку Claude Code, але пишуться
+          деінде:
+        </p>
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Налаштування поза settings.json">
+        <table class="min-w-[42rem]">
+          <thead>
+            <tr><th>Що</th><th>Де</th><th>Куди дивитись</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>змінні середовища</td>
+              <td>в оболонці або в ключі <code>env</code> цих же файлів</td>
+              <td><a href="https://code.claude.com/docs/en/env-vars" target="_blank"
+                  rel="noopener noreferrer">довідник змінних середовища</a>. Через <code>env</code>
+                будь-яку з них можна застосувати до всіх сесій або розкотити на команду</td>
+            </tr>
+            <tr>
+              <td>події перехоплювачів</td>
+              <td>усередині ключа <code>hooks</code></td>
+              <td>сам ключ є в <a href="#hooks">розділі про автоматизацію</a>, а повна таблиця
+                всіх подій — окремий довідник цього курсу</td>
+            </tr>
+            <tr>
+              <td>слеш-команди й гарячі клавіші</td>
+              <td>ніде — вони вбудовані</td>
+              <td>окремий довідник цього курсу</td>
+            </tr>
+            <tr>
+              <td>решта <code>~/.claude.json</code></td>
+              <td>той самий файл, але поза шістьма ключами з
+                <a href="#globalconfig">останнього розділу</a></td>
+              <td>там лежить твоя сесія входу, конфігурації серверів MCP і стан кожного проєкту
+                (зокрема рішення про довіру до теки). Claude Code пише цей файл для себе —
+                правити його руками не треба</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+        <p>
+          Окремо: <code>CLAUDE.md</code>, <code>.mcp.json</code>, <code>SKILL.md</code> навичок
+          і файли субагентів — це не налаштування, а вміст, який Claude Code читає.
+          Ключі тут лише вмикають і вимикають їх.
+        </p>
+        <p class="text-sm"><a href="#toc">&#8593; до переліку розділів</a></p>
+      </section>
+
+      <hr />
+
+      <section id="sources" class="scroll-mt-24">
+        <h2>Звідки взято й коли перевірено</h2>
+        <ul>
+          <li>
+            <strong>Перелік ключів, теми й області</strong> — таблиця «All settings» сторінки
+            <a href="https://code.claude.com/docs/en/settings-reference" target="_blank"
+              rel="noopener noreferrer">Claude Code settings reference</a>, прочитано
+            <strong>4 вересня 2026</strong>. Того дня в ній було 223 рядки; напередодні,
+            3 вересня, — 222.
+          </li>
+          <li>
+            <strong>Файли, порядок перекриття, поведінка зламаного файла й сім винятків</strong> —
+            сторінка <a href="https://code.claude.com/docs/en/settings" target="_blank"
+              rel="noopener noreferrer">Claude Code settings</a>, той самий день.
+          </li>
+          <li>
+            <strong>Прив'язка шляхів у правилах дозволів</strong> — сторінка
+            <a href="https://code.claude.com/docs/en/permissions" target="_blank"
+              rel="noopener noreferrer">Permissions</a>, той самий день.
+          </li>
+          <li>
+            <strong>Дві пари ключів MCP</strong> — сторінка
+            <a href="https://code.claude.com/docs/en/mcp" target="_blank"
+              rel="noopener noreferrer">MCP</a>, розділ «Disable a server without removing it».
+          </li>
+          <li>
+            <strong>Перевірка ключів у бінарнику</strong> — запущено на macOS 26.5.2, zsh 5.9,
+            Claude Code 2.1.236, 4 вересня 2026. Версія в каналі <code>latest</code> того ж дня —
+            2.1.260.
+          </li>
+        </ul>
+        <p>
+          Переклад описів — наш; формулювання документації скорочені до одного речення.
+          Там, де точне слово має значення (назви значень, шляхи, підстановки), воно лишене
+          англійською як є, бо саме так його треба писати у файлі.
+        </p>
+        <p class="text-sm"><a href="#toc">&#8593; до переліку розділів</a></p>
+      </section>
+
+      <hr />
+
+      <div class="callout callout-sand">
+        <span class="callout-title">Термін придатності цієї сторінки — короткий</span>
+        <p>
+          Перелік знімали двічі: 3 вересня 2026 року в ньому було 222 ключі, 4 вересня —
+          223. За одну ніч додався <code>permissions.<wbr>blockReadsOutsideWorkingDirectories</code>.
+          Це не аномалія, це швидкість, з якою змінюється Claude Code.
+        </p>
+        <p>
+          Тому: якщо ключа тут немає — <strong>це не означає, що його немає</strong>. Звіряй із
+          першоджерелом: <a href="https://code.claude.com/docs/en/settings-reference"
+            target="_blank" rel="noopener noreferrer">довідник налаштувань у документації</a>.
+          Як перевірити конкретний ключ на своїй машині — <a href="#trap9">пастка 9</a>.
+        </p>
+      </div>
+
+
+      <div class="mt-12 rounded-xl border border-line bg-surface p-6">
+        <p class="font-medium text-ivory">Два інші довідники курсу</p>
+        <ul class="mt-3 space-y-2 text-sm">
+          <li><a href="claude-code-ref-commands.html">Усі команди й клавіші</a> — слеш-команди
+            й гарячі клавіші в різних контекстах</li>
+          <li><a href="claude-code-ref-hooks.html">Таблиця подій</a> — усі події
+            перехоплювачів: коли спрацьовує, що приходить на вхід, що можна повернути</li>
+        </ul>
+      </div>
+
+      </article>
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну &#8593;</a>
+    </div>
+  </footer>
+
+  <!-- Довіднику не потрібні ні js/module.js (немає сусідніх уроків і сайдбара),
+       ні js/quiz.js (немає тесту), ні Mermaid. Решта каркаса — як в уроках. -->
+  <script src="js/progress.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth-ui.js"></script>
+  <script type="module" src="js/auth.js"></script>
+</body>
+
+</html>

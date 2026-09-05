@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="uk" class="js">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Доказовий екран: компонент усередині уроку</title>
+<script>document.documentElement.classList.add("js");</script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="site-inherited.css" />
+<link rel="stylesheet" href="term.css" />
+<link rel="stylesheet" href="page.css" />
+<style>
+/* ⚠ Тільки для цієї сторінки-доказу. У код не їде: там це вже є в
+   modules/*.html (Tailwind-утиліти + .prose-aia). */
+.proof { max-width: 48rem; margin-inline: auto; padding: var(--s-10) var(--cc-pad-page) var(--s-16); }
+.proof__note { border-left: 2px solid var(--c-accent); padding: var(--s-3) var(--s-5);
+               margin-bottom: var(--s-10); color: var(--c-muted); font-size: 0.9375rem; line-height: 1.6; }
+.proof__note b { color: var(--c-sand); font-weight: 500; }
+.proof__eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.18em;
+                  text-transform: uppercase; color: var(--c-accent); }
+.proof h1 { font-family: var(--f-display); font-weight: 400; font-size: 2.25rem;
+            line-height: 1.15; color: var(--c-ivory); margin: var(--s-3) 0 0; }
+</style>
+</head>
+<body>
+<div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+<div class="proof">
+  <p class="proof__note">
+    <b>Це доказовий екран, а не дизайн сторінки уроку.</b> Сторінка уроку бере наявний шаблон
+    <code>&lt;article class="prose-aia max-w-3xl"&gt;</code> і не перемальовується.
+    Екран існує рівно для того, щоб побачити зіткнення, яке інакше лишилось би теорією:
+    <code>.prose-aia pre</code> має специфічність (0,1,1), а <code>.term__body</code> — (0,1,0),
+    тобто всередині уроку правило уроку виграє й підміняє <code>white-space: pre</code> на
+    <code>pre-wrap</code>. Колонки дифу, дерева й меню від цього розсипаються.
+    Розв'язано оголошенням полотна як <code>.term &gt; .term__body</code> — (0,2,0) — з явним скиданням
+    усіх семи успадкованих властивостей. Нижче видно, що звичайні <code>&lt;pre&gt;</code> уроку при
+    цьому лишились такими, як були.
+  </p>
+
+  <!-- Далі — фрагмент уроку рівно в наявному шаблоні сайту -->
+  <article class="prose-aia" style="max-width:none">
+
+    <p class="proof__eyebrow">Фаза 1 · Старт з нуля</p>
+    <h1>Перша сесія: проси, дивись, дозволяй</h1>
+
+    <p>Перше, що варто зробити, — зайти в папку свого проєкту й запустити агента там.
+      Якщо запустити його в домашній папці, він не бачить проєкту й починає шукати по всьому диску.</p>
+
+    <figure class="term term--cmd" id="p1">
+      <figcaption class="term__chrome">
+        <span class="term__dots" aria-hidden="true"></span>
+        <span class="term__title" id="p1t">запуск у папці проєкту</span>
+        <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+      </figcaption>
+      <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">cd ~/my-site</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude</span></span>
+<span class="term__line"><span class="term__in">&gt; додай у README розділ «Як запустити локально»</span></span></pre>
+    </figure>
+
+    <p>У відповідь агент не почне одразу писати. Спершу він читає те, що вже є, і показує кожен крок
+      окремим рядком. Це найважливіша звичка всього курсу: <strong>дивись, що він робить, перш ніж
+      погоджуватись</strong>.</p>
+
+    <figure class="term term--enter" id="p2">
+      <figcaption class="term__chrome">
+        <span class="term__dots" aria-hidden="true"></span>
+        <span class="term__title" id="p2t">кроки і запропонована зміна</span>
+      </figcaption>
+      <pre class="term__body" tabindex="0" role="group" aria-labelledby="p2t"><span class="term__line"><span class="term__mark term__mark--tool" aria-hidden="true">⏺</span> <span class="term__tool">Read</span>(README.md)</span>
+<span class="term__line">  <span class="term__mark term__mark--lg term__mark--meta" aria-hidden="true">└─</span> <span class="term__meta">прочитано 48 рядків</span></span>
+<span class="term__line"><span class="term__mark term__mark--tool" aria-hidden="true">⏺</span> <span class="term__tool">Update</span>(README.md)</span>
+<span class="term__line"><span class="term__meta"><span aria-hidden="true">  ── </span>README.md<span aria-hidden="true"> ───────────────────────────</span></span></span>
+<span class="term__line"><span class="term__del">  - ## Запуск</span></span>
+<span class="term__line"><span class="term__add">  + ## Як запустити локально</span></span>
+<span class="term__line"><span class="term__add">  + 1. npm install</span></span>
+<span class="term__line"><span class="term__add">  + 2. npm run dev  →  localhost:5173</span></span>
+<span class="term__line"><span class="term__meta"><span aria-hidden="true">  ──────────────────────────────</span>  +9 −2</span></span>
+<span class="term__line">  <span class="term__in">Дозволити зміну README.md?</span></span>
+<span class="term__line term__line--pick">  <span class="term__mark term__mark--pick">❯</span> <span class="term__pick">1. Так</span></span>
+<span class="term__line">  <span class="term__meta">  2. Так, і не питати про цей файл</span></span>
+<span class="term__line">  <span class="term__meta">  3. Ні, і скажу чому</span></span></pre>
+    </figure>
+
+    <h2>Якщо замість цього ти бачиш помилку</h2>
+
+    <p>Найчастіша помилка на першому запуску виглядає так. Вона не означає, що щось зламалось:
+      вікно термінала просто ще не знає про щойно встановлену команду.</p>
+
+    <figure class="term term--err term--enter" id="p3">
+      <figcaption class="term__chrome">
+        <span class="term__dots" aria-hidden="true"></span>
+        <span class="term__title" id="p3t">команду не знайдено</span>
+      </figcaption>
+      <pre class="term__body" tabindex="0" role="group" aria-labelledby="p3t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude</span></span>
+<span class="term__line"><span class="term__err">zsh: command not found: claude</span></span>
+<span class="term__line"><span class="term__meta">Підказка: закрий вікно термінала й відкрий заново, потім</span></span>
+<span class="term__line"><span class="term__meta">спробуй ще раз.</span></span></pre>
+    </figure>
+
+    <h2>Що тут лишилось наявним, а не новим</h2>
+
+    <p>Нижче — три компоненти уроку, яких ця задача не чіпала. Вони поруч навмисно: так видно, що
+      новий блок не витіснив і не перефарбував нічого із сусідів.</p>
+
+    <p>Звичайний <code>&lt;pre&gt;</code> навчального тексту — переноситься, як і раніше:</p>
+
+<pre>Це звичайний блок коду в уроці. У нього довгий рядок, і за правилом .prose-aia pre він має переноситись, а не скролитись — саме так, як було до задачі 005.</pre>
+
+    <p>Наявний компонент «приклад промпту й відповіді»:</p>
+
+    <div class="example">
+      <div class="example-head"><span class="tag-user">Промпт</span></div>
+      <pre>Поясни, що робить ця команда, простими словами.</pre>
+      <div class="example-head"><span class="tag-model">Відповідь</span></div>
+      <pre>Вона переходить у папку проєкту й запускає агента саме там.</pre>
+    </div>
+
+    <p>І список із маркерами уроку:</p>
+    <ul>
+      <li>перевір, що ти в потрібній папці;</li>
+      <li>читай <code>⏺</code>-кроки згори вниз;</li>
+      <li>відповідай на запит дозволу свідомо, а не автоматично.</li>
+    </ul>
+  </article>
+</div>
+
+<script src="term.js"></script>
+<script src="motion.js"></script>
+</body>
+</html>

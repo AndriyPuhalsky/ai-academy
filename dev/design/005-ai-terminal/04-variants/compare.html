@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>005 · Три варіанти поруч — інтенсивність руху</title>
+<style>
+  :root { color-scheme: dark; --shot-w: 1280px; --shot-h: 760px; }
+  body { margin:0; background:#0a0908; color:#CFC9BF;
+         font:15px/1.55 "IBM Plex Sans", system-ui, sans-serif; }
+  .wrap { padding:24px; max-width:1760px; margin-inline:auto; }
+  h1 { font:400 24px/1.2 Literata, Georgia, serif; color:#F0EEE6; margin:0 0 8px; }
+  .intro { margin:0 0 18px; max-width:78ch; color:#A8A095; font-size:14px; }
+  .bar { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:22px; }
+  button, .lnk { font:500 14px/1 "IBM Plex Sans", system-ui, sans-serif; border-radius:8px;
+                 padding:11px 18px; cursor:pointer; text-decoration:none; display:inline-block; }
+  button { color:#141312; background:#D97757; border:0; }
+  button.ghost, .lnk { background:transparent; color:#F0EEE6; border:1px solid #3A342E; }
+  :is(button,.lnk):focus-visible { outline:2px solid #D97757; outline-offset:3px; }
+  .grid { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:18px; }
+  @media (max-width: 1100px) { .grid { grid-template-columns:1fr; } }
+  h2 { font:400 18px/1.2 Literata, Georgia, serif; color:#F0EEE6; margin:0 0 2px; }
+  .meta { font:400 12px/1.6 "IBM Plex Mono", monospace; color:#A8A095; margin:0 0 10px; }
+  /* Кадр показує НАСТУЯЩИЙ десктопний макет (1280px), стиснутий до колонки.
+     Дрібний текст тут читати не треба — поруч порівнюють РИТМ руху,
+     а не типографіку. Для деталей — посилання «відкрити на весь екран». */
+  .shot { position:relative; width:100%; aspect-ratio: 1280 / 760;
+          border:1px solid #3A342E; border-radius:10px; overflow:hidden; background:#141312; }
+  .shot iframe { position:absolute; top:0; left:0; width:var(--shot-w); height:var(--shot-h);
+                 border:0; transform-origin: top left; }
+  .foot { margin-top:10px; display:flex; gap:10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Три варіанти поруч · вісь — інтенсивність руху</h1>
+  <p class="intro">Роль термінала (29% першого екрана), композиція, карта програми, вузол іспиту,
+     довідники й набір станів компонента у всіх трьох <strong>однакові</strong>. Відрізняються
+     тільки значення руху. Натисни «Показати сесію в усіх трьох» і дивись на три вікна
+     одночасно: різницю чути ритмом, а не деталями. Дрібний текст тут читати не треба —
+     для нього є «відкрити на весь екран».</p>
+
+  <div class="bar">
+    <button type="button" id="all">Показати сесію в усіх трьох</button>
+    <button type="button" class="ghost" id="reload">Перезавантажити (як у перший візит)</button>
+  </div>
+
+  <div class="grid">
+    <div class="cell">
+      <h2>A — «Спокій»</h2>
+      <p class="meta">24 симв/с · сесія 5.18 с<br>нуль безкінечного руху після завершення</p>
+      <div class="shot"><iframe src="variant-a/index.html" title="Варіант A — Спокій"></iframe></div>
+      <div class="foot"><a class="lnk" href="variant-a/index.html" target="_blank" rel="noopener">Відкрити на весь екран</a></div>
+    </div>
+    <div class="cell">
+      <h2>B — «Робота»</h2>
+      <p class="meta">32 симв/с · сесія 4.94 с<br>після завершення дихає маркер ❯</p>
+      <div class="shot"><iframe src="variant-b/index.html" title="Варіант B — Робота"></iframe></div>
+      <div class="foot"><a class="lnk" href="variant-b/index.html" target="_blank" rel="noopener">Відкрити на весь екран</a></div>
+    </div>
+    <div class="cell">
+      <h2>C — «Присутність»</h2>
+      <p class="meta">44 симв/с · сесія 3.52 с<br>виразніший каскад, перескок і дихання</p>
+      <div class="shot"><iframe src="variant-c/index.html" title="Варіант C — Присутність"></iframe></div>
+      <div class="foot"><a class="lnk" href="variant-c/index.html" target="_blank" rel="noopener">Відкрити на весь екран</a></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SHOT_W = 1280;
+  function fit() {
+    document.querySelectorAll('.shot').forEach(box => {
+      const k = box.clientWidth / SHOT_W;
+      box.querySelector('iframe').style.transform = 'scale(' + k + ')';
+    });
+  }
+  addEventListener('resize', fit);
+  addEventListener('load', fit);
+  fit();
+
+  const frames = () => Array.from(document.querySelectorAll('iframe'));
+  document.getElementById('all').addEventListener('click', () => {
+    frames().forEach(f => {
+      const b = f.contentDocument && f.contentDocument.getElementById('heroReplay');
+      if (b) b.click();
+    });
+  });
+  document.getElementById('reload').addEventListener('click', () => {
+    frames().forEach(f => f.contentWindow.location.reload());
+  });
+</script>
+</body>
+</html>

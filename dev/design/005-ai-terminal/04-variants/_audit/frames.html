@@ -1,0 +1,13 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><title>audit</title>
+<style>body{margin:0;background:#333;font:12px monospace;color:#fff}
+.row{display:inline-block;vertical-align:top;margin:4px}
+iframe{border:0;display:block;background:#000}</style></head>
+<body><div id="host"></div>
+<script>
+const W=[320,390,414,640,768,1024];
+const page=new URLSearchParams(location.search).get('p')||'_base/index.html';
+const H=parseInt(new URLSearchParams(location.search).get('h')||'900',10);
+host.innerHTML=W.map(w=>`<div class="row"><div>${w}</div><iframe id="f${w}" width="${w}" height="${H}" src="../${page}"></iframe></div>`).join('');
+window.probe=()=>W.map(w=>{const d=document.getElementById('f'+w).contentDocument;
+ return w+': body.sw='+d.documentElement.scrollWidth+' cw='+d.documentElement.clientWidth+' '+(d.documentElement.scrollWidth>d.documentElement.clientWidth?'HSCROLL':'ok');}).join('\n');
+</script></body></html>

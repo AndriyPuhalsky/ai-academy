@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 15 · Субагенти, worktrees, паралельність — AI Термінал</title>
+  <meta name="description"
+    content="Коли варто віддати задачу окремому помічникові, а коли це зробить гірше: субагенти та їхні файли, форк розмови, ізольовані копії проєкту (worktrees), команди агентів, динамічні робочі процеси й повідомлення між сесіями." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="c15" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 15</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 3 · Налаштування під себе</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Субагенти, worktrees,
+          паралельність</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Просунутий · 8 блоків · ≈ 50 хв читання</p>
+        <p class="mt-6 text-lg">
+          Одна сесія Claude Code — це одна розмова з одним вікном контексту. Коли всередині неї
+          трапляється велика побічна задача (перечитати сто файлів, прогнати тести, поритись у
+          логах), її вивід осідає в тому самому вікні й витісняє те, заради чого ти сів працювати.
+          Claude Code вміє віддати таку задачу окремому помічникові — а помічників можна запустити
+          кілька одночасно. Цей модуль про те, як це влаштовано і, головне, коли цього робити
+          <strong>не</strong> варто.
+        </p>
+        <p>
+          Паралельність тут не безкоштовна. У помічника своє вікно контексту, тому він не знає
+          нічого з того, що ви щойно обговорили; назад він віддає не свою роботу, а текст про неї;
+          і кожен окремий помічник витрачає токени окремо. Найцінніше, що дає цей модуль, — не
+          перелік прапорців, а вміння відповісти собі на питання «чи вигідно тут ділити роботу».
+        </p>
+
+        <div class="callout">
+          <span class="callout-title">Що в цьому модулі є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> навичок, слеш-команд і плагінів — це модуль 14. Немає
+            перехоплювачів подій (hooks) — модуль 16. Немає запусків без діалогу
+            (<code>claude -p</code>) і роботи в CI — модуль 19. Немає розписання, віддаленого
+            керування й роботи, поки ти спиш, — модуль 20. Немає git як такого: це окрема
+            програма, про неї модуль 21; тут пояснено рівно стільки, скільки треба для worktrees.
+          </p>
+          <p>
+            <strong>Є:</strong> субагент і його файл, форк розмови, фонові агенти, ізольовані
+            копії проєкту (worktrees), команди агентів, динамічні робочі процеси й повідомлення
+            між твоїми сесіями — тобто вся паралельна робота, яку ти запускаєш зі своєї машини
+            й бачиш на своєму екрані.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
+          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+
+          <p>
+            У модулі 6 було про вікно контексту: усе, що Claude пам'ятає в цю мить, — твої
+            повідомлення, прочитані файли, вивід кожної команди — лежить в одному обмеженому
+            обсязі. Коли він заповнюється, старе витісняється або стискається, і якість відповідей
+            падає. Ціна теж росте: кожен новий запит везе із собою всю накопичену розмову.
+          </p>
+
+          <p>
+            Тепер уяви типову ситуацію. Ти правиш одну функцію, і посеред роботи треба з'ясувати,
+            звідки в проєкті береться змінна з налаштувань. Claude відкриває двадцять файлів,
+            друкує двадцять фрагментів — і всі двадцять лишаються у вікні до кінця розмови,
+            хоча відповідь була одним рядком.
+          </p>
+
+          <h3>Що таке субагент</h3>
+
+          <p>
+            <strong>Субагент</strong> (subagent; ще кажуть «підагент») — це окремий помічник,
+            якого Claude запускає всередині твоєї сесії, щоб виконати одну побічну задачу.
+            У нього <strong>своє вікно контексту</strong>, свій системний промпт (текст-інструкція,
+            який задає йому роль), свій набір інструментів і свої дозволи. Двадцять файлів він
+            читає у своє вікно, а в твою розмову повертає лише підсумок.
+          </p>
+
+          <p>
+            Розмову, у якій сидиш ти, документація називає <strong>головною розмовою</strong>
+            (main conversation), а передачу задачі помічникові — <strong>делегуванням</strong>
+            (delegation). Далі ці слова вживатимуться саме так.
+          </p>
+
+          <p>Документація Claude Code перелічує п'ять причин, навіщо це взагалі потрібно:</p>
+
+          <ul>
+            <li><strong>зберегти контекст</strong> — пошук і розвідка не осідають у головній
+              розмові;</li>
+            <li><strong>обмежити повноваження</strong> — помічникові можна дати лише читання;</li>
+            <li><strong>перевикористати налаштування</strong> — один файл, і той самий помічник
+              є в усіх твоїх проєктах;</li>
+            <li><strong>задати вузьку поведінку</strong> — окремий системний промпт під одну
+              роль;</li>
+            <li><strong>керувати ціною</strong> — рутину можна віддати дешевшій і швидшій
+              моделі.</li>
+          </ul>
+
+          <h3>Чим за це платять</h3>
+
+          <p>
+            Кожна з цих переваг має зворотний бік, і про них у мережевих туторіалах пишуть рідко.
+          </p>
+
+          <ul>
+            <li><strong>Субагент не знає твоєї розмови.</strong> Він стартує з чистого аркуша.
+              Усе, що він отримує, — це опис задачі, який Claude пише за тебе, плюс кілька
+              службових речей (їх повний перелік — у блоці 3). Якщо ви півгодини домовлялись, що
+              папку <code>vendor/</code> чіпати не можна, помічник цього не почує, доки правило
+              не повторять йому окремо. Це сказано в документації прямим текстом.</li>
+            <li><strong>Назад приходить текст, а не робота.</strong> Результат субагента — це
+              його підсумковий звіт. Якщо запустити багато помічників, і кожен поверне докладний
+              звіт, головне вікно заб'ється звітами замість файлів — і виграшу не буде.
+              Документація попереджає про це окремою нотаткою.</li>
+            <li><strong>Токени множаться.</strong> Кожен помічник — це окреме вікно й окремі
+              запити. Документація каже про це коротко: паралельний запуск кількох сесій або
+              субагентів <strong>множить витрату токенів</strong>. Про самі токени й ціну — модуль 11.</li>
+            <li><strong>Затримка.</strong> Помічник, який стартує з нуля, спершу мусить зібрати
+              контекст сам. Для дрібної правки це довше, ніж зробити її в головній розмові.</li>
+          </ul>
+
+          <h3>Чотири різні способи розпаралелити, а не один</h3>
+
+          <p>
+            Слово «паралельно» в документації Claude Code означає чотири різні механізми, і
+            плутати їх дорого. Ось вони одним абзацом кожен; докладно — у блоці 3.
+          </p>
+
+          <ul>
+            <li><strong>Субагенти</strong> — помічники всередині однієї сесії. План тримає Claude,
+              підсумок повертається в цю ж розмову.</li>
+            <li><strong>Панель агентів</strong> (agent view, команда <code>claude agents</code>) —
+              один екран, з якого ти сам запускаєш кілька <em>окремих сесій</em> у фоні й
+              заглядаєш у них, коли захочеш. Позначена в документації як research preview.</li>
+            <li><strong>Команди агентів</strong> (agent teams) — кілька сесій, якими керує
+              сесія-керівник; вони мають спільний список задач і пишуть одна одній.
+              <strong>Експериментальна функція, вимкнена за замовчуванням.</strong></li>
+            <li><strong>Динамічні робочі процеси</strong> (dynamic workflows) — скрипт, який сам
+              запускає десятки й сотні субагентів за написаним планом.</li>
+          </ul>
+
+          <p>
+            Плюс окремо стоять <strong>worktrees</strong> — ізольовані копії папки проєкту.
+            Це не спосіб запускати агентів, а спосіб зробити так, щоб двоє, які працюють одночасно,
+            не переписували файли один одному.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Головне речення модуля</span>
+            <p>
+              Ділити роботу варто тоді, коли частини <strong>справді незалежні</strong>, а результат
+              кожної вміщується в короткий підсумок. Якщо частини постійно зазирають одна в одну —
+              одна розмова вийде і швидшою, і дешевшою, і точнішою.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
+          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Тут доведеться домовитись про чесність. Більша частина цієї теми живе всередині
+            намальованого інтерактивного екрана: панель помічників під полем вводу, список
+            <code>/tasks</code>, екран <code>claude agents</code>, вікно перегляду робочих
+            процесів. Цей екран перемальовується на місці й не існує як текст, який можна зняти
+            командою і показати тобі дослівно. Тому нижче знято лише те, що справді знімається, а
+            інтерфейс описаний словами. Домальовувати екрани в курсі, який учить звіряти все
+            живою командою, було б смішно.
+          </p>
+
+          <h3>Дві команди з однаковою назвою, які роблять різне</h3>
+
+          <p>
+            Перша пастка — у назвах. <code>claude agents</code> (команда оболонки) і
+            <code>/agents</code> (команда всередині сесії) — це <strong>різні речі</strong>,
+            і документація окремо про це попереджає.
+          </p>
+
+          <p>
+            <code>claude agents</code> відкриває панель агентів — екран керування
+            <em>фоновими сесіями</em>. Його прапорці задають, з якими налаштуваннями стартують
+            сесії, запущені з цієї панелі:
+          </p>
+
+          <figure class="term term--cmd" id="p1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p1t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04 · вивід
+                скорочено</span>
+              <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude agents --help</span></span>
+<span class="term__line">Usage: claude agents [options]</span>
+<span class="term__line"></span>
+<span class="term__line">Manage background agents</span>
+<span class="term__line"></span>
+<span class="term__line">Options:</span>
+<span class="term__line">  --agent &lt;agent&gt;                       Default agent for sessions dispatched</span>
+<span class="term__line">                                        from agent view. Overrides the 'agent'</span>
+<span class="term__line">                                        setting.</span>
+<span class="term__line">  --all                                 With --json: also include completed</span>
+<span class="term__line">                                        background sessions</span>
+<span class="term__line"><span class="term__meta">  …</span></span>
+<span class="term__line">  --json                                Print active sessions (interactive and</span>
+<span class="term__line">                                        background) as a JSON array and exit</span>
+<span class="term__line">                                        (for scripting; does not require a TTY)</span>
+<span class="term__line"><span class="term__meta">  …</span></span>
+<span class="term__line">  --model &lt;model&gt;                       Default model for sessions dispatched</span>
+<span class="term__line">                                        from agent view</span>
+<span class="term__line">  --permission-mode &lt;mode&gt;              Default permission mode for sessions</span>
+<span class="term__line">                                        dispatched from agent view</span></pre>
+          </figure>
+
+          <p>
+            Рядки, позначені <code>…</code>, я прибрав, щоб блок помістився: всього у цієї
+            підкоманди 16 прапорців, включно з <code>--help</code>. Зверни увагу на формулювання
+            <em>«dispatched from agent view»</em> — це прапорці <strong>не</strong> про субагентів
+            у твоїй розмові.
+          </p>
+
+          <p>
+            А <code>/agents</code> усередині сесії з версії <strong>2.1.198</strong> уже
+            <strong>не відкриває меню</strong>: він друкує нагадування попросити Claude створити
+            чи змінити помічника або відредагувати теку <code>.claude/agents/</code> вручну.
+            До версії 2.1.197 включно там був майстер створення з вкладками. Це знімок екрана,
+            який я тобі не покажу з тієї ж причини, що й решту інтерфейсу, — але в блоці 4 є крок,
+            де ти набереш цю команду сам і побачиш нагадування власними очима. Заразом перевіриш
+            будь-який туторіал у мережі, у якому ще намальоване старе меню.
+          </p>
+
+          <h3>Файл помічника, який мовчки не працює</h3>
+
+          <p>
+            Другу пастку показати вже можна, і вона того варта. Субагент задається текстовим
+            файлом (докладно — у блоці 3). Якщо в цьому файлі помилка, Claude Code
+            <strong>мовчить</strong>: помічника немає, і ніхто не пояснює чому.
+          </p>
+
+          <p>
+            Перевірити теку до того, як сісти працювати, вміє окрема команда. У теці нижче лежать
+            чотири файли: один правильний (<code>log-digger.md</code>), один зі зламаним
+            заголовком (<code>broken-yaml.md</code>), один без опису
+            (<code>no-description.md</code>) і один без імені (<code>no-name.md</code>):
+          </p>
+
+          <figure class="term term--cmd" id="p2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p2t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p2t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude plugin validate .claude/agents</span></span>
+<span class="term__line">Validating components in: /private/tmp/agents-demo/.claude/agents</span>
+<span class="term__line"></span>
+<span class="term__line">Validating agent: /private/tmp/agents-demo/.claude/agents/no-description.md</span>
+<span class="term__line"></span>
+<span class="term__line">⚠ Found 1 warning:</span>
+<span class="term__line"></span>
+<span class="term__line">  <span class="term__meta" aria-hidden="true">❯</span> description: No description in frontmatter. A description helps users and Claude understand when to use this agent.</span>
+<span class="term__line"></span>
+<span class="term__line">Validating agent: /private/tmp/agents-demo/.claude/agents/broken-yaml.md</span>
+<span class="term__line"></span>
+<span class="term__line"><span class="term__err">✘ Found 1 error:</span></span>
+<span class="term__line"></span>
+<span class="term__line">  <span class="term__meta" aria-hidden="true">❯</span> frontmatter: YAML frontmatter failed to parse: YAML Parse error: Unexpected character. At runtime this agent does not load at all — with no frontmatter name it is treated as a co-located reference document and skipped.</span>
+<span class="term__line"></span>
+<span class="term__line"><span class="term__err">✘ Validation failed</span></span></pre>
+          </figure>
+
+          <p>
+            Прочитай цей вивід уважно, бо в ньому головна новина модуля. Команда назвала
+            <strong>два</strong> файли з чотирьох. Про <code>log-digger.md</code> вона мовчить,
+            бо з ним усе гаразд. А про <code>no-name.md</code> вона мовчить теж — і саме цей
+            файл у сесії не працюватиме. Документація визнає це прямо: перевірка не позначає
+            файл, чий заголовок читається, але не має поля <code>name</code>. Тобто найпоширеніша
+            причина «помічника немає» не ловиться навіть спеціальною перевіркою.
+          </p>
+
+          <p>
+            Команда повертає код завершення <code>1</code>, коли знайшла помилку, — тому її можна
+            ставити у власні скрипти. Потребує Claude Code 2.1.233 або новішої.
+          </p>
+
+          <h3>Що ти побачиш, коли помічник справді працює (словами)</h3>
+
+          <p>
+            Коли Claude запускає субагентів, під полем вводу з'являється <strong>панель</strong>:
+            по рядку на кожного. Керування панеллю описане в документації так:
+          </p>
+
+          <ul>
+            <li><code>↑</code> / <code>↓</code> — перейти між рядками;</li>
+            <li><code>Enter</code> — відкрити транскрипт помічника й написати йому напряму;</li>
+            <li><code>x</code> — зупинити вибраного помічника або прибрати його рядок, якщо він
+              уже не працює;</li>
+            <li><code>Esc</code> — повернути фокус у поле вводу.</li>
+          </ul>
+
+          <p>
+            Рядок помічника, який успішно завершився, зникає одразу, а внизу на 30 секунд
+            з'являється підказка <code>/tasks to see subagents</code>. Рядок того, хто впав або
+            кого ти зупинив, тримається 30 секунд. Якщо помічники запускали своїх помічників,
+            панель показує дерево, і поруч із рядком стоїть лічильник нащадків на кшталт
+            <code>(+2)</code>. У сесії з увімкненими <em>командами агентів</em> рядків більше, і
+            коли одночасно простоюють більше трьох, зайві згортаються в один рядок на кшталт
+            <code>2 idle agents</code>.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
+          <h2><span class="lesson-no">3</span>Як це працює</h2>
+
+          <h3>Що субагент бачить на старті, а чого не бачить</h3>
+
+          <p>
+            Це найважливіша схема модуля. Усе інше — деталі навколо неї.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  M["Головна розмова"] -->|"1. Claude пише опис задачі"| S["Субагент - чисте окреме вікно контексту"]
+  A["CLAUDE.md усіх рівнів"] --> S
+  B["Знімок git status, зроблений на старті сесії"] --> S
+  C["Повний текст навичок зі списку skills"] --> S
+  X["Твоя історія розмови, прочитані файли, стиль виводу, авто-пам'ять"] -. "не передається" .-> S
+  S -->|"2. повертає в розмову тільки текст підсумку"| M
+  style S fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style X stroke:#736A5E,color:#A8A095
+            </pre>
+            <p class="diagram-caption">
+              Що потрапляє в стартовий контекст субагента, а що лишається в головній розмові
+            </p>
+          </div>
+
+          <p>У стартовий контекст субагента, за документацією, потрапляє рівно це:</p>
+
+          <ul>
+            <li><strong>власний системний промпт</strong> — текст із файла помічника плюс
+              службові дані про середовище. Системного промпта самого Claude Code там немає;</li>
+            <li><strong>опис задачі</strong>, який Claude пише сам у момент передачі;</li>
+            <li><strong>усі рівні <code>CLAUDE.md</code></strong> — і твій домашній, і проєктні
+              правила (про них модуль 12);</li>
+            <li><strong>знімок <code>git status</code></strong>, зроблений на старті батьківської
+              сесії. Його немає, якщо папка не є git-репозиторієм;</li>
+            <li><strong>повний текст навичок</strong>, названих у полі <code>skills</code> файла
+              помічника — саме текст, а не лише опис (про навички — модуль 14);</li>
+            <li><strong>реєстр сусідів</strong> (sibling roster) — список інших іменованих
+              агентів сесії. З'являється тільки якщо помічникові доступний інструмент
+              <code>SendMessage</code> і хоча б один інший агент має ім'я. Потребує 2.1.206+.</li>
+          </ul>
+
+          <p>А ось чого туди не потрапляє ніколи:</p>
+
+          <ul>
+            <li>твоєї розмови й прочитаних у ній файлів;</li>
+            <li>стилю виводу (output style) головної розмови;</li>
+            <li>авто-пам'яті головної розмови;</li>
+            <li>розміру вікна контексту батька — у помічника своє вікно, за <em>його</em>
+              моделлю. Віддаси задачу моделі з меншим вікном — отримаєш менше вікно.</li>
+          </ul>
+
+          <p>
+            Два вбудовані помічники поводяться інакше: <strong>Explore</strong> і
+            <strong>Plan</strong> навмисно <em>пропускають</em> <code>CLAUDE.md</code> і
+            <code>git status</code> — заради швидкості й ціни. Це не помилка й не налаштовується:
+            поля у файлі помічника, яке це змінює, не існує.
+          </p>
+
+          <h3>Вбудовані помічники, яких ти не створював</h3>
+
+          <p>
+            Частина субагентів є в Claude Code з коробки й вмикається сама, коли задача під них
+            підходить. За документацією на 2026-09-04 це:
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Вбудовані помічники, яких ти не створював">
+          <table>
+              <thead>
+                <tr>
+                  <th>Помічник</th>
+                  <th>Що робить</th>
+                  <th>Інструменти</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>Explore</code></td>
+                  <td>швидкий пошук і розбір коду</td>
+                  <td>лише читання; <code>Write</code> і <code>Edit</code> заборонені</td>
+                </tr>
+                <tr>
+                  <td><code>Plan</code></td>
+                  <td>розвідка в режимі плану (модуль 8)</td>
+                  <td>лише читання</td>
+                </tr>
+                <tr>
+                  <td><code>general-purpose</code></td>
+                  <td>складні задачі з кількох кроків, де треба і шукати, і правити</td>
+                  <td>усі, доступні субагентам</td>
+                </tr>
+                <tr>
+                  <td><code>claude</code></td>
+                  <td>усе, що не підійшло під спеціалізованого</td>
+                  <td>усі, доступні субагентам</td>
+                </tr>
+                <tr>
+                  <td><code>statusline-setup</code></td>
+                  <td>налаштування рядка стану по команді <code>/statusline</code></td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td><code>claude-code-guide</code></td>
+                  <td>відповіді на питання про сам Claude Code</td>
+                  <td>—</td>
+                </tr>
+              </tbody>
+            </table>
+            </div>
+
+          <p>
+            З версії 2.1.198 <code>Explore</code> працює на моделі головної розмови, а не завжди
+            на Haiku, як було раніше (на Claude API — з обмеженням зверху до Opus). Якщо хочеш
+            повернути розвідку на дешеву модель, документація дає прийом: створи власного
+            помічника з ім'ям <code>Explore</code> і полем <code>model: haiku</code> — власний
+            перекриє вбудованого.
+          </p>
+
+          <h3>Файл помічника: заголовок і тіло</h3>
+
+          <p>
+            Субагент задається звичайним текстовим файлом у форматі Markdown. Угорі —
+            <strong>заголовок</strong> (frontmatter): кілька рядків між двома лініями з трьох
+            дефісів, у форматі <code>ключ: значення</code>. Нижче — тіло, і воно стає системним
+            промптом помічника. Ось повний робочий приклад:
+          </p>
+
+          <pre><code>---
+name: log-digger
+description: Читає довгі логи й повертає лише рядки з помилками. Використовуй, коли треба переглянути великий файл логів.
+tools: Read, Grep, Glob
+model: haiku
+---
+
+Ти читаєш файли логів. Поверни лише рядки з помилками, по одному реченню пояснення до кожного.</code></pre>
+
+          <p>
+            Обов'язкових полів рівно два: <code>name</code> і <code>description</code>. Усе решта
+            — за бажанням. Станом на 2026-09-04 сторінка документації перелічує
+            <strong>17 полів</strong>; ось ті, що знадобляться першими:
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Файл помічника: заголовок і тіло">
+          <table>
+              <thead>
+                <tr>
+                  <th>Поле</th>
+                  <th>Що робить</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>name</code> <em>(обов'язкове)</em></td>
+                  <td>ім'я помічника: малі літери й дефіси. Не може містити <code>:</code> і не
+                    може починатися з <code>-</code>. Ім'я файла збігатися не мусить</td>
+                </tr>
+                <tr>
+                  <td><code>description</code> <em>(обов'язкове)</em></td>
+                  <td>коли Claude має делегувати саме цьому помічникові. Тримай коротким: описи
+                    всіх твоїх помічників лежать у контексті постійно</td>
+                </tr>
+                <tr>
+                  <td><code>tools</code></td>
+                  <td>які інструменти йому доступні. Без поля успадковує всі. Якщо жоден запис не
+                    впізнається як інструмент, помічник <strong>не стартує зовсім</strong> —
+                    з помилкою, яка називає ці записи</td>
+                </tr>
+                <tr>
+                  <td><code>disallowedTools</code></td>
+                  <td>що прибрати зі списку</td>
+                </tr>
+                <tr>
+                  <td><code>model</code></td>
+                  <td><code>sonnet</code>, <code>opus</code>, <code>haiku</code>,
+                    <code>fable</code>, повний ідентифікатор моделі або <code>inherit</code> —
+                    та сама, що в головній розмові (моделі — модуль 10)</td>
+                </tr>
+                <tr>
+                  <td><code>permissionMode</code></td>
+                  <td>режим дозволів помічника (модуль 7). <strong>Ігнорується</strong> для
+                    помічників, що приїхали з плагіна</td>
+                </tr>
+                <tr>
+                  <td><code>maxTurns</code></td>
+                  <td>стеля кількості ходів. Дійшовши до неї, помічник зупиняється, а його
+                    результат позначається частковим — і роботу можна продовжити</td>
+                </tr>
+                <tr>
+                  <td><code>skills</code></td>
+                  <td>навички, чий <strong>повний текст</strong> вантажиться в його контекст на
+                    старті</td>
+                </tr>
+                <tr>
+                  <td><code>memory</code></td>
+                  <td><code>user</code> / <code>project</code> / <code>local</code> — постійна
+                    пам'ять помічника між сесіями</td>
+                </tr>
+                <tr>
+                  <td><code>background</code></td>
+                  <td><code>true</code> — тримати у фоні навіть тоді, коли Claude просить
+                    передній план</td>
+                </tr>
+                <tr>
+                  <td><code>effort</code></td>
+                  <td>рівень зусиль саме для цього помічника; перекриває сесійний</td>
+                </tr>
+                <tr>
+                  <td><code>isolation</code></td>
+                  <td><code>worktree</code> — запустити помічника в окремій копії репозиторію
+                    (нижче в цьому ж блоці)</td>
+                </tr>
+              </tbody>
+            </table>
+            </div>
+
+          <p>
+            Решта полів — <code>mcpServers</code>, <code>hooks</code>, <code>color</code>,
+            <code>initialPrompt</code>, <code>experimental</code> — стосуються тем сусідніх
+            модулів (зовнішні інструменти, перехоплювачі подій) або дрібного оформлення.
+          </p>
+
+          <h3>Чотири способи мовчки лишитись без помічника</h3>
+
+          <p>
+            Claude Code пропускає файл у теці помічників <strong>і не повідомляє про це в
+            сесії</strong>, якщо:
+          </p>
+
+          <ol>
+            <li>немає поля <code>name</code> — файл вважається документацією, покладеною поруч;</li>
+            <li>перший рядок файла — не <code>---</code> (наприклад, зверху випадковий порожній
+              рядок) — файл читається як такий, що не має заголовка взагалі;</li>
+            <li>у <code>name</code> є <code>:</code> або воно починається з <code>-</code> —
+              файл пропускається, причина йде в журнал налагодження;</li>
+            <li>є <code>name</code>, але немає <code>description</code>, або заголовок не
+              читається як YAML — те саме, з записом у журнал.</li>
+          </ol>
+
+          <p>
+            Побачити цей журнал можна, запустивши сесію з прапорцем <code>--debug</code>.
+            А перевірити теку заздалегідь — командою з блоку 2, з поправкою на те, що першого
+            випадку вона не ловить.
+          </p>
+
+          <h3>Де лежать файли й хто виграє при збігу імен</h3>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Де лежать файли й хто виграє при збігу імен">
+          <table>
+              <thead>
+                <tr>
+                  <th>Місце</th>
+                  <th>Кому доступний</th>
+                  <th>Пріоритет</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>кероване налаштування організації</td>
+                  <td>усій організації</td>
+                  <td>1 — найвищий</td>
+                </tr>
+                <tr>
+                  <td>прапорець <code>--agents</code> із JSON при запуску</td>
+                  <td>лише цій сесії, на диск не пишеться</td>
+                  <td>2</td>
+                </tr>
+                <tr>
+                  <td><code>.claude/agents/</code> у папці проєкту</td>
+                  <td>цьому проєктові; можна тримати в системі контролю версій</td>
+                  <td>3</td>
+                </tr>
+                <tr>
+                  <td><code>~/.claude/agents/</code> у домашній папці</td>
+                  <td>усім твоїм проєктам</td>
+                  <td>4</td>
+                </tr>
+                <tr>
+                  <td>тека <code>agents/</code> усередині плагіна</td>
+                  <td>там, де плагін увімкнений</td>
+                  <td>5 — найнижчий</td>
+                </tr>
+              </tbody>
+            </table>
+            </div>
+
+          <p>
+            Обидві теки скануються разом із підпапками, тож помічників можна розкладати по
+            підтеках — на ім'я це не впливає, бо ім'я береться <strong>тільки</strong> з поля
+            <code>name</code>. Але два файли з однаковим <code>name</code> в одній теці — це
+            лотерея: Claude Code завантажить один із них, і який саме — не задокументовано.
+            Такі збіги показує <code>/doctor</code>.
+          </p>
+
+          <p>
+            Claude Code стежить за теками <code>.claude/agents/</code> і
+            <code>~/.claude/agents/</code> під час роботи: правку файла він помічає за кілька
+            секунд, перезапуск не потрібен. Але якщо самої теки на старті сесії <em>не існувало</em>,
+            створення першого файла в ній сесія не побачить — тут перезапуск обов'язковий.
+          </p>
+
+          <h3>Як попросити конкретного помічника</h3>
+
+          <p>Три способи, від м'якого до жорсткого:</p>
+
+          <ul>
+            <li><strong>словами</strong> — назви помічника в промпті («візьми субагента
+              code-reviewer і подивись мої зміни»). Рішення все одно за Claude;</li>
+            <li><strong>через <code>@</code></strong> — набери <code>@</code> і вибери помічника
+              зі списку, що з'явиться. Це <em>гарантує</em>, що піде саме він. Твоє повідомлення
+              все одно йде Claude, і опис задачі помічникові пише він;</li>
+            <li><strong>на всю сесію</strong> — прапорець <code>--agent &lt;ім'я&gt;</code> при
+              запуску: тоді системний промпт, набір інструментів і модель помічника стають
+              налаштуваннями всієї сесії. Те саме дає ключ <code>agent</code> у
+              <code>.claude/settings.json</code> (модуль 13); прапорець перекриває ключ.</li>
+          </ul>
+
+          <h3>Форк розмови: виняток з усіх правил</h3>
+
+          <p>
+            <strong>Форк</strong> (fork) — це субагент, який <em>успадковує всю розмову</em>
+            замість того, щоб починати з нуля. У нього той самий системний промпт, ті самі
+            інструменти, та сама модель і вся історія повідомлень. При цьому його власні виклики
+            інструментів у твою розмову не потрапляють — назад приходить лише підсумок.
+          </p>
+
+          <p>
+            Запустити його самому можна командою <code>/subtask</code> із описом задачі
+            (потребує 2.1.212+; на 2.1.161–2.1.211 та сама команда звалась <code>/fork</code>).
+            Форк з'являється в панелі під полем вводу й працює у фоні, поки ти працюєш далі.
+          </p>
+
+          <p>
+            Форк вигідний ще й за грошима: оскільки його системний промпт і набір інструментів
+            збігаються з батьківськими, перший його запит потрапляє в <strong>кеш батьківської
+            сесії</strong> (про кешування — модуль 11). Звичайний субагент має власний кеш і
+            батьківського не читає. Форк форка неможливий.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Три схожі команди, які легко переплутати</span>
+            <p>
+              <code>/subtask</code> — форк-<em>субагент</em>: результат повертається в цю розмову.
+              <code>/fork</code> — копіює всю сесію в <em>окрему фонову сесію</em>, що живе своїм
+              життям. <code>/branch</code> — переводить тебе самого в копію розмови. Коли панель
+              агентів вимкнена, <code>/subtask</code> недоступний, і поведінку форк-субагента бере
+              на себе <code>/fork</code>.
+            </p>
+          </div>
+
+          <h3>Передній план, фон і скільки помічників одночасно</h3>
+
+          <p>
+            Помічник у <strong>передньому плані</strong> блокує розмову, доки не закінчить;
+            питання про дозволи приходять тобі одразу. Помічник у <strong>фоні</strong> працює
+            паралельно з тобою, а коли впирається в дозвіл, запит виринає в твоїй сесії з іменем
+            того, хто питає. <code>Esc</code> відмовляє в одному виклику, не зупиняючи помічника
+            цілком.
+          </p>
+
+          <p>
+            У звичайній інтерактивній сесії <strong>режим форка ввімкнений за замовчуванням</strong>
+            (з 2.1.232), а це означає, що субагентів Claude Code запускає <em>у фоні</em> — і
+            форки, і звичайних. Перевести задачу у фон самому можна клавішами
+            <code>Ctrl+B</code>.
+          </p>
+
+          <p>Обмежень насправді два, і в них різні змінні середовища:</p>
+
+          <ul>
+            <li><strong>Скільки одночасно.</strong> За замовчуванням, коли в сесії працюють
+              <strong>20</strong> помічників, наступний запуск падає з
+              <code>Concurrent subagent limit reached</code>, і Claude отримує вказівку не
+              повторювати. Змінюється через
+              <code>CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS</code>. Потребує 2.1.217+.
+              <strong>Загального ліміту</strong> на кількість помічників за сесію немає.</li>
+            <li><strong>Наскільки глибоко.</strong> Помічник може запускати своїх помічників —
+              за замовчуванням до <strong>трьох</strong> рівнів нижче головної розмови.
+              На межі інструмент запуску в помічників забирають, і той, хто вперся, робить роботу
+              сам. Змінюється через <code>CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH</code>;
+              значення <code>1</code> вимикає вкладеність.</li>
+          </ul>
+
+          <p>
+            Дрібниця, яка колись збиває з пантелику: відновлення вже завершеного помічника
+            займає <em>новий</em> слот і ліміт при цьому не перевіряє — тобто відновленнями
+            кількість працюючих можна вивести за 20.
+          </p>
+
+          <h3>Як агенти говорять один з одним</h3>
+
+          <p>
+            Інструмент називається <code>SendMessage</code>. Ним Claude і продовжує роботу
+            завершеного помічника, і пише напарникові в команді агентів, і — якщо ввімкнено —
+            пише в іншу твою сесію.
+          </p>
+
+          <p>
+            Щоб адресувати повідомлення, помічникові потрібне ім'я. Claude може дати помічникові
+            ім'я сам, не питаючи тебе. Список доступних адресатів приходить помічникові як
+            «реєстр сусідів», і тут є пастка: <strong>це знімок на момент його старту</strong>.
+            Агенти, названі пізніше, у цьому реєстрі не з'являться.
+          </p>
+
+          <p>
+            І головна межа, яка діє в усіх без винятку випадках:
+            <strong>повідомлення від агента не є твоєю згодою</strong>. Воно не може відповісти
+            за тебе на запит дозволу й не може змінити налаштування дозволів,
+            <code>CLAUDE.md</code> чи конфігурацію. У режимі <code>auto</code> (модуль 7)
+            класифікатор безпеки перевіряє <em>кожне</em> повідомлення між агентами перед
+            доставкою — і заблоковане не доходить до адресата зовсім.
+          </p>
+
+          <h3>Worktrees: дві копії проєкту, одна історія</h3>
+
+          <p>
+            Далі знадобиться мінімум про git. <strong>Git</strong> — окрема програма, яка зберігає
+            історію змін проєкту; папка з такою історією називається
+            <strong>репозиторієм</strong>, а окрема лінія змін усередині неї —
+            <strong>гілкою</strong> (branch). Якщо ти git не використовуєш, цей підрозділ можеш
+            прогорнути: без репозиторію worktrees не працюють. Про сам git — модуль 21.
+          </p>
+
+          <p>
+            <strong>Worktree</strong> (робоче дерево) — це <em>ще одна папка</em> з файлами того
+            самого репозиторію, на своїй гілці, зі спільною історією. Правки в одній папці не
+            чіпають файлів в іншій. Саме тому дві сесії Claude Code в двох worktree можуть
+            працювати одночасно й не переписувати роботу одна одній.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart LR
+  G[".git - спільна історія репозиторію"]
+  R["Головна папка проєкту"] --- G
+  W1[".claude/worktrees/auth - своя копія файлів, своя гілка"] --- G
+  W2[".claude/worktrees/bugfix - своя копія файлів, своя гілка"] --- G
+  S1["Сесія 1"] --> W1
+  S2["Сесія 2"] --> W2
+  W1 -. "запис у головну папку заблоковано" .-> R
+  W2 -. "запис у головну папку заблоковано" .-> R
+  style G fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Дві ізольовані копії проєкту поруч із головною папкою, з однією спільною історією
+            </p>
+          </div>
+
+          <p>Що варто знати про них у Claude Code:</p>
+
+          <ul>
+            <li><strong>Як створити.</strong> <code>claude --worktree feature-auth</code>
+              (коротко <code>-w</code>) створює копію в
+              <code>.claude/worktrees/feature-auth/</code> на новій гілці
+              <code>worktree-feature-auth</code> і запускає там сесію. Без імені Claude Code
+              вигадає своє, на кшталт <code>bright-running-fox</code>.</li>
+            <li><strong>Від якої гілки.</strong> За замовчуванням — від <em>дефолтної гілки
+              репозиторію</em> (зазвичай <code>main</code>), а не від того, на чому ти зараз.
+              Це контрінтуїтивно: люди чекають гілку від поточного стану. Змінюється ключем
+              <code>worktree.baseRef</code> зі значенням <code>"head"</code>.</li>
+            <li><strong>Файли, яких у копії немає.</strong> Worktree — це свіжий викачений набір
+              файлів, тому все, що git не відстежує (типовий приклад — <code>.env</code> з
+              налаштуваннями), туди не потрапляє, і програма в копії стартує на порожньому
+              конфізі. Ліки: файл <code>.worktreeinclude</code> у корені проєкту, синтаксис —
+              як у <code>.gitignore</code>. Копіюються лише ті файли, що і збігаються зі зразком,
+              і є в списку ігнорованих, тож відстежувані файли не дублюються.</li>
+            <li><strong>Помічникові теж можна свою копію.</strong> Поле <code>isolation: worktree</code>
+              у файлі помічника — і кожен його запуск іде у власний тимчасовий worktree.
+              Якщо помічник нічого не змінив, копія прибирається сама.</li>
+            <li><strong>Що спільне з головною папкою.</strong> Історія <code>.git</code>, плагіни,
+              встановлені на рівні проєкту, і збережені дозволи: відповідь «так, і більше не
+              питай» у worktree пишеться в <code>.claude/settings.local.json</code> головної
+              папки й діє скрізь (з 2.1.211).</li>
+            <li><strong>Прибирання.</strong> Виходячи з інтерактивної сесії, Claude Code дивиться,
+              чи лишилась у копії робота. Порожню безіменну копію він прибирає сам; якщо в ній є
+              зміни або нові коміти — питає тебе. Запуски без діалогу (<code>-p</code>) питання
+              не ставлять і після себе нічого не прибирають.</li>
+          </ul>
+
+          <p>
+            Ізоляція тут не на чесному слові. Поки сесія сидить у worktree, Claude Code
+            <strong>блокує</strong>: правку файлів у головній папці; команду, чия робоча папка
+            веде в головну папку або яку не вдалося перевірити; команду, що перенаправляє git у
+            головну папку (через <code>git -C</code>, <code>--git-dir</code>, змінні середовища
+            або <code>cd</code> перед git); і навіть команду, форму якої не вдається розібрати
+            без запуску — наприклад із фігурними дужками чи «тут-документом» з незакритим
+            роздільником. Останню перевірку вимкнути не можна.
+          </p>
+
+          <h3>Команди агентів: кілька сесій під керівництвом</h3>
+
+          <p>
+            <strong>Команда агентів</strong> (agent team) — це вже не помічники всередині сесії,
+            а кілька повноцінних сесій Claude Code. Одна з них — керівник; решта —
+            напарники, кожен зі своїм вікном контексту. Вони бачать спільний список задач,
+            самі розбирають вільні пункти й пишуть один одному напряму; ти можеш написати
+            будь-кому, не через керівника.
+          </p>
+
+          <p>
+            <strong>Функція експериментальна й вимкнена за замовчуванням.</strong> Вмикається
+            змінною середовища <code>CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1</code> — у оболонці
+            або в блоці <code>env</code> файла налаштувань. Без неї команда не збирається взагалі.
+          </p>
+
+          <p>
+            Побічний ефект, про який документація попереджає прямо: коли команди агентів
+            увімкнені, <strong>звичайне делегування змінює поведінку</strong>. Субагент, якому
+            Claude дав ім'я (а він може дати його сам), стартує вже як напарник у команді. Тобто
+            команда може зібратись, навіть якщо ти її не просив. У неінтерактивному режимі
+            (<code>claude -p</code>) напарників не буває за конструкцією — там іменований
+            субагент лишається звичайним субагентом.
+          </p>
+
+          <p>Ціна — головна причина не вмикати це «щоб подивитись»:</p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Цитата, яку варто запам'ятати</span>
+            <p>
+              Документація про витрати каже дослівно: команди агентів споживають
+              <strong>приблизно всемеро більше токенів</strong>, ніж звичайна сесія, коли
+              напарники працюють у режимі плану — бо кожен тримає своє вікно контексту й є
+              окремим примірником Claude.
+            </p>
+          </div>
+
+          <p>
+            Рекомендації документації: починати з <strong>3–5 напарників</strong>, тримати
+            завдання самодостатніми (функція, файл тестів, рев'ю), стежити, щоб двоє не правили
+            один файл, і давати кожному досить контексту в промпті при запуску — бо історії
+            розмови керівника вони не успадковують. З обмежень варто знати три: команду не
+            відновлює ні <code>/resume</code>, ні <code>/rewind</code>; напарники не можуть
+            заводити своїх напарників; керівника змінити не можна.
+          </p>
+
+          <h3>Динамічні робочі процеси: коли план тримає скрипт</h3>
+
+          <p>
+            <strong>Динамічний робочий процес</strong> (dynamic workflow) — це JavaScript-скрипт,
+            який запускає багато субагентів за заздалегідь написаним планом. Скрипт пише сам
+            Claude із твого опису, а виконує його окреме середовище у фоні, поки твоя сесія
+            лишається вільною.
+          </p>
+
+          <p>
+            Різниця з усім попереднім в одному реченні: у субагентів, навичок і команд агентів
+            план тримає <em>Claude</em> і вирішує хід за ходом, а тут план — це
+            <strong>код</strong>, а проміжні результати лежать у змінних скрипта, а не у вікні
+            контексту. Тому в твою розмову приходить лише кінцева відповідь.
+          </p>
+
+          <p>
+            Спробувати можна без жодного скрипта: у Claude Code вбудований процес
+            <code>/deep-research</code> — він розганяє пошук по кількох напрямках, звіряє джерела
+            між собою і повертає звіт із посиланнями, викинувши твердження, які перевірку не
+            пройшли. Стежити за перебігом — команда <code>/workflows</code>.
+          </p>
+
+          <p>Обмеження середовища, які варто знати заздалегідь:</p>
+
+          <ul>
+            <li>до <strong>16 агентів одночасно</strong> (менше, якщо в машини мало ядер);</li>
+            <li>до <strong>4 096 елементів</strong> в одному паралельному виклику;</li>
+            <li>до <strong>1 000 агентів</strong> на весь запуск;</li>
+            <li>усередині запуску не можна нічого спитати в тебе: паузу роблять лише запити
+              дозволів;</li>
+            <li>сам скрипт не має доступу ні до файлів, ні до оболонки — він лише координує
+              агентів.</li>
+          </ul>
+
+          <p>
+            Про гроші тут теж є пряма підказка: коли процес планує більше ніж
+            <strong>25 агентів</strong> або прогнозована витрата переходить
+            <strong>1,5 мільйона токенів</strong>, поруч із рядком перебігу з'являється
+            попередження <code>Large workflow</code>. Воно нічого не спиняє — лише показує
+            дорогу до <code>/workflows</code>, де запуск можна зупинити.
+          </p>
+
+          <h3>Повідомлення між твоїми сесіями</h3>
+
+          <p>
+            Останній механізм — <strong>обмін повідомленнями між сесіями</strong> (cross-session
+            messaging). Він дозволяє одному твоєму Claude написати іншому твоєму Claude: скажімо,
+            сесія, що працює над схемою бази, повідомляє сесії, яка пише запити, що міграція
+            завершилась. Потребує Claude Code 2.1.224+ на macOS і Linux, 2.1.234+ на Windows;
+            вмикати нічого не треба.
+          </p>
+
+          <p>Три речі, які треба знати про цей канал:</p>
+
+          <ul>
+            <li><strong>Це тільки текст.</strong> Ні історія розмови, ні файли не передаються.
+              Якщо треба перенести всю розмову — відновлюють сесію (модуль 9), а не пишуть
+              повідомлення.</li>
+            <li><strong>Повідомлення нічого не дозволяє.</strong> Воно не рахується за твою згоду,
+              не змінює конфігурацію, а слеш-команда всередині нього приїжджає як звичайний текст
+              і не виконується.</li>
+            <li><strong>Приймання налаштовується.</strong> Ключ <code>crossSessionInbound</code>
+              (модуль 13) має три значення: <code>accept</code> — доставляти,
+              <code>hold</code> — показати повідомлення й тримати, <code>refuse</code> —
+              відкидати мовчки.</li>
+          </ul>
+
+          <p>
+            Перевірити, чи є ця можливість у твоїй збірці, найпростіше командою
+            <code>/list-agents</code> (вона ж <code>/peers</code>): якщо збірка стара, ти
+            отримаєш <code>Unknown command: /list-agents</code>.
+          </p>
+
+          <h3>Підсумкова схема вибору</h3>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  A{"Хто тримає план роботи?"}
+  A -->|"Claude, у межах однієї розмови"| B["Субагенти - підсумок повертається в цю ж розмову"]
+  A -->|"ти сам, кілька окремих сесій"| C["Панель агентів claude agents, кожна сесія у своєму worktree"]
+  A -->|"Claude-керівник над кількома сесіями"| D["Команда агентів - експериментальна, вимкнена за замовчуванням"]
+  A -->|"скрипт, а не судження Claude"| E["Динамічний робочий процес - десятки й сотні агентів"]
+  style A fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Питання, з якого варто починати вибір: хто саме вирішує, що робити наступним кроком
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
+          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+
+          <p>
+            Нижче — приблизно двадцять хвилин роботи. Ми зробимо власного помічника, зламаємо
+            другого навмисне й подивимось, як Claude Code на це реагує. Ніякого справжнього
+            проєкту не треба й краще не брати: працюємо в окремій тестовій папці.
+          </p>
+
+          <h3>Крок 1. Тестова папка й тека помічників</h3>
+
+          <p>
+            Відкрий термінал (модуль 1) і створи папку. Далі команди для macOS і Linux; на Windows
+            у PowerShell працюють ті самі <code>mkdir</code> і <code>cd</code>.
+          </p>
+
+          <p>
+            Мої знімки в цьому уроці зняті в папці <code>/tmp/agents-demo</code>, тому шляхи у
+            виводі в тебе будуть інші — це нормально.
+          </p>
+
+          <pre><code>mkdir -p ~/agents-demo/.claude/agents
+cd ~/agents-demo</code></pre>
+
+          <p>
+            Прапорець <code>-p</code> у <code>mkdir</code> означає «створи й проміжні папки теж».
+          </p>
+
+          <h3>Крок 2. Перший помічник</h3>
+
+          <p>
+            Створи файл <code>.claude/agents/log-digger.md</code> у будь-якому текстовому
+            редакторі й поклади туди рівно це:
+          </p>
+
+          <pre><code>---
+name: log-digger
+description: Читає довгі логи й повертає лише рядки з помилками. Використовуй, коли треба переглянути великий файл логів.
+tools: Read, Grep, Glob
+model: haiku
+---
+
+Ти читаєш файли логів. Поверни лише рядки з помилками, по одному реченню пояснення до кожного.</code></pre>
+
+          <p>
+            Перший рядок файла мусить бути саме <code>---</code>, без порожнього рядка перед ним.
+            Це не прискіпливість: порожній рядок зверху — один із чотирьох способів мовчки
+            лишитись без помічника.
+          </p>
+
+          <h3>Крок 3. Другий помічник, зламаний навмисне</h3>
+
+          <p>
+            Створи поруч файл <code>.claude/agents/no-name.md</code> з таким вмістом:
+          </p>
+
+          <pre><code>---
+description: Опис є, імені немає.
+---
+
+Тіло агента.</code></pre>
+
+          <p>
+            Це найпоширеніша реальна помилка: людина пише опис, забуває ім'я — і файл перестає
+            бути помічником, залишаючись цілком читабельним текстом.
+          </p>
+
+          <h3>Крок 4. Перевірити теку до сесії</h3>
+
+          <pre><code>claude plugin validate .claude/agents</code></pre>
+
+          <p>
+            Порівняй свій вивід із блоком 2. Ти маєш побачити, що про <code>no-name.md</code>
+            перевірка не сказала <em>нічого</em>. Запам'ятай це відчуття — воно врятує тобі
+            вечір, коли помічник «зникне».
+          </p>
+
+          <h3>Крок 5. Подивитись, що насправді робить <code>/agents</code></h3>
+
+          <p>
+            Запусти сесію в цій же папці командою <code>claude</code> і набери всередині
+            <code>/agents</code>. На версіях від 2.1.198 ти побачиш не меню, а коротке
+            нагадування редагувати файли або попросити про це Claude.
+          </p>
+
+          <p>
+            Це і є вправа. Знайди в мережі будь-який туторіал про створення субагентів і подивись,
+            чи намальоване в ньому меню. Якщо намальоване — стаття описує програму, якої в тебе
+            вже немає.
+          </p>
+
+          <h3>Крок 6. Дати помічникові справжню роботу</h3>
+
+          <p>
+            Не виходячи з сесії, зроби собі файл, який не хочеться читати очима, і попроси Claude
+            віддати його помічникові:
+          </p>
+
+          <pre><code>Створи файл app.log на 300 рядків: більшість рядків INFO, десь із десяток ERROR.
+Потім візьми субагента log-digger і попроси його дістати з нього рядки з помилками.</code></pre>
+
+          <p>
+            Поки помічник працює, під полем вводу з'явиться його рядок. Спробуй стрілками стати
+            на нього й натиснути <code>Enter</code> — відкриється його транскрипт, і йому можна
+            написати напряму. <code>Esc</code> повертає фокус у поле вводу.
+          </p>
+
+          <h3>Крок 7. Подивитись список задач</h3>
+
+          <p>
+            Набери <code>/tasks</code>. Це перелік усього, що йде у фоні цієї сесії, включно з
+            помічниками, які вже закінчили. З версії 2.1.242 у рядку помічника видно модель, на
+            якій він працює, — саме тут перевіряють, що <code>model: haiku</code> справді
+            застосувався.
+          </p>
+
+          <h3>Необов'язковий крок 8 — тільки якщо користуєшся git</h3>
+
+          <p>
+            Зроби окремий тестовий репозиторій (не робочий!), зайди в нього й запусти:
+          </p>
+
+          <pre><code>claude --worktree proba</code></pre>
+
+          <p>
+            Claude Code створить копію в <code>.claude/worktrees/proba/</code> на новій гілці й
+            стартує сесію там. Попроси змінити якийсь файл, вийди з сесії — і подивись, що
+            запропонує Claude Code: прибрати копію чи лишити. Файли головної папки при цьому
+            лишаться недоторканими; у цьому й уся ідея.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Чого в цих кроках свідомо немає</span>
+            <p>
+              Тут немає вмикання <em>команд агентів</em>. Це експериментальна функція, яка
+              споживає приблизно всемеро більше токенів у режимі плану, і пробувати її «щоб
+              подивитись» — найкоротший шлях вичерпати денний ліміт. Спершу навчись бачити,
+              коли задача справді ділиться на незалежні частини.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
+          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            У цій темі багато речей, які «начебто працюють». Нижче — команди, які відповідають
+            «так» або «ні» замість здогадок.
+          </p>
+
+          <h3>Файли помічників читаються?</h3>
+
+          <p>
+            <code>claude plugin validate .claude/agents</code> — блок 2. Команда повертає код
+            завершення <code>1</code>, якщо знайшла помилку, і <code>0</code>, якщо ні. Пам'ятай
+            її межу: відсутнє <code>name</code> вона не бачить, тому очима звіряй ще й перший
+            рядок кожного файла.
+          </p>
+
+          <h3>Які сесії зараз живі</h3>
+
+          <p>
+            Панель агентів — це намальований екран, але в неї є скриптовий вихід. Прапорець
+            <code>--json</code> друкує активні сесії масивом і не потребує термінала, а
+            <code>--cwd</code> звужує перелік до сесій, запущених у вказаній папці:
+          </p>
+
+          <figure class="term term--cmd" id="p3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p3t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p3t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude agents --json --cwd /tmp</span></span>
+<span class="term__line">[]</span></pre>
+          </figure>
+
+          <p>
+            Порожні квадратні дужки — це порожній список: у папці <code>/tmp</code> сесій немає.
+            Прибери <code>--cwd</code>, і побачиш усі свої живі сесії з іменами, номерами
+            процесів і робочими папками. Показувати цей вивід тут я не буду з простої причини:
+            у ньому імена й шляхи моїх власних робочих сесій.
+          </p>
+
+          <h3>Чи знає твоя збірка про те, що описано в документації</h3>
+
+          <p>
+            Це найкорисніший прийом усього модуля, і він стосується не лише субагентів.
+            Документація Claude Code бігає попереду встановленої програми — на день зйомки цих
+            екранів розрив між офіційною сторінкою й локальною збіркою становив десятки версій.
+            Прапорець перевіряють запуском (модуль 7), а от про <em>змінну середовища</em> або
+            <em>ключ налаштувань</em> так не спитаєш. Зате можна пошукати сам рядок усередині
+            програми:
+          </p>
+
+          <figure class="term term--cmd" id="p4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p4t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p4t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS</span></span>
+<span class="term__line">5</span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c CLAUDE_CODE_SUBAGENT_MODEL_FORCE</span></span>
+<span class="term__line">0</span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c CLAUDE_CODE_VYGADANA_ZMINNA</span></span>
+<span class="term__line">0</span></pre>
+          </figure>
+
+          <p>
+            Розберемо. <code>strings</code> — програма, яка витягує з двійкового файла всі
+            текстові рядки; <code>which claude</code> підставляє шлях до самого Claude Code;
+            <code>grep -c</code> рахує збіги. Третій запуск — з навмисно вигаданою назвою; він
+            потрібен, щоб було видно, що метод справді розрізняє наявне й неіснуюче.
+          </p>
+
+          <p>
+            Що ми дізнались. Змінну <code>CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS</code> ця збірка
+            знає — п'ять входжень. А <code>CLAUDE_CODE_SUBAGENT_MODEL_FORCE</code>, яку
+            документація описує як спосіб посадити <em>усіх</em> помічників на одну модель, у
+            збірці 2.1.236 <strong>не існує зовсім</strong> — і сама сторінка це підтверджує
+            дрібним рядком: «потребує 2.1.257 або новішої». Тобто стаття не помиляється, вона
+            описує завтрашню програму.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Чесна межа прийому</span>
+            <p>
+              Число більше нуля доводить, що <strong>рядок є у твоїй збірці</strong>. Воно
+              <strong>не</strong> доводить, що функція доступна саме твоєму акаунту чи вмикається
+              з коробки. Нуль — доказ сильніший: якщо назви в програмі немає, то й функції
+              немає. Саме тому цей прийом корисніший як спростування, ніж як підтвердження.
+            </p>
+          </div>
+
+          <h3>Чи вміє твоя збірка писати іншим сесіям</h3>
+
+          <p>
+            Усередині сесії набери <code>/list-agents</code>. Якщо команда невідома — обміну
+            повідомленнями між сесіями в цій збірці немає, і перше, що варто перевірити, це
+            <code>claude --version</code>. Якщо команда працює, а повідомлення не доходить —
+            причина вужча: заборонні правила на <code>SendMessage</code>, налаштування приймання
+            на боці адресата або те, що адресат живе на іншій машині.
+          </p>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
+          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+
+          <h3>1. Помічника «немає», хоча файл на місці</h3>
+
+          <p>
+            Найдорожча пастка теми, бо Claude Code про неї мовчить. Чотири причини перелічені в
+            блоці 3; найчастіші — відсутнє <code>name</code> і порожній рядок перед першим
+            <code>---</code>. Порядок дій: <code>claude plugin validate .claude/agents</code>,
+            потім очима перший рядок кожного файла, потім <code>claude --debug</code> і пошук у
+            журналі.
+          </p>
+
+          <h3>2. Очікування, що помічник пам'ятає розмову</h3>
+
+          <p>
+            Не пам'ятає. Правило, про яке ви домовились у чаті, треба <strong>повторити в описі
+            задачі</strong>. Документація формулює це прямо: <code>CLAUDE.md</code> помічник
+            бачить, вашу розмову — ні.
+          </p>
+
+          <h3>3. «Explore ігнорує мої правила»</h3>
+
+          <p>
+            Це не баг. <code>Explore</code> і <code>Plan</code> навмисно не вантажать
+            <code>CLAUDE.md</code> і <code>git status</code> заради швидкості й ціни. Головна
+            розмова читає їхній результат уже з повним контекстом правил, тож більшості правил
+            туди потрапляти й не треба. Якщо конкретне правило потрапити мусить — впиши його в
+            промпт.
+          </p>
+
+          <h3>4. Одруківка в <code>tools:</code> вбиває помічника цілком</h3>
+
+          <p>
+            Якщо жоден запис у списку інструментів не впізнається, помічник
+            <strong>не стартує зовсім</strong>, а не «стартує з меншими правами». Помилка при
+            цьому називає саме ці записи — читай її, а не переписуй файл наосліп.
+          </p>
+
+          <h3>5. <code>permissionMode</code>, який мовчки не діє</h3>
+
+          <p>
+            Поле режиму дозволів у заголовку помічника має аж чотири випадки, коли воно не
+            діє. Перший: помічник приїхав із плагіна — там із міркувань безпеки ігноруються
+            ще й <code>hooks</code> та <code>mcpServers</code>. Другий і третій: головна розмова
+            працює в режимі <code>bypassPermissions</code> або <code>acceptEdits</code> —
+            батьківський режим сильніший, перекрити його з файла помічника не можна. Четвертий:
+            головна розмова в режимі <code>auto</code> — помічник успадковує його, а поле в
+            заголовку ігнорується, і його виклики перевіряє той самий класифікатор із тими самими
+            правилами. Це та сама сім'я пасток, що й у модулі 7: налаштування записане, виглядає
+            робочим, а не діє.
+          </p>
+
+          <h3>6. Увімкнув команди агентів — і Claude почав плодити напарників</h3>
+
+          <p>
+            Задокументована побічна дія, а не поломка: коли <code>CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1</code>
+            встановлена, будь-який субагент, якому Claude дав ім'я, стартує вже як напарник у
+            команді. Не хочеш команд — прибери змінну.
+          </p>
+
+          <h3>7. Чекає напарників у неінтерактивному запуску</h3>
+
+          <p>
+            У <code>claude -p</code> і в SDK напарників не буває за конструкцією: іменований
+            субагент лишається звичайним субагентом. Це не налаштовується.
+          </p>
+
+          <h3>8. Багато помічників — і контекст забитий їхніми звітами</h3>
+
+          <p>
+            Документація попереджає окремо: коли помічники завершуються, їхні результати
+            повертаються в головну розмову, і десяток докладних звітів з'їдає вікно не гірше за
+            прочитані файли. Просити «коротко» — частина постановки задачі, а не ввічливість.
+          </p>
+
+          <h3>9. Worktree без <code>.env</code></h3>
+
+          <p>
+            Копія проєкту містить лише те, що відстежує git. Файли з налаштуваннями, паролями й
+            ключами туди не потрапляють, і програма в копії падає на порожньому конфізі. Лікує
+            <code>.worktreeinclude</code>.
+          </p>
+
+          <h3>10. Worktree гілкується не від того, від чого чекали</h3>
+
+          <p>
+            За замовчуванням нова копія береться від <strong>дефолтної гілки репозиторію</strong>,
+            а не від твого поточного стану, тож незапушені коміти в неї не потраплять. Якщо
+            помічник має працювати саме над твоєю незавершеною роботою — постав
+            <code>worktree.baseRef</code> у <code>"head"</code>.
+          </p>
+
+          <h3>11. Розраховують відкотити правки помічника через <code>/rewind</code></h3>
+
+          <p>
+            Здебільшого не вийде: межі чекпойнтів описані в модулі 9, і правки більшості
+            субагентів у них не входять. Перед тим як пускати помічника правити файли, зроби
+            коміт у git — це і є справжня страховка.
+          </p>
+
+          <h3>12. Офіційний ліміт 20 — це не твій ліміт</h3>
+
+          <p>
+            Документація дозволяє двадцять помічників одночасно. Практика цього проєкту скромніша:
+            коли двоє агентів правлять різні файли — добре; коли троє одночасно лізуть у той
+            самий — вони затирають роботу один одному. Рахуй не «скільки дозволено», а «скільки
+            незалежних шматків роботи в мене насправді є».
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
+          <h2><span class="lesson-no">7</span>Часті питання</h2>
+
+          <h3>Мені взагалі потрібні субагенти, чи це для великих команд?</h3>
+
+          <p>
+            Потрібні рівно тоді, коли побічна задача виробляє багато виводу, який ти більше
+            ніколи не читатимеш: прогін тестів, пошук по великому проєкту, розбір логів. Для
+            дрібної правки, для роботи, де треба часто перепитувати, і для кількох етапів, що
+            діляться спільним контекстом, документація радить <strong>головну розмову</strong>.
+            Для питання по вже сказаному в розмові є ще легший спосіб — <code>/btw</code>: він
+            бачить твій контекст, не має доступу до інструментів і не додає відповідь в історію.
+          </p>
+
+          <h3>Чому іноді вигідніше форк, ніж звичайний помічник?</h3>
+
+          <p>
+            Бо форк не треба вводити в курс справи: він успадковує розмову цілком. Плюс його
+            перший запит читає кеш батьківської сесії, тобто коштує дешевше за запуск помічника
+            з нуля. Правило просте: якщо, формулюючи задачу помічникові, ти ловиш себе на тому,
+            що переписуєш йому половину розмови, — тобі потрібен <code>/subtask</code>, а не
+            новий субагент.
+          </p>
+
+          <h3>Чи можна взагалі заборонити субагентів?</h3>
+
+          <p>
+            Так, і не одним способом. Заборонити конкретного вбудованого — правилом заборони на
+            його тип. Заборонити делегування взагалі — заборонити інструмент <code>Agent</code>.
+            Прибрати саме <code>Explore</code> і <code>Plan</code> —
+            <code>CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS=1</code> (потребує 2.1.198+), тоді
+            Claude читає файли сам. Динамічні робочі процеси вимикає
+            <code>"disableWorkflows": true</code> або
+            <code>CLAUDE_CODE_DISABLE_WORKFLOWS=1</code>. Про самі правила дозволів — модуль 7,
+            про файли налаштувань — модуль 13.
+          </p>
+
+          <h3>Наскільки безпечно, що помічник читає інтернет і повертає мені текст?</h3>
+
+          <p>
+            Claude Code сканує підсумковий звіт кожного помічника, перш ніж його прочитає Claude.
+            Сканер нічого не видаляє й не переписує, але робить дві помітні речі: вставляє
+            зворотну скісну риску в текст, який удає службові теги Claude Code, і додає угорі
+            рядок-позначку, коли звіт згадує налаштування дозволів на кшталт
+            <code>bypassPermissions</code>. Це <strong>не</strong> перевірка на шкідливість і не
+            заміна обмеженню повноважень: виклик інструмента, до якого звіт підштовхне Claude,
+            усе одно проходить звичайні перевірки дозволів. Потребує 2.1.210+.
+          </p>
+
+          <h3>Що робити, коли worktree не видаляється?</h3>
+
+          <p>
+            Це git, а не Claude Code: <code>git worktree remove &lt;шлях&gt;</code>, а якщо там
+            є незбережені зміни — з <code>--force</code>. Якщо git відмовляється через
+            блокування, спершу <code>git worktree unlock</code>. Claude Code сам тримає таке
+            блокування, поки в копії працює агент, і сам його знімає. Окремо є періодичне
+            прибирання: копії помічників і фонових сесій, старші за строк
+            <code>cleanupPeriodDays</code>, прибираються самі, але тільки якщо в них не лишилось
+            роботи.
+          </p>
+
+          <h3>Кажуть, є ще <code>/batch</code>. Це п'ятий спосіб?</h3>
+
+          <p>
+            Ні. Документація описує <code>/batch</code> як <em>навичку</em>, яка ділить одну
+            велику зміну на 5–30 субагентів, кожен у своєму worktree, і кожен відкриває свій
+            запит на злиття. Це готове поєднання субагентів і worktrees, а не окремий механізм.
+            Про навички — модуль 14.
+          </p>
+
+          <h3>Скільки платити за все це?</h3>
+
+          <p>
+            Точних чисел документація не дає, але дає орієнтири. Кожен помічник має своє вікно,
+            тому витрата росте приблизно пропорційно до кількості працюючих. Для команд агентів
+            названо конкретну цифру — <strong>приблизно всемеро більше</strong>, коли напарники
+            працюють у режимі плану. Форк дешевший за новий субагент, бо читає батьківський кеш.
+            А динамічний робочий процес радять спершу запустити на маленькому шматку — одна
+            папка замість усього проєкту — і подивитись у <code>/workflows</code>, скільки він
+            з'їв. Механіка витрат — модуль 11.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
+          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+
+          <p>Сім речей, які варто винести з цього модуля:</p>
+
+          <ol>
+            <li><strong>Субагент — це окреме вікно контексту.</strong> Він не знає твоєї розмови,
+              зате не засмічує її своїм виводом. Уся вигода й уся ціна ростуть з цього одного
+              факту.</li>
+            <li><strong>Файл помічника ламається мовчки.</strong> Чотири способи описані в блоці
+              3, і найпоширеніший — відсутнє <code>name</code> — не ловить навіть спеціальна
+              перевірка.</li>
+            <li><strong>Форк — це виняток.</strong> <code>/subtask</code> успадковує розмову й
+              кеш; коли доводиться переказувати помічникові пів години розмови, потрібен саме
+              він.</li>
+            <li><strong>Worktree ізолює файли, а не агентів.</strong> Копія проєкту зі своєю
+              гілкою й спільною історією; за замовчуванням гілкується від дефолтної гілки, і в
+              ній немає нічого, що git не відстежує.</li>
+            <li><strong>Команди агентів — експериментальні й вимкнені.</strong> Приблизно всемеро
+              більше токенів у режимі плану, і вмикання змінює навіть звичайне делегування.</li>
+            <li><strong>Динамічні робочі процеси — це коли план тримає скрипт.</strong>
+              До 16 агентів одночасно, до 1 000 на запуск, попередження при 25 агентах або
+              1,5 мільйона токенів прогнозу.</li>
+            <li><strong>Документація описує завтрашню програму.</strong>
+              <code>strings "$(which claude)" | grep -c</code> із контрольним вигаданим рядком
+              каже, чи знає <em>твоя</em> збірка те, про що ти щойно прочитав.</li>
+          </ol>
+
+          <h3>Наступний крок</h3>
+
+          <p>
+            Модуль 16 — <strong>перехоплювачі подій (hooks)</strong>. Це протилежний бік тієї
+            самої медалі: тут ти вирішував, <em>хто</em> робить роботу, а там вирішуватимеш,
+            <em>що має статись автоматично</em> в певні моменти — перед викликом інструмента,
+            після нього, при завершенні помічника. Дві теми стикуються прямо: у заголовку файла
+            помічника є поле <code>hooks</code>, а подія <code>Stop</code> усередині помічника
+            автоматично перетворюється на <code>SubagentStop</code>.
+          </p>
+
+          <p>
+            Якщо хочеш підготуватись, потренуйся до наступного модуля на одному питанні: у якому
+            місці твоєї щоденної роботи ти щоразу робиш одну й ту саму перевірку руками?
+          </p>
+        </section>
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять на
+            назви: до кожної відповіді одразу з'являється пояснення, чому решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Ви півгодини домовлялись із Claude, що папку vendor/ чіпати не можна. Далі Claude віддає рефакторинг субагентові. Що станеться з домовленістю?",
+            "options": [
+              "Субагент її не знатиме: він стартує з чистим контекстом і твоєї розмови не бачить",
+              "Субагент її знатиме: домовленості з розмови передаються помічникам автоматично",
+              "Субагент запитає про неї сам, перш ніж почати",
+              "Домовленість збережеться, якщо субагент працює в передньому плані"
+            ],
+            "answer": 0,
+            "explain": "Субагент отримує власний системний промпт, опис задачі, всі рівні CLAUDE.md, знімок git status і навички зі списку skills — і більше нічого. Історії розмови там немає, тому правило, сказане в чаті, до нього не доходить. Передній план чи фон на це не впливають — це про те, чи блокується розмова, а не про контекст. Єдиний виняток серед помічників — форк (/subtask), який успадковує розмову цілком. Ліки в решті випадків одні: повторити правило в описі задачі або винести його в CLAUDE.md."
+          },
+          {
+            "q": "Файл .claude/agents/reviewer.md на місці, всередині акуратний опис і системний промпт, але поля name у ньому немає. Claude каже, що такого помічника не існує. Що покаже claude plugin validate .claude/agents?",
+            "options": [
+              "Помилку frontmatter із назвою файла",
+              "Попередження про відсутнє поле name",
+              "Нічого про цей файл: перевірка не позначає файли, чий заголовок читається, але не має name",
+              "Пропозицію перейменувати файл"
+            ],
+            "answer": 2,
+            "explain": "Це задокументована сліпа зона перевірки, і саме тому пастка дорога. Помилку frontmatter команда друкує лише тоді, коли YAML не читається взагалі; попередження вона дає на відсутній description, а не на відсутнє name. У блоці 2 показано живий вивід: із чотирьох файлів названо два, а файл без імені не згаданий узагалі — хоча в сесії він не працює. Тому після перевірки очима звіряють ще й перший рядок кожного файла."
+          },
+          {
+            "q": "Тобі треба, щоб помічник продовжив роботу над тим, що ви щойно обговорювали, не переказуючи йому пів години розмови. Що з цього підходить?",
+            "options": [
+              "Команда агентів: напарники успадковують історію керівника",
+              "Динамічний робочий процес: скрипт передає контекст сам",
+              "Звичайний субагент із полем memory: project",
+              "Форк розмови командою /subtask"
+            ],
+            "answer": 3,
+            "explain": "Форк — єдиний вид помічника, який успадковує всю розмову, системний промпт, інструменти й модель батька; його виклики інструментів у твою розмову не потрапляють, повертається лише підсумок. Напарники в команді агентів історії керівника не успадковують — документація прямо радить класти деталі в промпт при запуску. Скрипт робочого процесу тримає проміжні результати у своїх змінних, а не переносить твою розмову. Поле memory дає помічникові власну пам'ять між його запусками, а не доступ до твоєї розмови. Бонус: перший запит форка читає кеш батьківської сесії, тому він ще й дешевший."
+          },
+          {
+            "q": "Ти прочитав у документації про змінну CLAUDE_CODE_SUBAGENT_MODEL_FORCE, прописав її — і нічого не змінилось. Який спосіб дасть відповідь швидше за читання форумів?",
+            "options": [
+              "Запустити claude з цією змінною і подивитись, чи буде помилка",
+              "strings \"$(which claude)\" | grep -c CLAUDE_CODE_SUBAGENT_MODEL_FORCE, плюс той самий запуск із вигаданою назвою для контролю",
+              "Виконати claude config get CLAUDE_CODE_SUBAGENT_MODEL_FORCE",
+              "Додати --help до запуску: якщо прапорця немає, буде помилка"
+            ],
+            "answer": 1,
+            "explain": "Про змінну середовища програму не спитаєш прапорцем, тому шукають сам рядок усередині файла програми; контрольний запуск із вигаданою назвою потрібен, щоб було видно, що метод розрізняє наявне й неіснуюче. У блоці 5 цей запуск дав нуль на збірці 2.1.236 — документація ж дрібним рядком каже «потребує 2.1.257», тобто описує ще не встановлену версію. Невідома змінна середовища жодної помилки при запуску не дає: програма її не читає. Команди claude config не існує з 2026 року. А --help, як показано в модулі 7, навпаки глушить помилку про невідомий прапорець."
+          },
+          {
+            "q": "Дві сесії Claude Code одночасно правлять той самий проєкт і затирають зміни одна одній. Що це лікує?",
+            "options": [
+              "Запустити кожну сесію у своєму worktree командою claude --worktree <ім'я>",
+              "Підняти CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS",
+              "Увімкнути команди агентів: спільний список задач не дасть їм зіткнутись",
+              "Поставити permissionMode: acceptEdits в обох"
+            ],
+            "answer": 0,
+            "explain": "Worktree — це окрема папка з файлами того самого репозиторію на своїй гілці; поки сесія в ній, Claude Code блокує правки файлів у головній папці та команди, що ведуть туди. Саме це й розв'язує конфлікт. Змінна CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS керує кількістю одночасних помічників усередині однієї сесії й до двох окремих сесій стосунку не має. Команди агентів навпаки: документація каже, що напарників у worktrees не ізолюють, і радить ділити роботу так, щоб кожен володів своїм набором файлів. Режим дозволів вирішує, чи питати перед правкою, а не хто чий файл перезапише."
+          },
+          {
+            "q": "Тобі треба один раз прогнати однакову перевірку по 400 файлах і отримати один звіт. Який механізм документація називає придатним саме для цього?",
+            "options": [
+              "Команда агентів: 400 задач у спільному списку",
+              "Панель агентів claude agents: запустити фонові сесії й позаглядати в них",
+              "Динамічний робочий процес: скрипт тримає план, до 1 000 агентів на запуск",
+              "Один субагент із великим maxTurns"
+            ],
+            "answer": 2,
+            "explain": "Динамічні робочі процеси описані саме як відповідь на задачу, що переростає кілька субагентів: скрипт тримає цикл, проміжні результати лежать у змінних, а в розмову приходить лише кінцевий звіт. Обмеження — до 16 агентів одночасно, до 4 096 елементів на виклик і до 1 000 агентів на запуск. Команди агентів розраховані на кілька довгих напарників, що обговорюють роботу між собою, і коштують приблизно всемеро дорожче в режимі плану; координувати чотириста однакових кроків вони не призначені. Панель агентів — це ручний запуск окремих сесій, які звітують тільки тобі. А один субагент із великим maxTurns усе одно робитиме роботу послідовно й у своє єдине вікно контексту."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <!-- D-03: вхід у три довідники з будь-якого уроку. Підписи живуть у
+         claude-code.config.json → site.ref* і підставляються через data-site
+         (js/config.js, fillStatic); текст у розмітці — той самий рядок, як
+         запасний варіант, коли конфіг не приїхав. Той самий прийом, що вже
+         стоїть на data-site="name" і data-site="shortName" у шапці. -->
+    <nav aria-label="Довідники курсу"
+      class="mx-auto flex max-w-[88rem] flex-wrap items-center gap-x-6 gap-y-1 border-b border-line/60 px-5 py-4 sm:px-8">
+      <span class="font-mono text-xs uppercase tracking-[0.14em] text-faint" data-site="refsLabel">Довідники</span>
+      <a href="../claude-code-ref-commands.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refCommands">Усі команди й клавіші</a>
+      <a href="../claude-code-ref-hooks.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refHooks">Таблиця подій</a>
+      <a href="../claude-code-ref-settings.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refSettings">Ключі settings.json</a>
+    </nav>
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>

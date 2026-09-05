@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 5 · Інтерфейс і навігація — AI Термінал</title>
+  <meta name="description"
+    content="Як влаштований екран Claude Code і як знайти в ньому будь-що: меню слеша, панель підказок за клавішею ?, /help усередині сесії й claude --help у терміналі. Базові клавіші, багаторядковий ввід, вставка зображень, префікси @, ! і \." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="c05" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 05</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 1 · Старт з нуля</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Інтерфейс і навігація</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Початковий · 8 блоків · ≈ 35 хв читання</p>
+        <p class="mt-6 text-lg">
+          У програми, яка живе в терміналі, немає меню «Файл» і немає панелі з кнопками. Усе, що вона
+          вміє, заховано за текстом, який треба знати, що набрати. Цей модуль про те, як не знати —
+          і все одно знаходити.
+        </p>
+        <p>
+          Мета тут не «вивчити команди». Команд у документації Claude Code рівно
+          <strong>111</strong> (звірено з офіційним переліком 4 вересня 2026 року), гарячих клавіш
+          понад сотня у <strong>19</strong> різних контекстах, а сам запуск має <strong>62</strong>
+          опції в одній лише довідці. Це не вчать напам'ять. Замість цього ти навчишся користуватись
+          чотирма дверима, за якими ці переліки лежать усередині самої програми — і будеш знаходити
+          відповідь швидше, ніж встигнеш відкрити пошук у браузері.
+        </p>
+
+        <div class="callout">
+          <span class="callout-title">Що в цьому модулі є, а чого немає</span>
+          <p>
+            <strong>Є:</strong> будова екрана · чотири способи знайти будь-що
+            (<code>/</code>-меню, клавіша <code>?</code>, <code>/help</code>, <code>claude --help</code>) ·
+            базові клавіші · багаторядковий ввід · вставка зображень · префікси <code>@</code>,
+            <code>!</code> і символ <code>\</code>.
+          </p>
+          <p>
+            <strong>Немає:</strong> вичерпних таблиць. Усі команди й клавіші зібрані в довіднику
+            <a href="../claude-code-ref-commands.html">«Усі команди й клавіші»</a> — його не проходять,
+            до нього повертаються. Режими дозволів (клавіша <code>Shift+Tab</code>) — модуль 7,
+            контекстне вікно і <code>/context</code> — модуль 6, гроші й <code>/usage</code> — модуль 11.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
+          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+
+          <p>
+            У програмі з вікном і кнопками ти дізнаєшся про можливості випадково: відкрив меню,
+            побачив пункт, який раніше не помічав. У терміналі такого способу немає. Якщо ти не
+            знаєш, що існує команда <code>/copy</code>, ти ніколи на неї не натрапиш — її ніде не
+            видно.
+          </p>
+
+          <p>
+            Звідси перша проблема: <strong>усе, що ти не знаєш, для тебе не існує</strong>. Людина
+            місяцями користується десятою частиною програми і не здогадується про решту.
+          </p>
+
+          <p>
+            Друга проблема гірша. Природний спосіб закрити першу — знайти статтю в інтернеті. Але
+            Claude Code змінюється щотижня, і статті псуються тихо. Ось три факти з офіційної
+            документації, звірені 4 вересня 2026 року:
+          </p>
+
+          <ul>
+            <li>команда <code>/vim</code> <strong>видалена у версії 2.1.92</strong>. Вона й досі є
+              в переліку команд — з позначкою «Removed» і вказівкою, чим її замінили;</li>
+            <li>команда <code>/agents</code> <strong>змінила поведінку у версії 2.1.198</strong>:
+              раніше відкривала інтерфейс, тепер друкує нагадування;</li>
+            <li>команда <code>/ultraplan</code> теж видалена, а її роботу тепер робить режим плану.</li>
+          </ul>
+
+          <p>
+            Стаття, написана до цих змін, виглядає живою. Вона нормально верстається, у ній
+            упевнений тон, і нічого не підказує, що команда мертва. Ти дізнаєшся про це, коли
+            вона не спрацює, — і подумаєш, що зламався ти.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Головна теза цього модуля</span>
+            <p>
+              <strong>Джерело правди — сама програма, а не стаття про неї.</strong> Claude Code
+              носить свою довідку всередині: перелік команд оновлюється разом із версією, панель
+              клавіш теж. Тому навичка, яку тут тренуємо, — не пам'ять, а маршрут: побачив питання →
+              знаєш, куди подивитись за десять секунд.
+            </p>
+          </div>
+
+          <p>
+            Чотири двері, за якими лежать відповіді, розібрані в блоці 3. Коротко вони такі:
+            символ <code>/</code> на початку рядка відкриває меню команд; клавіша <code>?</code> на
+            порожньому полі показує панель гарячих клавіш; команда <code>/help</code> усередині сесії
+            друкує довідку; а <code>claude --help</code> у терміналі показує все, що можна задати
+            <em>до</em> запуску.
+          </p>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
+          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Коли ти набираєш <code>claude</code> у папці проєкту й тиснеш <code>Enter</code>,
+            вікно термінала перестає бути звичайним терміналом: програма малює власний інтерфейс
+            самим лише текстом. Документація описує старт так: <em>«Ти побачиш поле вводу Claude Code,
+            а над ним — версію, поточну модель і робочу папку»</em>
+            (<a href="https://code.claude.com/docs/en/quickstart" rel="noopener">quickstart</a>,
+            звірено 2026-09-04).
+          </p>
+
+          <p>
+            Розкладемо це на чотири зони. Зверху вниз:
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  A["1. Шапка: версія, поточна модель, робоча папка"] --> B["2. Стрічка розмови: твої запити і кроки Claude"]
+  B --> C["3. Поле вводу: єдине місце, куди ти пишеш"]
+  C --> D["4. Низ екрана: підказки і показник режиму дозволів"]
+  D --> E["Серед підказок унизу — ? for shortcuts"]
+  style C fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Чотири зони екрана. Усе, що ти набираєш, іде в зону 3 — включно з командами
+            </p>
+          </div>
+
+          <ul>
+            <li><strong>Шапка</strong> відповідає на три питання одразу: яка версія в тебе стоїть
+              (це знадобиться щоразу, коли інструкція з інтернету не працює), яка модель відповідає
+              й у якій папці ти зараз. Про моделі — модуль 10.</li>
+            <li><strong>Стрічка розмови</strong> росте вниз: твій запит, потім кроки Claude, потім
+              його відповідь. Читати ці кроки вчив модуль 4.</li>
+            <li><strong>Поле вводу</strong> — рамка внизу, у якій миготить курсор. Сюди йде все:
+              і звичайні речення, і команди, і шляхи до файлів.</li>
+            <li><strong>Низ екрана</strong> — вузька смуга підказок під полем вводу. Документація
+              називає їх «footer badges» і серед них прямо називає три:
+              <code>esc to interrupt</code>, <code>? for shortcuts</code> і
+              <code>hold space to speak</code>
+              (<a href="https://code.claude.com/docs/en/statusline" rel="noopener">statusline</a>,
+              звірено 2026-09-04). Там же видно показник режиму дозволів — слово
+              <code>Manual</code> або назву іншого режиму; що вони означають, розбирає модуль 7.</li>
+          </ul>
+
+          <div class="callout">
+            <span class="callout-title">Чому цього екрана тут немає картинкою</span>
+            <p>
+              Інтерактивний екран Claude Code неможливо «зняти» командою: він живе, доки програма
+              запущена, і зникає разом із нею. Курс має правило — <strong>жодного домальованого
+              виводу</strong>. Тому будову екрана вище описано словами з посиланнями на
+              документацію, а в блоках-терміналах нижче стоїть лише те, що справді надрукувалось
+              на живій машині.
+            </p>
+          </div>
+
+          <h3>Єдиний екран цього модуля, який знімається командою</h3>
+
+          <p>
+            До запуску сесії <code>claude</code> поводиться як звичайна консольна програма: питаєш
+            версію — друкує версію, питаєш довідку — друкує довідку й виходить. Ось справжній вивід:
+          </p>
+
+          <figure class="term term--cmd" id="t1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t1t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t1t"><span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude --version</span></span>
+<span class="term__line">2.1.236 (Claude Code)</span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude --help</span></span>
+<span class="term__line">Usage: claude [options] [command] [prompt]</span>
+<span class="term__line"></span>
+<span class="term__line">Claude Code - starts an interactive session by default, use -p/--print for</span>
+<span class="term__line">non-interactive output</span>
+<span class="term__line"></span>
+<span class="term__line">Arguments:</span>
+<span class="term__line">  prompt                                Your prompt</span>
+<span class="term__line"></span>
+<span class="term__line">Options:</span>
+<span class="term__line">  --add-dir &lt;directories...&gt;            Additional directories to allow tool</span>
+<span class="term__line">                                        access to</span>
+<span class="term__line"><span class="term__meta">  … далі ще 60 опцій, скорочено для уроку …</span></span>
+<span class="term__line">  -c, --continue                        Continue the most recent conversation in</span>
+<span class="term__line">                                        the current directory</span>
+<span class="term__line">  -v, --version                         Output the version number</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято живим запуском на macOS 26.5.2, Claude Code 2.1.236, 4 вересня 2026 року.
+            Дослівно, включно з відступами; скорочення посередині позначене явно. Усього в
+            цьому виводі <strong>62</strong> опції — саме тому його не переказують, а відкривають.
+          </p>
+
+          <p>
+            Зверни увагу на перший рядок: <code>Usage: claude [options] [command] [prompt]</code>.
+            Він каже, що <code>claude</code> приймає три різні речі — опції (починаються з двох
+            рисок), підкоманди й звичайний текст запиту. Про два поверхи цієї конструкції —
+            у наступному блоці.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
+          <h2><span class="lesson-no">3</span>Як це працює</h2>
+
+          <p>
+            Довідка в Claude Code розділена на дві половини, і плутанина між ними — найчастіша
+            причина, чому людина «не може знайти команду».
+          </p>
+
+          <ul>
+            <li><strong>До запуску</strong>, у терміналі, працює <code>claude --help</code>.
+              Тут живуть <em>опції запуску</em> (<code>--add-dir</code>, <code>--model</code>,
+              <code>-c</code>) і <em>підкоманди</em> (<code>claude doctor</code>,
+              <code>claude mcp</code>, <code>claude update</code>).</li>
+            <li><strong>Усередині сесії</strong>, у полі вводу, працюють <em>слеш-команди</em> —
+              <code>/help</code>, <code>/status</code>, <code>/copy</code>. У терміналі вони не
+              працюють, у сесії не працюють опції з двома рисками. Це два різні світи.</li>
+          </ul>
+
+          <p>
+            Другий поверх видно в кінці того самого <code>claude --help</code> — там окремий розділ
+            <code>Commands</code>. Кожна з цих підкоманд має власну довідку:
+            <code>claude doctor --help</code>, <code>claude mcp --help</code> і так далі.
+          </p>
+
+          <figure class="term term--cmd" id="t2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t2t">кінець того самого виводу · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t2t"><span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude --help</span></span>
+<span class="term__line"><span class="term__meta">  … пропущено розділ Options …</span></span>
+<span class="term__line">Commands:</span>
+<span class="term__line">  agents [options]                      Manage background agents</span>
+<span class="term__line">  auth                                  Manage authentication</span>
+<span class="term__line">  doctor                                Check the health of your Claude Code</span>
+<span class="term__line">                                        installation.</span>
+<span class="term__line">  install [options] [target]            Install Claude Code native build.</span>
+<span class="term__line">  mcp                                   Configure and manage MCP servers</span>
+<span class="term__line">  plugin|plugins                        Manage Claude Code plugins</span>
+<span class="term__line">  update|upgrade                        Check for updates and install if</span>
+<span class="term__line">                                        available</span>
+<span class="term__line"><span class="term__meta">  … і ще п'ять підкоманд …</span></span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято на macOS 26.5.2, Claude Code 2.1.236, 4 вересня 2026 року. Описи підкоманд
+            скорочені до першого речення, скорочення позначені; назви й порядок — дослівні.
+          </p>
+
+          <h3>Чотири двері й коли яку відчиняти</h3>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  Q["Що я шукаю?"] --> C1["Команду всередині сесії"]
+  Q --> K1["Гарячу клавішу"]
+  Q --> F1["Те, що задається при запуску"]
+  C1 --> M1["Набери / на початку порожнього поля"]
+  C1 --> M2["Або команду /help"]
+  K1 --> P1["Натисни ? на порожньому полі"]
+  F1 --> H1["Вийди з сесії і набери claude --help"]
+  M1 --> R1["Не знайшлось — довідник курсу і докси"]
+  P1 --> R1
+  H1 --> R1
+  style Q fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Маршрут пошуку. Три двері з чотирьох відчиняються одним натисканням
+            </p>
+          </div>
+
+          <h4>Двері 1: символ <code>/</code> — меню команд</h4>
+
+          <p>
+            Набери <code>/</code> у порожньому полі вводу — з'явиться перелік доступних команд.
+            Продовжуй набирати літери, і перелік фільтрується. Це головний інструмент модуля,
+            тому кілька точних правил із документації
+            (<a href="https://code.claude.com/docs/en/commands" rel="noopener">commands</a>,
+            звірено 2026-09-04):
+          </p>
+
+          <ul>
+            <li><strong>Підсвітка.</strong> Claude Code підсвічує верхню підказку, коли літери після
+              <code>/</code> збігаються з назвою команди або з її псевдонімом — з початку назви або
+              з початку слова всередині неї, ігноруючи розділювачі <code>-</code>, <code>_</code> і
+              <code>:</code>. Набране <code>/adddir</code> підсвічує <code>/add-dir</code>, а
+              набране <code>/new</code> підсвічує <code>/clear</code> через його псевдонім.
+              <code>Enter</code> запускає підсвічену команду. <em>Ці правила підсвітки з'явились
+              у версії 2.1.236.</em></li>
+            <li><strong>Після друкарської помилки</strong> не підсвічується нічого. Близькі варіанти
+              лишаються в переліку, і їх можна взяти клавішею <code>Tab</code> або стрілками, але
+              <code>Enter</code> відправить твій текст як є — і ти отримаєш відповідь
+              <code>Unknown command</code>.</li>
+            <li><strong>Команди, недоступні тобі</strong>, у меню не показуються взагалі. Коли не
+              збігається нічого, Claude Code пише <code>No commands match "/name"</code>.</li>
+            <li><strong>Приховані команди</strong> (наприклад <code>/heapdump</code>) навмисно не
+              показуються в меню й з'являються лише тоді, коли ти набрав повну назву.</li>
+          </ul>
+
+          <div class="callout">
+            <span class="callout-title">Правило початку рядка</span>
+            <p>
+              Команда розпізнається <strong>тільки на початку повідомлення</strong>. Набране
+              «поясни, що робить <code>/status</code>» — це звичайне речення, меню не відкриється
+              і команда не виконається. Те саме стосується префікса <code>!</code> із блоку нижче.
+            </p>
+          </div>
+
+          <h4>Двері 2: клавіша <code>?</code> — панель гарячих клавіш</h4>
+
+          <p>
+            <strong>Гаряча клавіша</strong> (англійською <em>shortcut</em>) — це поєднання клавіш,
+            яке робить дію без набору тексту. Їх у Claude Code понад сотню, і тримати їх у голові
+            немає потреби: натисни <code>?</code> на <em>порожньому</em> полі вводу — відкриється
+            панель підказок. Натиснеш <code>Esc</code> — закриється. Якщо в полі вже є текст, той
+            самий <code>?</code> вставиться в текст як звичайний символ питання.
+          </p>
+
+          <p>
+            Саме про цю панель нагадує напис <code>? for shortcuts</code> унизу екрана. Він зникає,
+            якщо ти налаштував власний рядок стану, — тоді панель усе одно працює, хоч про неї
+            вже й не нагадують.
+          </p>
+
+          <h4>Двері 3: <code>/help</code> — довідка сесії</h4>
+
+          <p>
+            Офіційний опис короткий: <em>«Show help and available commands»</em> — показати довідку
+            й доступні команди. Ця команда стане в пригоді, коли ти не пам'ятаєш навіть того, з чого
+            почати шукати.
+          </p>
+
+          <h4>Двері 4: <code>claude --help</code> — усе, що задається при запуску</h4>
+
+          <p>
+            Опції з двох рисок задають поведінку <em>усієї сесії</em> й пишуться до її старту.
+            Довідка з блоку 2 — їхній повний перелік для тієї версії, яка стоїть у тебе. Наголос на
+            «у тебе»: у сусіда з іншою версією він буде іншим, і це нормально.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Чесна межа: <code>--help</code> не є вичерпним</span>
+            <p>
+              Це один із найкорисніших фактів усього курсу, і він неприємний. У версії 2.1.236
+              документація описує щонайменше <strong>шість</strong> опцій, яких у виводі
+              <code>claude --help</code> немає взагалі — серед них <code>--advisor</code>,
+              <code>--max-turns</code>, <code>--init</code>, <code>--maintenance</code>. Вони
+              працюють, але не показані.
+            </p>
+            <p>
+              Одночасно вірне і зворотне: документація описує опції, яких у твоїй збірці ще немає.
+              Тому висновок «цього не існує» не можна робити ні з довідки, ні зі статті. Як
+              перевірити напевно — у блоці 5.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
+          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+
+          <p>
+            Далі — вісім коротких дій. Жодна нічого не змінює на комп'ютері: усе це перегляд,
+            ввід і виправлення власного тексту.
+          </p>
+
+          <h3>Крок 1. Подивитись довідку запуску</h3>
+          <p>
+            У терміналі, ще без сесії, набери <code>claude --help</code> і натисни
+            <code>Enter</code>. Вивід довгий — прокрути його коліщатком або клавішами
+            <code>PageUp</code> / <code>PageDown</code>. Знайди рядок <code>-c, --continue</code>:
+            він знадобиться в модулі 9.
+          </p>
+
+          <h3>Крок 2. Запустити сесію і відкрити панель клавіш</h3>
+          <p>
+            Перейди в будь-яку папку з файлами (<code>cd ~/my-site</code> з модуля 1) і набери
+            <code>claude</code>. Коли з'явиться поле вводу, <strong>нічого не набираючи</strong>,
+            натисни <code>?</code>. Відкриється панель гарячих клавіш. Погортай її й закрий
+            клавішею <code>Esc</code>.
+          </p>
+
+          <h3>Крок 3. Відкрити меню команд і подивитись, як воно фільтрує</h3>
+          <p>
+            Набери один символ <code>/</code> — з'явиться перелік. Дописуй по літері:
+            <code>/st</code>, <code>/sta</code> — перелік звужується. Дійди до
+            <code>/status</code> і натисни <code>Enter</code>. Відкриється вкладка стану: версія,
+            модель, акаунт, зв'язок. Закрий її <code>Esc</code>.
+          </p>
+          <p>
+            Тепер спробуй набрати <code>/new</code> — підсвітиться <code>/clear</code>. Це і є
+            пошук за псевдонімом. <strong>Не тисни <code>Enter</code></strong>, якщо не хочеш
+            почати розмову з чистого аркуша: натисни <code>Esc</code>.
+          </p>
+
+          <h3>Крок 4. Написати повідомлення у два рядки</h3>
+          <p>
+            Спроба зробити новий рядок клавішею <code>Enter</code> відправляє повідомлення. Тому
+            для переносу є окремі способи, і їх п'ять — офіційна таблиця
+            (<a href="https://code.claude.com/docs/en/interactive-mode" rel="noopener">interactive-mode</a>,
+            звірено 2026-09-04):
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Крок 4. Написати повідомлення у два рядки">
+          <table>
+            <thead>
+              <tr>
+                <th>Спосіб</th>
+                <th>Клавіші</th>
+                <th>Де працює</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Швидкий перенос</td>
+                <td><code>\</code> + <code>Enter</code></td>
+                <td>у всіх терміналах</td>
+              </tr>
+              <tr>
+                <td>Керівна послідовність</td>
+                <td><code>Ctrl+J</code></td>
+                <td>у будь-якому терміналі, без налаштування</td>
+              </tr>
+              <tr>
+                <td>Клавіша Option</td>
+                <td><code>Option+Enter</code></td>
+                <td>на macOS після вмикання «Option as Meta»</td>
+              </tr>
+              <tr>
+                <td>Shift+Enter</td>
+                <td><code>Shift+Enter</code></td>
+                <td>нативно в iTerm2, WezTerm, Ghostty, Kitty, Warp, Apple Terminal, Windows Terminal</td>
+              </tr>
+              <tr>
+                <td>Вставка</td>
+                <td>вставити багаторядковий текст</td>
+                <td>для блоків коду й логів</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>
+            Набери <code>перше речення</code>, потім <code>\</code> і <code>Enter</code> — курсор
+            перейде на новий рядок, а повідомлення не відправиться. Допиши друге речення. Це
+            рівно той символ <code>\</code>, який згадують в описах курсу: сам по собі він нічого
+            не робить, він працює <em>у парі</em> з <code>Enter</code>.
+          </p>
+
+          <h3>Крок 5. Підставити файл через <code>@</code></h3>
+          <p>
+            Символ <code>@</code> вставляє <strong>вміст</strong> файла в розмову, не чекаючи, поки
+            Claude сам його прочитає. Набери <code>@</code> — відкриється меню шляхів
+            (<strong>автодоповнення</strong>, англійською <em>autocomplete</em>: програма показує
+            варіанти, а ти обираєш). Обери файл клавішею <code>Tab</code> або <code>Enter</code>
+            і напиши запит навколо нього, наприклад:
+          </p>
+          <p><code>поясни, що робить @README.md</code></p>
+          <p>
+            Три деталі з документації: шлях може бути відносним або абсолютним; посилання на
+            <em>папку</em> дає перелік файлів, а не їхній вміст; в одному повідомленні можна згадати
+            кілька файлів.
+          </p>
+
+          <h3>Крок 6. Виконати команду терміналa через <code>!</code></h3>
+          <p>
+            Префікс <code>!</code> на початку рядка вмикає <strong>shell-режим</strong> (shell mode) —
+            команда виконується напряму, без участі Claude. Набери <code>! pwd</code> і натисни
+            <code>Enter</code>: побачиш шлях поточної папки, як у модулі 1.
+          </p>
+          <p>
+            Важлива відмінність від звичайного термінала: команда <em>і її вивід</em> потрапляють
+            у розмову, і <strong>Claude відповідає на них сам</strong>, без другого запиту. Тому
+            <code>! npm test</code> дає одразу пояснення, чому тести впали. Вийти з shell-режиму —
+            <code>Escape</code>, <code>Backspace</code> або <code>Ctrl+U</code> на порожньому полі.
+          </p>
+
+          <h3>Крок 7. Вставити зображення</h3>
+          <p>
+            Claude Code розуміє картинки: скріншот помилки, макет, схему. Документація називає три
+            способи (<a href="https://code.claude.com/docs/en/common-workflows" rel="noopener">common-workflows</a>,
+            звірено 2026-09-04):
+          </p>
+          <ol>
+            <li>перетягнути файл зображення у вікно Claude Code;</li>
+            <li>скопіювати зображення й вставити його клавішами <code>Ctrl+V</code> — на Windows і
+              WSL <code>Alt+V</code>, в iTerm2 <code>Cmd+V</code>;</li>
+            <li>вказати шлях прямо в тексті: «проаналізуй це зображення: /path/to/image.png».</li>
+          </ol>
+          <p>
+            У полі вводу з'явиться позначка виду <code>[Image #1]</code> — вона стоїть саме там, де
+            був курсор, тому на неї можна посилатись у реченні («що не так на <code>[Image #1]</code>?»).
+            Коли Claude згадує зображення у відповіді, його можна відкрити у переглядачі:
+            <code>Cmd+Click</code> на macOS, <code>Ctrl+Click</code> на Windows і Linux.
+          </p>
+          <p class="text-sm text-muted">
+            Знімка цієї дії в уроці немає з тієї ж причини, що й екрана сесії: вставка зображення —
+            інтерактивна дія, її не можна відтворити командою.
+          </p>
+
+          <h3>Крок 8. Вісім команд, яких вистачить для навігації</h3>
+          <p>
+            Це не «головні команди Claude Code» — це ті, що стосуються саме інтерфейсу. Решта
+            приходитиме за темами: пам'ять у модулі 12, хуки в модулі 16, і так далі.
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Крок 8. Вісім команд, яких вистачить для навігації">
+          <table>
+            <thead>
+              <tr>
+                <th>Команда</th>
+                <th>Що робить</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/help</code></td>
+                <td>показує довідку й доступні команди</td>
+              </tr>
+              <tr>
+                <td><code>/status</code></td>
+                <td>вкладка стану: версія, модель, акаунт, зв'язок. Працює навіть тоді, коли Claude
+                  зайнятий відповіддю</td>
+              </tr>
+              <tr>
+                <td><code>/copy</code></td>
+                <td>копіює останню відповідь у буфер. Якщо у відповіді є блоки коду — дає обрати
+                  окремий блок; клавіша <code>w</code> у цьому виборі записує його у файл</td>
+              </tr>
+              <tr>
+                <td><code>/keybindings</code></td>
+                <td>створює або відкриває твій файл гарячих клавіш
+                  <code>~/.claude/keybindings.json</code></td>
+              </tr>
+              <tr>
+                <td><code>/terminal-setup</code></td>
+                <td>налаштовує <code>Shift+Enter</code> у VS&nbsp;Code, Cursor, Alacritty, Zed і
+                  подібних; в Apple Terminal натомість вмикає <code>Option+Enter</code></td>
+              </tr>
+              <tr>
+                <td><code>/theme</code></td>
+                <td>змінює тему кольорів. Є варіант <code>auto</code> під фон термінала й окремі
+                  теми для людей із порушенням розрізнення кольорів</td>
+              </tr>
+              <tr>
+                <td><code>/tui</code></td>
+                <td>перемикає спосіб малювання екрана; без аргументу — друкує, який зараз активний.
+                  Варіант <code>fullscreen</code> вмикає повноекранний режим без мерехтіння</td>
+              </tr>
+              <tr>
+                <td><code>/exit</code></td>
+                <td>вихід із сесії. Псевдонім — <code>/quit</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>
+            Повний перелік — на сторінці
+            <a href="../claude-code-ref-commands.html">«Усі команди й клавіші»</a>. Її не проходять
+            і не здають: вона для того, щоб повертатись.
+          </p>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
+          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Кожен крок із блоку 4 має однозначну ознаку. Ніяких «здається, спрацювало»:
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Як перевірити, що вийшло">
+          <table>
+            <thead>
+              <tr>
+                <th>Що робив</th>
+                <th>Ознака, що вийшло</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Натиснув <code>?</code> на порожньому полі</td>
+                <td>відкрилась панель клавіш. Якщо натомість у полі з'явився символ
+                  <code>?</code> — поле не було порожнім</td>
+              </tr>
+              <tr>
+                <td>Набрав <code>/st</code></td>
+                <td>перелік звузився й <code>/status</code> підсвітився</td>
+              </tr>
+              <tr>
+                <td>Зробив перенос рядка</td>
+                <td>курсор пішов на новий рядок, а повідомлення <strong>не</strong> відправилось</td>
+              </tr>
+              <tr>
+                <td>Набрав <code>! pwd</code></td>
+                <td>надрукувався шлях поточної папки, і Claude сам його прокоментував</td>
+              </tr>
+              <tr>
+                <td>Вставив зображення</td>
+                <td>у полі вводу з'явилась позначка <code>[Image #1]</code></td>
+              </tr>
+              <tr>
+                <td>Набрав <code>/status</code></td>
+                <td>у вкладці видно номер версії — той самий, що друкує
+                  <code>claude --version</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <h3>Як перевірити, що опція взагалі існує в <em>твоїй</em> версії</h3>
+
+          <p>
+            Це головна перевірка модуля, і вона потрібна щоразу, коли інструкція з інтернету не
+            працює. Прийом такий: <strong>дописати до опції свідомо неіснуючу</strong> —
+            наприклад <code>--zzz-bogus</code> — і подивитись, на що поскаржиться програма.
+            Розбір рядка зупиняється на першій невідомій опції, сесія при цьому не запускається
+            і нічого не змінюється.
+          </p>
+
+          <ul>
+            <li>скарга на <code>--zzz-bogus</code> або на її значення означає, що
+              <strong>перевірювана опція відома</strong> програмі;</li>
+            <li>скарга на саму перевірювану опцію означає, що <strong>її в цій версії немає</strong>.</li>
+          </ul>
+
+          <figure class="term term--cmd term--err" id="t3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t3t">перевірка двох опцій · Claude Code 2.1.236 · macOS 26.5.2 · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t3t"><span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude --advisor --zzz-bogus</span></span>
+<span class="term__line"><span class="term__ok">Error: The model "--zzz-bogus" cannot be used as an advisor.</span></span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude --restricted --zzz-bogus</span></span>
+<span class="term__line"><span class="term__err">error: unknown option '--restricted'</span></span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято живим запуском на macOS 26.5.2, Claude Code 2.1.236, 4 вересня 2026 року.
+            Читається так: <code>--advisor</code> у цій версії <strong>є</strong> — програма встигла
+            дійти до значення й посварилась на нього. <code>--restricted</code>
+            <strong>немає</strong> — програма не впізнала саму опцію. При цьому
+            <code>--advisor</code> у виводі <code>claude --help</code> цієї версії
+            <strong>відсутня</strong>, хоча описана в документації.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Що з цього випливає</span>
+            <p>
+              Довідка програми, документація й стаття в мережі можуть суперечити одна одній
+              одночасно. Останнє слово — за твоєю збіркою, і тільки вона відповідає на питання
+              «чи є це в мене». Тому перше, що варто знати про свій Claude Code, — номер версії:
+              <code>claude --version</code>.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
+          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+
+          <p>
+            Сім ситуацій, у яких людина вирішує, що зламалась програма, хоча зламалось непорозуміння.
+          </p>
+
+          <h3>1. <code>Shift+Enter</code> відправляє недописане повідомлення</h3>
+          <p>
+            Найчастіша з усіх. <code>Shift+Enter</code> працює нативно лише в частині терміналів
+            (перелік у таблиці блоку 4); у решті термінал шле звичайний <code>Enter</code>, і
+            половина думки їде до Claude. Універсальний вихід — <code>Ctrl+J</code> або
+            <code>\</code> + <code>Enter</code>: вони працюють скрізь без налаштування. Разове
+            налаштування для підтримуваних редакторів — команда <code>/terminal-setup</code>.
+          </p>
+
+          <h3>2. <code>Ctrl+C</code>, щоб скопіювати</h3>
+          <p>
+            У багатьох програмах це «копіювати». У терміналі <code>Ctrl+C</code> перериває роботу:
+            перше натискання зупиняє те, що виконується або чистить поле вводу, друге —
+            завершує Claude Code. Копіювати відповідь треба командою <code>/copy</code>.
+            Ця клавіша, до речі, з тих, які <strong>не можна перепризначити</strong> — разом із
+            <code>Ctrl+D</code>, <code>Ctrl+M</code>, <code>Ctrl+I</code>, <code>Ctrl+H</code>,
+            <code>Ctrl+[</code> і <code>Caps Lock</code>.
+          </p>
+
+          <h3>3. Кирилична розкладка з'їдає <code>Ctrl</code>-клавіші</h3>
+          <p>
+            Це стосується україномовної аудиторії напряму, тому окремо й дослівно. Документація
+            (<a href="https://code.claude.com/docs/en/keybindings" rel="noopener">keybindings</a>,
+            звірено 2026-09-04) описує так: під нелатинською розкладкою Claude Code розпізнає
+            <code>Ctrl</code>-клавіші <strong>за фізичним положенням клавіші в розкладці US</strong> —
+            але лише в терміналах, які використовують протокол клавіатури Kitty (Ghostty, Kitty,
+            WezTerm, iTerm2) і повідомляють це положення. У терміналі, який положення не повідомляє,
+            натискання з кириличним символом не збігається з жодною прив'язкою — тобто не робить
+            нічого.
+          </p>
+          <p>
+            Окремо: цей механізм <strong>з'явився у версії 2.1.247</strong>. У 2.1.236 і раніших
+            він не працює навіть у перелічених терміналах. Практичний висновок один: перед гарячою
+            клавішею перемкнись на латиницю.
+          </p>
+
+          <h3>4. Клавіші з <code>Option</code> нічого не роблять на macOS</h3>
+          <p>
+            <code>Alt+B</code>, <code>Alt+F</code>, <code>Alt+D</code>, <code>Alt+Y</code>,
+            <code>Alt+P</code> вимагають, щоб у налаштуваннях термінала була ввімкнена опція
+            «Option as Meta». Без неї вони мовчать, і людина вирішує, що курс бреше.
+            Виняток названий у документації окремо: <code>Option+T</code> (перемикач розширеного
+            мислення) працює на macOS <strong>без</strong> цього налаштування.
+          </p>
+
+          <h3>5. <code>Ctrl+B</code> під tmux не спрацьовує</h3>
+          <p>
+            <strong>Мультиплексор</strong> (tmux, GNU screen) — програма, яка ділить одне вікно
+            термінала на кілька панелей. Вона перехоплює свою «клавішу-префікс» раніше за Claude
+            Code: у tmux це <code>Ctrl+B</code>, у GNU screen — <code>Ctrl+A</code>. Рішення для
+            tmux просте: натиснути <code>Ctrl+B</code> двічі.
+          </p>
+
+          <h3>6. <code>/</code> посеред речення не відкриває меню</h3>
+          <p>
+            Розібрано в блоці 3: команда розпізнається тільки на початку повідомлення. Те саме
+            з <code>!</code>. Якщо меню не з'явилось — подивись, чи немає перед слешем тексту
+            або пробілу.
+          </p>
+
+          <h3>7. Переписування промпту, який уже є в історії</h3>
+          <p>
+            Стрілка <code>Up</code> дістає попередні запити — і не лише з цієї сесії, а з
+            <strong>минулих сесій у цій самій папці</strong>: історія зберігається окремо для кожної
+            робочої папки. Ще швидше — <code>Ctrl+R</code>: пошук по історії, у якому набраний
+            фрагмент підсвічується в знайдених рядках.
+          </p>
+          <p>
+            Одна тонкість зі стрілкою: коли текст у полі займає більше ніж один рядок, перше
+            натискання <code>Up</code> рухає курсор усередині поля, і лише з верхнього рядка
+            наступне натискання переходить до історії.
+          </p>
+
+          <h3>Бонус: помилка в назві опції</h3>
+          <p>
+            Ще одна перевірена дрібниця, яка економить хвилини. Помилившись у назві опції, ти
+            отримаєш не мовчання, а підказку:
+          </p>
+
+          <figure class="term term--err" id="t4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t4t">друкарська помилка · Claude Code 2.1.236 · macOS 26.5.2 · знято 2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t4t"><span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude --hlep</span></span>
+<span class="term__line"><span class="term__err">error: unknown option '--hlep'</span></span>
+<span class="term__line">(Did you mean --help?)</span></pre>
+          </figure>
+
+          <p class="diagram-caption" style="text-align:left">
+            Знято живим запуском 4 вересня 2026 року. Другий рядок англійською означає
+            «можливо, ти мав на увазі <code>--help</code>?». Кнопки копіювання в цьому блоці немає
+            навмисно: копіювати помилку немає сенсу.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
+          <h2><span class="lesson-no">7</span>Часті питання</h2>
+
+          <h3>Мені треба вивчити всі 111 команд?</h3>
+          <p>
+            Ні. Щоденно використовують одиниці — вісім із них у таблиці блоку 4. Решта потрібні
+            рідко й точково, і саме тому вони зібрані в довіднику, а не в уроці. Навичка, яку
+            варто тренувати, — відкрити <code>/</code>-меню й набрати два-три символи здогадки.
+          </p>
+
+          <h3>Гаряча клавіша з довідки не працює. Програма зламана?</h3>
+          <p>
+            Найімовірніше ні. Перевір по черзі чотири причини з блоку 6: розкладка (кирилиця),
+            «Option as Meta» на macOS, мультиплексор, який перехопив клавішу, і сам термінал, який
+            не вміє надсилати це поєднання. П'ята причина — версія: частина клавіш з'явилась
+            пізніше за твою збірку, і тоді її не існує в тебе фізично.
+          </p>
+
+          <h3>Клавіші можна змінити під себе?</h3>
+          <p>
+            Так. Команда <code>/keybindings</code> створює або відкриває файл
+            <code>~/.claude/keybindings.json</code>. У ньому прив'язки згруповані за
+            <strong>контекстами</strong> — станами інтерфейсу, у яких клавіша діє. Контекстів
+            рівно <strong>19</strong>: <code>Global</code>, <code>Chat</code>,
+            <code>Autocomplete</code>, <code>Confirmation</code>, <code>Transcript</code>,
+            <code>Scroll</code> і ще тринадцять. Одна клавіша може означати різне в різних
+            контекстах — тому їх і понад сотню.
+          </p>
+          <p>
+            Дві корисні деталі: підтримуються <strong>акорди</strong> — послідовності на кшталт
+            <code>ctrl+k ctrl+s</code> (натиснути, відпустити, натиснути наступне); а значення
+            <code>null</code> знімає прив'язку зовсім. Зміни у файлі підхоплюються без перезапуску
+            Claude Code.
+          </p>
+
+          <h3>Розмова довга, треба знайти в ній старий шматок. Як?</h3>
+          <p>
+            <code>Ctrl+O</code> відкриває <strong>перегляд стенограми</strong> (transcript viewer) —
+            докладний журнал із часом і назвою моделі біля кожної відповіді; там розгортається те,
+            що згорнуто в основному вікні. Для довгих сесій зручніший повноекранний режим:
+            <code>/tui fullscreen</code>. У ньому працюють миша, прокрутка, клавіші <code>{</code>
+            і <code>}</code> для стрибків між твоїми запитами, а клавіша <code>[</code> вивантажує
+            всю розмову в звичайну прокрутку термінала — щоб шукати рідним пошуком термінала.
+          </p>
+
+          <h3>Чому команда зі статті відповідає «Unknown command»?</h3>
+          <p>
+            Три можливі причини, і всі три реальні. Перша: команду видалили — так сталося з
+            <code>/vim</code> у версії 2.1.92 і з <code>/ultraplan</code>. Друга: команда існує, але
+            недоступна саме тобі — на твоєму тарифі чи типі акаунта; такі команди в меню навіть не
+            показуються. Третя: друкарська помилка, після якої меню нічого не підсвічує, а
+            <code>Enter</code> відправляє текст як є. Перший крок у всіх трьох випадках однаковий:
+            відкрити <code>/</code>-меню й подивитись, чи є там ця назва взагалі.
+          </p>
+
+          <h3>Що робить символ <code>:</code> у полі вводу?</h3>
+          <p>
+            Це коротка назва емодзі. Набери <code>:name:</code> повністю — вставиться емодзі; набери
+            дві-три літери після двокрапки — з'являться варіанти. Механізм працює з версії 2.1.217.
+            Це найменш важливий із префіксів, але про нього питають, побачивши в підказці.
+          </p>
+
+          <h3>Голосом диктувати можна?</h3>
+          <p>
+            У документації описане голосове диктування: підказка <code>hold space to speak</code>
+            унизу екрана, режим вмикається командою <code>/voice</code> і працює у двох варіантах —
+            утримувати або натиснути пробіл. Потрібен акаунт claude.ai. Наживо в цьому курсі
+            функція не перевірялась, тому далі про неї нічого не стверджуємо.
+          </p>
+
+          <h3>Що робити, поки Claude довго відповідає?</h3>
+          <p>
+            Можна набирати наступне повідомлення — воно стане в чергу й піде після завершення
+            поточного кроку; черга видна над полем вводу. Передумав — натисни <code>Up</code> з
+            першого рядка поля, і повідомлення з черги повернуться в поле для редагування.
+            Щоб перервати роботу, а не чекати, — <code>Esc</code>.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
+          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Якщо після цього уроку ти, зустрівши незнайому задачу, спершу тиснеш <code>/</code> або
+            <code>?</code>, а не відкриваєш пошук у браузері — модуль зробив свою роботу.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Підсумок модуля</span>
+            <ul>
+              <li>Екран Claude Code складається з чотирьох зон: шапка з версією, моделлю й папкою ·
+                стрічка розмови · поле вводу · смуга підказок унизу, де стоїть
+                <code>? for shortcuts</code>.</li>
+              <li>Довідка розділена надвоє: <code>claude --help</code> у терміналі — про запуск;
+                <code>/help</code> і <code>/</code>-меню в сесії — про роботу всередині неї.</li>
+              <li><code>/</code>, <code>!</code> діють <strong>тільки на початку</strong>
+                повідомлення. <code>?</code> діє тільки на <strong>порожньому</strong> полі.
+                <code>@</code> працює будь-де в рядку.</li>
+              <li>Новий рядок — <code>\</code> + <code>Enter</code> або <code>Ctrl+J</code>: ці два
+                способи працюють у будь-якому терміналі. <code>Shift+Enter</code> — лише в частині.</li>
+              <li>Зображення додається перетягуванням, вставкою (<code>Ctrl+V</code>,
+                <code>Alt+V</code> на Windows і WSL, <code>Cmd+V</code> в iTerm2) або шляхом у
+                тексті; у полі з'являється позначка <code>[Image&nbsp;#1]</code>.</li>
+              <li>Ані довідка, ані документація не є вичерпними: у 2.1.236 шість задокументованих
+                опцій відсутні в <code>claude --help</code>. Останнє слово — за твоєю збіркою,
+                і перевіряється воно живою командою.</li>
+              <li>Вичерпні переліки — у довіднику
+                <a href="../claude-code-ref-commands.html">«Усі команди й клавіші»</a>, не в пам'яті.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Далі — <strong>модуль 6 «Контекстне вікно й компакція»</strong>: чому довга розмова
+            починає «забувати» початок, що саме займає місце, і чим <code>/compact</code>
+            відрізняється від <code>/clear</code>. Команда <code>/context</code>, яку ти вже
+            бачив у <code>/</code>-меню, там стане головною.
+          </p>
+          <p>
+            До того часу — одна звичка на щодня: коли щось не працює так, як в інструкції, першими
+            двома командами роби <code>claude --version</code> і <code>/status</code>. Половина
+            питань закривається номером версії.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять на
+            назви: до кожної відповіді одразу з'являється пояснення, чому решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Ти пишеш Claude: «поясни, будь ласка, що робить /status». Меню команд не відкрилось, а Claude відповів текстом. Чому?",
+            "options": [
+              "Команда /status не існує в цій версії",
+              "Команда розпізнається тільки на початку повідомлення, а тут перед слешем є текст",
+              "Меню команд відкривається лише після натискання Tab",
+              "Треба було писати назву команди великими літерами"
+            ],
+            "answer": 1,
+            "explain": "Слеш вмикає меню лише тоді, коли він перший символ повідомлення; далі текст стає аргументом команди. Тут перед ним ціле речення, тому весь рядок пішов як звичайний запит — і це саме те, чого ти просив. Те саме правило діє для префікса ! (shell-режим). Команда /status існує і доступна, а Tab у меню приймає підказку, а не відкриває його. Пригадай «правило початку рядка» з блоку 3."
+          },
+          {
+            "q": "Ти набрав у полі /stauts (з помилкою) і натиснув Enter. Що станеться?",
+            "options": [
+              "Claude Code сам виправить помилку й виконає /status",
+              "Нічого не станеться: Enter на невідомій команді ігнорується",
+              "Текст піде як є, і ти отримаєш відповідь Unknown command",
+              "Відкриється панель гарячих клавіш"
+            ],
+            "answer": 2,
+            "explain": "Після друкарської помилки меню не підсвічує нічого. Близькі варіанти лишаються в переліку, і їх можна взяти клавішею Tab або стрілками — але саме Enter відправляє твій текст без змін, а Claude Code відповідає Unknown command. Автовиправлення в цьому місці немає навмисно: інакше одна помилка запускала б не ту команду. Панель клавіш відкриває ? на порожньому полі, а не Enter."
+          },
+          {
+            "q": "Людина пише довге повідомлення, тисне Shift+Enter для нового рядка — і половина тексту відлітає до Claude недописаною. Що порадити, щоб це не повторилось у будь-якому терміналі?",
+            "options": [
+              "Тиснути Ctrl+J або набирати \\ і Enter",
+              "Тиснути Ctrl+C перед кожним новим рядком",
+              "Писати все одним рядком: багаторядкового вводу немає",
+              "Перевстановити Claude Code"
+            ],
+            "answer": 0,
+            "explain": "Shift+Enter працює нативно лише в частині терміналів; там, де не працює, термінал шле звичайний Enter — і повідомлення йде недописаним. Ctrl+J і пара \\ + Enter названі в документації як способи, що працюють у будь-якому терміналі без налаштування. Ctrl+C у терміналі не переносить рядок, а перериває роботу. Багаторядковий ввід існує, і способів аж п'ять. Разове налаштування Shift+Enter для підтримуваних редакторів робить команда /terminal-setup."
+          },
+          {
+            "q": "У статті згадана опція запуску, якої немає у виводі claude --help на твоїй машині. Який висновок правильний?",
+            "options": [
+              "Опції не існує: --help показує все, що вміє програма",
+              "Стаття помилкова в будь-якому разі",
+              "Висновок робити рано: --help не вичерпний, і перевірити наявність можна лише запуском",
+              "Треба оновити документацію на сайті Anthropic"
+            ],
+            "answer": 2,
+            "explain": "У версії 2.1.236 щонайменше шість задокументованих опцій відсутні у виводі claude --help, і серед них --advisor, який при цьому працює. Одночасно документація описує й те, чого у твоїй збірці ще немає. Тому ні довідка, ні стаття не дають остаточної відповіді — її дає власний запуск: додай до опції свідомо неіснуючу (наприклад --zzz-bogus) і подивись, на що поскаржиться розбір рядка. Це перевірка з блоку 5."
+          },
+          {
+            "q": "Claude дав відповідь із фрагментом коду. Людина виділяє її мишею й тисне Ctrl+C, щоб скопіювати. Що відбудеться?",
+            "options": [
+              "Відповідь скопіюється в буфер обміну, як у звичайній програмі",
+              "Ctrl+C перерве те, що виконується, або очистить поле вводу, а другим натисканням завершить Claude Code",
+              "Відкриється діалог вибору блоків коду",
+              "Claude Code запише відповідь у файл"
+            ],
+            "answer": 1,
+            "explain": "У терміналі Ctrl+C — це переривання, а не копіювання, і перепризначити його не можна: воно в переліку зарезервованих разом із Ctrl+D, Ctrl+M, Ctrl+I, Ctrl+H, Ctrl+[ і Caps Lock. Для копіювання є /copy: коли у відповіді є блоки коду, він дає вибрати окремий блок, а клавіша w у цьому виборі записує вибране у файл — це зручно, коли працюєш через SSH."
+          },
+          {
+            "q": "Людина хоче побачити перелік гарячих клавіш. Вона набирає у полі вводу текст запиту, потім тисне ? — і бачить, що в рядку з'явився знак питання. Чому панель не відкрилась?",
+            "options": [
+              "Панель клавіш відкривається лише командою /help",
+              "Знак ? відкриває панель тільки тоді, коли поле вводу порожнє; інакше він вставляється як символ",
+              "Панель клавіш працює лише в повноекранному режимі",
+              "Потрібно спершу ввімкнути «Option as Meta»"
+            ],
+            "answer": 1,
+            "explain": "Це свідома поведінка: інакше не можна було б написати жодного питального речення. Правило просте — порожнє поле, тоді ?. Команда /help показує довідку й перелік команд, але це інші двері, не панель клавіш. Повноекранний режим (/tui fullscreen) додає власну панель ? у перегляді стенограми, проте звичайна панель працює й без нього. «Option as Meta» стосується клавіш із Option на macOS і до знака питання відношення не має."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <!-- D-03: вхід у три довідники з будь-якого уроку. Підписи живуть у
+         claude-code.config.json → site.ref* і підставляються через data-site
+         (js/config.js, fillStatic); текст у розмітці — той самий рядок, як
+         запасний варіант, коли конфіг не приїхав. Той самий прийом, що вже
+         стоїть на data-site="name" і data-site="shortName" у шапці. -->
+    <nav aria-label="Довідники курсу"
+      class="mx-auto flex max-w-[88rem] flex-wrap items-center gap-x-6 gap-y-1 border-b border-line/60 px-5 py-4 sm:px-8">
+      <span class="font-mono text-xs uppercase tracking-[0.14em] text-faint" data-site="refsLabel">Довідники</span>
+      <a href="../claude-code-ref-commands.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refCommands">Усі команди й клавіші</a>
+      <a href="../claude-code-ref-hooks.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refHooks">Таблиця подій</a>
+      <a href="../claude-code-ref-settings.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refSettings">Ключі settings.json</a>
+    </nav>
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>

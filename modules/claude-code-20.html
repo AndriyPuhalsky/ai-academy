@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 20 · Коли Claude працює без тебе — AI Термінал</title>
+  <meta name="description"
+    content="Розписання, події та віддалені поверхні Claude Code: три механізми розписання і як обрати між ними, /loop, /schedule і Routines, розписання в застосунку, /goal, Channels у Telegram і Discord, Remote Control, Dispatch, --cloud і --teleport — з цінами уваги й грошей." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="c20" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 20</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 4 · Інструменти й
+          автоматизація</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Коли Claude працює без тебе</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Середній · 8 блоків · ≈ 50 хв читання</p>
+        <p class="mt-6 text-lg">
+          Досі кожна дія Claude Code починалася з того, що ти щось набрав і натиснув <code>Enter</code>.
+          У цьому модулі роботу починає не твій палець: годинник, повідомлення з чату, виклик із
+          твоєї системи моніторингу або твій власний телефон із дивана. Механізмів для цього
+          в Claude Code майже десяток, вони схожі назвами й зовсім різні за тим, де саме виконуються
+          і що для них потрібно. Головна складність тут не в командах — у виборі.
+        </p>
+        <p>
+          Тому цей урок побудований навколо однієї таблиці: <strong>що обрати, коли</strong>. Команди
+          й прапорці — навколо неї, а не навпаки.
+        </p>
+
+        <div class="callout">
+          <span class="callout-title">Що в цьому модулі є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> запуску Claude Code як утиліти в скрипті чи в CI — <code>claude -p</code>,
+            коди виходу, конвеєри, GitHub Actions. Це модуль 19, і межа між ними проста: там програму
+            запускає <em>інша програма й одразу отримує відповідь</em>, тут робота триває сама, поки
+            тебе немає.
+          </p>
+          <p>
+            <strong>Є:</strong> три механізми розписання й правило вибору між ними · <code>/loop</code>,
+            <code>/schedule</code>, Routines, розписання в застосунку · <code>/goal</code> — робота до
+            умови · Channels: події з Telegram, Discord і вебхуків твоїх сервісів · віддалені поверхні —
+            Remote Control, Dispatch, <code>--cloud</code>, <code>--teleport</code>, <code>/desktop</code> ·
+            і ціна всього цього в грошах та в довірі.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
+          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+
+          <p>
+            Є робота, яка не потребує людини за клавіатурою, але потребує часу. Складання проєкту
+            триває двадцять хвилин. Перевірка після викладення оновлення приходить за годину.
+            Огляд змін, які прислали колеги, має сенс уранці, а не о другій ночі, коли їх прислали.
+            Помилка в системі стеження за сайтом стається тоді, коли стається, і ніхто на неї
+            не дивиться до ранку.
+          </p>
+
+          <p>
+            У всіх цих випадках ти або сидиш і чекаєш, або повертаєшся і робиш усе руками пізніше.
+            Механізми з цього модуля прибирають саме це очікування: робота починається без тебе
+            і показує результат, коли ти повернешся.
+          </p>
+
+          <h3>Три питання, які розводять усі механізми</h3>
+
+          <p>
+            Назв багато, і вони плутаються, бо люди намагаються запам'ятати їх списком. Список
+            запам'ятати важко. Натомість кожен механізм однозначно описується трьома відповідями:
+          </p>
+
+          <ul>
+            <li>
+              <strong>Хто починає роботу?</strong> Годинник (розписання) · зовнішня подія
+              (повідомлення, виклик, зміна в репозиторії) · умова, яку ти задав · ти сам,
+              але з іншого пристрою.
+            </li>
+            <li>
+              <strong>Де вона виконується?</strong> На твоєму комп'ютері · у хмарі Anthropic ·
+              на серверах твоєї організації.
+            </li>
+            <li>
+              <strong>Що для цього має бути ввімкненим?</strong> Відкрита сесія · увімкнена машина ·
+              нічого.
+            </li>
+          </ul>
+
+          <p>
+            Відповівши на ці три питання про свою задачу, ти майже завжди отримуєш рівно один
+            придатний механізм. Решта уроку — про те, як кожен із них поводиться насправді:
+            з якими обмеженнями, за скільки і що ламається першим.
+          </p>
+
+          <h3>Слова, які знадобляться</h3>
+
+          <p>
+            Кілька термінів трапляться далі багато разів. Розберемо їх одразу, щоб потім
+            не спотикатись.
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Слова, які знадобляться">
+          <table>
+            <thead>
+              <tr>
+                <th>Слово</th>
+                <th>Що означає</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Розписання</strong> (schedule)</td>
+                <td>правило «запусти оце тоді-то й повторюй так часто». Claude Code записує його
+                  у форматі <code>cron</code> — п'ять чисел через пробіл, про які нижче.</td>
+              </tr>
+              <tr>
+                <td><strong>Хмарна сесія</strong> (cloud session)</td>
+                <td>сесія Claude Code, що виконується не на твоєму комп'ютері, а на серверах
+                  Anthropic. Твоїх локальних файлів там немає — є свіжа копія репозиторію з GitHub.</td>
+              </tr>
+              <tr>
+                <td><strong>Routine</strong> (рутина)</td>
+                <td>збережена в хмарі заготовка: промпт, репозиторії, під'єднані сервіси й один
+                  або кілька тригерів. У доксах це слово лишається англійським, українського
+                  усталеного перекладу немає.</td>
+              </tr>
+              <tr>
+                <td><strong>Тригер</strong> (trigger)</td>
+                <td>подія, від якої робота починається: настав час, прийшов виклик по мережі,
+                  щось сталось у репозиторії на GitHub.</td>
+              </tr>
+              <tr>
+                <td><strong>Канал</strong> (channel)</td>
+                <td>сервер MCP, який має право <em>штовхати</em> повідомлення у вже відкриту
+                  сесію. Про MCP був модуль 18; канал — окрема здатність поверх нього.</td>
+              </tr>
+              <tr>
+                <td><strong>Простій</strong> (idle)</td>
+                <td>стан сесії, коли Claude нічого не робить і чекає на твоє наступне слово.
+                  Саме в простої стріляють задачі за розписанням — і саме тому вони коштують
+                  грошей, коли ти нічого не робиш.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="callout">
+            <span class="callout-title">Одне речення про межу з модулем 19</span>
+            <p>
+              У модулі 19 Claude Code — утиліта: її запускає скрипт, вона друкує відповідь у
+              стандартний вивід і завершується кодом. Тут вона — працівник: її запускає час або
+              подія, і вона триває. Механізми частково перетинаються (<code>/goal</code> працює
+              і в <code>claude -p</code>), але питання різні.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
+          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            У цьому модулі більшість того, що відбувається, взагалі не має вигляду в терміналі.
+            Задача за розписанням стріляє в чужій хмарі, повідомлення з Telegram приходить у сесію,
+            яка вже відкрита, а Remote Control малює свій інтерфейс у браузері телефона. Домальовувати
+            ці екрани курс не буде: у модулі, теза якого — «звіряй живою командою», намальований
+            знімок гірший за його відсутність.
+          </p>
+
+          <p>
+            Тому нижче — тільки те, що справді знято командою на цій машині. Усе інше описане
+            словами з посиланням на сторінку документації.
+          </p>
+
+          <h3>Чи знає твоя збірка ці механізми взагалі</h3>
+
+          <p>
+            Перше, що варто зробити, перш ніж читати будь-який туторіал у мережі: спитати саму
+            програму, чи є в ній те, про що там пишуть. Claude Code оновлюється майже щодня,
+            і стаття піврічної давності може описувати те, чого у твоїй збірці ще (або вже) немає.
+          </p>
+
+          <figure class="term" id="t1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t1t">Claude Code 2.1.236 · macOS 26.5.2 · знято 2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --version</span></span>
+<span class="term__line">2.1.236 (Claude Code)</span>
+<span class="term__line"> </span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --help | grep -E -- "^  --cloud|^  --teleport|^  --remote-control \["</span></span>
+<span class="term__line">  --cloud [description|session_id|url]  Create a cloud session with the given</span>
+<span class="term__line">  --remote-control [name]               Start an interactive session with Remote</span>
+<span class="term__line">  --teleport [session]                  Resume a teleport session, optionally</span></pre>
+          </figure>
+
+          <p>
+            Три рядки — три віддалені поверхні, які ця збірка вміє. <code>grep</code> — стандартна
+            програма, що залишає з тексту лише рядки зі збігом; <code>|</code> (вертикальна риска,
+            конвеєр) передає їй вивід попередньої команди. І те, і те розібрано в модулі 19.
+            Кнопки копіювання тут немає навмисно: у блоці дві незалежні команди, і копіювати їх
+            разом немає сенсу.
+          </p>
+
+          <h3>Довідка підкоманди, знята тією ж хвилиною</h3>
+
+          <p>
+            <code>claude remote-control</code> — окрема підкоманда, а не прапорець, тому в неї
+            власна довідка. Нижче її справжній вивід; із одинадцяти опцій показано три, решта
+            позначена трьома крапками.
+          </p>
+
+          <figure class="term" id="t2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t2t">2.1.236 · macOS 26.5.2 · знято 2026-09-04, скорочено</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t2t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude remote-control --help</span></span>
+<span class="term__line"> </span>
+<span class="term__line">Remote Control - Control local sessions from claude.ai/code or the Claude mobile app</span>
+<span class="term__line"> </span>
+<span class="term__line">USAGE</span>
+<span class="term__line">  claude remote-control [options]</span>
+<span class="term__line">OPTIONS</span>
+<span class="term__line">  --name &lt;name&gt;                    Name for the session (shown in claude.ai/code)</span>
+<span class="term__line">  --spawn &lt;mode&gt;                   Spawn mode: same-dir, worktree, session</span>
+<span class="term__line">                                   (default: same-dir)</span>
+<span class="term__line">  --capacity &lt;N&gt;                   Max concurrent sessions in worktree or</span>
+<span class="term__line">                                   same-dir mode (default: 32)</span>
+<span class="term__line"><span class="term__meta">  … ще вісім опцій пропущено …</span></span>
+<span class="term__line"> </span>
+<span class="term__line">NOTES</span>
+<span class="term__line">  - You must be logged in with a Claude account that has a subscription</span>
+<span class="term__line">  - Run `claude` first in the directory to accept the workspace trust dialog</span>
+<span class="term__line">  - Worktree mode requires a git repository or WorktreeCreate/WorktreeRemove hooks</span></pre>
+          </figure>
+
+          <p>
+            Три рядки в <code>NOTES</code> — це три умови, без яких Remote Control не запуститься:
+            підписка, прийнята довіра до папки (той самий діалог із модуля 4) і, для режиму
+            з окремими робочими копіями, репозиторій git.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Розбіжність, варта уваги</span>
+            <p>
+              Сторінка документації <code>remote-control</code> перелічує в таблиці опцій
+              серверного режиму ще й <code>--sandbox</code> / <code>--no-sandbox</code> і згадує,
+              що <code>--permission-mode</code> приймає <code>manual</code> як інше ім'я для
+              <code>default</code>. Власна довідка встановленої 2.1.236 не показує ні того, ні
+              іншого. Це не суперечність, а вже знайома тобі властивість: <code>--help</code>
+              у Claude Code <strong>не вичерпний</strong> (у модулі 5 так само знайшлись шість
+              задокументованих опцій, яких у ньому немає). Висновок практичний: якщо в довідці
+              чогось немає, це ще не означає, що його немає в програмі.
+            </p>
+          </div>
+
+          <h3>Прапорець, якого немає в довідці, але який працює</h3>
+
+          <p>
+            Найгостріший приклад цієї властивості живе саме тут. Прапорець <code>--channels</code>,
+            яким вмикаються канали, документація описує детально — і тут же прямо попереджає, що
+            в <code>claude --help</code> його <strong>не видно</strong>, поки функція в
+            дослідницькому передперегляді.
+          </p>
+
+          <p>
+            Перевірити це можна за півхвилини тим самим прийомом, що й у модулі 19:
+            <code>strings</code> витягує з програми всі текстові рядки, <code>grep -c</code>
+            рахує збіги, <code>$(which claude)</code> підставляє шлях до встановленої копії.
+            Третя команда — контрольна: вигадана назва мусить дати нуль, інакше метод нічого
+            не доводить.
+          </p>
+
+          <figure class="term" id="t3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t3t">2.1.236 · macOS 26.5.2 · знято 2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t3t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --help | grep -c -- "--channels"</span></span>
+<span class="term__line">0</span>
+<span class="term__line"> </span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c -- "--channels"</span></span>
+<span class="term__line">18</span>
+<span class="term__line"> </span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c -- "--kanaly-vygadani"</span></span>
+<span class="term__line">0</span></pre>
+          </figure>
+
+          <p>
+            Нуль у довідці, вісімнадцять у самій програмі, нуль на вигаданій назві. Прапорець
+            існує. Це той самий урок, що й із <code>claude config</code> у модулі 17, тільки
+            з іншого боку: там команда була в статтях, але зникла з програми; тут вона є в
+            програмі, але її немає в довідці.
+          </p>
+
+          <h3>Одна річ, яку вдалося зняти цілком</h3>
+
+          <p>
+            <code>/goal</code> — команда, що тримає сесію в роботі, поки не виконається задана
+            умова. Її стан можна спитати без жодних наслідків: <code>/goal</code> без аргументів
+            нічого не запускає, а лише друкує, що зараз активне. У неінтерактивному режимі
+            (<code>-p</code> із модуля 19) це виглядає так.
+          </p>
+
+          <figure class="term term--cmd" id="t4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t4t">2.1.236 · macOS 26.5.2 · знято 2026-09-04, код виходу 0</span>
+              <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t4t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude -p "/goal"</span></span>
+<span class="term__line">No goal set. Usage: `/goal &lt;condition&gt;`</span></pre>
+          </figure>
+
+          <p>
+            «Мети не задано. Використання: <code>/goal &lt;умова&gt;</code>». Команда виконалась
+            локально, нічого не змінила й завершилась успішно. Це безпечна перевірка, яку можна
+            запускати скільки завгодно разів.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
+          <h2><span class="lesson-no">3</span>Як це працює</h2>
+
+          <p>
+            Почнемо з карти. Вона відповідає на перше з трьох питань блоку 1 — «хто починає роботу» —
+            і вже цим відсіює більшість варіантів.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  A["Робота без тебе за клавіатурою"] --> B{"Хто її починає?"}
+  B -->|"годинник"| C{"Машина може бути вимкнена?"}
+  C -->|"так, ноутбук закритий"| C1["Routines у хмарі: мінімум 1 година"]
+  C -->|"ні, машина працює"| D{"Сесія лишається відкритою?"}
+  D -->|"так"| D1["/loop: мінімум 1 хвилина"]
+  D -->|"ні"| D2["Розписання в застосунку: мінімум 1 хвилина"]
+  B -->|"зовнішня подія"| E["Channels у відкриту сесію, або Routine з тригером API чи GitHub"]
+  B -->|"умова, а не час"| F["/goal"]
+  B -->|"ти сам з іншого пристрою"| G["Remote Control, Dispatch, --cloud, --teleport"]
+  style B fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Карта вибору. Далі в блоці — кожна гілка окремо, з обмеженнями й ціною
+            </p>
+          </div>
+
+          <h3>Гілка перша: роботу починає годинник</h3>
+
+          <p>
+            Механізмів розписання рівно три, і документація сама зводить їх в одну таблицю.
+            Ось вона, перекладена. Це найважливіша таблиця модуля.
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Гілка перша: роботу починає годинник">
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Хмара (Routines)</th>
+                <th>Застосунок на комп'ютері</th>
+                <th><code>/loop</code></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Де виконується</td>
+                <td>у хмарі, за замовчуванням керованій Anthropic</td>
+                <td>на твоїй машині</td>
+                <td>на твоїй машині</td>
+              </tr>
+              <tr>
+                <td>Машина має бути ввімкнена</td>
+                <td>ні</td>
+                <td>так</td>
+                <td>так</td>
+              </tr>
+              <tr>
+                <td>Потрібна відкрита сесія</td>
+                <td>ні</td>
+                <td>ні</td>
+                <td><strong>так</strong></td>
+              </tr>
+              <tr>
+                <td>Переживає перезапуск</td>
+                <td>так</td>
+                <td>так</td>
+                <td>відновлюється при <code>--resume</code>, якщо не протермінована</td>
+              </tr>
+              <tr>
+                <td>Доступ до локальних файлів</td>
+                <td><strong>немає</strong> — свіжа копія репозиторію</td>
+                <td>є</td>
+                <td>є</td>
+              </tr>
+              <tr>
+                <td>Сервери MCP</td>
+                <td>конектори, налаштовані під задачу</td>
+                <td>файли налаштувань і конектори</td>
+                <td>успадковує від сесії</td>
+              </tr>
+              <tr>
+                <td>Запити дозволу</td>
+                <td>немає — виконується автономно</td>
+                <td>налаштовується під задачу</td>
+                <td>успадковує від сесії</td>
+              </tr>
+              <tr>
+                <td>Мінімальний інтервал</td>
+                <td><strong>1 година</strong></td>
+                <td>1 хвилина</td>
+                <td>1 хвилина</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p class="diagram-caption" style="text-align:left">
+            Джерело: сторінка <code>scheduled-tasks</code> документації Claude Code, розділ
+            «Compare scheduling options», прочитано наживо 2026-09-04. Та сама таблиця дослівно
+            повторена на сторінці <code>desktop-scheduled-tasks</code>
+          </p>
+
+          <p>
+            Порада самої документації в одне речення: <strong>хмара</strong> — для роботи, яка
+            має виконуватись надійно без твоєї машини; <strong>застосунок</strong> — коли потрібні
+            локальні файли й інструменти; <strong><code>/loop</code></strong> — для швидкого
+            опитування, поки ти в сесії.
+          </p>
+
+          <h4><code>/loop</code>: найпростіший і найкоротший</h4>
+
+          <p>
+            <code>/loop</code> — це вбудована навичка (skill), яку набирають прямо в сесії. Вона має
+            три форми, і те, що ти вкажеш, вирішує поведінку.
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: /loop: найпростіший і найкоротший">
+          <table>
+            <thead>
+              <tr>
+                <th>Що вказуєш</th>
+                <th>Приклад</th>
+                <th>Що відбувається</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>інтервал і промпт</td>
+                <td><code>/loop 5m check the deploy</code></td>
+                <td>твій промпт виконується за сталим розписанням</td>
+              </tr>
+              <tr>
+                <td>тільки промпт</td>
+                <td><code>/loop check the deploy</code></td>
+                <td>інтервал щоразу обирає Claude — від хвилини до години, залежно від того,
+                  що побачив</td>
+              </tr>
+              <tr>
+                <td>тільки інтервал або нічого</td>
+                <td><code>/loop</code></td>
+                <td>виконується вбудований «доглядальний» промпт або твій файл <code>loop.md</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>
+            Одиниці інтервалу: <code>s</code> — секунди, <code>m</code> — хвилини, <code>h</code> —
+            години, <code>d</code> — дні. Секунди округлюються вгору до хвилини, бо дрібнішого
+            кроку в <code>cron</code> не існує. Інтервали, що не лягають на рівний крок
+            (<code>7m</code>, <code>90m</code>), округлюються до найближчого рівного, і Claude
+            каже, що саме обрав.
+          </p>
+
+          <p>
+            Вбудований промпт, який виконується при голому <code>/loop</code>, робить три речі
+            по порядку: доводить незавершену роботу з розмови, доглядає запит на злиття поточної
+            гілки (коментарі, невдалі перевірки, конфлікти), а коли нічого не лишилось —
+            прибирає в коді. Нових справ він не починає, а незворотні дії робить лише тоді,
+            коли вони продовжують те, що вже дозволено в цій розмові. Замінити його своїм можна
+            файлом <code>loop.md</code>: спершу шукається <code>.claude/loop.md</code> у проєкті,
+            потім <code>~/.claude/loop.md</code>; вміст понад 25 000 байтів обрізається.
+          </p>
+
+          <p>
+            <strong>Як зупинити.</strong> Самостійний <code>/loop</code> (той, де інтервал обирає
+            Claude) зупиняється клавішею <code>Esc</code>, поки він чекає наступного разу. Цикл
+            зі сталим інтервалом <code>Esc</code> не бере — його треба скасувати як звичайну
+            заплановану задачу. І є запобіжник, який рятує забудькуватих: <strong>повторювані
+            задачі самі зникають через сім днів після створення</strong> — стріляють востаннє
+            й видаляються.
+          </p>
+
+          <h4>Що всередині: три інструменти й п'ять чисел</h4>
+
+          <p>
+            Заплановані задачі — це не окрема програма, а три інструменти, якими Claude
+            користується сам, коли ти просиш його словами.
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Що всередині: три інструменти й п'ять чисел">
+          <table>
+            <thead>
+              <tr>
+                <th>Інструмент</th>
+                <th>Що робить</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>CronCreate</code></td>
+                <td>створює задачу: розписання з п'яти полів, промпт і ознака «разова чи повторювана»</td>
+              </tr>
+              <tr>
+                <td><code>CronList</code></td>
+                <td>перелічує всі задачі з їхніми ідентифікаторами, розписаннями й промптами</td>
+              </tr>
+              <tr>
+                <td><code>CronDelete</code></td>
+                <td>скасовує задачу за ідентифікатором</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>
+            Кожна задача має ідентифікатор із восьми символів; одна сесія тримає <strong>до 50</strong>
+            задач. Формат розписання — класичний <code>cron</code> із п'яти полів:
+            <code>хвилина година день-місяця місяць день-тижня</code>. Наприклад <code>0 9 * * 1-5</code>
+            означає «о 9:00 у будні». Час завжди твій місцевий, не UTC.
+          </p>
+
+          <p>
+            І одна деталь, яка збиває з пантелику першою: <strong>розкид (jitter)</strong>. Щоб усі
+            сесії світу не били в сервери в одну секунду, планувальник додає зсув: повторювані
+            задачі стріляють до 30 хвилин пізніше зазначеного часу (або до половини інтервалу,
+            якщо він менший за годину), а разові, поставлені рівно на початок чи середину години, —
+            до 90 секунд раніше. Зсув сталий для кожної задачі. Якщо точність важлива, обери
+            хвилину, яка не <code>:00</code> і не <code>:30</code>: <code>3 9 * * *</code> замість
+            <code>0 9 * * *</code>.
+          </p>
+
+          <h4>Розписання в застосунку: коли потрібні саме твої файли</h4>
+
+          <p>
+            У застосунку Claude Code для комп'ютера є сторінка <strong>Routines</strong>, на якій
+            створюють два різні типи задач: <em>Local</em> — на твоїй машині, <em>Cloud</em> — у
+            хмарі. Локальна задача бачить твої файли, стартує окремою свіжою сесією й показує
+            сповіщення, коли спрацювала.
+          </p>
+
+          <p>
+            Три речі, яких немає в жодній таблиці й на яких спотикаються:
+          </p>
+
+          <ul>
+            <li>
+              <strong>Сплячий комп'ютер пропускає запуск.</strong> Задача виконується, лише поки
+              застосунок відкритий і машина не спить. Закрита кришка — сон, навіть якщо
+              в налаштуваннях увімкнено «не давати заснути через простій».
+            </li>
+            <li>
+              <strong>Наздоганяючий запуск.</strong> Прокинувшись, застосунок перевіряє, чи не
+              пропустила задача щось за останні сім днів, і запускає <em>рівно один</em> —
+              за найсвіжіший пропущений час. Щоденна задача, що пропустила шість днів,
+              виконається один раз.
+            </li>
+            <li>
+              <strong>Наслідок для промпта.</strong> Задача, поставлена на 9:00, може виконатись
+              об 23:00, якщо машина спала весь день. Тому запобіжник пишуть у сам промпт:
+              «якщо вже після 17:00, огляд не роби, а лише напиши, що було пропущено».
+            </li>
+          </ul>
+
+          <p>
+            Дозволи в локальної задачі свої: режим обирається при створенні, а правила дозволу
+            з <code>~/.claude/settings.json</code> діють і тут. Якщо задача в ручному режимі
+            впреться в дію без дозволу, запуск <strong>зупиниться й чекатиме</strong> — сесія
+            лишиться в бічній панелі, доки ти не відповіси. Щоб цього уникнути, документація
+            радить після створення натиснути «Run now», подивитись, на чому воно спитає,
+            і на кожному запиті обрати «завжди дозволяти».
+          </p>
+
+          <h4>Routines: єдиний механізм, якому твій комп'ютер не потрібен</h4>
+
+          <p>
+            Routine — це збережена в хмарі конфігурація Claude Code: промпт, один або кілька
+            репозиторіїв GitHub і набір під'єднаних сервісів. Виконується на інфраструктурі
+            Anthropic (або на серверах твоєї організації, якщо так налаштовано), тому працює
+            із закритим ноутбуком. Доступно на планах Pro, Max, Team і Enterprise; функція
+            в дослідницькому передперегляді, тобто поведінка й обмеження ще можуть змінитись.
+          </p>
+
+          <p>
+            Тригерів три, і одна рутина може мати кілька одразу:
+          </p>
+
+          <ul>
+            <li><strong>Розписання</strong> — щогодини, щодня, у будні, щотижня; або один-єдиний
+              запуск у зазначений момент.</li>
+            <li><strong>API</strong> — у рутини з'являється власна адреса, і твоя система стеження
+              чи конвеєр викладення запускає її звичайним мережевим запитом (<code>POST</code> — той самий вид запиту, яким браузер надсилає заповнену форму) із таємним ключем-токеном.</li>
+            <li><strong>GitHub</strong> — запуск на подію в репозиторії. Категорій дві: запити на
+              злиття (pull request) і релізи; усередині можна обрати конкретну дію та фільтри
+              за автором, заголовком, гілкою, мітками.</li>
+          </ul>
+
+          <p>
+            Створюють рутину на <code>claude.ai/code/routines</code>, у застосунку або з термінала
+            командою <code>/schedule</code> (інше ім'я — <code>/routines</code>). З термінала
+            Claude проводить тебе розмовою: питає про розписання, репозиторії й промпт, а потім
+            зберігає. Керування теж є: <code>/schedule list</code>, <code>/schedule update</code>,
+            <code>/schedule run</code>.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Три речі про Routines, які змінюють спосіб їх писати</span>
+            <p>
+              <strong>1. Промпт мусить бути самодостатнім.</strong> Рутина виконується автономно:
+              питань дозволу немає взагалі, вибору режиму дозволів теж. Що вона може зачепити,
+              визначається лише переліком репозиторіїв, мережевими правилами середовища й набором
+              під'єднаних сервісів. Звужуй кожен із трьох.
+            </p>
+            <p>
+              <strong>2. Локальних файлів там немає.</strong> Кожен репозиторій клонується наново
+              при кожному запуску, від гілки за замовчуванням. Хмарна сесія не читає
+              <code>~/.claude/skills/</code> на твоїй машині: при виклику такої навички рутина
+              відповість, що навички не знайдено. Щоб навичка була доступна, її треба або
+              закомітити в репозиторій (<code>.claude/skills/</code>), або увімкнути для свого
+              облікового запису claude.ai.
+            </p>
+            <p>
+              <strong>3. Зелений статус запуску не означає успіх.</strong> Він означає лише, що
+              сесія стартувала й завершилась без збою інфраструктури. Заблоковані мережеві запити,
+              відсутні інструменти й провал самої задачі видно тільки всередині запису розмови.
+            </p>
+          </div>
+
+          <p>
+            Текст, який ти передаєш при запуску по API (поле <code>text</code>), приходить у сесію
+            не як команда, а загорнутим у блок <code>&lt;routine-fire-payload&gt;</code>, підписаний
+            як недовірені дані. Рутина діятиме на нього, лише якщо її власний збережений промпт
+            прямо про це просить. Зроблено це навмисно: токен може витекти, і тоді чужий текст
+            приїде позначеним як дані, а не як інструкція.
+          </p>
+
+          <h3>Гілка друга: роботу починає зовнішня подія</h3>
+
+          <p>
+            Розписання опитує: стріляє щоп'ять хвилин і дивиться, чи не сталось чогось. Канал
+            працює навпаки — подія сама приходить у сесію тієї миті, коли сталась.
+          </p>
+
+          <p>
+            <strong>Канал (channel)</strong> — це сервер MCP (модуль 18), який має право штовхати
+            повідомлення у вже відкриту сесію Claude Code. Канали двосторонні: Claude читає подію
+            й може відповісти тим самим каналом, як у чаті. У передперегляді підтримуються
+            Telegram, Discord та iMessage; є демонстраційний плагін <code>fakechat</code>, на якому
+            зручно спробувати механіку, нічого нікуди не під'єднуючи.
+          </p>
+
+          <p>
+            Порядок дій на прикладі Telegram — дослівно з документації:
+          </p>
+
+          <ol>
+            <li>створити бота через <code>BotFather</code> у самому Telegram і скопіювати токен;</li>
+            <li>у Claude Code: <code>/plugin install telegram@claude-plugins-official</code>;</li>
+            <li><code>/telegram:configure &lt;токен&gt;</code> — токен ляже у
+              <code>~/.claude/channels/telegram/.env</code>;</li>
+            <li>вийти й запустити наново з прапорцем:
+              <code>claude --channels plugin:telegram@claude-plugins-official</code>;</li>
+            <li>написати боту будь-що — він відповість кодом для пари, який вводять командою
+              <code>/telegram:access pair &lt;код&gt;</code>;</li>
+            <li>закрити доступ усім іншим: <code>/telegram:access policy allowlist</code>.</li>
+          </ol>
+
+          <p>
+            <strong>Кожен канальний плагін потребує <a href="https://bun.sh"
+              rel="noopener noreferrer">Bun</a></strong> — це окреме середовище виконання
+            JavaScript, яке ставиться окремо. Без нього розділ не запрацює в принципі, і це
+            найчастіша причина, чому інструкція «не спрацювала».
+          </p>
+
+          <p>
+            Готові плагіни — не єдиний спосіб. Документація описує й другий вид застосування:
+            <strong>приймач вебхуків</strong>. <em>Вебхук</em> (webhook) — це домовленість, за
+            якою чужий сервіс сам надсилає тобі повідомлення, коли в нього щось сталось: система
+            складання повідомляє про невдалу перевірку, служба стеження за помилками — про нову
+            помилку, конвеєр викладення — про завершене оновлення. Якщо такий приймач зробити
+            каналом, подія приходить туди, де в Claude уже відкриті твої файли й де він пам'ятає,
+            що ви робили п'ять хвилин тому. Як написати власний канал, описує окрема сторінка
+            документації, <code>channels-reference</code>.
+          </p>
+
+          <p>
+            Три правила безпеки каналів варто знати одразу:
+          </p>
+
+          <ul>
+            <li>у кожного каналу свій список дозволених відправників; усе, що приходить не звідти,
+              мовчки відкидається;</li>
+            <li>запису в <code>.mcp.json</code> <strong>недостатньо</strong>: сервер має бути ще й
+              названий у <code>--channels</code> при запуску;</li>
+            <li>якщо канал уміє переказувати запити дозволу, то <strong>той, хто може відповідати
+              в каналі, може схвалювати дії у твоїй сесії</strong>. Список дозволених відправників —
+              це список людей, яким ти довіряєш цю владу.</li>
+          </ul>
+
+          <p>
+            І одна пастка рівнем нижче: на новому середовищі виконання MCP (версія 2) канал, який
+            домовився про ревізію протоколу <code>2026-07-28</code>, <strong>не реєструється
+            як канал</strong> — сервер під'єднається, інструменти працюватимуть, а повідомлення
+            не приходитимуть.
+          </p>
+
+          <h3>Гілка третя: роботу тримає умова</h3>
+
+          <p>
+            <code>/goal</code> — не розписання. Він не питає «коли», він питає «доки». Ти задаєш
+            умову завершення, і після кожного ходу невелика швидка модель звіряє розмову з цією
+            умовою. Не виконано — Claude починає наступний хід сам, без твого промпта.
+          </p>
+
+          <p>
+            Вердиктів рівно три, і кожен із коротким поясненням: <strong>ще не виконано</strong>
+            (Claude працює далі й бере пояснення як підказку), <strong>виконано</strong> (мета
+            знімається), <strong>неможливо</strong> (оцінювач вирішив, що умова недосяжна; мета
+            теж знімається). Плюс окремий випадок: якщо хід упав на помилці, яку без тебе не
+            полагодити — збій входу, вичерпаний баланс, переповнення контексту, недоступна
+            модель — мета знімається з попередженням, що починається словами
+            <code>Goal cleared after an unrecoverable error</code>.
+          </p>
+
+          <p>
+            Документація дає окрему таблицю «як тримати сесію в роботі», і в ній видно різницю
+            між трьома схожими речами:
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Гілка третя: роботу тримає умова">
+          <table>
+            <thead>
+              <tr>
+                <th>Підхід</th>
+                <th>Наступний хід починається, коли…</th>
+                <th>Зупиняється, коли…</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/goal</code></td>
+                <td>завершився попередній хід (або настала перевірка в простої)</td>
+                <td>модель підтвердила умову чи визнала її недосяжною, або ти набрав
+                  <code>/goal clear</code></td>
+              </tr>
+              <tr>
+                <td><code>/loop</code></td>
+                <td>минув інтервал часу</td>
+                <td>ти зупинив, або Claude вирішив, що робота завершена</td>
+              </tr>
+              <tr>
+                <td>Перехоплювач події <code>Stop</code></td>
+                <td>завершився попередній хід</td>
+                <td>вирішує твій власний скрипт або промпт</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>
+            Умова пишеться так, щоб її можна було довести <em>з самої розмови</em>: оцінювач не
+            запускає команд і не читає файлів, він бачить лише те, що Claude уже показав. Тому
+            «усі тести в <code>test/auth</code> проходять» працює — Claude запускає тести, і
+            результат опиняється в розмові. Довжина умови — до 4 000 символів. Щоб обмежити
+            тривалість, у саму умову додають застереження на кшталт «або зупинись після
+            20 ходів».
+          </p>
+
+          <p>
+            <code>/goal</code> не змінює режим дозволів. Щоб ходи справді виконувались без тебе,
+            його запускають в автоматичному режимі (модулі 7 і 8) — інакше Claude усе одно
+            питатиме перед кожною дією, на яку немає правила.
+          </p>
+
+          <h3>Гілка четверта: працюєш ти сам, але не з клавіатури</h3>
+
+          <p>
+            Останню гілку часто плутають з автоматизацією, а вона про інше: робота лишається
+            твоєю, змінюється тільки пристрій, з якого ти її ведеш.
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Гілка четверта: працюєш ти сам, але не з клавіатури">
+          <table>
+            <thead>
+              <tr>
+                <th>Механізм</th>
+                <th>Що робить</th>
+                <th>Де виконується Claude</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Remote Control</strong><br /><code>claude remote-control</code>,
+                  <code>claude --remote-control</code>, <code>/remote-control</code></td>
+                <td>керувати сесією, що вже йде на твоїй машині, з <code>claude.ai/code</code>
+                  або із застосунку Claude на телефоні</td>
+                <td>на твоїй машині</td>
+              </tr>
+              <tr>
+                <td><strong>Dispatch</strong></td>
+                <td>надіслати задачу повідомленням із застосунку Claude на телефоні; вона може
+                  перетворитись на сесію Claude Code в застосунку на твоєму комп'ютері</td>
+                <td>на твоїй машині (застосунок)</td>
+              </tr>
+              <tr>
+                <td><code>--cloud</code></td>
+                <td>створити хмарну сесію з описом задачі, або під'єднатись до наявної
+                  за ідентифікатором чи посиланням</td>
+                <td>у хмарі</td>
+              </tr>
+              <tr>
+                <td><code>--teleport</code> / <code>/teleport</code> / <code>/tp</code></td>
+                <td>забрати хмарну сесію собі в термінал: перевіряє репозиторій, забирає гілку
+                  й підвантажує всю історію розмови</td>
+                <td>переїжджає в термінал</td>
+              </tr>
+              <tr>
+                <td><code>/desktop</code> (інше ім'я <code>/app</code>)</td>
+                <td>продовжити поточну сесію в застосунку Claude Code для комп'ютера. Потрібні
+                  macOS або Windows x64 і підписка</td>
+                <td>на твоїй машині (застосунок)</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>
+            <code>--teleport</code> легко сплутати з <code>--resume</code> з модуля 9. Різниця
+            чітка: <code>--resume</code> відкриває розмову з <em>локальної</em> історії цієї машини
+            й хмарних сесій не бачить; <code>--teleport</code> тягне хмарну сесію разом із її
+            гілкою. З термінала передача односпрямована: витягти хмарну сесію до себе можна,
+            штовхнути термінальну в хмару — ні. У застосунку для комп'ютера така кнопка
+            («Continue in») є.
+          </p>
+
+          <h4>Чому Remote Control не потребує ні тунелю, ні відкритого порту</h4>
+
+          <p>
+            Питання, яке виникає в кожного, хто чув слово «віддалений доступ»: чи треба відкривати
+            порт, налаштовувати проброс на роутері, піднімати тунель? Відповідь документації
+            однозначна: <strong>ні</strong>. Твоя сесія робить лише вихідні запити HTTPS і
+            <strong>ніколи не відкриває вхідних портів</strong> на твоїй машині. Вона реєструється
+            в API Anthropic і сама опитує його; телефон говорить із тим самим API, а не з тобою.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart LR
+  P["Телефон або браузер"] --> S["API Anthropic"]
+  S --> L["claude на твоїй машині: тільки вихідні запити"]
+  L --> S
+  S --> P
+  L --> F["Файли, MCP, інструменти лишаються тут"]
+  style L fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Вхідних з'єднань до твоєї машини немає взагалі — тому й тунель не потрібен
+            </p>
+          </div>
+
+          <p>
+            Ціна цього рішення названа там же, і її треба знати до першого запуску: поки Remote
+            Control під'єднаний, <strong>запис розмови</strong> — твої повідомлення, відповіді
+            Claude і дії інструментів — <strong>зберігається на серверах Anthropic</strong>. Це
+            те, що тримає розмову однаковою на всіх пристроях і дозволяє відновитись після обриву
+            мережі. Виконання й доступ до файлів лишаються на твоїй машині. Вимкнути функцію
+            цілком можна ключем <code>disableRemoteControl</code> у налаштуваннях (модуль 13).
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
+          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+
+          <p>
+            Перший крок тут — не команда, а рішення. Ось таблиця, заради якої написаний модуль.
+          </p>
+
+          <h3>Крок 1. Обери механізм</h3>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Крок 1. Обери механізм">
+          <table>
+            <thead>
+              <tr>
+                <th>Твоя задача</th>
+                <th>Що брати</th>
+                <th>Чого це коштує</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>«Перевіряй складання що п'ять хвилин, поки я тут сиджу»</td>
+                <td><code>/loop 5m …</code></td>
+                <td>сесія має лишатись відкритою; зникне сама через сім днів</td>
+              </tr>
+              <tr>
+                <td>«Щодня о 9:00 переглядай мої зміни в цій папці»</td>
+                <td>локальна задача в застосунку</td>
+                <td>комп'ютер має не спати; пропущений запуск наздоганяється один раз</td>
+              </tr>
+              <tr>
+                <td>«Щоночі розбирай чергу задач, ноутбук закритий»</td>
+                <td>Routine у хмарі</td>
+                <td>мінімум година між запусками; локальних файлів немає, лише свіжий клон</td>
+              </tr>
+              <tr>
+                <td>«Коли впаде автоматична перевірка коду (CI), розберись одразу»</td>
+                <td>канал у відкриту сесію, або Routine з тригером API</td>
+                <td>канал потребує відкритої сесії й Bun; Routine — токена в системі,
+                  яка його викликає</td>
+              </tr>
+              <tr>
+                <td>«Реагуй на нові запити на злиття в репозиторії»</td>
+                <td>Routine з тригером GitHub</td>
+                <td>на репозиторії має бути встановлений застосунок Claude для GitHub;
+                  у передперегляді є погодинні межі на кількість подій</td>
+              </tr>
+              <tr>
+                <td>«Працюй, доки всі тести не проходять»</td>
+                <td><code>/goal &lt;умова&gt;</code></td>
+                <td>умову має бути видно з розмови; без автоматичного режиму все одно питатиме</td>
+              </tr>
+              <tr>
+                <td>«Хочу підказати з дивана те, що вже запустив»</td>
+                <td>Remote Control</td>
+                <td>підписка; запис розмови зберігається на серверах Anthropic</td>
+              </tr>
+              <tr>
+                <td>«Хочу почати задачу з телефона на своєму комп'ютері»</td>
+                <td>Dispatch</td>
+                <td>плани Pro або Max, застосунок для комп'ютера, спарений телефон</td>
+              </tr>
+              <tr>
+                <td>«Хочу почати задачу без жодного локального налаштування»</td>
+                <td><code>claude --cloud "опис"</code></td>
+                <td>виконується в хмарі, потрібен репозиторій на GitHub</td>
+              </tr>
+              <tr>
+                <td>«Хочу дороблювати хмарну сесію в себе в терміналі»</td>
+                <td><code>claude --teleport</code></td>
+                <td>той самий репозиторій, чиста робоча копія, гілка вже надіслана</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <h3>Крок 2. Перевір, що твоя збірка це вміє</h3>
+
+          <p>
+            Відкрий термінал і виконай дві команди — кожну окремо, натиснувши
+            <code>Enter</code>: спершу <code>claude --version</code>, потім
+            <code>claude -p "/goal"</code>. Обидві безпечні й нічого не змінюють.
+          </p>
+
+          <p>
+            Перша команда назве версію — її треба знати, бо майже кожне обмеження в цьому модулі
+            прив'язане до версії. Друга має відповісти <code>No goal set</code>: це означає,
+            що механізм мети у твоїй збірці є й працює.
+          </p>
+
+          <h3>Крок 3. Найбезпечніша перша спроба: <code>/loop</code></h3>
+
+          <p>
+            Зайди в будь-яку свою папку, запусти <code>claude</code> і набери в сесії:
+          </p>
+
+          <p><code>/loop 5m напиши одним рядком, котра зараз година</code></p>
+
+          <p>
+            Claude перетворить «5m» на розписання, підтвердить частоту й назве ідентифікатор
+            задачі. Далі кожні п'ять хвилин, коли сесія простоює, промпт виконуватиметься сам.
+          </p>
+
+          <p>
+            <strong>Одразу навчись зупиняти.</strong> Це важливіше за вміння запускати:
+          </p>
+
+          <ul>
+            <li>напиши Claude словами: <code>скасуй заплановану задачу</code> — він викличе
+              <code>CronDelete</code>;</li>
+            <li>для самостійного циклу (без інтервалу) — натисни <code>Esc</code>, поки він чекає;</li>
+            <li>вихід із сесії теж зупиняє: задачі прив'язані до розмови, а не до системи.
+              Нова розмова стирає їх усі;</li>
+            <li>крайній захід — змінна середовища <code>CLAUDE_CODE_DISABLE_CRON=1</code>:
+              вимикає планувальник цілком, разом із <code>/loop</code>.</li>
+          </ul>
+
+          <div class="callout">
+            <span class="callout-title">Не лишай перший цикл без нагляду</span>
+            <p>
+              Кожен постріл задачі за розписанням надсилає <strong>увесь твій контекст</strong> —
+              цілу розмову — заново. Цикл на п'ять хвилин у сесії, яка відкрита весь день,
+              витрачає межі плану, поки ти обідаєш. Подивись на перші два-три спрацювання,
+              а потім вирішуй, чи лишати.
+            </p>
+          </div>
+
+          <h3>Крок 4. Разове нагадування</h3>
+
+          <p>
+            Для одноразової справи <code>/loop</code> не потрібен — достатньо написати словами:
+          </p>
+
+          <p><code>через 20 хвилин перевір, чи завершилось складання</code></p>
+
+          <p>
+            Claude поставить одноразову задачу, прив'яже її до конкретної хвилини й підтвердить
+            час. Після спрацювання вона видалиться сама.
+          </p>
+
+          <h3>Крок 5. Подивись, що в тебе заплановано</h3>
+
+          <p>
+            Природною мовою, у тій самій сесії:
+          </p>
+
+          <p><code>які в мене заплановані задачі?</code></p>
+
+          <p>
+            Claude викличе <code>CronList</code> і покаже перелік із ідентифікаторами, розписаннями
+            й промптами. Це і є твоя панель керування — окремої команди <code>/tasks</code> для
+            цього не існує (<code>/tasks</code> показує фонову роботу сесії, а не розписання).
+          </p>
+
+          <h3>Крок 6, необов'язковий: Remote Control</h3>
+
+          <p>
+            Якщо в тебе підписка Claude і телефон із застосунком Claude, спробуй найпростіший
+            з віддалених механізмів. Зайди в папку проєкту (у якій ти <strong>вже</strong>
+            запускав <code>claude</code> і прийняв діалог довіри) і виконай:
+          </p>
+
+          <p><code>claude remote-control</code></p>
+
+          <p>
+            Процес лишиться в терміналі й чекатиме під'єднань. Він покаже посилання на сесію;
+            натискання пробілу вмикає показ QR-коду, який зручно навести телефоном. Зупиняється
+            звичним <code>Ctrl+C</code>. Протягом приблизно чотирьох годин після зупинки ту саму
+            сесію можна повернути командою <code>claude remote-control --continue</code> у тій
+            самій папці.
+          </p>
+
+          <p>
+            Якщо підписки немає, команда завершиться помилкою й нічого не запустить — це теж
+            результат перевірки, а не поломка.
+          </p>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
+          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Автоматизація погана тим, що мовчить однаково і коли працює, і коли не працює.
+            Тому кожному механізму потрібна команда, яка відповідає «так» або «ні» замість здогадок.
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Як перевірити, що вийшло">
+          <table>
+            <thead>
+              <tr>
+                <th>Питання</th>
+                <th>Що виконати</th>
+                <th>Що вважати відповіддю</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Що в мене заплановано в цій сесії?</td>
+                <td>написати Claude <code>які в мене заплановані задачі?</code></td>
+                <td>перелік із <code>CronList</code>; порожньо — задач немає</td>
+              </tr>
+              <tr>
+                <td>Чи є активна мета?</td>
+                <td><code>/goal</code> без аргументів</td>
+                <td>умова, тривалість, кількість оцінених ходів, витрата токенів і остання
+                  причина оцінювача. Або <code>No goal set</code></td>
+              </tr>
+              <tr>
+                <td>Які в мене рутини в хмарі?</td>
+                <td><code>/schedule list</code></td>
+                <td>перелік рутин. <code>Unknown command</code> — див. граблі нижче</td>
+              </tr>
+              <tr>
+                <td>Скільки з'їдають мої цикли?</td>
+                <td><code>/usage</code></td>
+                <td>рядки <strong>Loops</strong> по найважчих задачах: частота, кількість
+                  запусків, токени. Потребує версії <strong>2.1.242</strong> або новішої</td>
+              </tr>
+              <tr>
+                <td>Remote Control під'єднаний?</td>
+                <td>подивитись під полем вводу в сесії</td>
+                <td>показник <code>/rc active</code>. Він же — посилання на сесію</td>
+              </tr>
+              <tr>
+                <td>Чи знає моя збірка цей вимикач узагалі?</td>
+                <td><code>strings</code> по програмі (нижче)</td>
+                <td>число більше нуля — знає</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="callout">
+            <span class="callout-title">Про рядки Loops у <code>/usage</code></span>
+            <p>
+              Перевірено 2026-09-04: збірка, встановлена через <code>brew</code> на цій машині, —
+              <strong>2.1.236</strong>, а рядки Loops потребують <strong>2.1.242</strong>. Тобто
+              у стабільному каналі цієї функції ще немає, у документації вона вже описана.
+              Це нормальний стан для Claude Code, і саме тому курс усюди називає версію
+              біля кожного факту.
+            </p>
+          </div>
+
+          <h3>Перевірка «чи є ця можливість у моїй збірці»</h3>
+
+          <p>
+            Метод із блоку 2 працює для будь-якої назви — прапорця, ключа налаштувань, змінної
+            середовища. Нижче він застосований до двох вимикачів цього модуля, з обов'язковою
+            контрольною вигаданою назвою в кінці.
+          </p>
+
+          <figure class="term" id="t5">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t5t">2.1.236 · macOS 26.5.2 · знято 2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t5t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c "CLAUDE_CODE_DISABLE_CRON"</span></span>
+<span class="term__line">6</span>
+<span class="term__line"> </span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c "CLAUDE_CODE_GOAL_CHECKIN_MINUTES"</span></span>
+<span class="term__line">3</span>
+<span class="term__line"> </span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c "CLAUDE_CODE_DISABLE_CRONX"</span></span>
+<span class="term__line">0</span></pre>
+          </figure>
+
+          <p>
+            Шість і три — назви є в програмі. Нуль на неіснуючій назві доводить, що метод не
+            вигадує збігів. Що метод <strong>не</strong> доводить: він каже, що рядок присутній
+            у файлі, а не що функція увімкнена у твоєму обліковому записі. Для функцій, які
+            залежать від плану (Routines, Remote Control, Dispatch), відповідь дає лише спроба
+            запуску.
+          </p>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
+          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+
+          <h3>1. <code>/loop 30s</code> — і нічого щопівхвилини не відбувається</h3>
+          <p>
+            Мінімальний крок розписання — <strong>одна хвилина</strong>, бо дрібнішого кроку в
+            <code>cron</code> не існує. Секунди округлюються вгору. Те саме з «дивними»
+            інтервалами: <code>7m</code> і <code>90m</code> округлюються до найближчого рівного,
+            і Claude каже, до якого саме.
+          </p>
+
+          <h3>2. Задача поставлена на 9:00, а стріляє о 9:17</h3>
+          <p>
+            Це не збій, а розкид. Повторювані задачі навмисно зсуваються до 30 хвилин уперед
+            (або до половини інтервалу, якщо він менший за годину), щоб мільйони сесій не били
+            в сервери одночасно. Зсув сталий для кожної задачі. Ліки: обери хвилину, яка
+            не <code>:00</code> і не <code>:30</code>.
+          </p>
+
+          <h3>3. Цикл, який працював тиждень, перестав</h3>
+          <p>
+            Повторювані задачі <strong>протерміновуються через сім днів</strong> після створення:
+            стріляють востаннє й видаляються. Це запобіжник проти забутого циклу. Потрібно
+            довше — або перестворюй, або бери механізм, розрахований на постійність: Routine
+            чи локальну задачу в застосунку.
+          </p>
+
+          <h3>4. Рахунок росте, поки ти нічого не робиш</h3>
+          <p>
+            Найдорожча помилка модуля. Документація прямо перелічує, чому витрата зростає в
+            сесії, яка простоює, і три з причин — рівно про цей урок:
+          </p>
+          <ul>
+            <li><strong>задача за розписанням</strong> стріляє за своїм інтервалом навіть у
+              простої, <strong>надсилаючи повний контекст щоразу</strong>;</li>
+            <li><strong>повідомлення з іншої твоєї сесії</strong> доставляється як новий хід —
+              теж із повним контекстом. Гаситься ключем <code>crossSessionInbound</code>
+              у значенні <code>hold</code>;</li>
+            <li><strong>перевірки мети</strong> в простої: поки фонова робота тримає мету,
+              Claude Code сам починає хід, щоб на неї подивитись. Таких перевірок у простої
+              не більше <strong>трьох</strong> між твоїми промптами (до версії 2.1.246 обмеження
+              не було взагалі); вимикаються змінною <code>CLAUDE_CODE_GOAL_CHECKIN_MINUTES=0</code>;
+              самі перевірки потребують 2.1.236 або новішої.</li>
+          </ul>
+          <p>
+            До цього додається четверта причина з модуля 15: напарники в команді агентів
+            витрачають токени, доки не завершаться.
+          </p>
+
+          <h3>5. Хмарна рутина «не бачить» твоїх файлів і твоїх навичок</h3>
+          <p>
+            І не побачить: у хмарі щоразу свіжий клон репозиторію з GitHub. Локальні файли,
+            неопубліковані зміни й особисті навички з <code>~/.claude/skills/</code> туди не
+            потрапляють. Навичка спрацює тоді, коли вона <strong>закомічена в репозиторії</strong>
+            (<code>.claude/skills/</code>) або <strong>увімкнена для облікового запису
+            claude.ai</strong>. Так само сервери MCP, додані локально командою
+            <code>claude mcp add</code>, у переліку конекторів рутини не з'являться — їх треба
+            або додати конектором в обліковому записі, або описати в закоміченому
+            <code>.mcp.json</code>.
+          </p>
+
+          <h3>6. <code>/schedule</code> відповідає <code>Unknown command</code></h3>
+          <p>
+            Команда ховається, коли не виконана одна з її умов. Найчастіша причина —
+            <strong>вхід не через claude.ai</strong>: ключ API в консолі, змінна
+            <code>ANTHROPIC_API_KEY</code> чи <code>ANTHROPIC_AUTH_TOKEN</code> в оболонці,
+            <code>apiKeyHelper</code> у налаштуваннях, або вхід через стороннього
+            постачальника моделі. Ці способи входу мають перевагу над входом claude.ai, тому
+            їх треба спершу прибрати. Інші причини: ти всередині хмарної сесії; політика
+            організації вимкнула хмарні сесії; власник організації вимкнув Routines.
+          </p>
+
+          <h3>7. Канал не працює, а помилки немає</h3>
+          <p>
+            Три найчастіші причини, у порядку ймовірності:
+          </p>
+          <ul>
+            <li><strong>не встановлено Bun</strong> — його потребує кожен канальний плагін;</li>
+            <li><strong>сервер не названий у <code>--channels</code></strong> — запису в
+              <code>.mcp.json</code> недостатньо;</li>
+            <li><strong>плагін не в дозволеному переліку</strong> — Claude Code стартує звичайно,
+              канал не реєструється, а причину пише в повідомленні на стартовому екрані.</li>
+          </ul>
+          <p>
+            Плюс окремий випадок для тих, хто пише свій канал: на середовищі виконання MCP
+            версії 2 канал, який домовився про ревізію протоколу <code>2026-07-28</code>,
+            каналом не зареєструється.
+          </p>
+
+          <h3>8. «Прапорця <code>--channels</code> немає» — бо його не видно в довідці</h3>
+          <p>
+            Класична помилка, яку ти вже вмієш ловити з блоку 2: <code>claude --help</code>
+            його не показує, поки функція в передперегляді, але прапорець працює. Перевіряти
+            наявність треба <strong>без</strong> <code>--help</code>: сама по собі довідка
+            глушить помилку про невідоме ім'я прапорця й друкується як звичайна, ніби прапорець
+            існує (модуль 17).
+          </p>
+
+          <h3>9. Заплановану задачу не можна «змусити» виконати команду</h3>
+          <p>
+            У <code>/loop</code> можна передати навичку: <code>/loop 20m /review-pr 1234</code>.
+            Але за розписанням спрацьовують <strong>лише ті навички, які Claude має право
+            викликати сам</strong>. Решта доходить до нього <em>як звичайний текст</em> і нічого
+            не виконує: вбудовані команди на кшталт <code>/model</code>, <code>/clear</code>,
+            <code>/permissions</code>; навички з позначкою <code>disable-model-invocation: true</code>
+            (серед них вбудована <code>/verify</code>); навички, приховані налаштуванням або
+            правилом заборони; промпти з серверів MCP.
+          </p>
+
+          <h3>10. Сесія Remote Control «зникла»</h3>
+          <p>
+            Remote Control — це процес на твоїй машині. Закрив термінал, вийшов з редактора,
+            приспав ноутбук надовго — сесія стає недоступною, і claude.ai показує її як офлайн
+            протягом кількох секунд. Повернути можна тими самими командами в тій самій папці,
+            і <strong>лише приблизно чотири години</strong>. Щоб сесія жила на віддаленій машині
+            після виходу з SSH (спосіб працювати в терміналі чужого комп'ютера через мережу), документація радить запускати її всередині <code>tmux</code>
+            або <code>screen</code>.
+          </p>
+
+          <h3>11. «Залишу на ніч в автоматичному режимі» — без ізоляції</h3>
+          <p>
+            Найгостріша помилка з погляду безпеки. Пісочниця для Bash, про яку йшлося в модулі 8,
+            обмежує <strong>лише команди Bash</strong>. Документація формулює це без пом'якшень:
+            «The sandboxed Bash tool on its own constrains only Bash, so it is not sufficient
+            for fully unattended runs in either mode» — сама по собі вона <strong>недостатня
+            для повністю автономних запусків у жодному з режимів</strong>. Перехоплювачі подій
+            і сервери MCP запускаються поза нею. Тому для справді автономного запуску
+            в таблиці типових налаштувань стоїть окремий рядок: «Run fully unattended inside
+            a container» — <em>усередині контейнера</em>, віртуальної машини або середовища
+            пісочниці, і від імені не-адміністратора.
+          </p>
+
+          <h3>12. Запит дозволу зупинив усе, поки ти був далеко</h3>
+          <p>
+            Якщо Claude упреться в запит дозволу, сесія чекатиме на відповідь — скільки завгодно.
+            Три шляхи, у порядку від безпечного до небезпечного: канал, який уміє переказувати
+            запити дозволу, дає відповісти з телефона; Remote Control дозволяє відповісти
+            з браузера; <code>--dangerously-skip-permissions</code> прибирає більшість запитів —
+            і його можна вмикати <strong>лише</strong> в середовищі, яке тобі не шкода.
+            У локальної задачі із застосунку є свій прийом: натиснути «Run now», дочекатись
+            запитів і на кожному обрати «завжди дозволяти».
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
+          <h2><span class="lesson-no">7</span>Часті питання</h2>
+
+          <h3>Чи можу я закрити ноутбук, а робота продовжиться?</h3>
+          <p>
+            З механізмів цього модуля — <strong>лише Routines у хмарі</strong>. Вони виконуються
+            на інфраструктурі Anthropic, тому твоя машина їм не потрібна взагалі. Локальні задачі
+            в застосунку й <code>/loop</code> обидва потребують увімкненої машини, а
+            <code>/loop</code> ще й відкритої сесії. Поза цим модулем є ще один шлях — розписання
+            в GitHub Actions, про яке йшлося в модулі 19.
+          </p>
+
+          <h3>Треба відкривати порт, налаштовувати роутер чи піднімати тунель?</h3>
+          <p>
+            Ні. Це найпоширеніше побоювання щодо Remote Control, і документація відповідає на
+            нього прямо: сесія робить <strong>тільки вихідні запити HTTPS і ніколи не відкриває
+            вхідних портів</strong>. Вона реєструється в API і сама опитує його; телефон говорить
+            з API, а не з твоєю машиною. Тому ні білий IP, ні проброс портів, ні тунель тут
+            не потрібні.
+          </p>
+
+          <h3>Хто бачить мій код і мою розмову?</h3>
+          <p>
+            Залежить від механізму, і різниця істотна:
+          </p>
+          <ul>
+            <li><strong><code>/loop</code>, <code>/goal</code>, локальні задачі</strong> — усе
+              як у звичайній сесії: код лишається на твоїй машині, у модель ідуть промпти
+              й те, що Claude прочитав.</li>
+            <li><strong>Remote Control</strong> — поки він під'єднаний, <em>запис розмови</em>
+              (твої повідомлення, відповіді Claude, дії інструментів) зберігається на серверах
+              Anthropic, щоб розмова була однаковою на всіх пристроях. Виконання й доступ
+              до файлів лишаються на твоїй машині.</li>
+            <li><strong>Routines і хмарні сесії</strong> — репозиторій клонується в хмару, і робота
+              виконується там. Дії через під'єднаний обліковий запис GitHub виглядають як твої:
+              коміти й запити на злиття підписані тобою.</li>
+          </ul>
+
+          <h3>Чим канал відрізняється від звичайного сервера MCP?</h3>
+          <p>
+            Напрямком. Звичайний сервер MCP (модуль 18) чекає, поки Claude сам до нього звернеться
+            під час роботи. Канал <strong>штовхає</strong> подію в сесію, не питаючи. Тому канал —
+            це сервер MCP із додатковою здатністю, а не окремий вид програми; вмикається він
+            прапорцем <code>--channels</code>, і одного лише запису в конфігурації недостатньо.
+          </p>
+
+          <h3>Чому в мене немає Dispatch?</h3>
+          <p>
+            Dispatch — це окрема довготривала розмова в застосунку Claude, якій надсилають задачі
+            повідомленням; вона сама вирішує, що робити, і частину задач перетворює на сесії
+            Claude Code в застосунку на твоєму комп'ютері. Потрібні <strong>план Pro або Max</strong>
+            і спарений телефон; на планах Team і Enterprise Dispatch недоступний.
+          </p>
+
+          <h3>А на роботі це все взагалі дозволять?</h3>
+          <p>
+            Кожен із механізмів має вимикач на боці організації, і за замовчуванням вони різні.
+            Channels на планах Team і Enterprise <strong>заблоковані, доки власник їх не
+            увімкне</strong> (ключ <code>channelsEnabled</code>, плюс перелік дозволених плагінів
+            у <code>allowedChannelPlugins</code>). Remote Control там само <strong>вимкнений
+            за замовчуванням</strong>, доки власник не увімкне відповідний перемикач; організації
+            з вимогою нульового зберігання даних увімкнути його не можуть. Routines вимикаються
+            одним перемикачем в адміністративних налаштуваннях, і тоді (починаючи з версії
+            2.1.227) <code>/schedule</code> зникає й з термінала. Якщо щось із цього не працює саме в тебе — перш ніж лагодити,
+            спитай, чи воно дозволене.
+          </p>
+
+          <h3>Чим <code>/goal</code> кращий за <code>/loop</code>?</h3>
+          <p>
+            Нічим — вони відповідають на різні питання. <code>/loop</code> питає «як часто»,
+            <code>/goal</code> — «доки». Якщо ти опитуєш щось зовнішнє (чи завершилось складання,
+            чи прийшли коментарі), потрібен <code>/loop</code>. Якщо ти хочеш, щоб Claude
+            продовжував ту саму роботу, доки не досягне перевіреного результату, потрібен
+            <code>/goal</code>. Третій варіант — власний перехоплювач події <code>Stop</code>
+            (модуль 16): він живе у файлі налаштувань, діє на всі сесії у своїй області й може
+            перевіряти умову скриптом, а не моделлю.
+          </p>
+
+          <h3>Що таке <code>/background</code> і чи це те саме?</h3>
+          <p>
+            Ні. <code>/background</code> (інше ім'я <code>/bg</code>) від'єднує поточну сесію
+            в фоновий агент і звільняє термінал; стежать за нею командою <code>claude agents</code>.
+            Це не автоматизація, а спосіб не тримати вікно відкритим. Важлива дрібниця для цього
+            модуля: <strong>переведення сесії у фон переносить із собою задачі <code>/loop</code></strong>,
+            і вони продовжують стріляти вже без термінала.
+          </p>
+
+          <h3>Скільки все це коштує?</h3>
+          <p>
+            Точних чисел курс не називає — ціни й межі змінюються, і сама документація не подає
+            фіксованої кількості повідомлень. Важливіше знати <strong>форму</strong> витрати:
+            задача за розписанням щоразу надсилає повний контекст, тож дорожчає разом із довжиною
+            розмови; хмарні рутини витрачають підписку так само, як звичайні сесії, і на додачу
+            мають окрему добову межу кількості запусків (одноразові запуски до неї не
+            зараховуються); перевірки мети виконуються на маленькій швидкій моделі й на тлі
+            основних ходів майже непомітні. Модуль 11 — про те, як це вимірювати.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
+          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            У цьому модулі було багато назв, але тримається все на трьох питаннях із блоку 1.
+            Якщо запам'ятати тільки їх, решта відновлюється з документації за п'ять хвилин.
+          </p>
+
+          <ul>
+            <li>
+              <strong>Хто починає роботу.</strong> Годинник — три механізми розписання. Зовнішня
+              подія — канали або рутина з тригером. Умова — <code>/goal</code>. Ти сам з іншого
+              пристрою — Remote Control, Dispatch, <code>--cloud</code>, <code>--teleport</code>,
+              <code>/desktop</code>.
+            </li>
+            <li>
+              <strong>Де виконується.</strong> Твоя машина бачить твої файли, але має бути
+              ввімкнена. Хмара працює із закритим ноутбуком, але бачить лише свіжий клон
+              репозиторію. Третього не дано.
+            </li>
+            <li>
+              <strong>Що має бути відкритим.</strong> <code>/loop</code> і канали живуть у сесії
+              й помирають разом із нею. Локальні задачі й рутини — ні.
+            </li>
+          </ul>
+
+          <p>
+            Три числа, які вирішують більшість суперечок: <strong>1 хвилина</strong> — мінімум
+            для <code>/loop</code> і локальних задач; <strong>1 година</strong> — мінімум для
+            хмарних рутин; <strong>7 днів</strong> — після цього повторювана задача сесії
+            зникає сама.
+          </p>
+
+          <p>
+            І одна річ, важливіша за всі механізми разом: <strong>автономність без ізоляції —
+            це не автоматизація, а ризик</strong>. Пісочниця для Bash обмежує лише Bash;
+            перехоплювачі подій і сервери MCP запускаються поза нею. Для запуску, за яким
+            справді ніхто не дивиться, документація вимагає контейнер, віртуальну машину або
+            середовище пісочниці — і тільки тоді має сенс знімати запити дозволу.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Перевір себе одним реченням</span>
+            <p>
+              Якщо ти можеш за десять секунд відповісти, <em>де</em> виконуватиметься твоя нічна
+              задача й <em>що</em> має лишатись увімкненим, — модуль засвоєний. Якщо ні,
+              повернись до таблиці в блоці 4.
+            </p>
+          </div>
+
+          <h3>Куди далі</h3>
+
+          <p>
+            <strong>Модуль 21</strong> збирає все, що ти вивчив, у наскрізний проєкт і робочі
+            звички: чотирифазний цикл роботи, спосіб дати Claude змогу перевіряти себе й
+            п'ять іменованих антипатернів, у які найчастіше падають. Автоматизація з цього
+            модуля там перестає бути окремою темою й стає частиною звичайного дня.
+          </p>
+
+          <p>
+            Якщо хочеш повернутись до чогось із названого тут — усі команди зі своїми іншими
+            іменами лежать у довіднику команд, а ключі налаштувань
+            (<code>remoteControlAtStartup</code>, <code>disableRemoteControl</code>,
+            <code>channelsEnabled</code>, <code>allowedChannelPlugins</code>,
+            <code>crossSessionInbound</code>) — у довіднику налаштувань.
+          </p>
+        </section>
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Перевір себе</h2>
+          <p>
+            Питання не про те, як називається прапорець, а про те, який механізм обрати
+            й чим за нього доведеться заплатити.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Треба щоночі о третій розбирати чергу задач у репозиторії. Ноутбук на ніч закривають. Який механізм єдиний придатний?",
+            "options": [
+              "/loop із інтервалом у сесії, яку лишили відкритою",
+              "Локальна задача за розписанням у застосунку для комп'ютера",
+              "Routine у хмарі з тригером за розписанням",
+              "Remote Control, запущений перед сном"
+            ],
+            "answer": 2,
+            "explain": "Закрита кришка означає сон машини. Варіант із /loop відпадає двічі: він потребує і ввімкненої машини, і відкритої сесії. Локальна задача в застосунку потребує ввімкненої машини — сплячий комп'ютер запуск пропускає, і вранці буде рівно один наздоганяючий запуск. Remote Control — це взагалі не автоматизація, а спосіб керувати вручну з іншого пристрою. Лишається хмарна рутина, і за неї доведеться заплатити двома обмеженнями: мінімум година між запусками й свіжий клон репозиторію замість твоїх локальних файлів."
+          },
+          {
+            "q": "Людина створила хмарну рутину, яка має викликати її власну навичку з ~/.claude/skills/. Запуск у переліку світиться зеленим, а навичка не спрацювала. Що сталось?",
+            "options": [
+              "Зелений статус означає помилку виконання",
+              "Рутини взагалі не вміють викликати навички",
+              "Для навичок у рутинах потрібен Bun",
+              "У хмарі щоразу свіжий клон репозиторію, і особистих навичок із домашньої теки там немає"
+            ],
+            "answer": 3,
+            "explain": "Хмарна сесія бачить лише те, що є в клонованому репозиторії. Хмарна сесія не читає ~/.claude/skills/ з твоєї машини й повідомляє, що навички не знайдено; щоб вона там була, її треба закомітити в репозиторій або увімкнути для облікового запису claude.ai. Навички рутини викликати вміють, це не обмеження механізму. Bun потрібен канальним плагінам, а не рутинам, — це інша тема модуля. А зелений статус означає лише, що сесія стартувала й завершилась без збою інфраструктури; чи вдалась сама задача, видно тільки всередині запису розмови."
+          },
+          {
+            "q": "Задача закінчена в хмарній сесії на claude.ai, і людина хоче дороблювати її в себе в терміналі. Вона набирає claude --resume і тієї сесії не бачить. Чому?",
+            "options": [
+              "--resume відкриває розмови з локальної історії цієї машини й хмарних сесій не бачить; хмарну тягне --teleport",
+              "Хмарну сесію перенести в термінал неможливо в принципі",
+              "Спершу треба закомітити зміни, інакше сесія не показується",
+              "Сесія протермінувалась: через сім днів вона зникає"
+            ],
+            "answer": 0,
+            "explain": "Це дві різні команди з різними джерелами. --resume (модуль 9) читає локальну історію розмов саме цієї машини. --teleport перевіряє, що ти в тому самому репозиторії, забирає з віддаленого сховища гілку хмарної сесії й підвантажує всю історію розмови. Перенесення односпрямоване: витягти хмарну сесію в термінал можна, штовхнути термінальну в хмару з CLI — ні. Коміт потрібен не для показу сесії, а тому що телепорт вимагає чистої робочої копії. Семиденне протермінування стосується повторюваних задач за розписанням, а не сесій."
+          },
+          {
+            "q": "У статті описаний прапорець --channels. Людина виконує claude --help, не знаходить його там і робить висновок, що в її збірці такого немає. Де помилка?",
+            "options": [
+              "Помилки немає: якщо прапорця немає в довідці, його немає в програмі",
+              "Треба було виконати claude --channels --help — тоді довідка показала б прапорець",
+              "Довідка не вичерпна: частина можливостей у ній не показується, і наявність перевіряють без --help",
+              "Прапорець з'явиться в довідці після входу в обліковий запис"
+            ],
+            "answer": 2,
+            "explain": "Документація прямо каже, що --channels не показується в claude --help, поки функція в дослідницькому передперегляді, — і що він при цьому працює. Перевірка на цій машині це підтвердила: у довідці нуль згадок, у самій програмі вісімнадцять, а на вигаданій назві нуль. Варіант із додаванням --help хибний удвічі: --help глушить помилку про невідоме ім'я прапорця й друкує звичайну довідку, ніби прапорець існує, тому нічого не доводить. Вхід в обліковий запис на вміст довідки не впливає."
+          },
+          {
+            "q": "Сесія відкрита з ранку, у ній працює /loop 5m. Людина йде на обід і нічого не набирає, а витрата плану за цю годину помітно зростає. Що відбувається?",
+            "options": [
+              "Відкритий термінал сам по собі витрачає токени, поки програма запущена",
+              "Кожне спрацювання задачі за розписанням надсилає весь контекст розмови заново",
+              "Це помилка обліку: у простої витрати бути не може",
+              "Витрачає Remote Control, який зберігає запис розмови на серверах"
+            ],
+            "answer": 1,
+            "explain": "Задача за розписанням стріляє за своїм інтервалом саме в простої — і щоразу надсилає повний контекст. У сесії, відкритій весь день, цей контекст великий, тому дванадцять пострілів за годину коштують відчутно. Відкритий термінал сам собою нічого не витрачає: витрату створює звернення до моделі, а не запущений процес. Помилкою обліку це не є — документація перелічує таке зростання серед очікуваних причин, поряд із доставкою повідомлень з інших твоїх сесій і перевірками мети в простої. Remote Control зберігає запис розмови, але саме зберігання не породжує нових звернень до моделі."
+          },
+          {
+            "q": "Хтось хоче лишити Claude Code працювати всю ніч над репозиторієм без нагляду. У нього ввімкнена пісочниця для інструмента Bash. Чи цього досить?",
+            "options": [
+              "Так, пісочниця Bash закриває всі дії Claude",
+              "Так, якщо додатково передати --dangerously-skip-permissions",
+              "Ні, автономні запуски заборонені документацією взагалі",
+              "Ні: вона обмежує лише Bash, а перехоплювачі подій і сервери MCP працюють поза нею"
+            ],
+            "answer": 3,
+            "explain": "Документація формулює це без пом'якшень: пісочниця для Bash сама по собі обмежує лише Bash і недостатня для повністю автономних запусків у жодному з режимів. Перехоплювачі подій і сервери MCP запускаються поза її межами, і саме тому для автономного запуску вимагається зовнішня межа — контейнер, віртуальна машина або середовище пісочниці, від імені не-адміністратора. Додавання --dangerously-skip-permissions робить рівно протилежне: прибирає останню перешкоду, не додавши жодної межі. Автономні запуски при цьому не заборонені — у таблиці типових налаштувань для них є окремий рядок, і в ньому контейнер зазначений як вимога."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <!-- D-03: вхід у три довідники з будь-якого уроку. Підписи живуть у
+         claude-code.config.json → site.ref* і підставляються через data-site
+         (js/config.js, fillStatic); текст у розмітці — той самий рядок, як
+         запасний варіант, коли конфіг не приїхав. Той самий прийом, що вже
+         стоїть на data-site="name" і data-site="shortName" у шапці. -->
+    <nav aria-label="Довідники курсу"
+      class="mx-auto flex max-w-[88rem] flex-wrap items-center gap-x-6 gap-y-1 border-b border-line/60 px-5 py-4 sm:px-8">
+      <span class="font-mono text-xs uppercase tracking-[0.14em] text-faint" data-site="refsLabel">Довідники</span>
+      <a href="../claude-code-ref-commands.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refCommands">Усі команди й клавіші</a>
+      <a href="../claude-code-ref-hooks.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refHooks">Таблиця подій</a>
+      <a href="../claude-code-ref-settings.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refSettings">Ключі settings.json</a>
+    </nav>
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Компонент «термінал» — вісім станів</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="site-inherited.css" />
+<link rel="stylesheet" href="term.css" />
+<link rel="stylesheet" href="page.css" />
+<style>
+/* ⚠ Стилі ЛИШЕ цієї сторінки-бібліотеки. У код не їдуть. */
+.lib { max-width: 60rem; margin-inline: auto; padding: var(--s-10) var(--cc-pad-page) var(--s-16); }
+.lib h1 { font-family: var(--f-display); font-weight: 400; font-size: 2rem; }
+.lib h2 { font-family: var(--f-display); font-weight: 400; font-size: 1.375rem; margin-top: var(--s-12); color: var(--c-ivory); }
+.lib p  { max-width: 62ch; color: var(--c-muted); font-size: 0.9375rem; line-height: 1.6; margin-top: var(--s-3); }
+.lib__num { font-family: var(--f-mono); font-size: 0.75rem; color: var(--c-accent); }
+.lib__test { position: sticky; top: 0; z-index: 5; background: var(--c-surface); border: 1px solid var(--c-line);
+             border-radius: var(--r-control); padding: var(--s-4); margin-bottom: var(--s-8); }
+.lib__out { font-family: var(--f-mono); font-size: 0.8125rem; white-space: pre-wrap; margin-top: var(--s-3); color: var(--c-prose); }
+.lib__ok  { color: var(--c-term-ok); }
+.lib__bad { color: var(--c-term-err); }
+</style>
+</head>
+<body>
+<div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+<div class="lib">
+  <h1>Компонент «термінал» · вісім станів</h1>
+  <p>Одна розмітка на всі стани. Кольори, кегль і висота рядка — з прототипу, схваленого власником;
+     єдине свідоме відхилення — радіус 10px → 8px (<code>--r-control</code>, мова сайту).
+     Друку тут немає: він живе тільки в hero лендінга.</p>
+
+  <div class="lib__test">
+    <button type="button" class="cc-btn cc-btn--ghost" id="copyTest">Перевірити копіювання в усіх блоках</button>
+    <p style="margin-top:var(--s-2)">Тест виділяє кожен блок цілком через <code>Range</code> і порівнює
+       <code>selection.toString()</code> з <code>pre.textContent</code> побайтово. Це критерій Б-3.</p>
+    <div class="lib__out" id="copyOut">не запускався</div>
+  </div>
+
+  <!-- 1 -->
+  <h2><span class="lib__num">01</span> Промпт користувача</h2>
+  <p>Дві підформи, і їх видно оком: команда оболонки має службовий префікс <code>$</code>, запит агенту —
+     ні. Sand-колір у блоці рівно один, і він означає «це написала людина».
+     Кнопка копіювання є тільки тут: копіювати сесію разом із виводом безглуздо.</p>
+
+  <figure class="term term--cmd" id="s1">
+    <figcaption class="term__chrome">
+      <span class="term__dots" aria-hidden="true"></span>
+      <span class="term__title" id="s1t">macOS · Linux · WSL</span>
+      <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+    </figcaption>
+    <pre class="term__body" tabindex="0" role="group" aria-labelledby="s1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">curl -fsSL https://claude.ai/install.sh | bash</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --version</span></span></pre>
+  </figure>
+
+  <figure class="term" id="s1b">
+    <figcaption class="term__chrome">
+      <span class="term__dots" aria-hidden="true"></span>
+      <span class="term__title" id="s1bt">запит агенту, три рядки</span>
+    </figcaption>
+    <pre class="term__body" tabindex="0" role="group" aria-labelledby="s1bt"><span class="term__line"><span class="term__in">&gt; у файлі src/api.js прибери дублювання в обробці помилок.</span></span>
+<span class="term__line"><span class="term__in">  Тести не змінюй. Спершу покажи план, потім роби.</span></span></pre>
+  </figure>
+
+  <!-- 2 -->
+  <h2><span class="lib__num">02</span> Крок інструмента</h2>
+  <p>Маркер <code>⏺</code> і префікс <code>└─</code> — окремі елементи з фіксованою шириною колонки, а не
+     частина рядка. Замінити глиф можна, не зсунувши нічого праворуч від нього; заразом обидва закриті
+     <code>aria-hidden</code>, тож скрін-рідер більше не читає «чорне коло» перед кожним кроком.
+     Останній блок показує підстан «крок триває»: той самий рядок без результату, з кареткою.</p>
+
+  <figure class="term" id="s2">
+    <figcaption class="term__chrome">
+      <span class="term__dots" aria-hidden="true"></span>
+      <span class="term__title" id="s2t">три кроки підряд</span>
+    </figcaption>
+    <pre class="term__body" tabindex="0" role="group" aria-labelledby="s2t"><span class="term__line"><span class="term__mark term__mark--tool" aria-hidden="true">⏺</span> <span class="term__tool">Read</span>(README.md)</span>
+<span class="term__line">  <span class="term__mark term__mark--lg term__mark--meta" aria-hidden="true">└─</span> <span class="term__meta">прочитано 48 рядків</span></span>
+<span class="term__line"><span class="term__mark term__mark--tool" aria-hidden="true">⏺</span> <span class="term__tool">Bash</span>(npm test)</span>
+<span class="term__line">  <span class="term__mark term__mark--lg term__mark--meta" aria-hidden="true">└─</span> <span class="term__err">3 тести впали</span></span>
+<span class="term__line has-caret is-blinking"><span class="term__mark term__mark--tool" aria-hidden="true">⏺</span> <span class="term__tool">Update</span>(src/api.js)</span></pre>
+  </figure>
+
+  <!-- 3 -->
+  <h2><span class="lib__num">03</span> Диф</h2>
+  <p>Знак <code>+</code> і <code>−</code> стоїть у самому тексті, а не тільки в кольорі: інакше стан
+     ламається для дальтоніка й у чорно-білому друку (WCAG 1.4.1). Рамка декоративна й закрита
+     <code>aria-hidden</code>, ім'я файлу й підсумок <code>+9 −2</code> — ні.</p>
+
+  <figure class="term" id="s3">
+    <figcaption class="term__chrome">
+      <span class="term__dots" aria-hidden="true"></span>
+      <span class="term__title" id="s3t">README.md — запропоновані зміни</span>
+    </figcaption>
+    <pre class="term__body" tabindex="0" role="group" aria-labelledby="s3t"><span class="term__line"><span class="term__meta"><span aria-hidden="true">  ── </span>README.md<span aria-hidden="true"> ───────────────────────────</span></span></span>
+<span class="term__line"><span class="term__del">  - ## Запуск</span></span>
+<span class="term__line"><span class="term__del">  - Запусти застосунок і відкрий у браузері.</span></span>
+<span class="term__line"><span class="term__add">  + ## Як запустити локально</span></span>
+<span class="term__line"><span class="term__add">  + 1. npm install</span></span>
+<span class="term__line"><span class="term__add">  + 2. npm run dev  →  localhost:5173</span></span>
+<span class="term__line"><span class="term__meta"><span aria-hidden="true">  ──────────────────────────────</span>  +9 −2</span></span></pre>
+  </figure>
+
+  <!-- 4 -->
+  <h2><span class="lib__num">04</span> Діалог дозволу</h2>
+  <p>Найризикованіший стан: у прототипі обраний рядок нічим не відрізнявся від решти. Тут він
+     відрізняється <b>і кольором, і підложкою на всю ширину полотна</b> — різницю видно на
+     чорно-білому скріншоті без підпису. Маркер <code>❯</code> значущий, тому він
+     <b>не</b> закритий <code>aria-hidden</code>.</p>
+
+  <figure class="term" id="s4">
+    <figcaption class="term__chrome">
+      <span class="term__dots" aria-hidden="true"></span>
+      <span class="term__title" id="s4t">агент питає дозволу</span>
+    </figcaption>
+    <pre class="term__body" tabindex="0" role="group" aria-labelledby="s4t"><span class="term__line">  <span class="term__in">Дозволити зміну README.md?</span></span>
+<span class="term__line term__line--pick">  <span class="term__mark term__mark--pick">❯</span> <span class="term__pick">1. Так</span></span>
+<span class="term__line">  <span class="term__meta">  2. Так, і не питати про цей файл</span></span>
+<span class="term__line">  <span class="term__meta">  3. Ні, і скажу чому</span></span></pre>
+  </figure>
+
+  <!-- 5 -->
+  <h2><span class="lib__num">05</span> Меню слеш-команд</h2>
+  <p>У прототипі стану не було — спроєктований тут. Дві колонки тримає <code>white-space: pre</code>
+     і вирівнювання пробілами: це вивід програми, а не таблиця. Перший рядок — введений людиною
+     <code>/</code>, тому меню читається як викликане, а не як таке, що вискочило само.
+     Назви команд справжні; короткі описи — заглушки до живого зняття екрана.</p>
+
+  <figure class="term" id="s5">
+    <figcaption class="term__chrome">
+      <span class="term__dots" aria-hidden="true"></span>
+      <span class="term__title" id="s5t">меню команд</span>
+    </figcaption>
+    <pre class="term__body" tabindex="0" role="group" aria-labelledby="s5t"><span class="term__line"><span class="term__in">/</span></span>
+<span class="term__line term__line--pick">  <span class="term__mark term__mark--pick">❯</span> <span class="term__pick">/clear        очистити історію розмови</span></span>
+<span class="term__line">  <span class="term__tool">  /compact</span>      <span class="term__meta">стиснути розмову й звільнити місце</span></span>
+<span class="term__line">  <span class="term__tool">  /context</span>      <span class="term__meta">показати, чим зайнята пам'ять</span></span>
+<span class="term__line">  <span class="term__tool">  /model</span>        <span class="term__meta">змінити модель</span></span>
+<span class="term__line">  <span class="term__tool">  /permissions</span>  <span class="term__meta">правила дозволів</span></span>
+<span class="term__line">  <span class="term__tool">  /cost</span>         <span class="term__meta">скільки витрачено в цій сесії</span></span></pre>
+  </figure>
+
+  <!-- 6 -->
+  <h2><span class="lib__num">06</span> Статус-лайн</h2>
+  <p>Це «прилад», а не рядок сесії, тому він живе <b>поза</b> <code>&lt;pre&gt;</code>, притиснутий до низу
+     блока. Наслідок навмисний: статус-лайн не потрапляє в скопійований текст — його ніхто не копіює.</p>
+
+  <figure class="term" id="s6">
+    <figcaption class="term__chrome">
+      <span class="term__dots" aria-hidden="true"></span>
+      <span class="term__title" id="s6t">сесія з приладом унизу</span>
+    </figcaption>
+    <pre class="term__body" tabindex="0" role="group" aria-labelledby="s6t"><span class="term__line"><span class="term__mark term__mark--tool" aria-hidden="true">⏺</span> <span class="term__tool">Search</span>(**/*.js)</span>
+<span class="term__line">  <span class="term__mark term__mark--lg term__mark--meta" aria-hidden="true">└─</span> <span class="term__meta">34 файли</span></span></pre>
+    <div class="term__status">
+      <span><b>sonnet</b></span><span>гілка <b>main</b></span><span>пам'ять <b>42%</b></span><span>витрачено <b>$0.18</b></span>
+    </div>
+  </figure>
+
+  <!-- 7 -->
+  <h2><span class="lib__num">07</span> Помилка</h2>
+  <p>Червоний — <b>тільки текст помилки</b>. Підказка службова: якщо червоним світиться все, стан
+     читається як катастрофа, а лякати новачка ця сторінка не має права. Лівий бордер ставиться лише
+     на блок, цілком присвячений помилці, — не на сесію, де помилка одна з подій.</p>
+
+  <figure class="term term--err" id="s7">
+    <figcaption class="term__chrome">
+      <span class="term__dots" aria-hidden="true"></span>
+      <span class="term__title" id="s7t">команду не знайдено</span>
+    </figcaption>
+    <pre class="term__body" tabindex="0" role="group" aria-labelledby="s7t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude</span></span>
+<span class="term__line"><span class="term__err">zsh: command not found: claude</span></span>
+<span class="term__line"><span class="term__meta">Підказка: закрий вікно термінала й відкрий заново, потім</span></span>
+<span class="term__line"><span class="term__meta">спробуй ще раз. Якщо не допомогло — модуль 03, розділ</span></span>
+<span class="term__line"><span class="term__meta">«команда є, але її не видно».</span></span></pre>
+  </figure>
+
+  <!-- 8 -->
+  <h2><span class="lib__num">08</span> Довгий вивід</h2>
+  <p>Стану не було ні в прототипі, ні в полі 2 брифа — він знайдений виміром: реальний
+     <code>claude --help</code> це 243 рядки й 117 символів у найдовшому. Нижче — дослівний фрагмент того
+     самого виводу, 39 рядків. Блок згортається до <code>--term-max-h</code>, розгортається справжньою
+     кнопкою з <code>aria-expanded</code>, і <b>не анімується</b>: анімувати висоту блока на сотні рядків —
+     це layout кожен кадр без жодної користі. Довгий рядок дає горизонтальний скрол
+     <b>усередині блока</b>; сторінка при цьому не їде.</p>
+
+  <figure class="term term--long" id="s8">
+    <figcaption class="term__chrome">
+      <span class="term__dots" aria-hidden="true"></span>
+      <span class="term__title" id="s8t">claude --help — фрагмент</span>
+    </figcaption>
+    <pre class="term__body" id="s8body" tabindex="0" role="group" aria-labelledby="s8t">                                        --print and --output-format=stream-json)
+  --from-pr [value]                     Resume a session linked to a PR by PR
+                                        number/URL, or open interactive picker
+                                        with optional search term
+  -h, --help                            Display help for command
+  --ide                                 Automatically connect to IDE on startup
+                                        if exactly one valid IDE is available
+  --include-hook-events                 Include all hook lifecycle events in the
+                                        output stream (only works with
+                                        --output-format=stream-json)
+  --include-partial-messages            Include partial message chunks as they
+                                        arrive (only works with --print and
+                                        --output-format=stream-json)
+  --input-format &lt;format&gt;               Input format (only works with --print):
+                                        &quot;text&quot; (default), or &quot;stream-json&quot;
+                                        (realtime streaming input) (choices:
+                                        &quot;text&quot;, &quot;stream-json&quot;)
+  --json-schema &lt;schema&gt;                JSON Schema for structured output
+                                        validation. Example:
+                                        {&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{&quot;name&quot;:{&quot;type&quot;:&quot;string&quot;}},&quot;required&quot;:[&quot;name&quot;]}
+  --max-budget-usd &lt;amount&gt;             Maximum dollar amount to spend on API
+                                        calls (only works with --print)
+  --mcp-config &lt;configs...&gt;             Load MCP servers from JSON files or
+                                        strings (space-separated)
+  --model &lt;model&gt;                       Model for the current session. Provide
+                                        an alias for the latest model (e.g.
+                                        &#x27;fable&#x27;, &#x27;opus&#x27;, or &#x27;sonnet&#x27;) or a
+                                        model&#x27;s full name (e.g.
+                                        &#x27;claude-fable-5&#x27;).
+  -n, --name &lt;name&gt;                     Set a display name for this session
+                                        (shown in the prompt box, /resume
+                                        picker, and terminal title)
+  --no-chrome                           Disable Claude in Chrome integration
+  --no-session-persistence              Disable session persistence - sessions
+                                        will not be saved to disk and cannot be
+                                        resumed (only works with --print)
+  --output-format &lt;format&gt;              Output format (only works with --print):
+                                        &quot;text&quot; (default), &quot;json&quot; (single
+                                        result), or &quot;stream-json&quot; (realtime
+                                        streaming) (choices: &quot;text&quot;, &quot;json&quot;,</pre>
+    <div class="term__fade" aria-hidden="true"></div>
+    <div class="term__foot">
+      <button type="button" class="term__more" aria-expanded="false" aria-controls="s8body"
+              data-label-open="Згорнути" data-label-closed="Показати весь фрагмент">Показати весь фрагмент</button>
+    </div>
+  </figure>
+
+  <h2>Два блоки підряд не зливаються</h2>
+  <p>Вертикальний ритм між блоками — один токен (<code>--term-gap</code>), а не «на око»; порожній підпис
+     заборонений. Саме так компонент житиме в уроках, де його по 2–5 штук.</p>
+
+  <figure class="term" id="s9">
+    <figcaption class="term__chrome"><span class="term__dots" aria-hidden="true"></span><span class="term__title" id="s9t">правильно: спершу зайшли в проєкт</span></figcaption>
+    <pre class="term__body" tabindex="0" role="group" aria-labelledby="s9t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">cd ~/my-site</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude</span></span></pre>
+  </figure>
+  <figure class="term" id="s10">
+    <figcaption class="term__chrome"><span class="term__dots" aria-hidden="true"></span><span class="term__title" id="s10t">неправильно: запустились у домашній папці</span></figcaption>
+    <pre class="term__body" tabindex="0" role="group" aria-labelledby="s10t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">cd ~</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude</span></span>
+<span class="term__line">  <span class="term__meta">→ агент не бачить проєкту й почне шукати по всьому диску</span></span></pre>
+  </figure>
+</div>
+
+<script src="term.js"></script>
+<script>
+/* ⚠ Тест копіювання — інструмент бібліотеки, у код не їде.
+   Виділяє блок цілком Range-ом і порівнює з textContent побайтово. */
+document.getElementById("copyTest").addEventListener("click", function () {
+  var out = [];
+  var sel = window.getSelection();
+  document.querySelectorAll(".term__body").forEach(function (pre) {
+    sel.removeAllRanges();
+    var r = document.createRange();
+    r.selectNodeContents(pre);
+    sel.addRange(r);
+    var got = sel.toString();
+    var want = pre.textContent;
+    var ok = got === want;
+    var id = pre.closest(".term").id;
+    out.push((ok ? "PASS " : "FAIL ") + id + "  символів: " + got.length +
+      (ok ? "" : "  ≠ " + want.length));
+  });
+  sel.removeAllRanges();
+  var bad = out.filter(function (l) { return l.indexOf("FAIL") === 0; }).length;
+  var box = document.getElementById("copyOut");
+  box.className = "lib__out " + (bad ? "lib__bad" : "lib__ok");
+  box.textContent = (bad ? bad + " блоків не збіглися\n" : "усі блоки збіглися побайтово\n") + out.join("\n");
+});
+</script>
+</body>
+</html>

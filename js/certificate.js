@@ -197,13 +197,16 @@
             '<div style="width:172px;height:1px;background:#cdbfa8;margin:6px 0 0"></div>' +
             '<p style="margin:7px 0 0;font-size:12px;color:#9a8f7f">Команда курсу · ' + esc(fmtDate(cert.issued_at)) + '</p>' +
           '</div>' +
-          '<div style="text-align:center">' +
+          // data-verify-link: поверх цих двох блоків у PDF ляже клікабельна
+          // анотація на сторінку перевірки (див. verifyLinkAreas). Геометрія
+          // не дублюється числами — вона рахується з цих же елементів.
+          '<div data-verify-link style="text-align:center">' +
             (qrDataUrl ? '<img src="' + qrDataUrl + '" width="92" height="92" style="display:block;margin:0 auto" alt="QR" />' : '<div style="width:92px;height:92px"></div>') +
             '<p style="margin:7px 0 0;font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:.12em;color:#9a8f7f">КОД ПЕРЕВІРКИ</p>' +
             '<p style="margin:2px 0 0;font-family:\'IBM Plex Mono\',monospace;font-size:13px;color:#2b2620">' + esc(cert.public_code) + '</p>' +
           '</div>' +
         '</div>' +
-        '<p style="margin:16px 0 0;text-align:center;font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:#9a8f7f;word-break:break-all">Перевірити справжність: ' + esc(vurl) + '</p>' +
+        '<p data-verify-link style="margin:16px 0 0;text-align:center;font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:#9a8f7f;word-break:break-all">Перевірити справжність: ' + esc(vurl) + '</p>' +
       '</div>'
     );
   }
@@ -295,34 +298,89 @@
     return (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
   }
 
+  // Геометрія аркуша: вузол шаблона 1123×794 px кладеться в PDF як A4-ландшафт
+  // 297×210 мм (це той самий аркуш при 96 dpi, тому пропорції збігаються).
+  var PAGE_W_MM = 297;
+  var PAGE_H_MM = 210;
+
+  // Якість JPEG для сторінок сертифіката. PNG тут давав ~28 МБ на два аркуші
+  // (html2canvas scale:2 → растр ~2246×1588 px без стиснення), а таку пошту
+  // частина скриньок просто відкидає. 0.9 — межа, нижче якої моноширинний
+  // код перевірки починає «пливти»; це документ, не ілюстрація.
+  var JPEG_QUALITY = 0.9;
+
+  // Області першої сторінки, поверх яких лягає клікабельне посилання на
+  // перевірку: блок «КОД ПЕРЕВІРКИ» (разом із QR, коли той є) і рядок з URL.
+  // Координати рахуються з живого DOM шаблона й переводяться px → мм тим
+  // самим коефіцієнтом, яким addImage розтягує канвас на аркуш, — тому
+  // область збігається з друком навіть якщо верстку колись зсунуть.
+  function verifyLinkAreas(node) {
+    var box = node.getBoundingClientRect();
+    if (!box.width || !box.height) return [];
+    var kx = PAGE_W_MM / box.width;
+    var ky = PAGE_H_MM / box.height;
+    var pad = 1; // мм запасу з кожного боку — щоб влучити пальцем на телефоні
+    var out = [];
+    Array.prototype.forEach.call(node.querySelectorAll("[data-verify-link]"), function (el) {
+      var r = el.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      out.push({
+        x: Math.max(0, (r.left - box.left) * kx - pad),
+        y: Math.max(0, (r.top - box.top) * ky - pad),
+        w: r.width * kx + pad * 2,
+        h: r.height * ky + pad * 2
+      });
+    });
+    return out;
+  }
+
   function downloadPdf(cert, btn) {
     if (!window.jspdf || !window.html2canvas) {
       alert("Бібліотеки для PDF ще вантажаться — спробуй за секунду.");
       return;
     }
     var course = (cert.courses && cert.courses.title) || "AI-Academy";
+    var vurl = verifyUrl(cert.public_code);
     var original = btn ? btn.textContent : "";
     if (btn) { btn.disabled = true; btn.textContent = "Готуємо PDF…"; }
 
-    Promise.all([makeQr(verifyUrl(cert.public_code)), fetchTranscript(cert.course_id)])
+    Promise.all([makeQr(vurl), fetchTranscript(cert.course_id)])
       .then(function (arr) {
         var qr = arr[0], rows = arr[1];
         var n1 = buildCertNode(cert, qr);
         var n2 = buildTranscriptNode(cert, rows);
+        var areas = [];
         document.body.appendChild(n1);
         document.body.appendChild(n2);
 
         return fontsReady()
           .then(function () { return waitImages(n1); })
-          .then(function () { return window.html2canvas(n1, { scale: 2, backgroundColor: "#f8f4ec", useCORS: true }); })
+          .then(function () {
+            // Міряємо після шрифтів і картинок: до цього моменту текст ще
+            // може переверстатись, і область поїхала б повз надрукований URL.
+            areas = verifyLinkAreas(n1);
+            return window.html2canvas(n1, { scale: 2, backgroundColor: "#f8f4ec", useCORS: true });
+          })
           .then(function (c1) {
             return window.html2canvas(n2, { scale: 2, backgroundColor: "#f8f4ec", useCORS: true }).then(function (c2) {
               n1.remove(); n2.remove();
               var jsPDF = window.jspdf.jsPDF;
               var doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-              doc.addImage(c1.toDataURL("image/png"), "PNG", 0, 0, 297, 210);
+              // JPEG, а не PNG: обидва канваси знімаються з непрозорим фоном
+              // (backgroundColor вище), тому чорних ділянок — типової пастки
+              // JPEG на прозорому канвасі — тут не виникає.
+              doc.addImage(c1.toDataURL("image/jpeg", JPEG_QUALITY), "JPEG", 0, 0, PAGE_W_MM, PAGE_H_MM);
+              // Після html2canvas увесь аркуш — це пікселі, тож URL перевірки
+              // не клікнути й не скопіювати: його переписували очима і ловили
+              // кириличні двійники латинських літер («сертифікат недійсний»).
+              // Анотація-посилання повертає штатний шлях перевірки.
+              if (typeof doc.link === "function") {
+                areas.forEach(function (a) { doc.link(a.x, a.y, a.w, a.h, { url: vurl }); });
+              } else {
+                console.warn("[AIA cert pdf] jsPDF без doc.link: посилання на перевірку лишиться лише друкованим текстом");
+              }
               doc.addPage();
-              doc.addImage(c2.toDataURL("image/png"), "PNG", 0, 0, 297, 210);
+              doc.addImage(c2.toDataURL("image/jpeg", JPEG_QUALITY), "JPEG", 0, 0, PAGE_W_MM, PAGE_H_MM);
               doc.save("Сертифікат — " + course + ".pdf");
             });
           });

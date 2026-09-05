@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 8 · Режим плану й пісочниця — AI Термінал</title>
+  <meta name="description"
+    content="Режим плану в Claude Code як спосіб думати перед змінами: вхід через Shift+Tab і /plan, три опції схвалення, Ctrl+G, ключ useAutoModeDuringPlan. Пісочниця Bash: /sandbox, два режими, межі файлів і мережі, і чому це чесна альтернатива вимкненню дозволів." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="c08" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 08</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 2 · Контекст, дозволи, гроші</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Режим плану й пісочниця</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Середній · 8 блоків · ≈ 40 хв читання</p>
+        <p class="mt-6 text-lg">
+          Модуль 7 відповідав на одне питання: <em>виконати дію чи спитати тебе</em>. Цей модуль —
+          про два механізми, які стоять поруч із дозволами й вирішують інше. Перший, режим плану,
+          відповідає на питання <em>що саме збираємось робити</em>, поки нічого ще не зроблено.
+          Другий, пісочниця, відповідає на питання <em>куди команда зможе дотягнутись</em>, коли
+          вона вже виконується.
+        </p>
+        <p>
+          Обидва потрібні тому, що двох звичних відповідей не вистачає. Дивитись на кожен запит
+          дозволу — втомливо й повільно. Вимкнути запити прапорцем
+          <code>--dangerously-skip-permissions</code> — прибрати перевірки взагалі. Режим плану й
+          пісочниця — це те, що документація пропонує замість цієї розвилки.
+        </p>
+
+        <div class="callout">
+          <span class="callout-title">Що в цьому модулі є, а чого немає</span>
+          <p>
+            <strong>Є:</strong> режим плану (plan mode) як робоча звичка, а не перемикач · вхід
+            через <code>Shift</code> + <code>Tab</code>, <code>/plan</code> і
+            <code>--permission-mode plan</code> · три опції схвалення плану · <code>Ctrl</code> +
+            <code>G</code> · ключ <code>useAutoModeDuringPlan</code> · пісочниця Bash
+            (sandbox), команда <code>/sandbox</code> і два її режими · що пісочниця обмежує у
+            файлах і в мережі · чому вона є чесною альтернативою вимкненню дозволів і де ця
+            альтернатива закінчується.
+          </p>
+          <p>
+            <strong>Немає:</strong> шести режимів дозволів, правил
+            <code>allow</code> / <code>ask</code> / <code>deny</code>, класифікатора, захищених і
+            критичних шляхів — це модуль 7, і далі вони згадуються як уже відоме.
+          </p>
+        </div>
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
+          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+
+          <p>
+            Дві найдорожчі помилки в роботі з Claude Code виглядають по-різному, а коштують
+            однаково.
+          </p>
+
+          <p>
+            <strong>Перша: він зробив не те.</strong> Ти описав задачу одним реченням, він
+            зрозумів її по-своєму, за дві хвилини переписав вісім файлів — і тепер треба або
+            відкочувати все, або доробляти чуже рішення. Проблема не в тому, що він швидкий.
+            Проблема в тому, що між твоїм реченням і його правками не було моменту, коли ви двоє
+            звірили, про що взагалі мова.
+          </p>
+
+          <p>
+            <strong>Друга: ти втомився від запитів.</strong> У ручному режимі кожна команда в
+            терміналі — окремий запит дозволу. За годину роботи їх десятки. Людина починає
+            натискати «так» не читаючи, і сенс перевірки зникає — а формально вона є. Далі
+            зазвичай іде пошук способу вимкнути запити зовсім, і в модулі 7 показано, чим це
+            погано.
+          </p>
+
+          <h3>Два різні шари, які легко сплутати</h3>
+
+          <p>
+            Режим плану лікує першу помилку, пісочниця — другу. Але обидва часто плутають із
+            режимами дозволів, тому одразу проведемо межу. Документація формулює її одним
+            реченням, і воно варте того, щоб прочитати його двічі:
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Дослівно з документації</span>
+            <p>
+              «<code>/sandbox</code> is not a permission mode. Permission modes decide whether a
+              tool call runs and whether you are prompted first, while the sandbox restricts what a
+              Bash command can access once it runs.»
+            </p>
+            <p>
+              <code>code.claude.com/docs/en/sandboxing</code>, розділ «Permission modes», звірено
+              4 вересня 2026 року.
+            </p>
+          </div>
+
+          <p>
+            Українською: пісочниця — це не режим дозволів. Режими дозволів вирішують,
+            <strong>чи виконається</strong> виклик інструмента й чи спитають тебе перед цим.
+            Пісочниця обмежує, <strong>до чого команда має доступ</strong>, коли вона вже
+            запустилась.
+          </p>
+
+          <p>
+            Різниця не термінологічна, а практична. Рішення дозволів приймається
+            <strong>до</strong> запуску й на підставі тексту команди — тобто його можна обдурити
+            командою, яка робить більше, ніж написано в її назві. Межу пісочниці тримає
+            <strong>операційна система</strong> на вже запущеному процесі, тому вона діє
+            незалежно від того, що саме модель вирішила запустити.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Три слова, які знадобляться далі</span>
+            <p>
+              <strong>Bash</strong> — інструмент, яким Claude Code запускає команди в терміналі
+              (модуль 7). Пісочниця стосується <em>тільки</em> його та процесів, які він
+              породжує.
+            </p>
+            <p>
+              <strong>Пісочниця (sandbox)</strong> — обмежений простір, у якому програмі видно й
+              доступно менше, ніж усьому комп'ютеру. Тут це означає: команда може писати лише в
+              дозволені папки й звертатись лише до дозволених адрес у мережі.
+            </p>
+            <p>
+              <strong>Режим плану (plan mode)</strong> — стан сесії, у якому Claude досліджує й
+              пише план, але не змінює твій код.
+            </p>
+          </div>
+
+          <h3>Що станеться, якщо цього не знати</h3>
+
+          <ul>
+            <li>людина роками працює в ручному режимі й вважає, що іншого вибору немає, — і або
+              вигорає на запитах, або одного дня вимикає їх усі;</li>
+            <li>людина вмикає пісочницю, бачить, що запити зникли, і робить висновок, що тепер
+              вона в безпеці, — а пісочниця не стосується ні читання, ні правок файлів, ні
+              перехоплювачів подій, ні серверів MCP;</li>
+            <li>людина просить план, отримує план, натискає перший варіант зі списку — і сесія
+              мовчки переходить у режим, де більше нічого не питає. Це задокументована поведінка,
+              а не збій, і про неї — у блоці 6.</li>
+          </ul>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
+          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Обидві теми цього модуля живуть усередині інтерактивного вікна: панель
+            <code>/sandbox</code>, екран схвалення плану, рядок стану. Зняти їх командою
+            неможливо, а домальовувати екрани в цьому курсі заборонено — тому тут буде інше:
+            перевірки, які <strong>можна</strong> виконати з термінала, і дослівні цитати з
+            документації там, де перевірити нічим.
+          </p>
+
+          <h3>Прапорця для пісочниці немає</h3>
+
+          <p>
+            Перше, що робить людина, яка почула про пісочницю, — шукає прапорець запуску. Його
+            немає, і в цьому легко переконатись. Нижче — справжній вивід із живої машини.
+          </p>
+
+          <figure class="term term--cmd" id="p1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p1t">пошук прапорця · macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude --version</span></span>
+<span class="term__line"><span class="term__ok">2.1.236 (Claude Code)</span></span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude --sandbox</span></span>
+<span class="term__line"><span class="term__err">error: unknown option '--sandbox'</span></span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">claude --sandbox --help</span></span>
+<span class="term__line">Usage: claude [options] [command] [prompt]</span>
+<span class="term__line"><span class="term__meta">(помилки немає — довідка друкується так, ніби прапорець існує)</span></span></pre>
+          </figure>
+
+          <p>
+            Знято на macOS 26.5.2, Claude Code 2.1.236, 4 вересня 2026 року. Останній рядок —
+            підпис автора, а не вивід програми.
+          </p>
+
+          <p>
+            Два висновки. Перший: <strong>пісочниця вмикається не прапорцем</strong>, а командою
+            <code>/sandbox</code> усередині сесії або ключем <code>sandbox.enabled</code> у файлі
+            налаштувань. Другий уже знайомий із модуля 7 і тут підтверджується вдруге: якщо
+            дописати <code>--help</code>, невідомий прапорець мовчки ігнорується й друкується
+            звичайна довідка. Перевіряти існування прапорця треба
+            <strong>без</strong> <code>--help</code>.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Виняток, який усе ж є</span>
+            <p>
+              Прапорець <code>--settings</code> у 2.1.236 існує й приймає або шлях до файла
+              налаштувань, або JSON-рядок прямо в командному рядку — це видно в його описі в
+              <code>claude --help</code>. Документація пісочниці для окремих ключів прямо
+              називає <code>--settings</code> джерелом нарівні з користувацьким і керованим
+              файлом. Тобто окремого прапорця <code>--sandbox</code> немає, але передати
+              налаштування пісочниці на один запуск можна.
+            </p>
+          </div>
+
+          <h3>Панель <code>/sandbox</code> — словами, бо зняти її нічим</h3>
+
+          <p>
+            Команда <code>/sandbox</code> набирається всередині запущеної сесії й відкриває
+            панель. Документація описує її склад дослівно: <strong>три вкладки</strong>, плюс
+            четверта на Linux, коли не вистачає необов'язкового компонента.
+          </p>
+
+          <ul>
+            <li><strong>Mode</strong> — вибір режиму пісочниці: <em>auto-allow</em> або
+              <em>regular permissions</em>. Що це означає — у блоці 3.</li>
+            <li><strong>Overrides</strong> — чи дозволено команді, яка не змогла виконатись у
+              пісочниці, повторитись поза нею. Це ключ
+              <code>allowUnsandboxedCommands</code>; коли він вимкнений, вкладка показує напис
+              <strong>Strict sandbox mode</strong>.</li>
+            <li><strong>Config</strong> — підсумкові налаштування пісочниці, які вийшли після
+              складання всіх файлів. Саме тут видно перелік
+              <strong>Denied within allowed</strong>: шляхи, у які заборонено писати навіть
+              усередині дозволених папок.</li>
+            <li><strong>Dependencies</strong> — з'являється на Linux і WSL2, коли не встановлено
+              потрібний пакет. Якщо бракує обов'язкового, ця вкладка буде єдиною.</li>
+          </ul>
+
+          <p>
+            Опис узятий зі сторінки
+            <code>code.claude.com/docs/en/sandboxing</code>, звіреної 4 вересня 2026 року.
+          </p>
+
+          <h3>Екран схвалення плану — і як переконатись, що він у твоїй збірці саме такий</h3>
+
+          <p>
+            Коли план готовий, Claude показує його й питає, як діяти далі. Варіантів три, і
+            документація наводить їх дослівно англійською. Знімка тут немає з тієї ж причини —
+            це інтерактивний екран. Але є спосіб перевірити, що ці рядки справді лежать у твоїй
+            встановленій програмі: пошукати їх у самому файлі програми.
+          </p>
+
+          <figure class="term term--cmd" id="p2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p2t">рядки з файла програми · macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p2t"><span class="term__line"><span class="term__meta">%</span> <span class="term__in">strings "$(which claude)" | grep -o "Yes, and use auto mode\|Yes, manually approve edits\|No, keep planning" | sort -u</span></span>
+<span class="term__line">No, keep planning</span>
+<span class="term__line">Yes, and use auto mode</span>
+<span class="term__line">Yes, manually approve edits</span></pre>
+          </figure>
+
+          <p>
+            Знято на macOS 26.5.2, Claude Code 2.1.236, 4 вересня 2026 року. Розбір команди:
+            <code>which claude</code> каже, де лежить сама програма; <code>strings</code>
+            витягує з неї всі текстові рядки; <code>grep -o</code> лишає тільки збіги з трьома
+            шуканими фразами (<code>\|</code> — це «або»); <code>sort -u</code> прибирає
+            повтори. Команда <code>strings</code> приходить із інструментами розробника Apple:
+            якщо термінал відповість <code>command not found</code>, ця перевірка тобі
+            недоступна — вона необов'язкова, пропусти її.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Що саме доводить така перевірка, а що ні</span>
+            <p>
+              Вона доводить, що <strong>текст є у твоїй збірці</strong>. Вона не доводить, що
+              функція увімкнена для твого акаунта: наприклад, варіант
+              <em>Yes, and use auto mode</em> існує в програмі, але в сесії, де режим
+              <code>auto</code> недоступний, той самий пункт підписаний
+              <em>Yes, auto-accept edits</em>. Це чесна межа методу, і краще знати її одразу,
+              ніж зробити з нього неправильний висновок.
+            </p>
+          </div>
+
+          <h3>Рядок стану</h3>
+
+          <p>
+            Усередині сесії активний режим написаний у рядку стану внизу вікна. Для режиму плану
+            документація наводить його дослівно: <code>⏸ plan mode on</code>. Повна таблиця
+            рядків стану для всіх шести режимів — у модулі 7.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
+          <h2><span class="lesson-no">3</span>Як це працює</h2>
+
+          <h3>Частина перша: режим плану</h3>
+
+          <p>
+            Документація описує режим плану одним реченням: «Plan mode tells Claude to research
+            and propose changes without making them» — режим плану каже Claude досліджувати й
+            пропонувати зміни, не роблячи їх. Claude читає файли, запускає команди, щоб
+            розібратись, і пише план. Твій код він при цьому не редагує.
+          </p>
+
+          <p>
+            Далі йде уточнення, яке варто прочитати уважно: «Except in sessions with bypass
+            permissions available, edits stay blocked until you approve the plan». Тобто правки
+            заблоковані доти, доки ти не схвалиш план, — <strong>крім</strong> сесій, у яких
+            доступний режим <code>bypassPermissions</code>. Що це за сесії, розказано в модулі 7:
+            ті, які запущені з дозвільним прапорцем або з відповідним значенням у налаштуваннях
+            користувача чи організації. У звичайній сесії це не твій випадок, але знати про
+            виняток треба.
+          </p>
+
+          <h3>Три способи ввійти й один спосіб вийти</h3>
+
+          <ul>
+            <li><code>Shift</code> + <code>Tab</code> усередині сесії — цикл режимів із модуля 7
+              проходить через <code>plan</code>;</li>
+            <li><code>/plan</code> на початку промпту. Можна одразу з описом задачі:
+              <code>/plan fix the auth bug</code> — це і вхід у режим, і перша задача одним
+              рухом;</li>
+            <li><code>claude --permission-mode plan</code> при запуску — сесія стартує вже в
+              режимі плану.</li>
+          </ul>
+
+          <p>
+            Вихід без схвалення — <code>Shift</code> + <code>Tab</code> ще раз. План не
+            зникає з розмови, але сесія повертається до звичайного режиму.
+          </p>
+
+          <h3>Що відбувається з командами, поки ти плануєш</h3>
+
+          <p>
+            Читання файлів у режимі плану вільне. З командами в терміналі складніше, і поведінка
+            залежить від одного ключа налаштувань:
+          </p>
+
+          <ul>
+            <li><strong>Коли режим <code>auto</code> доступний і ключ
+              <code>useAutoModeDuringPlan</code> увімкнений</strong> (а він увімкнений за
+              замовчуванням) — команди під час планування рецензує класифікатор, той самий, що
+              з модуля 7. Схвалені виконуються, відхилені блокуються, тебе не питають.</li>
+            <li><strong>Інакше</strong> — усе, що не входить у вбудований набір команд читання,
+              питає дозволу в тебе.</li>
+          </ul>
+
+          <p>
+            Ключ <code>useAutoModeDuringPlan</code> має область
+            <em>користувач, локальний файл або керовані налаштування</em>, і документація
+            підкреслює наслідок окремим реченням: «A repository can't turn it off for you» —
+            чужий репозиторій не може вимкнути це за тебе.
+          </p>
+
+          <h3>Три опції схвалення плану</h3>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Три опції схвалення плану">
+          <table>
+            <thead>
+              <tr>
+                <th>Опція</th>
+                <th>Що робить</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Yes, and use auto mode</strong></td>
+                <td>схвалює план і переводить сесію в режим <code>auto</code>. Коли
+                  <code>auto</code> недоступний, той самий пункт підписаний
+                  <strong>Yes, auto-accept edits</strong>. Якщо сесія стартувала з дозвільним
+                  прапорцем, пункт читається як
+                  <strong>Yes, and switch to BYPASS PERMISSIONS (no further prompts) for this
+                  session</strong></td>
+              </tr>
+              <tr>
+                <td><strong>Yes, manually approve edits</strong></td>
+                <td>схвалює план і лишає тобі перегляд кожної правки окремо</td>
+              </tr>
+              <tr>
+                <td><strong>No, keep planning</strong></td>
+                <td>лишається в режимі плану; ти кажеш, що змінити в плані</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>
+            Головне про цей екран: <strong>схвалення плану виводить сесію з режиму плану</strong>
+            і перемикає її в той режим, який названий в обраному пункті. Тобто перший варіант —
+            це не «так, роби», а «так, роби, і далі не питай». Щоб планувати знову, треба
+            повернутись у режим плану через <code>Shift</code> + <code>Tab</code> або
+            <code>/plan</code>.
+          </p>
+
+          <p>
+            Ще дві деталі того ж екрана. <code>Ctrl</code> + <code>G</code> відкриває
+            запропонований план у твоєму текстовому редакторі, щоб виправити його руками перед
+            тим, як Claude візьметься за роботу (у переліку гарячих клавіш ця дія називається
+            <code>chat:externalEditor</code> і має другу комбінацію —
+            <code>Ctrl</code> + <code>X</code>, потім <code>Ctrl</code> + <code>E</code>). А коли
+            увімкнений ключ <code>showClearContextOnPlanAccept</code>, у списку з'являється ще
+            один, перший пункт: схвалити план і очистити контекст планування — тобто почати
+            виконання з чистою розмовою, у якій лишився сам план. Про контекст і його очищення —
+            модуль 6.
+          </p>
+
+          <p>
+            І дрібниця, яка стає в пригоді пізніше: схвалений план дає сесії
+            <strong>автоматичну назву</strong>, складену з плану, якщо ти не назвав сесію сам.
+            Навіщо сесіям назви — модуль 9.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  A["Shift+Tab, /plan або --permission-mode plan"] --> B["Режим плану: читання вільне"]
+  B --> C{"Команда в терміналі"}
+  C -->|"auto доступний і useAutoModeDuringPlan увімкнений"| D["Рецензує класифікатор"]
+  C -->|"інакше"| E["Питає тебе"]
+  D --> F["Claude пише план"]
+  E --> F
+  F --> G{"Твій вибір"}
+  G -->|"Yes, and use auto mode"| H["Вихід із плану, сесія в auto"]
+  G -->|"Yes, manually approve edits"| I["Вихід із плану, кожна правка з твоїм підтвердженням"]
+  G -->|"No, keep planning"| B
+  style B fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style G fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Життя режиму плану. Схвалення плану завжди виводить із нього — питання лише в тому,
+              у який режим сесія потрапить далі
+            </p>
+          </div>
+
+          <h3>Частина друга: пісочниця Bash</h3>
+
+          <p>
+            Пісочниця вбудована в Claude Code й працює на <strong>macOS, Linux і WSL2</strong>.
+            На macOS ставити нічого не треба — використовується вбудований у систему механізм
+            Seatbelt. На Linux і WSL2 потрібні два пакети:
+            <code>bubblewrap</code> (створює саму ізоляцію) і <code>socat</code> (перенаправляє
+            мережевий трафік через проксі пісочниці, тобто через посередника, який перевіряє
+            адреси).
+          </p>
+
+          <p>
+            <strong>Рідний Windows не підтримується</strong>, і WSL1 теж: потрібні можливості
+            ядра, які є лише у WSL2. WSL2 — це друга версія підсистеми Windows для Linux,
+            середовище Linux усередині Windows. Якщо ти на Windows і хочеш пісочницю, шлях один:
+            запускати Claude Code всередині WSL2.
+          </p>
+
+          <h3>Що саме обмежується</h3>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Що саме обмежується">
+          <table>
+            <thead>
+              <tr>
+                <th>Шар</th>
+                <th>Як за замовчуванням</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Запис у файли</td>
+                <td>дозволений у робочу папку та її підпапки, у папки, додані через
+                  <code>--add-dir</code>, <code>/add-dir</code> чи
+                  <code>additionalDirectories</code>, і в тимчасову папку сесії. Усе інше —
+                  заборонено, включно з <code>~/.bashrc</code> і системними програмами в
+                  <code>/bin/</code></td>
+              </tr>
+              <tr>
+                <td>Читання файлів</td>
+                <td><strong>увесь комп'ютер</strong>, крім явно заборонених шляхів. Документація
+                  окремо попереджає, що сюди входять і файли з ключами доступу:
+                  <code>~/.aws/credentials</code>, <code>~/.ssh/</code></td>
+              </tr>
+              <tr>
+                <td>Мережа</td>
+                <td>жодного домену не дозволено наперед. Перше звернення до нової адреси дає
+                  запит тобі (або йде до класифікатора в режимі <code>auto</code>)</td>
+              </tr>
+              <tr>
+                <td>Тимчасова папка</td>
+                <td>змінна <code>$TMPDIR</code> для команд у пісочниці вказує на тимчасову папку
+                  сесії, а не на звичайну — тому файл, покладений туди командою в пісочниці, не
+                  видно команді поза нею</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>
+            Дані з <code>code.claude.com/docs/en/sandboxing</code>, розділи «Filesystem
+            isolation» і «Network isolation», звірено 4 вересня 2026 року.
+          </p>
+
+          <p>
+            Асиметрія «пишемо мало, читаємо все» тут не випадкова: вона зроблена, щоб інструменти
+            працювали без нескінченного налаштування. Але наслідок із неї прямий — за
+            замовчуванням пісочниця <strong>не</strong> ховає твої ключі й паролі від команди,
+            яка виконується всередині неї. Для цього є окремий розділ налаштувань
+            <code>sandbox.credentials</code> і список <code>denyRead</code>.
+          </p>
+
+          <h3>Свої захищені шляхи — вужчі, ніж у дозволів</h3>
+
+          <p>
+            Навіть усередині папок, куди писати можна, пісочниця забороняє запис у файли, з яких
+            Claude Code бере свою конфігурацію й свій код: файли налаштувань <code>.claude</code>,
+            папки <code>.claude/skills</code>, <code>.claude/agents</code>,
+            <code>.claude/commands</code>, <code>.claude/hooks</code>, файл
+            <code>.mcp.json</code>, стартові файли оболонки <code>.bashrc</code> і
+            <code>.zshrc</code>, <code>.gitconfig</code>, а також <code>hooks</code> і
+            <code>config</code> усередині <code>.git</code>.
+          </p>
+
+          <p>
+            Причина названа прямо: команда, яка може змінити ці файли, може видати сама собі
+            дозволи або додати перехоплювач подій (hook) чи сервер MCP, який Claude Code запустить
+            уже <strong>поза</strong> пісочницею. Винятку зробити не можна: ані запис у
+            <code>allowWrite</code>, ані правило <code>allow</code> на <code>Edit</code> цю
+            заборону не знімають.
+          </p>
+
+          <p>
+            Це не те саме, що захищені шляхи з модуля 7, хоча списки схожі. Ті працюють
+            <strong>до</strong> запуску команди й вирішують, чи схвалити її автоматично. Ці
+            працюють на <strong>вже запущеній</strong> команді й вирішують, чи дасть їй система
+            записати файл.
+          </p>
+
+          <h3>Два режими пісочниці</h3>
+
+          <p>
+            В обох режимах пісочниця тримає ті самі межі файлів і мережі. Відрізняється лише те,
+            чи питають тебе перед командою.
+          </p>
+
+          <ul>
+            <li><strong>auto-allow</strong> — команду, яку вдалося запустити в пісочниці, Claude
+              Code схвалює сам, без запиту. Ключ налаштувань —
+              <code>sandbox.autoAllowBashIfSandboxed</code>, за замовчуванням
+              <code>true</code>.</li>
+            <li><strong>regular permissions</strong> — усі команди йдуть звичайним шляхом
+              дозволів, навіть якщо виконуються в пісочниці. Більше контролю, більше
+              підтверджень. Це той самий ключ зі значенням <code>false</code>.</li>
+          </ul>
+
+          <p>
+            Навіть у режимі auto-allow лишаються в силі три речі, усі знайомі з модуля 7:
+            явні правила <code>deny</code>; видалення <code>rm</code> і <code>rmdir</code> по
+            критичному шляху; правила <code>ask</code>, які дивляться на вміст команди, — на
+            кшталт <code>Bash(git push *)</code>. Голе правило <code>ask</code> на
+            <code>Bash</code> (або <code>Bash(*)</code>) для команд у пісочниці пропускається —
+            але <strong>не</strong> в режимі плану: там воно питає навіть про читання.
+          </p>
+
+          <h3>Коли команда в пісочницю не влазить</h3>
+
+          <p>
+            Частина інструментів у пісочниці не працює зовсім. Claude Code повідомляє про
+            порушення межі й називає, який шлях або хост заблокувала система, — тому Claude бачить
+            причину. Далі він може повторити команду з параметром
+            <code>dangerouslyDisableSandbox</code>, тобто <strong>поза</strong> пісочницею. Такий
+            повтор іде звичайним шляхом дозволів: у ручному режимі ти побачиш запит, і його
+            заголовок буде <code>Bash command (unsandboxed)</code> замість
+            <code>Bash command</code> — за цим підписом і видно, що команда вийшла назовні.
+          </p>
+
+          <p>
+            Цю лазівку можна закрити: <code>"allowUnsandboxedCommands": false</code>. Тоді
+            параметр ігнорується повністю, і кожна команда або виконується в пісочниці, або має
+            бути в списку <code>excludedCommands</code>. У панелі <code>/sandbox</code> цей стан
+            підписаний <strong>Strict sandbox mode</strong>.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  A["Claude хоче виконати команду в терміналі"] --> B["Шар 1: дозволи. Модуль 7"]
+  B -->|"deny"| Z["Не виконується"]
+  B -->|"ask або запит у ручному режимі"| C["Питає тебе"]
+  B -->|"пропущено"| D["Шар 2: пісочниця"]
+  C -->|"ти погодився"| D
+  D --> E{"Чи вміщається команда в межі пісочниці?"}
+  E -->|"так"| F["Виконується. Писати може лише в дозволені папки, у мережу лише на дозволені адреси"]
+  E -->|"ні"| G["Порушення межі. Claude бачить причину"]
+  G --> H["Повтор поза пісочницею з окремим запитом Bash command unsandboxed"]
+  style B fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style D fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Два незалежні шари. Перший вирішує, чи запускати команду; другий — до чого вона
+              дотягнеться, коли вже запущена
+            </p>
+          </div>
+
+          <h3>Чому це чесна альтернатива вимкненню дозволів</h3>
+
+          <p>
+            У документації є таблиця «Common setups» — типові набори на кожен випадок. Рядок, який
+            стосується цього модуля, звучить так: <em>«Iterate locally with fewer prompts, without
+            a classifier»</em> — працювати локально з меншою кількістю запитів і без
+            класифікатора. Рецепт: <code>claude --permission-mode default</code>, потім
+            <code>/sandbox</code> і режим auto-allow. Ізоляція, яка для цього потрібна, — сама
+            вбудована пісочниця на macOS, Linux або WSL2.
+          </p>
+
+          <p>
+            Порівняй із рядком про <code>--dangerously-skip-permissions</code> у таблиці «What
+            replaces the prompt» тієї ж документації. Там у графі «що замінює запит» написано
+            <strong>Nothing</strong> — нічого. У пісочниці в тій самій графі — «сама межа
+            пісочниці». Це і є вся різниця між двома способами позбутися запитів: в одному з них
+            замість тебе не стає ніхто, у другому — операційна система.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Де ця альтернатива закінчується</span>
+            <p>
+              Документація ставить межу сама, і в урок вона йде без пом'якшення: «The sandboxed
+              Bash tool on its own constrains only Bash, so it is not sufficient for fully
+              unattended runs in either mode» — пісочниця Bash сама по собі обмежує лише Bash,
+              тому для повністю автономних запусків її не досить. Читання, правки файлів,
+              перехоплювачі подій і сервери MCP лишаються поза нею.
+            </p>
+            <p>
+              Загальний вирок теж процитуємо: «Sandboxing reduces risk but is not a complete
+              isolation boundary» — пісочниця зменшує ризик, але не є повною межею ізоляції. Для
+              запусків без людини потрібен контейнер або віртуальна машина; це тема модулів 19
+              і 22.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
+          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+
+          <p>
+            П'ять кроків. Перші три — про план, вони нічого не змінюють на комп'ютері взагалі.
+            Останні два вмикають пісочницю; на Windows без WSL2 вони не спрацюють, і це
+            нормально — прочитай їх і повернись, коли буде WSL2.
+          </p>
+
+          <h3>Крок 1. Увійти в режим плану</h3>
+
+          <p>
+            Відкрий термінал, зайди в папку свого проєкту й запусти Claude Code так, щоб він
+            одразу стартував у режимі плану: набери рядок нижче й натисни <code>Enter</code>.
+          </p>
+
+          <pre><code>claude --permission-mode plan</code></pre>
+
+          <p>
+            Подивись на нижню частину вікна: там має бути <code>⏸ plan mode on</code>. Якщо ти вже
+            в сесії, того самого досягає <code>Shift</code> + <code>Tab</code> — натискай, поки
+            рядок стану не покаже режим плану.
+          </p>
+
+          <h3>Крок 2. Попросити план на справжню задачу</h3>
+
+          <p>
+            Опиши задачу, яку реально хочеш зробити у своєму проєкті, і додай прохання спершу
+            розібратись. Наприклад: <em>«Розберись, як у цьому проєкті влаштована відправка
+            листів, і запропонуй план, як додати лист-нагадування. Нічого не міняй»</em>.
+          </p>
+
+          <p>
+            Далі буде видно, як він читає файли й запускає команди. Якщо в тебе підписка Pro, Max
+            або Team і режим <code>auto</code> доступний, команд він виконає багато й тебе не
+            питатиме — це працює класифікатор, як описано в блоці 3. Якщо питає про кожну
+            команду — режим <code>auto</code> недоступний або ключ
+            <code>useAutoModeDuringPlan</code> вимкнений.
+          </p>
+
+          <h3>Крок 3. Не погоджуватись із першого разу</h3>
+
+          <p>
+            Коли з'явиться план і три варіанти відповіді, обери <strong>No, keep
+            planning</strong> — навіть якщо план виглядає добре. Напиши, що саме поміняти: «почни
+            з тестів», «не чіпай базу», «зроби це двома окремими кроками». Це і є навичка, заради
+            якої існує режим: план дешево виправити, зроблену роботу — ні.
+          </p>
+
+          <p>
+            Якщо хочеш переписати план руками, натисни <code>Ctrl</code> + <code>G</code> — він
+            відкриється у твоєму текстовому редакторі. Погоджуйся лише тоді, коли план описує те,
+            що ти справді хочеш отримати.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Що обрати на екрані схвалення</span>
+            <p>
+              Поки вчишся — <strong>Yes, manually approve edits</strong>. Кожна правка проходитиме
+              через тебе, і ти побачиш, наскільки план збігся з тим, що вийшло. Перший варіант
+              зручніший, але він переводить сесію в режим, де запитів більше не буде: до цього
+              варто дійти свідомо, а не натиснути його першим.
+            </p>
+          </div>
+
+          <h3>Крок 4. Увімкнути пісочницю</h3>
+
+          <p>
+            Усередині сесії набери <code>/sandbox</code> і натисни <code>Enter</code>. На вкладці
+            <strong>Mode</strong> обери <strong>auto-allow</strong>. Заглянь на вкладку
+            <strong>Config</strong> — там видно підсумкові межі, у тому числі перелік
+            <strong>Denied within allowed</strong>.
+          </p>
+
+          <p>
+            Тепер важлива подробиця, через яку люди дивуються пізніше: <strong>вибір у панелі
+            зберігається у файл проєкту</strong> — <code>.claude/settings.local.json</code>, і діє
+            він лише в цьому проєкті. Claude Code при цьому додає цей файл у твій глобальний
+            <code>.gitignore</code>, щоб він не поїхав у репозиторій.
+          </p>
+
+          <p>
+            Щоб пісочниця вмикалась у <em>всіх</em> твоїх проєктах, ключ треба покласти у файл
+            налаштувань користувача — <code>~/.claude/settings.json</code> (нагадування з модуля
+            1: <code>~</code> — це твоя домашня папка, а папка <code>.claude</code> починається з
+            крапки, тому <code>ls</code> її не показує, а <code>ls -a</code> показує):
+          </p>
+
+          <pre><code>{
+  "sandbox": {
+    "enabled": true
+  }
+}</code></pre>
+
+          <p>
+            Якщо файл уже існує й у ньому щось є, додай ключ <code>sandbox</code> усередину
+            наявних фігурних дужок, а не переписуй файл цілком. Формат строгий: це JSON, зайва або
+            пропущена кома робить файл нечитабельним. Повний розбір файлів налаштувань — модуль
+            13.
+          </p>
+
+          <h3>Крок 5. Дати команду й подивитись, що змінилось</h3>
+
+          <p>
+            Попроси зробити щось, що вимагає команд у терміналі: зібрати проєкт, прогнати тести,
+            порахувати рядки. Спостерігай за трьома речами:
+          </p>
+
+          <ul>
+            <li>запитів дозволу на звичайні команди більше немає — їх схвалює режим auto-allow;</li>
+            <li>перше звернення в мережу все ж дає запит: жоден домен не дозволений наперед. Якщо
+              обереш «Yes, and don't ask again», Claude Code збереже правило
+              <code>WebFetch(domain:…)</code> у локальні налаштування, і наступного разу запиту не
+              буде;</li>
+            <li>якщо якась команда не змогла виконатись у пісочниці, з'явиться запит із заголовком
+              <code>Bash command (unsandboxed)</code>. Це та сама лазівка з блоку 3 — тепер ти
+              впізнаєш її на екрані.</li>
+          </ul>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Необов'язково: зробити режим плану стандартом проєкту</span>
+            <p>
+              Якщо в якомусь проєкті ти хочеш, щоб кожна сесія в терміналі починалася з планування,
+              поклади в <code>.claude/settings.json</code> цього проєкту
+              <code>"permissions": {"defaultMode": "plan"}</code>. На відміну від
+              <code>auto</code> і <code>bypassPermissions</code> із модуля 7, значення
+              <code>plan</code> із проєктного файла працює. Розмови, які починає розширення для
+              VS Code, проєктні налаштування для стартового режиму не читають — там є окремий ключ
+              <code>claudeCode.initialPermissionMode</code>.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
+          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Найнеприємніша властивість обох тем цього модуля — вони мовчазні. Пісочниця, яка не
+            змогла запуститись, за замовчуванням не зупиняє роботу: Claude Code показує
+            попередження й виконує команди <strong>без</strong> ізоляції. Тому здогадки тут
+            особливо дорогі.
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Як перевірити, що вийшло">
+          <table>
+            <thead>
+              <tr>
+                <th>Питання</th>
+                <th>Чим перевіряється</th>
+                <th>Як прочитати відповідь</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Я зараз у режимі плану?</td>
+                <td>рядок стану внизу вікна</td>
+                <td><code>⏸ plan mode on</code> — так</td>
+              </tr>
+              <tr>
+                <td>Пісочниця справді ввімкнена й з якими межами?</td>
+                <td><code>/sandbox</code> → вкладка <strong>Config</strong></td>
+                <td>підсумкові налаштування після складання всіх файлів, включно з
+                  <strong>Denied within allowed</strong></td>
+              </tr>
+              <tr>
+                <td>Ця команда виконалась у пісочниці чи поза нею?</td>
+                <td>заголовок запиту дозволу</td>
+                <td><code>Bash command</code> — у пісочниці;
+                  <code>Bash command (unsandboxed)</code> — поза нею</td>
+              </tr>
+              <tr>
+                <td>Чи бракує чогось для пісочниці на Linux або WSL2?</td>
+                <td><code>/sandbox</code> → вкладка <strong>Dependencies</strong></td>
+                <td>вона з'являється лише тоді, коли чогось бракує; немає вкладки — усе на місці</td>
+              </tr>
+              <tr>
+                <td>Чи не написані мої дозволені домени неоднозначно?</td>
+                <td><code>claude doctor</code></td>
+                <td>попередження <code>Sandbox network domain entries have unreliable
+                  spellings</code> називає до трьох таких записів</td>
+              </tr>
+              <tr>
+                <td>Класифікатор рецензує команди під час планування?</td>
+                <td><code>/config</code>, пункт <strong>Use auto mode during plan</strong></td>
+                <td>це той самий ключ <code>useAutoModeDuringPlan</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <h3>Окрема навичка: чи знає твоя збірка про потрібний ключ</h3>
+
+          <p>
+            Документація описує найсвіжішу версію, а встановлена в тебе — та, яка встановлена.
+            У модулі 7 показано, як перевіряти <em>прапорці</em> (запуском без
+            <code>--help</code>). Ключ у файлі налаштувань так не перевіриш: він не прапорець, і
+            запускати його нікуди.
+          </p>
+
+          <p>
+            Штатних відповідей дві. Якщо значення не проходить перевірку, на початку
+            інтерактивної сесії Claude Code показує вікно <strong>Settings Error</strong> і
+            пропонує виправити файл, вийти або працювати без зламаних налаштувань. У запуску
+            <code>claude -p</code> вікна не буде — там програма пропускає зламане й іде далі,
+            тому документація радить після такого запуску виконати <code>claude doctor</code> і
+            подивитись, що саме було відкинуто.
+          </p>
+
+          <p>
+            Обидві відповіді нічого не кажуть про ключ, якого твоя збірка ще не знає, а редактор
+            тут теж не помічник: документація попереджає, що опублікована схема налаштувань
+            <strong>відстає від найсвіжіших випусків</strong>, тому попередження редактора на
+            щойно задокументований ключ не означає, що конфігурація хибна. Лишається груба, але
+            робоча перевірка — пошук назви ключа всередині самої програми.
+          </p>
+
+          <figure class="term term--cmd" id="p3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p3t">чи є ключ у цій збірці · macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p3t"><span class="term__line"><span class="term__meta">%</span> <span class="term__in">strings "$(which claude)" | grep -c useAutoModeDuringPlan</span></span>
+<span class="term__line">12</span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">strings "$(which claude)" | grep -c autoAllowBashIfSandboxed</span></span>
+<span class="term__line">8</span>
+<span class="term__line"><span class="term__meta">%</span> <span class="term__in">strings "$(which claude)" | grep -c useSandboxDuringPlanX</span></span>
+<span class="term__line">0</span></pre>
+          </figure>
+
+          <p>
+            Знято на macOS 26.5.2, Claude Code 2.1.236, 4 вересня 2026 року. <code>grep -c</code>
+            рахує кількість збігів. Третій запуск — контрольний: <code>useSandboxDuringPlanX</code>
+            вигаданий, і відповідь <code>0</code> показує, що метод розрізняє наявне й вигадане, а
+            не друкує число завжди.
+          </p>
+
+          <p>
+            Що ця перевірка означає й чого не означає — сказано в блоці 2: число більше нуля
+            доводить, що назва є у твоїй збірці, і не доводить, що функція доступна саме твоєму
+            акаунтові.
+          </p>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
+          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+
+          <h3>1. Схвалення плану непомітно змінює режим сесії</h3>
+          <p>
+            Найчастіша з усіх. Людина обирає перший варіант — <strong>Yes, and use auto
+            mode</strong> — думаючи, що погоджується <em>з планом</em>. Вона погоджується ще й
+            з тим, що решту сесії рішення прийматиме класифікатор. Це задокументовано прямо:
+            схвалення плану виводить із режиму плану й перемикає сесію в той режим, який названий
+            в обраному пункті. Хочеш лишитись на перегляді — <strong>Yes, manually approve
+            edits</strong>.
+          </p>
+
+          <h3>2. Пісочниця мовчки не вмикається</h3>
+          <p>
+            Якщо пісочниця не змогла запуститись — бракує пакета, платформа не підтримується —
+            Claude Code за замовчуванням показує попередження й <strong>виконує команди без
+            ізоляції</strong>. Робота не зупиняється, і попередження легко проґавити. Щоб це стало
+            жорсткою помилкою й програма відмовлялась стартувати, є ключ
+            <code>sandbox.failIfUnavailable</code>; документація називає його засобом для
+            організацій, яким пісочниця потрібна як обов'язковий бар'єр.
+          </p>
+
+          <h3>3. Два різні «авто», які легко переплутати</h3>
+          <p>
+            <strong>auto mode</strong> — режим дозволів із модуля 7, де дії рецензує окрема
+            модель-класифікатор. <strong>auto-allow</strong> — режим пісочниці, де команду
+            схвалює сама межа пісочниці, без жодної моделі. Це різні речі, вони працюють
+            незалежно й комбінуються. Єдиний виняток — режим плану: там auto-allow
+            <strong>не</strong> розширює схвалення.
+          </p>
+
+          <h3>4. Стаття з інтернету описує стару поведінку плану</h3>
+          <p>
+            Саме в цьому місці документація фіксує дві зміни версій, і обидві помітні на практиці.
+            До версії <strong>2.1.212</strong> auto-allow виконував команди в режимі плану без
+            запиту — тепер ні. А у версіях із <strong>2.1.212 по 2.1.217</strong> сесії без
+            дозвільних прапорців питали про <em>кожну</em> команду поза набором читання, незалежно
+            від того, чи доступний режим <code>auto</code>. Якщо твоя поведінка не збігається з
+            описаною тут, перше, на що варто подивитись, — <code>claude --version</code>.
+          </p>
+
+          <h3>5. Пісочницю вмикають і вважають, що захищено все</h3>
+          <p>
+            Пісочниця ізолює <strong>підпроцеси Bash</strong>. Вбудовані інструменти роботи з
+            файлами — <code>Read</code>, <code>Edit</code>, <code>Write</code> — через неї не
+            проходять узагалі: вони підпорядковані системі дозволів. Субагенти працюють у тому
+            самому процесі й із тією самою конфігурацією пісочниці. А перехоплювачів подій
+            (hooks) і серверів MCP пісочниця Bash не накриває — саме тому для автономних
+            запусків документація радить зовнішню межу, контейнер або віртуальну машину:
+            всередині неї опиняються й вони теж.
+          </p>
+
+          <h3>6. Пісочниця не ховає ключі за замовчуванням</h3>
+          <p>
+            Читання відкрите на весь комп'ютер, і документація прямо називає наслідок: команда в
+            пісочниці може прочитати <code>~/.aws/credentials</code> і вміст
+            <code>~/.ssh/</code>. Крім того, змінні середовища успадковуються від батьківського
+            процесу разом із будь-якими ключами, що там лежать. Лікується це
+            <code>sandbox.credentials</code> і <code>denyRead</code>, а не самим фактом увімкненої
+            пісочниці.
+          </p>
+
+          <h3>7. Широкий дозволений домен зводить нанівець мережеву ізоляцію</h3>
+          <p>
+            Документація попереджає дослівно: «Allowing broad domains such as
+            <code>github.com</code> can create paths for data exfiltration» — дозвіл широких
+            доменів на кшталт <code>github.com</code> створює шляхи для витоку даних. Причина
+            технічна: вбудований проксі за замовчуванням не розшифровує захищений трафік, а
+            вирішує за назвою хоста, яку йому назвав сам клієнт.
+          </p>
+
+          <h3>8. Улюблений інструмент у пісочниці не працює</h3>
+          <p>
+            Це очікувано для кількох відомих випадків, і документація дає готові відповіді:
+            <code>jest</code> зависає через <code>watchman</code> — запускати
+            <code>jest --no-watchman</code>; <code>docker</code> несумісний — додати
+            <code>docker *</code> у <code>excludedCommands</code>; <code>gh</code>,
+            <code>gcloud</code> і <code>terraform</code> на macOS можуть не пройти перевірку
+            сертифіката; <code>git merge</code> або <code>git checkout</code> падають з
+            <code>unable to unlink old</code>, коли їм треба замінити файл під захищеним шляхом.
+          </p>
+          <p>
+            І застереження до <code>excludedCommands</code> теж дослівне: «Exclusion is a
+            convenience, not a security boundary» — виняток тут зроблений для зручності, а не як
+            межа безпеки. Команда зі списку виконується поза пісочницею повністю; більше того,
+            якщо запис збігся з <strong>частиною</strong> складеної команди, поза пісочницею піде
+            вся команда.
+          </p>
+
+          <h3>9. Панель <code>/sandbox</code> увімкнула пісочницю тільки в одному проєкті</h3>
+          <p>
+            Вибір у панелі пишеться в <code>.claude/settings.local.json</code> поточного проєкту.
+            У наступному проєкті пісочниці не буде, і це виглядає як «налаштування злетіли».
+            Загальний вмикач — <code>sandbox.enabled</code> у
+            <code>~/.claude/settings.json</code>.
+          </p>
+
+          <h3>10. Режим плану плутають із гарантією</h3>
+          <p>
+            У звичайній сесії правки в режимі плану заблоковані до схвалення. Але документація
+            називає виняток: сесії, у яких доступний <code>bypassPermissions</code>. Крім того,
+            записи в захищені шляхи автоматично не схвалюються ніде, <em>крім</em>
+            <code>bypassPermissions</code> і сесій у режимі плану, де bypass доступний. Тобто
+            режим плану — робоча звичка й дуже хороший фільтр, але не запобіжник рівня заборони.
+            Тверда межа — це правило <code>deny</code> з модуля 7.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
+          <h2><span class="lesson-no">7</span>Часті питання</h2>
+
+          <h3>Чому в режимі плану мене все одно питають про кожну команду?</h3>
+          <p>
+            Три задокументовані причини. Перша: режим <code>auto</code> недоступний твоїй сесії
+            (умови доступності — модуль 7). Друга: ключ <code>useAutoModeDuringPlan</code> стоїть
+            у значенні <code>false</code> у користувацькому, локальному або керованому файлі
+            налаштувань — досить одного <code>false</code> у будь-якому з них. Третя: у тебе
+            встановлена версія з проміжку 2.1.212–2.1.217, де так поводились усі сесії без
+            дозвільних прапорців.
+          </p>
+
+          <h3>Чи можна змусити його планувати й ніколи не виконувати?</h3>
+          <p>
+            Режим плану сам по собі такої гарантії не дає — він блокує правки до схвалення, а
+            схвалення робиш ти. Якщо потрібна саме тверда заборона, вона будується не режимом, а
+            правилами з модуля 7: <code>deny</code> діє в усіх режимах. Проміжний варіант —
+            <code>--permission-mode plan</code> як стартовий режим плюс
+            <code>useAutoModeDuringPlan: false</code>, щоб кожна команда під час планування питала
+            тебе.
+          </p>
+
+          <h3>Що робить <code>Ctrl</code> + <code>G</code> поза режимом плану?</h3>
+          <p>
+            Це загальна дія «відкрити в зовнішньому редакторі»
+            (<code>chat:externalEditor</code>) із другою комбінацією
+            <code>Ctrl</code> + <code>X</code>, <code>Ctrl</code> + <code>E</code>. На екрані
+            схвалення плану вона відкриває сам план, і саме там від неї найбільше користі.
+          </p>
+
+          <h3>Пісочниця замінює контейнер?</h3>
+          <p>
+            Ні, і документація каже це прямо в двох місцях. Пісочниця обмежує тільки Bash, тому
+            для запусків без людини її не досить. Для роботи з
+            <code>--dangerously-skip-permissions</code> ізоляція взагалі обов'язкова: контейнер,
+            віртуальна машина або окремий sandbox-runtime, бо всередині такої межі опиняються ще
+            й інструменти роботи з файлами, сервери MCP і перехоплювачі подій. Шари можна
+            складати: пісочниця Bash усередині контейнера дає обмеження на рівні команд поверх
+            зовнішньої межі.
+          </p>
+
+          <h3>Чи можна ввімкнути пісочницю прапорцем при запуску?</h3>
+          <p>
+            Окремого прапорця немає — це показано в блоці 2 живою перевіркою на 2.1.236. Але є
+            <code>--settings</code>, який приймає шлях до файла налаштувань або JSON-рядок; для
+            частини ключів пісочниці документація прямо називає його джерелом нарівні з
+            користувацьким і керованим файлом. Постійне рішення —
+            <code>sandbox.enabled</code> у <code>~/.claude/settings.json</code>.
+          </p>
+
+          <h3>Я на Windows. Мені взагалі не світить пісочниця?</h3>
+          <p>
+            На рідному Windows — ні, і на WSL1 теж ні: потрібні можливості ядра, які є лише в
+            WSL2. Це не тимчасове обмеження й не помилка встановлення. Перевірити версію можна
+            командою <code>wsl -l -v</code> у PowerShell; повідомлення
+            <code>Sandboxing requires WSL2</code> означає саме те, що написано. Режим плану при
+            цьому працює скрізь — він від платформи не залежить.
+          </p>
+
+          <h3>Пісочниця сповільнює роботу?</h3>
+          <p>
+            Документація оцінює накладні витрати як мінімальні й уточнює, що частина файлових
+            операцій може бути трохи повільнішою. Окремо варто розрізняти це й іншу річ, яка
+            теж відчувається як «повільніше»: розбір випадків, коли інструмент із пісочницею
+            несумісний (перелік таких у блоці 6). Це витрата часу на налаштування, а не
+            уповільнення самих команд.
+          </p>
+
+          <h3>Чи бачить сусідній проєкт мою пісочницю?</h3>
+          <p>
+            Ні. За замовчуванням команда в пісочниці може писати в робочу папку, у папки, додані
+            через <code>--add-dir</code>, і в тимчасову папку сесії. Решта комп'ютера доступна
+            лише на читання. Окремий випадок описаний для git-worktree: коли робоча папка — це
+            підключене робоче дерево, пісочниця дозволяє запис у спільну папку
+            <code>.git</code> головного репозиторію, щоб <code>git commit</code> міг оновити свої
+            записи; але <code>hooks</code> і <code>config</code> усередині неї лишаються
+            закритими. Що таке worktree — модуль 15.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
+          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Якщо після цього модуля ти вмієш увійти в режим плану, свідомо відмовити плану хоча б
+            раз, увімкнути пісочницю й пояснити, чим межа пісочниці відрізняється від рішення
+            дозволів, — модуль зробив свою роботу.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Підсумок модуля</span>
+            <ul>
+              <li>Режими дозволів вирішують, <strong>чи виконається</strong> дія. Пісочниця
+                обмежує, <strong>до чого дотягнеться</strong> команда, яка вже виконується.
+                Дослівно: «<code>/sandbox</code> is not a permission mode».</li>
+              <li>Режим плану вмикається трьома способами: <code>Shift</code> + <code>Tab</code>,
+                <code>/plan [опис]</code>, <code>claude --permission-mode plan</code>. Вихід без
+                схвалення — <code>Shift</code> + <code>Tab</code> ще раз.</li>
+              <li>Команди під час планування рецензує класифікатор, поки доступний режим
+                <code>auto</code> і ключ <code>useAutoModeDuringPlan</code> увімкнений (за
+                замовчуванням так). Інакше про них питають тебе.</li>
+              <li>Опцій схвалення три, і <strong>кожна виводить із режиму плану</strong>. Перша
+                переводить сесію в <code>auto</code>, друга лишає ручний перегляд правок, третя
+                продовжує планування.</li>
+              <li><code>Ctrl</code> + <code>G</code> відкриває план у зовнішньому редакторі.
+                Схвалений план дає сесії автоматичну назву.</li>
+              <li>Пісочниця працює на macOS (Seatbelt), Linux і WSL2 (bubblewrap + socat).
+                <strong>Рідний Windows і WSL1 не підтримуються.</strong></li>
+              <li>Прапорця <code>--sandbox</code> не існує — перевірено на 2.1.236. Вмикачі:
+                <code>/sandbox</code> у сесії і <code>sandbox.enabled</code> у налаштуваннях;
+                вибір у панелі пишеться в <code>.claude/settings.local.json</code>
+                <strong>поточного проєкту</strong>.</li>
+              <li>Межі за замовчуванням: писати — робоча папка, додані папки, тимчасова папка
+                сесії; читати — увесь комп'ютер, включно з файлами ключів; мережа — жодного
+                домену наперед.</li>
+              <li>Режимів пісочниці два: <strong>auto-allow</strong> (команда в пісочниці
+                схвалюється сама) і <strong>regular permissions</strong>. У режимі плану
+                auto-allow схвалення не розширює.</li>
+              <li>Команда, яка не влізла в пісочницю, може повторитись поза нею — запит на це
+                підписаний <code>Bash command (unsandboxed)</code>. Закривається ключем
+                <code>allowUnsandboxedCommands: false</code>, він же
+                <strong>Strict sandbox mode</strong>.</li>
+              <li>Пісочниця, яка не змогла запуститись, за замовчуванням <strong>не зупиняє
+                роботу</strong> — команди йдуть без ізоляції з одним попередженням.</li>
+              <li>Це чесна альтернатива вимкненню дозволів для локальної роботи, і не заміна
+                контейнера: «not sufficient for fully unattended runs».</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Далі — <strong>модуль 9 «Сесії, історія, відкат»</strong>. Там відповідь на питання,
+            яке в цьому модулі виникає само собою: що робити, коли план схвалено, робота пішла, і
+            через десять хвилин стало ясно, що напрямок був хибний. Виявляється, повертати все
+            руками не обов'язково.
+          </p>
+          <p>
+            До того часу — одна звичка на два тижні: <strong>перед кожною задачею, більшою за
+            одну правку, спершу проси план</strong>. Не тому, що план красивий, а тому, що
+            незгоду дешевше висловити до роботи, ніж після неї.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань. Вони перевіряють розуміння, а не пам'ять на назви ключів: до кожної
+            відповіді одразу з'являється пояснення, чому решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Людина каже: «Я ввімкнув пісочницю, тепер Claude не зможе зіпсувати мої файли поза проєктом». У чому вона помиляється?",
+            "options": [
+              "Пісочниця обмежує тільки команди в терміналі та їхні підпроцеси; правки файлів інструментами Read, Edit і Write через неї не проходять узагалі",
+              "Пісочниця взагалі не обмежує запис, лише мережу",
+              "Пісочниця працює лише в режимі плану",
+              "Пісочниця захищає файли, але тільки після перезапуску Claude Code"
+            ],
+            "answer": 0,
+            "explain": "Документація прямо описує межу дії пісочниці: вона ізолює підпроцеси Bash, а вбудовані файлові інструменти підпорядковані системі дозволів, а не пісочниці. Запис вона обмежує (робоча папка, додані папки, тимчасова папка сесії), тому відповідь «не обмежує запис, лише мережу» хибна. Від режиму плану вона не залежить і працює незалежно від нього, крім одного винятку з auto-allow, тому відповідь «працює лише в режимі плану» хибна. Перезапуск потрібен хіба що після встановлення пакетів на Linux, а не для дії самої пісочниці."
+          },
+          {
+            "q": "Claude показав план, людина натиснула перший варіант «Yes, and use auto mode» і пішла по каву. Повернувшись, вона бачить, що зроблено набагато більше, ніж вона встигла переглянути. Що сталось?",
+            "options": [
+              "Це збій: схвалення плану не мало міняти режим",
+              "Схвалення плану виводить сесію з режиму плану й перемикає її в той режим, який названий в обраному пункті — тут в auto, де рішення приймає класифікатор",
+              "Режим плану виконує весь план одним махом, незалежно від обраного пункту",
+              "Пісочниця в режимі auto-allow схвалила всі правки файлів"
+            ],
+            "answer": 1,
+            "explain": "Це задокументована поведінка: схвалення плану завжди виводить із режиму плану, а конкретний пункт вирішує, у якому режимі сесія опиниться далі. Тому це не збій. Пункт «Yes, manually approve edits» лишив би перегляд кожної правки — тобто спосіб виконання залежить саме від вибору, і відповідь «виконує весь план одним махом» хибна. Пісочниця тут ні до чого: вона не стосується правок файлів, лише команд у терміналі."
+          },
+          {
+            "q": "Чим режим пісочниці auto-allow принципово відрізняється від режиму дозволів auto?",
+            "options": [
+              "Нічим, це два імені одного механізму",
+              "auto-allow працює лише на Windows, auto — на решті систем",
+              "В auto дію перед виконанням рецензує окрема модель-класифікатор; в auto-allow нічого не рецензує — команду схвалює сама межа пісочниці, яку тримає операційна система",
+              "auto-allow дозволяє все без винятків, а auto — лише читання"
+            ],
+            "answer": 2,
+            "explain": "Це і є головна різниця двох шарів: класифікатор — це судження моделі про команду до її запуску, а пісочниця — межа, яку операційна система тримає на вже запущеному процесі. Тому відповідь «це два імені одного механізму» хибна: механізми різні й комбінуються. Відповідь про Windows переплутана навпаки: пісочниці на рідному Windows якраз немає. Відповідь «auto-allow дозволяє все без винятків» хибна, бо навіть там лишаються в силі правила deny, видалення по критичних шляхах і правила ask, які дивляться на вміст команди."
+          },
+          {
+            "q": "Людина поклала в налаштування ключ пісочниці, який знайшла в статті, але поведінка не змінилась і жодної помилки немає. Чим це перевірити найшвидше?",
+            "options": [
+              "Запустити claude з цим ключем як прапорцем і подивитись, чи буде помилка",
+              "Подивитись вкладку Config панелі /sandbox — вона показує підсумкові налаштування після складання всіх файлів",
+              "Видалити файл налаштувань і написати його заново",
+              "Нічим: якщо помилки немає, ключ працює"
+            ],
+            "answer": 1,
+            "explain": "Вкладка Config показує саме підсумковий, уже складений набір налаштувань — тобто відповідає на питання «що з мого файла реально доїхало». Перевірка прапорцем не працює: ключ налаштувань не є прапорцем командного рядка. Переписування файла наново нічого не перевіряє, а лише повторює ту саму дію. Відповідь «якщо помилки немає, ключ працює» — найнебезпечніша здогадка: невідомий ключ програма ігнорує мовчки, без помилки, тому відсутність помилки нічого не доводить."
+          },
+          {
+            "q": "Чому документація називає пісочницю чеснішою відповіддю на втому від запитів, ніж --dangerously-skip-permissions?",
+            "options": [
+              "Бо пісочниця питає рідше, але все одно питає про кожну дію",
+              "Бо у випадку --dangerously-skip-permissions запит не замінюється нічим, а в пісочниці його замінює межа, яку тримає операційна система",
+              "Бо --dangerously-skip-permissions працює лише на macOS",
+              "Бо пісочниця повністю замінює контейнер для автономних запусків"
+            ],
+            "answer": 1,
+            "explain": "У порівняльній таблиці документації в графі «що замінює запит» для --dangerously-skip-permissions стоїть Nothing, а для пісочниці — сама її межа. У цьому вся різниця. Відповідь «питає рідше, але все одно питає» описує режим regular permissions, а не суть порівняння. Твердження «працює лише на macOS» хибне: прапорець працює на всіх системах, лише під root і sudo блокується на Linux і macOS. Відповідь «пісочниця повністю замінює контейнер» прямо суперечить документації: пісочниця обмежує тільки Bash і для повністю автономних запусків її не досить."
+          },
+          {
+            "q": "На Linux-машині людина ввімкнула sandbox.enabled, але команди явно виконуються без обмежень: вони пишуть у папки поза проєктом. Помилок при старті вона не помітила. Найімовірніша причина?",
+            "options": [
+              "Не встановлені bubblewrap або socat, тому пісочниця не запустилась — Claude Code за замовчуванням показує попередження й виконує команди без ізоляції",
+              "sandbox.enabled працює лише разом із режимом плану",
+              "Ключ треба класти тільки в .claude/settings.local.json, з інших файлів він не діє",
+              "На Linux пісочниця не підтримується"
+            ],
+            "answer": 0,
+            "explain": "Це задокументована поведінка за замовчуванням: коли пісочниця не може стартувати через відсутню залежність або непідтримувану платформу, Claude Code показує попередження й виконує команди без ізоляції. Жорсткою помилкою це робить окремий ключ sandbox.failIfUnavailable, а брак пакетів видно на вкладці Dependencies панелі /sandbox. Відповідь «працює лише разом із режимом плану» хибна: вони незалежні. Відповідь про settings.local.json хибна: sandbox.enabled має область «будь-який файл», а settings.local.json — лише те місце, куди панель зберігає вибір сама. Відповідь «на Linux не підтримується» хибна: Linux підтримується, не підтримуються рідний Windows і WSL1."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <!-- D-03: вхід у три довідники з будь-якого уроку. Підписи живуть у
+         claude-code.config.json → site.ref* і підставляються через data-site
+         (js/config.js, fillStatic); текст у розмітці — той самий рядок, як
+         запасний варіант, коли конфіг не приїхав. Той самий прийом, що вже
+         стоїть на data-site="name" і data-site="shortName" у шапці. -->
+    <nav aria-label="Довідники курсу"
+      class="mx-auto flex max-w-[88rem] flex-wrap items-center gap-x-6 gap-y-1 border-b border-line/60 px-5 py-4 sm:px-8">
+      <span class="font-mono text-xs uppercase tracking-[0.14em] text-faint" data-site="refsLabel">Довідники</span>
+      <a href="../claude-code-ref-commands.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refCommands">Усі команди й клавіші</a>
+      <a href="../claude-code-ref-hooks.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refHooks">Таблиця подій</a>
+      <a href="../claude-code-ref-settings.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refSettings">Ключі settings.json</a>
+    </nav>
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>

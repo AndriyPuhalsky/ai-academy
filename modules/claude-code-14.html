@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 14 · Навички, команди, плагіни — AI Термінал</title>
+  <meta name="description"
+    content="Як навчити Claude Code власних умінь: тека з SKILL.md і YAML-шапка, хто викликає навичку — ти чи Claude, чому .claude/commands/ це та сама навичка в урізаному вигляді, прогресивне розкриття, плагіни й маркетплейси." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="c14" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 14</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 3 · Налаштування під себе</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Навички, команди, плагіни</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Середній · 8 блоків · ≈ 45 хв читання</p>
+        <p class="mt-6 text-lg">
+          Рано чи пізно в роботі з Claude Code з'являється абзац, який ти набираєш утридцяте:
+          «перед комітом прожени тести, потім склади опис зміни в такому форматі, і не чіпай
+          файли міграцій». Щоразу той самий текст, набраний заново. Цей модуль — про те, як
+          записати такий абзац один раз окремим файлом і викликати його однією своєю командою,
+          якої в Claude Code не було. Файл називається <strong>навичка</strong>.
+        </p>
+        <p>
+          Друга половина модуля — про те, як ця навичка їде до інших людей. Тека з навичками,
+          якою можна поділитись, називається плагіном; каталог плагінів — маркетплейсом.
+          Це не чотири різні механізми, а один, показаний з чотирьох боків, і саме тому вони
+          зібрані в один урок, а не розкидані по чотирьох.
+        </p>
+
+        <div class="callout">
+          <span class="callout-title">Що в цьому модулі є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> файл <code>CLAUDE.md</code> і пам'ять — модуль 12. Уся тека
+            <code>.claude/</code> і файл <code>settings.json</code> — модуль 13. Субагенти — модуль
+            15. Перехоплювачі подій (hooks) — модуль 16. Тут ці слова трапляться, але лише як
+            вказівники: «докладно — там».
+          </p>
+          <p>
+            <strong>Є:</strong> тека навички і файл <code>SKILL.md</code>, його YAML-шапка,
+            хто вирішує викликати навичку — ти чи Claude, чому тека <code>.claude/commands/</code>
+            дає ті самі команди, скільки контексту навичка коштує, як перевірити її однією
+            командою, і як зібрати з навичок плагін та поставити чужий.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
+          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+
+          <p>
+            Claude Code уміє читати файли, правити їх і запускати команди. Чого він не знає — це
+            <em>твоїх</em> правил: як у твоєму проєкті прийнято називати гілки, який формат опису
+            змін, які три перевірки треба зробити перед викладенням. Ці правила живуть у твоїй
+            голові, і щоразу переїжджають у розмову вручну.
+          </p>
+
+          <p>
+            Документація Claude Code формулює момент, коли пора зупинитись і зробити навичку,
+            дуже конкретно (сторінка <a href="https://code.claude.com/docs/en/skills">skills</a>,
+            звірено 2026-09-04): створюй навичку тоді, коли <strong>раз за разом вставляєш у чат
+            ті самі інструкції, перелік перевірок чи багатокрокову процедуру</strong>, або коли
+            розділ у <code>CLAUDE.md</code> переріс із факту в процедуру.
+          </p>
+
+          <h3>Чим навичка відрізняється від CLAUDE.md</h3>
+
+          <p>
+            Різниця одна, і вона про гроші. <code>CLAUDE.md</code> — це файл із правилами проєкту
+            (докладно в модулі 12); його вміст вантажиться на старті сесії й лишається в
+            <strong>кожному</strong> запиті. Навичка влаштована інакше: на старті в контекст
+            потрапляє тільки її ім'я й короткий опис, а тіло — лише тоді, коли навичку справді
+            викликали.
+          </p>
+
+          <p>
+            Наслідок практичний: довгий довідковий матеріал у навичці коштує майже нічого, поки
+            він не потрібен. Той самий матеріал у <code>CLAUDE.md</code> коштує щоразу. Тому
+            офіційна порада така: тримай <code>CLAUDE.md</code> коротким, а довідники виноси в
+            навички.
+          </p>
+
+          <h3>Чотири слова, які далі трапляться постійно</h3>
+
+          <p>
+            Англійські назви наводяться поруч навмисно: у документації й у виводі самої програми
+            ти побачиш саме їх.
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Чотири слова, які далі трапляться постійно">
+          <table>
+            <thead>
+              <tr>
+                <th>Слово</th>
+                <th>Що це насправді</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Навичка</strong> (skill)</td>
+                <td><strong>Тека</strong>, у якій лежить файл <code>SKILL.md</code>. Не файл — саме
+                  тека. Ім'я теки стає командою, яку ти набираєш зі скісною рискою</td>
+              </tr>
+              <tr>
+                <td><strong>Фронтматер</strong> (frontmatter)</td>
+                <td>Кілька рядків налаштувань на самому початку <code>SKILL.md</code>, узятих у три
+                  риски <code>---</code> зверху й знизу. Формат цих рядків називається YAML</td>
+              </tr>
+              <tr>
+                <td><strong>Плагін</strong> (plugin)</td>
+                <td>Тека з файлом-маніфестом <code>.claude-plugin/plugin.json</code>, яка везе
+                  навички, субагентів, перехоплювачі подій і зовнішні сервери разом, однією
+                  посилкою</td>
+              </tr>
+              <tr>
+                <td><strong>Маркетплейс</strong> (marketplace)</td>
+                <td>Каталог плагінів. Найчастіше це репозиторій на GitHub із файлом
+                  <code>marketplace.json</code>. Додати каталог і поставити з нього плагін — дві
+                  різні дії</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <h3>Команди й навички — це одне й те саме</h3>
+
+          <p>
+            Якщо ти читав про Claude Code раніше, тобі могли трапитись «кастомні команди» —
+            файли в теці <code>.claude/commands/</code>. Це не окремий механізм. Документація
+            каже прямо: <strong>кастомні команди злиті з навичками</strong>. Файл
+            <code>.claude/commands/deploy.md</code> і навичка
+            <code>.claude/skills/deploy/SKILL.md</code> обидва дають команду <code>/deploy</code>
+            і працюють однаково.
+          </p>
+
+          <p>
+            Різниця в тому, що файл у <code>commands/</code> — це <strong>урізана</strong> навичка:
+            у нього немає власної теки, отже немає й допоміжних файлів поруч, а два поля шапки
+            (<code>name</code> і <code>paths</code>) там ігноруються. Старі файли працюватимуть
+            далі, але для нового документація радить навички.
+          </p>
+
+          <p>
+            І головне для практики: <strong>якщо навичка й файл команди мають однакове ім'я,
+            виграє навичка.</strong> Це найчастіша причина «я правлю файл, а нічого не
+            змінюється».
+          </p>
+
+          <h3>Частина навичок уже стоїть у тебе</h3>
+
+          <p>
+            Claude Code привозить власний набір навичок — документація називає їх
+            <em>bundled skills</em>, тобто вбудовані. Серед них <code>/doctor</code>,
+            <code>/code-review</code>, <code>/debug</code>, <code>/batch</code>,
+            <code>/loop</code>, <code>/run</code>, <code>/verify</code>. Ти викликаєш їх так само,
+            як власні: скісна риска й ім'я. Частину з них Claude уміє викликати сам, коли бачить
+            доречність; інші (як <code>/verify</code>) — лише на твою команду, щоб довга перевірка
+            не запускалась без твого відома.
+          </p>
+
+          <p>
+            Вимикаються вони гуртом одним налаштуванням <code>disableBundledSkills</code> —
+            воно вимикає всі, крім <code>/doctor</code>. Де живуть налаштування й як їх писати —
+            модуль 13.
+          </p>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
+          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Зробимо навичку від початку до кінця. Вона складатиме чернетку нотаток до релізу
+            з останніх комітів. Усе відбувається в порожній тимчасовій папці — нічого твого
+            не зачіпається.
+          </p>
+
+          <figure class="term term--cmd" id="s1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="s1t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="s1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">mkdir -p /tmp/urok-c14/.claude/skills/reliz-notes</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">cd /tmp/urok-c14</span></span></pre>
+          </figure>
+
+          <p>
+            Дві команди підряд: перша створює вкладені теки (ключ <code>-p</code> означає
+            «створи й проміжні теж»), друга переходить у нову папку. На Windows шляху
+            <code>/tmp</code> не існує — візьми будь-яку свою порожню папку, решта кроків
+            однакова.
+          </p>
+
+          <p>
+            Тепер у теку <code>reliz-notes</code> кладемо файл із точною назвою
+            <code>SKILL.md</code> — великими літерами, розширення <code>.md</code>. Відкрий її
+            в будь-якому текстовому редакторі й встав такий текст:
+          </p>
+
+          <pre><code>---
+description: Складає чернетку нотаток до релізу з останніх комітів. Використовуй, коли просять changelog, нотатки до релізу або "що змінилось".
+---
+
+## Останні коміти
+
+!`git log --oneline -5`
+
+## Що зробити
+
+Склади список змін трьома пунктами й познач ризиковані.</code></pre>
+
+          <p>Розберемо його по рядках.</p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Як це виглядає на екрані">
+          <table>
+            <thead>
+              <tr>
+                <th>Рядок</th>
+                <th>Що він робить</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>---</code> у першому рядку</td>
+                <td>Відкриває фронтматер. <strong>Мусить бути саме першим рядком файлу</strong> —
+                  ні порожнього рядка, ні коментаря перед ним</td>
+              </tr>
+              <tr>
+                <td><code>description:</code></td>
+                <td>Єдине поле, яке документація називає рекомендованим. За ним Claude вирішує,
+                  чи брати цю навичку. Ключовий випадок вживання — на початку рядка</td>
+              </tr>
+              <tr>
+                <td>другі <code>---</code></td>
+                <td>Закривають шапку. Усе нижче — тіло навички, звичайний текст із заголовками</td>
+              </tr>
+              <tr>
+                <td><code>!`git log --oneline -5`</code></td>
+                <td>Динамічне підставляння: Claude Code виконає команду в лапках і <strong>замінить
+                  цей рядок її виводом</strong>, перш ніж Claude узагалі побачить текст навички</td>
+              </tr>
+              <tr>
+                <td>решта тексту</td>
+                <td>Інструкція, яку Claude виконуватиме. Пишеться так само, як писав би людині</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>
+            Рядок із знаком оклику й зворотними лапками — це не «попроси Claude виконати команду».
+            Команда виконується <strong>до</strong> нього, і в розмову приходить уже готовий текст.
+            Через це навичка бачить справжній стан репозиторію, а не здогадки.
+          </p>
+
+          <h3>Команда, яка перевіряє написане</h3>
+
+          <p>
+            У Claude Code є перевірка файлів навичок, і вона працює прямо з термінала, без
+            запуску сесії. Щоб показати, що саме вона ловить, у ту саму теку
+            <code>.claude/skills/</code> навмисно покладено ще дві помилки: навичка
+            <code>zlamanyi</code>, у якої перед <code>---</code> стоїть порожній рядок, і файл
+            <code>pomylka.md</code>, покладений <em>файлом</em>, а не текою.
+          </p>
+
+          <figure class="term" id="s2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="s2t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="s2t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude plugin validate .claude/skills</span></span>
+<span class="term__line"><span class="term__meta">Validating components in: /private/tmp/urok-c14/.claude/skills</span></span>
+<span class="term__line"></span>
+<span class="term__line"><span class="term__meta">Validating skill: /private/tmp/urok-c14/.claude/skills/zlamanyi/SKILL.md</span></span>
+<span class="term__line"></span>
+<span class="term__line">⚠ Found 1 warning:</span>
+<span class="term__line"></span>
+<span class="term__line">  <span class="term__mark term__mark--pick" aria-hidden="true">❯</span> frontmatter: No frontmatter block found. Add YAML frontmatter</span>
+<span class="term__line">    between --- delimiters at the top of the file to set description</span>
+<span class="term__line">    and other metadata.</span>
+<span class="term__line"></span>
+<span class="term__line"><span class="term__ok">✔ Validation passed with warnings</span></span></pre>
+          </figure>
+
+          <p>
+            Довгий рядок попередження тут перенесено на три — у терміналі він один. Усе інше
+            дослівне.
+          </p>
+
+          <p>
+            Прочитай цей вивід уважно, бо в ньому дві новини. Перша: навичку
+            <code>zlamanyi</code> перевірка знайшла й сказала, що фронтматера в ній
+            <strong>немає</strong> — хоча він там написаний. Достатньо було порожнього рядка перед
+            <code>---</code>, і три риски перестали бути шапкою; увесь YAML разом із рисками став
+            звичайним текстом усередині навички.
+          </p>
+
+          <p>
+            Друга новина тихіша й важливіша: про файл <code>pomylka.md</code> у виводі
+            <strong>немає жодного слова</strong>. Не тому, що з ним усе гаразд, а тому, що для
+            Claude Code його не існує: навичка — це тека з <code>SKILL.md</code>, а окремий
+            <code>.md</code>-файл на верхньому рівні теки навичок не бачать. Мовчання перевірки
+            тут означає «я цього навіть не читав», а не «усе добре».
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Чому тут немає знімка меню <code>/skills</code></span>
+            <p>
+              Усередині сесії є екран <code>/skills</code> — список твоїх навичок із джерелом
+              кожної. Це інтерактивний екран: він перемальовується на місці й не існує як текст,
+              який можна зняти командою. Курс домальованих екранів не показує, тому опишу
+              словами, з документації (сторінка <code>commands</code>, звірено 2026-09-04): у
+              списку можна набирати текст, щоб відфільтрувати за іменем, описом чи джерелом;
+              <code>t</code> сортує за кількістю токенів; <code>Space</code> або <code>Enter</code>
+              перемикають видимість навички; <code>Esc</code> зберігає й закриває.
+            </p>
+            <p>
+              Так само описані далі словами екрани <code>/plugin</code> і <code>/context</code>.
+              Усе, що в цьому уроці показане блоками термінала, знято живим запуском на
+              версії 2.1.236.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
+          <h2><span class="lesson-no">3</span>Як це працює</h2>
+
+          <p>
+            Тепер важлива частина: що саме й коли потрапляє в контекст. Контекст — це вікно
+            пам'яті моделі, за яке ти платиш кожним запитом (модуль 6 і модуль 11). Навички
+            влаштовані так, щоб платити за них якомога пізніше.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  A["Старт сесії"] --> B["Claude Code читає теки навичок"]
+  B --> C["У контекст іде тільки перелік: імена й короткі описи"]
+  C --> D{"Хто вирішує викликати?"}
+  D -->|"ти набрав /reliz-notes"| E["Тіло SKILL.md входить у розмову одним повідомленням"]
+  D -->|"Claude упізнав задачу за описом"| E
+  E --> F["Тіло лишається в контексті на наступні ходи"]
+  F --> G["Авто-компакція: повертаються перші 5000 токенів кожної, разом до 25000"]
+  style C fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style E fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Життєвий шлях навички в одній сесії. Дорого коштує лише крок «тіло входить у
+              розмову» — і саме тому опис має бути точним, а тіло коротким.
+            </p>
+          </div>
+
+          <h3>Прогресивне розкриття</h3>
+
+          <p>
+            Принцип, за яким це побудовано, у документації називається <strong>progressive
+            disclosure</strong> — «поступове розкриття». Ідея така: на кожному рівні показувати
+            рівно стільки, скільки треба для рішення, а решту тримати за дверима.
+          </p>
+
+          <ul>
+            <li><strong>Рівень 1 — перелік.</strong> Завжди в контексті: ім'я навички та її опис.
+              Це десятки токенів.</li>
+            <li><strong>Рівень 2 — тіло <code>SKILL.md</code>.</strong> Приходить, коли навичку
+              викликали. Документація радить тримати цей файл у межах 500 рядків.</li>
+            <li><strong>Рівень 3 — сусідні файли.</strong> Поруч із <code>SKILL.md</code> у тій
+              самій теці можуть лежати <code>reference.md</code>, <code>examples.md</code>, тека
+              <code>scripts/</code>. Вони не вантажаться взагалі, доки Claude сам їх не відкриє —
+              для цього в тілі навички написано, у якому файлі що лежить.</li>
+          </ul>
+
+          <p>
+            Ось чому громіздкий довідник у навичці нікому не заважає: у контексті від нього
+            лежить один рядок опису.
+          </p>
+
+          <h3>Тіло не зникає — це рекурентна витрата</h3>
+
+          <p>
+            Коли навичку викликано, її текст входить у розмову одним повідомленням і
+            <strong>лишається там на всі наступні ходи</strong>. Claude Code не перечитує файл
+            заново. Звідси два наслідки, які важко вгадати:
+          </p>
+
+          <ul>
+            <li>кожен зайвий рядок у тілі навички ти оплачуєш не один раз, а в кожному
+              наступному запиті цієї сесії;</li>
+            <li>правити <code>SKILL.md</code> посеред сесії й чекати, що вже викликана навичка
+              зміниться, немає сенсу — у розмові лежить стара копія. Викличеш ще раз — Claude
+              Code додасть нову. А якщо текст не змінився, він не дублює його, а ставить коротку
+              позначку «навичка вже завантажена».</li>
+          </ul>
+
+          <p>
+            Через це документація радить писати тіло як <em>постійні вказівки</em>, а не як
+            одноразові кроки: воно й далі буде перед очима моделі, коли розмова піде далі.
+          </p>
+
+          <h3>Що відбувається після компакції</h3>
+
+          <p>
+            Компакція — це стиснення розмови в підсумок, коли контекст переповнюється (модуль 6).
+            Навички її переживають, але не повністю. Після підсумку Claude Code повертає назад
+            <strong>останній виклик кожної навички, лишаючи перші 5000 токенів кожної</strong>,
+            і на всі разом дає спільний бюджет <strong>25 000 токенів</strong>. Бюджет
+            заповнюється від найсвіжішої навички до найстарішої.
+          </p>
+
+          <p>
+            Звідси два практичні висновки. Перший: якщо за сесію ти викликав багато навичок,
+            найстаріші після компакції зникнуть цілком. Другий, менш очевидний на вигляд:
+            обрізання лишає <strong>початок</strong> файлу, а не кінець — тому найважливіше
+            в <code>SKILL.md</code> має стояти вгорі.
+          </p>
+
+          <p>
+            Якщо навичка «перестала діяти» після довгої розмови, документація радить спершу не
+            переписувати її, а викликати ще раз: зазвичай текст на місці, і справа в тому, що
+            модель обрала інший шлях.
+          </p>
+
+          <h3>Опис теж має стелю</h3>
+
+          <p>
+            Перелік навичок, який лежить у контексті постійно, теж не безмежний. Тут три числа,
+            і всі три беруться з живої документації:
+          </p>
+
+          <ul>
+            <li><strong>1536 символів</strong> — стеля на одну навичку: поля
+              <code>description</code> і <code>when_to_use</code> разом обрізаються на цій межі.
+              Тому ключовий випадок вживання пишуть першим реченням;</li>
+            <li><strong>1% вікна контексту</strong> — бюджет усього переліку. Коли він
+              переповнюється, Claude Code починає викидати описи, і першими — у тих навичок, які
+              ти викликаєш найрідше. Імена лишаються завжди;</li>
+            <li><strong>0</strong> — стільки коштує навичка з полем
+              <code>disable-model-invocation: true</code>: її опис у переліку не з'являється
+              взагалі, бо Claude її сам не викликає.</li>
+          </ul>
+
+          <p>
+            Оцінку вартості переліку показує <code>/doctor</code>, а рядок Skills у
+            <code>/context</code> — його реальний розмір після обрізання.
+          </p>
+
+          <h3>Хто виграє, коли імена збіглися</h3>
+
+          <p>
+            Одна й та сама назва може трапитись у кількох місцях. Правила розв'язання конфлікту
+            такі (сторінка <code>skills</code>, звірено 2026-09-04):
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Хто виграє, коли імена збіглися">
+          <table>
+            <thead>
+              <tr>
+                <th>Ситуація</th>
+                <th>Хто виграє</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Навичка є на кількох рівнях</td>
+                <td>Корпоративна (керована адміністратором) &gt; особиста
+                  <code>~/.claude/skills/</code> &gt; проєктна <code>.claude/skills/</code></td>
+              </tr>
+              <tr>
+                <td>Твоя навичка й вбудована звуться однаково</td>
+                <td>Твоя. Але <strong>псевдоніми вбудованої лишаються за нею</strong>: власна
+                  <code>code-review</code> замінить <code>/code-review</code>, а
+                  <code>/review</code> і далі викличе вбудовану</td>
+              </tr>
+              <tr>
+                <td>Навичка й файл у <code>.claude/commands/</code></td>
+                <td>Навичка</td>
+              </tr>
+              <tr>
+                <td>Навичка з плагіна</td>
+                <td>Конфлікту немає: у плагінних навичок своє прізвище —
+                  <code>/ім'я-плагіна:ім'я-навички</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <h3>Звідки береться ім'я команди</h3>
+
+          <p>
+            Це місце, на якому спотикаються майже всі, тому окремо. Для навичок у
+            <code>~/.claude/skills/</code> і <code>.claude/skills/</code> команду задає
+            <strong>ім'я теки</strong>, а поле <code>name</code> у шапці — лише підпис у списках.
+            Тека <code>foo</code> з рядком <code>name: deploy</code> усередині дасть команду
+            <code>/foo</code>, а не <code>/deploy</code>.
+          </p>
+
+          <p>
+            Виняток — навички всередині плагіна: там поле <code>name</code> справді задає останній
+            шматок команди, а прізвище плагіна лишається попереду.
+          </p>
+
+          <h3>Від власної теки до чужої машини</h3>
+
+          <p>
+            Тепер друга половина теми. Навичка, плагін і маркетплейс — це три щаблі однієї
+            драбини поширення, а не три різні речі.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  S[".claude/skills/reliz-notes/SKILL.md — працює тільки в тебе"] -->|"додаєш .claude-plugin/plugin.json"| P["Плагін: навички + субагенти + перехоплювачі + сервери разом"]
+  P -->|"кладеш у репозиторій із marketplace.json"| M["Маркетплейс — каталог плагінів"]
+  M -->|"інша людина: /plugin marketplace add owner/repo"| U["Каталог видно, плагіни ще не встановлені"]
+  U -->|"/plugin install ім'я@маркетплейс"| I["Навичка працює в неї"]
+  style P fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style M fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">
+              Додати маркетплейс і поставити плагін — дві окремі дії. Перша лише показує каталог,
+              нічого не встановлюючи.
+            </p>
+          </div>
+
+          <p>
+            Плагін — це та сама тека, до якої додали маніфест
+            <code>.claude-plugin/plugin.json</code> з обов'язковим полем <code>name</code>
+            (воно ж стає прізвищем усіх команд плагіна) і необов'язковими
+            <code>description</code>, <code>version</code>, <code>author</code>. Усе інше лежить
+            поруч із маніфестом, а не всередині нього: тека <code>skills/</code> з навичками,
+            <code>agents/</code> із субагентами, <code>hooks/</code> із перехоплювачами,
+            <code>.mcp.json</code> із зовнішніми серверами.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Найчастіша помилка складання плагіна</span>
+            <p>
+              Документація виносить її окремим попередженням: <strong>теки
+              <code>skills/</code>, <code>agents/</code>, <code>commands/</code> і
+              <code>hooks/</code> кладуть поруч із <code>.claude-plugin/</code>, а не всередину
+              неї.</strong> Усередині <code>.claude-plugin/</code> живе рівно один файл —
+              <code>plugin.json</code>.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
+          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+
+          <p>
+            Сім кроків. Перші п'ять — обов'язкові, останні два роби, якщо хочеш дійти до
+            плагінів. Усе безпечне: жоден крок нічого не видаляє й не змінює твої проєкти.
+          </p>
+
+          <h3>Крок 1. Обери папку</h3>
+
+          <p>
+            Зайди в термінал і перейди в будь-яку папку, де тобі не шкода нічого зіпсувати:
+            <code>cd</code> і шлях. Якщо папки немає — створи порожню. Навичка, яку ти зробиш,
+            працюватиме тільки в цій папці — так і треба на перший раз.
+          </p>
+
+          <h3>Крок 2. Створи теку навички</h3>
+
+          <p>
+            Набери <code>mkdir -p .claude/skills/reliz-notes</code> і натисни
+            <code>Enter</code>. Три вкладені теки створяться одразу. Ім'я останньої з них,
+            <code>reliz-notes</code>, і стане твоєю командою <code>/reliz-notes</code>:
+            вибирай його латиницею, малими літерами, через дефіс.
+          </p>
+
+          <h3>Крок 3. Напиши SKILL.md</h3>
+
+          <p>
+            Створи в цій теці файл із назвою <code>SKILL.md</code> і встав туди текст із
+            блоку 2. Дві речі, які варто перевірити очима одразу: три риски
+            <code>---</code> стоять у <strong>першому</strong> рядку файлу, і опис починається
+            з того, коли навичку застосовувати.
+          </p>
+
+          <h3>Крок 4. Перевір командою</h3>
+
+          <p>
+            Не запускаючи сесію, набери <code>claude plugin validate .claude/skills</code>.
+            Порожній перелік попереджень означає, що файли розібрані коректно. Як читати
+            результат — блок 5.
+          </p>
+
+          <h3>Крок 5. Виклич навичку</h3>
+
+          <p>
+            Запусти <code>claude</code>. Набери скісну риску — у списку команд має з'явитись
+            <code>/reliz-notes</code>. Виклич її. Далі спробуй інший шлях: не набирай команду,
+            а напиши звичайним реченням «що змінилось у проєкті?» — якщо опис написаний добре,
+            Claude візьме навичку сам. Це два різні способи виклику, і другий працює рівно
+            настільки, наскільки точний твій <code>description</code>.
+          </p>
+
+          <h3>Крок 6. Каркас плагіна однією командою</h3>
+
+          <p>
+            Окрема команда збирає порожній плагін за тебе:
+            <code>claude plugin init moya-utylita --with skills hooks</code>. Ось що вона
+            створила під час перевірки на 2.1.236 — це справжній перелік файлів, не приклад:
+          </p>
+
+          <pre><code>~/.claude/skills/moya-utylita/.claude-plugin/plugin.json
+~/.claude/skills/moya-utylita/SKILL.md
+~/.claude/skills/moya-utylita/skills/example/SKILL.md
+~/.claude/skills/moya-utylita/hooks/hooks.json
+~/.claude/skills/moya-utylita/hooks-handlers/on-session-start.ts</code></pre>
+
+          <p>
+            Ключ <code>--with</code> приймає сім значень: <code>skills</code>,
+            <code>agents</code>, <code>hooks</code>, <code>mcp</code>, <code>lsp</code>,
+            <code>output-style</code>, <code>channel</code>. Зверни увагу на шлях: ця команда кладе
+            плагін у твою <strong>особисту</strong> теку <code>~/.claude/skills/</code>, а не в
+            проєктну, тому працюватиме він в усіх твоїх проєктах, а не лише в поточному.
+            Підхоплюється він сам наступної сесії під іменем
+            <code>moya-utylita@skills-dir</code> — без маркетплейсу й без встановлення. Щоб побачити його в уже відкритій сесії, набери
+            <code>/reload-plugins</code>.
+          </p>
+
+          <h3>Крок 7. Постав чужий плагін</h3>
+
+          <p>
+            Офіційний каталог Anthropic (<code>claude-plugins-official</code>) Claude Code
+            додає сам при першому інтерактивному запуску. Демонстраційний каталог із прикладами
+            додається руками, зсередини сесії:
+            <code>/plugin marketplace add anthropics/claude-code</code>. Потім набери
+            <code>/plugin</code> — відкриється панель із чотирьма вкладками, які перемикаються
+            клавішею <code>Tab</code>: <strong>Discover</strong> (що можна поставити),
+            <strong>Installed</strong> (що вже стоїть), <strong>Marketplaces</strong> (каталоги),
+            <strong>Errors</strong> (що не завантажилось).
+          </p>
+
+          <p>
+            У картці плагіна до встановлення видно оцінку вартості в токенах, дату останнього
+            оновлення й перелік того, що саме приїде. Встановлення питає область: для тебе в усіх
+            проєктах, для всіх учасників цього репозиторію, або тільки для тебе в цьому
+            репозиторії.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Перед сьомим кроком прочитай це</span>
+            <p>
+              Документація формулює прямо: плагіни й маркетплейси — <strong>високодовірені
+              компоненти, які можуть виконувати будь-який код на твоїй машині з твоїми
+              правами</strong>. Став лише те, чому довіряєш. Anthropic не контролює вміст чужих
+              плагінів і не перевіряє, що вони роблять те, що обіцяють. Докладніше про межу
+              довіри — модуль 7 і модуль 22.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
+          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Головна перевірка тут — та сама <code>claude plugin validate</code>, але з ключем
+            <code>--strict</code> і з поглядом на код завершення. Код завершення — це число,
+            яке програма лишає після себе; <code>0</code> означає «усе гаразд», будь-яке інше —
+            «ні». Побачити його можна командою <code>echo $?</code> одразу після запуску.
+          </p>
+
+          <figure class="term term--cmd" id="s3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="s3t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+              <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="s3t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude plugin validate .claude/skills --strict</span></span>
+<span class="term__line"><span class="term__meta">Validating components in: /private/tmp/urok-c14/.claude/skills</span></span>
+<span class="term__line"></span>
+<span class="term__line"><span class="term__meta">Validating skill: /private/tmp/urok-c14/.claude/skills/zlamanyi/SKILL.md</span></span>
+<span class="term__line"></span>
+<span class="term__line">⚠ Found 1 warning:</span>
+<span class="term__line"></span>
+<span class="term__line">  <span class="term__mark term__mark--pick" aria-hidden="true">❯</span> frontmatter: No frontmatter block found. …</span>
+<span class="term__line"></span>
+<span class="term__line"><span class="term__err">✘ Validation failed (--strict treats warnings as errors)</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">echo $?</span></span>
+<span class="term__line">1</span></pre>
+          </figure>
+
+          <p>
+            Той самий набір файлів, та сама помилка — і різна відповідь. Без
+            <code>--strict</code> це попередження й код <code>0</code>; із
+            <code>--strict</code> попередження стає помилкою й код <code>1</code>. Рядок
+            попередження вище скорочено трьома крапками, повний текст — у блоці 2.
+          </p>
+
+          <p>
+            Навіщо ця різниця. Код <code>1</code> уміє зупинити автоматичну збірку: якщо навички
+            лежать у репозиторії команди, ця команда в перевірці на сервері не пропустить далі
+            зламаний файл. Для перевірки руками достатньо запуску без <code>--strict</code>.
+          </p>
+
+          <p>
+            Ту саму команду можна навести на особисті навички:
+            <code>claude plugin validate ~/.claude/skills</code>. Потребує версії 2.1.233 або
+            новішої.
+          </p>
+
+          <h3>Три екрани всередині сесії, які кажуть те саме іншими словами</h3>
+
+          <ul>
+            <li><code>/skills</code> — перелік навичок із джерелом кожної. Якщо твоєї в списку
+              немає, справа не в описі, а в тому, що файл не знайшли: перевір ім'я
+              <code>SKILL.md</code> і те, що це тека, а не файл.</li>
+            <li><code>/context</code> — рядок Skills показує, скільки контексту займає перелік
+              описів після обрізання, тобто рівно те, що бачить модель.</li>
+            <li><code>/doctor</code> — оцінка вартості переліку й найбільші його складники.</li>
+          </ul>
+
+          <p>
+            І окремий випадок: навичка в списку є, команда <code>/ім'я</code> працює, а сам
+            Claude її не бере. Документація каже, що так виглядає зламаний YAML у шапці — тіло
+            завантажилось, а метадані порожні, тож зіставляти запит немає з чим. Запуск
+            <code>claude --debug</code> покаже помилку розбору.
+          </p>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
+          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+
+          <h3>1. Навичка зроблена файлом, а не текою</h3>
+
+          <p>
+            <code>.claude/skills/moya-navychka.md</code> не працює й ніколи не працюватиме.
+            Потрібна тека <code>.claude/skills/moya-navychka/</code>, а всередині —
+            <code>SKILL.md</code>. Найгірше в цій помилці те, що вона мовчазна: перевірка про
+            такий файл не скаже нічого (див. блок 2).
+          </p>
+
+          <h3>2. Три риски не в першому рядку</h3>
+
+          <p>
+            Порожній рядок, пробіл, коментар чи невидимий службовий символ перед
+            <code>---</code> — і фронтматера немає. Навичка при цьому «є» й поводиться дивно:
+            команда працює, а Claude сам її не бере. Це рівно той випадок, який ловить
+            <code>claude plugin validate</code>.
+          </p>
+
+          <h3>3. Написав name: deploy — і чекає /deploy</h3>
+
+          <p>
+            Для особистих і проєктних навичок команду задає ім'я теки. Поле <code>name</code> у
+            шапці там — тільки підпис у списку. Хочеш <code>/deploy</code> — назви так теку.
+          </p>
+
+          <h3>4. Опис написаний для людини, а не для пошуку</h3>
+
+          <p>
+            <code>description: Мій робочий процес</code> не спрацює ніколи: у ньому немає слів,
+            якими ти формулюєш задачу. Опис пишеться так, щоб у ньому були фрази, які ти справді
+            вимовляєш, і ключова з них — першою. Зворотна біда теж буває: надто широкий опис
+            змушує навичку лізти всюди. Ліки — звузити опис, додати поле <code>paths</code>
+            (навичка вмикається лише коли Claude працює з певними файлами) або
+            <code>disable-model-invocation: true</code>, після чого викликати її зможеш тільки ти.
+          </p>
+
+          <h3>5. Тіло навички розрослось</h3>
+
+          <p>
+            Довге <code>SKILL.md</code> коштує не один раз, а щоходу до кінця сесії, і після
+            компакції обріжеться до перших 5000 токенів. Тримай у ньому суть, а подробиці клади
+            сусідніми файлами й посилайся на них із тіла.
+          </p>
+
+          <h3>6. Ключ --with записаний через кому</h3>
+
+          <p>
+            Дрібниця, але зупиняє на першій же спробі зробити плагін. Перелік компонентів
+            розділяється пробілами:
+          </p>
+
+          <figure class="term term--err" id="s4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="s4t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="s4t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude plugin init moya-utylita --with skills,hooks</span></span>
+<span class="term__line"><span class="term__err">✘ Unknown --with component "skills,hooks". Valid: skills, agents, hooks, mcp, lsp, output-style, channel</span></span></pre>
+          </figure>
+
+          <p>
+            Правильно — <code>--with skills hooks</code>, через пробіл. Повідомлення тут добре
+            зроблене: воно одразу перелічує допустимі значення. Далеко не кожна помилка в цій
+            програмі така ввічлива — про це модуль 17.
+          </p>
+
+          <h3>7. Плагін поставлений, а команд немає</h3>
+
+          <p>
+            Після встановлення дивись на підсумок: <code>Plugin is now active.</code> означає,
+            що плагін уже працює, а <code>Run /reload-plugins to activate.</code> — що треба
+            набрати цю команду. Рядок легко проґавити, і людина йде шукати неіснуючу поломку.
+            Те саме стосується правок у вже встановленому плагіні: зміни в самому тексті
+            <code>SKILL.md</code> підхоплюються без перезапуску, а зміни в
+            <code>hooks/</code>, <code>agents/</code>, <code>.mcp.json</code> — тільки після
+            <code>/reload-plugins</code>.
+          </p>
+
+          <h3>8. Чужа навичка може дати собі права</h3>
+
+          <p>
+            Поле <code>allowed-tools</code> у шапці передсхвалює інструменти на той хід, у якому
+            навичку викликано, — щоб Claude не питав дозволу на кожен крок усередині твоєї ж
+            процедури. Документація окремо попереджає про пастку: <strong>довіра до папки цього
+            поля не стримує</strong>. Проєктна навичка з чужого репозиторію застосує свій грант
+            навіть у теці, якій ти ніколи не давав довіри. Тому перед запуском Claude Code у
+            щойно завантаженому чужому проєкті варто заглянути в
+            <code>.claude/skills/</code> і подивитись, що там у <code>allowed-tools</code>.
+          </p>
+
+          <p>
+            Дія цього гранту закінчується з твоїм наступним повідомленням — це не постійний
+            дозвіл. Постійні дозволи живуть у налаштуваннях і описані в модулі 7.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
+          <h2><span class="lesson-no">7</span>Часті питання</h2>
+
+          <h3>Мені навичка чи запис у CLAUDE.md?</h3>
+
+          <p>
+            Питання, на яке легко відповісти одним критерієм: <strong>факт чи процедура</strong>.
+            «Наш бекенд на Python 3.12, тести запускаються так» — це факт, він потрібен завжди,
+            йому місце в <code>CLAUDE.md</code>. «Ось як я випускаю реліз: сім кроків, третій
+            залежить від другого» — процедура, потрібна зрідка, їй місце в навичці. Докладно про
+            <code>CLAUDE.md</code> — модуль 12.
+          </p>
+
+          <h3>А чим навичка відрізняється від субагента?</h3>
+
+          <p>
+            Навичка — це текст, який входить у <em>твою</em> розмову. Субагент — окремий
+            виконавець зі своїм власним вікном контексту. Межа між ними розмита навмисно: у шапці
+            навички є поле <code>context: fork</code>, яке каже «виконай цю навичку в окремому
+            субагентському контексті», і тоді тіло навички стає завданням для нього. Це тема
+            модуля 15; тут достатньо знати, що така кнопка існує.
+          </p>
+
+          <h3>Чи можна заборонити Claude викликати навички самому?</h3>
+
+          <p>
+            Так, і трьома різними способами, залежно від того, наскільки широко треба закрити.
+            Одну навичку — полем <code>disable-model-invocation: true</code> у її шапці. Чужу
+            навичку, файл якої правити не хочеться, — налаштуванням
+            <code>skillOverrides</code> зі значенням <code>"off"</code>. Усі одразу — правилом
+            заборони на інструмент <code>Skill</code> у <code>/permissions</code>; там же
+            працюють точкові правила виду <code>Skill(deploy *)</code>.
+          </p>
+
+          <h3>Я зробив навичку. Вона працюватиме в claude.ai?</h3>
+
+          <p>
+            Тіло — можливо, шапка — навряд. У Claude Code дозволені всі поля з таблиці документації, а
+            поза ним (завантаження на claude.ai, Skills API, пакування) — рівно шість:
+            <code>name</code>, <code>description</code>, <code>license</code>,
+            <code>compatibility</code>, <code>metadata</code>, <code>allowed-tools</code>.
+            Будь-яке інше поле там не ігнорується, а <strong>валить завантаження помилкою</strong>:
+            <code>Unexpected key(s) in SKILL.md frontmatter: argument-hint.</code> Якщо плануєш
+            ділитись навичкою поза Claude Code, обмежся цими шістьма полями одразу.
+          </p>
+
+          <h3>Скільки взагалі полів у шапці й чи треба їх учити?</h3>
+
+          <p>
+            Двадцять — стільки рядків у таблиці полів на 2026-09-04, і всі вони необов'язкові;
+            рекомендованим документація називає лише
+            <code>description</code>. Учити їх напам'ять сенсу немає: повний перелік із коротким
+            описом кожного поля лежить у довідниках цього курсу й у документації. У щоденній
+            роботі зазвичай задіяні чотири: <code>description</code>,
+            <code>disable-model-invocation</code>, <code>allowed-tools</code> і
+            <code>argument-hint</code>.
+          </p>
+
+          <h3>Кажуть, є команда для перевірки навичок на якість. Вона є?</h3>
+
+          <p>
+            Тут потрібна чесна відповідь із двох частин. Команда <code>claude plugin eval</code>
+            у програмі <strong>існує</strong> — вона є в переліку підкоманд і має власну довідку.
+            Але на версії 2.1.236 запуск віддає рядок
+            <code>`plugin eval` is currently in early access</code> і завершується з кодом
+            <code>1</code>: ранній доступ, відкритий не всім. Це не те саме, що «команди немає», і
+            різницю між цими двома станами варто розрізняти.
+          </p>
+
+          <p>
+            Робочий шлях сьогодні — плагін <code>skill-creator</code> з офіційного каталогу:
+            <code>/plugin install skill-creator@claude-plugins-official</code>. Він проганяє
+            навичку на наборі тестових запитів із навичкою й без неї, рахує відсоток влучань,
+            токени й час і пропонує правки опису, коли навичка спрацьовує не на тих запитах.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
+          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+
+          <p>Що варто винести з модуля, коротко:</p>
+
+          <ul>
+            <li><strong>Навичка — це тека з <code>SKILL.md</code>.</strong> Ім'я теки стає
+              командою. Файл замість теки не працює й мовчить.</li>
+            <li><strong>Три риски мусять бути першим рядком файлу.</strong> Інакше шапки немає,
+              а навичка «є».</li>
+            <li><strong>У контексті постійно лежить лише опис.</strong> Тіло приходить після
+              виклику й лишається до кінця сесії — тому воно має бути коротким, а найважливіше
+              в ньому стояти вгорі.</li>
+            <li><strong><code>description</code> — це не підпис, а механізм.</strong> За ним
+              Claude вирішує, брати навичку чи ні. Ключовий випадок — першим реченням, до
+              1536 символів разом із <code>when_to_use</code>.</li>
+            <li><strong><code>.claude/commands/</code> — та сама навичка в урізаному вигляді</strong>,
+              і при збігу імен виграє навичка.</li>
+            <li><strong>Плагін — це коробка для поширення</strong>, маркетплейс — каталог
+              коробок. Додати каталог і поставити плагін — дві різні дії.</li>
+            <li><strong>Перевіряй командою, а не здогадкою:</strong>
+              <code>claude plugin validate</code>, а всередині сесії — <code>/skills</code>,
+              <code>/context</code>, <code>/doctor</code>.</li>
+          </ul>
+
+          <h3>Що зробити сьогодні</h3>
+
+          <p>
+            Візьми той текст, який ти вставляв Claude найчастіше за останній тиждень, і зроби з
+            нього одну навичку. Не десять — одну. Через кілька днів подивись, чи викликається
+            вона сама, і якщо ні — переписуй не тіло, а опис: у дев'яти випадках із десяти справа
+            в ньому.
+          </p>
+
+          <h3>Куди далі</h3>
+
+          <p>
+            Наступний модуль — <strong>субагенти, worktrees й паралельність</strong>. Там
+            розкривається те, що в цьому модулі згадане одним полем: <code>context: fork</code>,
+            яке відправляє навичку виконуватись окремо, у власному вікні контексту. Після нього
+            — модуль 16 про перехоплювачі подій (hooks), тобто про правила, які виконуються
+            завжди, а не тоді, коли модель вирішила.
+          </p>
+
+          <p>
+            Повний перелік полів шапки, усі підкоманди <code>claude plugin</code> і всі команди
+            зі скісною рискою зібрані в довідниках курсу — туди повертаються, а не вчать напам'ять.
+          </p>
+        </section>
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Перевір себе</h2>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Людина створила файл .claude/skills/reliz-notes.md з правильною шапкою, запустила claude plugin validate .claude/skills і не побачила жодного попередження. Команди /reliz-notes у сесії немає. Що сталося?",
+            "options": [
+              "Треба перезапустити сесію — навички читаються тільки на старті",
+              "Навичка — це тека з файлом SKILL.md, тому окремий .md-файл узагалі не читається, і перевірка про нього мовчить",
+              "У шапці бракує поля name, без нього команда не створюється",
+              "Файл треба покласти в .claude/commands/, у skills/ файли не працюють"
+            ],
+            "answer": 1,
+            "explain": "Порожній вивід перевірки тут означає «я цього файлу навіть не читав», а не «усе гаразд»: для Claude Code навичка — це тека, всередині якої лежить SKILL.md. Перезапуск не допоможе, бо читати нічого. Поле name команду не задає — її задає ім'я теки. І в commands/ файл теж працював би, але тоді він мав би лежати саме там, а не в skills/."
+          },
+          {
+            "q": "У теці .claude/skills/foo/SKILL.md у шапці написано name: deploy. Яку команду набирати?",
+            "options": [
+              "/deploy — поле name задає команду",
+              "обидві: /foo і /deploy",
+              "/foo — команду задає ім'я теки, а name лише підписує навичку в списках",
+              "жодну: такий збіг вважається помилкою й навичка не завантажиться"
+            ],
+            "answer": 2,
+            "explain": "Для особистих і проєктних навичок команду задає ім'я теки; поле name там працює лише як відображуване ім'я. Друга команда не з'являється, і помилкою це не вважається. Виняток один — навички всередині плагіна: там name справді задає останній шматок команди, а попереду лишається прізвище плагіна."
+          },
+          {
+            "q": "Розмову стиснуло авто-компакцією. Після цього навичка, викликана на початку сесії, перестала впливати на відповіді. Що найімовірніше сталось?",
+            "options": [
+              "Після компакції повертаються перші 5000 токенів кожної навички в межах спільних 25000, і найстаріші могли не вміститись",
+              "Компакція видаляє всі навички без винятку — їх треба викликати заново щоразу",
+              "Навичка зламалась і її треба перевірити командою claude plugin validate",
+              "Claude Code перечитав SKILL.md з диска й побачив, що файл змінився"
+            ],
+            "answer": 0,
+            "explain": "Компакція не викидає навички повністю: Claude Code повертає після підсумку останній виклик кожної, лишаючи перші 5000 токенів, а на всі разом дає 25 000. Бюджет заповнюється від найсвіжішої, тому саме старі зникають цілком. Файл при цьому цілий, і перевірка нічого не покаже. З диска Claude Code навичку не перечитує — у розмові лежить копія."
+          },
+          {
+            "q": "У проєкті одночасно є .claude/commands/deploy.md і .claude/skills/deploy/SKILL.md. Що виконається на /deploy?",
+            "options": [
+              "Обидва по черзі",
+              "Файл із commands/ — він старіший за механізмом",
+              "Claude Code повідомить про конфлікт і не виконає нічого",
+              "Навичка з skills/"
+            ],
+            "answer": 3,
+            "explain": "Документація формулює це однозначно: при збігу імен виграє навичка. Конфлікту програма не оголошує й нічого не питає — саме тому людина довго правит файл у commands/ і не розуміє, чому нічого не змінюється. По черзі теж нічого не виконується: команда одна."
+          },
+          {
+            "q": "Ти щойно склонував чужий репозиторій і хочеш запустити в ньому Claude Code. Чому варто спершу заглянути в .claude/skills/?",
+            "options": [
+              "Проєктні навички не працюють, доки не скопіювати їх у ~/.claude/skills/",
+              "Поле allowed-tools у чужій навичці передсхвалює інструменти навіть у папці, якій ти не давав довіри",
+              "Чужі навички автоматично перезаписують твої особисті з тими самими іменами",
+              "Без цього Claude Code не побачить навички взагалі й покаже помилку на старті"
+            ],
+            "answer": 1,
+            "explain": "Документація прямо каже, що довіра до робочої папки поле allowed-tools не стримує: проєктна навичка з чужого репозиторію застосує свій грант, навіть у неінтерактивному запуску в теці, якій ти ніколи не давав довіри. Копіювати нічого не треба — проєктні навички читаються на місці. Пріоритет при збігу імен зворотний: особиста навичка перекриває проєктну, а не навпаки."
+          },
+          {
+            "q": "Навичка є в списку /skills, команда /моя-навичка працює, але сам Claude її ніколи не бере. З чого почати?",
+            "options": [
+              "Перенести навичку з проєктної теки в особисту — з проєктних Claude навички не викликає",
+              "Додати поле disable-model-invocation: true",
+              "Перевірити description: або він не містить слів, якими формулюється задача, або шапка не розібралась і метаданих немає",
+              "Збільшити тіло навички — короткі навички модель ігнорує"
+            ],
+            "answer": 2,
+            "explain": "Автоматичний виклик тримається на описі: за ним Claude вирішує, чи доречна навичка. Друга причина того самого симптому — зламаний YAML у шапці: тіло вантажиться, метадані порожні, зіставляти немає з чим (видно через claude --debug). Рівень зберігання тут ні до чого. Поле disable-model-invocation дало б зворотний ефект — воно якраз забороняє Claude викликати навичку. Довжина тіла на вибір не впливає."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <!-- D-03: вхід у три довідники з будь-якого уроку. Підписи живуть у
+         claude-code.config.json → site.ref* і підставляються через data-site
+         (js/config.js, fillStatic); текст у розмітці — той самий рядок, як
+         запасний варіант, коли конфіг не приїхав. Той самий прийом, що вже
+         стоїть на data-site="name" і data-site="shortName" у шапці. -->
+    <nav aria-label="Довідники курсу"
+      class="mx-auto flex max-w-[88rem] flex-wrap items-center gap-x-6 gap-y-1 border-b border-line/60 px-5 py-4 sm:px-8">
+      <span class="font-mono text-xs uppercase tracking-[0.14em] text-faint" data-site="refsLabel">Довідники</span>
+      <a href="../claude-code-ref-commands.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refCommands">Усі команди й клавіші</a>
+      <a href="../claude-code-ref-hooks.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refHooks">Таблиця подій</a>
+      <a href="../claude-code-ref-settings.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refSettings">Ключі settings.json</a>
+    </nav>
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>

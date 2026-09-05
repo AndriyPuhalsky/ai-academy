@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Модуль 17 · Коли все зламалось: діагностика — AI Термінал</title>
+  <meta name="description"
+    content="Як зрозуміти, що саме зламалось: чотири шари поломок і чотири різні перші команди. claude doctor, --safe-mode, --debug, --setting-sources, claude project purge. І головне — як перевірити факт живою командою, а не статтею з мережі." />
+  <meta name="theme-color" content="#141312" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#141312", surface: "#1E1B18", raised: "#272320",
+            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
+            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
+            sand: "#E8DCC3"
+          },
+          fontFamily: {
+            display: ["Literata", "Georgia", "serif"],
+            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
+          },
+          maxWidth: { content: "72rem" }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="../css/custom.css" />
+</head>
+
+<body data-module="c17" class="bg-ink font-sans text-ivory antialiased">
+
+  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
+      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
+      <div class="flex items-center gap-3">
+        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
+          <span class="sr-only">Зміст курсу</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="../claude-code.html" class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
+            data-site="shortName">AIT</span>
+          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
+        </a>
+        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
+        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 17</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="aiaAuth" class="slot"></div>
+        <span id="navProgress" hidden
+          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
+        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
+          програми</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
+    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
+      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="snav-count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12">
+      <article class="prose-aia max-w-3xl">
+
+        <!-- Вступ модуля -->
+        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 3 · Налаштування під себе</p>
+        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Коли все зламалось: діагностика</h1>
+        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Середній · 8 блоків · ≈ 50 хв читання</p>
+        <p class="mt-6 text-lg">
+          Рано чи пізно щось перестане працювати. Хук, який ти написав, не спрацює. Налаштування,
+          яке ти вписав у файл, не подіє. Команда з інструкції в інтернеті поведеться не так, як
+          там намальовано. У цю мить більшість людей робить одне й те саме: шукає в мережі текст
+          помилки й починає навмання пробувати поради. Цей модуль пропонує інший порядок дій.
+        </p>
+        <p>
+          <strong>Діагностика</strong> — це з'ясувати, <em>що саме</em> зламалось, перш ніж щось
+          лагодити. Звучить як банальність, але на практиці саме цей крок і пропускають: людина
+          лагодить встановлення, коли насправді не діє файл налаштувань, або переставляє програму,
+          коли справа в тому, що вона не увійшла в акаунт. Тут ти навчишся розкладати поломку на
+          шари й на кожен шар мати одну коротку команду, яка відповідає «так» або «ні».
+        </p>
+        <p>
+          Друга половина модуля — про річ, без якої перша не працює: <strong>як перевірити факт
+          живою командою, а не статтею з мережі</strong>. Claude Code змінюється щотижня, тому
+          будь-який туторіал старіє швидше, ніж його встигають прочитати. У цьому уроці ти побачиш
+          на власному екрані, як мертва команда вдає робочу — і навчишся ловити це за тридцять
+          секунд.
+        </p>
+
+        <div class="callout">
+          <span class="callout-title">Що в цьому модулі є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> детального розбору помилок встановлення й <code>PATH</code> —
+            це модуль 3. Немає розкладки файлів налаштувань і порядку їхнього перекриття — модуль
+            13. Немає влаштування перехоплювачів подій (hooks) — модуль 16. Немає налаштування
+            зовнішніх інструментів MCP — модуль 18. Немає роботи з витратами й лімітами —
+            модуль 11.
+          </p>
+          <p>
+            <strong>Є:</strong> спосіб мислення (чотири шари поломки й чотири різні перші команди),
+            інструменти <code>claude doctor</code>, <code>--safe-mode</code>,
+            <code>--debug</code>, <code>--debug-file</code>, <code>--setting-sources</code>,
+            <code>claude project purge</code>, спосіб звузити причину вдвічі за один крок — і
+            перевірка фактів живою командою.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
+          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+
+          <p>
+            Уяви дві ситуації. У першій людина написала перехоплювач події (hook — маленька
+            команда, яку Claude Code запускає автоматично в певний момент; про них модуль 16), він
+            не спрацьовує, і вона витрачає вечір, перевстановлюючи програму. У другій людина
+            знайшла в блозі команду <code>claude config set</code>, набрала її, програма нічого не
+            заперечила — і людина півгодини не могла зрозуміти, чому налаштування не змінилось.
+          </p>
+
+          <p>
+            Обидві помилки коштували часу не через складність теми. Перша людина полагодила не той
+            шар. Друга повірила статті, яку ніхто не оновлював.
+          </p>
+
+          <h3>Поломка має шар. Шарів чотири</h3>
+
+          <p>
+            Anthropic — компанія, яка робить Claude, — тримає чотири окремі сторінки документації
+            під ці проблеми, і поділ між ними не випадковий. Це чотири різні місця, де щось може
+            піти не так, і в кожного своя перша команда.
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Поломка має шар. Шарів чотири">
+          <table>
+            <thead>
+              <tr>
+                <th>Що ти бачиш</th>
+                <th>Шар</th>
+                <th>Перше питання</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>command not found: claude</code>, встановлення обривається</td>
+                <td>Встановлення й <code>PATH</code></td>
+                <td>Чи знайдено програму взагалі?</td>
+              </tr>
+              <tr>
+                <td><code>Not logged in</code>, <code>403 Forbidden</code>, нескінченний вхід</td>
+                <td>Вхід в акаунт</td>
+                <td>Чи є в програми дійсні облікові дані?</td>
+              </tr>
+              <tr>
+                <td>Програма працює, але твої налаштування, хуки, скіли чи MCP не діють</td>
+                <td>Конфігурація</td>
+                <td>Файл узагалі прочитано? Ким перекрито?</td>
+              </tr>
+              <tr>
+                <td>Зависає, з'їдає пам'ять, не знаходить файли, відповідає гірше звичайного</td>
+                <td>Поведінка на ходу</td>
+                <td>Що змінилось у стані сесії?</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>
+            До цих чотирьох додається п'ятий випадок, найпростіший: програма надрукувала
+            <strong>текст помилки</strong>. Тоді шукати шар не треба — треба знайти цей текст у
+            довіднику помилок. Але й тут є пастка, про яку далі: довідник неповний, і жива команда
+            вміє сказати те, чого в ньому немає.
+          </p>
+
+          <h3>Друга половина модуля: чому статті брешуть</h3>
+
+          <p>
+            Claude Code оновлюється майже щодня. Курс, який ти читаєш, писався на збірці
+            <strong>2.1.236</strong>, а офіційна документація на той самий день описувала збірку
+            приблизно на двадцять версій новішу. Це не недбалість — це нормальний стан живого
+            інструмента.
+          </p>
+
+          <p>
+            Наслідок незручний: <strong>перевіряти треба не документацію, а свою власну
+            машину</strong>. Документація каже, що можливо в найновішій версії. Твоя збірка каже,
+            що можливо в тебе. Це різні відповіді, і в діагностиці важлива саме друга.
+          </p>
+
+          <p>
+            Найгірший різновид застарілої поради — той, що <em>не падає</em>. Якщо мертва команда
+            дає помилку, ти одразу все розумієш. Якщо мертва команда друкує щось правдоподібне, ти
+            йдеш далі з хибним переконанням. Саме такий приклад — на наступному екрані.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
+          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Обидва екрани нижче зняті в терміналі на <strong>Claude Code 2.1.236, macOS 26.5.2,
+            4 вересня 2026 року</strong>. Це дослівний вивід, не переказ.
+          </p>
+
+          <h3>П'ять рядків, що показують п'ять різних характерів однієї програми</h3>
+
+          <p>
+            Тут перевіряється існування прапорців. <strong>Прапорець</strong> — це слово з двома
+            дефісами попереду, яке ти дописуєш до команди, щоб змінити її поведінку
+            (<code>--safe-mode</code>, <code>--debug</code>). Питання просте: як дізнатись, чи
+            розуміє <em>твоя</em> збірка конкретний прапорець?
+          </p>
+
+          <p>
+            Прийом такий: додай до перевірюваного прапорця ще один, свідомо неіснуючий —
+            <code>--zzz-bogus</code>. Частина програми, яка читає командний рядок (її називають <strong>розбирачем
+            аргументів</strong>), зупиняється на <strong>першому</strong> невідомому їй прапорці
+            й називає саме його. Якщо в помилці згадано <code>--zzz-bogus</code>, значить перевірюваний
+            прапорець він упізнав. Якщо в помилці згадано перевірюваний — його в цій збірці немає.
+            Жодна сесія при цьому не запускається: програма падає ще на розборі командного рядка.
+          </p>
+
+          <figure class="term term--err" id="p1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p1t">п'ять реакцій на сміття · Claude Code 2.1.236, macOS 26.5.2,
+                2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --restricted --zzz-bogus</span></span>
+<span class="term__line"><span class="term__err">error: unknown option '--restricted'</span></span>
+<span class="term__line"> </span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --restricted --help</span></span>
+<span class="term__line">Usage: claude [options] [command] [prompt]</span>
+<span class="term__line"><span class="term__meta">…звичайна довідка, ніби прапорець існує…</span></span>
+<span class="term__line"> </span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --safe-mode --zzz-bogus</span></span>
+<span class="term__line"><span class="term__err">error: unknown option '--zzz-bogus'</span></span>
+<span class="term__line"> </span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --effort bogus --help</span></span>
+<span class="term__line"><span class="term__err">Warning: Unknown --effort value 'bogus' — ignoring it and using the default effort.</span></span>
+<span class="term__line"><span class="term__err">Valid values: low, medium, high, xhigh, max.</span></span>
+<span class="term__line"> </span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --model definitely-not-a-model --help</span></span>
+<span class="term__line">Usage: claude [options] [command] [prompt]</span>
+<span class="term__line"><span class="term__meta">…жодного слова про неіснуючу модель…</span></span></pre>
+          </figure>
+
+          <p>Читаємо зверху вниз — тут п'ять різних поводжень в одній програмі:</p>
+
+          <ol>
+            <li><strong><code>--restricted</code> у цій збірці немає.</strong> Помилка називає саме
+              його, а до <code>--zzz-bogus</code> розбирач навіть не дійшов. Прапорець при цьому
+              описаний в офіційній документації — з позначкою «потребує 2.1.248 або новішої».
+              На 2.1.236 його ще нема, і це не поломка, а різниця у версіях.</li>
+            <li><strong>Той самий прапорець разом із <code>--help</code> помилки не дає.</strong>
+              <code>--help</code> перехоплює запуск раніше й друкує довідку. Виглядає як успіх, а
+              насправді нічого не перевірено. Ось чому <em>існування прапорця перевіряють без
+              <code>--help</code></em>.</li>
+            <li><strong><code>--safe-mode</code> у цій збірці є.</strong> Розбирач пройшов повз
+              нього й спіткнувся про наступний. Це і є відповідь «так».</li>
+            <li><strong>Невірне <em>значення</em> відомого прапорця глушиться не завжди.</strong>
+              <code>--effort</code> з невідомим значенням попереджає навіть поруч із
+              <code>--help</code> — і люб'язно перелічує допустимі.</li>
+            <li><strong>А <code>--model</code> з вигаданою назвою мовчить.</strong> Локальної
+              перевірки назви моделі не існує: помилка прийде пізніше, з першим мережевим запитом.</li>
+          </ol>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Документація сама попереджає, що вона не повна</span>
+            <p>
+              Сторінка довідника команд Claude Code містить дослівно таке речення:
+              <em>«<code>claude --help</code> does not list every flag, so a flag's absence from
+              <code>--help</code> does not mean it is unavailable»</em> — тобто
+              <code>--help</code> перелічує не всі прапорці, і відсутність прапорця в ньому не
+              означає, що прапорця немає.
+            </p>
+            <p>
+              Тому <code>claude --help | grep щось</code> — <strong>не</strong> доказ. Доказ —
+              проба з <code>--zzz-bogus</code>.
+            </p>
+          </div>
+
+          <h3>Зламане налаштування, яке нікого не зупинило</h3>
+
+          <p>
+            Другий екран знято в порожній тимчасовій папці <code>/tmp/claude-lab</code>, куди
+            навмисно покладено файл <code>.claude/settings.json</code> із класичною помилкою: поле
+            <code>matcher</code> у перехоплювачі події записане списком
+            <code>["Edit"]</code>, хоча має бути рядком <code>"Edit"</code>. Точний рецепт — у
+            блоці 4, він відтворюється двома командами.
+          </p>
+
+          <figure class="term" id="p2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p2t">claude doctor у папці зі зламаним налаштуванням · 2.1.236, macOS
+                26.5.2, 2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p2t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude doctor</span></span>
+<span class="term__line">Claude Code doctor</span>
+<span class="term__line"> </span>
+<span class="term__line">Running: package-manager (2.1.236)</span>
+<span class="term__line">Platform: darwin-arm64</span>
+<span class="term__line">Package manager: homebrew</span>
+<span class="term__line">Search: OK (bundled)</span>
+<span class="term__line">Auto-updates: Managed by package manager</span>
+<span class="term__line"><span class="term__err">Last update attempt: failed (install_failed) — 2026-08-12</span></span>
+<span class="term__line"> </span>
+<span class="term__line"><span class="term__err">Invalid settings</span></span>
+<span class="term__line"><span class="term__err">- /private/tmp/claude-lab/.claude/settings.json › hooks.PreToolUse.0.matcher:</span></span>
+<span class="term__line"><span class="term__err">  Expected string, but received array</span></span>
+<span class="term__line"><span class="term__meta">  Suggested fix: … The matcher is a string: a tool name ("Bash"),</span></span>
+<span class="term__line"><span class="term__meta">  pipe-separated list ("Edit|Write"), or empty to match all. …</span></span>
+<span class="term__line"> </span>
+<span class="term__line"><span class="term__ok">No installation issues found.</span></span>
+<span class="term__line"> </span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude doctor &gt; /dev/null; echo $?</span></span>
+<span class="term__line"><span class="term__ok">0</span></span></pre>
+          </figure>
+
+          <p class="text-sm text-muted">
+            Довгі рядки перенесено, у позначених <code>…</code> місцях вивід скорочено. Решта —
+            дослівна.
+          </p>
+
+          <p>У цих двадцяти рядках сховано три окремі уроки:</p>
+
+          <ul>
+            <li><strong><code>claude doctor</code> називає точну адресу поломки.</strong>
+              <code>hooks.PreToolUse.0.matcher</code> читається як шлях усередині файла: ключ
+              <code>hooks</code> → подія <code>PreToolUse</code> → нульовий (тобто перший) запис у
+              списку → поле <code>matcher</code>. Плюс рядок <code>Suggested fix</code> із готовим
+              зразком. Це найкорисніший вивід у всій програмі.</li>
+            <li><strong>Останній рядок бреше.</strong> <code>No installation issues found</code>
+              стоїть поруч зі знайденою помилкою, бо це два різні розділи: встановлення й
+              налаштування. Хто дивиться лише останній рядок, іде далі впевненим, що все гаразд.
+              (Цю пастку докладніше розібрано в модулі 13.)</li>
+            <li><strong>Код виходу — нуль, навіть коли помилка знайдена.</strong> Кожна команда
+              після завершення лишає терміналу маленьке число — <strong>код виходу</strong>:
+              <code>0</code> означає «все добре», будь-яке інше — «щось пішло не так». Побачити
+              його можна командою <code>echo $?</code>, набраною одразу після попередньої. Тут він
+              друкує <code>0</code> і в цій папці, і в чистій. Тобто <code>claude doctor</code>
+              <em>не годиться</em> як автоматична перевірка у скрипті: читати треба текст, а не
+              код.</li>
+          </ul>
+
+          <div class="callout">
+            <span class="callout-title">Чому далі буде більше слів, ніж екранів</span>
+            <p>
+              Найважливіші діагностичні панелі — <code>/context</code>, <code>/doctor</code>,
+              <code>/hooks</code>, <code>/status</code>, <code>/mcp</code>,
+              <code>/permissions</code> — живуть <em>усередині</em> сесії й малюються на екрані
+              заново. Зняти їх як текст неможливо. Перевірено буквально: запуск
+              <code>claude -p "/hooks"</code> віддає рівно один рядок —
+              <code>/hooks isn't available in this environment.</code> — те саме для
+              <code>/status</code>. Тому такі панелі описані словами, а не домальовані.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
+          <h2><span class="lesson-no">3</span>Як це працює</h2>
+
+          <p>
+            Діагностика — це не набір команд, а порядок питань. Кожне питання відрізає половину
+            можливих причин, і після чотирьох-п'яти питань залишається одна.
+          </p>
+
+          <h3>Драбина: від «чи є програма» до «чому вона поводиться дивно»</h3>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  A["Щось не працює"] --> B{"claude --version друкує версію?"}
+  B -->|"ні"| C["Шар встановлення й PATH — модуль 3"]
+  B -->|"так"| D{"claude auth status виходить з кодом 0?"}
+  D -->|"ні"| E["Шар входу: claude auth login"]
+  D -->|"так"| F{"Програма надрукувала текст помилки?"}
+  F -->|"так"| G["Шукай цей текст у довіднику помилок"]
+  F -->|"ні"| H{"Не діють твої налаштування, хуки, скіли, MCP?"}
+  H -->|"так"| I["Шар конфігурації: claude doctor, потім звуження"]
+  H -->|"ні"| J["Шар поведінки: зависання, пам'ять, пошук, якість"]
+  style A fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style I fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">Порядок питань у діагностиці: кожне відсікає цілий шар причин.</p>
+          </div>
+
+          <p>
+            Перші два питання коштують секунду кожне й закривають найчастіші випадки. Вони варті
+            того, щоб задавати їх завжди, навіть коли ти впевнений у відповіді.
+          </p>
+
+          <h3>Звуження навпіл: три рівні чистоти</h3>
+
+          <p>
+            Коли поломка сидить у шарі конфігурації, причина ховається серед десятків файлів:
+            твоїх, проєктних, плагінових, керованих організацією. Перебирати їх по одному довго.
+            Замість цього роблять інакше — вимикають <strong>усе</strong> одразу й дивляться, чи
+            зникла проблема. Якщо зникла, причина всередині вимкненого; якщо ні — зовні.
+          </p>
+
+          <div class="diagram">
+            <pre class="mermaid">
+flowchart TD
+  S["Звичайний запуск: усе твоє діє"] --> A["claude --safe-mode"]
+  A -->|"проблема зникла"| B["Причина серед твоїх налаштувань — вмикай назад по одному"]
+  A -->|"проблема лишилась"| C["CLAUDE_CONFIG_DIR на порожню теку, запуск із порожньої папки"]
+  C -->|"проблема зникла"| D["Причина в самих файлах ~/.claude або .claude проєкту"]
+  C -->|"проблема лишилась"| E["Причина ззовні: керовані налаштування, змінні середовища, сама програма"]
+  style A fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  style C fill:#2A211C,stroke:#D97757,color:#F0EEE6
+            </pre>
+            <p class="diagram-caption">Два кроки звуження: спершу вимкнути своє, потім вимкнути взагалі все.</p>
+          </div>
+
+          <h4>Перший рівень — <code>claude --safe-mode</code></h4>
+
+          <p>
+            Запускає сесію, у якій <strong>не завантажується жодне твоє налаштування</strong>:
+            файл <code>CLAUDE.md</code>, навички (skills), плагіни, перехоплювачі подій, сервери
+            MCP, власні команди й агенти, стилі виводу, робочі процеси, теми, гарячі клавіші,
+            рядок стану, сервери мовної підтримки й автопам'ять. При цьому вхід в акаунт, вибір
+            моделі, вбудовані інструменти й дозволи працюють як завжди.
+          </p>
+
+          <p>
+            Найважливіше в цьому абзаці — те, чого <code>--safe-mode</code> <strong>не</strong>
+            вимикає. Документація каже дослівно: <em>«Safe mode still applies managed hooks and
+            settings policy from your organization»</em> — керовані хуки й політику налаштувань
+            організації безпечний режим лишає чинними. Формулювання «вимикає все» неточне, і саме
+            через нього люди роблять хибний висновок на робочому ноутбуці.
+          </p>
+
+          <h4>Другий рівень — порожня тека конфігурації</h4>
+
+          <p>
+            Гостріший інструмент. <code>CLAUDE_CONFIG_DIR</code> — це змінна середовища
+            (значення, яке ти задаєш перед командою й яке програма читає при старті), що вказує,
+            де лежить особиста тека налаштувань. Направ її на порожню папку — і Claude Code
+            проігнорує весь вміст <code>~/.claude</code>. Запустись при цьому з папки, у якій
+            немає ні <code>.claude</code>, ні <code>.mcp.json</code>, ні <code>CLAUDE.md</code>, —
+            і проєктні налаштування теж не приїдуть.
+          </p>
+
+          <p>
+            Документація дає точну ознаку, що прийом спрацював: <em>на першому запуску з'являться
+            екрани першого налаштування, починаючи з вибору теми</em>. Побачив їх — тека справді
+            чиста. На другому запуску з тією ж текою вони вже не з'являться, бо стан знайомства
+            зберігся туди ж. Увійти в акаунт доведеться заново.
+          </p>
+
+          <h3>Коли треба бачити, що програма робить усередині</h3>
+
+          <p>
+            Є клас поломок, які жодна панель не показує: файл ніби на місці, помилок немає, а
+            ефекту теж немає. Тоді вмикають докладний журнал.
+          </p>
+
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Коли треба бачити, що програма робить усередині">
+          <table>
+            <thead>
+              <tr>
+                <th>Прапорець</th>
+                <th>Що робить</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>--debug</code></td>
+                <td>вмикає докладний журнал на сесію. Можна звузити темами:
+                  <code>--debug='mcp,startup'</code>. Фільтр діє лише у формі зі знаком рівності;
+                  через пробіл він вмикає журнал без фільтра</td>
+              </tr>
+              <tr>
+                <td><code>--debug-file &lt;шлях&gt;</code></td>
+                <td>пише журнал у вказаний тобою файл і при цьому сам вмикає режим журналювання</td>
+              </tr>
+              <tr>
+                <td>без <code>--debug-file</code></td>
+                <td>журнал лягає в <code>~/.claude/debug/&lt;номер-сесії&gt;.txt</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>
+            Живий журнал із запуску 2026-09-04 на 2.1.236 містить, зокрема, такі рядки: перелік
+            шляхів, за якими програма шукала файли налаштувань і не знайшла
+            (<code>Broken symlink or missing file encountered for settings.json at path: …</code>),
+            рядок <code>Watching for changes in setting files …</code> із трьома конкретними
+            шляхами, і підсумок <code>Hooks: Found 0 total hooks in registry</code> — тобто той
+            самий зламаний перехоплювач не завантажився, і в звичайному виводі про це не було
+            жодного слова.
+          </p>
+
+          <p>
+            Одна чесна поправка: рядок <code>Watching for changes…</code> перелічує файли, за якими
+            програма <em>стежить</em>, а не ті, що виграли. Він відповідає на питання «які файли
+            взагалі в грі», а не «чиє значення перемогло». На друге питання відповідає
+            <code>/status</code> усередині сесії — панель показує активні джерела налаштувань,
+            зокрема чи діють керовані налаштування організації.
+          </p>
+
+          <h4>Споріднене: <code>--setting-sources</code></h4>
+
+          <p>
+            Прапорець приймає перелік через кому з трьох слів: <code>user</code>,
+            <code>project</code>, <code>local</code> — і завантажує лише названі джерела. Це
+            рукотворний варіант того самого звуження: <code>claude --setting-sources user</code>
+            запускає сесію без проєктних і локальних налаштувань. Корисно, коли <code>--safe-mode</code>
+            вимикає забагато, а тобі треба відрізати рівно проєктний файл.
+          </p>
+
+          <h3>Прибирання локального стану: <code>claude project purge</code></h3>
+
+          <p>
+            Кожен проєкт, у якому ти запускав Claude Code, лишає слід у теці
+            <code>~/.claude/projects/</code>: <strong>транскрипти</strong> (повні записи твоїх
+            розмов, які й дозволяють потім продовжити сесію), списки задач, історію правок
+            файлів, журнали. Іноді саме цей слід і є причиною дивної поведінки — і тоді його
+            прибирають цією підкомандою.
+          </p>
+
+          <p>
+            У неї п'ять опцій: <code>--dry-run</code> (показати, що було б видалено, і нічого не
+            видаляти), <code>-y</code> / <code>--yes</code> (не питати підтвердження),
+            <code>-i</code> / <code>--interactive</code> (питати про кожен пункт),
+            <code>--all</code> (усі проєкти одразу) і <code>-h</code>. Без шляху команда відкриває
+            перелік проєктів на вибір.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
+          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+
+          <p>
+            Три вправи. Усі три безпечні: вони не чіпають ні твоїх справжніх налаштувань, ні
+            проєктів. Робота йде у свіжій тимчасовій папці, яку операційна система рано чи пізно
+            прибере сама.
+          </p>
+
+          <h3>Вправа 1. Побудуй собі зламану лабораторію</h3>
+
+          <p>
+            Мета — побачити <code>claude doctor</code> у роботі на власному екрані, а не на
+            чужому. Чотири рядки нижче створюють папку, кладуть у неї файл налаштувань із
+            навмисною помилкою й запускають перевірку. Кнопка «Копіювати» віддасть усі чотири
+            рядки одним шматком.
+          </p>
+
+          <figure class="term term--cmd" id="p3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p3t">лабораторія на чотири рядки · macOS і Linux</span>
+              <button type="button" class="term__copy" data-ok="Скопійовано"
+                data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p3t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">mkdir -p /tmp/claude-lab/.claude</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">cd /tmp/claude-lab</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">echo '{"hooks":{"PreToolUse":[{"matcher":["Edit"],"hooks":[]}]}}' &gt; .claude/settings.json</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude doctor</span></span></pre>
+          </figure>
+
+          <p>
+            У виводі шукай розділ <code>Invalid settings</code> — він має назвати шлях до твого
+            файла й адресу поля <code>hooks.PreToolUse.0.matcher</code>. Якщо він з'явився, ти
+            щойно відтворив екран із блоку 2 у себе.
+          </p>
+
+          <p>
+            Далі полагодь помилку: заміни список <code>["Edit"]</code> на рядок
+            <code>"Edit"</code> і запусти <code>claude doctor</code> ще раз. Розділ
+            <code>Invalid settings</code> має зникнути. Це і є перевірка «полагодив чи ні» —
+            не здогадка, а команда.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Windows</span>
+            <p>
+              Шлях <code>/tmp/claude-lab</code> — це macOS і Linux. У PowerShell на Windows роль
+              тимчасової папки грає <code>$env:TEMP</code>, а замість <code>mkdir -p</code> діє
+              <code>New-Item -ItemType Directory -Force</code>. Вивід <code>claude doctor</code> на
+              Windows у цьому курсі не знімався, тому дослівно його не наводимо: рядки
+              <code>Platform</code> і <code>Package manager</code> там будуть інші.
+            </p>
+          </div>
+
+          <h3>Вправа 2. Перевір прапорець, не вірячи нікому на слово</h3>
+
+          <p>
+            Візьми будь-який прапорець, про який ти прочитав у мережі, і постав після нього
+            <code>--zzz-bogus</code>. Наприклад:
+          </p>
+
+          <ul>
+            <li><code>claude --safe-mode --zzz-bogus</code> — помилка називає
+              <code>--zzz-bogus</code>, отже <code>--safe-mode</code> у твоїй збірці є;</li>
+            <li><code>claude --restricted --zzz-bogus</code> — помилка називає
+              <code>--restricted</code>, отже його немає (на 2.1.236 його справді немає);</li>
+            <li>а тепер додай <code>--help</code> замість <code>--zzz-bogus</code> і подивись, як
+              та сама перевірка перестає працювати.</li>
+          </ul>
+
+          <p>
+            Другий інструмент тієї ж вправи — пошук назви прямо у файлі програми. Команда
+            <code>strings</code> витягує з двійкового файла всі текстові шматки, а
+            <code>grep -c</code> рахує збіги:
+          </p>
+
+          <p><code>strings "$(which claude)" | grep -c CLAUDE_CODE_SAFE_MODE</code></p>
+
+          <p>
+            На 2.1.236 це дає <code>9</code>. Тепер найважливіша частина: <strong>обов'язково
+            прожени той самий пошук із вигаданою назвою</strong>, наприклад
+            <code>ZZZ_NOT_A_REAL_SETTING</code>. Вона мусить дати <code>0</code>. Без цієї
+            контрольної проби ти не знаєш, чи твій пошук узагалі щось знаходить.
+          </p>
+
+          <p>
+            Приклад із життя цього курсу: назва <code>blockReadsOutsideWorkingDirectories</code>
+            описана в документації з позначкою «потребує 2.1.257 або новішої». Пошук по збірці
+            2.1.236 дає <code>0</code> — і це не помилка документації, а розрив версій.
+          </p>
+
+          <h3>Вправа 3. Подивись, що програма робить при старті</h3>
+
+          <p>
+            Лишаючись у тій самій лабораторній папці, запусти сесію з журналом у файл поруч:
+            <code>claude --debug-file /tmp/claude-lab/debug.log</code>. Постав будь-яке коротке
+            питання, вийди й відкрий файл будь-яким переглядачем тексту.
+          </p>
+
+          <p>
+            Шукай у ньому три речі: рядки зі словом <code>settings.json</code> (де програма шукала
+            файли), рядок <code>Watching for changes in setting files</code> (що вона взяла під
+            нагляд) і рядок <code>Hooks: Found</code> (скільки перехоплювачів завантажилось). Файл
+            довгий і виглядає страшно — читати його цілком не треба, треба вміти шукати в ньому
+            три-чотири слова.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
+          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Головна навичка цього модуля — не здогадуватись. На кожне з чотирьох питань драбини є
+            команда, яка друкує відповідь.
+          </p>
+
+          <figure class="term" id="p4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p4t">три перевірки й один код виходу · 2.1.236, macOS 26.5.2,
+                2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p4t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --version</span></span>
+<span class="term__line"><span class="term__ok">2.1.236 (Claude Code)</span></span>
+<span class="term__line"> </span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude auth status &gt; /dev/null; echo $?</span></span>
+<span class="term__line"><span class="term__ok">0</span></span>
+<span class="term__line"> </span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude -c &lt; /dev/null</span></span>
+<span class="term__line"><span class="term__err">Error: No deferred tool marker found in the resumed session.</span></span>
+<span class="term__line"><span class="term__err">Either the session was not deferred, the marker is stale (tool already</span></span>
+<span class="term__line"><span class="term__err">ran), or it exceeds the tail-scan window. Provide a prompt to continue</span></span>
+<span class="term__line"><span class="term__err">the conversation.</span></span>
+<span class="term__line"><span class="term__meta">$</span> <span class="term__in">echo $?</span></span>
+<span class="term__line"><span class="term__err">1</span></span></pre>
+          </figure>
+
+          <p class="text-sm text-muted">
+            Довгий текст помилки перенесено на чотири рядки; у терміналі це один абзац.
+          </p>
+
+          <h3>Три перевірки по порядку</h3>
+
+          <ul>
+            <li><strong><code>claude --version</code></strong> — чи знайдено програму й яка саме.
+              Немає відповіді або <code>command not found</code> — це шар встановлення, модуль 3.
+              Заодно ти дізнаєшся номер, без якого не має сенсу порівнювати себе з документацією.</li>
+            <li><strong><code>claude auth status</code></strong> — чи ти взагалі увійшов. Команда
+              виходить із кодом <code>0</code>, якщо вхід є, і <code>1</code>, якщо ні. Саме тому
+              вище вона запущена як <code>&gt; /dev/null; echo $?</code>: нас цікавить лише код.
+              За замовчуванням вона друкує JSON; форма <code>--text</code> друкує три рядки —
+              спосіб входу, організацію й <strong>твою електронну пошту</strong>. Тому
+              <code>--text</code> не варто показувати на скріншотах і в звітах.</li>
+            <li><strong><code>claude doctor</code></strong> — стан установки й перевірка файлів
+              налаштувань поточної папки. Читати треба <em>текст</em>: код виходу тут завжди
+              <code>0</code>.</li>
+          </ul>
+
+          <h3>Про третій рядок екрана окремо</h3>
+
+          <p>
+            <code>claude -c</code> означає «продовжити попередню розмову». Запущена без
+            інтерактивного термінала й без запитання (<code>&lt; /dev/null</code> подає на вхід
+            порожнечу), вона на збірці 2.1.236 падає з кодом <code>1</code> і тим текстом, що на
+            екрані.
+          </p>
+
+          <p>
+            Тепер цікаве. Офіційний довідник помилок Claude Code — сторінка на
+            <strong>352 кілобайти</strong>, це приблизно сто сторінок звичайного тексту. Пошук по
+            ній 4 вересня 2026 року дав <strong>нуль</strong> згадок фрази
+            <code>deferred tool marker</code>.
+          </p>
+
+          <p>
+            Висновок, заради якого існує весь цей модуль: <strong>жива команда сказала те, чого
+            немає в жодній статті</strong>. Не тому, що документація погана — вона дуже добра, — а
+            тому що програма більша за будь-який її опис. Якщо твоя помилка не знаходиться в
+            довіднику, це нормальний і частий випадок, а не ознака того, що ти щось робиш не так.
+          </p>
+
+          <div class="callout">
+            <span class="callout-title">Як перевірити, що безпечний режим справді допоміг</span>
+            <p>
+              Перевірка проста й вимагає дисципліни: відтвори <em>ту саму дію</em>, що ламалась.
+              Не «здається, стало краще», а той самий крок із тим самим результатом. Якщо в
+              <code>--safe-mode</code> проблема зникла — причина серед твоїх налаштувань, і далі їх
+              вмикають назад по одному. Якщо лишилась — переходь на рівень порожньої теки
+              конфігурації.
+            </p>
+            <p>
+              Ознака, що порожня тека справді підхопилась, — <strong>екрани першого запуску</strong>
+              з вибором теми. Не побачив їх — змінна середовища не подіяла, і ти перевіряєш те
+              саме, що й раніше.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
+          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+
+          <h3>1. Стаття з мережі, яка не падає</h3>
+
+          <p>
+            Підкоманди <code>config</code> у Claude Code більше немає. Але
+            <code>claude config --help</code> не дає помилки — друкує звичайну довідку, бо слово
+            <code>config</code> розбирається як перше слово твого завдання, а
+            <code>--help</code> перехоплює запуск раніше. Це підмічено в модулі 13.
+          </p>
+
+          <p>
+            Тут — продовження, зняте 2026-09-04 на 2.1.236. Без <code>--help</code> той самий рядок
+            поводиться ще підступніше: <code>claude config</code> <strong>не помиляється взагалі</strong>,
+            бо слово їде моделі як завдання, і в терміналі з'являється розлога відповідь про
+            налаштування. Людина бачить осмислений текст і робить висновок, що команда існує.
+          </p>
+
+          <p>
+            Порівняй із сусіднім випадком. Друкарська помилка в справжній підкоманді ловиться
+            чесно: <code>claude udpate</code> віддає
+            <code>✘ unknown command "udpate"</code> і нижче <code>└ Did you mean claude update?</code>,
+            з кодом виходу <code>1</code>. А вигадане слово, не схоже на жодну підкоманду
+            (перевірено на <code>claude zzqqxx</code>), мовчки їде моделі як звичайне питання.
+          </p>
+
+          <p>
+            <strong>Правило:</strong> існування підкоманди перевіряють у розділі
+            <code>Commands:</code> виводу <code>claude --help</code>, а не спробою її запустити.
+            Спроба запустити коштує токенів і може щось зробити в твоїй папці.
+          </p>
+
+          <h3>2. <code>--help</code> як інструмент перевірки</h3>
+
+          <p>
+            Повторюємо, бо ця грабля дорога: <code>--help</code> глушить помилку про невідоме
+            <em>ім'я</em> прапорця. Тому <code>claude --щось-вигадане --help</code> завжди
+            виглядає успішно. Перевіряй без <code>--help</code>.
+          </p>
+
+          <h3>3. «Помилок не знайдено» ≠ «усе гаразд»</h3>
+
+          <p>
+            Ця пастка трапляється щонайменше тричі в різних місцях програми:
+          </p>
+
+          <ul>
+            <li><code>claude doctor</code> друкує <code>No installation issues found</code> поруч
+              зі знайденою помилкою налаштувань — це два різні розділи;</li>
+            <li>той самий <code>claude doctor</code> виходить із кодом <code>0</code>, навіть коли
+              щось знайшов;</li>
+            <li><code>claude plugin validate</code> має чесний код виходу, але мовчить про те, чого
+              не бачить: файл навички, покладений як <code>.md</code> замість теки, або файл агента
+              без обов'язкового поля — для нього не помилки, а неіснуючі об'єкти (модулі 14 і 15).</li>
+          </ul>
+
+          <p>
+            Загальне правило: перевірка вміє сказати «ось помилка». Вона не вміє сказати «помилок
+            немає» — вона каже «я не побачив помилок серед тих, які вмію бачити».
+          </p>
+
+          <h3>4. Запуск без діалогу мовчки проковтує зламане</h3>
+
+          <p>
+            Коли ти запускаєш Claude Code інтерактивно й у нього зламаний файл налаштувань, він
+            показує вікно з вибором. У запуску <code>claude -p</code> (без інтерфейсу, модуль 19)
+            вікна немає нікому показати: програма мовчки пропускає зламане й працює далі. У живому
+            журналі це видно рядком <code>Hooks: Found 0 total hooks in registry</code> — жодного
+            слова помилки на екрані при цьому не було. Саме тому документація радить після такого
+            запуску виконати <code>claude doctor</code> окремо.
+          </p>
+
+          <h3>5. <code>--safe-mode</code> вимикає не все</h3>
+
+          <p>
+            Керовані налаштування й політика організації (керовані хуки, рядок стану, політика
+            дозволів) діють і в безпечному режимі. На особистому ноутбуці різниці немає, на
+            робочому — вирішальна. Якщо <code>--safe-mode</code> не допоміг, це не означає, що
+            причина в самій програмі.
+          </p>
+
+          <h3>6. <code>claude project purge</code> без <code>--dry-run</code> видаляє</h3>
+
+          <p>
+            Підкоманда прибирає весь локальний стан проєкту: транскрипти розмов, списки задач,
+            історію правок файлів, журнали, рядки історії запитів і запис проєкту у файлі стану.
+            Відкату немає. <strong>Першим запуском завжди роби <code>--dry-run</code></strong> —
+            він друкує план і нічого не чіпає:
+          </p>
+
+          <figure class="term" id="p5">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p5t">claude project purge --dry-run · 2.1.236, macOS 26.5.2,
+                2026-09-04</span>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p5t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude project purge /tmp/claude-lab --dry-run</span></span>
+<span class="term__line"> </span>
+<span class="term__line">Purge plan for /private/tmp/claude-lab:</span>
+<span class="term__line"> </span>
+<span class="term__line">  dir:    /Users/anna/.claude/projects/-private-tmp-claude-lab</span>
+<span class="term__line">           project transcripts (.jsonl) and memory/</span>
+<span class="term__line"> </span>
+<span class="term__line"><span class="term__meta">shell-snapshots/ are not project-scoped and will not be touched</span></span>
+<span class="term__line"><span class="term__meta">backups/ may still contain this project entry in old .claude.json</span></span>
+<span class="term__line"><span class="term__meta">snapshots (/Users/anna/.claude/backups); at most 5 are kept and they</span></span>
+<span class="term__line"><span class="term__meta">rotate out automatically</span></span>
+<span class="term__line"><span class="term__ok">Dry run: 1 item(s) would be deleted.</span></span></pre>
+          </figure>
+
+          <p class="text-sm text-muted">
+            Ім'я домашньої папки замінено на <code>/Users/anna</code>, довгі рядки перенесено.
+            Решта — дослівна.
+          </p>
+
+          <p>
+            Зверни увагу на два останні абзаци виводу: команда сама попереджає, чого вона
+            <em>не</em> чіпає. Знімки оболонки лишаються, а старі копії файла стану можуть і далі
+            містити запис про цей проєкт — їх п'ять, і вони змінюються по колу самі.
+          </p>
+
+          <h3>7. Файл журналу пам'яті — не для публікації</h3>
+
+          <p>
+            Якщо Claude Code з'їдає багато пам'яті, документація радить команду
+            <code>/heapdump</code>, яка пише на робочий стіл два файли. Про один із них там же
+            стоїть пряме попередження: <em>файл <code>.heapsnapshot</code> містить кожен рядок,
+            що був у пам'яті процесу, включно з усією твоєю розмовою й обліковими даними</em>.
+            До публічного звіту про помилку прикладають <strong>лише</strong> другий файл, із
+            закінченням <code>-diagnostics.json</code>: у ньому статистика й нічого з розмови.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
+          <h2><span class="lesson-no">7</span>Часті питання</h2>
+
+          <h3>Чому в мене немає прапорця, який описаний у документації?</h3>
+
+          <p>
+            Найімовірніше, він з'явився у версії, новішій за твою. Документація описує найновіший
+            стан, а на твоїй машині лежить конкретна збірка. Перевір номер
+            (<code>claude --version</code>), знайди в описі прапорця позначку «requires v…» і
+            порівняй. Якщо різниця є — це не поломка, а розрив у часі, і лікується оновленням.
+          </p>
+
+          <p>
+            Окремий випадок для Homebrew на macOS: у ньому Claude Code роздається двома різними
+            наборами, і один із них помітно свіжіший за інший. Розрив у півтора десятка версій
+            між ними — звичайна річ. Про встановлення й канали оновлень — модуль 3.
+          </p>
+
+          <h3>Чи можна діагностувати, не заходячи в інтерактивну сесію?</h3>
+
+          <p>
+            Частково. З терміналу без сесії доступні <code>claude --version</code>,
+            <code>claude auth status</code>, <code>claude doctor</code>,
+            <code>claude mcp list</code>, <code>claude project purge --dry-run</code>. А панелі
+            <code>/context</code>, <code>/status</code>, <code>/hooks</code>,
+            <code>/permissions</code>, <code>/doctor</code> — тільки всередині сесії: перевірено,
+            запуск <code>claude -p "/hooks"</code> віддає
+            <code>/hooks isn't available in this environment.</code>
+          </p>
+
+          <h3>У чому різниця між <code>claude doctor</code> і <code>/doctor</code>?</h3>
+
+          <p>
+            <code>claude doctor</code> запускається з термінала, нічого не змінює й нічого не
+            питає — це читання. У власній довідці програми про нього сказано, що він читає файли
+            налаштувань поточної папки без запитання про довіру. <code>/doctor</code> — команда
+            всередині сесії: вона робить повнішу перевірку (стан установки, зламані файли,
+            невикористані розширення, однакові імена агентів у одній теці, зайвий вміст
+            <code>CLAUDE.md</code>) і <strong>пропонує виправлення</strong>, питаючи згоди перед
+            кожним. Тому: не запускається взагалі — <code>claude doctor</code>; запускається, але
+            щось не так — <code>/doctor</code>.
+          </p>
+
+          <h3>Куди дівається журнал <code>--debug</code>, якщо не вказати файл?</h3>
+
+          <p>
+            У <code>~/.claude/debug/</code>, окремим файлом на сесію з іменем-номером сесії.
+            Живою перевіркою 2026-09-04 на 2.1.236 виявилось, що поруч із ним програма кладе
+            <strong>посилання <code>latest</code></strong> на найсвіжіший журнал — зручно, бо не
+            треба вгадувати номер сесії. У документації цього посилання не описано; це рівно той
+            випадок, коли жива команда знає більше за статтю.
+          </p>
+
+          <h3>Я нічого не міняв, а відповіді стали гіршими. Це поломка?</h3>
+
+          <p>
+            Найчастіше — ні. Документація радить перевірити чотири речі перш ніж вважати це
+            помилкою: чи ти на тій моделі, на якій думаєш (<code>/model</code>); чи не занижений
+            рівень зусиль (<code>/effort</code>); чи не переповнене вікно контексту
+            (<code>/context</code>, далі <code>/compact</code> або <code>/clear</code>); чи не
+            заважають застарілі інструкції у великому <code>CLAUDE.md</code>. Про моделі й рівень
+            зусиль — модуль 10, про вікно контексту — модуль 6.
+          </p>
+
+          <h3>Я не знайшов свою помилку в жодній таблиці. Що робити?</h3>
+
+          <p>
+            По-перше, це нормально — див. приклад із <code>deferred tool marker</code> у блоці 5.
+            По-друге, порядок дій такий: <code>claude doctor</code> із термінала, потім
+            <code>/doctor</code> в сесії, потім <code>--safe-mode</code>, потім порожня тека
+            конфігурації. Якщо після цього причина не знайшлась, у самій програмі є команда
+            <code>/feedback</code> — вона надсилає опис разом із транскриптом розмови. Є ще
+            публічний список відомих проблем у репозиторії
+            <code>github.com/anthropics/claude-code</code>.
+          </p>
+
+          <h3>Чи безпечно показувати комусь вивід <code>claude doctor</code>?</h3>
+
+          <p>
+            Здебільшого так: там версія, платформа, спосіб встановлення й шляхи до файлів. Але
+            шляхи можуть містити ім'я твого користувача в системі, а розділ
+            <code>Invalid settings</code> — назви твоїх проєктних папок. Перед публікацією варто
+            їх замінити (у цьому уроці саме так і зроблено, і про це сказано під кожним екраном).
+            А <code>claude auth status --text</code> показує електронну пошту — його не публікують
+            узагалі.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
+          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Цей модуль не додав тобі нових можливостей — він додав спосіб не втрачати вечори. Якщо
+            з нього залишиться одна звичка, хай це буде така: <strong>перш ніж лагодити, назви
+            шар</strong>. І друга, майже така сама важлива: <strong>перевіряй командою, а не
+            статтею</strong>.
+          </p>
+
+          <div class="callout callout-sand">
+            <span class="callout-title">Підсумок модуля</span>
+            <ul>
+              <li>Поломки бувають чотирьох шарів: встановлення й <code>PATH</code> · вхід в акаунт
+                · конфігурація · поведінка на ходу. Перші два питання коштують секунду:
+                <code>claude --version</code> і код виходу <code>claude auth status</code>.</li>
+              <li><code>claude doctor</code> читає стан установки й файли налаштувань поточної
+                папки, називає точну адресу поломки й пропонує виправлення. Але
+                <code>No installation issues found</code> стосується лише встановлення, а код
+                виходу в нього завжди <code>0</code> — читай текст.</li>
+              <li>Звуження навпіл: <code>claude --safe-mode</code> вимикає всі твої
+                налаштування (крім керованих організацією), <code>CLAUDE_CONFIG_DIR</code> на
+                порожню теку вимикає й самі файли. Ознака, що спрацювало, — екрани першого запуску.</li>
+              <li><code>--debug</code> і <code>--debug-file</code> показують, що програма робила
+                при старті: які файли шукала, що взяла під нагляд, скільки перехоплювачів
+                завантажила. Без файла журнал лягає в <code>~/.claude/debug/</code>.</li>
+              <li><code>--setting-sources user,project,local</code> завантажує лише названі
+                джерела налаштувань — ручне звуження, коли <code>--safe-mode</code> відрізає
+                забагато.</li>
+              <li><code>claude project purge</code> прибирає локальний стан проєкту без відкату.
+                Перший запуск — завжди з <code>--dry-run</code>.</li>
+              <li>Існування прапорця перевіряють пробою <code>--zzz-bogus</code> <strong>без</strong>
+                <code>--help</code>; наявність назви у збірці — через <code>strings … | grep -c</code>
+                з обов'язковою контрольною вигаданою назвою, яка мусить дати <code>0</code>.</li>
+              <li>Мертва порада небезпечна не тоді, коли падає, а тоді, коли не падає.
+                <code>claude config</code> не помиляється — вона їде моделі як завдання.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+
+          <p>
+            Далі — <strong>модуль 18 «MCP: зовнішні інструменти»</strong>: як підключити до Claude
+            Code браузер, базу даних чи трекер задач і що з цим підключенням може піти не так.
+            Діагностика там знадобиться одразу: команда <code>claude mcp list</code> має власний
+            розділ попереджень зі шляхом до файла конфігурації, а перевірка «чи живий сервер
+            узагалі» робиться одним запитом іззовні.
+          </p>
+
+          <p>
+            До того часу лишається одна корисна дрібниця. Коли наступного разу знайдеш у мережі
+            команду для Claude Code, витрать тридцять секунд: постав після прапорця
+            <code>--zzz-bogus</code>, а підкоманду пошукай у розділі <code>Commands:</code> виводу
+            <code>claude --help</code>. Ці тридцять секунд регулярно економлять годину.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють спосіб міркування, а не пам'ять
+            на назви прапорців: до кожної відповіді одразу з'являється пояснення, чому решта
+            варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Ти знайшов у блозі команду claude config set theme dark, набрав її в терміналі — і програма не поскаржилась. Що це доводить?",
+            "options": [
+              "Що підкоманда config існує у твоїй збірці",
+              "Нічого: слова config серед підкоманд немає, тому рядок поїхав моделі як звичайне завдання",
+              "Що тема успішно змінилась на темну",
+              "Що для зміни теми потрібні права адміністратора"
+            ],
+            "answer": 1,
+            "explain": "Відсутність помилки не є доказом. Claude Code розбирає перше слово як назву підкоманди, а коли такої немає і воно не схоже на жодну наявну — бере весь рядок за твій запит до моделі. Тому команда «спрацьовує», нічого не налаштовуючи. Тема при цьому не змінюється, а права адміністратора тут ні до чого. Правильний спосіб перевірки — знайти назву в розділі Commands: виводу claude --help, а не запускати навмання."
+          },
+          {
+            "q": "Ти хочеш дізнатись, чи розуміє саме твоя збірка прапорець --restricted. Який спосіб дає надійну відповідь?",
+            "options": [
+              "claude --restricted --help: якщо надрукувалась довідка, прапорець є",
+              "Прочитати опис прапорця в офіційній документації",
+              "claude --help | grep restricted: якщо не знайшлось, прапорця немає",
+              "claude --restricted --zzz-bogus і подивитись, чиє ім'я назве розбирач у помилці"
+            ],
+            "answer": 3,
+            "explain": "Розбирач називає перший невідомий йому прапорець, тому проба з навмисно неіснуючим сусідом дає однозначну відповідь. Варіант із --help не працює взагалі: --help перехоплює запуск раніше й глушить помилку про невідоме ім'я, тому довідка друкується завжди. Документація описує найновішу версію, а не твою. А пошук у виводі --help не доказ за прямим визнанням самої документації: «claude --help does not list every flag»."
+          },
+          {
+            "q": "claude doctor надрукував розділ Invalid settings із конкретною помилкою, нижче — No installation issues found, і вийшов із кодом 0. Скрипт складальника перевіряє тільки код виходу. Що станеться?",
+            "options": [
+              "Скрипт побачить 0, вирішить, що все гаразд, і поїде далі зі зламаними налаштуваннями",
+              "Скрипт побачить 1 і зупиниться на помилці",
+              "У claude doctor немає коду виходу, тому скрипт впаде",
+              "Код 0 означає, що помилок налаштувань точно немає"
+            ],
+            "answer": 0,
+            "explain": "Перевірено наживо на 2.1.236: claude doctor виходить із кодом 0 і в чистій папці, і в папці зі зламаним файлом налаштувань. Тому кодом виходу цю команду в скрипті не перевіряють — читають її текст. Рядок No installation issues found теж не рятує: він стосується лише розділу встановлення, а помилки налаштувань живуть в іншому розділі того самого виводу."
+          },
+          {
+            "q": "Ти запустив claude --safe-mode — і проблема лишилась така сама. Який висновок правильний?",
+            "options": [
+              "Треба видалити теку ~/.claude і почати з чистого аркуша",
+              "Це помилка самої програми, лишається лише писати в підтримку",
+              "Причина не серед твоїх власних налаштувань: лишаються керовані налаштування організації, змінні середовища й сама збірка",
+              "Треба перевстановити Claude Code"
+            ],
+            "answer": 2,
+            "explain": "Безпечний режим вимикає твої налаштування, але документація прямо каже, що керовані хуки й політику налаштувань організації він лишає чинними. Тому «не допомогло» означає лише «причина зовні твоїх файлів» — і наступний крок відомий: порожня тека CLAUDE_CONFIG_DIR і запуск із папки без .claude, .mcp.json і CLAUDE.md. Видаляти теку чи переставляти програму на цьому кроці зарано: ти ще не знаєш, що саме ламається, і втратиш стан без користі."
+          },
+          {
+            "q": "Claude Code запускається, версію друкує, вхід є. Але перехоплювач події, який ти прописав у .claude/settings.json, не спрацьовує. З чого почати?",
+            "options": [
+              "Перевстановити Claude Code найновішої версії",
+              "Це шар конфігурації: claude doctor покаже, чи файл узагалі прочитано, а /hooks у сесії — чи зареєстровано перехоплювач",
+              "Відкрити сторінку про встановлення й перевірити PATH",
+              "Написати в підтримку, бо перехоплювачі подій ненадійні"
+            ],
+            "answer": 1,
+            "explain": "Перші два питання драбини вже мають відповідь «так» — програма знайдена й вхід є, отже шари встановлення й входу відпадають, і PATH перевіряти нема потреби. Симптом «моє налаштування не діє» — це рівно шар конфігурації, і в нього своя пара інструментів. Найчастіша причина саме тут: поле matcher записане списком замість рядка, і тоді claude doctor називає адресу помилки з точністю до поля."
+          },
+          {
+            "q": "Ти вирішив прибрати весь локальний стан одного проєкту, бо підозрюєш, що дивна поведінка тягнеться зі старих транскриптів. Який перший запуск правильний?",
+            "options": [
+              "claude project purge ~/мій-проєкт --yes",
+              "claude project purge --all",
+              "rm -rf ~/.claude",
+              "claude project purge ~/мій-проєкт --dry-run"
+            ],
+            "answer": 3,
+            "explain": "Прогін із --dry-run друкує план видалення й не чіпає нічого: ти бачиш, які саме теки підуть, перш ніж щось зникне. Варіант із --yes прибирає підтвердження, тобто робить видалення одразу; --all робить те саме для всіх проєктів одночасно. А ручне видалення ~/.claude забирає ще й вхід в акаунт, налаштування й плагіни — документація просить окремо: не видаляй ~/.claude.json, ~/.claude/settings.json і ~/.claude/plugins/. Відкату в жодного з цих варіантів немає."
+          }
+        ]
+      }
+      </script>
+
+      <div class="max-w-3xl">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
+            <p class="mt-1 text-sm text-muted">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="mt-16 border-t border-line/60">
+    <!-- D-03: вхід у три довідники з будь-якого уроку. Підписи живуть у
+         claude-code.config.json → site.ref* і підставляються через data-site
+         (js/config.js, fillStatic); текст у розмітці — той самий рядок, як
+         запасний варіант, коли конфіг не приїхав. Той самий прийом, що вже
+         стоїть на data-site="name" і data-site="shortName" у шапці. -->
+    <nav aria-label="Довідники курсу"
+      class="mx-auto flex max-w-[88rem] flex-wrap items-center gap-x-6 gap-y-1 border-b border-line/60 px-5 py-4 sm:px-8">
+      <span class="font-mono text-xs uppercase tracking-[0.14em] text-faint" data-site="refsLabel">Довідники</span>
+      <a href="../claude-code-ref-commands.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refCommands">Усі команди й клавіші</a>
+      <a href="../claude-code-ref-hooks.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refHooks">Таблиця подій</a>
+      <a href="../claude-code-ref-settings.html"
+        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refSettings">Ключі settings.json</a>
+    </nav>
+    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
+      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>

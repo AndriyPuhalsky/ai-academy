@@ -2,7 +2,7 @@
    AI Академія — поведінка інтерфейсу головної сторінки:
    1) стрімінг hero-заголовка «токен за токеном» (фішка сайту:
       жива демонстрація того, як LLM генерує текст);
-   2) мобільне меню;
+   2) мобільне меню + випадаючий список «Курси» в десктопній шапці;
    3) плавна поява блоків при скролі;
    4) копіювання реквізитів у буфер обміну.
    Усе поважає prefers-reduced-motion.
@@ -97,6 +97,65 @@
     });
   }
 
+  /* ---------- 2bis. Випадаючий список «Курси» (десктопна шапка) ----------
+     Задача 005 / handoff 2026-09-03. Свідомо той самий механізм, що в
+     initMenu вище: кнопка з aria-expanded + клас `hidden` на панелі +
+     Escape. Другого способу відкривати меню на сторінці бути не має.
+
+     Три відмінності від мобільного меню, і кожна має причину:
+       · закриття по кліку ПОЗА панеллю — випадайка накриває контент,
+         мобільне меню штовхає його вниз, тому там це не потрібне;
+       · Escape повертає фокус на кнопку (WCAG 2.4.3): інакше після
+         закриття Tab продовжив би з кінця документа;
+       · на мобілці панель не потрібна взагалі — там ті самі три курси
+         лежать розгорнутим списком у #mobileMenu, тому кнопка схована
+         класом `hidden sm:flex` і цей код для неї просто не спрацьовує.
+
+     Руху в розкритті немає — тому й вимикати за prefers-reduced-motion
+     нічого. Це свідомо: панель на 3 рядки, будь-яка анімація тут була б
+     затримкою, а не сенсом. */
+
+  function initCourses() {
+    var btn = document.getElementById("coursesBtn");
+    var panel = document.getElementById("coursesMenu");
+    if (!btn || !panel) return;
+
+    function isOpen() { return !panel.classList.contains("hidden"); }
+
+    function close(focusBack) {
+      if (!isOpen()) return;
+      panel.classList.add("hidden");
+      btn.setAttribute("aria-expanded", "false");
+      if (focusBack) btn.focus();
+    }
+
+    btn.addEventListener("click", function () {
+      var open = !panel.classList.toggle("hidden");
+      btn.setAttribute("aria-expanded", String(open));
+    });
+
+    panel.addEventListener("click", function (e) {
+      if (e.target.closest("a")) close(false);
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") close(true);
+    });
+
+    document.addEventListener("click", function (e) {
+      if (!isOpen()) return;
+      if (e.target.closest("#coursesMenu") || e.target.closest("#coursesBtn")) return;
+      close(false);
+    });
+
+    // Фокус пішов з панелі й з кнопки (Tab уперед) — панель закривається.
+    document.addEventListener("focusin", function (e) {
+      if (!isOpen()) return;
+      if (e.target.closest("#coursesMenu") || e.target === btn) return;
+      close(false);
+    });
+  }
+
   /* ---------- 3. Поява блоків при скролі ---------- */
 
   var observer = null;
@@ -181,6 +240,7 @@
 
   document.addEventListener("DOMContentLoaded", function () {
     initMenu();
+    initCourses();
     initCopyButtons();
     bindReveals();   // статичні блоки
     streamHero();
@@ -190,4 +250,71 @@
   // завантаження config.json — підв'язуємо їх до спостерігача теж.
   document.addEventListener("aia:config-ready", bindReveals);
   document.addEventListener("aia:config-failed", bindReveals);
+})();
+
+
+/* ============================================================
+   ПОВЕДІНКА КОМПОНЕНТА «ТЕРМІНАЛ»
+   ------------------------------------------------------------
+   Тут НЕМАЄ анімації: рух лендінга живе в частині A, а на сторінках
+   уроків руху в терміналі немає взагалі.
+
+   Дві поведінки:
+     1. .term__copy — копіює ТІЛЬКИ введений текст (без префіксів
+        `$` / `>` і без виводу). Копіювати сесію разом із кроками
+        інструментів безглуздо, тому кнопка є лише в .term--cmd.
+     2. .term__more — розгортає стан 8 «довгий вивід». Без анімації
+        свідомо: анімувати height у блоці на 243 рядки = layout
+        thrashing без жодної користі.
+
+   ⚠ Слухач делегований на document, тому працює і для блоків, які
+   з'являться пізніше (рядки термінала народжуються після fetch конфіга).
+
+   Переїхало сюди з js/claude-code-motion.js 2026-09-04: той файл тягне
+   GSAP і потрібен лише лендінгу, а ця поведінка потрібна ще й усім
+   23 сторінкам модулів. ui.js підключений і там, і там.
+   Вимога до розмітки: #ariaLive на сторінці (є і на лендінгу, і в уроках).
+   ============================================================ */
+(function () {
+  "use strict";
+
+  function announce(msg) {
+    var live = document.getElementById("ariaLive");
+    if (!live) return;
+    live.textContent = "";
+    window.setTimeout(function () { live.textContent = msg; }, 30);
+  }
+
+  document.addEventListener("click", function (e) {
+    /* ---------- копіювання ---------- */
+    var copy = e.target.closest ? e.target.closest(".term__copy") : null;
+    if (copy) {
+      var block = copy.closest(".term");
+      var ins = block ? block.querySelectorAll(".term__body .term__in") : [];
+      var text = Array.prototype.map.call(ins, function (el) { return el.textContent; }).join("\n");
+      var ok = copy.getAttribute("data-ok") || "Скопійовано";
+      var fail = copy.getAttribute("data-fail") || "Не вдалося скопіювати";
+      var label = copy.textContent;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          copy.textContent = ok;
+          announce(ok);
+          window.setTimeout(function () { copy.textContent = label; }, 1600);
+        }).catch(function () { announce(fail); });
+      } else {
+        announce(fail);
+      }
+      return;
+    }
+
+    /* ---------- «показати все» ---------- */
+    var more = e.target.closest ? e.target.closest(".term__more") : null;
+    if (more) {
+      var term = more.closest(".term");
+      var open = term.classList.toggle("is-open");
+      more.setAttribute("aria-expanded", open ? "true" : "false");
+      var l = more.getAttribute(open ? "data-label-open" : "data-label-closed");
+      if (l) more.textContent = l;
+    }
+  });
 })();
