@@ -224,6 +224,14 @@ html {
   border-radius: 6px;
   padding: 0.1em 0.4em;
   color: #E8DCC3;
+  /* D-01, коло фіксів 005: інлайновий <code> часто несе нерозривний рядок
+     (`permissions.blockReadsOutsideWorkingDirectories`, шлях із двокрапками,
+     `CLAUDE_CODE_...=1`). На 390 px такий рядок розпирав сторінку до 613 px —
+     горизонтальний скрол їхав разом із липкою шапкою. `anywhere`, а не
+     `break-word`: у `.prose-aia ul` списки — grid, а їхній автоматичний
+     мінімум рахується по min-content, який зменшує тільки `anywhere`.
+     Блоки коду це не зачіпає — див. `.prose-aia pre code` нижче. */
+  overflow-wrap: anywhere;
 }
 .prose-aia table {
   width: 100%;
@@ -512,6 +520,10 @@ a.mnav:hover .mnav-label { color: #D97757; }
   display: block;
   width: 100%;
   text-align: left;
+  /* D-01: варіант відповіді приходить з JSON суцільним рядком
+     (`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`). `.quiz-opts` — grid, тож
+     найдовше слово ставало мінімумом колонки й розпирало сторінку. */
+  overflow-wrap: anywhere;
   border: 1px solid #3A342E;
   background: #141312;
   border-radius: 0.6rem;
@@ -645,6 +657,10 @@ a.mnav:hover .mnav-label { color: #D97757; }
   padding: 0;
   font-size: inherit;
   color: inherit;
+  /* Явно повертаємо `normal`: блок коду має власний `overflow-x: auto`
+     (р. вище), і рвати в ньому рядки означало б зламати 181 блок
+     `<pre><code>` в AI Академії та AI Architect. */
+  overflow-wrap: normal;
 }
 
 
