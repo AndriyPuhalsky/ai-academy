@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="uk" class="scroll-smooth" data-config="claude-code.config.json">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Термінал</title>
+<meta name="theme-color" content="#141312" />
+<script>document.documentElement.classList.add("js");</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<!-- ⚠ ДОДАНО ВАЛІДАТОРОМ. Критерій приймання 1 («сесія доходить до діалогу
+     за ≤6 с від завантаження») міряється від navigationStart, а хореографія
+     стартує аж після ДВОХ мережевих подій: приїхав GSAP з CDN і приїхав
+     конфіг. На localhost цей розрив — 0.21 с, на холодному мобільному
+     зʼєднанні він легко 1–2 с, і тоді 4.9 с таймлайну перетворюються на 6.9.
+     Два рядки нижче знімають рівно цей ризик; заміряти на dev-превʼю. -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link rel="preload" href="claude-code.config.json" as="fetch" type="application/json" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<!-- Порядок підключення = порядок зон при перенесенні в код:
+     tokens → успадковане з custom.css → компонент → сторінка. -->
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="site-inherited.css" />
+<link rel="stylesheet" href="term.css" />
+<link rel="stylesheet" href="page.css" />
+</head>
+
+<body id="top">
+
+<a href="#main" class="skip-link">Перейти до вмісту</a>
+<div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+<noscript>
+  <div style="border-bottom:1px solid rgba(217,119,87,.4);background:rgba(217,119,87,.1);padding:12px 20px;text-align:center;font-size:14px;color:#E8DCC3">
+    Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+  </div>
+</noscript>
+
+<div id="announcement" hidden style="border-bottom:1px solid rgba(217,119,87,.3);background:rgba(217,119,87,.1)"></div>
+
+<!-- ШАПКА · репліка architect.html. У коді береться його розмітка
+     з утилітами Tailwind; збережені id: #aiaAuth, #navProgress. -->
+<header class="cc-shell">
+  <div class="cc-shell__bar">
+    <a class="cc-shell__brand" href="#top">
+      <span class="cc-shell__mark" data-site="shortName"></span>
+      <span class="cc-shell__name" data-site="name"></span>
+    </a>
+    <nav class="cc-shell__nav" aria-label="Головна навігація"></nav>
+    <div class="cc-shell__slot">
+      <div id="aiaAuth" class="slot"></div>
+      <span id="navProgress" hidden></span>
+    </div>
+  </div>
+</header>
+
+<div id="configError" hidden style="border-bottom:1px solid rgba(217,119,87,.4);background:rgba(217,119,87,.1)">
+  <div class="cc-wrap" style="padding-block:12px;font-family:var(--f-mono);font-size:14px;color:#E8DCC3">
+    ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий макет через локальний
+    сервер: <code style="color:#D97757">python3 -m http.server 8000</code>
+  </div>
+</div>
+
+<main id="main">
+
+  <!-- ============================================================
+       ВІСЬ СТОРІНКИ. Одна пряма лінія від hero до вузла іспиту:
+       вона й тримає композицію, і є носієм M9.
+       ============================================================ -->
+  <div class="cc-path">
+    <div class="cc-path__line" aria-hidden="true">
+      <i class="cc-path__rest"></i>
+      <i class="cc-path__lit"></i>
+    </div>
+
+    <!-- ---------------- HERO ---------------- -->
+    <section class="cc-hero cc-wrap" aria-labelledby="heroTitle">
+      <div class="cc-hero__grid">
+        <div class="cc-hero__head">
+          <div class="cc-grid">
+            <div class="cc-grid__rail"></div>
+            <div class="cc-grid__body">
+              <h1 class="cc-hero__title" id="heroTitle"></h1>
+            </div>
+          </div>
+        </div>
+
+        <div class="cc-hero__body">
+          <div class="cc-grid">
+            <div class="cc-grid__rail"></div>
+            <div class="cc-grid__body">
+              <p class="cc-hero__lead" id="heroLead"></p>
+              <div class="cc-hero__cta">
+                <a class="cc-btn cc-btn--primary" id="ctaStart" href="#"></a>
+                <a class="cc-btn cc-btn--ghost" id="ctaMap" href="#map"></a>
+              </div>
+              <p class="cc-hero__explain"><span id="heroExplainText"></span></p>
+              <p class="cc-hero__stats" id="heroStats"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Предмет на столі. Плита — єдиний об'єм на сторінці. -->
+        <div class="cc-hero__object is-reserved">
+          <div class="cc-desk">
+            <figure class="term term--hero" id="heroTerm">
+              <figcaption class="term__chrome">
+                <span class="term__dots" aria-hidden="true"></span>
+                <span class="term__title" id="heroChrome"></span>
+              </figcaption>
+              <pre class="term__body" id="heroBody" tabindex="0" role="group" aria-labelledby="heroChrome"></pre>
+            </figure>
+            <div class="cc-desk__foot">
+              <span id="heroHint"></span>
+              <button type="button" id="heroReplay" class="cc-btn cc-btn--quiet">
+                <span aria-hidden="true">↻</span><span id="heroReplayLabel"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------- ДЛЯ КОГО ---------------- -->
+    <section class="cc-section cc-wrap cc-in" aria-labelledby="audTitle">
+      <div class="cc-grid">
+        <div class="cc-grid__rail"></div>
+        <div class="cc-grid__body">
+          <h2 class="cc-h2" id="audTitle"></h2>
+          <p class="cc-lead" id="audLead"></p>
+          <div class="cc-split" style="margin-top:var(--s-10)">
+            <div>
+              <h3 class="cc-split__head" id="audForTitle"></h3>
+              <ul class="cc-list cc-list--for" id="audFor"></ul>
+            </div>
+            <div>
+              <h3 class="cc-split__head" id="audNotTitle"></h3>
+              <ul class="cc-list cc-list--not" id="audNot"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------- ЧОГО НАВЧИШСЯ ---------------- -->
+    <section class="cc-section cc-wrap cc-in" aria-labelledby="outTitle">
+      <div class="cc-grid">
+        <div class="cc-grid__rail"></div>
+        <div class="cc-grid__body">
+          <h2 class="cc-h2" id="outTitle"></h2>
+          <p class="cc-lead" id="outLead"></p>
+          <ul class="cc-out" id="outList"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------- КАРТА ПРОГРАМИ ---------------- -->
+    <section class="cc-section cc-wrap" id="map" aria-labelledby="mapTitle">
+      <div class="cc-grid cc-in">
+        <div class="cc-grid__rail"></div>
+        <div class="cc-grid__body">
+          <h2 class="cc-h2" id="mapTitle"></h2>
+          <p class="cc-lead" id="mapLead"></p>
+        </div>
+      </div>
+      <ol class="cc-map__reserve" id="ccMap"></ol>
+      <div class="cc-exam cc-grid" id="ccExam"></div>
+    </section>
+  </div><!-- /.cc-path -->
+
+  <!-- ---------------- ПОЛИЦЯ · ДОВІДНИКИ ---------------- -->
+  <section class="cc-section cc-wrap cc-in" id="refs" aria-labelledby="refTitle">
+    <div class="cc-grid">
+      <div class="cc-grid__rail"></div>
+      <div class="cc-grid__body">
+        <h2 class="cc-h2" id="refTitle"></h2>
+        <p class="cc-lead" id="refLead"></p>
+        <div class="cc-shelf__line" aria-hidden="true"></div>
+        <ul class="cc-shelf__items" id="refList"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------------- ЯК ВЛАШТОВАНИЙ УРОК ---------------- -->
+  <section class="cc-section cc-wrap cc-in" aria-labelledby="shapeTitle">
+    <div class="cc-grid">
+      <div class="cc-grid__rail"></div>
+      <div class="cc-grid__body">
+        <h2 class="cc-h2" id="shapeTitle"></h2>
+        <p class="cc-lead" id="shapeLead"></p>
+        <ol class="cc-steps" id="shapeSteps"></ol>
+        <p class="cc-note" id="shapeNote"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------------- СЕРТИФІКАТ ---------------- -->
+  <section class="cc-section cc-wrap cc-in" aria-labelledby="certTitle">
+    <div class="cc-grid">
+      <div class="cc-grid__rail"></div>
+      <div class="cc-grid__body">
+        <div class="cc-cert">
+          <div>
+            <h2 class="cc-h2" id="certTitle"></h2>
+            <p class="cc-lead" id="certLead"></p>
+            <p class="cc-note" id="certNote"></p>
+          </div>
+          <div class="cc-paper">
+            <p class="cc-paper__kind" id="certKind"></p>
+            <p class="cc-paper__name" id="certName"></p>
+            <div class="cc-paper__rule" aria-hidden="true"></div>
+            <p class="cc-paper__course" id="certCourse"></p>
+            <p class="cc-paper__code" id="certCode"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------------- ДОНАТИ ---------------- -->
+  <section class="cc-section cc-wrap cc-in" id="donate" aria-labelledby="donateTitle">
+    <div class="cc-grid">
+      <div class="cc-grid__rail"></div>
+      <div class="cc-grid__body">
+        <h2 class="cc-h2" id="donateTitle"></h2>
+        <p class="cc-lead" id="donateLead"></p>
+        <ul class="cc-donate" id="donateGrid"></ul>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ФУТЕР · репліка architect.html -->
+<footer class="cc-foot">
+  <div class="cc-foot__grid">
+    <div>
+      <p class="cc-foot__title" data-site="name"></p>
+      <p class="cc-foot__note" data-site="disclaimer"></p>
+    </div>
+    <nav aria-label="Посилання проєкту">
+      <p class="cc-foot__head" id="footProject"></p>
+      <ul class="cc-foot__list" id="footLinks"></ul>
+    </nav>
+    <nav aria-label="Першоджерела">
+      <p class="cc-foot__head" id="footSources"></p>
+      <ul class="cc-foot__list" id="footSourceLinks"></ul>
+    </nav>
+  </div>
+  <div class="cc-foot__meta">
+    <div class="cc-foot__metaIn">
+      <span id="footerMeta"></span>
+      <span><span id="footMade"></span> · <a href="#top" id="footTop"></a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/CustomEase.min.js"></script>
+<script src="render.js"></script>
+<script src="term.js"></script>
+<script src="motion.js"></script>
+</body>
+</html>

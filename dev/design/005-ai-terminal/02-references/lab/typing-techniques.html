@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="uk"><head><meta charset="utf-8"><title>Лабораторія: друк без посимвольної вставки</title>
+<style>
+:root{
+  --canvas:#0d0c0b; --chrome:#272320; --text:#CFC9BF; --in:#E8DCC3; --tool:#D97757; --meta:#A8A095;
+  --ok:#7FA87F; --err:#C97070;
+  --fs:0.845rem; --lh:1.66; --cps:32;
+}
+body{background:#141312;color:var(--text);font:16px/1.6 -apple-system,system-ui,sans-serif;margin:0;padding:32px 40px;}
+h1{font-size:20px;color:var(--in);font-weight:600}
+h2{font-size:15px;color:var(--tool);margin:32px 0 8px;font-weight:600}
+p{max-width:70ch;color:var(--meta);font-size:14px}
+.term{background:var(--canvas);border-radius:8px;overflow:hidden;max-width:640px;margin:12px 0}
+.term__head{background:var(--chrome);padding:.42rem .8rem;font-size:12px;color:var(--meta);font-family:ui-monospace,monospace}
+pre.term__body{margin:0;padding:.85rem 1rem;font-family:ui-monospace,"SF Mono",Menlo,monospace;
+  font-size:var(--fs);line-height:var(--lh);color:var(--text);white-space:pre;overflow-x:auto}
+.term__line{display:inline-block}
+.term__meta{color:var(--meta)} .term__in{color:var(--in)} .term__tool{color:var(--tool)}
+.term__add{color:var(--ok)} .term__del{color:var(--err)}
+
+/* --- Прийом 1: clip-path inset + steps(N) по символах --------------- */
+@property --rev { syntax:'<percentage>'; inherits:true; initial-value:0%; }
+.t1 .term__line{ clip-path: inset(0 calc(100% - var(--rev)) 0 0); }
+.t1.run .term__line{ animation: revStep var(--d) steps(var(--n), end) var(--delay) forwards; }
+@keyframes revStep{ from{--rev:0%} to{--rev:100%} }
+
+/* --- Прийом 2: clip-path inset + linear (плавний змив) -------------- */
+.t2 .term__line{ clip-path: inset(0 calc(100% - var(--rev)) 0 0); }
+.t2.run .term__line{ animation: revStep var(--d) linear var(--delay) forwards; }
+
+/* --- Прийом 3: mask-position з великою маскою ----------------------- */
+.t3 .term__line{
+  -webkit-mask-image:linear-gradient(90deg,#000 0 33.333%,transparent 66.666% 100%);
+  mask-image:linear-gradient(90deg,#000 0 33.333%,transparent 66.666% 100%);
+  -webkit-mask-size:300% 100%; mask-size:300% 100%;
+  -webkit-mask-position:100% 0; mask-position:100% 0;
+}
+.t3.run .term__line{ animation: maskMove var(--d) linear var(--delay) forwards; }
+@keyframes maskMove{ from{ -webkit-mask-position:100% 0; mask-position:100% 0 } to{ -webkit-mask-position:0% 0; mask-position:0% 0 } }
+
+/* --- Прийом 4 (для порівняння, ЗАБОРОНЕНИЙ): width + steps ---------- */
+.t4 .term__line{ display:inline-block; overflow:hidden; white-space:pre; width:0 }
+.t4.run .term__line{ animation: w var(--d) steps(var(--n),end) var(--delay) forwards }
+@keyframes w{ to{ width: calc(var(--n) * 1ch) } }
+
+/* --- Прийом 1b: каретка, синхронна з кліпом (та сама змінна --rev) --- */
+.t1b .term__line{ position:relative; clip-path: inset(0 calc(100% - var(--rev)) 0 0); }
+.t1b .term__line::after{ content:''; position:absolute; top:.1em; left:calc(var(--rev) - .55ch);
+  width:.5ch; height:1em; background:var(--in); }
+.t1b.run .term__line{ animation: revStep var(--d) steps(var(--n), end) var(--delay) forwards; }
+
+/* --- Прийом 1c: ПРАВИЛЬНА каретка — поза кліпнутим елементом ------- */
+.t1c .term__line{ position:relative; display:inline-block }
+.t1c .term__clip{ display:inline-block; clip-path: inset(0 calc(100% - var(--rev)) 0 0) }
+.t1c .term__line::after{ content:''; position:absolute; top:.15em; left:var(--rev);
+  width:.55ch; height:1.05em; background:var(--in); transform:translateX(-.05ch) }
+.t1c.run .term__line{ animation: revStep var(--d) steps(var(--n), end) var(--delay) forwards }
+.t1c.run .term__line.done::after{ display:none }
+
+/* каретка */
+.caret{display:inline-block;width:.5ch;height:1em;background:var(--in);vertical-align:-.15em;
+  animation:blink 1050ms steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+button{background:var(--tool);color:#fff;border:0;border-radius:8px;padding:8px 16px;font:inherit;font-size:14px;cursor:pointer}
+code{color:var(--in);font-family:ui-monospace,monospace;font-size:.9em}
+.meas{font-family:ui-monospace,monospace;font-size:12px;color:var(--ok);white-space:pre}
+@media (prefers-reduced-motion: reduce){
+  .term__line{clip-path:none !important;-webkit-mask-image:none !important;mask-image:none !important;width:auto !important;animation:none !important}
+  .caret{animation:none}
+}
+</style></head><body>
+<h1>Лабораторія 005 · чотири способи «надрукувати» рядок</h1>
+<p>Текст у DOM з першого кадру в усіх чотирьох. Різниця — чим саме його ховають і що це коштує.
+Кнопка перезапускає всі чотири одночасно, щоб різницю було видно в одному кадрі.</p>
+<p><button id="go">▶ програти ще раз</button></p>
+
+<h2>1 · clip-path: inset() + steps(N) — посимвольні кроки, нуль layout</h2>
+<p>N = кількість символів рядка. Моноширинний шрифт робить кожен крок рівно одним символом.
+Це і є «друк», а не «змив».</p>
+<div class="term"><div class="term__head">clip-path + steps</div>
+<pre class="term__body t1" id="b1"><span class="term__line" style="--n:24;--d:.75s;--delay:0s"><span class="term__meta">$</span> <span class="term__in">claude</span></span>
+<span class="term__line" style="--n:52;--d:1.62s;--delay:.8s"><span class="term__in">&gt; додай у README розділ про запуск</span></span>
+<span class="term__line" style="--n:40;--d:1.25s;--delay:2.5s"><span class="term__tool">⏺</span> <span class="term__meta">Read(README.md)</span></span></pre></div>
+
+<h2>1b · та сама змінна веде і кліп, і каретку — каретка не відстає</h2>
+<p><code>::after</code> позиціонується через <code>left: calc(var(--rev) - .55ch)</code>. Одна анімація,
+два наслідки: жодної синхронізації в JS. <b>Увага:</b> <code>::after</code> тут не є текстом
+(<code>content:''</code>), тому в буфер не потрапляє — це дозволено §7.2, заборонений лише
+<code>content:</code> з <i>текстом</i>.</p>
+<div class="term"><div class="term__head">clip-path + steps + синхронна каретка</div>
+<pre class="term__body t1b" id="b1b"><span class="term__line" style="--n:24;--d:.75s;--delay:0s"><span class="term__meta">$</span> <span class="term__in">claude</span></span>
+<span class="term__line" style="--n:52;--d:1.62s;--delay:.8s"><span class="term__in">&gt; додай у README розділ про запуск</span></span></pre></div>
+
+<h2>1c · каретка ЗЗОВНІ кліпу — інакше кліп зʼїдає й саму каретку</h2>
+<p><b>Друга виміряна пастка:</b> <code>@property --rev { inherits: false }</code> ламає і цю схему, і каретку-псевдоелемент: ні дочірній <code>.term__clip</code>, ні <code>::after</code> не бачать анімованого значення й читають <code>initial-value: 0%</code>. Має бути <code>inherits: true</code>. <br><b>Перша виміряна пастка:</b> у варіанті 1b каретка була <code>::after</code> на тому самому елементі,
+що має <code>clip-path</code> — і кліп обрізав її разом із текстом, тому її не видно ніколи.
+Робоча схема: <code>.term__line</code> (position:relative, несе анімацію <code>--rev</code>) →
+всередині <code>.term__clip</code> (несе сам <code>clip-path</code>) → каретка як
+<code>::after</code> на зовнішньому елементі, <code>left: var(--rev)</code>.</p>
+<div class="term"><div class="term__head">clip-path + steps + каретка на зовнішньому шарі</div>
+<pre class="term__body t1c" id="b1c"><span class="term__line" style="--n:24;--d:.75s;--delay:0s"><span class="term__clip"><span class="term__meta">$</span> <span class="term__in">claude</span></span></span>
+<span class="term__line" style="--n:52;--d:1.62s;--delay:.8s"><span class="term__clip"><span class="term__in">&gt; додай у README розділ про запуск</span></span></span></pre></div>
+
+<h2>2 · clip-path: inset() + linear — той самий прийом, плавний край</h2>
+<div class="term"><div class="term__head">clip-path + linear</div>
+<pre class="term__body t2" id="b2"><span class="term__line" style="--n:24;--d:.75s;--delay:0s"><span class="term__meta">$</span> <span class="term__in">claude</span></span>
+<span class="term__line" style="--n:52;--d:1.62s;--delay:.8s"><span class="term__in">&gt; додай у README розділ про запуск</span></span></pre></div>
+
+<h2>3 · mask-position (маска 300%) — м'який край, кольори спанів живі</h2>
+<div class="term"><div class="term__head">mask-position</div>
+<pre class="term__body t3" id="b3"><span class="term__line" style="--d:.75s;--delay:0s"><span class="term__meta">$</span> <span class="term__in">claude</span></span>
+<span class="term__line" style="--d:1.62s;--delay:.8s"><span class="term__in">&gt; додай у README розділ про запуск</span></span></pre></div>
+
+<h2>4 · width + steps — ЗАБОРОНЕНО (layout кожен кадр)</h2>
+<div class="term"><div class="term__head">width + steps · для порівняння</div>
+<pre class="term__body t4" id="b4"><span class="term__line" style="--n:24;--d:.75s;--delay:0s"><span class="term__meta">$</span> <span class="term__in">claude</span></span>
+<span class="term__line" style="--n:52;--d:1.62s;--delay:.8s"><span class="term__in">&gt; додай у README розділ про запуск</span></span></pre></div>
+
+<h2>Вимірювання</h2>
+<pre class="meas" id="out">натисни «програти ще раз»</pre>
+
+<script>
+const boxes=[...document.querySelectorAll('.term__body')];
+function run(){boxes.forEach(b=>{b.classList.remove('run');void b.offsetWidth;b.classList.add('run')})}
+document.getElementById('go').onclick=run; run();
+// вимірювання: чи однаковий текст у буфері (innerText) і чи не змінюється ширина рядка
+setTimeout(()=>{
+  const rows=boxes.map(b=>{
+    const l=b.querySelector('.term__line');
+    return b.id+'  ширина 1-го рядка: '+l.getBoundingClientRect().width.toFixed(1)+'px  ·  innerText: '+JSON.stringify(b.innerText.split('\n')[0]);
+  });
+  document.getElementById('out').textContent=rows.join('\n');
+},120);
+</script>
+</body></html>

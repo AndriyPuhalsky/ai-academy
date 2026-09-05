@@ -1,0 +1,312 @@
+/* ============================================================
+   005 · КОМПОНЕНТ «ТЕРМІНАЛ» (.term) — потік Б
+   → їде в css/custom.css, власною секцією.
+   ------------------------------------------------------------
+   ⚠ ІМЕНУВАННЯ: префікс `term-` зарезервовано за цим компонентом.
+     Для глосарію / словника термінів брати інший префікс.
+
+   Розмітка одного блока — канонічна форма, від неї не відходити:
+
+   <figure class="term" id="t1">
+     <figcaption class="term__chrome">
+       <span class="term__dots" aria-hidden="true"></span>
+       <span class="term__title" id="t1-t">demo-repo — claude</span>
+       <button class="term__copy" type="button">Копіювати</button>   ← лише .term--cmd
+     </figcaption>
+     <pre class="term__body" tabindex="0" role="group" aria-labelledby="t1-t">
+<span class="term__line">…</span>
+<span class="term__line">…</span></pre>
+     <div class="term__status">…</div>                               ← лише де потрібно
+   </figure>
+
+   ТРИ ПРАВИЛА РОЗМІТКИ, ЯКІ НЕ МОЖНА ПОРУШУВАТИ:
+
+   1. `.term__line` — inline-block. Символи `\n` лишаються в потоці
+      <pre> ПОЗА обгортками. Інакше копіювання дає подвоєні переноси.
+   2. Ніякого `.sr-only` і ніякого `content:` з текстом усередині
+      <pre>: і те, і те потрапляє (або не потрапляє) в буфер обміну
+      не так, як видно на екрані.
+   3. Маркери `⏺` / `└─` / `❯` — окремі елементи `.term__mark` з
+      ФІКСОВАНОЮ шириною колонки. Пробіл після маркера лишається
+      справжнім символом у потоці, а не шириною коробки — саме тому
+      скопійований текст збігається з видимим.
+      `⏺` і `└─` закриваються aria-hidden; `❯`, `$`, `>`, `+`, `−` — ні.
+   ============================================================ */
+
+/* ---------- Б1. Блок ---------- */
+.term {
+  margin: var(--term-gap) 0;
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--term-radius);
+  background: var(--c-term-canvas);
+  overflow: hidden;                 /* тримає скрол ВСЕРЕДИНІ блока */
+  min-width: 0;                     /* без цього flex/grid-предок розсуне сторінку */
+}
+.term:first-child { margin-top: 0; }
+.term:last-child  { margin-bottom: 0; }
+
+/* ---------- Б2. Шапка ---------- */
+.term__chrome {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--term-chrome-py) var(--term-chrome-px);
+  background: var(--c-term-chrome);
+  border-bottom: var(--bw) solid var(--c-line);
+  font-family: var(--f-mono);
+  font-size: var(--term-fs-sm);
+  line-height: 1.4;
+  color: var(--c-term-meta);        /* 6.03 на --c-raised */
+}
+/* Три кружечки. Псевдоелемент, тому скрін-рідер його й так не бачить,
+   але aria-hidden на носії ставимо явно — це вимога Б-8. */
+.term__dots {
+  flex: 0 0 auto;
+  width: var(--term-dot-size);
+  height: var(--term-dot-size);
+  border-radius: var(--r-pill);
+  background: var(--c-term-dot);
+  box-shadow: 12px 0 0 var(--c-term-dot), 24px 0 0 var(--c-term-dot);
+  margin-right: calc(24px + var(--s-1));
+}
+.term__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Б3. Полотно ----------
+   СПЕЦИФІЧНІСТЬ (0,2,0) — це не стиль, це вимога §4.9 спеки.
+   `.prose-aia pre` = (0,1,1) і всередині уроку виграв би в `.term__body`
+   (0,1,0): він накидає другу рамку, другий фон і — головне — підміняє
+   `white-space: pre` на `pre-wrap`, від чого колонки дифу, дерева й
+   /-меню розсипаються. Тому нижче ЯВНО скинуті всі сім успадкованих
+   властивостей: margin, border, background, border-radius, padding,
+   white-space, word-break. Прибрати `.term >` = зламати 23 сторінки. */
+.term > .term__body {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: var(--term-pad-y) var(--term-pad-x);
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;   /* Б-16: не краде скрол сторінки */
+  font-family: var(--f-mono);
+  font-size: var(--term-fs);
+  line-height: var(--term-lh);
+  color: var(--c-term-text);
+  tab-size: 2;
+}
+.term--hero > .term__body { font-size: var(--term-fs-hero); }
+
+/* ---------- Б3bis. Реєстрація змінної друку ----------
+   ⚠ inherits: ОБОВ'ЯЗКОВО true. З `inherits: false` ані дочірній
+   .term__clip, ані каретка-псевдоелемент не бачать анімованого
+   значення й читають initial-value — блок виглядає порожнім,
+   каретка стоїть на нулі, помилок у консолі НЕМАЄ (виміряна
+   пастка №2 з lab/typing-techniques.html).
+   initial-value: 100% — щоб без JS текст був видимий повністю. */
+@property --rev {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 100%;
+}
+
+/* ---------- Б4. Рядок ----------
+   inline-block, а не block: тільки так `\n` лишається в потоці <pre>
+   і копіювання дає рівно те, що видно (§7.3 спеки). */
+.term__line {
+  display: inline-block;
+  position: relative;
+  --rev: 100%;
+}
+/* Внутрішня обгортка несе clip-path. Каретка — на ЗОВНІШНЬОМУ шарі:
+   якщо повісити її на кліпнутий елемент, кліп зріже і її (виміряна
+   пастка №1 з lab/typing-techniques.html). */
+.term__clip {
+  display: inline-block;
+  clip-path: inset(0 calc(100% - var(--rev)) 0 0);
+}
+
+/* ---------- Б5. Маркери колонок ----------
+   Ширина коробки стала; глиф може бути ширшим — він звисає в
+   наступний ПРОБІЛ, а не зсуває текст. Заміна `⏺` на інший символ
+   міняє глиф, а не сітку. Це і є вимога 00-decisions.md. */
+.term__mark {
+  display: inline-block;
+  width: var(--term-mark-w);
+  text-align: left;
+  /* НЕ ставити overflow: hidden — inline-block з overflow ≠ visible
+     вирівнюється не по базовій лінії, і маркер поїде вниз. */
+}
+.term__mark--lg   { width: var(--term-mark-w-lg); }
+.term__mark--tool { color: var(--c-term-tool); }
+.term__mark--meta { color: var(--c-term-meta); }
+.term__mark--pick { color: var(--c-term-pick); }
+
+/* ---------- Б6. Кольори синтаксису ----------
+   Усі шість — елементи блока, не окремий неймспейс. */
+.term__in   { color: var(--c-term-in); }
+.term__tool { color: var(--c-term-tool); }
+.term__meta { color: var(--c-term-meta); }
+.term__ok   { color: var(--c-term-ok); }
+.term__err  { color: var(--c-term-err); }
+.term__add  { color: var(--c-term-add); }
+.term__del  { color: var(--c-term-del); }
+
+/* ---------- Б7. Стан 4 · діалог дозволу ----------
+   Обраний рядок відрізняється І кольором, І підложкою (Б-4).
+   min-width: 100% тягне підложку на всю видиму ширину полотна,
+   не створюючи горизонтального скролу (100% = ширина контенту <pre>). */
+.term__line--pick {
+  min-width: 100%;
+  background: var(--c-term-pick-bg);
+}
+.term__pick { color: var(--c-term-pick); }
+
+/* ---------- Б8. Стан 7 · помилка ----------
+   Червоне — ТІЛЬКИ текст помилки. Підказка — meta: якщо червоним
+   світиться все, стан читається як катастрофа. */
+.term--err { border-left: 2px solid var(--c-term-err); }
+
+/* ---------- Б9. Стан 6 · статус-лайн ----------
+   Поза <pre> свідомо: це «прилад», а не рядок сесії, і в буфер
+   він не потрапляє — статус-лайн ніхто не копіює. */
+.term__status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--s-3);
+  padding: var(--term-chrome-py) var(--term-pad-x);
+  border-top: var(--bw) solid var(--c-line);
+  font-family: var(--f-mono);
+  font-size: var(--term-fs-sm);
+  line-height: 1.5;
+  color: var(--c-term-meta);
+}
+.term__status b { color: var(--c-term-in); font-weight: 500; }
+
+/* ---------- Б10. Стан 8 · довгий вивід ---------- */
+.term--long { position: relative; }
+.term--long > .term__body {
+  max-height: var(--term-max-h);
+  overflow-y: auto;
+}
+.term--long.is-open > .term__body { max-height: none; }
+/* Затухання — тільки над областю, яку розкриває кнопка. */
+.term__fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--hit-min);
+  height: 4.5rem;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(13, 12, 11, 0), var(--c-term-canvas));
+}
+.term--long.is-open .term__fade { display: none; }
+.term__foot {
+  border-top: var(--bw) solid var(--c-line);
+  padding: var(--s-1) var(--s-2);
+}
+
+/* ---------- Б11. Кнопки блока ----------
+   Ціль ≥24×24 CSS-px (WCAG 2.2 SC 2.5.8). */
+.term__copy,
+.term__more {
+  flex: 0 0 auto;
+  min-height: 24px;
+  padding: var(--s-1) var(--s-2);
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-inner);
+  background: transparent;
+  font-family: var(--f-mono);
+  font-size: var(--term-fs-sm);
+  color: var(--c-term-meta);
+  cursor: pointer;
+  transition: color var(--dur-hover) var(--e-out),
+              border-color var(--dur-hover) var(--e-out);
+}
+.term__more { min-height: 32px; width: 100%; text-align: left; }
+.term__copy:hover,
+.term__more:hover {
+  color: var(--c-term-in);
+  border-color: var(--c-line-strong);
+}
+.term__copy:active,
+.term__more:active { transform: scale(var(--scale-press)); }
+
+/* ---------- Б12. Каретка ----------
+   Не символ тексту: `content: ''`, тому в буфер не потрапляє.
+   Їде по краю кліпу тією ж змінною --rev — нуль синхронізації в JS. */
+.term__line.has-caret::after {
+  content: "";
+  position: absolute;
+  top: 0.18em;
+  left: var(--rev);
+  width: 0.55ch;
+  height: 1.02em;
+  background: var(--c-term-caret);
+  border-radius: 1px;
+  transform: translateX(-0.05ch);
+}
+.term__line.has-caret.is-blinking::after {
+  animation: term-caret-blink var(--dur-term-caret) steps(1) infinite;
+}
+@keyframes term-caret-blink { 50% { opacity: 0; } }
+
+/* ---------- Б13. Пульс маркера ❯ ----------
+   ЄДИНА безкінечна анімація першого екрана після завершення сесії.
+   Тільки в hero: у бібліотеці й на сторінках уроків вона зайва. */
+.term--hero .term__mark--pick {
+  animation: term-pick-pulse var(--dur-term-pick-pulse) var(--e-breath) infinite;
+}
+@keyframes term-pick-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: var(--opacity-term-pulse); }
+}
+
+/* ---------- Б14. Стан «армовано»: те, що зараз друкуватиметься ----------
+   Клас ставить JS БЕЗПОСЕРЕДНЬО перед програванням. Без JS, без GSAP
+   і при reduced-motion його немає взагалі — і блок показує фінальний
+   кадр із першого рендера. Це і є вимога A-2. */
+.term--hero.is-armed .term__line--type,
+.term--hero.is-armed .term__line--diff { --rev: 0%; }
+/* ⚠ НЕ дублювати це правило на .term__clip: воно має вищу
+   специфічність за успадкування і перебило б інлайновий --rev,
+   який ставить GSAP на .term__line. Кліп читає значення від батька. */
+.term--hero.is-armed .term__line--step,
+.term--hero.is-armed .term__line--pop { opacity: 0; }
+
+/* ---------- Б15. M11 · поява блоків на сторінках уроків ----------
+   Друку тут НЕМАЄ: по 2–5 блоків на урок × 23 сторінки — друк
+   перетворив би читання на очікування. */
+/* Під `.js` — щоб без скриптів блок був видимий одразу, а не зник.
+   Клас `.js` ставить <html> на всіх сторінках сайту (перший рядок <head>). */
+.js .term--enter { opacity: 0; transform: translateY(8px); }
+.js .term--enter.is-in {
+  opacity: 1;
+  transform: none;
+  transition: opacity var(--dur-term-block-in) var(--e-term),
+              transform var(--dur-term-block-in) var(--e-term);
+}
+
+/* ---------- Б16. Друк на папері ---------- */
+@media print {
+  .term { break-inside: avoid; }
+  .term > .term__body { white-space: pre-wrap; word-break: break-word; }
+  .term__copy, .term__more, .term__fade { display: none; }
+}
+
+/* ---------- Б17. reduced-motion: добиваємо дві loop-анімації ----------
+   Токени вже обнулені в tokens.css, але 0.001ms-цикл усе одно
+   лишається циклом. Тут він знімається зовсім. */
+@media (prefers-reduced-motion: reduce) {
+  .term__line.has-caret.is-blinking::after { animation: none; }
+  .term--hero .term__mark--pick { animation: none; }
+  .js .term--enter { opacity: 1; transform: none; transition: none; }
+}

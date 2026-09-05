@@ -1,0 +1,311 @@
+/* ============================================================
+   005 · AI ТЕРМІНАЛ — ТОКЕНИ
+   ------------------------------------------------------------
+   Три блоки, і межа між ними — це межа зон при перенесенні в код:
+
+     Блок 1 · РЕПЛІКА :root сайту (css/custom.css:646+).
+              НЕ ПЕРЕНОСИТИ — воно вже там. Тут лише для того,
+              щоб макет відкривався сам по собі.
+     Блок 2 · КОМПОНЕНТ .term — їде в css/custom.css, бо компонент
+              живе на 23 сторінках модулів і 3 довідниках.
+     Блок 3 · СТОРІНКА .cc-  — їде в css/claude-code.css, як
+              css/roadmap.css у задачі 003.
+     Блок 4 · prefers-reduced-motion, ПОІМЕННО (критерій Б-13).
+
+   Жодного хардкод-хекса й жодного магічного числа поза цим файлом.
+   ============================================================ */
+
+/* ============================================================
+   БЛОК 1 · РЕПЛІКА. Не переносити.
+   Значення звірені з css/custom.css 2026-09-03.
+   ============================================================ */
+:root {
+  --c-ink:          #141312;
+  --c-surface:      #1E1B18;
+  --c-raised:       #272320;
+  --c-line:         #3A342E;
+  --c-line-strong:  #736A5E;
+
+  --c-ivory:        #F0EEE6;
+  --c-sand:         #E8DCC3;
+  --c-muted:        #A8A095;
+  --c-faint:        #7A7164;   /* 3.86 на ink — У ТЕКСТІ НЕ ВЖИВАТИ */
+  --c-prose:        #CFC9BF;
+
+  --c-accent:       #D97757;
+  --c-accent-deep:  #C4674A;
+  --c-on-accent:    var(--c-ink);
+  --c-accent-ghost: rgba(217, 119, 87, 0.12);
+  --c-accent-edge:  rgba(217, 119, 87, 0.45);
+  --c-sand-ghost:   rgba(232, 220, 195, 0.10);
+  --c-sand-edge:    rgba(232, 220, 195, 0.32);
+
+  --paper-bg:       #f8f4ec;
+  --paper-name:     #1f1b17;
+  --paper-quiet:    #776c5c;
+  --paper-rule:     #D97757;
+  --paper-rule-w:   280px;
+
+  --f-display: Literata, Georgia, serif;
+  --f-sans:    "IBM Plex Sans", system-ui, sans-serif;
+  --f-mono:    "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 20px;
+  --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-12: 48px; --s-16: 64px;
+
+  --r-inner:   6px;
+  --r-control: 8px;
+  --r-card:    16px;
+  --r-pill:    999px;
+  --bw: 1px;
+
+  --ctl-h:   40px;
+  --hit-min: 44px;
+  --focus-w: 2px;
+  --focus-offset: 3px;
+  --focus-radius: 6px;
+
+  --e-out:    cubic-bezier(0.22, 1, 0.36, 1);
+  --e-in:     cubic-bezier(0.4, 0, 1, 1);
+  --e-linear: linear;
+  --e-breath: cubic-bezier(0.45, 0, 0.55, 1);
+
+  --dur-press:  90ms;
+  --dur-hover: 150ms;
+  --scale-press: 0.98;
+
+  --ch-desc: 62ch;
+  --w-page:  72rem;
+}
+
+/* ============================================================
+   БЛОК 2 · КОМПОНЕНТ «ТЕРМІНАЛ» (.term)
+   → css/custom.css, власна секція з коментарем-заголовком.
+   ------------------------------------------------------------
+   ПОПЕРЕДЖЕННЯ ДЛЯ РЕАЛІЗАЦІЇ: префікс `term-` зарезервовано за
+   компонентом термінала (задача 005). Для глосарію/термінів
+   використовувати інший префікс — слово «термін» тут зайняте.
+   ============================================================ */
+:root {
+  /* ---- 2.1 Колір. Значення — з прототипу, схваленого власником.
+       Контраст на полотні (пораховано, §4.8 спеки):
+       текст 11.87 · in 14.38 · tool 6.26 · meta 7.56 · ok 7.27 · err 5.62.
+       Дві заборони: --c-faint на полотні = 4.07 (провал);
+                     --c-term-err на --c-raised = 4.48 (провал). ---- */
+  --c-term-canvas:  #0d0c0b;            /* НОВЕ — глибший за --c-ink */
+  --c-term-chrome:  var(--c-raised);
+  --c-term-text:    var(--c-prose);
+  --c-term-in:      var(--c-sand);
+  --c-term-tool:    var(--c-accent);
+  --c-term-meta:    var(--c-muted);
+  --c-term-ok:      #7FA87F;            /* НОВЕ */
+  --c-term-err:     #C97070;            /* НОВЕ */
+  --c-term-add:     var(--c-term-ok);   /* окреме ім'я: «додано» ≠ «успіх» */
+  --c-term-del:     var(--c-term-err);  /* окреме ім'я: «видалено» ≠ «помилка» */
+  --c-term-pick:    var(--c-sand);
+  --c-term-pick-bg: var(--c-sand-ghost);
+  --c-term-caret:   var(--c-sand);
+  --c-term-dot:     #3A342E;            /* три кружечки шапки */
+
+  /* ---- 2.2 Геометрія ----
+       Рем = 16px. --term-fs 0.845rem = 13.52px; рядок ×1.66 = 22.44px;
+       символ IBM Plex Mono = 0.6em = 8.11px. Ці числа тримають §4.7. */
+  --term-fs:        0.845rem;
+  --term-fs-sm:     0.75rem;
+  --term-fs-hero:   0.845rem;
+  --term-lh:        1.66;
+  --term-pad-x:     1rem;
+  --term-pad-y:     0.85rem;
+  --term-chrome-py: 0.42rem;
+  --term-chrome-px: 0.8rem;
+  --term-radius:    var(--r-control);  /* 8px. ЄДИНЕ свідоме відхилення
+                                          від прототипу: там 10px */
+  --term-gap:       1.6em;             /* ритм між блоками підряд */
+  --term-max-rows:  22;                /* поріг згортання, стан 8 */
+  --term-max-h:     30rem;
+  /* Колонки маркерів. 1ch під `⏺` / `❯` і 2ch під `└─` — рівно стільки,
+     скільки займають ці символи в прототипі, тому пробіл після маркера
+     лишається СПРАВЖНІМ символом рядка й позиції колонок не з'їжджають.
+     Якщо реальний інтерфейс малює ширший глиф, він звисає в цей пробіл,
+     але нічого праворуч не зсуває — змінюється глиф, а не сітка. */
+  --term-mark-w:    1ch;
+  --term-mark-w-lg: 2ch;
+  --term-dot-size:  7px;
+
+  /* ---- 2.3 Рух компонента ----
+       Кожен токен нижче ОБОВ'ЯЗКОВО продубльований у блоці 4. */
+  --speed-term-cps:      32;      /* символів за секунду; НЕ обнуляється,
+                                     гілку reduced-motion бере JS */
+  --delay-term-start:  300ms;
+  --delay-term-think:  250ms;
+  --dur-term-line:     260ms;
+  --dur-term-diff:     300ms;
+  --dur-term-pop:      320ms;
+  --dur-term-caret:   1050ms;
+  --dur-term-block-in: 260ms;     /* M11 — сторінки уроків */
+  --stag-term-step:    220ms;
+  --stag-term-line:    130ms;
+  --dur-term-pick-pulse: 1900ms;
+  --delay-term-pop:    150ms;
+  --move-term-step:      4px;
+  --scale-term-pop:      0.98;
+  --opacity-term-pulse:  0.55;
+  --e-term:   var(--e-out);
+  --e-pop:    cubic-bezier(0.07, 0.7, 0.35, 1.35);  /* R07 Comeau, виміряно */
+}
+
+/* ============================================================
+   БЛОК 3 · СТОРІНКА (.cc-) → css/claude-code.css
+   ============================================================ */
+:root {
+  /* ---- 3.1 «Стіл»: носій естетичного ризику (§5 NOTES.md).
+       Три токени. Прибрати їх = прибрати ризик цілком. ---- */
+  --c-desk:       #1A1714;                       /* тепліша й світліша за ink */
+  --c-desk-edge:  rgba(232, 220, 195, 0.09);     /* світло по верхній кромці */
+  --c-desk-light: rgba(217, 119, 87, 0.10);      /* єдина пляма світла на сторінці */
+  --shadow-desk:  0 24px 60px -24px rgba(0, 0, 0, 0.72);  /* ЄДИНА тінь */
+  --desk-pad:     var(--s-6);
+  --desk-radius:  12px;
+
+  /* ---- 3.2 Вісь сторінки («спина») ---- */
+  --c-spine:      rgba(115, 106, 94, 0.45);   /* не пройдено */
+  --c-spine-lit:  var(--c-sand);              /* пройдено скролом */
+  --spine-w:      1px;
+  --spine-lit-w:  2px;
+  /* ⚠ додано валідатором: найтихіший сірий, який ще проходить AA
+     на полотні сторінки (4.84:1). Заміна --c-faint (3.86) у бейджі «скоро». */
+  --c-quiet:      #8A8175;
+
+  --rail-w:       132px;   /* поле ліворуч від осі */
+  --spine-x:      44px;    /* вісь усередині поля */
+  --node-r:       4px;
+  --node-r-exam:  7px;
+
+  /* ---- 3.3 Типографічна шкала сторінки ----
+       Не дорівнює роадмаповій свідомо: h1 ділить перший екран
+       із терміналом і живе у колонці ~34rem. Обґрунтування — §3 NOTES.md. */
+  --cc-fs-h1:    clamp(2.125rem, 1.4rem + 2.6vw, 3.375rem);   /* 34 → 54 */
+  --cc-fs-h2:    clamp(1.5rem,   1.1rem + 1.7vw, 2.125rem);   /* 24 → 34 */
+  --cc-fs-lead:  clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);   /* 17 → 19 */
+  --cc-fs-item:  clamp(1rem, 0.95rem + 0.25vw, 1.125rem);     /* 16 → 18 */
+  --cc-fs-body:  1rem;
+  --cc-fs-desc:  0.9375rem;
+  --cc-fs-meta:  0.75rem;
+  --cc-fs-num:   clamp(1.75rem, 1.2rem + 1.9vw, 2.5rem);      /* номер фази */
+
+  --cc-lh-h1:    1.08;
+  --cc-lh-h2:    1.16;
+  --cc-lh-lead:  1.55;
+  --cc-lh-body:  1.6;
+  --cc-lh-item:  1.35;
+
+  --cc-tr-h1:    -0.022em;
+  --cc-tr-meta:   0.18em;
+
+  --cc-ch-lead:  46ch;
+
+  /* ---- 3.4 Ритм і геометрія ---- */
+  --cc-pad-page:  var(--s-5);
+  --cc-sec-gap:   clamp(3.5rem, 7vw, 6.5rem);
+  --cc-hero-term: 620px;    /* ширина колонки предмета в hero */
+  --cc-row-py:    var(--s-3);
+  --cc-leader-gap: var(--s-3);
+
+  /* ---- 3.5 Рух сторінки ---- */
+  --dur-cc-in:     550ms;   /* M8, дорівнює наявному .reveal */
+  --dur-cc-row:    420ms;   /* M10 */
+  --stag-cc-row:    70ms;
+  --move-cc-in:     14px;
+  --move-cc-row:    10px;
+  --scrub-spine:    0.8;    /* виміряне число 003 / anthropic.com */
+
+  /* ---- 3.6 Резерв висоти до приходу конфіга (CLS = 0) ---- */
+  --cc-hero-reserve: 520px;
+  --cc-map-reserve:  640px;
+}
+
+/* ---- 3.7 Брейкпойнти ----------------------------------------
+   Вісь лишається на всіх ширинах — стискається лише поле. */
+@media (max-width: 900px) {
+  :root {
+    --rail-w: 60px;
+    --spine-x: 18px;
+    --cc-hero-reserve: 560px;
+  }
+}
+@media (max-width: 640px) {
+  :root {
+    --cc-pad-page: var(--s-4);
+    --rail-w: 44px;
+    --spine-x: 14px;
+    --term-fs: var(--term-fs-sm);
+    --term-fs-hero: var(--term-fs-sm);
+    --term-pad-x: 0.75rem;
+    --term-max-h: 22rem;
+    --desk-pad: var(--s-4);
+  }
+}
+/* Великі екрани: предмет не має рости пропорційно вікну (стіл не
+   збільшується від того, що кімната більша), але при 1920 частка
+   першого екрана падає до 14% — а це вже нижче за смугу «Акцент».
+   Тому один помірний крок: ширша плита й трохи більший кегль. */
+@media (min-width: 1600px) {
+  :root {
+    --cc-hero-term: 44rem;
+    --term-fs-hero: 0.92rem;
+  }
+}
+
+/* Низькі екрани: пастка, знайдена в 003 на в'юпорті 653px.
+   Термінал переходить на менший кегль — 14 рядків = 279px замість 314. */
+@media (max-height: 700px) {
+  :root {
+    --term-fs-hero: var(--term-fs-sm);
+    --cc-fs-h1: clamp(1.875rem, 1.2rem + 2.2vw, 2.75rem);
+    --cc-hero-reserve: 430px;
+    --desk-pad: var(--s-4);
+  }
+}
+
+/* ============================================================
+   БЛОК 4 · prefers-reduced-motion — ПОІМЕННО (критерій Б-13)
+   ------------------------------------------------------------
+   Наявний блок у css/custom.css працює за поіменним списком:
+   нове туди САМО НЕ ПОТРАПЛЯЄ. Тут перелічені ВСІ токени
+   тривалості й затримки з блоків 2 і 3.
+   Звірка: 12 токенів компонента + 5 токенів сторінки + 3 зсуви.
+   --speed-term-cps свідомо НЕ обнуляється — на нього ділять,
+   нуль дав би Infinity; гілку вимикає JS (motion.js).
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    /* компонент */
+    --delay-term-start:  0ms;
+    --delay-term-think:  0ms;
+    --delay-term-pop:    0ms;
+    --dur-term-line:     0.001ms;
+    --dur-term-diff:     0.001ms;
+    --dur-term-pop:      0.001ms;
+    --dur-term-caret:    0.001ms;
+    --dur-term-block-in: 0.001ms;
+    --dur-term-pick-pulse: 0.001ms;
+    --stag-term-step:    0ms;
+    --stag-term-line:    0ms;
+    --move-term-step:    0px;
+    --scale-term-pop:    1;
+    --opacity-term-pulse: 1;
+
+    /* сторінка */
+    --dur-cc-in:   0.001ms;
+    --dur-cc-row:  0.001ms;
+    --stag-cc-row: 0ms;
+    --move-cc-in:  0px;
+    --move-cc-row: 0px;
+    --scrub-spine: 0;
+
+    /* успадковані, які теж керують цією сторінкою */
+    --dur-hover:   0.001ms;
+    --dur-press:   0.001ms;
+    --scale-press: 1;
+  }
+}

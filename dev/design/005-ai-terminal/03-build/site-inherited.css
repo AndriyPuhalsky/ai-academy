@@ -1,0 +1,307 @@
+/* ============================================================
+   005 · РЕПЛІКА НАЯВНОГО css/custom.css — НЕ ПЕРЕНОСИТИ
+   ------------------------------------------------------------
+   Дослівні витяги з css/custom.css (звірено 2026-09-03), рядки
+   6–55, 66–152, 156–232, 556–621, 1091–1096.
+
+   Навіщо: без .prose-aia pre зіткнення специфічностей (§4.9 спеки)
+   неможливо ні побачити, ні довести, що воно розв'язане. Так само
+   .reveal, .caret, .badge-* і :focus-visible — макет має показувати
+   те, що реально станеться на сайті, а не свій ідеальний світ.
+
+   Свідомо НЕ взято: .hero-glow (css/custom.css:57). Ця сторінка
+   від нього відмовляється — обґрунтування в NOTES.md §5.
+
+   ⚠ Цей файл у код НЕ їде. Він там уже є.
+   ============================================================ */
+
+
+/* --- Доступність: посилання-пропуск до вмісту --- */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: #D97757;
+  color: #141312;
+  padding: 0.6rem 1.1rem;
+  border-radius: 0 0 0.5rem 0;
+  font-weight: 500;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+/* --- Видимий фокус для клавіатурної навігації --- */
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid #D97757;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* --- Виділення тексту у фірмовому кольорі --- */
+::selection {
+  background: rgba(217, 119, 87, 0.35);
+  color: #F0EEE6;
+}
+
+/* --- Тонкі теплі скролбари --- */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #3A342E transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #332E29;
+  border-radius: 8px;
+  border: 2px solid #141312;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #57504A;
+}
+
+/* ============================================================
+   Стрімінг заголовка «токен за токеном»
+   Поки JS не запустився (html без .js) — текст видно одразу,
+   тож сторінка лишається читабельною без скриптів.
+   ============================================================ */
+.js [data-stream] {
+  visibility: hidden;
+}
+.js [data-stream].is-streaming,
+.js [data-stream].is-done {
+  visibility: visible;
+}
+
+.caret {
+  display: inline-block;
+  width: 0.5em;
+  height: 0.92em;
+  margin-left: 0.1em;
+  border-radius: 2px;
+  background: #D97757;
+  vertical-align: -0.06em;
+  animation: caret-blink 1.05s steps(1) infinite;
+}
+.caret.is-gone {
+  transition: opacity 0.6s ease;
+  opacity: 0;
+}
+@keyframes caret-blink {
+  50% { opacity: 0; }
+}
+
+/* ============================================================
+   Поява блоків при скролі (елементи з класом .reveal)
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ============================================================
+   Бейджі статусів модулів (вставляються з js/config.js)
+   ============================================================ */
+.badge {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: 1px solid;
+  border-radius: 999px;
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+.badge-ready {
+  color: #D97757;
+  border-color: rgba(217, 119, 87, 0.45);
+}
+.badge-soon {
+  color: #7A7164;
+  border-color: #3A342E;
+}
+.badge-done {
+  color: #E8DCC3;
+  border-color: rgba(232, 220, 195, 0.4);
+}
+
+/* ============================================================
+   Повага до prefers-reduced-motion:
+   вимикаємо плавний скрол, появи і блимання каретки
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .caret {
+    animation: none;
+  }
+}
+
+   ============================================================ */
+
+/* --- Типографіка навчального контенту (.prose-aia) --- */
+.prose-aia {
+  color: #CFC9BF;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+.prose-aia p { margin: 1.1em 0; }
+.prose-aia h2 {
+  font-family: Literata, Georgia, serif;
+  font-size: 1.75rem;
+  line-height: 1.3;
+  color: #F0EEE6;
+  margin: 2.4em 0 0.7em;
+}
+.prose-aia h3 {
+  font-family: Literata, Georgia, serif;
+  font-size: 1.25rem;
+  color: #F0EEE6;
+  margin: 1.9em 0 0.55em;
+}
+.prose-aia strong { color: #F0EEE6; font-weight: 600; }
+.prose-aia a {
+  color: #D97757;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.prose-aia a:hover { color: #E8DCC3; }
+.prose-aia ul, .prose-aia ol {
+  margin: 1.1em 0;
+  padding-left: 1.4em;
+  display: grid;
+  gap: 0.45em;
+}
+.prose-aia li::marker { color: #D97757; }
+.prose-aia code {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.9em;
+  background: #1E1B18;
+  border: 1px solid #3A342E;
+  border-radius: 6px;
+  padding: 0.1em 0.4em;
+  color: #E8DCC3;
+}
+.prose-aia table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.4em 0;
+  font-size: 0.95rem;
+}
+.prose-aia th {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #7A7164;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #3A342E;
+}
+.prose-aia td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid rgba(58, 52, 46, 0.5);
+  vertical-align: top;
+}
+.prose-aia td:first-child { color: #F0EEE6; font-weight: 500; }
+.prose-aia hr { border: 0; border-top: 1px solid #3A342E; margin: 3em 0; }
+
+.lesson-no {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.62em;
+  color: #D97757;
+  letter-spacing: 0.05em;
+  margin-right: 0.5rem;
+  vertical-align: 0.18em;
+}
+
+
+/* ============================================================
+   Приклади промптів і відповідей (компонент .example)
+   Використання:
+     <div class="example">
+       <div class="example-head"><span class="tag-user">Промпт</span></div>
+       <pre>текст промпта</pre>
+       <div class="example-head"><span class="tag-model">Відповідь</span></div>
+       <pre>текст відповіді</pre>
+     </div>
+   ============================================================ */
+.example {
+  margin: 1.6em 0;
+  border: 1px solid #3A342E;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: #171513;
+}
+.example-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 1.1rem;
+  border-bottom: 1px solid #3A342E;
+  background: #1B1916;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7A7164;
+}
+.example-head + pre { border-top: 0; }
+.example pre + .example-head { border-top: 1px solid #3A342E; }
+.tag-user { color: #D97757; }
+.tag-model { color: #E8DCC3; }
+
+/* Блоки <pre> у навчальному тексті (промпти, код, зразки відповідей) */
+.prose-aia pre,
+.example pre {
+  margin: 1.4em 0;
+  border: 1px solid #3A342E;
+  background: #171513;
+  border-radius: 0.75rem;
+  padding: 1rem 1.2rem;
+  overflow-x: auto;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: #E8DCC3;
+  white-space: pre-wrap;   /* промпти — текст: нехай переноситься, а не скролиться */
+  word-break: break-word;
+}
+.example pre {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.prose-aia pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* ---------- Ф6. .sr-only (дубль на випадок динамічної розмітки) ---------- */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}

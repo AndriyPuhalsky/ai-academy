@@ -1,0 +1,774 @@
+/* ============================================================
+   005 · ЛЕНДІНГ «AI ТЕРМІНАЛ» (.cc-) — потік А
+   → їде в css/claude-code.css, як css/roadmap.css у задачі 003.
+   ------------------------------------------------------------
+   Префікси НЕ змішуються: усе, що починається на .term, — компонент
+   (term.css), усе, що на .cc-, — ця сторінка.
+
+   Секція Ф0 нижче — репліка Tailwind preflight і шапки/футера
+   architect.html. У коді її НЕ буде: там шапка й футер беруться
+   розміткою з architect.html разом із утилітами Tailwind, id
+   збережені (#aiaAuth, #navProgress, #announcement, #configError,
+   #footerMeta, #ctaStart, #ariaLive). Тут вона тільки для того,
+   щоб макет відкривався без CDN Tailwind і виглядав як сайт.
+   ============================================================ */
+
+/* ============================================================
+   Ф0 · РЕПЛІКА КАРКАСА (у код не їде)
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--c-ink);
+  color: var(--c-ivory);
+  font-family: var(--f-sans);
+  font-size: var(--cc-fs-body);
+  line-height: var(--cc-lh-body);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4, p, ul, ol, figure, blockquote { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; }
+img, svg { display: block; max-width: 100%; }
+[hidden] { display: none !important; }
+
+.cc-shell {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  border-bottom: var(--bw) solid rgba(58, 52, 46, 0.7);
+  background: rgba(20, 19, 18, 0.85);
+  backdrop-filter: blur(8px);
+}
+.cc-shell__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  height: var(--s-16);
+  max-width: var(--w-page);
+  margin-inline: auto;
+  padding-inline: var(--cc-pad-page);
+}
+.cc-shell__brand { display: flex; align-items: center; gap: 10px; }
+.cc-shell__mark {
+  display: grid;
+  place-items: center;
+  width: 32px; height: 32px;
+  border-radius: var(--r-control);
+  background: var(--c-accent);
+  color: var(--c-on-accent);
+  font-family: var(--f-mono);
+  font-size: 13px;
+  font-weight: 600;
+}
+.cc-shell__name { font-family: var(--f-display); font-size: 1.125rem; }
+.cc-shell__nav { display: none; gap: var(--s-6); font-size: 0.875rem; color: var(--c-muted); }
+.cc-shell__nav a { transition: color var(--dur-hover) var(--e-out); }
+.cc-shell__nav a:hover { color: var(--c-ivory); }
+.cc-shell__slot { min-height: 34px; display: flex; align-items: center; gap: var(--s-3); }
+@media (min-width: 768px) { .cc-shell__nav { display: flex; } }
+
+.cc-foot { border-top: var(--bw) solid rgba(58, 52, 46, 0.6); }
+.cc-foot__grid {
+  display: grid;
+  gap: var(--s-10);
+  max-width: var(--w-page);
+  margin-inline: auto;
+  padding: var(--s-12) var(--cc-pad-page);
+}
+@media (min-width: 768px) { .cc-foot__grid { grid-template-columns: 1.4fr 1fr 1fr; } }
+.cc-foot__title { font-family: var(--f-display); font-size: 1.25rem; margin-bottom: var(--s-3); }
+.cc-foot__note { max-width: 24rem; font-size: 0.875rem; color: var(--c-muted); }
+.cc-foot__head {
+  margin-bottom: var(--s-4);
+  font-family: var(--f-mono);
+  font-size: var(--cc-fs-meta);
+  text-transform: uppercase;
+  letter-spacing: var(--cc-tr-meta);
+  color: var(--c-muted);
+}
+.cc-foot__list { display: grid; gap: var(--s-2); font-size: 0.875rem; }
+.cc-foot__list a, .cc-foot__list button {
+  background: none; border: 0; padding: 0; text-align: left; cursor: pointer;
+  color: var(--c-muted);
+  transition: color var(--dur-hover) var(--e-out);
+}
+.cc-foot__list a:hover, .cc-foot__list button:hover { color: var(--c-sand); }
+.cc-foot__meta {
+  border-top: var(--bw) solid rgba(58, 52, 46, 0.6);
+}
+.cc-foot__metaIn {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--s-3);
+  max-width: var(--w-page);
+  margin-inline: auto;
+  padding: var(--s-5) var(--cc-pad-page);
+  font-family: var(--f-mono);
+  font-size: var(--cc-fs-meta);
+  color: var(--c-muted);
+}
+/* Версії — ЯВНА заглушка. Вона мусить різати око, щоб її не можна
+   було випадково лишити в проді (вимога hero-session.md). */
+.cc-stub {
+  border: 1px dashed var(--c-accent);
+  border-radius: var(--r-inner);
+  padding: 1px 6px;
+  color: var(--c-accent);
+  white-space: nowrap;
+}
+
+/* ============================================================
+   Ф1 · СПІЛЬНІ ПРИМІТИВИ СТОРІНКИ
+   ============================================================ */
+.cc-wrap {
+  max-width: var(--w-page);
+  margin-inline: auto;
+  padding-inline: var(--cc-pad-page);
+}
+.cc-section { padding-block: var(--cc-sec-gap); }
+.cc-section + .cc-section { border-top: var(--bw) solid rgba(58, 52, 46, 0.55); }
+
+/* Сітка сторінки: [поле] [зміст]. Поле — місце осі й номерів фаз. */
+.cc-grid {
+  display: grid;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  column-gap: var(--s-6);
+}
+.cc-grid__rail { grid-column: 1; }
+.cc-grid__body { grid-column: 2; min-width: 0; }
+
+.cc-h2 {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: var(--cc-fs-h2);
+  line-height: var(--cc-lh-h2);
+  letter-spacing: -0.012em;
+  color: var(--c-ivory);
+}
+.cc-lead {
+  margin-top: var(--s-4);
+  max-width: var(--ch-desc);
+  font-size: var(--cc-fs-lead);
+  line-height: var(--cc-lh-lead);
+  color: var(--c-prose);
+}
+.cc-note {
+  margin-top: var(--s-5);
+  max-width: var(--ch-desc);
+  font-size: var(--cc-fs-desc);
+  line-height: 1.6;
+  color: var(--c-muted);
+}
+.cc-mono {
+  font-family: var(--f-mono);
+  font-size: var(--cc-fs-meta);
+  letter-spacing: var(--cc-tr-meta);
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+
+/* Кнопки */
+.cc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--hit-min);
+  padding: 0 var(--s-6);
+  border-radius: var(--r-control);
+  border: var(--bw) solid transparent;
+  background: transparent;   /* без цього <button> бере світлий ButtonFace
+                                браузера, і текст ivory зникає на світлому */
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--dur-hover) var(--e-out),
+              border-color var(--dur-hover) var(--e-out),
+              color var(--dur-hover) var(--e-out),
+              transform var(--dur-press) var(--e-out);
+}
+.cc-btn:active { transform: scale(var(--scale-press)); }
+.cc-btn--primary { background: var(--c-accent); color: var(--c-on-accent); }
+.cc-btn--primary:hover { background: var(--c-accent-deep); }
+.cc-btn--ghost { border-color: var(--c-line); color: var(--c-ivory); }
+.cc-btn--ghost:hover { border-color: var(--c-accent-edge); color: var(--c-sand); }
+.cc-btn--quiet {
+  min-height: 32px;
+  padding: 0 var(--s-3);
+  border-color: var(--c-line);
+  background: none;
+  font-family: var(--f-mono);
+  font-size: var(--cc-fs-meta);
+  color: var(--c-muted);
+}
+.cc-btn--quiet:hover { color: var(--c-sand); border-color: var(--c-line-strong); }
+
+/* ============================================================
+   Ф2 · ВІСЬ СТОРІНКИ («спина»)
+   ------------------------------------------------------------
+   Одна пряма лінія від hero до вузла іспиту. Заповнюється scaleY
+   під скрол — один ScrollTrigger на всю сторінку.
+   ⚠ Це НЕ змійка 003: розмахів немає, SVG немає, кільця немає.
+   ============================================================ */
+.cc-path { position: relative; }
+.cc-path__line {
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100%, var(--w-page));
+  pointer-events: none;
+}
+.cc-path__rest,
+.cc-path__lit {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--cc-pad-page) + var(--spine-x));
+  display: block;
+}
+.cc-path__rest { width: var(--spine-w); background: var(--c-spine); }
+.cc-path__lit {
+  width: var(--spine-lit-w);
+  background: var(--c-spine-lit);
+  transform: scaleY(0);
+  transform-origin: top center;
+  opacity: 0.9;
+}
+/* Вузол на осі: ставиться на блок, що має position: relative. */
+.cc-node {
+  position: absolute;
+  left: calc(var(--spine-x) - var(--node-r));
+  width: calc(var(--node-r) * 2);
+  height: calc(var(--node-r) * 2);
+  border-radius: var(--r-pill);
+  background: var(--c-ink);
+  box-shadow: 0 0 0 var(--spine-lit-w) var(--c-spine-lit);
+}
+
+/* ============================================================
+   Ф3 · HERO
+   ============================================================ */
+.cc-hero { position: relative; padding-block: var(--s-10) var(--s-12); }
+.cc-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-8);
+}
+.cc-hero__title {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: var(--cc-fs-h1);
+  line-height: var(--cc-lh-h1);
+  letter-spacing: var(--cc-tr-h1);
+  color: var(--c-ivory);
+  /* 27ch тримає найдовший рядок заголовка одним рядком на десктопі
+     й дає йому природно ламатись на вузьких екранах. */
+  max-width: 27ch;
+}
+.cc-hero__title span { display: block; }
+.cc-hero__lead {
+  margin-top: var(--s-5);
+  max-width: var(--cc-ch-lead);
+  font-size: var(--cc-fs-lead);
+  line-height: var(--cc-lh-lead);
+  color: var(--c-prose);
+}
+.cc-hero__cta { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-6); }
+.cc-hero__stats {
+  margin-top: var(--s-6);
+  padding-top: var(--s-5);
+  border-top: var(--bw) solid rgba(58, 52, 46, 0.7);
+  font-family: var(--f-mono);
+  font-size: 0.8125rem;
+  color: var(--c-muted);
+}
+
+/* ---- «Стіл»: ЄДИНИЙ об'єм на сторінці (NOTES.md §5) ----
+   Плита світліша за сторінку, полотно термінала — темніше за плиту.
+   Саме ця різниця робить термінал предметом, а не дірою. */
+.cc-desk {
+  position: relative;
+  padding: var(--desk-pad);
+  border-radius: var(--desk-radius);
+  background: var(--c-desk);
+  box-shadow: var(--shadow-desk);
+  min-width: 0;
+}
+.cc-desk::before {           /* світло по верхній кромці */
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  border-radius: var(--desk-radius) var(--desk-radius) 0 0;
+  background: var(--c-desk-edge);
+}
+.cc-desk::after {            /* єдина пляма світла на сторінці */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--desk-radius);
+  background: radial-gradient(70% 60% at 12% 0%, var(--c-desk-light), transparent 72%);
+  pointer-events: none;
+}
+.cc-desk > * { position: relative; z-index: 1; }
+.cc-desk__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-top: var(--s-3);
+  font-family: var(--f-mono);
+  font-size: var(--cc-fs-meta);
+  color: var(--c-muted);
+}
+/* Пояснення для того, хто бачить термінал уперше. */
+.cc-hero__explain {
+  margin-top: var(--s-5);
+  max-width: 52ch;
+  font-family: var(--f-mono);
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  color: var(--c-muted);
+}
+.cc-hero__explain b { color: var(--c-sand); font-weight: 400; }
+
+/* ≤1023: предмет іде ОДРАЗУ ПІД ЗАГОЛОВОК, а не в кінець hero.
+   Причина проста: «воно живе» — це перші 3 секунди, і на мобілці
+   термінал мусить бути в першому екрані, а не під CTA. Відступ
+   зліва рівно на осі: плита не накриває лінію собою. */
+@media (max-width: 1023px) {
+  .cc-hero__grid { display: grid; }
+  .cc-hero__head   { order: 1; }
+  .cc-hero__object { order: 2; margin-left: calc(var(--spine-x) + var(--s-2)); }
+  .cc-hero__body   { order: 3; }
+}
+
+@media (min-width: 1024px) {
+  .cc-hero__grid {
+    grid-template-columns: minmax(0, 1fr) var(--cc-hero-term);
+    column-gap: var(--s-12);
+    row-gap: var(--s-6);
+    align-items: start;
+  }
+  .cc-hero__head   { grid-column: 1 / -1; }
+  .cc-hero__body   { grid-column: 1; }
+  .cc-hero__object { grid-column: 2; grid-row: 2; }
+}
+
+/* ============================================================
+   Ф4 · ДЛЯ КОГО — І ДЛЯ КОГО НІ
+   ------------------------------------------------------------
+   Маркери `+` / `−` узяті з дифу термінала: та сама мова, якою
+   агент показує зміни, тут показує межу курсу. Колір при цьому
+   НЕ дифовий — зеленого поза терміналом немає жодного пікселя
+   (критерій А-11). Сенс несе знак, а не колір.
+   ============================================================ */
+.cc-split { display: grid; gap: var(--s-10); }
+@media (min-width: 860px) { .cc-split { grid-template-columns: 1fr 1fr; column-gap: var(--s-12); } }
+.cc-list { display: grid; gap: var(--s-3); margin-top: var(--s-6); }
+.cc-list__item {
+  display: grid;
+  grid-template-columns: 2ch minmax(0, 1fr);
+  gap: var(--s-3);
+  font-size: var(--cc-fs-item);
+  line-height: var(--cc-lh-item);
+}
+.cc-list__sign {
+  font-family: var(--f-mono);
+  font-size: 1rem;
+  line-height: inherit;
+}
+.cc-list--for .cc-list__sign { color: var(--c-sand); }
+.cc-list--for .cc-list__text { color: var(--c-ivory); }
+.cc-list--not .cc-list__sign { color: var(--c-muted); }
+.cc-list--not .cc-list__text { color: var(--c-muted); }
+.cc-split__head { font-family: var(--f-display); font-size: 1.375rem; color: var(--c-ivory); }
+
+/* ============================================================
+   Ф5 · ЧОГО ТИ НАВЧИШСЯ
+   ============================================================ */
+.cc-out { display: grid; gap: var(--s-6) var(--s-12); margin-top: var(--s-8); }
+@media (min-width: 860px) { .cc-out { grid-template-columns: 1fr 1fr; } }
+.cc-out__item {
+  padding-top: var(--s-4);
+  border-top: var(--bw) solid var(--c-line);
+  font-size: var(--cc-fs-item);
+  line-height: var(--cc-lh-item);
+  color: var(--c-ivory);
+}
+.cc-out__hint {
+  display: block;
+  margin-top: var(--s-2);
+  font-size: var(--cc-fs-desc);
+  line-height: 1.55;
+  color: var(--c-muted);
+}
+
+/* ============================================================
+   Ф6 · КАРТА ПРОГРАМИ · рейка фаз + зміст книги
+   ============================================================ */
+.cc-phase { position: relative; padding-block: var(--s-10) var(--s-8); }
+.cc-phase + .cc-phase { border-top: var(--bw) solid rgba(58, 52, 46, 0.45); }
+.cc-phase__node { top: calc(var(--s-10) + 0.55em); }
+.cc-phase__num {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: var(--cc-fs-num);
+  line-height: 1;
+  color: var(--c-muted);        /* 7.18 на ink: номер фази — це текст,
+                                   а не декор, тому --c-line-strong (3.23)
+                                   тут не годиться */
+  padding-left: calc(var(--spine-x) + var(--s-4));
+}
+.cc-phase__count {
+  display: block;
+  margin-top: var(--s-2);
+  padding-left: calc(var(--spine-x) + var(--s-4));
+  font-family: var(--f-mono);
+  font-size: var(--cc-fs-meta);
+  color: var(--c-muted);
+}
+.cc-phase__title {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 1.2;
+  color: var(--c-ivory);
+}
+.cc-phase__sub {
+  margin-top: var(--s-2);
+  max-width: var(--ch-desc);
+  font-size: var(--cc-fs-desc);
+  color: var(--c-muted);
+}
+
+/* ---- Зміст книги: назва ліворуч, номер моно праворуч, крапки між ---- */
+.cc-rows { margin-top: var(--s-6); }
+.cc-row { position: relative; }
+.cc-row__link {
+  display: flex;
+  align-items: baseline;
+  gap: var(--cc-leader-gap);
+  padding-block: var(--cc-row-py);
+  border-radius: var(--r-inner);
+}
+.cc-row__name {
+  flex: 0 1 auto;
+  font-size: var(--cc-fs-item);
+  line-height: var(--cc-lh-item);
+  color: var(--c-prose);
+  transition: color var(--dur-hover) var(--e-out);
+}
+.cc-row__leader {
+  flex: 1 1 auto;
+  min-width: var(--s-6);
+  border-bottom: 1px dotted var(--c-line-strong);
+  transition: border-color var(--dur-hover) var(--e-out);
+}
+.cc-row__num {
+  flex: 0 0 auto;
+  font-family: var(--f-mono);
+  font-size: 0.8125rem;
+  color: var(--c-muted);
+  font-variant-numeric: tabular-nums;
+  transition: color var(--dur-hover) var(--e-out);
+}
+a.cc-row__link:hover .cc-row__name,
+a.cc-row__link:focus-visible .cc-row__name { color: var(--c-ivory); }
+a.cc-row__link:hover .cc-row__leader,
+a.cc-row__link:focus-visible .cc-row__leader { border-bottom-color: var(--c-accent-edge); }
+a.cc-row__link:hover .cc-row__num,
+a.cc-row__link:focus-visible .cc-row__num { color: var(--c-sand); }
+
+.cc-row--done .cc-row__name { color: var(--c-sand); }
+.cc-row--soon .cc-row__name { color: var(--c-muted); }
+.cc-row--soon .cc-row__link { cursor: default; }
+.cc-row__badge { flex: 0 0 auto; }
+/* Точка входу для гостя: єдина мітка кольором акценту в усій карті. */
+.cc-row__start {
+  flex: 0 0 auto;
+  font-family: var(--f-mono);
+  font-size: var(--cc-fs-meta);
+  color: var(--c-accent);
+  white-space: nowrap;
+}
+
+/* ---- Вузол іспиту: поза фазами, інша геометрія ----
+   Не картка модуля: без leader, без номера, з видимим кінцем осі. */
+.cc-exam { position: relative; padding-block: var(--s-12); }
+.cc-exam__node {
+  top: calc(var(--s-12) + 0.4em);
+  left: calc(var(--spine-x) - var(--node-r-exam));
+  width: calc(var(--node-r-exam) * 2);
+  height: calc(var(--node-r-exam) * 2);
+  background: var(--c-spine-lit);
+  box-shadow: 0 0 0 4px var(--c-ink), 0 0 0 5px var(--c-spine-lit);
+}
+.cc-exam__box {
+  max-width: 34rem;
+  padding: var(--s-6) var(--s-8);
+  border: var(--bw) solid var(--c-sand-edge);
+  border-radius: var(--r-control);
+}
+.cc-exam__title {
+  font-family: var(--f-display);
+  font-size: 1.5rem;
+  color: var(--c-sand);
+}
+.cc-exam__text {
+  margin-top: var(--s-3);
+  font-size: var(--cc-fs-desc);
+  line-height: 1.6;
+  color: var(--c-prose);
+}
+.cc-exam__meta {
+  margin-top: var(--s-4);
+  font-family: var(--f-mono);
+  font-size: var(--cc-fs-meta);
+  color: var(--c-muted);
+}
+
+/* ============================================================
+   Ф7 · ПОЛИЦЯ · три довідники
+   ------------------------------------------------------------
+   Той самий матеріал, що й стіл (--c-desk), і це навмисно: у цій
+   системі тепла плита = «річ, що лежить під рукою», а гола лінія =
+   «крок шляху». Довідники не мають ні номерів, ні прогресу, ні
+   бейджів — щоб ніхто не намагався їх «проходити».
+   ============================================================ */
+.cc-shelf__line {
+  height: 1px;
+  margin-top: var(--s-8);
+  background: var(--c-line-strong);
+}
+.cc-shelf__items { display: grid; gap: var(--s-4); margin-top: -1px; }
+.cc-shelf__items > li { display: flex; }
+@media (min-width: 860px) { .cc-shelf__items { grid-template-columns: repeat(3, 1fr); } }
+.cc-ref {
+  position: relative;
+  display: block;
+  flex: 1 1 auto;
+  padding: var(--s-5);
+  border-radius: 0 0 var(--r-control) var(--r-control);
+  background: var(--c-desk);
+  transition: background-color var(--dur-hover) var(--e-out);
+}
+.cc-ref::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: var(--c-desk-edge);
+}
+.cc-ref:hover { background: #201C18; }
+.cc-ref__title {
+  display: block;
+  font-size: var(--cc-fs-item);
+  color: var(--c-ivory);
+}
+.cc-ref__sub {
+  display: block;
+  margin-top: var(--s-2);
+  font-size: var(--cc-fs-desc);
+  line-height: 1.55;
+  color: var(--c-muted);
+}
+
+/* ============================================================
+   Ф8 · ЯК ВЛАШТОВАНИЙ УРОК — це справді послідовність,
+   тому номери тут заслужені.
+   ============================================================ */
+.cc-steps { display: grid; gap: 0; margin-top: var(--s-8); }
+@media (min-width: 860px) { .cc-steps { grid-template-columns: 1fr 1fr; column-gap: var(--s-12); } }
+.cc-step {
+  display: grid;
+  grid-template-columns: 3ch minmax(0, 1fr);
+  gap: var(--s-3);
+  padding-block: var(--s-4);
+  border-top: var(--bw) solid var(--c-line);
+}
+.cc-step__num {
+  font-family: var(--f-mono);
+  font-size: 0.8125rem;
+  color: var(--c-accent);
+  font-variant-numeric: tabular-nums;
+}
+.cc-step__name { color: var(--c-ivory); }
+.cc-step__desc {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: var(--cc-fs-desc);
+  line-height: 1.55;
+  color: var(--c-muted);
+}
+
+/* ============================================================
+   Ф9 · СЕРТИФІКАТ
+   ------------------------------------------------------------
+   Світлий аркуш на темній сторінці — предмет за визначенням.
+   Тому з нього знято все, що дає об'єм: нуль тіні, нуль повороту.
+   Він ПЛАСКИЙ і саме тому не конкурує з терміналом (NOTES.md §5).
+   ============================================================ */
+.cc-cert { display: grid; gap: var(--s-10); align-items: center; }
+@media (min-width: 860px) { .cc-cert { grid-template-columns: 1fr 26rem; column-gap: var(--s-12); } }
+.cc-paper {
+  padding: var(--s-8) var(--s-6);
+  border-radius: var(--r-control);
+  background: var(--paper-bg);
+  color: var(--paper-name);
+  text-align: center;
+}
+.cc-paper__kind {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: var(--cc-tr-meta);
+  text-transform: uppercase;
+  color: var(--paper-quiet);
+}
+.cc-paper__name {
+  margin-top: var(--s-4);
+  font-family: var(--f-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+.cc-paper__rule {
+  width: min(var(--paper-rule-w), 100%);
+  height: 2px;
+  margin: var(--s-3) auto 0;
+  background: var(--paper-rule);
+}
+.cc-paper__course { margin-top: var(--s-4); font-size: 0.9375rem; }
+.cc-paper__code {
+  margin-top: var(--s-5);
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--paper-quiet);
+}
+
+/* ============================================================
+   Ф10 · ДОНАТИ (наявний компонент, лише розкладка)
+   ============================================================ */
+.cc-donate { display: grid; gap: var(--s-4); margin-top: var(--s-8); }
+@media (min-width: 700px) { .cc-donate { grid-template-columns: 1fr 1fr; } }
+.cc-donate__card {
+  padding: var(--s-5);
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-control);
+  background: var(--c-surface);
+}
+.cc-donate__label { font-size: var(--cc-fs-desc); color: var(--c-muted); }
+.cc-donate__value {
+  margin-top: var(--s-2);
+  font-family: var(--f-mono);
+  font-size: 0.9375rem;
+  color: var(--c-sand);
+  word-break: break-all;
+}
+
+/* ============================================================
+   Ф11 · ПОЯВА (M8 / M10) — CSS, без ScrollTrigger на кожен рядок
+   ============================================================ */
+/* Ховаємо ТІЛЬКИ під `.js`: без скриптів сторінка лишається читабельною,
+   а не порожньою. Клас ставить <html> першим рядком <head>, як на сайті. */
+.js .cc-in { opacity: 0; transform: translateY(var(--move-cc-in)); }
+.js .cc-in.is-in {
+  opacity: 1;
+  transform: none;
+  transition: opacity var(--dur-cc-in) var(--e-out),
+              transform var(--dur-cc-in) var(--e-out);
+}
+.js .cc-row { opacity: 0; transform: translateY(var(--move-cc-row)); }
+.js .cc-rows.is-in .cc-row {
+  opacity: 1;
+  transform: none;
+  transition: opacity var(--dur-cc-row) var(--e-out) calc(var(--i, 0) * var(--stag-cc-row)),
+              transform var(--dur-cc-row) var(--e-out) calc(var(--i, 0) * var(--stag-cc-row));
+}
+
+/* ============================================================
+   Ф12 · СКЕЛЕТОН І РЕЗЕРВ ВИСОТИ (CLS ≈ 0)
+   ============================================================ */
+.cc-hero__object.is-reserved { min-height: var(--cc-hero-reserve); }
+.cc-map__reserve { min-height: var(--cc-map-reserve); }
+.cc-sk {
+  border-radius: var(--r-inner);
+  background: var(--c-raised);
+  height: 1em;
+}
+
+/* ============================================================
+   Ф13 · МОБІЛЬНЕ Й НИЗЬКІ ЕКРАНИ
+   ============================================================ */
+@media (max-width: 900px) {
+  .cc-grid { grid-template-columns: var(--rail-w) minmax(0, 1fr); column-gap: var(--s-4); }
+  .cc-phase__num { font-size: 1.5rem; padding-left: calc(var(--spine-x) + var(--s-3)); }
+  .cc-phase__count { padding-left: calc(var(--spine-x) + var(--s-3)); }
+
+  /* ⚠ ВИПРАВЛЕНО ВАЛІДАТОРОМ. Було: «6 модулів» не влазить у рейку 44px,
+     переноситься на два рядки і словом «модулів» накриває підзаголовок фази
+     (видно на 390px, фази 01–05). Стало: шапка фази — один рядок над
+     заголовком, зміст на тій самій вертикалі, що й раніше. */
+  .cc-phase.cc-grid { grid-template-columns: minmax(0, 1fr); }
+  .cc-phase > .cc-grid__rail {
+    grid-column: 1;
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-3);
+    padding-left: var(--rail-w);
+    margin-bottom: var(--s-1);
+  }
+  .cc-phase > .cc-grid__body { grid-column: 1; padding-left: var(--rail-w); }
+  .cc-phase__num, .cc-phase__count { padding-left: 0; margin-top: 0; white-space: nowrap; }
+}
+@media (max-width: 640px) {
+  .cc-hero { padding-block: var(--s-8) var(--s-10); }
+  .cc-row__link { padding-block: var(--s-2); }
+  /* На дуже вузьких екранах рядок змісту не має права виштовхнути
+     номер за край сторінки: назва отримує право переноситись,
+     крапковий leader — право зникнути до нуля. */
+  .cc-row__name { min-width: 0; overflow-wrap: break-word; }
+  .cc-row__leader { min-width: 0; }
+  .cc-exam__box { padding: var(--s-5); }
+}
+@media (max-height: 700px) and (min-width: 1024px) {
+  .cc-hero { padding-block: var(--s-5) var(--s-8); }
+  .cc-hero__grid { row-gap: var(--s-4); }
+  .cc-hero__lead { margin-top: var(--s-4); }
+  .cc-hero__cta { margin-top: var(--s-4); }
+  .cc-hero__stats { margin-top: var(--s-4); padding-top: var(--s-4); }
+  .cc-hero__explain { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js .cc-in, .js .cc-row { opacity: 1; transform: none; transition: none; }
+}
+
+
+/* ============================================================
+   Ф14 · ВИПРАВЛЕННЯ ВАЛІДАТОРА (контраст)
+   ------------------------------------------------------------
+   `.badge-soon` успадкований із css/custom.css:127 і фарбує напис
+   «скоро» у --c-faint (#7A7164) — 3.86:1 на полотні сторінки.
+   Це провал WCAG 1.4.3 AA, і на цій сторінці він множиться на 13
+   рядків карти. Значення підняте до найтихішого, яке ще проходить
+   AA (4.84:1). ⚠ Дефект НЕ наш: він живий на всьому сайті —
+   те саме правило фарбує бейджі в js/config.js на двох курсах.
+   Правити його треба в css/custom.css, а не тільки тут.
+   ============================================================ */
+.cc-row__badge .badge-soon { color: var(--c-quiet); }
+
+/* ============================================================
+   Ф15 · ВИПРАВЛЕННЯ ВАЛІДАТОРА (WCAG 2.2 · 2.4.11 Focus Not Obscured)
+   ------------------------------------------------------------
+   Заміряно в браузері: шапка .cc-shell липка й має висоту 65px.
+   При русі Shift+Tab угору по карті браузер підтягував рядок рівно
+   до верху вʼюпорта (top=0, bottom=48) — тобто фокус опинявся
+   ПОВНІСТЮ під шапкою, і людина не бачила, де вона стоїть.
+   Це провал AA, а не косметика. Лікується одним відступом прокрутки.
+   ============================================================ */
+:where(a, button, [tabindex], summary, :target) {
+  scroll-margin-top: 88px;   /* 65 шапки + 16 повітря + 2px кільця + запас */
+  scroll-margin-bottom: var(--s-6);
+}
