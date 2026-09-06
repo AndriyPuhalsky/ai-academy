@@ -336,8 +336,16 @@
   var NAVPROG_KEY = "aia:navProgress:" + CONFIG_PATH.split("/").pop();
   var NAVPROG_MAX_WAIT = 8000;   // страховка, якщо гідратації не буде взагалі
 
+  /* 006 · П-08 · Слово «Прогрес:» на екранах вужчих за 640 px ховається у
+     sr-only: на 390 px воно розпихало шапку так, що назва курсу переносилась
+     у два рядки. Ховаємо саме sr-only + sm:not-sr-only, а не hidden sm:inline:
+     геометрія однакова (обидва дають нульову ширину до 640), але hidden
+     вилучив би слово з дерева доступності — скрінрідер прочитав би голе
+     «3/12». Довжина рівно 9 символів; на ній стоїть арифметика резерву. */
+  var NAVPROG_LABEL = "Прогрес: ";
+
   function navProgressText(doneCount, total) {
-    return "Прогрес: " + doneCount + "/" + total;
+    return NAVPROG_LABEL + doneCount + "/" + total;
   }
 
   function readNavProgressChars() {
@@ -377,6 +385,9 @@
     var chars = readNavProgressChars();
     if (!chars || !hasAuthToken()) return;   // гість або перший візит — місця не тримаємо
     pill.style.setProperty("--navprog-ch", String(chars));
+    // Другий резерв — для < 640 px, де видно лише числа: повна довжина
+    // мінус «Прогрес: ». CSS вибирає потрібну змінну за брейкпоінтом.
+    pill.style.setProperty("--navprog-short-ch", String(chars - NAVPROG_LABEL.length));
     pill.setAttribute("data-reserved", "");
     pill.hidden = false;
     // Якщо прогрес не приїде взагалі (js/auth.js не піднявся, CDN Supabase
@@ -403,7 +414,11 @@
       // самий бокс тієї самої ширини, бо резервували рівно довжину тексту.
       pill.removeAttribute("data-reserved");
       pill.hidden = false;
-      pill.textContent = text;
+      // innerHTML, а не textContent: слово-мітка живе в окремому span, який
+      // до 640 px схований у sr-only. У кеш і далі йде довжина ПОВНОГО тексту
+      // (13/14) — діапазон валідації readNavProgressChars() не змінюється.
+      pill.innerHTML = '<span class="sr-only sm:not-sr-only">' + NAVPROG_LABEL + "</span>" +
+        esc(doneCount + "/" + total);
       rememberNavProgress(text.length);
     } else if (progressHydrated()) {
       // Нуль означає «нічого не пройдено» тільки ПІСЛЯ гідратації: до неї кеш

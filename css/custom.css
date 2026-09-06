@@ -2077,11 +2077,21 @@ html.aia-scroll-lock > body { padding-right: var(--aia-sbw, 0px); }
    рівно такою, як була (жодного min-width, жодного nowrap), щоб на
    вузькому екрані нічого не почало розпихати шапку інакше, ніж досі.
    ============================================================ */
+/* 006 · П-08 · Резерв тепер має два значення, бо пілюля має дві ширини:
+   до 640 px видно лише «3/12» (слово «Прогрес:» у sr-only), від 640 —
+   повний текст. --navprog-short-ch = --navprog-ch − 9 («Прогрес: »).
+   Mobile-first: базове правило — вузький екран, медіа піднімає до повного.
+   Якщо переплутати місцями, повертається CLS 0.00258, який 004 прибирала. */
 #navProgress[data-reserved] {
   visibility: hidden;
   /* 1.5rem = px-3 з обох боків, 2px = border з обох боків: обидва класи
      стоять у розмітці всіх 37 сторінок, box-sizing: border-box. */
-  min-width: calc(var(--navprog-ch, 13) * 1ch + 1.5rem + 2px);
+  min-width: calc(var(--navprog-short-ch, 4) * 1ch + 1.5rem + 2px);
+}
+@media (min-width: 640px) {
+  #navProgress[data-reserved] {
+    min-width: calc(var(--navprog-ch, 13) * 1ch + 1.5rem + 2px);
+  }
 }
 
 /* ============================================================
