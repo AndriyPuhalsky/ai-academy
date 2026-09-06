@@ -3,7 +3,7 @@ name: aia-build-frontend
 description: Агент №3 інженерного конвеєра AIA. Переносить ЗАТВЕРДЖЕНИЙ макет із `dev/design/` у реальний код сайту — HTML, `css/custom.css`, vanilla JS, GSAP-анімації — точно за токенами, таймінгами й easing з макета. Столяр, не дизайнер: візуал не вигадує, і якщо задача змінює вигляд без затвердженого макета — зупиняється й повертає задачу в дизайн-майстерню. Працює ПАРАЛЕЛЬНО з бекендером за контрактом даних із `01-plan.md`. Використовувати для будь-якої задачі AIA, що чіпає розмітку, стилі або інтеракції.
 tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, Skill, mcp__claude-in-chrome, TodoWrite
 model: claude-opus-5
-effort: high
+effort: xhigh
 color: yellow
 memory: project
 skills:
