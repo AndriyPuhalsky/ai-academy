@@ -501,8 +501,14 @@
     setText("#certCourse", c.paper.course);
     setText("#certCode", c.paper.code);
 
-    /* донати. Реквізити-посилання (банка monobank) робимо посиланням,
-       а не текстом: URL, який не клікається, — це робота для користувача.
+    /* донати. Реквізит із type: "link" (банка monobank) стає кнопкою
+       «Відкрити ↗» — дослівно тим самим компонентом, що на index.html
+       (js/config.js, donationCard → гілка type === "link"): URL, який
+       не клікається, — це робота для користувача, а сирий URL текстом
+       ще й розпирає картку.
+       Фолбек по regex лишається для конфігів без `type`: до 006 у
+       claude-code.config.json його не було в жодного методу, і мовчазна
+       втрата посилання при відкаті конфіга була б гіршою за зайвий рядок.
        `note` малюємо третім рядком, бо в кореневому config.json воно є
        й на двох живих курсах показується. */
     var d = cfg.donations;
@@ -516,12 +522,13 @@
       var dHost = $("#donateGrid");
       if (dHost) {
         dHost.innerHTML = d.methods.map(function (m) {
-          var value = /^https?:\/\//.test(m.value)
-            ? '<a class="cc-donate__link" href="' + esc(m.value) +
-              '" target="_blank" rel="noopener noreferrer">' + esc(m.value) + "</a>"
-            : esc(m.value);
+          var isLink = (m.type === "link") || (!m.type && /^https?:\/\//.test(m.value));
+          var body = isLink
+            ? '<a class="cc-donate__btn" href="' + esc(m.value) +
+              '" target="_blank" rel="noopener noreferrer">Відкрити ↗</a>'
+            : '<span class="cc-donate__value">' + esc(m.value) + "</span>";
           return '<li class="cc-donate__card"><span class="cc-donate__label">' + esc(m.label) + "</span>" +
-            '<span class="cc-donate__value">' + value + "</span>" +
+            body +
             (m.note ? '<span class="cc-donate__note">' + esc(m.note) + "</span>" : "") +
             "</li>";
         }).join("");
