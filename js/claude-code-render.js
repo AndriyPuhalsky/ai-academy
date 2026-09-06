@@ -97,8 +97,17 @@
   var NAVPROG_KEY = "aia:navProgress:" + CONFIG_URL.split("/").pop();
   var NAVPROG_MAX_WAIT = 8000;   // страховка, якщо гідратації не буде взагалі
 
+  /* 006 · П-08 · Слово «Прогрес:» на екранах вужчих за 640 px ховається у
+     .navprog-label (css/custom.css, база = sr-only): на 390 px воно розпихало
+     шапку так, що назва курсу переносилась у два рядки. Ховаємо саме
+     візуально, а не hidden sm:inline: геометрія однакова (обидва дають
+     нульову ширину до 640), але hidden вилучив би слово з дерева
+     доступності — скрінрідер прочитав би голе «3/12».
+     Довжина рівно 9 символів; на ній стоїть арифметика резерву. */
+  var NAVPROG_LABEL = "Прогрес: ";
+
   function navProgressText(doneCount, total) {
-    return "Прогрес: " + doneCount + "/" + total;
+    return NAVPROG_LABEL + doneCount + "/" + total;
   }
 
   function readNavProgressChars() {
@@ -138,6 +147,9 @@
     var chars = readNavProgressChars();
     if (!chars || !hasAuthToken()) return;   // гість або перший візит — місця не тримаємо
     pill.style.setProperty("--navprog-ch", String(chars));
+    // Другий резерв — для < 640 px, де видно лише числа: повна довжина
+    // мінус «Прогрес: ». CSS вибирає потрібну змінну за брейкпоінтом.
+    pill.style.setProperty("--navprog-short-ch", String(chars - NAVPROG_LABEL.length));
     pill.setAttribute("data-reserved", "");
     pill.hidden = false;
     // Якщо прогрес не приїде взагалі (js/auth.js не піднявся, CDN Supabase
@@ -164,7 +176,16 @@
       // самий бокс тієї самої ширини, бо резервували рівно довжину тексту.
       pill.removeAttribute("data-reserved");
       pill.hidden = false;
-      pill.textContent = text;
+      // innerHTML, а не textContent: слово-мітка живе в окремому span, який
+      // до 640 px схований візуально. У кеш і далі йде довжина ПОВНОГО тексту
+      // (13/14) — діапазон валідації readNavProgressChars() не змінюється.
+      // 006 · D-02: клас .navprog-label з css/custom.css, а не пара утиліт
+      // sr-only/sm:not-sr-only. Клас приходить у DOM лише з JS, і Tailwind CDN
+      // генерував для нього правило вже ПІСЛЯ вставки (QA: 53 мс), тому пілюля
+      // весь цей час була вужчою і зсувала шапку. Дубль цього рядка —
+      // js/config.js, правити синхронно.
+      pill.innerHTML = '<span class="navprog-label">' + NAVPROG_LABEL + "</span>" +
+        esc(doneCount + "/" + total);
       rememberNavProgress(text.length);
     } else if (progressHydrated()) {
       // Нуль означає «нічого не пройдено» тільки ПІСЛЯ гідратації: до неї кеш
@@ -501,8 +522,14 @@
     setText("#certCourse", c.paper.course);
     setText("#certCode", c.paper.code);
 
-    /* донати. Реквізити-посилання (банка monobank) робимо посиланням,
-       а не текстом: URL, який не клікається, — це робота для користувача.
+    /* донати. Реквізит із type: "link" (банка monobank) стає кнопкою
+       «Відкрити ↗» — дослівно тим самим компонентом, що на index.html
+       (js/config.js, donationCard → гілка type === "link"): URL, який
+       не клікається, — це робота для користувача, а сирий URL текстом
+       ще й розпирає картку.
+       Фолбек по regex лишається для конфігів без `type`: до 006 у
+       claude-code.config.json його не було в жодного методу, і мовчазна
+       втрата посилання при відкаті конфіга була б гіршою за зайвий рядок.
        `note` малюємо третім рядком, бо в кореневому config.json воно є
        й на двох живих курсах показується. */
     var d = cfg.donations;
@@ -516,12 +543,13 @@
       var dHost = $("#donateGrid");
       if (dHost) {
         dHost.innerHTML = d.methods.map(function (m) {
-          var value = /^https?:\/\//.test(m.value)
-            ? '<a class="cc-donate__link" href="' + esc(m.value) +
-              '" target="_blank" rel="noopener noreferrer">' + esc(m.value) + "</a>"
-            : esc(m.value);
+          var isLink = (m.type === "link") || (!m.type && /^https?:\/\//.test(m.value));
+          var body = isLink
+            ? '<a class="cc-donate__btn" href="' + esc(m.value) +
+              '" target="_blank" rel="noopener noreferrer">Відкрити ↗</a>'
+            : '<span class="cc-donate__value">' + esc(m.value) + "</span>";
           return '<li class="cc-donate__card"><span class="cc-donate__label">' + esc(m.label) + "</span>" +
-            '<span class="cc-donate__value">' + value + "</span>" +
+            body +
             (m.note ? '<span class="cc-donate__note">' + esc(m.note) + "</span>" : "") +
             "</li>";
         }).join("");
@@ -536,8 +564,12 @@
     setText("#footTop", f.top);
     var fl = $("#footLinks");
     if (fl) {
+      /* min-h-[24px] — ціль дотику 24 px (WCAG 2.5.8), як у #contactTrigger
+         поруч у розмітці claude-code.html. Той самий клас стоїть статично
+         у футерах трьох інших сторінок. */
       fl.innerHTML = f.links.map(function (l) {
-        return '<li><a href="' + esc(l.href) + '" class="text-muted transition hover:text-sand">' +
+        return '<li><a href="' + esc(l.href) +
+          '" class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand">' +
           esc(l.label) + "</a></li>";
       }).join("");
     }
@@ -552,7 +584,8 @@
         var href = cfg.links[l.key];
         if (!href) return "";
         return '<li><a href="' + esc(href) + '" target="_blank" rel="noopener noreferrer" ' +
-          'class="text-muted transition hover:text-sand">' + esc(l.label) + " ↗</a></li>";
+          'class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand">' +
+          esc(l.label) + " ↗</a></li>";
       }).join("");
     }
     /* Формат той самий, що renderFooterMeta() у js/config.js — інакше

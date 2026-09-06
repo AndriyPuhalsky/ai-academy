@@ -1,0 +1,21 @@
+# Memory Index
+
+- [Квізи заморожені 007](project_quiz_frozen_007.md) — `quizData` не правити; знахідки в звіт; `check-quiz.py --verify` має лишатись OK
+- [Межа рецензії: квіз](feedback_review_scope_quiz.md) — те саме правило як настанова до дій редактора
+- [Задача 008](project_task_008_review.md) — вичитка 26 сторінок «AI Термінала», по одній на агента
+- [Задача 008 (варіант запису)](project_content_review_008.md) — той самий контекст, дубль; чистити при нагоді
+- [Чим перевіряти урок](reference_lesson_verification.md) — чекери, screens/, curl доксів; що безпечно запускати живцем; `strings` віддає й код слеш-команди, не лише число
+- [Де брати факти](reference_lesson_fact_sources.md) — curl доксів замість WebFetch (він переказує, дослівні рядки губляться); llms.txt, glossary, мапа сторінок по темах
+- [screens/*.txt: зсув на рядок](reference_screens_line_count.md) — файл починається з набраної команди, `wc -l` на 1 більше
+- [Числа курсу вже зʼїхали](reference_course_numbers_drift.md) — 62→65 опцій, 13→18 підкоманд, 223→225 ключів, 31→33 hook-події, текст помилки JSON у `doctor` інший (звірено 2026-09-06)
+- [Вправи лише під macOS/Linux](project_unix_only_exercises.md) — `mkdir -p` у восьми уроках без варіанта для PowerShell; системне, у звіт рядком
+- [Перехресні посилання на модулі](project_lesson_crossrefs.md) — «це вже було в модулі N» перевіряти grep-ом; у c07 таке посилання було хибне
+- [Термінологія: оточення/середовище](project_terminology_env_vars.md) — c03 каже «змінна оточення», решта дев'яти уроків «змінні середовища»; не правити в одному файлі
+- [Англіцизми без введення](project_course_jargon_gaps.md) — пікер, дефолт, докси, фіча: жоден урок їх не вводить; grep перед проходом «непояснене слово»
+- [Рядок журналу з тлумаченням](reference_log_line_meaning_ab.md) — «рядок X — тобто Y» перевіряти A/B-запуском; у c17 «Hooks: Found 0…» означало інше
+- [Заміри автора перевіряти рахунком](reference_author_own_measurements.md) — у c10 «правильне число для 8×8» виявилось хибним (8×8 = 12 988 816)
+- [Прапорець ≠ підкоманда](reference_flag_subcommand_ownership.md) — звіряти `claude <cmd> --help`; у c18 `--callback-port` приписали `mcp login` замість `mcp add`
+- [Відтворити, перш ніж звинувачувати](reference_reproduce_before_flagging.md) — CLI друкує довгі пояснювальні речення; `claude plugin validate` у c15 виявився справжнім
+- [Рецензія довідників](reference_ref_pages_review.md) — контракт уроку не діє, чекери сліпі; повнота = діф із доксами (назва+тема+область); капкани `-ref-settings`
+- [Іспит c23: борг квіза](project_exam_c23_quiz_debt.md) — єдиний файл, що падає на check-lessons.py; причина — нічиї за довжиною (10/26), плюс 12 питань видають відповідь пунктуацією
+- [Hook-події: жива перевірка](reference_hooks_events_live_check.md) — `claude doctor` + невідома подія друкує всі назви ОДНИМ рядком (2.1.263 → 33); «N рядків» — хибна одиниця

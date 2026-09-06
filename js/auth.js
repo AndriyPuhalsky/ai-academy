@@ -33,6 +33,7 @@ const CERT_URL = new URL("../certificate.html", import.meta.url).href;
 let sb = null;
 let profileName = null;      // кеш public.profiles.full_name (null = порожньо)
 let profileLoadedFor = null; // для якого user.id кеш актуальний
+let metaSyncedFor = null;    // для якого user.id уже вирівнювали метадані
 let uiWarned = false;
 
 /* ---------- Межі й гігієна вводу ----------
@@ -233,6 +234,7 @@ async function loadProfileName(user) {
       if (error) throw error;
       const v = data && data.full_name ? String(data.full_name).trim() : "";
       profileName = v || null;
+      syncMetaName(user, profileName);
     } catch (e) {
       // Не фатально: currentName() впаде на метадані. Але мовчати не можна.
       console.warn("[AIA auth] profiles.full_name:", safeErrorText(e));
@@ -241,6 +243,35 @@ async function loadProfileName(user) {
   }
   window.AIA_NAME = currentName();
   return profileName;
+}
+
+/* Самолікування розходження profiles.full_name ↔ user_metadata.full_name.
+   Напрямок ЛИШЕ один: profiles → метадані. Джерело правди — profiles
+   (саме звідти maybe_issue_certificate бере ім'я у мить видачі), метадані
+   лише наздоганяють, щоб інші читачі бачили те саме.
+
+   Три запобіжники, і кожен потрібен:
+   • порожнє ім'я не пишемо ніколи — для currentName() метадані можуть бути
+     єдиним джерелом, і порожній запис прибрав би ім'я з шапки;
+   • один раз на user.id за завантаження сторінки — updateUser породжує
+     USER_UPDATED → ще один aia:auth, і без прапорця це був би цикл;
+   • best-effort: нічого не чекаємо, нічого не показуємо людині, profileName
+     і window.AIA_NAME з відповіді не переписуємо. */
+function syncMetaName(user, name) {
+  if (!sb || !user || !name) return;
+  if (metaSyncedFor === user.id) return;
+  const meta = user.user_metadata || {};
+  if (String(meta.full_name || "").trim() === name) return;
+  metaSyncedFor = user.id; // ставиться ДО виклику, не після відповіді
+  try {
+    Promise.resolve(sb.auth.updateUser({ data: { full_name: name } }))
+      .then((r) => {
+        if (r && r.error) console.warn("[AIA auth] updateUser (sync):", safeErrorText(r.error));
+      })
+      .catch((e) => console.warn("[AIA auth] updateUser (sync):", safeErrorText(e)));
+  } catch (e) {
+    console.warn("[AIA auth] updateUser (sync):", safeErrorText(e));
+  }
 }
 
 // Ланцюжок читання: profiles.full_name → user_metadata.full_name →

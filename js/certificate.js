@@ -30,6 +30,49 @@
     return new URL("verify.html", location.href).href + "?code=" + encodeURIComponent(code);
   }
 
+  /* ---------- Бренд курсу ----------
+     Сторінка /certificate одна на всі курси, а сертифікат — документ конкретного
+     курсу: підпис видавця, медальйон і шапка додатка мають називати той курс,
+     який людина справді закінчила. Ключ — courses.slug; значення звірені з
+     живою базою через Supabase MCP 2026-09-06
+     (select slug, title from courses order by sort_order → ai-essentials,
+     ai-architect, claude-code). Назви — дослівно site.name трьох конфігів,
+     посилання — лендінг + якір програми (у AI Термінала це #map, бо
+     #syllabus на claude-code.html немає). */
+  var BRANDS = {
+    "ai-essentials": {
+      brand: "AI Академія", brandCaps: "AI АКАДЕМІЯ", mono: "AIA",
+      home: "index.html", program: "index.html#syllabus"
+    },
+    "ai-architect": {
+      brand: "AI Architect", brandCaps: "AI ARCHITECT", mono: "AIA",
+      home: "architect.html", program: "architect.html#syllabus"
+    },
+    "claude-code": {
+      brand: "AI Термінал", brandCaps: "AI ТЕРМІНАЛ", mono: "AIT",
+      home: "claude-code.html", program: "claude-code.html#map"
+    }
+  };
+  var BRAND_FALLBACK = BRANDS["ai-essentials"];
+
+  // Попереджаємо про кожен невідомий слаг один раз на завантаження сторінки:
+  // три картки одного курсу не мають давати три однакові рядки в консолі.
+  var warnedSlugs = {};
+
+  // Невідомий або порожній слаг НЕ повинен ламати видачу: сертифікат має
+  // побудуватись і завантажитись навіть із фолбек-брендом (напр. якщо в базі
+  // з'явиться четвертий курс раніше, ніж рядок у цій мапі).
+  function brandOf(cert) {
+    var slug = (cert && cert.courses && cert.courses.slug) || "";
+    var b = BRANDS[slug];
+    if (b) return b;
+    if (!warnedSlugs[slug]) {
+      warnedSlugs[slug] = true;
+      console.warn("[AIA cert] невідомий slug курсу:", slug);
+    }
+    return BRAND_FALLBACK;
+  }
+
   /* ---------- Рендер сторінки ---------- */
 
   function renderLoggedOut() {
@@ -58,6 +101,7 @@
 
   function certCard(cert) {
     var course = (cert.courses && cert.courses.title) || "Курс";
+    var b = brandOf(cert);
     return (
       '<div class="rounded-2xl border border-line bg-surface p-6">' +
         '<div class="flex flex-wrap items-start justify-between gap-4">' +
@@ -70,6 +114,7 @@
           '<div class="flex flex-col gap-2">' +
             '<button type="button" data-cert="' + esc(cert.public_code) + '" class="cert-dl inline-flex items-center justify-center rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep">Завантажити PDF</button>' +
             '<a href="' + esc(verifyUrl(cert.public_code)) + '" target="_blank" rel="noopener" class="inline-flex items-center justify-center rounded-lg border border-line px-5 py-2.5 text-sm transition hover:border-clay/60">Сторінка перевірки ↗</a>' +
+            '<a href="' + esc(b.program) + '" class="inline-flex items-center justify-center rounded-lg border border-line px-5 py-2.5 text-sm transition hover:border-clay/60">До програми курсу →</a>' +
           '</div>' +
         '</div>' +
       '</div>'
@@ -90,10 +135,22 @@
 
   /* ---------- Завантаження даних ---------- */
 
+  // Для якого user.id дані вже тягнули. Подія aia:auth прилітає двічі підряд
+  // (refreshSession і onAuthStateChange у js/auth.js), а слухач на цій сторінці
+  // один — без прапорця це два однакові GET certificates на кожне завантаження.
+  var loadedFor = null;
+
   function load() {
     var body = $("#certBody");
-    if (!window.AIA_USER) { renderLoggedOut(); return; }
+    var uid = window.AIA_USER ? window.AIA_USER.id : null;
+    // Вихід скидає кеш: інакше вхід іншим акаунтом у тій самій вкладці
+    // показав би дані попереднього з пам'яті.
+    if (!uid) { loadedFor = null; renderLoggedOut(); return; }
     if (!window.sb) return;
+    if (uid === loadedFor) return;
+    // Прапорець ставиться ДО запиту, а не в .then: обидві події прилітають
+    // раніше, ніж повернеться відповідь, і прапорець «після» не рятує взагалі.
+    loadedFor = uid;
     if (body) body.innerHTML = '<p class="text-muted">Завантажуємо…</p>';
 
     window.sb
@@ -107,6 +164,9 @@
         else renderCerts(rows);
       })
       .catch(function (e) {
+        // Знімаємо прапорець, щоб наступний aia:auth (або повторний вхід)
+        // мав право спробувати ще раз.
+        loadedFor = null;
         console.error("[AIA cert]", e.message || e);
         if (body) body.innerHTML = '<p class="text-clay">Не вдалося завантажити сертифікати. Онови сторінку.</p>';
       });
@@ -147,13 +207,13 @@
     return node;
   }
 
-  function medallion() {
+  function medallion(b) {
     return (
       '<div style="display:flex;flex-direction:column;align-items:center">' +
         '<div style="width:76px;height:76px;border-radius:50%;border:2px solid #D97757;display:flex;align-items:center;justify-content:center">' +
-          '<div style="width:56px;height:56px;border-radius:50%;background:#D97757;display:flex;align-items:center;justify-content:center;font-family:\'IBM Plex Mono\',monospace;font-weight:600;font-size:18px;color:#fff;letter-spacing:.05em">AIA</div>' +
+          '<div style="width:56px;height:56px;border-radius:50%;background:#D97757;display:flex;align-items:center;justify-content:center;font-family:\'IBM Plex Mono\',monospace;font-weight:600;font-size:18px;color:#fff;letter-spacing:.05em">' + esc(b.mono) + '</div>' +
         '</div>' +
-        '<p style="margin:9px 0 0;font-family:\'IBM Plex Mono\',monospace;letter-spacing:.34em;font-size:11px;color:#a8997f">AI АКАДЕМІЯ</p>' +
+        '<p style="margin:9px 0 0;font-family:\'IBM Plex Mono\',monospace;letter-spacing:.34em;font-size:11px;color:#a8997f">' + esc(b.brandCaps) + '</p>' +
       '</div>'
     );
   }
@@ -180,9 +240,10 @@
 
   function buildCertNode(cert, qrDataUrl) {
     var course = (cert.courses && cert.courses.title) || "Курс";
+    var b = brandOf(cert);
     var vurl = verifyUrl(cert.public_code);
     return pageShell(
-      medallion() +
+      medallion(b) +
       '<h1 style="margin:22px 0 0;font-family:Literata,Georgia,serif;font-size:54px;font-weight:700;letter-spacing:.01em;line-height:1.18">Сертифікат</h1>' +
       '<p style="margin:16px 0 0;font-family:\'IBM Plex Mono\',monospace;letter-spacing:.26em;font-size:12px;color:#BD5F40">ПРО УСПІШНЕ ПРОХОДЖЕННЯ КУРСУ</p>' +
       '<p style="margin:38px 0 0;font-family:Literata,Georgia,serif;font-style:italic;font-size:19px;color:#8a7f6f">цей сертифікат вручається</p>' +
@@ -193,7 +254,7 @@
       '<div style="margin-top:auto;width:100%">' +
         '<div style="display:flex;align-items:flex-end;justify-content:space-between">' +
           '<div style="text-align:left">' +
-            '<p style="margin:0;font-family:Literata,Georgia,serif;font-style:italic;font-size:20px;color:#2b2620">AI Академія</p>' +
+            '<p style="margin:0;font-family:Literata,Georgia,serif;font-style:italic;font-size:20px;color:#2b2620">' + esc(b.brand) + '</p>' +
             '<div style="width:172px;height:1px;background:#cdbfa8;margin:6px 0 0"></div>' +
             '<p style="margin:7px 0 0;font-size:12px;color:#9a8f7f">Команда курсу · ' + esc(fmtDate(cert.issued_at)) + '</p>' +
           '</div>' +
@@ -256,6 +317,7 @@
 
   function buildTranscriptNode(cert, rows) {
     var course = (cert.courses && cert.courses.title) || "Курс";
+    var b = brandOf(cert);
     var scored = rows.filter(function (r) { return r.score != null; });
     var avg = scored.length ? Math.round(scored.reduce(function (s, r) { return s + r.score; }, 0) / scored.length) : 0;
 
@@ -283,7 +345,7 @@
       '</div>';
 
     return pageShell(
-      '<p style="margin:0;font-family:\'IBM Plex Mono\',monospace;letter-spacing:.3em;font-size:11px;color:#BD5F40">AI АКАДЕМІЯ · ДОДАТОК</p>' +
+      '<p style="margin:0;font-family:\'IBM Plex Mono\',monospace;letter-spacing:.3em;font-size:11px;color:#BD5F40">' + esc(b.brandCaps) + ' · ДОДАТОК</p>' +
       '<h1 style="margin:10px 0 0;font-family:Literata,Georgia,serif;font-size:34px;font-weight:700;line-height:1.1">Результати проходження</h1>' +
       '<p style="margin:6px 0 0;font-size:15px;color:#8a7f6f">' + esc(cert.full_name || "Студент") + ' · «' + esc(course) + '»</p>' +
       '<div style="width:100%;margin-top:18px">' + rowsHtml + '</div>' +
@@ -339,7 +401,7 @@
       alert("Бібліотеки для PDF ще вантажаться — спробуй за секунду.");
       return;
     }
-    var course = (cert.courses && cert.courses.title) || "AI-Academy";
+    var course = (cert.courses && cert.courses.title) || brandOf(cert).brand;
     var vurl = verifyUrl(cert.public_code);
     var original = btn ? btn.textContent : "";
     if (btn) { btn.disabled = true; btn.textContent = "Готуємо PDF…"; }
@@ -395,6 +457,12 @@
   }
 
   /* ---------- Старт ---------- */
+
+  // Читальний доступ для перевірки бренду з консолі без видачі сертифіката
+  // (у certificates немає політики DELETE, тому справжній рядок заради тесту
+  // не створюємо). Нічого не пише й не тягне з мережі — лише будує вузол
+  // з переданого об'єкта.
+  window.AIACert = { brandOf: brandOf, certCard: certCard, buildCertNode: buildCertNode, buildTranscriptNode: buildTranscriptNode };
 
   document.addEventListener("aia:auth", load);
   document.addEventListener("DOMContentLoaded", function () {

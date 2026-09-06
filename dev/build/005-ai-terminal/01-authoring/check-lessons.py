@@ -84,6 +84,8 @@ def check(path):
                 errs.append(f"питань {len(qs)}, мало бути 5–6")
             if want == "c23" and len(qs) < 20:
                 errs.append(f"іспит: питань {len(qs)}, очікувалось ~25")
+            longest = shortest = 0
+            ans_hist = {}
             for i, it in enumerate(qs, 1):
                 if not it.get("explain", "").strip():
                     errs.append(f"питання {i}: порожній explain")
@@ -91,6 +93,29 @@ def check(path):
                 a = it.get("answer")
                 if not isinstance(a, int) or not (0 <= a < len(opts)):
                     errs.append(f"питання {i}: answer={a!r} поза межами {len(opts)} варіантів")
+                    continue
+                # --- 007 (2026-09-06): довжина варіанта не має підказувати відповідь ---
+                # До правки правильна була найдовшою у 343 з 390 питань трьох курсів —
+                # тест проходився без читання. Той самий підрахунок, що в
+                # dev/build/007-quiz-distractors/check-quiz.py; нічия за довжиною теж
+                # рахується як підказка.
+                lens = [len(str(o)) for o in opts]
+                if lens:
+                    if lens[a] == max(lens):
+                        longest += 1
+                    elif lens[a] == min(lens):
+                        shortest += 1
+                ans_hist[a] = ans_hist.get(a, 0) + 1
+            n_q = len(qs)
+            if n_q and longest / n_q > 0.35:
+                errs.append(f"квіз: правильна = найдовший варіант у {longest}/{n_q} питань (> 35 %) — "
+                            "подовжити дистрактори (007)")
+            if n_q and shortest / n_q > 0.35:
+                warns.append(f"квіз: правильна = найкоротший варіант у {shortest}/{n_q} питань (> 35 %)")
+            if n_q >= 5 and ans_hist:
+                top_idx, top = max(ans_hist.items(), key=lambda kv: kv[1])
+                if top / n_q > 0.40:
+                    warns.append(f"квіз: answer={top_idx} у {top}/{n_q} питань (> 40 %) — розкидати індекс")
         except json.JSONDecodeError as e:
             errs.append(f"quizData — зламаний JSON: {e}")
 
