@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Усі події хуків — довідник · AI Термінал</title>
   <meta name="description"
-    content="Повна таблиця всіх 33 подій перехоплювачів (hooks) Claude Code: коли спрацьовує, за чим фільтрує matcher, що приходить на вхід, що можна віддати на виході. Плюс те, чого немає в жодній таблиці документації: події без matcher, межі поля if і дефолтні таймаути." />
+    content="Повна таблиця всіх 33 подій перехоплювачів (hooks) Claude Code: коли спрацьовує, за чим фільтрує matcher, що приходить на вхід, що можна віддати на виході. Плюс три обмеження, які ламають хук мовчки: події без matcher, межі поля if і таймаути за замовчуванням." />
   <meta name="theme-color" content="#141312" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
 
@@ -93,9 +93,9 @@
       <p class="mb-3 font-mono text-xs uppercase tracking-[0.18em] text-faint">Зміст</p>
       <ul class="grid gap-2 text-sm text-muted">
         <li><a href="#how" class="transition hover:text-ivory">Як влаштована ця сторінка</a></li>
-        <li><a href="#nomatcher" class="transition hover:text-ivory">Три речі, яких немає в жодній таблиці документації</a>
+        <li><a href="#nomatcher" class="transition hover:text-ivory">Три речі, які ламають хук мовчки</a>
           <span class="mt-0.5 block text-xs text-faint">— події без
-            <code>matcher</code>, межі поля <code>if</code>, дефолтні таймаути</span></li>
+            <code>matcher</code>, межі поля <code>if</code>, таймаути за замовчуванням</span></li>
         <li><a href="#common-in" class="transition hover:text-ivory">Спільні поля входу</a>
           <span class="mt-0.5 block text-xs text-faint">— те, що приходить кожній події</span></li>
         <li><a href="#common-out" class="transition hover:text-ivory">Спільні поля виходу й коди завершення</a></li>
@@ -186,11 +186,12 @@ flowchart TD
           <tbody>
             <tr>
               <td>Подія</td>
-              <td>назва, яку пишуть ключем у <code>"hooks"</code>. Регістр важливий</td>
+              <td>назва, яку пишуть ключем у <code>"hooks"</code>. Регістр важливий. Якщо подія
+                з'явилась у певній версії, номер стоїть під назвою</td>
             </tr>
             <tr>
               <td>Коли спрацьовує</td>
-              <td>момент у житті сесії. Якщо подія з'явилась у певній версії — версія вказана тут же</td>
+              <td>момент у житті сесії</td>
             </tr>
             <tr>
               <td>matcher</td>
@@ -214,7 +215,7 @@ flowchart TD
         <hr />
 
         <section id="nomatcher" class="scroll-mt-24">
-        <h2>Три речі, яких немає в жодній таблиці документації</h2>
+        <h2>Три речі, які ламають хук мовчки</h2>
 
         <p>
           Ці три обмеження в документації розкидані по різних розділах, і кожне з них ламає хук
@@ -275,19 +276,19 @@ flowchart TD
             пиши <code>"Edit(**/src/**)"</code>. До версії 2.1.214 поведінка була протилежна.</li>
         </ul>
 
-        <h3>3. Дефолтний <code>timeout</code> різний — і не завжди 600 секунд</h3>
+        <h3>3. Таймаут за замовчуванням різний — і не завжди 600 секунд</h3>
 
         <p>
           Таймаут задають полем <code>timeout</code> в обробнику, у секундах. Коли поля немає,
           Claude Code бере одне з цих значень:
         </p>
 
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця дефолтних таймаутів">
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця таймаутів за замовчуванням">
           <table class="min-w-[40rem]">
             <thead>
               <tr>
                 <th>Випадок</th>
-                <th>Дефолтний таймаут</th>
+                <th>Таймаут за замовчуванням</th>
                 <th>Що з цього виходить</th>
               </tr>
             </thead>
@@ -311,7 +312,7 @@ flowchart TD
                 <td>події <code>UserPromptSubmit</code>, <code>PreModelSwitch</code>,
                   <code>PostModelSwitch</code></td>
                 <td>30 с</td>
-                <td>знижений дефолт для <code>command</code>/<code>http</code>/<code>mcp_tool</code>:
+                <td>знижене значення для <code>command</code>/<code>http</code>/<code>mcp_tool</code>:
                   ці події тримають сесію, поки хук не відповість</td>
               </tr>
               <tr>
@@ -333,7 +334,7 @@ flowchart TD
           Що робить таймаут, теж залежить від події. На більшості — хук скасовується, його вивід
           відкидається, і <strong>рішення не виноситься взагалі</strong>. Два винятки варто знати
           напам'ять: на <code>PreToolUse</code> хук, який завис, <strong>не блокує</strong> виклик
-          (не розраховуй на завислий скрипт як на гейт), а на <code>PreModelSwitch</code>, навпаки,
+          (не розраховуй на завислий скрипт як на бар'єр), а на <code>PreModelSwitch</code>, навпаки,
           скасований по таймауту хук <strong>блокує</strong> перемикання моделі.
         </p>
 
@@ -349,8 +350,8 @@ flowchart TD
 
         <p>
           Хук отримує JSON у стандартний потік вводу (для <code>http</code>-обробника — тілом
-          POST-запиту). Ці поля приходять усім подіям; те, що специфічне для події, — у великій
-          таблиці нижче.
+          POST-запиту). Ці поля не залежать від конкретної події (два винятки позначені в таблиці); те, що
+          специфічне для події, — у великій таблиці нижче.
         </p>
 
         <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця спільних полів входу">
@@ -368,7 +369,7 @@ flowchart TD
               </tr>
               <tr>
                 <td><code>prompt_id</code></td>
-                <td>UUID промпта, який обробляється зараз. Збігається з атрибутом <code>prompt.id</code>
+                <td>унікальний ідентифікатор промпта, який обробляється зараз. Збігається з атрибутом <code>prompt.id</code>
                   у телеметрії OpenTelemetry. Немає, поки не було першого вводу</td>
               </tr>
               <tr>
@@ -424,7 +425,8 @@ flowchart TD
         <h2>Спільні поля виходу й коди завершення</h2>
 
         <p>
-          Хук відповідає двома каналами одразу: текстом на stdout і кодом завершення. Якщо на stdout
+          Хук відповідає двома каналами одразу: текстом на stdout (стандартний потік виводу — те,
+          що програма друкує) і кодом завершення. Якщо на stdout
           лежить JSON (текст починається з <code>{</code> і закінчується <code>}</code>), Claude Code
           читає з нього поля. Ці поля приймають усі події — хоч частина подій їх відкидає, і в таблиці
           подій це зазначено.
@@ -497,7 +499,8 @@ flowchart TD
                 <td><code>2</code></td>
                 <td>блокуюча помилка. На подіях, які вміють блокувати, зупиняє дію — навіть якщо в
                   JSON написано <code>allow</code>. Причину блокування бере з поля <code>reason</code>,
-                  а якщо його немає — зі stderr</td>
+                  а якщо його немає — зі stderr (це другий потік виводу, окремий від stdout: туди
+                  програми пишуть повідомлення про помилки)</td>
               </tr>
               <tr>
                 <td>будь-який інший<br />(зокрема <code>1</code>)</td>
@@ -517,7 +520,8 @@ flowchart TD
         <h2>Повна таблиця: 33 події</h2>
 
         <p>
-          Події згруповані так само, як у модулі 16, і всередині групи стоять у порядку життя сесії.
+          Групи майже ті самі, що в карті подій наприкінці модуля 16 (ущільнення контексту тут
+          стоїть усередині «ходу розмови»), а всередині групи події йдуть у порядку життя сесії.
           На вузькому екрані таблиці прокручуються вбік — їх можна тягнути пальцем або, ставши на
           таблицю клавішею Tab, гортати стрілками.
         </p>
@@ -588,8 +592,9 @@ flowchart TD
                 <td><code>source</code>, іноді <code>file_path</code></td>
                 <td><strong>блокує</strong>: <code>exit 2</code> або <code>decision: "block"</code> не
                   дає зміні застосуватись — крім <code>policy_settings</code>. ⚠ Не спрацьовує на
-                  серверні керовані налаштування й на політики, що приїхали з MDM (налаштування macOS,
-                  реєстр Windows): вони застосовуються без хука</td>
+                  серверні керовані налаштування й на політики, які організація роздає на пристрої
+                  централізовано (керовані параметри macOS, реєстр Windows): вони застосовуються
+                  без хука</td>
               </tr>
               <tr>
                 <td><code>CwdChanged</code></td>
@@ -609,7 +614,7 @@ flowchart TD
                 <td>як саме додано: <code>slash_command</code> · <code>register_repo_root</code></td>
                 <td><code>directory</code>, <code>source</code></td>
                 <td>без рішення. Claude Code не чекає на хук: тека додається одразу, хук працює у
-                  фоні з дефолтним таймаутом 600 с. Пісочниця й дозволи вже оновлені, коли хук
+                  фоні з таймаутом 600 с за замовчуванням. Пісочниця й дозволи вже оновлені, коли хук
                   стартує; сам хук виконується поза пісочницею</td>
               </tr>
               <tr>
@@ -752,7 +757,8 @@ flowchart TD
         <h3>Інструменти й дозволи — 7 подій</h3>
 
         <p>
-          У всіх п'ятьох подіях про інструменти <code>matcher</code> фільтрує за назвою інструмента:
+          У п'яти подіях цієї групи — усіх, крім <code>PostToolBatch</code> і
+          <code>Notification</code>, — <code>matcher</code> фільтрує за назвою інструмента:
           <code>Bash</code>, <code>Edit|Write</code>, <code>Read</code>, <code>Glob</code>,
           <code>Grep</code>, <code>Agent</code>, <code>WebFetch</code>, <code>WebSearch</code>,
           <code>AskUserQuestion</code>, <code>ExitPlanMode</code>, <code>PowerShell</code>,
@@ -808,7 +814,7 @@ flowchart TD
                 <td>скасувати вже нічого не можна. <code>decision: "block"</code> + <code>reason</code>
                   і <code>exit 2</code> показують текст моделі як зворотний зв'язок,
                   <code>updatedToolOutput</code> підміняє результат, <code>additionalContext</code>
-                  додає контекст. Місце для форматера, лінтера, тестів</td>
+                  додає контекст. Місце для форматера, перевірки коду (лінтера), тестів</td>
               </tr>
               <tr>
                 <td><code>PostToolUseFailure</code></td>
@@ -919,8 +925,10 @@ flowchart TD
                 <td><strong>немає</strong></td>
                 <td>ті самі поля, що в <code>TaskCreated</code></td>
                 <td><strong>блокує</strong>: <code>exit 2</code> не дає закрити задачу й повертає
-                  stderr як пояснення; <code>{"continue": false, "stopReason": "…"}</code> зупиняє
-                  роботу зовсім. Місце для «спершу зелені тести»</td>
+                  stderr як пояснення. <code>{"continue": false, "stopReason": "…"}</code> зупиняє
+                  учасника команди зовсім — але тільки тоді, коли подію викликало завершення його
+                  ходу; коли її викликав <code>TaskUpdate</code>, це поле ігнорується, а
+                  <code>exit 2</code> блокує однаково. Місце для «спершу зелені тести»</td>
               </tr>
               <tr>
                 <td><code>TeammateIdle</code></td>
@@ -956,10 +964,11 @@ flowchart TD
                 <td>створюється окрема робоча копія репозиторію: <code>claude --worktree</code>,
                   субагент з <code>isolation: "worktree"</code> або фонова сесія</td>
                 <td><strong>немає</strong></td>
-                <td><code>name</code> — слаг нової копії, заданий тобою або згенерований
+                <td><code>name</code> — коротке ім'я нової копії, задане тобою або згенероване
                   (наприклад, <code>bold-oak-a3f2</code>)</td>
                 <td>⚠ Єдина подія, чий хук <strong>повністю заміняє</strong> стандартну поведінку
-                  <code>git worktree</code> — саме так підключають SVN, Perforce чи Mercurial. Файл
+                  <code>git worktree</code> — саме так підключають іншу систему контролю версій:
+                  SVN, Perforce чи Mercurial. Файл
                   <code>.worktreeinclude</code> при цьому <strong>не обробляється</strong>: копіювати
                   <code>.env</code> має твій скрипт. Хук мусить віддати шлях: обробник
                   <code>command</code> — останнім непорожнім рядком stdout, <code>http</code> — полем
@@ -991,7 +1000,7 @@ flowchart TD
             У збірці <strong>2.1.236</strong>, на якій знімалися екрани цього курсу, їх немає —
             перевірено 2026-09-04 двома незалежними способами: пошуком назв у самому виконуваному
             файлі (нуль збігів на обидві, при 3–29 збігах на кожну з решти 31) і переліком подій,
-            який <code>claude doctor</code> друкує у відповідь на невідому назву події — у ньому 31 рядок.
+            який <code>claude doctor</code> друкує у відповідь на невідому назву події — у ньому 31 назва.
           </p>
           <p>
             Тому <strong>33 і 31 — обидва числа правильні</strong>: 33 — це документація на
@@ -1128,7 +1137,7 @@ flowchart TD
         </p>
 
         <ul>
-          <li><code>PermissionRequest</code> <strong>виглядає</strong> як гейт, але
+          <li><code>PermissionRequest</code> <strong>виглядає</strong> як бар'єр, але
             <code>exit 2</code> на ньому не діє — рішення передається об'єктом
             <code>decision.behavior</code>.</li>
           <li><code>WorktreeCreate</code> «блокує» не так, як інші: там будь-який ненульовий код
@@ -1173,13 +1182,13 @@ flowchart TD
                 <td><code>prompt</code></td>
                 <td>одноходовий запит до моделі, яка повертає рішення в JSON</td>
                 <td><code>prompt</code> (<code>$ARGUMENTS</code> підставляє вхідний JSON),
-                  <code>model</code>. Дефолтний таймаут 30 с</td>
+                  <code>model</code>. Таймаут за замовчуванням 30 с</td>
               </tr>
               <tr>
                 <td><code>agent</code></td>
                 <td>субагент, який може читати файли й шукати по них, перш ніж вирішити.
                   Експериментальний і може змінитись</td>
-                <td>ті самі <code>prompt</code> і <code>model</code>. Дефолтний таймаут 60 с</td>
+                <td>ті самі <code>prompt</code> і <code>model</code>. Таймаут за замовчуванням 60 с</td>
               </tr>
             </tbody>
           </table>
@@ -1195,9 +1204,10 @@ flowchart TD
             рахуються окремо.</li>
           <li><strong><code>"async": true</code> — тільки для <code>command</code>.</strong> Фоновий
             хук не блокує й не вирішує нічого: його <code>additionalContext</code> і
-            <code>systemMessage</code> доїдуть до моделі аж на наступному ході розмови, а таймаут
-            на нього не діє. Виняток — <code>asyncRewake</code>: такий хук, вийшовши з кодом
-            <code>2</code>, будить Claude одразу.</li>
+            <code>systemMessage</code> доїдуть до моделі аж на наступному ході розмови, а
+            <code>timeout</code> на нього не діє. Обидва пункти інакші для
+            <code>asyncRewake</code>: там <code>timeout</code> діє, а хук, який вийшов із кодом
+            <code>2</code>, будить Claude одразу, не чекаючи наступного ходу.</li>
           <li><strong>Хук виконується без керуючого термінала.</strong> Писати escape-послідовності
             в <code>/dev/tty</code> марно; для сповіщень є поле <code>terminalSequence</code>.</li>
         </ul>
@@ -1261,7 +1271,7 @@ flowchart TD
             <code>disableAllHooks</code> ззовні керованих налаштувань керовані хуки не вимикає.</li>
           <li><strong>У субагентах виконуються ті самі хуки</strong> з файлів налаштувань, керованої
             політики й плагінів. Вхідний JSON тоді несе <code>agent_id</code> і
-            <code>agent_type</code>, тож гейт на <code>PreToolUse</code> накриває субагентів
+            <code>agent_type</code>, тож бар'єр на <code>PreToolUse</code> накриває субагентів
             автоматично.</li>
           <li><strong>Хук у frontmatter субагента живе, поки той працює</strong>, і подія
             <code>Stop</code> там автоматично перетворюється на <code>SubagentStop</code>. Хук
@@ -1432,7 +1442,7 @@ flowchart TD
           <p>
             Другий спосіб, без <code>strings</code>: написати в <code>.claude/settings.json</code>
             неіснуючу подію й запустити <code>claude doctor</code> — програма надрукує перелік подій,
-            які знає. На 2.1.236 у ньому 31 рядок. ⚠ <code>claude doctor</code> виходить із кодом
+            які знає. На 2.1.236 у ньому 31 назва. ⚠ <code>claude doctor</code> виходить із кодом
             <code>0</code> навіть тоді, коли знайшов зламані налаштування, тому як перевірку в
             автоматичному конвеєрі його брати не можна.
           </p>
