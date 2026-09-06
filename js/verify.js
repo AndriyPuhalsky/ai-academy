@@ -54,16 +54,63 @@ function invalidCard(code) {
   );
 }
 
+/* ---------- Нормалізація коду ----------
+   Код сертифіката — 12 символів [0-9a-f] (див. міграцію 005-1: substr від
+   gen_random_uuid без дефісів). Людина переписує його з паперу або копіює
+   з PDF, тому в поле приїжджають три речі, яких у базі не буває: пробіли,
+   верхній регістр і кириличні двійники латинських літер. Реально «рятують»
+   лише а/с/е — решта в hex не зустрічається, але лишена для повноти:
+   з нею результат такий самий, як зараз (не знайдено), тільки чесніший.
+   Валідацію формату свідомо НЕ додаємо: 006 не міняє поведінку «не знайдено». */
+const HOMOGLYPHS = {
+  "а": "a",  // U+0430
+  "с": "c",  // U+0441
+  "е": "e",  // U+0435
+  "і": "i",  // U+0456
+  "о": "o",  // U+043E
+  "р": "p",  // U+0440
+  "х": "x",  // U+0445
+  "у": "y",  // U+0443
+  "ѕ": "s",  // U+0455
+  "ј": "j"  // U+0458
+};
+// Регулярка збирається з ключів мапи — щоб два списки не розійшлись.
+const HOMOGLYPH_RE = new RegExp("[" + Object.keys(HOMOGLYPHS).join("") + "]", "g");
+
+function normalizeCode(raw) {
+  return String(raw)
+    .replace(/\s+/g, "")                                   // 1. пробіли всередині
+    .toLowerCase()                                          // 2. регістр (і кирилиця теж)
+    .replace(HOMOGLYPH_RE, (ch) => HOMOGLYPHS[ch] || ch);   // 3. кирилиця → латиниця
+}
+
+function fixedNote(norm) {
+  return '<p class="mt-3 text-sm text-muted">У коді були кириличні літери — ми виправили їх на латиницю: ' +
+    '<span class="font-mono text-sand">' + esc(norm) + '</span></p>';
+}
+
 async function verify(code) {
-  code = (code || "").trim();
-  if (!code) { show('<p class="text-muted">Введи код сертифіката.</p>'); return; }
+  const raw = (code || "").trim();
+  if (!raw) { show('<p class="text-muted">Введи код сертифіката.</p>'); return; }
+  const norm = normalizeCode(raw);
+  const fixed = norm !== raw;
   show('<p class="text-muted">Перевіряємо…</p>');
   try {
     const client = await getClient();
-    const { data, error } = await client.rpc("verify_certificate", { p_code: code });
+    const { data, error } = await client.rpc("verify_certificate", { p_code: norm });
     if (error) throw error;
     const row = Array.isArray(data) ? data[0] : data;
-    show(row ? validCard(row) : invalidCard(code));
+    if (row) {
+      // Підказка йде ВСЕРЕДИНУ #verifyResult, щоб її підхопив role="status".
+      show(validCard(row) + (fixed ? fixedNote(norm) : ""));
+      if (fixed) {
+        const input = document.getElementById("verifyInput");
+        if (input) input.value = norm;
+      }
+    } else {
+      // У картці «не знайдено» показуємо саме той код, який пішов у базу.
+      show(invalidCard(norm));
+    }
   } catch (e) {
     console.error("[AIA verify]", e.message || e);
     show('<p class="text-clay">Не вдалося перевірити. Спробуй пізніше.</p>');
