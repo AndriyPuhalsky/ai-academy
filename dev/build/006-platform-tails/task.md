@@ -1,0 +1,116 @@
+# 006 — Платформні хвости після 005, кнопка банки на AI Терміналі, роадмап
+
+## Блок 1 — заповнює власник
+
+- **Статус:** у плані
+- **Заведено:** 2026-09-06
+- **Платформа:** усі три (спільні `css/custom.css`, `js/auth.js`, `js/certificate.js`,
+  `verify.html`, `certificate.html`; футери й шапки трьох лендінгів)
+- **Дизайн:** не потрібен — багфікси, доступність, складання з наявних компонентів
+
+### ТЗ
+Закрити платформні хвости зі звіту QA 005 (П-01, П-02, П-08, П-09, П-10, П-11, П-12),
+хвіст 004 (цілі 20 px у футерах), омогліфи в полі `/verify`. На `claude-code.html` банка
+monobank має бути кнопкою «Відкрити ↗», як на `index.html`, а не сирим URL. У
+`roadmap.json` пункт «Зробити курси зручнішими для всіх» перевести в «Зроблено». Завести
+`tg/DEPLOY_CHECKLIST.md`, на який тричі посилається `tg/GOING_LIVE.md`, а файла не було ніколи.
+
+### Рішення власника (2026-09-06)
+1. **П-10** — бренд сертифіката **за курсом**: медальйон, підпис, додаток і посилання на курс
+   беруть назву й лендінг курсу з `courses.slug`. Назва курсу в PDF уже є, міняється видавець.
+2. **П-01** — непрозора шапка на сторінках уроків **лише** там, де є проблема:
+   `@media (min-width: 1024px) and (max-height: 820px)`. На звичайних екранах blur лишається.
+3. **П-08** — на екранах вужчих за 640 px пілюля прогресу показує лише «3/12», слово
+   «Прогрес:» ховається. Назва курсу лишається видимою.
+4. **Поріг квіза** (`p_score = 100` завжди, поріг 70/85 у базі не працює) — **не чіпати**,
+   окрема задача пізніше. Довжина варіантів відповідей — задача 007, не ця.
+5. **Агенти конвеєра** на цій задачі — Opus 5 / effort `high`.
+
+### Чого точно НЕ робити
+- Ланцюжок `currentName()` у `js/auth.js:253` не міняти — він годує слот шапки й діалог
+  перед видачею сертифіката на трьох курсах. Подвійний `dispatchEvent("aia:auth")`
+  (`js/auth.js:163`, `:196`) не чіпати — фікс П-12 робиться на боці `js/certificate.js`.
+- Три латентні пастки `js/roadmap-render.js` (`dropped` сортує «Зроблено» у зворотному
+  порядку; `sectionEmptyProgress` бере `byState.done[0]`; `gi >= 2` уже виправлена
+  2026-09-04) — не лагодити «по дорозі».
+- Фікс `modules/module-07.html` (+3 px на 390) — локально в цьому HTML, не в спільному
+  `css/custom.css`.
+- Без нових залежностей. Зони запису — як у `dev/build/CLAUDE.md`.
+- Підагенти не створюють `.md`-файлів (межа харнесу): звіт — фінальним повідомленням,
+  файл зберігає коренева сесія.
+
+### Перелік пунктів із розвідки кореневої сесії (2026-09-06, file:line на момент розвідки)
+
+**Зона бекендера** (`js/auth.js`, `js/certificate.js`, `js/verify.js`, вміст для `tg/`):
+- **П-10.** `js/certificate.js:101` уже тягне `courses(title, slug)`. Мапа
+  `slug → { brand, brandCaps, home }` (назви з `site.name` трьох конфігів, лендінги
+  `index.html` / `architect.html` / `claude-code.html`, фолбек — AI Академія). Підстановки:
+  медальйон `:156`, підпис `:196`, додаток `:286`, фолбек `:342`, посилання в `renderEmpty`
+  `:54`, посилання на картці. Реальні `courses.slug` — звірити через Supabase MCP.
+  Сторінка `/certificate` лишається під парасольковим брендом, але жодне її посилання не
+  веде випускника курсу X у програму курсу Y (`certificate.html:45` зараз веде в
+  `index.html#syllabus` для всіх).
+- **П-12.** Діагноз QA неточний: `load()` на `DOMContentLoaded` не викликається
+  (`js/certificate.js:400–403`). Подвоєння дає подвійний `aia:auth`. Фікс: мемоїзація
+  `load()` за `window.AIA_USER.id` зі скиданням при виході.
+- **П-11.** У `loadProfileName()` (`js/auth.js:222–244`): якщо `profiles.full_name` ≠
+  `user_metadata.full_name` — один раз за сесію best-effort `updateUser`; помилка лишається
+  в `console.warn` (`:305`).
+- **Омогліфи.** `js/verify.js:58`: після `trim()` — `toLowerCase()` і мапа кирилиця →
+  латиниця (`а с е і о р х у ѕ ј` + великі), потім `rpc`. Якщо код змінився після
+  нормалізації й сертифікат знайшовся — підказка «у коді були кириличні літери, виправили».
+  Код — 12 hex-символів у нижньому регістрі (`005-1-course-ai-terminal.sql:283–285`).
+- **`tg/DEPLOY_CHECKLIST.md`.** Порядок міграцій Supabase (за `tg/CHANGELOG.md`: 002 →
+  005-1 → 005-2 → 005-4) і smoke-сценарій (вхід, прогрес трьох курсів, квіз, сертифікат,
+  `/verify`, бот `/stats`, сповіщення про реєстрацію). Текст — у фінальне повідомлення.
+
+**Зона фронтендера** (HTML, `css/`, конфіги, JS інтеракцій):
+- **Кнопка банки.** `js/claude-code-render.js:518–527` не читає `type` і підписує лінк самим
+  URL. У `claude-code.config.json:572–592` додати `"type": "link"` для monobank (паритет із
+  контрактом `config.json:2`); рендер за `m.type === "link"` (фолбек regex `https?://`) →
+  `<a class="cc-donate__btn" target="_blank" rel="noopener noreferrer">Відкрити ↗</a>`;
+  клас `.cc-donate__btn` у `css/claude-code.css` поруч із `.cc-donate__link` (`:723–731`):
+  рамка `border-line`, `rounded-lg`, `px-4 py-2`, hover як у `js/config.js:261`.
+  `label` і `note` лишаються.
+- **Футерні цілі 24 px — три лендінги.** `index.html:235–238`, `architect.html:220–224`:
+  посиланням і `#contactTrigger` дати `inline-flex min-h-[24px] items-center` (прецедент
+  `claude-code.html:330`). На `claude-code.html` кнопка вже 24 px, але посилання з
+  `js/claude-code-render.js:539–542` і `:551–558` — 20 px: той самий клас туди.
+- **П-08.** Дефект на лендінгах (на уроках назва курсу схована до `sm`). У `js/config.js:339–341,
+  401–407` і в дослівній копії `js/claude-code-render.js:100–102` пілюля рендерить
+  `<span class="hidden sm:inline">Прогрес: </span>3/12`. Резерв ширини (`--navprog-ch`,
+  `css/custom.css:2080–2085`) рахувати за видимим текстом, щоб механізм 004 «без зсуву»
+  лишився точним на обох брейкпоінтах. Дві копії коду правити синхронно.
+- **П-01.** Одне правило в `css/custom.css` поруч із `.module-sidebar` (`:333–372`):
+  `@media (min-width:1024px) and (max-height:820px) { body[data-module] > header { background-color:#141312; backdrop-filter:none } }`.
+  Хук `body[data-module]` є на всіх 57 уроках. `max-height` на `aside` не лікує (`height`
+  уже фіксована, формула дає той самий мінус).
+- **П-02.** `js/contact.js:138` — `role="dialog" aria-modal="true" aria-labelledby="ctTitle"
+  tabindex="-1"`, `id="ctTitle"` на `<h2>` `:141`; `openModal()` `:195` запамʼятовує
+  `document.activeElement`; `closeModal()` `:205` повертає фокус; у слухач `:169` — гілка
+  `Tab` → `trap()`, скопійований з `js/auth-ui.js:513–524`. Файл живе на 4 лендінгах.
+- **П-09.** `certificate.html`: `<a href="#main" class="skip-link">Перейти до вмісту</a>`
+  перед `:36`. `verify.html`: skip-link + `#ariaLive` після `:35`, `id="main"` на `<main>`
+  `:46`, `role="status" aria-live="polite" aria-atomic="true"` на `#verifyResult` `:59`.
+  Еталон — `index.html:57–58`.
+- **`modules/module-07.html` +3 px.** Корінь не названий ніким. Заміряти наживо обходом
+  `getBoundingClientRect().right > innerWidth` без фільтра предків з `overflow-x` (кандидати:
+  таблиця `:226` без `overflow-wrap` на `td`, або SVG Mermaid у `.diagram` `:150/:272`).
+- **`roadmap.json`.** `a11y-improvements` (`:133–140`) → `"state": "done"`; `visual-refresh`
+  лишити `progress`; `meta.updated` і `updatedLabel` — на дату релізу, обидва руками.
+
+**Зона кореневої сесії:** `CLAUDE.md` (пастки роадмапу, хвости 005), `dev/build/README.md`,
+`dev/build/JOURNAL.md`, `tg/CHANGELOG.md`, версії `0.4.2` / `1.3.2` / `1.0.2` + `site.updated`.
+
+**Дії власника:** leaked password protection (Dashboard → Authentication → Passwords, один
+перемикач; міграцією не вмикається) · залогінена вкладка Chrome з тестовим акаунтом до
+запуску QA (превʼю пише в продову базу; після QA — прибрати слід, як `005-4`) · «так» на мерж.
+
+---
+
+## Блок 2 — заповнює PM-агент (`01-plan.md`), тут лише посилання
+
+- **План:** `01-plan.md`
+- **Що піде в бекенд:** `02-backend/report.md`
+- **Що піде у фронтенд:** `03-frontend/report.md`
+- **Вердикт тестування:** `04-qa/report.md`
