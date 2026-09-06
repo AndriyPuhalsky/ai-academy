@@ -45,4 +45,20 @@ metadata:
 налаштування лише на цей запуск, не змінюючи його. Так на 2.1.263 дослівно відтворились обидва
 екрани `c06`, зняті на 2.1.236 (розійшовся тільки номер версії).
 
+**Сторінки, які закривають тему сесій, історії й відкату** (`c09`): визначення сесії,
+пікер із клавішами, `/branch`, `Resume from a summary`, шлях `~/.claude/projects/<project>/<id>.jsonl`
+і таблиця «Permission mode on resume» — `sessions.md` · чекпойнти, шість пунктів меню `/rewind`,
+межі (bash, субагенти, symlink) — `checkpointing.md` · **усе про вміст `~/.claude`** —
+`claude-directory.md`: `history.jsonl` («Every prompt you've typed…»), `file-history/`
+(«Checkpoint restore for past sessions»), розділ `Plaintext storage` («not encrypted at rest»)
+і повний приклад виводу `claude project purge --dry-run` · дослівні тексти помилок
+(`No conversation found with session ID` з чотирма причинами, `Restored the code, but skipped N
+files…` повним реченням) — `errors.md` · псевдоніми слеш-команд (`/rewind` = `/checkpoint`,
+`/undo`; `/resume` = `/continue`; `/clear` = `/reset`, `/new`) — `commands.md` ·
+`cleanupPeriodDays` (мінімум 1, `0` не проходить валідацію) — `settings-reference.md` ·
+історія вводу по папках і `Ctrl+R` — `interactive-mode.md`, розділ «Command history».
+
+**Безпечна перевірка помилки відновлення:** `claude --resume <неіснуючий-uuid> </dev/null` не
+запускає сесії — друкує рядок помилки й виходить із кодом 1 (перевірено на 2.1.263).
+
 Пов'язане: [[content-review-008]]
