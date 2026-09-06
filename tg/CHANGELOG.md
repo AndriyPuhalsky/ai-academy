@@ -9,6 +9,33 @@ SQL-міграції в Supabase, деплої/оновлення Edge Functions
 Нові записи додаються **зверху** (найновіші перші), під заголовком з датою у форматі
 `РРРР-ММ-ДД`.
 
+## 2026-09-06
+
+- **Leaked password protection (задача 006, К12) — НЕ ввімкнено: на поточному тарифі
+  функція недоступна.** Перевірено в Dashboard очима 2026-09-06 (тільки читання):
+  `Authentication` → `Attack Protection` більше не містить самого перемикача — там лише
+  статус `Prevent use of leaked passwords: DISABLED` і кнопка `Configure in email provider`.
+  Перемикач переїхав у `Authentication` → `Sign In / Providers` → провайдер `Email`, і в
+  його описі прямо написано **«Only available on Pro plan and above»**; проєкт у шапці
+  Dashboard позначений `FREE`. Тобто ввімкнення впирається не в клік, а в апгрейд плану
+  (~$25/міс) — це грошове рішення власника, а не інженерна дія. Другий бік того самого:
+  зміна налаштувань безпеки проєкту — дія власника; агент Dashboard читає, але не перемикає.
+- **У базі та конфігурації не змінено НІЧОГО:** DDL, політики, гранти, функції, секрети й
+  Edge Functions не чіпались, жодного `Save` у Dashboard не натиснуто. Панель провайдера
+  `Email` закрита кнопкою `Cancel`. Advisor `auth_leaked_password_protection` (WARN)
+  станом на 2026-09-06 07:44 UTC на місці — і лишиться, поки план Free.
+- **Що це означає практично:** GoTrue не звіряє пароль зі списком скомпрометованих
+  (HaveIBeenPwned) при реєстрації та зміні пароля. Мінімальна довжина пароля — 6 символів,
+  решта вимог не змінювалась; вхід через Google цим не зачеплений узагалі. Пункт
+  «leaked password protection вимкнено» в кореневому `CLAUDE.md` лишається відкритим, але
+  тепер із відомою причиною — не забутий клік, а платна функція.
+- **Звірка стану бази (тільки читання, MCP, 2026-09-06):** `courses` — три слаги
+  `ai-essentials` / `ai-architect` / `claude-code`; дев'ять таблиць `public`, у всіх RLS
+  увімкнено; дев'ять `SECURITY DEFINER`-функцій; два тригери (`auth.users` →
+  `on_auth_user_created`, `public.profiles` → `trg_notify_new_profile`). Фікс 002 на місці:
+  у `column_privileges` для `authenticated` лишається рівно `full_name / UPDATE`, а
+  `profiles_update` має `with_check = (id = auth.uid())`.
+
 ## 2026-09-05
 
 - **Другий мерж дня: `sitemap.xml` для індексації — `dev` → `main` `60317fb` (`--no-ff`, за
