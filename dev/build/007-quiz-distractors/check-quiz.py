@@ -11,6 +11,7 @@
     python3 check-quiz.py --baseline baseline.json   зберегти знімок правильних/explain/q
     python3 check-quiz.py --verify baseline.json     довести, що правильні тексти, q, explain
                                                      і кількість питань не змінились
+                                                     (разом з --files — лише по вказаних файлах)
     python3 check-quiz.py --rotate                переставити варіанти так, щоб індекс
                                                   `answer` розподілявся рівномірно (детерміновано;
                                                   питання зі згадкою позиції в explain — пропуск)
@@ -145,7 +146,7 @@ def snapshot(rows):
     return out
 
 
-def verify(rows, baseline_path):
+def verify(rows, baseline_path, partial=False):
     base = json.loads(pathlib.Path(baseline_path).read_text(encoding="utf-8"))
     now = snapshot(rows)
     problems = []
@@ -168,9 +169,10 @@ def verify(rows, baseline_path):
                 problems.append(f"{name}: питання {i} — текст ПРАВИЛЬНОЇ змінено: {ref['correct'][:50]!r} → {it['correct'][:50]!r}")
             if ref["explain"] != it["explain"]:
                 problems.append(f"{name}: питання {i} — explain змінено")
-    for name in base:
-        if name not in now:
-            problems.append(f"{name}: файл зник")
+    if not partial:  # з --files звіряємо лише вказані файли, решта не «зникла»
+        for name in base:
+            if name not in now:
+                problems.append(f"{name}: файл зник")
     # унікальність варіантів усередині питання
     for p, qs, _ in rows:
         for i, q in enumerate(qs):
@@ -249,7 +251,7 @@ def main():
     print_table(rows, per_file=args.per_file)
 
     if args.verify:
-        problems = verify(rows, args.verify)
+        problems = verify(rows, args.verify, partial=bool(args.files))
         if problems:
             print("\nVERIFY: РОЗБІЖНОСТІ")
             for pr in problems:

@@ -306,7 +306,7 @@ Supabase Dashboard живим браузером. Правила ті самі, 
 ```
 AIA/.claude/agents/aia-build-pm.md   -> ../../dev/build/.claude/agents/aia-build-pm.md
 AIA/.claude/skills/supabase          -> ../../dev/build/.agents/skills/supabase
-...                                     (4 агенти + 19 скілів)
+...                                     (7 агентів + 19 скілів)
 ```
 
 Чому саме так:
