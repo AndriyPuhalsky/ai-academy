@@ -543,8 +543,12 @@
     setText("#footTop", f.top);
     var fl = $("#footLinks");
     if (fl) {
+      /* min-h-[24px] — ціль дотику 24 px (WCAG 2.5.8), як у #contactTrigger
+         поруч у розмітці claude-code.html. Той самий клас стоїть статично
+         у футерах трьох інших сторінок. */
       fl.innerHTML = f.links.map(function (l) {
-        return '<li><a href="' + esc(l.href) + '" class="text-muted transition hover:text-sand">' +
+        return '<li><a href="' + esc(l.href) +
+          '" class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand">' +
           esc(l.label) + "</a></li>";
       }).join("");
     }
@@ -559,7 +563,8 @@
         var href = cfg.links[l.key];
         if (!href) return "";
         return '<li><a href="' + esc(href) + '" target="_blank" rel="noopener noreferrer" ' +
-          'class="text-muted transition hover:text-sand">' + esc(l.label) + " ↗</a></li>";
+          'class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand">' +
+          esc(l.label) + " ↗</a></li>";
       }).join("");
     }
     /* Формат той самий, що renderFooterMeta() у js/config.js — інакше
