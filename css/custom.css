@@ -2122,6 +2122,41 @@ html.aia-scroll-lock > body { padding-right: var(--aia-sbw, 0px); }
   }
 }
 
+/* 006 · D-02 · Мітка «Прогрес: » усередині пілюлі — власний клас, не утиліти.
+   Було: <span class="sr-only sm:not-sr-only">. Це єдиний у проєкті клас, який
+   потрапляє в DOM ТІЛЬКИ з JS, тож Tailwind CDN (JIT у браузері) генерував
+   .sm\:not-sr-only лише після вставки — QA заміряв 53 мс, протягом яких пілюля
+   мала 54,8 px замість 119,61, а резерв [data-reserved] уже було знято: та сама
+   дірка в шапці на 64,8 px, яку прибирала 004.
+   Тепер обидва стани описані тут і приїжджають разом із css/custom.css, тобто
+   існують у CSSOM ще до першого малювання. Декларації дослівні з Tailwind:
+   база = .sr-only, від 640 px = .not-sr-only. Брейкпоінт 640 навмисно той
+   самий, що в резерві вище (--navprog-short-ch / --navprog-ch), — вони мусять
+   перемикатись в одній точці, інакше резерв знову розійдеться з фактом. */
+.navprog-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+@media (min-width: 640px) {
+  .navprog-label {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+}
+
 /* ============================================================
    003 · ТОЧКА ВХОДУ У ФУТЕРІ (M10)
    ------------------------------------------------------------

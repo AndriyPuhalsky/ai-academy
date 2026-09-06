@@ -337,11 +337,12 @@
   var NAVPROG_MAX_WAIT = 8000;   // страховка, якщо гідратації не буде взагалі
 
   /* 006 · П-08 · Слово «Прогрес:» на екранах вужчих за 640 px ховається у
-     sr-only: на 390 px воно розпихало шапку так, що назва курсу переносилась
-     у два рядки. Ховаємо саме sr-only + sm:not-sr-only, а не hidden sm:inline:
-     геометрія однакова (обидва дають нульову ширину до 640), але hidden
-     вилучив би слово з дерева доступності — скрінрідер прочитав би голе
-     «3/12». Довжина рівно 9 символів; на ній стоїть арифметика резерву. */
+     .navprog-label (css/custom.css, база = sr-only): на 390 px воно розпихало
+     шапку так, що назва курсу переносилась у два рядки. Ховаємо саме
+     візуально, а не hidden sm:inline: геометрія однакова (обидва дають
+     нульову ширину до 640), але hidden вилучив би слово з дерева
+     доступності — скрінрідер прочитав би голе «3/12».
+     Довжина рівно 9 символів; на ній стоїть арифметика резерву. */
   var NAVPROG_LABEL = "Прогрес: ";
 
   function navProgressText(doneCount, total) {
@@ -415,9 +416,14 @@
       pill.removeAttribute("data-reserved");
       pill.hidden = false;
       // innerHTML, а не textContent: слово-мітка живе в окремому span, який
-      // до 640 px схований у sr-only. У кеш і далі йде довжина ПОВНОГО тексту
+      // до 640 px схований візуально. У кеш і далі йде довжина ПОВНОГО тексту
       // (13/14) — діапазон валідації readNavProgressChars() не змінюється.
-      pill.innerHTML = '<span class="sr-only sm:not-sr-only">' + NAVPROG_LABEL + "</span>" +
+      // 006 · D-02: клас .navprog-label з css/custom.css, а не пара утиліт
+      // sr-only/sm:not-sr-only. Клас приходить у DOM лише з JS, і Tailwind CDN
+      // генерував для нього правило вже ПІСЛЯ вставки (QA: 53 мс), тому пілюля
+      // весь цей час була вужчою і зсувала шапку. Дубль цього рядка —
+      // js/claude-code-render.js, правити синхронно.
+      pill.innerHTML = '<span class="navprog-label">' + NAVPROG_LABEL + "</span>" +
         esc(doneCount + "/" + total);
       rememberNavProgress(text.length);
     } else if (progressHydrated()) {
