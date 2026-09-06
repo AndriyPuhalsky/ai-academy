@@ -60,3 +60,27 @@ metadata:
 
 **Число «38 файлів палітри» уточнене:** `grep -rl 'tailwind.config' --include='*.html' .`
 (без `dev/`) дає **44** файли після появи `roadmap.html`. Правити скриптом, як і досі.
+
+
+**Доповнення 2026-09-06 (задача 006 «Платформні хвости»). Що додано й де тепер шукати.**
+- `css/claude-code.css` — **четверта система** (токени `--c-*`, `--s-*`, `--r-control`, `--bw`,
+  `--dur-hover`, `--e-out` вона НЕ визначає, а бере з `css/custom.css`, який підключений
+  раніше). Сімʼя донатів: `.cc-donate__card/__label/__value/__link/__note` і новий
+  **`.cc-donate__btn`** — реквізит-кнопка «Відкрити ↗» для `type: "link"`. Це токенний
+  двійник Tailwind-кнопки з `js/config.js` (`donationCard`, гілка `type === "link"`).
+- **`#navProgress` має тепер ДВА резерви ширини:** `--navprog-ch` (повний текст, від 640 px)
+  і `--navprog-short-ch` = повний − 9 (лише числа, до 640). Правило в `css/custom.css`
+  mobile-first: базове — коротке, `@media (min-width: 640px)` — повне. Обидві змінні ставить
+  `reserveNavProgress()`, і **вона живе у двох дослівних копіях**: `js/config.js` і
+  `js/claude-code-render.js`. Правити тільки разом.
+- **`body[data-module] > header`** — єдине правило, що робить шапку уроку непрозорою на
+  `min-width:1024px and max-height:820px`. Хук `data-module` є в 57 із 57 `modules/*.html`.
+  Колір — **літерал `#141312`**, свідомо не токен (токен = 44 правки в `tailwind.config`).
+- **Обгортка широкої таблиці — не CSS-клас, а Tailwind-утиліта в самому HTML:**
+  `<div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: …">`.
+  Заведено в 005 (9 уроків AI Термінала), перевикористано в 006 для `modules/module-07.html`.
+  Еталон — `modules/claude-code-03.html:279`. Нового класу для таблиць не заводити.
+- **`sm:not-sr-only` Tailwind CDN генерує** навіть коли клас приходить лише з JS —
+  перевірено заміром 2026-09-06 (`position` спану `static` на 1440, `absolute` +
+  `clip: rect(0,0,0,0)` на 390). До 006 статичного вживання цього класу в репозиторії
+  не було жодного.
