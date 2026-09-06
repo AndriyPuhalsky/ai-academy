@@ -34,6 +34,11 @@ let cfg = null;
 let modalEl = null;
 let turnstileWidgetId = null;
 let turnstileLoadingPromise = null;
+// 006 · П-02 · Куди повернути фокус після закриття. Модалка живе на
+// чотирьох сторінках (index, architect, claude-code, roadmap), і на
+// кожній її відкриває свій #contactTrigger — тому запам'ятовуємо
+// реальний activeElement, а не шукаємо кнопку по id.
+let lastFocused = null;
 
 function isPlaceholder(v) {
   return !v || /ТВІЙ|YOUR_/.test(v);
@@ -130,15 +135,51 @@ function unlockScroll() {
   root.style.removeProperty("--aia-sbw");
 }
 
+/* 006 · П-02 · Пастка фокуса. Скопійована з js/auth-ui.js (focusables/trap,
+   FIX-12 задачі 001): список фокусовних має збігатися з тим, куди браузер
+   справді пускає Tab, тому inert-піддерева й visibility:hidden відсіюємо.
+   Відмінність від еталона одна: там кілька діалогів у стеку, тут стек не
+   потрібен — картка завжди одна, modalEl.firstElementChild. */
+function focusables(root) {
+  return Array.prototype.filter.call(
+    root.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'),
+    (el) => {
+      if (el.closest("[inert]")) return false;
+      if (el.checkVisibility) return el.checkVisibility({ visibilityProperty: true });
+      return el.offsetParent !== null || el === document.activeElement;
+    }
+  );
+}
+
+function trap(e) {
+  if (e.key !== "Tab" || !modalEl) return;
+  const card = modalEl.firstElementChild;
+  const list = focusables(card);
+  if (!list.length) { e.preventDefault(); modalEl.focus(); return; }
+  const first = list[0], last = list[list.length - 1];
+  if (e.shiftKey && (document.activeElement === first || document.activeElement === modalEl)) {
+    e.preventDefault(); last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault(); first.focus();
+  }
+}
+
 function buildModal() {
   if (modalEl) return;
   modalEl = document.createElement("div");
   modalEl.id = "aiaContactModal";
   modalEl.className = "fixed inset-0 z-[60] hidden items-center justify-center bg-ink/80 p-4 backdrop-blur";
+  // 006 · П-02 · Роль і назва діалогу. tabindex="-1" потрібен, щоб пастка
+  // Tab мала куди повернути фокус, якщо всередині картки не лишилось
+  // жодного фокусовного елемента.
+  modalEl.setAttribute("role", "dialog");
+  modalEl.setAttribute("aria-modal", "true");
+  modalEl.setAttribute("aria-labelledby", "ctTitle");
+  modalEl.setAttribute("tabindex", "-1");
   modalEl.innerHTML =
     '<div class="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-2xl">' +
       '<div class="mb-4 flex items-center justify-between">' +
-        '<h2 class="font-display text-xl">Написати нам</h2>' +
+        '<h2 id="ctTitle" class="font-display text-xl">Написати нам</h2>' +
         '<button type="button" id="ctClose" class="text-faint transition hover:text-sand" aria-label="Закрити">✕</button>' +
       "</div>" +
       '<div id="ctFormWrap" class="space-y-3">' +
@@ -167,7 +208,9 @@ function buildModal() {
   modalEl.querySelector("#ctDoneClose").addEventListener("click", closeModal);
   modalEl.addEventListener("click", (e) => { if (e.target === modalEl) closeModal(); });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !modalEl.classList.contains("hidden")) closeModal();
+    if (modalEl.classList.contains("hidden")) return;
+    if (e.key === "Escape") { closeModal(); return; }
+    trap(e);
   });
 
   const msgEl = modalEl.querySelector("#ctMessage");
@@ -193,6 +236,8 @@ function resetForm() {
 }
 
 function openModal() {
+  // Запам'ятовуємо ДО показу: після focus() на #ctName activeElement уже інший.
+  lastFocused = document.activeElement;
   buildModal();
   resetForm();
   if (modalEl.classList.contains("hidden")) lockScroll();
@@ -210,6 +255,11 @@ function closeModal() {
   modalEl.classList.add("hidden");
   modalEl.classList.remove("flex");
   unlockScroll();
+  // Повертаємо фокус туди, звідки відкривали (зазвичай #contactTrigger).
+  // Обнуляємо одразу — повторний Escape по вже закритій модалці до сюди
+  // не доходить (гілка вище), але подвійне повернення все одно зайве.
+  if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
+  lastFocused = null;
 }
 
 function showError(msg) {
