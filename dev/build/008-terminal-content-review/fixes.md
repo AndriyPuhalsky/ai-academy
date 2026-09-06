@@ -147,3 +147,31 @@ PY
    не одне: перелічено шість, отже решта — чотирнадцять.
 
 Нових фактів не додаєш: число 20 уже стоїть у довіднику й у конфігу, це вирівнювання під них.
+
+---
+
+## П-6 · `c13`: `Settings Warning` → `Settings Error` — додано 2026-09-06
+
+**Питання, яке редактор `c13` повернув авторові, розсуджене довідником і живим запуском.**
+
+`modules/claude-code-13.html`, блок 5, одразу під екраном із `cleanupPeriodDays: 0`, каже:
+
+> Для решти файла це не фатально: коли ламається окреме значення, а не весь JSON, Claude Code
+> пропускає це значення й лишає файл чинним — у документації такий випадок називається
+> `Settings Warning`, на відміну від `Settings Error`.
+
+**Це хибно.** `settings.md` § «Fix a broken settings file»:
+- **`Settings Error`** — «a user, project, or local file has invalid JSON **or a value the schema
+  rejects**»;
+- **`Settings Warning`** — «**only individual entries** fail, such as a malformed permission rule
+  or an unknown hook event name».
+
+`settings-reference.md` про цей самий ключ: «Setting `0` **fails validation**».
+
+**Перевірено живцем** (2.1.263, окремий `CLAUDE_CONFIG_DIR` у `/private/tmp`): `cleanupPeriodDays: 0`
+потрапляє в розділ **`Invalid settings`** виводу `claude doctor` із підказкою «must be at least 1».
+
+**Правка:** привести абзац у відповідність — це випадок `Settings Error` (значення, відхилене
+схемою), а `Settings Warning` — це криве правило дозволу чи неіснуюча назва події. **Довідник
+`claude-code-ref-settings.html` чіпати не треба, він каже правильно.** Формулювання бери з
+довідника, щоб дві сторінки не розійшлися знову.
