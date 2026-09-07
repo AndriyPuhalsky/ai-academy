@@ -112,11 +112,11 @@
       cancel: "Скасувати"
     },
 
+    // 010 · це вже не мобільний аркуш, а меню акаунта в шапці (рішення
+    // власника Р-1): аватар відкриває той самий дропдаун, що й «Курси».
+    // Ключі nameMeta / certs / out прибрані разом із buildAccountSheet().
     sheet: {
       nameRow: "Ім'я для сертифіката",
-      nameMeta: "змінити",
-      certs: "Сертифікати",
-      out: "Вийти",
       open: "Мій акаунт"
     },
 
@@ -158,13 +158,13 @@
       '<path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>' +
     '</svg>';
 
+  /* ⚠ 010 · width/height ОБОВʼЯЗКОВІ. Розмір гліфа раніше задавав
+     `.aia-close svg { width: var(--icon-sm) }` з css/custom.css; у системі
+     `.ds-btn--icon` розміру нащадкам не диктує, і без атрибутів SVG
+     розтягувався на всю кнопку. Значення — з кадру T7 пакета. */
   var SVG_CLOSE =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false">' +
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false">' +
       '<path d="M5 5l14 14M19 5L5 19"/></svg>';
-
-  var SVG_ALERT =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
-      '<path d="M12 3.6 2.6 20h18.8L12 3.6z"/><path d="M12 10v4"/><path d="M12 17.2v.1"/></svg>';
 
   /* ==========================================================
      2. Дрібні утиліти й межі вводу
@@ -249,20 +249,21 @@
    */
   function buildErrorPanel(kind) {
     var e = T.err[kind] || T.err.other;
+    /* 010 · .aia-panel* → ds-note. Тон лишається «попередження», а не
+       «помилка»: людина нічого не зламала — просто вхід не вдався, і поруч
+       одразу є робочий шлях. Гліф ▲ у .ds-note__glyph, а не власна плитка. */
     var act = e.act
-      ? '<div class="aia-panel__do">' +
-          '<button type="button" class="aia-panel__act" data-act="retry-google">' + esc(e.act) + "</button>" +
-          (e.alt ? '<span class="aia-panel__alt">' + esc(e.alt) + "</span>" : "") +
-        "</div>"
+      ? '<p style="display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-2)">' +
+          '<button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" data-act="retry-google">' + esc(e.act) + "</button>" +
+          (e.alt ? '<span class="ds-small">' + esc(e.alt) + "</span>" : "") +
+        "</p>"
       : "";
     return (
-      '<div class="aia-panel" id="aiaOauthPanel" role="alert">' +
-        '<span class="aia-panel__icon">' + SVG_ALERT + "</span>" +
-        "<div>" +
-          '<p class="aia-panel__title">' + esc(e.title) + "</p>" +
-          '<p class="aia-panel__why">' + esc(e.why) + "</p>" +
-          act +
-        "</div>" +
+      '<div class="ds-note ds-note--warn" id="aiaOauthPanel" role="alert">' +
+        '<span class="ds-note__glyph" aria-hidden="true">▲</span>' +
+        '<p class="ds-note__title">' + esc(e.title) + "</p>" +
+        "<p>" + esc(e.why) + "</p>" +
+        act +
       "</div>"
     );
   }
@@ -271,6 +272,14 @@
    * Модалка входу. Порядок блоків — R01 (Cal.com): провайдер → «або» →
    * форма → повноширинний сабміт унизу. Соц-блок вище табів, тому
    * питання «показувати на обох табах» знімається структурно.
+   *
+   * 010 · етап 8. .aia-scrim / .aia-card / .aia-* → ds-dlg / ds-dlg__card /
+   * ds-fld / ds-btn / ds-tabs зі СТАТИЧНОГО css/components.css.
+   * ⚠ Структура змінилась: підложка тепер ОКРЕМИЙ вузол .ds-dlg__scrim,
+   * тому «картка» більше не el.firstElementChild — усюди cardOf(el).
+   * ⚠ Табів як окремої сутності в системі 009 немає: це ds-btn з
+   * aria-pressed (components.css §26 + кадр Ф10 пакета). Через це знято
+   * role="tablist"/"tab"/"tabpanel" і aria-selected; стрілки ← → лишились.
    */
   function buildModal(o) {
     o = o || {};
@@ -278,58 +287,85 @@
     var tab = o.tab === "register" ? "register" : "login";
     var describedBy = note ? ' aria-describedby="aiaModalNote"' : "";
 
+    /* Розділювач «або». У системі класу немає (P2 обіцяв ds-dlg__or, у
+       components.css його не додали) — тому дві хайрлайн-лінії токеном
+       --c-line і жодного нового імені. Деталі — у звіті. */
+    var orRow =
+      '<div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:var(--s-3);margin:var(--s-4) 0">' +
+        '<span style="height:var(--bw);background:var(--c-line)"></span>' +
+        '<span class="ds-eyebrow">' + esc(T.or) + "</span>" +
+        '<span style="height:var(--bw);background:var(--c-line)"></span>' +
+      "</div>";
+
     return (
-      '<div class="aia-scrim" id="aiaAuthModal">' +
-        '<div class="aia-card" role="dialog" aria-modal="true" aria-labelledby="aiaModalTitle"' + describedBy + ' tabindex="-1">' +
+      '<div class="ds-dlg" id="aiaAuthModal" hidden data-open="false">' +
+        '<div class="ds-dlg__scrim"></div>' +
+        '<div class="ds-dlg__card" role="dialog" aria-modal="true" aria-labelledby="aiaModalTitle"' + describedBy + ' tabindex="-1">' +
 
-          // смуга процесу (ефект 9), схована в спокої
-          '<div class="aia-card__bar" id="aiaBar" hidden><span></span></div>' +
+          /* смуга процесу (ефект 9) — по верхній межі картки, поза потоком,
+             щоб її поява не зсувала вміст на 2 px. Схована в спокої. */
+          '<div class="ds-dlg__bar" id="aiaBar" hidden ' +
+               'style="position:absolute;top:0;left:0;right:0;border-radius:var(--r-card) var(--r-card) 0 0"><span></span></div>' +
 
-          '<div class="aia-head">' +
-            '<h2 class="aia-title" id="aiaModalTitle">' + esc(tab === "register" ? T.titleRegister : T.titleLogin) + "</h2>" +
-            '<button type="button" class="aia-close" id="aiaClose" aria-label="' + esc(T.close) + '">' + SVG_CLOSE + "</button>" +
+          '<div class="ds-dlg__head">' +
+            '<h2 class="ds-h3" id="aiaModalTitle">' + esc(tab === "register" ? T.titleRegister : T.titleLogin) + "</h2>" +
+            '<button type="button" class="ds-btn ds-btn--quiet ds-btn--sm ds-btn--icon" id="aiaClose" aria-label="' + esc(T.close) + '">' + SVG_CLOSE + "</button>" +
           "</div>" +
 
-          '<p class="aia-note" id="aiaModalNote"' + (note ? "" : " hidden") + ">" + esc(note) + "</p>" +
+          '<p class="ds-small" id="aiaModalNote"' + (note ? "" : " hidden") + ">" + esc(note) + "</p>" +
 
-          '<div class="aia-social" id="aiaSocial">' +
+          '<div id="aiaSocial" style="display:grid;gap:var(--s-2);margin-top:var(--s-4)">' +
             buildProviderButton("aiaGoogle", "light", T.google) +
           "</div>" +
 
           // статус очікування — ОКРЕМИЙ елемент; текст на кнопці
           // Google не змінюється ніколи
-          '<p class="aia-status" id="aiaGoogleStatus" role="status" aria-live="polite" hidden>' +
-            '<span class="aia-status__dot" aria-hidden="true"></span>' +
-            "<span>" + esc(T.googleStatus) + "</span>" +
+          '<p class="ds-badge ds-badge--info" id="aiaGoogleStatus" data-glyph="●" ' +
+             'role="status" aria-live="polite" style="margin-top:var(--s-3)" hidden>' +
+            esc(T.googleStatus) +
           "</p>" +
 
-          '<div class="aia-dim" id="aiaEmailPath">' +
-            '<div class="aia-or"><span>' + esc(T.or) + "</span></div>" +
+          /* Ефект 10: решта діалогу гасне, кнопка Google лишається яскравою.
+             Значення 0.45 — колишній --dim-busy (рішення дизайну 001); у
+             tokens.css відповідника немає, тому воно тут числом. У звіті. */
+          '<div id="aiaEmailPath" style="transition:opacity var(--dur-hover) var(--e-out)">' +
+            orRow +
 
             '<div id="aiaPanelSlot"></div>' +
 
-            '<div class="aia-tabs" id="aiaTabs" data-tab="' + tab + '" role="tablist" aria-label="Спосіб входу поштою">' +
-              '<span class="aia-tabs__pill" aria-hidden="true"></span>' +
-              '<button type="button" role="tab" id="aiaTabLogin" data-tab="login" aria-selected="' + (tab === "login") + '" aria-controls="aiaForm" tabindex="' + (tab === "login" ? "0" : "-1") + '">' + esc(T.tabLogin) + "</button>" +
-              '<button type="button" role="tab" id="aiaTabRegister" data-tab="register" aria-selected="' + (tab === "register") + '" aria-controls="aiaForm" tabindex="' + (tab === "register" ? "0" : "-1") + '">' + esc(T.tabRegister) + "</button>" +
+            '<div class="ds-tabs" id="aiaTabs" data-tab="' + tab + '" style="margin-bottom:var(--s-3)">' +
+              '<button type="button" class="ds-btn ds-btn--ghost ds-btn--sm ds-tabs__pill" id="aiaTabLogin" data-tab="login" aria-pressed="' + (tab === "login") + '" aria-controls="aiaForm">' + esc(T.tabLogin) + "</button>" +
+              '<button type="button" class="ds-btn ds-btn--ghost ds-btn--sm ds-tabs__pill" id="aiaTabRegister" data-tab="register" aria-pressed="' + (tab === "register") + '" aria-controls="aiaForm">' + esc(T.tabRegister) + "</button>" +
             "</div>" +
 
-            '<div class="aia-stack" id="aiaForm" role="tabpanel" aria-labelledby="aiaTab' + (tab === "register" ? "Register" : "Login") + '">' +
-              '<div class="aia-collapse' + (tab === "register" ? " is-open" : "") + '" id="aiaNameWrap">' +
-                "<div>" +
+            '<div id="aiaForm" style="display:grid;gap:var(--s-3)" aria-labelledby="aiaTab' + (tab === "register" ? "Register" : "Login") + '">' +
+              /* M7 · розкриття поля імені: grid-template-rows 0fr→1fr.
+                 visibility зі ступінчастим переходом — інакше приховане поле
+                 лишається зупинкою табуляції (те саме, що П-35 у меню). */
+              '<div id="aiaNameWrap" data-open="' + (tab === "register") + '" style="' +
+                 "display:grid;grid-template-rows:" + (tab === "register" ? "1fr" : "0fr") + ";" +
+                 "opacity:" + (tab === "register" ? "1" : "0") + ";" +
+                 "visibility:" + (tab === "register" ? "visible" : "hidden") + ";" +
+                 "transition:grid-template-rows var(--dur-state) var(--e-out),opacity var(--dur-state) var(--e-out),visibility 0s linear " +
+                   (tab === "register" ? "0s" : "var(--dur-state)") + '">' +
+                '<div class="ds-fld" style="overflow:hidden">' +
                   /* FIX-4 · поля отримали візуально приховані мітки: placeholder
                      зникає, щойно людина почала друкувати (WCAG 3.3.2). */
                   '<label class="sr-only" for="aiaName">' + esc(T.nameLabel) + "</label>" +
-                  '<input id="aiaName" class="aia-input" type="text" placeholder="' + esc(T.namePh) + '" autocomplete="name" maxlength="100" aria-describedby="aiaNameHint" />' +
-                  '<p class="aia-hint" id="aiaNameHint">' + esc(T.nameHint) + "</p>" +
+                  '<input id="aiaName" class="ds-fld__input" type="text" placeholder="' + esc(T.namePh) + '" autocomplete="name" maxlength="100" aria-describedby="aiaNameHint" />' +
+                  '<p class="ds-fld__hint" id="aiaNameHint">' + esc(T.nameHint) + "</p>" +
                 "</div>" +
               "</div>" +
-              '<label class="sr-only" for="aiaEmail">' + esc(T.emailPh) + "</label>" +
-              '<input id="aiaEmail" class="aia-input" type="email" placeholder="' + esc(T.emailPh) + '" autocomplete="email" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="254" />' +
-              '<label class="sr-only" for="aiaPass">' + esc(T.passLabel) + "</label>" +
-              '<input id="aiaPass" class="aia-input" type="password" placeholder="' + esc(T.passPh) + '" autocomplete="' + (tab === "register" ? "new-password" : "current-password") + '" maxlength="128" />' +
-              '<p class="aia-error" id="aiaError" role="alert" hidden></p>' +
-              '<button type="button" class="aia-submit" id="aiaSubmit">' + esc(tab === "register" ? T.submitRegister : T.submitLogin) + "</button>" +
+              '<div class="ds-fld">' +
+                '<label class="sr-only" for="aiaEmail">' + esc(T.emailPh) + "</label>" +
+                '<input id="aiaEmail" class="ds-fld__input" type="email" placeholder="' + esc(T.emailPh) + '" autocomplete="email" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="254" />' +
+              "</div>" +
+              '<div class="ds-fld">' +
+                '<label class="sr-only" for="aiaPass">' + esc(T.passLabel) + "</label>" +
+                '<input id="aiaPass" class="ds-fld__input" type="password" placeholder="' + esc(T.passPh) + '" autocomplete="' + (tab === "register" ? "new-password" : "current-password") + '" maxlength="128" />' +
+              "</div>" +
+              '<p class="ds-fld__error" id="aiaError" role="alert" hidden></p>' +
+              '<button type="button" class="ds-btn ds-btn--primary" id="aiaSubmit">' + esc(tab === "register" ? T.submitRegister : T.submitLogin) + "</button>" +
             "</div>" +
           "</div>" +
 
@@ -341,9 +377,16 @@
   /**
    * Діалог «Ім'я для сертифіката».
    * ОДНА поверхня, ДВА входи:
-   *   mode "permanent" — постійне редагування (з шапки / з аркуша);
+   *   mode "permanent" — постійне редагування (з шапки / з меню акаунта);
    *   mode "last"      — гарантований дотик перед завершенням курсу;
    *   mode "soft"      — той самий дотик удруге, без режиму редагування.
+   *
+   * 010 · .paper* → ds-paper*, .aia-* → ds-*. Смужка паперу лишається
+   * ЄДИНОЮ світлою поверхнею системи (components.css §18) — саме тому
+   * вона й переїхала в систему як окремий компонент.
+   * ⚠ ds-paper__after у components.css НЕМАЄ (P2 його обіцяв), тому
+   * нижній рядок бере ds-paper__quiet — та сама роль «тихий текст на
+   * папері», той самий токен --c-paper-quiet. Деталі — у звіті.
    */
   function buildNameDialog(o) {
     o = o || {};
@@ -354,108 +397,80 @@
     var shown = value.trim() || T.name.fallback;
 
     var head =
-      '<div class="aia-head">' +
-        "<div>" +
-          (mode === "permanent" ? "" : '<p class="aia-eyebrow">' + esc(T.name.eyebrow) + "</p>") +
-          '<h2 class="aia-title" id="aiaNameTitle">' + esc(T.name.title) + "</h2>" +
-        "</div>" +
+      '<div class="ds-dlg__head">' +
+        (mode === "permanent" ? "" : '<p class="ds-eyebrow">' + esc(T.name.eyebrow) + "</p>") +
+        '<h2 class="ds-h3" id="aiaNameTitle">' + esc(T.name.title) + "</h2>" +
         (mode === "permanent"
-          ? '<button type="button" class="aia-close" id="aiaNameClose" aria-label="' + esc(T.close) + '">' + SVG_CLOSE + "</button>"
+          ? '<button type="button" class="ds-btn ds-btn--quiet ds-btn--sm ds-btn--icon" id="aiaNameClose" aria-label="' + esc(T.close) + '">' + SVG_CLOSE + "</button>"
           : "") +
       "</div>";
 
     var desc =
-      '<p class="aia-note" id="aiaNameDesc">' +
+      '<p class="ds-small" id="aiaNameDesc" style="margin-bottom:var(--s-4)">' +
         esc(mode === "permanent" ? T.name.descPermanent : T.name.descLast) +
       "</p>";
 
     var warn = suspicious
-      ? '<p class="paper-warn">' + SVG_ALERT + "<span>" + esc(T.name.suspicious) + "</span></p>"
+      ? '<div class="ds-note ds-note--warn" style="margin-bottom:var(--s-4)">' +
+          '<span class="ds-note__glyph" aria-hidden="true">▲</span>' +
+          "<p>" + esc(T.name.suspicious) + "</p>" +
+        "</div>"
       : "";
 
     // СМУЖКА ПАПЕРУ — буквальний фрагмент того, що зробить js/certificate.js:
-    // ті самі кольори, та сама Literata, той самий порядок рядків.
+    // ті самі токени --c-paper-*, той самий порядок рядків.
     var paper =
-      '<div class="paper" id="aiaPaper">' +
-        '<p class="paper__quiet" aria-hidden="true">' + esc(T.name.quiet) + "</p>" +
-        '<p class="paper__name"><span class="sr-only">' + esc(T.name.srPrefix) + "</span>" +
+      '<div class="ds-paper" id="aiaPaper" style="text-align:center;margin:var(--s-4) 0">' +
+        '<p class="ds-paper__quiet" aria-hidden="true">' + esc(T.name.quiet) + "</p>" +
+        '<p class="ds-paper__name"><span class="sr-only">' + esc(T.name.srPrefix) + "</span>" +
           '<span id="aiaPaperName">' + esc(shown) + "</span></p>" +
-        '<div class="paper__rule" aria-hidden="true"></div>' +
-        '<p class="paper__after" aria-hidden="true">' + esc(T.name.after) + "</p>" +
+        /* Центрування — композиція сторінки, а не властивість компонента:
+           так само зроблено в кадрі T7 пакета (margin-inline:auto на лінійці).
+           Воно повторює справжній аркуш PDF, де все по центру. */
+        '<div class="ds-paper__rule" aria-hidden="true" style="margin-inline:auto"></div>' +
+        '<p class="ds-paper__quiet" aria-hidden="true">' + esc(T.name.after) + "</p>" +
       "</div>";
 
     var caption =
-      '<p class="aia-warnline" id="aiaPaperCaption">' +
+      '<p class="ds-small" id="aiaPaperCaption" style="margin-top:var(--s-2)">' +
         (value.trim() ? "" : esc(T.name.fallbackWhy) + " ") +
         esc(T.name.caption) + " <b>" + esc(T.name.captionStrong) + "</b>" +
       "</p>";
 
     var field = editing
-      ? '<div style="margin-top:var(--s-4)">' +
-          '<label class="aia-label" for="aiaNameInput">' + esc(T.name.label) + "</label>" +
-          '<input id="aiaNameInput" class="aia-input" type="text" maxlength="100" autocomplete="name" value="' + esc(value) + '" />' +
+      ? '<div class="ds-fld" style="margin-top:var(--s-4)">' +
+          '<label class="ds-fld__label" for="aiaNameInput">' + esc(T.name.label) + "</label>" +
+          '<input id="aiaNameInput" class="ds-fld__input" type="text" maxlength="100" autocomplete="name" value="' + esc(value) + '" />' +
         "</div>"
       : "";
 
     // Місце під повідомлення про невдале збереження (порожнє, поки все добре).
-    var errline = '<p class="aia-error" id="aiaNameError" role="alert" hidden></p>';
+    var errline = '<p class="ds-fld__error" id="aiaNameError" role="alert" style="margin-top:var(--s-2)" hidden></p>';
 
-    var actions;
+    function actions(primary, primaryLabel, secondary, secondaryLabel) {
+      return (
+        '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-2);margin-top:var(--s-5)">' +
+          '<button type="button" class="ds-btn ds-btn--primary" data-act="' + primary + '">' + esc(primaryLabel) + "</button>" +
+          '<button type="button" class="ds-btn ds-btn--quiet" data-act="' + secondary + '">' + esc(secondaryLabel) + "</button>" +
+        "</div>"
+      );
+    }
+
+    var acts;
     if (mode === "permanent") {
-      actions =
-        '<div class="aia-actions aia-actions--row">' +
-          '<button type="button" class="aia-submit" data-act="save">' + esc(T.name.save) + "</button>" +
-          '<button type="button" class="aia-text-btn" data-act="cancel">' + esc(T.name.cancel) + "</button>" +
-        "</div>";
+      acts = actions("save", T.name.save, "cancel", T.name.cancel);
     } else if (editing) {
-      actions =
-        '<div class="aia-actions aia-actions--row">' +
-          '<button type="button" class="aia-submit" data-act="save-finish">' + esc(T.name.saveAndFinish) + "</button>" +
-          '<button type="button" class="aia-text-btn" data-act="cancel">' + esc(T.name.cancel) + "</button>" +
-        "</div>";
+      acts = actions("save-finish", T.name.saveAndFinish, "cancel", T.name.cancel);
     } else {
-      actions =
-        '<div class="aia-actions aia-actions--row">' +
-          '<button type="button" class="aia-submit" data-act="confirm">' + esc(T.name.confirm) + "</button>" +
-          '<button type="button" class="aia-text-btn" data-act="edit">' +
-            esc(mode === "soft" ? T.name.editSoft : T.name.edit) + "</button>" +
-        "</div>";
+      acts = actions("confirm", T.name.confirm, "edit",
+                     mode === "soft" ? T.name.editSoft : T.name.edit);
     }
 
     return (
-      '<div class="aia-scrim" id="aiaNameModal" data-mode="' + mode + '">' +
-        '<div class="aia-card aia-card--paper" role="dialog" aria-modal="true" aria-labelledby="aiaNameTitle" aria-describedby="aiaNameDesc" tabindex="-1">' +
-          head + desc + warn + paper + caption + field + errline + actions +
-        "</div>" +
-      "</div>"
-    );
-  }
-
-  /**
-   * Мобільний аркуш акаунта. Рівно три рядки — межа обсягу.
-   * Рядок «ім'я» нічого не редагує сам: відкриває той самий діалог,
-   * що й на десктопі.
-   */
-  function buildAccountSheet(o) {
-    o = o || {};
-    var name = o.name || T.name.fallback;
-    var mail = o.email || "";
-    var certs = o.certUrl || "#";
-    return (
-      '<div class="aia-scrim is-sheet" id="aiaSheet">' +
-        '<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="aiaSheetWho" tabindex="-1">' +
-          '<div class="sheet__who">' +
-            '<span class="sheet__avatar" aria-hidden="true">' + esc(initial(name)) + "</span>" +
-            '<div class="sheet__names">' +
-              '<p class="sheet__name" id="aiaSheetWho">' + esc(name) + "</p>" +
-              (mail ? '<p class="sheet__mail">' + esc(mail) + "</p>" : "") +
-            "</div>" +
-          "</div>" +
-          '<button type="button" class="sheet__row" data-act="name">' +
-            "<span>" + esc(T.sheet.nameRow) + '</span><span class="meta">' + esc(T.sheet.nameMeta) + "</span>" +
-          "</button>" +
-          '<a class="sheet__row" href="' + esc(certs) + '" data-act="certs"><span>' + esc(T.sheet.certs) + "</span><span class=\"meta\">↗</span></a>" +
-          '<button type="button" class="sheet__row sheet__row--out" data-act="out">' + esc(T.sheet.out) + "</button>" +
+      '<div class="ds-dlg" id="aiaNameModal" hidden data-open="false" data-mode="' + mode + '">' +
+        '<div class="ds-dlg__scrim"></div>' +
+        '<div class="ds-dlg__card" role="dialog" aria-modal="true" aria-labelledby="aiaNameTitle" aria-describedby="aiaNameDesc" tabindex="-1" style="overflow:hidden">' +
+          head + desc + warn + paper + caption + field + errline + acts +
         "</div>" +
       "</div>"
     );
@@ -521,9 +536,16 @@
     );
   }
 
+  /* 010 · «картка» більше НЕ firstElementChild: перший нащадок .ds-dlg — це
+     підложка .ds-dlg__scrim. Один хелпер замість шести місць, де стояв
+     firstElementChild, — інакше фокус і пастка Tab тихо їхали б у підложку. */
+  function cardOf(el) {
+    return el && (el.querySelector(".ds-dlg__card") || el.firstElementChild);
+  }
+
   function trap(e) {
     if (e.key !== "Tab" || !stack.length) return;
-    var card = stack[stack.length - 1].el.firstElementChild;
+    var card = cardOf(stack[stack.length - 1].el);
     var list = focusables(card);
     if (!list.length) { e.preventDefault(); card.focus(); return; }
     var first = list[0], last = list[list.length - 1];
@@ -568,14 +590,26 @@
     stack.push(entry);
     lockScroll();
 
+    /* ⚠ П-10 · ПОКАЗ. Було: .aia-scrim з CSS-анімацією появи, тобто діалог
+       з'являвся сам, щойно потрапив у DOM. Система 009 будує появу на
+       ПЕРЕХОДІ від data-open="false" до "true", а перехід не стартує, якщо
+       обидва стани прийшли в одному кадрі. requestAnimationFrame тут не
+       годиться: у вкладці, яка не рендериться (фон, оклюзія), rAF не
+       викликається ЖОДНОГО разу — заміряно 2026-09-07 у живому Chrome.
+       Примусовий reflow дає той самий кадр синхронно. */
+    el.hidden = false;
+    void el.offsetWidth;
+    el.setAttribute("data-open", "true");
+
     // Фокус на КОНТЕЙНЕР картки, не в email і не на кнопку Google:
     // скрін-рідер читає назву діалогу, клавіатура не відправляє
     // випадковим Enter на редірект, на мобілці не вискакує клавіатура.
-    var card = el.firstElementChild;
-    card.focus();
+    cardOf(el).focus();
 
     el.addEventListener("mousedown", function (ev) {
-      if (ev.target === el && entry.dismissible) closeTop("scrim");
+      var onScrim = ev.target === el ||
+        (ev.target.classList && ev.target.classList.contains("ds-dlg__scrim"));
+      if (onScrim && entry.dismissible) closeTop("scrim");
     });
 
     return el;
@@ -586,9 +620,16 @@
     var entry = stack.pop();
     var el = entry.el;
 
-    el.classList.add("is-leaving");
+    /* Вихід — той самий перехід у зворотний бік. Слухач transitionend
+       ФІЛЬТРУЄТЬСЯ за ціллю й властивістю: подія спливає, і перехід
+       border-color будь-якого поля всередині картки закрив би діалог
+       раніше часу (спіймано живцем у js/contact.js). */
+    el.setAttribute("data-open", "false");
+    var card = cardOf(el);
     var done = false;
-    function finish() {
+    function finish(ev) {
+      if (ev && ev.type === "transitionend" &&
+          (ev.target !== card || ev.propertyName !== "opacity")) return;
       if (done) return;
       done = true;
       /* 004 п.4 · знімаємо блокування тільки коли підложки вже немає на
@@ -599,7 +640,7 @@
         var below = stack[stack.length - 1].el;
         below.removeAttribute("inert");
         below.removeAttribute("aria-hidden");
-        below.firstElementChild.focus();
+        cardOf(below).focus();
       } else {
         // Повернення фокуса на елемент-ініціатор. Якщо його вже
         // немає в DOM — на заголовок сторінки.
@@ -612,8 +653,8 @@
       }
       if (entry.onClose) entry.onClose(reason);
     }
-    el.addEventListener("animationend", finish, { once: true });
-    setTimeout(finish, CLOSE_FALLBACK);   // страховка, якщо анімації немає
+    el.addEventListener("transitionend", finish);
+    setTimeout(finish, CLOSE_FALLBACK);   // страховка, якщо переходу немає
   }
 
   function closeEl(el, reason) {
@@ -645,27 +686,48 @@
   }
 
   function wireModal(el) {
-    var card = el.firstElementChild;
+    var card = cardOf(el);
     var q = function (s) { return el.querySelector(s); };
 
     q("#aiaClose").addEventListener("click", function () { closeEl(el, "close"); });
 
-    // --- Таби: APG (стрілки + roving tabindex) ---
+    /* --- Перемикач «Вхід / Реєстрація» ---
+       010 · у системі 009 табів як окремої сутності немає: це два ds-btn з
+       aria-pressed (components.css §26 і кадр Ф10 пакета). Тому roving
+       tabindex і aria-selected пішли — обидві кнопки лишаються звичайними
+       зупинками табуляції. Стрілки ← → лишились: вони нічому не заважають,
+       а людям, що звикли до сегмент-контрола, зручні. */
     var tabs = q("#aiaTabs");
-    var tabBtns = tabs.querySelectorAll('[role="tab"]');
+    var tabBtns = tabs.querySelectorAll("[data-tab]");
     function setTab(t) {
       tabs.setAttribute("data-tab", t);
       Array.prototype.forEach.call(tabBtns, function (b) {
-        var on = b.getAttribute("data-tab") === t;
-        b.setAttribute("aria-selected", String(on));
-        b.setAttribute("tabindex", on ? "0" : "-1");
+        b.setAttribute("aria-pressed", String(b.getAttribute("data-tab") === t));
       });
       q("#aiaModalTitle").textContent = t === "register" ? T.titleRegister : T.titleLogin;
       q("#aiaSubmit").textContent = t === "register" ? T.submitRegister : T.submitLogin;
-      q("#aiaNameWrap").classList.toggle("is-open", t === "register");
+      setNameWrap(t === "register");
       q("#aiaPass").setAttribute("autocomplete", t === "register" ? "new-password" : "current-password");
       q("#aiaForm").setAttribute("aria-labelledby", t === "register" ? "aiaTabRegister" : "aiaTabLogin");
       hideInlineError();
+    }
+
+    /* M7 · розкриття поля імені. Клас .aia-collapse жив у css/custom.css;
+       у системі 009 імені для цього немає, тому чотири властивості —
+       інлайном, зі своїх токенів. visibility зі СТУПІНЧАСТИМ переходом
+       обовʼязкова: без неї згорнуте поле лишається зупинкою табуляції
+       (та сама пастка, що П-35 у меню шапки). */
+    function setNameWrap(open) {
+      var w = q("#aiaNameWrap");
+      if (!w) return;
+      w.setAttribute("data-open", String(open));
+      w.style.gridTemplateRows = open ? "1fr" : "0fr";
+      w.style.opacity = open ? "1" : "0";
+      w.style.visibility = open ? "visible" : "hidden";
+      w.style.transition =
+        "grid-template-rows var(--dur-state) var(--e-out)," +
+        "opacity var(--dur-state) var(--e-out)," +
+        "visibility 0s linear " + (open ? "0s" : "var(--dur-state)");
     }
     Array.prototype.forEach.call(tabBtns, function (b, i) {
       b.addEventListener("click", function () { setTab(b.getAttribute("data-tab")); });
@@ -698,8 +760,13 @@
       gbtn.disabled = true;
       gbtn.setAttribute("aria-busy", "true");
       card.classList.add("is-busy");
-      // FIX-5 · pointer-events блокує тільки мишу. Без inert приглушена
-      // форма лишалась повністю прохідною табом, а #aiaSubmit — активним.
+      /* Ефект 10: решта діалогу гасне, кнопка Google лишається яскравою.
+         Клас .aia-card.is-busy .aia-dim жив у css/custom.css; у системі 009
+         відповідника немає, тому opacity ставиться напряму. 0.45 — колишній
+         токен --dim-busy (рішення дизайну 001), у tokens.css його немає.
+         FIX-5 · pointer-events блокує тільки мишу. Без inert приглушена
+         форма лишалась повністю прохідною табом, а #aiaSubmit — активним. */
+      q("#aiaEmailPath").style.opacity = "0.45";
       q("#aiaEmailPath").setAttribute("inert", "");
       q("#aiaSubmit").disabled = true;
       q("#aiaBar").hidden = false;
@@ -726,6 +793,7 @@
       gbtn.disabled = false;
       gbtn.removeAttribute("aria-busy");
       card.classList.remove("is-busy");
+      q("#aiaEmailPath").style.opacity = "";
       q("#aiaEmailPath").removeAttribute("inert");   // FIX-5
       q("#aiaSubmit").disabled = false;
       q("#aiaBar").hidden = true;
@@ -931,13 +999,14 @@
       if (act === "cancel") { closeEl(el, "cancel"); return; }
 
       if (act === "edit") {
-        // той самий діалог перемикається в режим редагування
-        var card = el.firstElementChild;
+        // той самий діалог перемикається в режим редагування: міняємо ЛИШЕ
+        // картку, підложка й стан data-open лишаються на місці.
+        var card = cardOf(el);
         var wrap = document.createElement("div");
         wrap.innerHTML = buildNameDialog({ mode: mode, value: value, editing: true });
-        el.replaceChild(wrap.firstElementChild.firstElementChild, card);
+        el.replaceChild(cardOf(wrap.firstElementChild), card);
         wireNameDialog(el, mode, value, o, finish);
-        el.firstElementChild.focus();
+        cardOf(el).focus();
         var i = el.querySelector("#aiaNameInput");
         if (i) { i.focus(); i.select(); }
         return;
@@ -977,29 +1046,17 @@
   }
 
   /* ==========================================================
-     7. Мобільний аркуш акаунта
+     7. Меню акаунта (колишній мобільний аркуш) — ВИДАЛЕНО
+     ----------------------------------------------------------
+     Тут жили openAccountSheet() і buildAccountSheet(): окрема поверхня
+     .aia-scrim.is-sheet / .sheet* із трьома рядками. Після рішення
+     власника Р-1 (010) «Сертифікати» й «Вийти» переїхали в дропдаун
+     шапки, який відкриває аватар (renderSlot нижче), і аркуш перестав
+     викликатись узагалі — Ф-А лишив його осиротілим у файлі й передав
+     рішення сюди. Перевірено перед видаленням: посилань немає ні в
+     js/auth.js, ні в js/progress.js, ні в js/module.js, ні в
+     js/certificate.js, ні в жодному з 66 HTML.
      ========================================================== */
-
-  function openAccountSheet(o) {
-    o = o || {};
-    var el = openDialog(
-      buildAccountSheet({ name: o.name, email: o.email, certUrl: certUrl }),
-      { opener: o.opener }
-    );
-    el.addEventListener("click", function (e) {
-      var b = e.target.closest("[data-act]");
-      if (!b) return;
-      var act = b.getAttribute("data-act");
-      if (act === "name") {
-        // НЕ редагуємо тут: відкриваємо той самий діалог, що й на десктопі
-        editNameFrom(b, o.name);
-        return;
-      }
-      if (act === "out") { closeEl(el, "act"); doSignOut(); return; }
-      if (act === "certs") { closeEl(el, "act"); return; }   // посилання спрацює саме
-    });
-    return el;
-  }
 
   /* ==========================================================
      8. Слот авторизації в шапці + скелетон
@@ -1071,8 +1128,13 @@
     var sk = slot.querySelector(".ds-skel");
     var ms = reducedMotion() ? 0 : CROSS_MS;
     if (sk && ms) {
+      /* 010 · клас .is-leaving жив у css/custom.css під СТАРИМ іменем `.sk`,
+         тобто після перейменування на .ds-skel (хвиля 1) він уже нічого не
+         фарбував. Гасіння тепер інлайнове — два рядки замість мертвого класу;
+         тривалість та сама (--dur-cross = CROSS_MS). */
       Array.prototype.forEach.call(slot.querySelectorAll(".ds-skel"), function (n) {
-        n.classList.add("is-leaving");
+        n.style.transition = "opacity " + ms + "ms var(--e-out)";
+        n.style.opacity = "0";
       });
       setTimeout(function () { slot.innerHTML = html; after(); }, ms);
     } else {
@@ -1176,10 +1238,10 @@
       if (o.note) {
         var n = authEl.querySelector("#aiaModalNote");
         n.textContent = o.note; n.hidden = false;
-        authEl.firstElementChild.setAttribute("aria-describedby", "aiaModalNote");
+        cardOf(authEl).setAttribute("aria-describedby", "aiaModalNote");
       }
       if (o.panel) showPanel(authEl, o.panel);
-      authEl.firstElementChild.focus();
+      cardOf(authEl).focus();
       return authEl;
     }
 
@@ -1248,7 +1310,6 @@
     showOAuthPanel: showOAuthPanel,
 
     openNameDialog: openNameDialog,
-    openAccountSheet: openAccountSheet,
 
     // Поза контрактом, але потрібне бекендеру для вибору режиму діалогу
     // (last vs soft) і для повідомлення про невдале збереження.
