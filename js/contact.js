@@ -116,23 +116,34 @@ function hasTurnstile() {
 /* Задача 004 п.4 · блокування прокрутки фону, поки модалка відкрита.
    Лічильник — у data-aia-lock на <html>, спільний із js/auth-ui.js:
    дві незалежні модалки не мають знімати блокування одна одній.
-   Стилі — html.aia-scroll-lock у css/custom.css. */
+   Стилі — html.ds-lock у css/components.css.
+   ⚠ 010 · КЛАС `ds-lock` ЖИВЕ В ТРЬОХ ФАЙЛАХ І МІНЯЄТЬСЯ ЛИШЕ РАЗОМ.
+   Замок ведуть js/module.js (шторка змісту), js/contact.js (модалка
+   «Написати нам») і js/auth-ui.js (діалоги входу). Лічильник спільний —
+   data-aia-lock на <html>. Якщо один із трьох знімає іншу назву класу,
+   ніж вішає сусід, послідовність «шторка → модалка → закрити шторку →
+   закрити модалку» лишає клас на <html> НАЗАВЖДИ, і скрол сторінки
+   заморожений без жодної помилки в консолі.
+   ⚠ `--ds-lock-sbw` — ширина смуги прокрутки, яку `overflow: hidden`
+   забирає. Правило-споживач у css/components.css поки ВІДСУТНЄ (у пакеті
+   є лише `html.ds-lock { overflow: hidden }`) — потрібні два рядки, див.
+   03-frontend/report-d.md, розділ «Потрібні правила в спільних файлах». */
 function lockScroll() {
   const root = document.documentElement;
   const n = (parseInt(root.getAttribute("data-aia-lock"), 10) || 0) + 1;
   root.setAttribute("data-aia-lock", String(n));
   if (n > 1) return;
   const sbw = window.innerWidth - root.clientWidth;
-  root.style.setProperty("--aia-sbw", (sbw > 0 ? sbw : 0) + "px");
-  root.classList.add("aia-scroll-lock");
+  root.style.setProperty("--ds-lock-sbw", (sbw > 0 ? sbw : 0) + "px");
+  root.classList.add("ds-lock");
 }
 function unlockScroll() {
   const root = document.documentElement;
   const n = (parseInt(root.getAttribute("data-aia-lock"), 10) || 0) - 1;
   if (n > 0) { root.setAttribute("data-aia-lock", String(n)); return; }
   root.removeAttribute("data-aia-lock");
-  root.classList.remove("aia-scroll-lock");
-  root.style.removeProperty("--aia-sbw");
+  root.classList.remove("ds-lock");
+  root.style.removeProperty("--ds-lock-sbw");
 }
 
 /* 006 · П-02 · Пастка фокуса. Скопійована з js/auth-ui.js (focusables/trap,

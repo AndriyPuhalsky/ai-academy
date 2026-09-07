@@ -60,11 +60,17 @@
   /* 010 · js-diff module.js:68 — замок скролу зі СПІЛЬНИМ лічильником.
      Було document.body.style.overflow: інлайновий стиль не знав про модалки,
      і два одночасні замки (шторка + «Написати нам») гасили один одного.
-     Лічильник — той самий data-aia-lock на <html>, що вже ведуть
-     js/auth-ui.js і js/contact.js (задача 004 п.4). Клас поки лишається
-     aia-scroll-lock: перехід на html.ds-lock мусить статись одним комітом
-     у всіх ТРЬОХ файлах — інакше файл, який ще знімає лише стару назву,
-     лишить нову назавжди й заморозить скрол (див. звіт, розділ для Ф-Д). */
+     ⚠ 010 · КЛАС `ds-lock` ЖИВЕ В ТРЬОХ ФАЙЛАХ І МІНЯЄТЬСЯ ЛИШЕ РАЗОМ.
+     Замок ведуть js/module.js (шторка змісту), js/contact.js (модалка
+     «Написати нам») і js/auth-ui.js (діалоги входу). Лічильник спільний —
+     data-aia-lock на <html>. Якщо один із трьох знімає іншу назву класу,
+     ніж вішає сусід, послідовність «шторка → модалка → закрити шторку →
+     закрити модалку» лишає клас на <html> НАЗАВЖДИ, і скрол сторінки
+     заморожений без жодної помилки в консолі.
+     ⚠ `--ds-lock-sbw` — ширина смуги прокрутки, яку `overflow: hidden`
+     забирає. Правило-споживач у css/components.css поки ВІДСУТНЄ (у пакеті
+     є лише `html.ds-lock { overflow: hidden }`) — потрібні два рядки, див.
+     03-frontend/report-d.md, розділ «Потрібні правила в спільних файлах». */
   function lockScroll(on) {
     var root = document.documentElement;
     var n = (parseInt(root.getAttribute("data-aia-lock"), 10) || 0) + (on ? 1 : -1);
@@ -72,13 +78,13 @@
       root.setAttribute("data-aia-lock", String(n));
       if (n > 1) return;
       var sbw = window.innerWidth - root.clientWidth;
-      root.style.setProperty("--aia-sbw", (sbw > 0 ? sbw : 0) + "px");
-      root.classList.add("aia-scroll-lock");
+      root.style.setProperty("--ds-lock-sbw", (sbw > 0 ? sbw : 0) + "px");
+      root.classList.add("ds-lock");
       return;
     }
     root.removeAttribute("data-aia-lock");
-    root.classList.remove("aia-scroll-lock");
-    root.style.removeProperty("--aia-sbw");
+    root.classList.remove("ds-lock");
+    root.style.removeProperty("--ds-lock-sbw");
   }
 
   function initDrawer() {
