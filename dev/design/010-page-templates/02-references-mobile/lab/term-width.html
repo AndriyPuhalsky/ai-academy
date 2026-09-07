@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Лабораторія · термінал на вузькому екрані</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c-bg:#141312; --c-surface:#1B1916; --c-raised:#211E1A; --c-sunken:#0d0c0b;
+  --c-line:#3A342E; --c-prose:#B5B3AD; --c-text:#F0EEE6; --c-text-3:#9A9184; --c-acc:#E08A4E;
+  --f-sans:'Golos Text',system-ui,sans-serif; --f-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--c-bg);color:var(--c-prose);font:17px/1.75 var(--f-sans);-webkit-tap-highlight-color:transparent}
+header{position:sticky;top:0;z-index:10;background:var(--c-surface);border-bottom:1px solid var(--c-line);padding:12px 20px}
+h1{font:600 16px/1.3 var(--f-sans);color:var(--c-text);margin:0 0 6px}
+.meter{font:500 12px/1.5 var(--f-mono);color:var(--c-text-3)}
+.meter b{color:var(--c-acc)}
+main{padding:22px 20px 90px;max-width:672px;margin:0 auto}
+.case{margin:0 0 30px}
+.head{display:flex;flex-wrap:wrap;gap:9px;align-items:baseline;margin-bottom:8px}
+.fs{font:600 15px/1 var(--f-mono);color:var(--c-text)}
+.tag{font:500 11px/1 var(--f-mono);color:var(--c-acc);border:1px solid rgba(224,138,78,.4);border-radius:999px;padding:5px 9px}
+.stat{font:500 12px/1.5 var(--f-mono);color:var(--c-text-3)}
+.term{border:1px solid var(--c-line);border-radius:12px;background:var(--c-sunken);overflow:hidden}
+.term__chrome{display:flex;gap:8px;align-items:center;padding:8px 12px;background:var(--c-raised);border-bottom:1px solid var(--c-line);font:400 11px/1 var(--f-mono);color:var(--c-text-3)}
+.term__dot{width:8px;height:8px;border-radius:99px;background:var(--c-line)}
+.term__body{
+  margin:0;padding:14px 16px;white-space:pre;word-break:normal;overflow-wrap:normal;
+  overflow-x:auto;overflow-y:hidden;
+  overscroll-behavior-x:contain;   /* фікс Б-16 проду — у _base/ його НЕМАЄ */
+  font-family:var(--f-mono);line-height:1.66;color:var(--c-prose);tab-size:2;
+}
+.term__in{color:var(--c-text)}
+.term__meta{color:var(--c-text-3)}
+footer{padding:20px;border-top:1px solid var(--c-line);color:var(--c-text-3);font:400 13px/1.6 var(--f-sans);max-width:672px;margin:0 auto}
+code{font-family:var(--f-mono);font-size:.86em;background:var(--c-raised);border-radius:4px;padding:1px 5px;overflow-wrap:anywhere}
+</style></head><body>
+<header>
+  <h1>Термінал на вузькому екрані: чотири кеглі, один реальний рядок</h1>
+  <div class="meter">вʼюпорт <b id="vw">—</b> px · рядок <b>104</b> символи · крок JetBrains Mono <b>0.600em</b></div>
+</header>
+<main id="main"></main>
+<footer>
+  Рядок узятий дослівно з уроку <code>claude-code-14</code> — це найдовший рядок терміналу в тому уроці (104 символи).
+  «Видно символів» = <code>clientWidth ÷ ширина гліфа</code>, «екранів убік» = <code>scrollWidth ÷ clientWidth</code>; обидва рахуються
+  з живого DOM після завантаження шрифта. Прод сьогодні віддає на мобілці <b>12 px</b>
+  (<code>@media (max-width: 640px) { --term-fs: 0.75rem }</code>), система 009 — плаский <b>13.52 px</b> без мобільного кроку.
+  Уся добірка кегль коду на мобілці не зменшує: Laravel і MDN тримають 16 px, react.dev 13.6, Radix 13.3.
+  <b>Спробуйте протягнути кожен блок пальцем до кінця — і рахуйте, скільки разів довелося.</b>
+</footer>
+<script>
+var LINE1 = '$ mkdir -p /tmp/urok-c14/.claude/skills/reliz-notes && cd /tmp/urok-c14 && claude plugin validate .';
+var LINE2 = 'Validating skill: /private/tmp/urok-c14/.claude/skills/reliz-notes/SKILL.md — frontmatter ok, 104 chars';
+var CASES = [
+  {fs:13.52, tag:'009 · --fs-code (плаский)'},
+  {fs:13,    tag:''},
+  {fs:12.5,  tag:''},
+  {fs:12,    tag:'прод сьогодні, < 640 px'}
+];
+var main = document.getElementById('main');
+CASES.forEach(function(c,i){
+  var d = document.createElement('div'); d.className='case';
+  d.innerHTML =
+   '<div class="head"><span class="fs">'+c.fs+' px</span>'+(c.tag?'<span class="tag">'+c.tag+'</span>':'')+
+   '<span class="stat" id="s'+i+'">—</span></div>'+
+   '<div class="term"><div class="term__chrome"><span class="term__dot"></span><span class="term__dot"></span><span class="term__dot"></span>'+
+   '<span>macOS · Claude Code</span></div>'+
+   '<pre class="term__body" id="t'+i+'" tabindex="0" role="group" style="font-size:'+c.fs+'px">'+
+   '<span class="term__in">'+LINE1+'</span>\n<span class="term__meta">'+LINE2+'</span></pre></div>';
+  main.appendChild(d);
+});
+function measure(){
+  document.getElementById('vw').textContent = window.innerWidth;
+  CASES.forEach(function(c,i){
+    var t = document.getElementById('t'+i);
+    var probe = document.createElement('span');
+    probe.style.cssText='position:absolute;left:-9999px;white-space:pre;font-family:'+getComputedStyle(t).fontFamily+';font-size:'+c.fs+'px';
+    probe.textContent='0'.repeat(100); document.body.appendChild(probe);
+    var g = probe.getBoundingClientRect().width/100; probe.remove();
+    var visible = t.clientWidth ? (t.clientWidth - 32) / g : 0;
+    var screens = t.clientWidth ? t.scrollWidth / t.clientWidth : 0;
+    document.getElementById('s'+i).textContent =
+      'гліф '+g.toFixed(2)+' px · видно ≈'+Math.floor(visible)+' симв. · приховано '+
+      Math.max(0, t.scrollWidth - t.clientWidth)+' px · '+screens.toFixed(1)+' екрана вбік';
+  });
+}
+measure(); addEventListener('resize', measure);
+document.fonts && document.fonts.ready.then(measure);
+</script>
+</body></html>

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<!-- ============================================================================
+     010 · ШАБЛОН T4 — ДОВІДНИК (claude-code-ref-commands / -hooks / -settings)
+     ----------------------------------------------------------------------------
+     Роль: «знайти потрібну команду за 10 секунд і скопіювати її».
+     Курс — Термінал, тому data-course="terminal" (акцент лазуровий).
+     Щільність руху — lesson (мікроінтеракції), GSAP не підключається.
+
+     ⚠ ШЛЯХИ В ЦЬОМУ ФАЙЛІ — МАКЕТНІ. Піднімати `python3 -m http.server`
+     з теки dev/design/ і відкривати
+     010-page-templates/03-build/b3-rest/t4-reference.html
+     У код сайту їде блок <head> зі спеки §5.2 (він виписаний коментарем нижче).
+     ========================================================================= -->
+<html lang="uk"
+      data-config="claude-code.config.json"
+      data-course="terminal"
+      data-density="lesson"
+      data-lit
+      data-own-title>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Довідник: усі команди й клавіші Claude Code — AI Термінал</title>
+  <meta name="description" content="Повний довідник Claude Code українською: слеш-команди з псевдонімами й поведінкою в claude -p, команди термінала, гарячі клавіші.">
+  <!-- Д16 · ЄДИНИЙ легальний хекс у HTML. Дорівнює --p-n-100. Змінюєш тут —
+       заміни в 66 файлах; <meta> не читає var(). -->
+  <meta name="theme-color" content="#161311">
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Латиниця вантажиться СВІДОМО: український апостроф ʼ (U+02BC) лежить у
+       латинській підмножині Google Fonts, а не в кириличній. -->
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- ПРОД (§5.2):
+       <link rel="stylesheet" href="css/tokens.css">
+       <link rel="stylesheet" href="css/components.css">
+       <script src="https://cdn.tailwindcss.com"></script>
+       <script src="../../files/js/tw-theme.js"></script>                                -->
+  <link rel="stylesheet" href="../../files/css/tokens.css">
+  <link rel="stylesheet" href="../../files/css/components.css">
+  <!-- заглушка хрому Б1 · у пакет не йде, див. _shared/b1-stub.css -->
+  <link rel="stylesheet" href="_shared/b1-stub.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../../files/js/tw-theme.js"></script>
+</head>
+
+<body id="top">
+
+<!-- ════════════ §6.1 · ЧОТИРИ СПІЛЬНІ БЛОКИ (дослівно зі спеки) ════════════
+     Канонічний власник хрому — Б1. Тут копія для diff валідатора (Д19). -->
+<a class="ds-skip" href="#main">Перейти до вмісту</a>
+<div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+<noscript>
+  <div class="ds-note ds-note--warn" role="alert">
+    <span class="ds-note__glyph" aria-hidden="true">▲</span>
+    <p class="ds-note__body">Сторінка читається й без JavaScript: усі таблиці нижче — звичайний текст. JavaScript тут відповідає лише за кнопку входу в шапці.</p>
+  </div>
+</noscript>
+
+<div id="configError" hidden class="ds-note ds-note--err" role="alert">
+  <span class="ds-note__glyph" aria-hidden="true">✕</span>
+  <p class="ds-note__body">
+    ⚠ Не вдалося завантажити <code class="ds-code--inline">claude-code.config.json</code>. Відкрий сайт через
+    локальний сервер, наприклад: <code class="ds-code--inline">python -m http.server 8000</code> —
+    і зайди на <code class="ds-code--inline">localhost:8000</code>.
+  </p>
+</div>
+
+<!-- ════════════ §6.2 · ШАПКА, ПРОФІЛЬ H3 (довідник / сертифікат) ════════════
+     Блоки: бренд · крихти · слот · пілюля · одне текстове посилання.
+     Бургера змісту немає: зміст довідника статичний і на <1024 просто
+     лягає вгору сторінки (шторка потрібна лише там, де є прогрес). -->
+<header class="ds-hdr">
+  <a class="ds-hdr__brand" href="claude-code.html">
+    <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIT</span>
+    <span data-site="name">AI Термінал</span>
+  </a>
+  <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+  <span class="ds-hdr__crumb">Довідник</span>
+
+  <span class="ds-hdr__spacer"></span>
+
+  <div id="aiaAuth" class="ds-hdr__slot">
+    <!-- стан «перевірка»: розмір майбутнього контрола, CLS = 0 -->
+    <span class="ds-skel ds-skel--guest" data-delayed aria-hidden="true"></span>
+  </div>
+  <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+  <!-- На <640 текстове посилання ховається: на 390 воно ламало шапку в два рядки
+       й обрізало бренд. Вихід із довідника лишається на бренді та у футері. -->
+  <a class="ds-nav__link hidden sm:inline-flex" href="claude-code.html#refs">Полиця довідників</a>
+</header>
+
+<!-- ════════════════════════════ ЗМІСТ СТОРІНКИ ════════════════════════════ -->
+<div class="ds-ref">
+
+  <!-- Зміст на мобілці — смуга-акордеон (Astro: <summary> 390×48, звіт мобільних
+       референсів, рішення 5). ВІДКРИТИЙ у розмітці: без JS людина бачить увесь
+       зміст на будь-якій ширині, як сьогодні. Рядок скрипта нижче ЗАКРИВАЄ його
+       на <1024 — тобто JS тільки згортає, ніколи не ховає. -->
+  <details id="refToc" class="ds-ref__toc" open>
+    <summary class="ds-ref__sum">Зміст довідника</summary>
+    <nav aria-label="Зміст довідника">
+    <p class="ds-ref__group">Зміст</p>
+    <ul>
+      <li><a href="#how" aria-current="location">Як користуватись сторінкою</a></li>
+      <li><a href="#slash">Що таке слеш-команда</a></li>
+    </ul>
+    <p class="ds-ref__group">111 команд</p>
+    <ul>
+      <li><a href="#g1">1 · Почати в проєкті</a></li>
+      <li><a href="#g2">2 · Розмова, контекст, відкат</a></li>
+      <li><a href="#g3">3 · Фонова й паралельна робота</a></li>
+      <li><a href="#g4">4 · Модель, зусилля, гроші</a></li>
+      <li><a href="#g5">5 · Код: план, перевірка, огляд</a></li>
+      <li><a href="#g6">6 · Навички, плагіни, MCP, хуки</a></li>
+    </ul>
+    <p class="ds-ref__group">Зрізи</p>
+    <ul>
+      <li><a href="#aliases">Усі псевдоніми</a></li>
+      <li><a href="#headless">Що працює в <code class="ds-code--inline">-p</code></a></li>
+      <li><a href="#hidden">Приховані команди</a></li>
+    </ul>
+    <p class="ds-ref__group">Клавіші</p>
+    <ul>
+      <li><a href="#keys-general">Керування сесією</a></li>
+      <li><a href="#rebind">Переприв'язати клавішу</a></li>
+      <li><a href="#trouble">Команда не спрацювала</a></li>
+      <li><a href="#sources">Джерела й дати</a></li>
+    </ul>
+    <p class="ds-ref__group">Курс</p>
+    <ul>
+      <li><a href="claude-code.html">← До курсу</a></li>
+    </ul>
+    </nav>
+  </details>
+  <script>
+    /* Єдиний рядок логіки на цій сторінці. Згортає зміст нижче --bp-lg.
+       Без нього (JS вимкнено) зміст лишається розгорнутим — критерій 18. */
+    (function(){var t=document.getElementById("refToc");
+      if(t&&!matchMedia("(min-width: 1024px)").matches)t.open=false;})();
+  </script>
+
+  <main id="main" class="ds-ref__main" data-page-in data-reveal-root>
+
+    <header class="ds-ref__head">
+      <p class="ds-eyebrow">Довідник · це не модуль</p>
+      <h1 class="ds-h1">Усі команди й клавіші</h1>
+      <ul class="ds-ref__stat">
+        <li><b>111</b> слеш-команд</li>
+        <li><b>13</b> команд термінала</li>
+        <li>гарячі клавіші</li>
+        <li>без квіза й без прогресу</li>
+      </ul>
+    </header>
+
+    <article class="ds-prose">
+
+      <p class="ds-lead">
+        Цю сторінку не проходять — до неї повертаються. Тут немає ні тесту, ні позначки
+        «завершено», і вона не входить у сертифікат. Її завдання одне: коли ти забув, як
+        називалась команда, знайти її за пів хвилини й не піти по відповідь у статтю
+        трирічної давнини.
+      </p>
+
+      <hr>
+
+      <h2 id="how">Як користуватись сторінкою</h2>
+      <p>Читати підряд її не треба. Три способи знайти потрібне:</p>
+      <ul>
+        <li>
+          <strong>Пошук по сторінці.</strong> Натисни <code>Cmd+F</code> на macOS або
+          <code>Ctrl+F</code> на Windows і Linux — браузер відкриє поле пошуку. Набери назву
+          команди без скісної риски, наприклад <code>rewind</code>.
+        </li>
+        <li>
+          <strong>Зміст ліворуч</strong> (на вузькому екрані — вгорі сторінки): команди
+          згруповані за задачею, а не за абеткою, бо шукають зазвичай «чим відкотити зміни»,
+          а не «що там було на літеру r».
+        </li>
+        <li>
+          <strong>Зрізи</strong> — окремі таблиці наприкінці: усі псевдоніми в одному місці,
+          усе, що працює без діалогу, і всі приховані команди.
+        </li>
+      </ul>
+
+      <h3>Чотири колонки таблиць</h3>
+      <p>
+        Документація й встановлена збірка <strong>не збігаються між собою</strong>, і це не помилка:
+        документація описує найсвіжіший канал, а встановлена в тебе програма майже завжди на кілька
+        версій позаду. Тому в третій колонці таблиць стоять версійні межі на кшталт «потребує
+        v2.1.212». Якщо команда в тебе не працює, спершу подивись на цю колонку, а потім уже
+        вважай це поломкою.
+      </p>
+
+      <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: чотири колонки таблиць довідника">
+        <table class="ds-tbl">
+          <thead>
+            <tr><th>Колонка</th><th>Що в ній</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Команда</td>
+              <td>Назва так, як її набирають. У квадратних дужках — необовʼязкові аргументи, у кутових — обовʼязкові.</td>
+            </tr>
+            <tr>
+              <td>Що робить</td>
+              <td>Одне-два речення. Це переказ документації українською, а не її дослівний переклад.</td>
+            </tr>
+            <tr>
+              <td>Псевдоніми й межі</td>
+              <td>Інші назви тієї самої команди та умови, за яких вона доступна: версія, план підписки, платформа.</td>
+            </tr>
+            <tr>
+              <td>У <code>-p</code></td>
+              <td>Поведінка в неінтерактивному запуску <code>claude -p "…"</code> — коли команду виконують зі скрипта, без вікна діалогу.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- §8.10.2 · врізка з 2+ дітьми: саме та форма, яку стара сітка ламала -->
+      <div class="ds-note ds-note--info" data-reveal>
+        <span class="ds-note__glyph" aria-hidden="true">i</span>
+        <p class="ds-note__title">Що означає прочерк у колонці «У <code>-p</code>»</p>
+        <p>
+          Прочерк <code>—</code> означає рівно одне: <strong>документація про це мовчить, і
+          автор довідника цього не перевіряв</strong>. Це не «не працює».
+        </p>
+        <p>
+          Більшість команд у неінтерактивному режимі беззмістовні, бо вони відкривають діалог,
+          якого в скрипті нікому натиснути. Перевірені випадки — і робочі, і зламані — зібрані
+          окремо в розділі <a href="#headless">Що працює в <code>-p</code></a>.
+        </p>
+      </div>
+
+      <h2 id="slash">Що таке слеш-команда і чим вона не є</h2>
+      <p>
+        У курсі зустрічаються два різні види команд, і плутанина між ними коштує найбільше часу.
+      </p>
+      <p>
+        <strong>Команда термінала</strong> набирається у звичайному вікні термінала, коли
+        Claude Code ще не запущений: <code>claude --version</code>, <code>claude mcp list</code>.
+        Її виконує оболонка — програма, яка чекає на твої команди у чорному вікні.
+      </p>
+      <p>
+        <strong>Слеш-команда</strong> набирається <em>усередині</em> вже запущеної сесії
+        Claude Code, у тому самому полі, де ти пишеш звичайні прохання. Вона починається зі
+        скісної риски <code>/</code>. Команда розпізнається <strong>лише на початку
+        повідомлення</strong>; текст після назви стає її аргументом.
+      </p>
+
+      <!-- .term ПЕРЕВДЯГАЄТЬСЯ, не переписується (Д6). Розмітка — як у проді,
+           додано лише класи кнопки поруч із гаком term__copy (§8.4). -->
+      <div class="term term--cmd">
+        <div class="term__chrome">
+          <span class="term__dots" aria-hidden="true"></span>
+          <span class="term__dots" aria-hidden="true"></span>
+          <span class="term__dots" aria-hidden="true"></span>
+          <span class="term__title">термінал · перевірка версії</span>
+          <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                  data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+        </div>
+        <pre class="term__body"><span class="term__line"><span class="term__mark" aria-hidden="true">❯</span> <span class="term__in">claude --version</span></span>
+<span class="term__line">2.1.261 (Claude Code)</span>
+<span class="term__line"><span class="term__mark" aria-hidden="true">❯</span> <span class="term__in">claude mcp list</span></span>
+<span class="term__line"><span class="term__meta">Checking MCP server health...</span></span>
+<span class="term__line">figma: https://mcp.figma.com/mcp (HTTP) - <span class="term__ok">✓ Connected</span></span>
+</pre>
+      </div>
+
+      <h2 id="g1">1 · Почати в проєкті</h2>
+      <p>
+        Шість команд, які потрібні в перші пʼять хвилин у новій теці. Колонка «Псевдоніми й
+        межі» тут майже порожня: це найстаріші команди, і їх не перейменовували.
+      </p>
+
+      <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: команди для початку роботи в проєкті">
+        <table class="ds-tbl">
+          <thead>
+            <tr><th>Команда</th><th>Що робить</th><th>Псевдоніми й межі</th><th>У <code>-p</code></th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>/init</td>
+              <td>Читає проєкт і пише <code>CLAUDE.md</code> — файл, який Claude Code підхоплює в кожній наступній сесії цієї теки.</td>
+              <td>—</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>/add-dir</td>
+              <td>Додає ще одну теку до робочого простору сесії. Потрібно, коли фронтенд і бекенд лежать у різних репозиторіях.</td>
+              <td>Збіг у меню працює й без розділювачів: <code>/adddir</code></td>
+              <td>Працює</td>
+            </tr>
+            <tr>
+              <td>/context</td>
+              <td>Показує, чим саме зайняте вікно контексту: системний промпт, файли, історія, результати інструментів.</td>
+              <td>потребує v2.1.212</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>/status</td>
+              <td>Версія, модель, акаунт, робоча тека, підключені MCP-сервери — одним екраном.</td>
+              <td>—</td>
+              <td>Працює</td>
+            </tr>
+            <tr>
+              <td>/permissions</td>
+              <td>Відкриває редактор дозволів: що Claude Code може робити без питання, а що — тільки з підтвердженням.</td>
+              <td>—</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>/terminal-setup</td>
+              <td>Налаштовує термінал так, щоб <kbd>Shift+Enter</kbd> робив новий рядок, а не відправляв повідомлення.</td>
+              <td>лише iTerm2 і VS Code</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="aliases">Усі псевдоніми в одному місці</h2>
+      <p>
+        Це «зріз»: та сама інформація, що вище, але зібрана за одним питанням — «як ще
+        називається ця команда». Таблиця довга, тому вона єдина на сторінці має власну
+        висоту й закріплену шапку.
+      </p>
+
+      <!-- ⚠ --tall: ЄДИНИЙ випадок, де sticky у thead справді працює.
+           Без max-height обгортка заввишки з таблицю, і sticky не спрацьовує
+           жодного разу (дефект `_base`, §22.2 дельти). -->
+      <div class="ds-tbl__wrap ds-tbl__wrap--tall" tabindex="0" role="region" aria-label="Таблиця: усі псевдоніми слеш-команд">
+        <table class="ds-tbl">
+          <thead>
+            <tr><th>Псевдонім</th><th>Основна назва</th><th>Межі</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>/new</td><td>/clear</td><td>—</td></tr>
+            <tr><td>/adddir</td><td>/add-dir</td><td>підсвітка потребує v2.1.236</td></tr>
+            <tr><td>/quit</td><td>/exit</td><td>—</td></tr>
+            <tr><td>/q</td><td>/exit</td><td>—</td></tr>
+            <tr><td>/?</td><td>/help</td><td>—</td></tr>
+            <tr><td>/bug</td><td>/feedback</td><td>потребує входу в акаунт</td></tr>
+            <tr><td>/theme</td><td>/config theme</td><td>—</td></tr>
+            <tr><td>/vim</td><td>/config vim</td><td>—</td></tr>
+            <tr><td>/logout</td><td>/login --logout</td><td>—</td></tr>
+            <tr><td>/cost</td><td>/usage</td><td>лише для планів з оплатою за токени</td></tr>
+            <tr><td>/compact</td><td>—</td><td>псевдонімів не має; не плутати з <code>/clear</code></td></tr>
+            <tr><td>/resume</td><td>/continue</td><td>потребує v2.1.180</td></tr>
+            <tr><td>/rewind</td><td>—</td><td>потребує v2.1.212</td></tr>
+            <tr><td>/agents</td><td>/subagents</td><td>—</td></tr>
+            <tr><td>/mcp</td><td>—</td><td>—</td></tr>
+            <tr><td>/hooks</td><td>—</td><td>—</td></tr>
+            <tr><td>/plugins</td><td>/plugin</td><td>потребує v2.1.240</td></tr>
+            <tr><td>/skills</td><td>—</td><td>потребує v2.1.226</td></tr>
+            <tr><td>/output-style</td><td>/style</td><td>—</td></tr>
+            <tr><td>/statusline</td><td>—</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="headless">Що працює в <code>-p</code></h2>
+      <p>
+        Неінтерактивний запуск — це <code>claude -p "текст"</code>: Claude Code відповідає
+        один раз і виходить. Діалогу немає, тому все, що відкриває вікно вибору,
+        у цьому режимі беззмістовне.
+      </p>
+
+      <div class="ds-note ds-note--warn" data-reveal>
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__title">Перевірено на конкретній збірці, а не в документації</p>
+        <p>
+          Усе в цій таблиці запущено руками на версії <code>2.1.261</code> 2026-09-05.
+          На новішій збірці поведінка може відрізнятись — це нормально, і саме тому
+          колонка «Межі» скрізь має номер версії.
+        </p>
+      </div>
+
+      <h2 id="hidden">Приховані команди</h2>
+      <p>
+        Частковий набір їх не покаже ніколи: меню виводить приховану команду лише тоді,
+        коли ти набрав назву повністю. Тут вони зібрані, щоб їх можна було знайти пошуком
+        по сторінці.
+      </p>
+
+      <h2 id="keys-general">Керування сесією</h2>
+      <p>
+        Клавіші, які працюють будь-де в сесії. Деякі — тільки в повноекранному рендері
+        (його вмикає <code>/tui fullscreen</code>).
+      </p>
+
+      <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: клавіші керування сесією">
+        <table class="ds-tbl">
+          <thead><tr><th>Клавіші</th><th>Що робить</th><th>Межі</th></tr></thead>
+          <tbody>
+            <tr><td>Ctrl+C</td><td>Перериває поточну відповідь. Другий раз поспіль — виходить із Claude Code.</td><td>—</td></tr>
+            <tr><td>Ctrl+D</td><td>Виходить із сесії, якщо поле вводу порожнє.</td><td>—</td></tr>
+            <tr><td>Ctrl+L</td><td>Чистить видиму частину екрана. Контекст при цьому НЕ втрачається — для цього є <code>/clear</code>.</td><td>—</td></tr>
+            <tr><td>Esc Esc</td><td>Відкриває вибір повідомлення, до якого треба відкотитись.</td><td>потребує v2.1.212</td></tr>
+            <tr><td>Shift+Tab</td><td>Перемикає режим дозволів: питати · автоприйняття правок · план.</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="rebind">Переприв'язати клавішу</h2>
+      <p>
+        Файл <code class="ds-code--inline">~/.claude/keybindings.json</code> дозволяє
+        перевизначити будь-яку комбінацію. Формат — обʼєкт, у якому ключ це дія, а значення —
+        рядок із клавішами. Довгі нерозривні рядки на кшталт
+        <code>editor.action.insertLineAfter.withIndentation</code> — саме той випадок, який
+        у задачі 005 давав горизонтальний скрол на пʼяти сторінках із чотирнадцяти.
+      </p>
+
+      <div class="ds-code">
+        <div class="ds-code__head">
+          <span>~/.claude/keybindings.json</span>
+          <button type="button" class="ds-btn ds-btn--sm ds-btn--quiet">Копіювати</button>
+        </div>
+        <pre class="ds-code__pre">{
+  "keybindings": [
+    { "key": "ctrl+shift+r", "command": "session.rewind" },
+    { "key": "alt+enter",    "command": "input.newline" }
+  ]
+}</pre>
+      </div>
+
+      <h2 id="trouble">Команда не спрацювала</h2>
+      <p>Три причини за спаданням частоти, і як їх відрізнити одна від одної:</p>
+      <ol>
+        <li><strong>Одрук.</strong> Меню нічого не підсвітило, а <kbd>Enter</kbd> відправив текст як є — і повернувся <code>Unknown command</code>.</li>
+        <li><strong>Стара збірка.</strong> Дивись колонку «Межі»: команда може потребувати версії, новішої за встановлену.</li>
+        <li><strong>Команда недоступна саме тобі.</strong> План підписки, платформа, відсутній MCP-сервер.</li>
+      </ol>
+
+      <h2 id="sources">Джерела й дати</h2>
+      <p>
+        Кожне число на цій сторінці має дату звірки. Це не педантизм: Claude Code виходить
+        кілька разів на тиждень, і довідник без дати за пів року перетворюється на дезінформацію.
+      </p>
+      <p class="ds-small">Останню повну звірку зроблено 2026-09-05 на збірці <code>2.1.261</code>.</p>
+
+    </article>
+  </main>
+</div>
+
+<!-- ════════════ §6.6 · ФУТЕР, ПРОФІЛЬ F2 (короткий) ════════════
+     57 уроків + 3 довідники: один рядок — дискламер + «На головну ↑». -->
+<footer class="ds-ftr">
+  <div class="ds-ftr__bar">
+    <p class="ds-small" data-site="disclaimer">Матеріали курсу неофіційні. Claude і Claude Code — торгові марки Anthropic PBC.</p>
+    <span><a href="claude-code.html">На головну ↑</a></span>
+  </div>
+</footer>
+
+<!-- ПРОД: <script src="js/motion.js"></script> — motion.js їде першим із наших -->
+<script src="../../files/js/motion.js"></script>
+<script src="js/b3-demo.js"></script>
+</body>
+</html>

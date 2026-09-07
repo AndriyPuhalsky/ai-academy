@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<!-- ============================================================================
+     010 · Б2 · ЛАБОРАТОРІЯ ШИРИН. У код сайту не їде.
+     Десктопний Chrome не робить вікно вужчим за ~500 px, тому мобільні
+     ширини міряються в <iframe> точної ширини й масштабуються, щоб влізти.
+     ⚠ iframe бере CSS із кешу — тому в src стоїть кеш-бастер.
+     ============================================================================ -->
+<html lang="uk" data-course="terminal" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>010 · Б2 · лабораторія ширин</title>
+  <link rel="stylesheet" href="../../../009-design-system/04-variants/_base/tokens.css">
+  <link rel="stylesheet" href="../../../009-design-system/04-variants/_base/components.css">
+  <link rel="stylesheet" href="components-010.css">
+  <style>
+    body { margin: 0; padding: var(--s-6); }
+    .lab__head { max-width: var(--w-prose); margin-bottom: var(--s-6); }
+    .lab__bar { display: flex; flex-wrap: wrap; gap: var(--s-2); margin: var(--s-4) 0; }
+    .lab__grid { display: flex; flex-wrap: wrap; gap: var(--s-6); align-items: flex-start; }
+    .lab__cell { border: var(--bw) solid var(--c-line); border-radius: var(--r-card);
+                 background: var(--c-surface); padding: var(--s-3); }
+    .lab__cap { display: flex; justify-content: space-between; gap: var(--s-3);
+                font-family: var(--f-mono); font-size: var(--fs-eyebrow);
+                color: var(--c-text-3); margin-bottom: var(--s-2); }
+    .lab__ok  { color: var(--c-ok-text); }
+    .lab__bad { color: var(--c-err-text); font-weight: var(--w-semi); }
+    .lab__vp  { overflow: hidden; border: var(--bw) solid var(--c-line-strong);
+                border-radius: var(--r-inner); background: var(--c-bg); }
+    .lab__vp iframe { border: 0; display: block; transform-origin: 0 0; }
+    table.ds-tbl td, table.ds-tbl th { white-space: normal; }
+  </style>
+</head>
+
+<body>
+  <div class="lab__head">
+    <p class="ds-eyebrow">010 · Б2 · перевірка</p>
+    <h1 class="ds-h2">Лабораторія ширин</h1>
+    <p class="ds-lead">Вісім замірних ширин §Д12 + два низькі вікна. Кожен кадр —
+      живий <code class="ds-code--inline">t2-lesson.html</code> у справжньому вʼюпорті,
+      зменшений лише візуально (<code class="ds-code--inline">transform: scale</code>),
+      тому всі медіа-запити відпрацьовують по-справжньому.</p>
+    <div class="lab__bar">
+      <button class="ds-btn ds-btn--secondary ds-btn--sm" id="run">Переміряти</button>
+      <a class="ds-btn ds-btn--quiet ds-btn--sm" href="index.html">← до вітрини</a>
+    </div>
+    <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Заміри">
+      <table class="ds-tbl"><thead><tr>
+        <th>вʼюпорт</th><th>гор. скрол</th><th>колонка тексту</th><th>«широке»</th>
+        <th>шапка</th><th>сайдбар</th><th>термінал</th></tr></thead>
+        <tbody id="rows"><tr><td colspan="7">натисни «Переміряти»</td></tr></tbody></table>
+    </div>
+  </div>
+
+  <div class="lab__grid" id="grid"></div>
+
+  <script>
+    var SIZES = [
+      [320, 780, 0.62], [360, 780, 0.62], [390, 780, 0.62], [430, 780, 0.62],
+      [640, 900, 0.46], [768, 900, 0.42], [1024, 900, 0.34], [1440, 900, 0.26],
+      [1440, 600, 0.26], [390, 640, 0.62]
+    ];
+    var SRC = "t2-lesson.html?pos=mid&state=open&lab=1&v=";
+    var grid = document.getElementById("grid");
+
+    SIZES.forEach(function (s, i) {
+      var cell = document.createElement("div");
+      cell.className = "lab__cell";
+      cell.innerHTML =
+        '<p class="lab__cap"><span>' + s[0] + "×" + s[1] + '</span><span id="v' + i + '">…</span></p>' +
+        '<div class="lab__vp" style="width:' + Math.round(s[0] * s[2]) + "px;height:" +
+          Math.round(s[1] * s[2]) + 'px"><iframe id="f' + i + '" width="' + s[0] +
+          '" height="' + s[1] + '" style="transform:scale(' + s[2] + ')"></iframe></div>';
+      grid.appendChild(cell);
+    });
+
+    function load() {
+      var stamp = Date.now();
+      SIZES.forEach(function (s, i) {
+        document.getElementById("f" + i).src = SRC + stamp + "#top";
+      });
+    }
+
+    function measure() {
+      var rows = document.getElementById("rows");
+      rows.innerHTML = "";
+      SIZES.forEach(function (s, i) {
+        var f = document.getElementById("f" + i);
+        var d, r;
+        try { d = f.contentDocument; } catch (e) { d = null; }
+        if (!d || !d.querySelector(".ds-prose")) { r = { err: "не завантажився" }; }
+        else {
+          var de = d.documentElement;
+          var over = de.scrollWidth - de.clientWidth;
+          var prose = d.querySelector(".ds-prose");
+          var wide = d.querySelector(".ds-prose .term") || d.querySelector(".ds-prose .ds-tbl__wrap");
+          var text = d.querySelector(".ds-prose > section > p");
+          var hdr = d.querySelector(".ds-hdr");
+          var side = d.querySelector(".ds-snav");
+          var term = d.querySelector(".term__body");
+          r = {
+            over: over,
+            text: text ? Math.round(text.getBoundingClientRect().width) : 0,
+            wide: wide ? Math.round(wide.getBoundingClientRect().width) : 0,
+            hdr: hdr ? Math.round(hdr.getBoundingClientRect().height) : 0,
+            side: side ? Math.round(side.getBoundingClientRect().width) +
+                  "/" + d.defaultView.getComputedStyle(side).position : "—",
+            term: term ? (function () {
+                    var cs = d.defaultView.getComputedStyle(term);
+                    var fs = parseFloat(cs.fontSize);
+                    /* JetBrains Mono: крок рівно 0.600em — той самий, що в проді. */
+                    var inner = term.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+                    return fs + "px · " + Math.floor(inner / (fs * 0.6)) + " симв.";
+                  })() : "—"
+          };
+        }
+        var tr = document.createElement("tr");
+        tr.innerHTML = r.err
+          ? "<td>" + s[0] + "×" + s[1] + '</td><td colspan="6" class="lab__bad">' + r.err + "</td>"
+          : "<td>" + s[0] + "×" + s[1] + "</td>" +
+            '<td class="' + (r.over > 0 ? "lab__bad" : "lab__ok") + '">' +
+              (r.over > 0 ? "+" + r.over + " px" : "0") + "</td>" +
+            "<td>" + r.text + "</td><td>" + r.wide + "</td><td>" + r.hdr +
+            "</td><td>" + r.side + "</td><td>" + r.term + "</td>";
+        rows.appendChild(tr);
+        var badge = document.getElementById("v" + i);
+        badge.textContent = r.err ? "—" : (r.over > 0 ? "скрол +" + r.over : "чисто");
+        badge.className = r.err ? "" : (r.over > 0 ? "lab__bad" : "lab__ok");
+      });
+    }
+
+    document.getElementById("run").addEventListener("click", measure);
+    load();
+    setTimeout(measure, 2500);
+  </script>
+</body>
+
+</html>

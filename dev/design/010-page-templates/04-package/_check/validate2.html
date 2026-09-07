@@ -1,0 +1,136 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8">
+<title>010 · перевірка 2 · поведінка</title>
+<style>body{font:13px/1.55 ui-monospace,monospace;background:#161311;color:#F0E9DF;margin:16px}
+pre{white-space:pre-wrap}iframe{position:fixed;left:-99999px;top:0;border:0}</style></head><body>
+<pre id="out">запуск…</pre>
+<script>
+const OUT=document.getElementById('out'); const log=s=>{OUT.textContent+=s+"\n"};
+function load(src,w,h){return new Promise(res=>{
+  const f=document.createElement('iframe'); f.width=w; f.height=h||900; f.src=src;
+  f.onload=()=>setTimeout(()=>res(f),1500); document.body.appendChild(f);});}
+const ms=v=>{v=(v||'').trim(); if(v.endsWith('ms'))return parseFloat(v); if(v.endsWith('s'))return parseFloat(v)*1000; return parseFloat(v)||0};
+
+(async()=>{
+ OUT.textContent='';
+
+ // ── A. Б-01: шапка з .ds-hdr__inner на 320 ────────────────────────────
+ log('== A · Б-01 · шапка на 320 (обгортка .ds-hdr__inner) ================');
+ for(const [n,src] of [['лендінг','b1/index.html'],['урок','b2/t2-lesson.html'],['довідник','b3/t4-reference.html']]){
+   const f=await load(src,320,900), d=f.contentDocument, w=f.contentWindow;
+   const hdr=d.querySelector('.ds-hdr'), inner=d.querySelector('.ds-hdr__inner'),
+         nav=d.querySelector('.ds-hdr .ds-nav');
+   const navDisp = nav? w.getComputedStyle(nav).display : '—';
+   const over=d.documentElement.scrollWidth-d.documentElement.clientWidth;
+   log(`${n.padEnd(10)} .ds-hdr__inner:${inner?'є':'НЕМАЄ'}  .ds-nav display:${navDisp}  скрол:+${over}  висота шапки:${hdr?hdr.getBoundingClientRect().height:'—'}`);
+   f.remove();
+ }
+
+ // ── B. закрите меню поза порядком табуляції + клавіатура ─────────────
+ log('\n== B · дропдаун «Курси» ============================================');
+ {
+   const f=await load('b1/index.html',1280,900), d=f.contentDocument, w=f.contentWindow;
+   const trig=d.querySelector('.ds-nav__trigger'), menu=d.querySelector('.ds-nav__menu');
+   const st=w.getComputedStyle(menu);
+   log(`закрите: aria-expanded=${trig.getAttribute('aria-expanded')} visibility=${st.visibility} opacity=${st.opacity} pointer-events=${st.pointerEvents}`);
+   // чи фокусуються пункти закритого меню
+   const items=[...menu.querySelectorAll('a,button')];
+   let focusable=0; items.forEach(a=>{a.focus(); if(d.activeElement===a) focusable++;});
+   log(`пунктів у меню: ${items.length}, фокусувалось у ЗАКРИТОМУ стані: ${focusable}  ${focusable? '✗ ПРОВАЛ':'✓'}`);
+   // відкриття з клавіатури
+   trig.focus();
+   trig.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}));
+   await new Promise(r=>setTimeout(r,400));
+   const st2=w.getComputedStyle(menu);
+   log(`після ArrowDown: aria-expanded=${trig.getAttribute('aria-expanded')} visibility=${st2.visibility} фокус на: ${d.activeElement===trig?'тригері ✗':(menu.contains(d.activeElement)?'першому пункті ✓':'деінде ✗')}`);
+   // Esc
+   d.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+   await new Promise(r=>setTimeout(r,400));
+   log(`після Esc: aria-expanded=${trig.getAttribute('aria-expanded')} фокус на тригері: ${d.activeElement===trig?'✓':'✗'}`);
+   f.remove();
+ }
+
+ // ── C. [hidden][hidden] ──────────────────────────────────────────────
+ log('\n== C · [hidden] проти утиліти розкладки ============================');
+ {
+   const f=await load('b2/t2-lesson.html',1280,900), d=f.contentDocument, w=f.contentWindow;
+   const t=d.createElement('div'); t.className='grid'; t.hidden=true; d.body.appendChild(t);
+   await new Promise(r=>setTimeout(r,900));
+   log(`div.grid[hidden] → display: ${w.getComputedStyle(t).display}  ${w.getComputedStyle(t).display==='none'?'✓':'✗ ПРОВАЛ'}`);
+   t.remove(); f.remove();
+ }
+
+ // ── D. довгий український підпис у кнопці ────────────────────────────
+ log('\n== D · довгий український текст у .ds-btn =========================');
+ {
+   const f=await load('b2/t2-lesson.html',390,900), d=f.contentDocument, w=f.contentWindow;
+   const host=d.querySelector('.ds-prose')||d.body;
+   const b=d.createElement('button'); b.className='ds-btn ds-btn--secondary';
+   b.textContent='✓ Завершено · натисни, щоб скинути';
+   host.appendChild(b);
+   await new Promise(r=>setTimeout(r,700));
+   const br=b.getBoundingClientRect(); let out=0;
+   [...b.childNodes].forEach(()=>{});
+   const rng=d.createRange(); rng.selectNodeContents(b);
+   const tr=rng.getBoundingClientRect();
+   out = (tr.bottom>br.bottom+1)||(tr.top<br.top-1);
+   log(`кнопка ${br.width.toFixed(0)}×${br.height.toFixed(0)}, текст ${tr.width.toFixed(0)}×${tr.height.toFixed(0)} — текст поза коробкою: ${out?'✗ ТАК':'✓ ні'}`);
+   b.remove();
+   // 20 символів в одному слові
+   const p=d.createElement('p'); p.className='ds-note'; p.textContent='Найдовшеслововукраїнськіймовітест';
+   host.appendChild(p); await new Promise(r=>setTimeout(r,400));
+   const over=d.documentElement.scrollWidth-d.documentElement.clientWidth;
+   log(`33-символьне слово без пробілів у .ds-note → горизонтальний скрол: +${over}  ${over>1?'✗':'✓'}`);
+   p.remove(); f.remove();
+ }
+
+ // ── E. reduce ────────────────────────────────────────────────────────
+ log('\n== E · --motion: 0 (клас html.rm) ==================================');
+ for(const [n,src] of [['урок','b2/t2-lesson.html'],['роадмап','b3/t5-roadmap.html'],['лендінг T1b','b1/claude-code.html']]){
+   const f=await load(src+'?rm=1',1280,900), d=f.contentDocument, w=f.contentWindow;
+   d.documentElement.classList.add('rm');
+   await new Promise(r=>setTimeout(r,900));
+   let maxDur=0, maxName='', loops=0, moves=[], scales=[];
+   d.querySelectorAll('*').forEach(el=>{
+     const cs=w.getComputedStyle(el);
+     (cs.transitionDuration||'').split(',').forEach(v=>{const x=ms(v); if(x>maxDur){maxDur=x;maxName='transition '+(el.className||el.tagName)}});
+     (cs.animationDuration||'').split(',').forEach(v=>{const x=ms(v); if(x>maxDur){maxDur=x;maxName='animation '+(el.className||el.tagName)}});
+     if(cs.animationName!=='none' && cs.animationIterationCount==='infinite' && cs.animationPlayState!=='paused') loops++;
+   });
+   const rs=w.getComputedStyle(d.documentElement);
+   ['--move-micro','--move-card','--move-reveal','--move-exit'].forEach(k=>moves.push(k+'='+rs.getPropertyValue(k).trim()));
+   ['--scale-press','--scale-pop'].forEach(k=>scales.push(k+'='+rs.getPropertyValue(k).trim()));
+   log(`${n.padEnd(12)} max ${maxDur.toFixed(4)}мс (${maxName.slice(0,34)})  живих циклів ${loops}  --scrub=${rs.getPropertyValue('--scrub').trim()}  ${moves.join(' ')}  ${scales.join(' ')}`);
+   f.remove();
+ }
+
+ // ── F. sticky thead ──────────────────────────────────────────────────
+ log('\n== F · thead sticky знято ==========================================');
+ {
+   const f=await load('b3/t4-reference.html',1280,900), d=f.contentDocument, w=f.contentWindow;
+   const th=d.querySelector('.ds-tbl thead th');
+   log(`.ds-tbl thead th position = ${th? w.getComputedStyle(th).position : 'таблиць нема'}  ${th&&w.getComputedStyle(th).position==='static'?'✓':'✗'}`);
+   const wrap=d.querySelector('.ds-tbl__wrap');
+   if(wrap){ wrap.classList.add('ds-tbl__wrap--tall'); await new Promise(r=>setTimeout(r,400));
+     const th2=wrap.querySelector('thead th');
+     log(`з .ds-tbl__wrap--tall → position = ${w.getComputedStyle(th2).position}, max-height = ${w.getComputedStyle(wrap).maxHeight}  ${w.getComputedStyle(th2).position==='sticky'?'✓':'✗'}`);
+     wrap.classList.remove('ds-tbl__wrap--tall');}
+   f.remove();
+ }
+
+ // ── G. skip-link перший, tabindex>0 ─────────────────────────────────
+ log('\n== G · порядок табуляції ===========================================');
+ for(const [n,src] of [['лендінг','b1/index.html'],['урок','b2/t2-lesson.html'],['довідник','b3/t4-reference.html'],['verify','b3/t6-verify.html'],['сертифікат','b3/t7-certificate.html'],['роадмап','b3/t5-roadmap.html']]){
+   const f=await load(src,1280,900), d=f.contentDocument, w=f.contentWindow;
+   const sel='a[href],button:not([disabled]),input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])';
+   const all=[...d.querySelectorAll(sel)].filter(el=>{const cs=w.getComputedStyle(el);
+     if(cs.display==='none'||cs.visibility==='hidden')return false;
+     const r=el.getBoundingClientRect(); return r.width>0||r.height>0||el.classList.contains('ds-skip')||el.classList.contains('skip-link');});
+   const first=all[0];
+   const pos=[...d.querySelectorAll('[tabindex]')].filter(e=>+e.getAttribute('tabindex')>0);
+   const isSkip = first && (/skip/i.test(first.className)||/пропустити|перейти до/i.test(first.textContent||''));
+   log(`${n.padEnd(12)} фокусованих ${String(all.length).padStart(3)}  перший: ${(first?(first.className||first.tagName):'—').slice(0,26)}  skip-link перший: ${isSkip?'✓':'✗'}  tabindex>0: ${pos.length}`);
+   f.remove();
+ }
+ log('\n== ГОТОВО ==');
+})();
+</script></body></html>

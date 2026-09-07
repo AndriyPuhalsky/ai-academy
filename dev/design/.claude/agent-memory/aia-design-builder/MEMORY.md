@@ -1,6 +1,7 @@
 # Memory Index
 
 - [Дизайн-система AIA v1 · 009](project_aia_009_design_system_v1.md) — порахована в OKLCH палітра, Prata/Golos/JetBrains, три акценти, ризик «світло згори»
+- [Задача 010 · Б3](project_aia_010_b3_templates.md) — сім заміряних дефектів системи 009: `--scrub` без @property, paper-rule 1.56, мертвий sticky, li::marker; 38 токенів роадмапа
 - [Механізм руху 009](reference_aia_motion_mechanism_009.md) — `--motion` як єдині ворота, дві похідні одиниці, @property, епсилон 0.0004ms
 - [Дизайн-система AIA (001)](project_aia_design_system.md) — 40px контроли, `line-strong`/`clay-deep`, семантичні класи замість Tailwind у JS-рядку
 - [Конвенції руху AIA](project_aia_motion.md) — три криві, 180/130 мс без каскаду, transform-only shimmer
@@ -12,3 +13,4 @@
 - [Візуальна перевірка](reference_headless_visual_check.md) — живий Chrome з 2026-09-07; IO не доставляється нерендереній вкладці; iframe бере CSS із кешу
 - [Пастки дизайн-системи AIA](reference_aia_design_system_traps.md) — `.prose-aia pre` (0,1,1), ButtonFace, мертвий `li::marker`
 - [Обмеження Figma Starter](reference_figma_starter_limits.md) — один режим змінних, три сторінки, денна квота MCP закінчується на ~14 викликів
+- [Пастки розмітки уроків](reference_aia_lesson_markup_traps.md) — усе в `<section>`, preflight б'є (0,0,1), мертві `::marker` і sticky `thead`, `hidden` програє `.grid`

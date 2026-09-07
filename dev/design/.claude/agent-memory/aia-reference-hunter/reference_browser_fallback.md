@@ -1,27 +1,33 @@
 ---
 name: reference-browser-fallback
-description: Chrome extension is usually NOT connected on this machine; use headless Chromium via playwright-core with the cached ms-playwright binary instead
+description: For measurement work use headless Chromium via playwright-core with the cached ms-playwright binary — it beats the Chrome extension even when the extension IS connected
 metadata:
   type: reference
 ---
 
-The `mcp__claude-in-chrome__*` tools fail here — `list_connected_browsers` returns `[]`
-and `tabs_context_mcp` reports the extension is not connected. Checked 2026-08-22.
+**Status update 2026-09-07:** `list_connected_browsers` now returns a live browser ("Browser 1",
+macOS). The earlier note that the extension is never connected here is **out of date** — check,
+don't assume. But the recommendation below is unchanged, and now for a stronger reason.
 
-**Working fallback (verified, gives full visual + DOM access):**
+**Use playwright-core, not the extension, for any reference-hunting job:**
 
-- Playwright browser binaries are already cached at
-  `~/Library/Caches/ms-playwright/` (chromium-1208/1223/1228, firefox, webkit).
-- `playwright` npm package is NOT installed globally. Install `playwright-core` into the
-  scratchpad dir (`npm i playwright-core`, ~2s) and point `executablePath` at
+- The extension can only *resize the window*. It cannot set `isMobile`, `hasTouch` or
+  `deviceScaleFactor`. In a merely narrow window `(hover: hover)` stays true and
+  `(pointer: coarse)` stays false, so the site serves desktop styles and **every mobile
+  measurement is wrong**. Playwright's `newContext({ isMobile, hasTouch, deviceScaleFactor,
+  userAgent })` is real device emulation.
+- It also allows `getComputedStyle`, dumping `@keyframes` and custom properties, patching
+  `IntersectionObserver` / `addEventListener` via `addInitScript` before load, walking
+  `document.styleSheets` to count `@media (hover: hover)` rules, and measuring text widths in
+  a specific loaded font — which is what [[feedback-measure-dont-estimate]] requires.
+- Using the extension also forces an `AskUserQuestion` round trip to pick a browser. Not worth it.
+
+**Setup (verified again 2026-09-07, ~1 s):**
+
+- Binaries cached at `~/Library/Caches/ms-playwright/` (`chromium-1228` present).
+- `npm i playwright-core` into the scratchpad dir, then `executablePath` =
   `~/Library/Caches/ms-playwright/chromium-1228/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing`.
-- Network from Bash works (curl and headless Chrome both reach the internet).
+- Network from Bash works; `curl` and headless Chrome both reach the internet.
 
-**Why this matters beyond screenshots:** it is strictly *better* than the extension for
-this agent's job, because it allows reading `getComputedStyle`, dumping `@keyframes`
-bodies and CSS custom properties, throttling the network via CDP to catch loading
-states, and measuring text widths in a specific font. That turns "the modal fades in
-nicely" into exact durations, curves and pixel widths — which is what
-[[feedback-measure-dont-estimate]] requires.
-
-Do not report references as "assessed by text only" without first trying this path.
+Always state plainly what could **not** be verified this way — Safari/WebKit, real touch,
+sticky `:hover` after tap, iOS dynamic address bar. Do not fill those gaps with plausible numbers.

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<!-- ============================================================================
+     010 · T1a — ЛЕНДІНГ КЛАСИЧНИЙ · AI Академія
+     ----------------------------------------------------------------------------
+     Скелет спільний з architect.html; різниця — рівно три речі:
+     data-course, data-config і відсутність секції донатів на Architect
+     (donations.enabled = false у його конфізі).
+     ⚠ У МАКЕТІ data-config вказує на data/academy.json — копію реального
+     config.json без ключів supabase (публічний репозиторій). У коді сайту
+     значення лишається config.json, як і було.
+     ============================================================================ -->
+<html lang="uk" data-config="data/academy.json" data-course="academy" data-density="landing" data-lit>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Академія — безкоштовний курс про ШІ та Claude українською</title>
+  <meta name="description" content="Відкрита освітня платформа українською: від базових понять штучного інтелекту до промпт-інжинірингу, Claude API, MCP та агентних систем.">
+  <!-- Д16 · ЄДИНИЙ легальний хекс у HTML. Дорівнює --p-n-100; <meta> не читає var().
+       Міняєш тут — заміни в css/tokens.css біля --p-n-100 (там стоїть той самий коментар). -->
+  <meta name="theme-color" content="#161311">
+  <!-- у коді сайту тут <link rel="icon" href="assets/favicon.svg">; у макеті прибрано, щоб не давати 404 у консолі -->
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <!-- §4.5 · один <link> замість @import. Латиниця вантажиться СВІДОМО:
+       український апостроф ʼ (U+02BC) лежить у латинській підмножині
+       Google Fonts, а не в кириличній. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- §5.2 · порядок обовʼязковий: токени → компоненти → сторінковий файл,
+       і аж потім Tailwind CDN, щоб його утиліти перебивали компонент там,
+       де верстка справді хоче виняток.
+       ⚠ У КОДІ САЙТУ це css/tokens.css і css/components.css. Тут — пряме
+       посилання на незмінну базу 009, щоб макет і система не розʼїхались. -->
+  <link rel="stylesheet" href="../../files/css/tokens.css">
+  <link rel="stylesheet" href="../../files/css/components.css">
+  <link rel="stylesheet" href="css/mockup-only.css"><!-- ⚠ тільки макет -->
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../../files/js/tw-theme.js"></script>
+</head>
+
+<body id="top">
+
+  <!-- ================= §6.1 · ЧОТИРИ СПІЛЬНІ БЛОКИ ================= -->
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <div id="announcement" hidden></div>
+
+  <!-- ================= §6.2 · ШАПКА · ПРОФІЛЬ H1 (лендінг) ================= -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+
+      <!-- 2. БРЕНД -->
+      <a class="ds-hdr__brand" href="index.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIA</span>
+        <span data-site="name">AI Академія</span>
+      </a>
+
+      <!-- 3. НАВІГАЦІЯ — тільки на лендінгах · §6.3 -->
+      <nav class="ds-nav" aria-label="Головна навігація">
+        <a class="ds-nav__link" href="#tracks">Треки</a>
+        <a class="ds-nav__link" href="#syllabus">Програма</a>
+        <a class="ds-nav__link" href="#donate">Підтримка</a>
+
+        <div class="ds-nav__group">
+          <button id="coursesBtn" type="button" class="ds-nav__link ds-nav__trigger"
+                  aria-haspopup="true" aria-expanded="false" aria-controls="coursesMenu">
+            Курси
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg>
+          </button>
+          <div id="coursesMenu" class="ds-nav__menu" role="menu" aria-labelledby="coursesBtn">
+            <a class="ds-nav__link" role="menuitem" href="index.html" aria-current="page">Базовий</a>
+            <a class="ds-nav__link" role="menuitem" href="architect.html">AI Architect</a>
+            <a class="ds-nav__link" role="menuitem" href="claude-code.html">Claude Code CLI</a>
+          </div>
+        </div>
+
+        <a class="ds-nav__link" data-link="github" href="#">GitHub ↗</a>
+      </nav>
+
+      <span class="ds-hdr__spacer"></span>
+
+      <!-- 4. СЛОТ АВТОРИЗАЦІЇ (js/auth-ui.js). Ширина фіксована токеном → CLS = 0 -->
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+
+      <!-- 5. ПІЛЮЛЯ ПРОГРЕСУ (js/config.js) -->
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+
+      <!-- 6. БУРГЕР МЕНЮ — тільки на лендінгах -->
+      <button id="menuBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="mobileMenu">
+        <span class="sr-only">Меню</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- §6.4 · МОБІЛЬНЕ МЕНЮ ЛЕНДІНГА (≤640). Це НЕ шторка змісту уроку:
+       поріг 640, у потоці під шапкою, без підложки, без блокування скролу,
+       курси розгорнуті списком — дропдауна тут немає взагалі. -->
+  <div id="mobileMenu" class="ds-nav__drawer" data-open="false">
+    <nav aria-label="Мобільна навігація">
+      <a class="ds-nav__link" href="#tracks">Треки</a>
+      <a class="ds-nav__link" href="#syllabus">Програма</a>
+      <a class="ds-nav__link" href="#donate">Підтримка</a>
+      <p class="ds-eyebrow">Курси</p>
+      <a class="ds-nav__link" href="index.html" aria-current="page">Базовий</a>
+      <a class="ds-nav__link" href="architect.html">AI Architect</a>
+      <a class="ds-nav__link" href="claude-code.html">Claude Code CLI</a>
+      <a class="ds-nav__link" data-link="github" href="#">GitHub ↗</a>
+    </nav>
+  </div>
+
+  <div class="ds-wrap ds-band">
+    <div id="configError" hidden class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">
+        ⚠ Не вдалося завантажити <code class="ds-code--inline">config.json</code>. Відкрий сайт через
+        локальний сервер, наприклад: <code class="ds-code--inline">python -m http.server 8000</code> —
+        і зайди на <code class="ds-code--inline">localhost:8000</code>.
+      </p>
+    </div>
+  </div>
+
+  <!-- ================= КОНТЕНТ ================= -->
+  <main id="main" data-page-in>
+
+    <!-- ---------- HERO · M10 друк + L1 каретка ---------- -->
+    <section class="ds-hero ds-sect ds-wrap">
+      <div class="ds-hero__glow" aria-hidden="true"></div>
+      <div class="ds-meta">
+        <div class="ds-meta__rail">
+          <p class="ds-eyebrow text-accent">// українською</p>
+          <p class="ds-eyebrow">без оплат і реєстрацій</p>
+        </div>
+        <div class="ds-meta__body">
+
+          <h1 class="ds-h1">
+            <span class="ds-hero__line"><span class="ds-hero__type" data-stream>Зрозумій, як думає ШІ.</span></span>
+            <span class="ds-hero__line"><span class="ds-hero__type" data-stream>Навчись ним керувати.</span><span
+                  id="heroCaret" class="ds-hero__caret" aria-hidden="true"></span></span>
+          </h1>
+
+          <p class="ds-lead mt-7 max-w-narrow" data-site="description">
+            Відкрита освітня платформа: від базових понять ШІ до промпт-інжинірингу, Claude API, MCP та агентних систем.
+          </p>
+
+          <div class="mt-10 flex flex-wrap items-center gap-4">
+            <a id="ctaStart" class="ds-btn ds-btn--primary ds-btn--lg" href="#syllabus">Переглянути програму</a>
+            <a class="ds-btn ds-btn--secondary ds-btn--lg" href="#donate">Підтримати проєкт</a>
+          </div>
+
+          <p class="mt-9 max-w-narrow font-mono text-xs leading-relaxed text-fg-3">
+            <span class="text-accent">↑</span> Цей заголовок зʼявився частинами — токен за токеном.
+            Саме так мовна модель генерує будь-який текст. Чому — розбираємо в Модулі 1.
+          </p>
+
+          <p id="heroStats" class="mt-12 border-t border-line pt-6 font-mono text-sm text-fg-2"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- ТРЕКИ ---------- -->
+    <section id="tracks" class="ds-sect ds-wrap">
+      <div class="ds-meta">
+        <div class="ds-meta__rail">
+          <p class="ds-eyebrow text-accent">Структура</p>
+          <p class="ds-eyebrow">чотири треки</p>
+        </div>
+        <div class="ds-meta__body">
+          <h2 class="ds-h2">Чотири треки — один шлях</h2>
+          <p class="ds-lead mt-4 max-w-narrow">
+            Від інтуїції про мовні моделі — до власних агентних систем.
+            Кожен трек спирається на попередній.
+          </p>
+          <div id="tracksGrid" class="mt-10" data-reveal-root></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- ПРОГРАМА ---------- -->
+    <section id="syllabus" class="ds-sect ds-wrap">
+      <div class="ds-meta">
+        <div class="ds-meta__rail">
+          <p class="ds-eyebrow text-accent">Програма</p>
+          <p class="ds-eyebrow" id="syllabusCount"></p>
+        </div>
+        <div class="ds-meta__body">
+          <h2 class="ds-h2">12 модулів — від токенів до агентів</h2>
+          <p class="ds-lead mt-4 max-w-narrow">
+            Кожен модуль завершується квізом на самоперевірку —
+            без оцінок, дедлайнів і жорстких барʼєрів.
+          </p>
+        </div>
+      </div>
+      <div id="syllabusList" class="mt-12 grid gap-12"></div>
+    </section>
+
+    <!-- ---------- ПІДТРИМКА ---------- -->
+    <section id="donate" class="ds-sect ds-wrap">
+      <div class="ds-meta">
+        <div class="ds-meta__rail">
+          <p class="ds-eyebrow text-accent">Підтримка</p>
+          <p class="ds-eyebrow" id="donateCount"></p>
+        </div>
+        <div class="ds-meta__body">
+          <h2 class="ds-h2" id="donateTitle">Підтримати проєкт</h2>
+          <p class="ds-lead mt-4 max-w-narrow" id="donateSubtitle"></p>
+          <div id="donationGrid" class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-reveal-root></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= §6.6 · ФУТЕР · ПРОФІЛЬ F1 (повний) ================= -->
+  <footer class="ds-ftr">
+    <div class="ds-ftr__grid">
+      <div>
+        <p class="ds-h4" data-site="name">AI Академія</p>
+        <p class="ds-small" data-site="disclaimer"></p>
+      </div>
+      <nav aria-label="Посилання проєкту">
+        <p class="ds-eyebrow">Проєкт</p>
+        <!-- ⚠ П-11 · у проді links.github і links.telegram — ПОРОЖНІ рядки в усіх
+             трьох конфігах, і js/config.js видаляє такі <li>. Верстка тримає
+             список від 2 до 5 рядків, а не рівно чотири. -->
+        <ul class="ds-ftr__list">
+          <li><a href="certificate.html">Мої сертифікати ↗</a></li>
+          <li><a data-link="github" href="#">GitHub ↗</a></li>
+          <li><a data-link="telegram" href="#">Telegram ↗</a></li>
+          <li><button type="button" id="contactTrigger" class="ds-btn ds-btn--quiet ds-btn--sm">Написати нам</button></li>
+        </ul>
+        <!-- §6.7 · .rm-entry стоїть ПІСЛЯ </ul>, усередині тієї ж <nav>.
+             Це не рядок списку: блок із лінією, що доростає. -->
+        <a class="rm-entry" href="roadmap.html">
+          <span class="rm-entry__label">План розвитку</span>
+          <span class="rm-entry__arrow" aria-hidden="true">→</span>
+          <span class="rm-entry__rule" aria-hidden="true"></span>
+        </a>
+      </nav>
+      <nav aria-label="Першоджерела">
+        <p class="ds-eyebrow">Першоджерела</p>
+        <ul class="ds-ftr__list">
+          <li><a data-link="officialDocs" href="#">Документація Claude ↗</a></li>
+          <li><a data-link="officialCourses" href="#">Офіційні курси Anthropic ↗</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="ds-ftr__bar">
+      <span id="footerMeta"></span>
+      <span>Зроблено спільнотою · <a href="#top">Нагору ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- §5.3 · js/motion.js — ПЕРШИЙ із наших скриптів на кожній сторінці:
+       усі решта в кінці свого render() викликають AIA.motion.bind(root). -->
+  <script src="../../files/js/motion.js"></script>
+  <script src="js/chrome.js"></script>
+  <script src="js/landing.js"></script>
+  <script src="js/mockup.js"></script><!-- ⚠ тільки макет -->
+</body>
+</html>

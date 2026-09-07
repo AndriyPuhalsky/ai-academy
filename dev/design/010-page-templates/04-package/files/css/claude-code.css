@@ -1,0 +1,329 @@
+/* ============================================================================
+   010 · T1b — ЛЕНДІНГ «AI ТЕРМІНАЛ» · css/claude-code.css переписаний на токени
+   ----------------------------------------------------------------------------
+   Підключається ТІЛЬКИ з claude-code.html — як і було.
+   Порядок у <head>: tokens.css → components.css → claude-code.css → Tailwind.
+
+   ЩО ЗМІНИЛОСЬ ПРОТИ ПРОДУ (Д5/Д6: лендінг НЕ перемальовується)
+   1. Усі 93 імені класів `cc-*` ЛИШИЛИСЬ. Змінились лише значення.
+   2. Усі власні токени отримали префікс НА ПЕРШУ ПОЗИЦІЮ: --cc-*.
+      Це структурно знімає колізію --rail-w (184 з роадмапа проти 132 звідси
+      падали в ОДИН глобальний :root; вигравав другий, а на решті 65 сторінок
+      роздавався мертвий 184). Тепер --rm-rail-w і --cc-rail-w зіткнутись
+      не можуть.
+   3. НУЛЬ хексів і нуль rgba()-літералів. Було 40+.
+   4. Блока `prefers-reduced-motion` тут НЕМАЄ. Було — поіменний список із
+      девʼяти токенів. Гасіння робить механізм системи (--motion, --loop-state).
+
+   ⚠ ВІДСТУП ВІД §8.6, НАЗВАНИЙ ВГОЛОС
+   Спека каже перейменувати рухові токени сторінки в --cc-dur-*, --cc-stag-*,
+   --cc-move-*, --cc-scrub-spine. Я їх НЕ перейменовував — я їх ПРИБРАВ.
+   Причина: усі пʼять ролей уже є в L2 системи 009 (--dur-reveal, --stag-list,
+   --move-reveal, --scrub), а поява секцій тепер робиться спільним
+   [data-reveal] замість власного .cc-in. Токенів руху на цій сторінці тепер
+   НУЛЬ, а отже нема чого реєструвати через @property, нема чого гасити і
+   нема чого звіряти з JS (П-06: 15 імен, які читав js/claude-code-motion.js
+   із fallback-числами, більше не існують).
+   ========================================================================== */
+
+
+/* ============================================================================
+   1. ТОКЕНИ СТОРІНКИ · L3, префікс ПЕРШИЙ
+   ========================================================================== */
+:root {
+  /* --- вісь сторінки («спина») --- */
+  --cc-spine-w:     var(--bw);
+  --cc-spine-lit-w: var(--bw-strong);
+  --cc-rail-w:      132px;   /* поле ліворуч від осі (значення проду) */
+  --cc-spine-x:     44px;    /* вісь усередині поля */
+  --cc-node-r:      4px;
+  --cc-node-r-exam: 7px;
+
+  /* --- типографічна шкала сторінки ---
+     Не дорівнює системній свідомо: h1 ділить перший екран із терміналом
+     і живе у колонці ~34rem, тому стеля нижча за --fs-h1 (64). */
+  --cc-fs-h1:   clamp(2.125rem, 1.4rem + 2.6vw, 3.375rem);   /* 34 → 54 */
+  --cc-fs-num:  clamp(1.75rem, 1.2rem + 1.9vw, 2.5rem);      /* номер фази */
+  --cc-lh-h1:   1.08;
+  --cc-ch-lead: 46ch;
+
+  /* --- ритм і геометрія --- */
+  --cc-hero-term: 620px;   /* ширина колонки предмета в hero */
+
+  /* --- резерв висоти до приходу конфіга (CLS = 0) --- */
+  --cc-hero-reserve: 520px;
+  --cc-map-reserve:  640px;
+}
+
+/* Вісь лишається на всіх ширинах — стискається лише поле.
+   Пороги — тільки з пʼяти дозволених (640 / 768 / 1024 / 1440 / 700). */
+@media (max-width: 768px) {
+  :root { --cc-rail-w: 60px; --cc-spine-x: 18px; --cc-hero-reserve: 560px; }
+}
+@media (max-width: 640px) {
+  :root { --cc-rail-w: 44px; --cc-spine-x: 14px; }
+}
+@media (min-width: 1440px) { :root { --cc-hero-term: 44rem; } }
+@media (max-height: 700px) {
+  :root { --cc-fs-h1: clamp(1.875rem, 1.2rem + 2.2vw, 2.75rem); --cc-hero-reserve: 430px; }
+}
+
+
+/* ============================================================================
+   2. СПІЛЬНІ ПРИМІТИВИ СТОРІНКИ
+   ========================================================================== */
+.cc-wrap { max-width: var(--w-content); margin-inline: auto; padding-inline: var(--s-6); }
+@media (max-width: 640px) { .cc-wrap { padding-inline: var(--s-4); } }
+
+.cc-section { padding-block: var(--s-section); }
+.cc-section + .cc-section { border-top: var(--bw) solid var(--c-line); }
+
+/* Сітка сторінки: [поле] [зміст]. Поле — місце осі й номерів фаз. */
+.cc-grid { display: grid; grid-template-columns: var(--cc-rail-w) minmax(0, 1fr); column-gap: var(--s-6); }
+.cc-grid__rail { grid-column: 1; }
+.cc-grid__body { grid-column: 2; min-width: 0; }
+
+.cc-h2 { font-family: var(--f-display); font-weight: var(--w-regular); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--tr-display); color: var(--c-text); margin: 0; }
+.cc-lead { margin: var(--s-4) 0 0; max-width: var(--w-narrow); font-size: var(--fs-lead); line-height: var(--lh-lead); color: var(--c-prose); }
+.cc-note { margin: var(--s-5) 0 0; max-width: var(--w-narrow); font-size: var(--fs-ui); line-height: var(--lh-body); color: var(--c-text-2); }
+/* Надзаголовок БЕЗ верхнього регістру: український капслок довший і
+   читається гірше. «Технологічність» несе моно, а не капслок. */
+.cc-mono { font-family: var(--f-mono); font-size: var(--fs-eyebrow); letter-spacing: var(--tr-eyebrow); color: var(--c-text-3); }
+
+/* Кнопки сторінки — тонка обгортка над ds-btn, а не 12-те означення кнопки. */
+.cc-btn { display: inline-flex; align-items: center; gap: var(--s-2); min-height: var(--ctl-h-lg); padding: 0 var(--s-6); border-radius: var(--r-control); border: var(--bw) solid transparent; background: transparent; color: var(--c-text); font-family: var(--f-sans); font-size: var(--fs-ui); font-weight: var(--w-medium); text-decoration: none; cursor: pointer; transition: background-color var(--dur-hover) var(--e-out), border-color var(--dur-hover) var(--e-out), color var(--dur-hover) var(--e-out), transform var(--dur-tap) var(--e-out); }
+.cc-btn:active { transform: scale(var(--scale-press)); }
+.cc-btn--primary { background: var(--c-accent); color: var(--c-on-accent); font-weight: var(--w-semi); }
+.cc-btn--ghost   { border-color: var(--c-line-strong); color: var(--c-text); }
+.cc-btn--quiet   { min-height: var(--ctl-h-sm); padding: 0 var(--s-3); border-color: var(--c-line); font-family: var(--f-mono); font-size: var(--fs-label); color: var(--c-text-3); }
+@media (hover: hover) {
+  .cc-btn--primary:hover { background: var(--c-accent-hover); }
+  .cc-btn--ghost:hover   { border-color: var(--c-accent-edge); }
+  .cc-btn--quiet:hover   { color: var(--c-text); border-color: var(--c-line-strong); }
+}
+
+
+/* ============================================================================
+   3. ВІСЬ СТОРІНКИ («спина») — носій M9
+   ----------------------------------------------------------------------------
+   Одна пряма лінія від hero до вузла іспиту. Заповнюється scaleY під скрол —
+   ОДИН ScrollTrigger на всю сторінку.
+   ⚠ Це НЕ змійка 003: розмахів немає, SVG немає, кільця немає.
+   ========================================================================== */
+.cc-path { position: relative; }
+.cc-path__line { position: absolute; inset-block: 0; left: 50%; transform: translateX(-50%); width: min(100%, var(--w-content)); pointer-events: none; }
+.cc-path__rest,
+.cc-path__lit { position: absolute; top: 0; bottom: 0; left: calc(var(--s-6) + var(--cc-spine-x)); display: block; }
+@media (max-width: 640px) { .cc-path__rest, .cc-path__lit { left: calc(var(--s-4) + var(--cc-spine-x)); } }
+.cc-path__rest { width: var(--cc-spine-w); background: var(--c-line-strong); }
+.cc-path__lit  { width: var(--cc-spine-lit-w); background: var(--c-accent); transform: scaleY(0); transform-origin: top center; }
+
+/* Вузол на осі: ставиться на блок, що має position: relative. */
+.cc-node { position: absolute; left: calc(var(--cc-spine-x) - var(--cc-node-r)); width: calc(var(--cc-node-r) * 2); height: calc(var(--cc-node-r) * 2); border-radius: var(--r-pill); background: var(--c-bg); box-shadow: 0 0 0 var(--bw-strong) var(--c-accent); }
+
+
+/* ============================================================================
+   4. HERO
+   ========================================================================== */
+.cc-hero { position: relative; padding-block: var(--s-10) var(--s-12); }
+.cc-hero__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-8); }
+.cc-hero__title { margin: 0; font-family: var(--f-display); font-weight: var(--w-regular); font-size: var(--cc-fs-h1); line-height: var(--cc-lh-h1); letter-spacing: var(--tr-display); color: var(--c-text); max-width: 27ch; }
+.cc-hero__title span { display: block; }
+.cc-hero__lead { margin: var(--s-5) 0 0; max-width: var(--cc-ch-lead); font-size: var(--fs-lead); line-height: var(--lh-lead); color: var(--c-prose); }
+.cc-hero__cta { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-6); }
+.cc-hero__explain { margin: var(--s-5) 0 0; max-width: var(--w-narrow); font-family: var(--f-mono); font-size: var(--fs-small); line-height: var(--lh-body); color: var(--c-text-2); }
+.cc-hero__stats { margin: var(--s-6) 0 0; padding-top: var(--s-5); border-top: var(--bw) solid var(--c-line); font-family: var(--f-mono); font-size: var(--fs-small); color: var(--c-text-3); }
+/* Резерв висоти до приходу конфіга: CLS = 0 (форма 005). */
+/* Резерв висоти до приходу конфіга; клас знімає cc-render.js одразу після
+   рендера hero. ⚠ `:has(:empty)` тут НЕ годиться: усередині є завжди порожній
+   .term__dots, і селектор збігався б назавжди. */
+.cc-hero__object.is-reserved { min-height: var(--cc-hero-reserve); }
+
+/* «Стіл» — ЄДИНА плита предмета на сторінку (роль --c-desk у системі 009).
+   Полотно термінала (--c-sunken) темніше за плиту, і саме ця різниця робить
+   термінал предметом, а не дірою. */
+.cc-desk { position: relative; padding: var(--s-6); border-radius: var(--r-card); background: var(--c-desk); box-shadow: var(--sh-desk); min-width: 0; }
+@media (max-width: 640px) { .cc-desk { padding: var(--s-4); } }
+[data-lit] .cc-desk { border-top: var(--bw) solid var(--c-line-lit); }
+.cc-desk > * { position: relative; }
+.cc-desk__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); margin-top: var(--s-3); font-family: var(--f-mono); font-size: var(--fs-label); color: var(--c-text-3); }
+
+/* ≤1024: предмет іде ОДРАЗУ ПІД ЗАГОЛОВОК, а не в кінець hero — «воно живе»
+   це перші 3 секунди, і на мобілці термінал мусить бути в першому екрані.
+   Відступ зліва рівно на осі: плита не накриває лінію собою. */
+@media (max-width: 1024px) {
+  .cc-hero__head   { order: 1; }
+  .cc-hero__object { order: 2; margin-left: calc(var(--cc-spine-x) + var(--s-2)); }
+  .cc-hero__body   { order: 3; }
+}
+@media (min-width: 1024px) {
+  /* ⚠ ЗАМІРЯНО В ЖИВОМУ CHROME 2026-09-07. Прод має тут
+     `minmax(0,1fr) var(--cc-hero-term)`, і на вікні 1027 px текстова колонка
+     стискається до 311 px: лід «Claude Code — це помічник…» лягає по 3-4
+     слова в рядок. Підлога 24rem віддає різницю терміналу, у якого є власний
+     overflow-x. Ширина лендінга (1152) при цьому не змінюється — рішення
+     власника лишається чинним. */
+  .cc-hero__grid { grid-template-columns: minmax(24rem, 1fr) minmax(0, var(--cc-hero-term)); column-gap: var(--s-12); row-gap: var(--s-6); align-items: start; }
+  .cc-hero__head   { grid-column: 1 / -1; }
+  .cc-hero__body   { grid-column: 1; }
+  .cc-hero__object { grid-column: 2; grid-row: 2; }
+}
+
+/* Термінал hero — ЄДИНИЙ термінал сайту, який рухається (M10). */
+.term--hero { margin: 0; border-color: var(--c-line-strong); }
+
+
+/* ============================================================================
+   5. ДЛЯ КОГО — І ДЛЯ КОГО НІ
+   ----------------------------------------------------------------------------
+   Маркери `+` / `−` узяті з дифу термінала: та сама мова, якою агент показує
+   зміни, тут показує межу курсу. Сенс несе ЗНАК, а не колір.
+   ========================================================================== */
+.cc-split { display: grid; gap: var(--s-10); }
+@media (min-width: 768px) { .cc-split { grid-template-columns: 1fr 1fr; column-gap: var(--s-12); } }
+.cc-split__head { margin: 0; font-family: var(--f-display); font-weight: var(--w-regular); font-size: var(--fs-h3); color: var(--c-text); }
+.cc-list { display: grid; gap: var(--s-3); margin: var(--s-6) 0 0; padding: 0; list-style: none; }
+.cc-list__item { display: grid; grid-template-columns: 2ch minmax(0, 1fr); gap: var(--s-3); font-size: var(--fs-body); line-height: var(--lh-lead); }
+.cc-list__sign { font-family: var(--f-mono); line-height: inherit; }
+.cc-list--for .cc-list__sign { color: var(--c-accent); }
+.cc-list--for .cc-list__text { color: var(--c-text); }
+.cc-list--not .cc-list__sign { color: var(--c-text-3); }
+.cc-list--not .cc-list__text { color: var(--c-text-2); }
+
+
+/* ============================================================================
+   6. ЧОГО ТИ НАВЧИШСЯ
+   ========================================================================== */
+.cc-out { display: grid; gap: var(--s-6) var(--s-12); margin: var(--s-8) 0 0; padding: 0; list-style: none; }
+@media (min-width: 768px) { .cc-out { grid-template-columns: 1fr 1fr; } }
+.cc-out__item { padding-top: var(--s-4); border-top: var(--bw) solid var(--c-line); font-size: var(--fs-body); line-height: var(--lh-lead); color: var(--c-text); }
+.cc-out__hint { display: block; margin-top: var(--s-2); font-size: var(--fs-ui); line-height: var(--lh-body); color: var(--c-text-2); }
+
+
+/* ============================================================================
+   7. КАРТА ПРОГРАМИ · рейка фаз + «зміст книги»
+   ========================================================================== */
+.cc-map__reserve { margin: 0; padding: 0; list-style: none; }
+.cc-map__reserve:empty { min-height: var(--cc-map-reserve); }
+.cc-phase { position: relative; padding-block: var(--s-10) var(--s-8); }
+.cc-phase + .cc-phase { border-top: var(--bw) solid var(--c-line); }
+.cc-phase__node { top: calc(var(--s-10) + 0.55em); }
+.cc-phase__num { display: block; font-family: var(--f-mono); font-size: var(--cc-fs-num); line-height: 1; color: var(--c-text-3); padding-left: calc(var(--cc-spine-x) + var(--s-4)); font-variant-numeric: tabular-nums; }
+.cc-phase__count { display: block; margin-top: var(--s-2); padding-left: calc(var(--cc-spine-x) + var(--s-4)); font-family: var(--f-mono); font-size: var(--fs-label); color: var(--c-text-3); }
+.cc-phase__title { margin: 0; font-family: var(--f-display); font-weight: var(--w-regular); font-size: var(--fs-h3); line-height: var(--lh-h3); color: var(--c-text); }
+.cc-phase__sub { margin: var(--s-2) 0 0; max-width: var(--w-narrow); font-size: var(--fs-ui); color: var(--c-text-2); }
+
+/* Зміст книги: назва ліворуч, номер моно праворуч, крапки між ними. */
+.cc-rows { margin: var(--s-6) 0 0; padding: 0; list-style: none; }
+.cc-row { position: relative; }
+.cc-row__link { display: flex; align-items: baseline; gap: var(--s-3); padding-block: var(--s-3); border-radius: var(--r-inner); text-decoration: none; }
+.cc-row__name { flex: 0 1 auto; font-size: var(--fs-body); line-height: var(--lh-lead); color: var(--c-prose); transition: color var(--dur-hover) var(--e-out); }
+.cc-row__leader { flex: 1 1 auto; min-width: var(--s-6); border-bottom: var(--bw) dotted var(--c-line-strong); transition: border-color var(--dur-hover) var(--e-out); }
+.cc-row__num { flex: 0 0 auto; font-family: var(--f-mono); font-size: var(--fs-small); color: var(--c-text-3); font-variant-numeric: tabular-nums; transition: color var(--dur-hover) var(--e-out); }
+@media (hover: hover) {
+  a.cc-row__link:hover .cc-row__name { color: var(--c-text); }
+  a.cc-row__link:hover .cc-row__leader { border-bottom-color: var(--c-accent-edge); }
+  a.cc-row__link:hover .cc-row__num { color: var(--c-accent); }
+}
+a.cc-row__link:focus-visible .cc-row__name { color: var(--c-text); }
+a.cc-row__link:focus-visible .cc-row__leader { border-bottom-color: var(--c-accent-edge); }
+.cc-row--done .cc-row__name { color: var(--c-text); }
+.cc-row--soon .cc-row__name { color: var(--c-text-2); }
+.cc-row--soon .cc-row__link { cursor: default; }
+.cc-row__badge { flex: 0 0 auto; }
+/* Носій бейджа є в розмітці ЗАВЖДИ — щоб точкове оновлення прогресу мало
+   куди писати, не перебудовуючи рядок. Порожній він мусить зникати з потоку,
+   інакше gap рядка додав би зайві 12 px між крапками й номером. */
+.cc-row__badge:empty { display: none; }
+/* Точка входу для гостя: єдина мітка кольором акценту в усій карті. */
+.cc-row__start { flex: 0 0 auto; font-family: var(--f-mono); font-size: var(--fs-label); color: var(--c-accent); white-space: nowrap; }
+
+/* ⚠ ЗАМІРЯНО В IFRAME 320×900 (2026-09-07): рядок «зміст книги» — це flex
+   без переносу, і на 320 px тіло фази має рівно 220 px (320 − 32 поля
+   − 44 рейка − 24 gap). Назва з `flex: 0 1 auto` не може стиснутись нижче
+   min-content, тому номер рядка вилазив на 9 px за край документа.
+   Дев'ять пікселів — це вже горизонтальний скрол усієї сторінки.
+   Лікується не приховуванням мітки «почати звідси», а дозволом назві
+   переноситись: baseline-вирівнювання лишає крапки й номер на першому
+   рядку назви, тобто вигляд «змісту книги» зберігається. */
+@media (max-width: 640px) {
+  .cc-row__link { column-gap: var(--s-2); }
+  .cc-row__name { min-width: 0; overflow-wrap: break-word; }
+}
+
+/* Вузол іспиту: поза фазами, інша геометрія. Не рядок модуля. */
+.cc-exam { position: relative; padding-block: var(--s-12); }
+.cc-exam__node { top: calc(var(--s-12) + 0.4em); left: calc(var(--cc-spine-x) - var(--cc-node-r-exam)); width: calc(var(--cc-node-r-exam) * 2); height: calc(var(--cc-node-r-exam) * 2); background: var(--c-accent); box-shadow: 0 0 0 var(--s-1) var(--c-bg), 0 0 0 calc(var(--s-1) + var(--bw)) var(--c-accent); }
+.cc-exam__box { display: block; max-width: var(--w-prose); padding: var(--s-6) var(--s-8); border: var(--bw) solid var(--c-accent-edge); border-radius: var(--r-control); text-decoration: none; transition: border-color var(--dur-hover) var(--e-out); }
+@media (hover: hover) {
+  a.cc-exam__box:hover { border-color: var(--c-accent); }
+  a.cc-exam__box:hover .cc-exam__title { color: var(--c-text); }
+}
+.cc-exam__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-4); }
+.cc-exam__badge { flex: 0 0 auto; }
+.cc-exam__badge:empty { display: none; }
+.cc-exam__title { margin: 0; font-family: var(--f-display); font-weight: var(--w-regular); font-size: var(--fs-h3); color: var(--c-accent); transition: color var(--dur-hover) var(--e-out); }
+.cc-exam__text { margin: var(--s-3) 0 0; font-size: var(--fs-ui); line-height: var(--lh-body); color: var(--c-prose); }
+.cc-exam__meta { margin: var(--s-4) 0 0; font-family: var(--f-mono); font-size: var(--fs-label); color: var(--c-text-3); }
+
+
+/* ============================================================================
+   8. ПОЛИЦЯ · три довідники
+   ----------------------------------------------------------------------------
+   Той самий матеріал, що й стіл (--c-desk), і це навмисно: у цій системі
+   тепла плита = «річ, що лежить під рукою», а гола лінія = «крок шляху».
+   Довідники не мають ні номерів, ні прогресу, ні бейджів — щоб ніхто не
+   намагався їх «проходити».
+   ========================================================================== */
+.cc-shelf__line { height: var(--bw); margin-top: var(--s-8); background: var(--c-line-strong); }
+.cc-shelf__items { display: grid; gap: var(--s-4); margin: -1px 0 0; padding: 0; list-style: none; }
+.cc-shelf__items > li { display: flex; }
+@media (min-width: 768px) { .cc-shelf__items { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.cc-ref { position: relative; display: block; flex: 1 1 auto; min-width: 0; padding: var(--s-5); border-radius: 0 0 var(--r-control) var(--r-control); background: var(--c-desk); text-decoration: none; transition: background-color var(--dur-hover) var(--e-out); }
+[data-lit] .cc-ref { border-top: var(--bw) solid var(--c-line-lit); }
+@media (hover: hover) { .cc-ref:hover { background: var(--c-raised); } }
+.cc-ref__title { display: block; font-size: var(--fs-body); color: var(--c-text); }
+.cc-ref__sub { display: block; margin-top: var(--s-2); font-size: var(--fs-ui); line-height: var(--lh-body); color: var(--c-text-2); }
+
+
+/* ============================================================================
+   9. ЯК ВЛАШТОВАНИЙ УРОК — це справді послідовність, тому номери заслужені
+   ========================================================================== */
+.cc-steps { display: grid; gap: 0; margin: var(--s-8) 0 0; padding: 0; list-style: none; }
+@media (min-width: 768px) { .cc-steps { grid-template-columns: 1fr 1fr; column-gap: var(--s-12); } }
+.cc-step { display: grid; grid-template-columns: 3ch minmax(0, 1fr); gap: var(--s-3); padding-block: var(--s-4); border-top: var(--bw) solid var(--c-line); }
+.cc-step__num { font-family: var(--f-mono); font-size: var(--fs-small); color: var(--c-accent); font-variant-numeric: tabular-nums; }
+.cc-step__name { color: var(--c-text); }
+.cc-step__desc { display: block; margin-top: var(--s-1); font-size: var(--fs-ui); line-height: var(--lh-body); color: var(--c-text-2); }
+
+
+/* ============================================================================
+   10. СЕРТИФІКАТ
+   ----------------------------------------------------------------------------
+   Світлий аркуш на темній сторінці — предмет за визначенням. Тому з нього
+   знято все, що дає обʼєм: нуль тіні, нуль повороту. Він ПЛАСКИЙ і саме тому
+   не конкурує з терміналом (єдина плита на сторінці вже витрачена).
+   ========================================================================== */
+.cc-cert { display: grid; gap: var(--s-10); align-items: center; }
+@media (min-width: 768px) { .cc-cert { grid-template-columns: 1fr var(--w-card); column-gap: var(--s-12); } }
+.cc-paper { padding: var(--s-8) var(--s-6); border-radius: var(--r-control); background: var(--c-paper-bg); color: var(--c-paper-text); text-align: center; }
+.cc-paper__kind { margin: 0; font-family: var(--f-mono); font-size: var(--fs-eyebrow); letter-spacing: var(--tr-eyebrow); color: var(--c-paper-quiet); }
+.cc-paper__name { margin: var(--s-4) 0 0; font-family: var(--f-display); font-size: var(--fs-h3); }
+/* min() обовʼязковий: фіксовані 280 при паддінгу «паперу» розпирали
+   документ на 320 px (той самий дефект, що ловив тест T6 у 009). */
+.cc-paper__rule { width: min(var(--w-sidebar), 100%); height: var(--bw-strong); margin: var(--s-3) auto 0; background: var(--c-paper-rule); }
+.cc-paper__course { margin: var(--s-4) 0 0; font-size: var(--fs-ui); }
+.cc-paper__code { margin: var(--s-5) 0 0; font-family: var(--f-mono); font-size: var(--fs-label); color: var(--c-paper-quiet); }
+
+
+/* ============================================================================
+   11. ДОНАТИ
+   ========================================================================== */
+.cc-donate { display: grid; gap: var(--s-4); margin: var(--s-8) 0 0; padding: 0; list-style: none; }
+@media (min-width: 640px) { .cc-donate { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 768px) { .cc-donate { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.cc-donate__card { display: grid; gap: var(--s-3); align-content: start; padding: var(--s-5); border: var(--bw) solid var(--c-line); border-radius: var(--r-control); background: var(--c-surface); min-width: 0; }
+[data-lit] .cc-donate__card { border-top-color: var(--c-line-lit); }
+.cc-donate__label { display: block; font-size: var(--fs-ui); color: var(--c-text-2); }
+.cc-donate__value { display: block; font-family: var(--f-mono); font-size: var(--fs-code); color: var(--c-text); overflow-wrap: anywhere; word-break: break-word; }
+.cc-donate__btn { justify-self: start; }

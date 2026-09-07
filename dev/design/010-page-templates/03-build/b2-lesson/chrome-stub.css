@@ -1,0 +1,42 @@
+/* ============================================================================
+   010 · Б2 · ЗАГЛУШКА ХРОМУ — ВЛАСНИК Б1, У ЗЛИТТЯ ПАКЕТА НЕ БЕРЕТЬСЯ
+   ----------------------------------------------------------------------------
+   Розмітка шапки й футера в кадрах Б2 скопійована зі спеки §6.1–6.6 ДОСЛІВНО
+   (щоб `diff` трьох хромів був порожній). Але §8.10.4 закріплює за Б1 п'ять
+   класів, яких у `_base/components.css` немає:
+       .ds-hdr__mark · .ds-hdr__crumb · .ds-nav__group · .ds-nav__drawer ·
+       .ds-ftr__grid · .ds-ftr__list · .ds-ftr__bar · .ds-pill__label
+   Писати їх удруге означало б дати валідатору два різні варіанти одного
+   класу. Тому нижче — мінімум, якого вистачає, щоб КАДР Б2 читався і щоб
+   можна було чесно перевірити те, за що відповідає Б2:
+       · сайдбар на 23 пункти не перекриває липку шапку;
+       · шапка на вікні ≤ 700 px тонша й непрозора;
+       · фокус рядка сайдбара не ховається під шапкою.
+
+   ⚠ ЦЕ НЕ ДИЗАЙН ШАПКИ. Канонічна версія — у Б1.
+   ========================================================================== */
+
+.ds-hdr__mark {
+  display: grid; place-items: center;
+  width: var(--ctl-h-sm); height: var(--ctl-h-sm); flex: none;
+  border-radius: var(--r-control);
+  background: var(--c-accent); color: var(--c-on-accent);
+  font-family: var(--f-mono); font-size: var(--fs-small); font-weight: var(--w-semi);
+}
+.ds-hdr__brand { display: inline-flex; align-items: center; gap: var(--s-2); }
+.ds-hdr__crumb { color: var(--c-text-3); font-family: var(--f-mono); font-size: var(--fs-ui); flex: none; }
+@media (max-width: 768px) { .ds-hdr__crumb { display: none; } }
+
+.ds-pill__label { color: var(--c-text-3); }
+@media (max-width: 640px) {
+  /* 006 · D-02: підпис пілюлі ховається КОМПОНЕНТНИМ класом, а не утилітою
+     sm:not-sr-only, яку Tailwind CDN генерував через ~53 мс (зсув 64,8 px). */
+  .ds-pill__label { position: absolute; width: 1px; height: 1px;
+                    overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+
+.ds-ftr__bar {
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: var(--s-4);
+  font-size: var(--fs-small); color: var(--c-text-3);
+}

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<!-- ============================================================================
+     010 · Б2 · ТЕСТИ УРОКУ. У код сайту не їде.
+     Перевіряє на ЖИВОМУ кадрі те, що оком не видно: побайтове копіювання
+     термінала, псевдоелементи в ньому, гасіння руху, контраст, цілі дотику,
+     чотири мовчазні розбіжності контракту (§16 критерій 33).
+     ============================================================================ -->
+<html lang="uk" data-course="terminal" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>010 · Б2 · тести уроку</title>
+  <link rel="stylesheet" href="../../../009-design-system/04-variants/_base/tokens.css">
+  <link rel="stylesheet" href="../../../009-design-system/04-variants/_base/components.css">
+  <link rel="stylesheet" href="components-010.css">
+  <style>
+    body { margin: 0; padding: var(--s-6); }
+    .t__head { max-width: var(--w-prose); }
+    .t__bar { display: flex; flex-wrap: wrap; gap: var(--s-2); margin: var(--s-4) 0; }
+    .t__stage { position: fixed; left: -9999px; top: 0; width: 1180px; height: 900px; border: 0; }
+    .ok { color: var(--c-ok-text); }
+    .bad { color: var(--c-err-text); font-weight: var(--w-semi); }
+    .warn { color: var(--c-warn-text); }
+    table.ds-tbl td:first-child { white-space: normal; }
+  </style>
+</head>
+
+<body>
+  <div class="t__head">
+    <p class="ds-eyebrow">010 · Б2</p>
+    <h1 class="ds-h2">Тести уроку</h1>
+    <p class="ds-lead">Кожен рядок — те, що ламалось у цьому проєкті раніше або
+      знайдене сьогодні. Тест запускається на живому
+      <code class="ds-code--inline">t2-lesson.html</code> у прихованому кадрі 1180&nbsp;px.</p>
+    <div class="t__bar">
+      <button class="ds-btn ds-btn--secondary ds-btn--sm" id="run">Прогнати</button>
+      <a class="ds-btn ds-btn--quiet ds-btn--sm" href="index.html">← до вітрини</a>
+    </div>
+  </div>
+
+  <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Результати тестів">
+    <table class="ds-tbl">
+      <thead><tr><th>#</th><th>що перевіряємо</th><th>чому</th><th>результат</th></tr></thead>
+      <tbody id="out"><tr><td colspan="4">натисни «Прогнати»</td></tr></tbody>
+    </table>
+  </div>
+
+  <iframe class="t__stage" id="stage"></iframe>
+
+  <script>
+    var out = document.getElementById("out");
+    function row(n, what, why, ok, detail) {
+      var tr = document.createElement("tr");
+      tr.innerHTML = "<td>" + n + "</td><td>" + what + "</td><td>" + why + "</td>" +
+        '<td class="' + (ok === true ? "ok" : ok === false ? "bad" : "warn") + '">' +
+        (ok === true ? "✓ " : ok === false ? "✗ " : "▲ ") + detail + "</td>";
+      out.appendChild(tr);
+    }
+
+    /* --- контраст: WCAG relative luminance ------------------------------- */
+    function lum(rgb) {
+      var c = rgb.map(function (v) {
+        v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+    }
+    function parse(s) {
+      var m = /rgba?\(([^)]+)\)/.exec(s); if (!m) return null;
+      var p = m[1].split(/[,\s/]+/).filter(Boolean).map(parseFloat);
+      return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
+    }
+    function over(fg, bg) {
+      if (fg[3] >= 1) return fg;
+      return [0, 1, 2].map(function (i) { return fg[i] * fg[3] + bg[i] * (1 - fg[3]); });
+    }
+    function ratio(a, b) {
+      var l1 = lum(a), l2 = lum(b);
+      return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+    }
+    /* ⚠ Напівпрозорий фон треба КОМПОНУВАТИ, а не брати як є. Перша версія
+       цього тесту брала --c-accent-quiet (alpha 0.14) за суцільний лавандовий
+       і оголосила 49 хибних провалів на поточному пункті сайдбара. Реальний
+       контраст там 6.8, а тест писав 1.25. Тест, який бреше в цей бік,
+       гірший за відсутній: він змушує «лагодити» те, що не зламане. */
+    function bgOf(el, w) {
+      var stack = [], n = el;
+      while (n && n.nodeType === 1) {
+        var c = parse(w.getComputedStyle(n).backgroundColor);
+        if (c && c[3] > 0) { stack.push(c); if (c[3] >= 1) break; }
+        n = n.parentElement;
+      }
+      var base = [22, 19, 17, 1];
+      for (var i = stack.length - 1; i >= 0; i--) base = over(stack[i], base);
+      return base;
+    }
+
+    function run() {
+      var f = document.getElementById("stage");
+      var d = f.contentDocument, w = f.contentWindow;
+      out.innerHTML = "";
+      if (!d || !d.querySelector(".ds-prose")) { row(0, "кадр", "—", false, "не завантажився"); return; }
+
+      /* 1 · П-02 · специфічність .prose-aia pre --------------------------- */
+      var termBody = d.querySelector(".term__body");
+      var ws = w.getComputedStyle(termBody).whiteSpace;
+      row(1, "<code>.term__body</code> тримає <code>white-space: pre</code>",
+        "П-02: <code>.prose-aia pre</code> = (0,1,1) підміняє pre на pre-wrap і розсипає колонки CLI",
+        ws === "pre", ws);
+
+      /* 2 · копіювання БАЙТ У БАЙТ --------------------------------------- */
+      var bad = [], terms = d.querySelectorAll(".term--cmd");
+      Array.prototype.forEach.call(terms, function (t) {
+        var pre = t.querySelector(".term__body");
+        var r = d.createRange(); r.selectNodeContents(pre);
+        var sel = w.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+        if (sel.toString() !== pre.textContent) bad.push(t.id || "?");
+        sel.removeAllRanges();
+      });
+      row(2, "буфер копіювання = видимий текст, побайтово",
+        "три непорушні правила <code>.term</code> (Д6). Виділення й textContent мусять збігтись у всіх " + terms.length + " блоках",
+        bad.length === 0, bad.length ? "розійшлись: " + bad.join(", ") : terms.length + " із " + terms.length);
+
+      /* 3 · П-13 · псевдоелементи всередині .term ------------------------ */
+      var pseudo = 0;
+      Array.prototype.forEach.call(d.querySelectorAll(".term, .term *"), function (el) {
+        ["::before", "::after"].forEach(function (p) {
+          var c = w.getComputedStyle(el, p).content;
+          if (c && c !== "none" && c !== "normal" && c !== '""') pseudo++;
+        });
+      });
+      row(3, "нуль <code>::before/::after</code> з <code>content</code> усередині <code>.term</code>",
+        "П-13: <code>selection.toString()</code> їх не бачить, а Chrome при копіюванні — бачить. Ловить майбутню регресію",
+        pseudo === 0, pseudo + " шт.");
+
+      /* 4 · П-23 · aria-current --------------------------------------------- */
+      var cur = d.querySelector('.ds-snav__item[aria-current="page"]');
+      var curBg = cur ? parse(w.getComputedStyle(cur).backgroundColor) : null;
+      row(4, "поточний урок у сайдбарі має акцентні кант і підкладку",
+        "П-23: <code>_base:527</code> селектує <code>[aria-current=\"true\"]</code>, а JS ставить <code>page</code>",
+        !!(cur && curBg && curBg[3] > 0 &&
+           w.getComputedStyle(cur).borderLeftColor === w.getComputedStyle(d.documentElement).getPropertyValue("--c-accent").trim().replace(/^#.*/, w.getComputedStyle(cur).borderLeftColor)),
+        cur ? "кант " + w.getComputedStyle(cur).borderLeftColor : "поточного нема");
+
+      /* 5 · П-24 · літери варіантів ---------------------------------------- */
+      var opts = d.querySelectorAll(".ds-quiz__opt");
+      var noKey = 0;
+      Array.prototype.forEach.call(opts, function (o) { if (!o.getAttribute("data-key")) noKey++; });
+      row(5, "кожен варіант квіза має <code>data-key</code> (А/Б/В/Г)",
+        "П-24: <code>_base:557</code> малює літеру через <code>attr(data-key)</code>, а <code>js/quiz.js</code> її не ставить",
+        noKey === 0, (opts.length - noKey) + " із " + opts.length);
+
+      /* 6 · П-26 · подвоєння гліфів ---------------------------------------- */
+      var doubled = 0;
+      Array.prototype.forEach.call(opts, function (o) {
+        if (/^[✓✗]/.test(o.textContent.trim())) doubled++;
+      });
+      row(6, "гліфи ✓/✗ у квізі не подвоєні",
+        "П-26: прод дописує їх у <code>textContent</code>, а система малює псевдоелементом → «✓ Текст ✓»",
+        doubled === 0, doubled + " з текстом-гліфом");
+
+      /* 7 · П-27 · гасіння руху -------------------------------------------- */
+      d.documentElement.classList.add("rm");
+      var slow = [], nodes = d.querySelectorAll("*");
+      Array.prototype.forEach.call(nodes, function (el) {
+        var cs = w.getComputedStyle(el);
+        (cs.transitionDuration + "," + cs.animationDuration).split(",").forEach(function (v) {
+          var s = parseFloat(v) * (/ms/.test(v) ? 1 : 1000);
+          if (s > 1) slow.push(el.className + " " + v);
+        });
+      });
+      var loops = 0;
+      Array.prototype.forEach.call(nodes, function (el) {
+        var cs = w.getComputedStyle(el);
+        if (cs.animationIterationCount === "infinite" && cs.animationPlayState !== "paused") loops++;
+      });
+      d.documentElement.classList.remove("rm");
+      row(7, "при <code>--motion: 0</code> жодна тривалість не більша за 1 мс",
+        "критерій 12. Механізм має гасити ВСЕ без поіменного списку",
+        slow.length === 0 && loops === 0,
+        slow.length ? slow.length + " довших: " + slow[0] : "0 довших, 0 живих циклів");
+
+      /* 8 · контраст усіх текстових вузлів --------------------------------- */
+      var low = [], walker = d.createTreeWalker(d.body, NodeFilter.SHOW_TEXT);
+      var seen = 0, node;
+      while ((node = walker.nextNode())) {
+        if (!node.nodeValue.trim()) continue;
+        var el = node.parentElement;
+        if (!el || !el.offsetParent) continue;
+        var cs = w.getComputedStyle(el);
+        if (cs.visibility === "hidden" || parseFloat(cs.opacity) === 0) continue;
+        var fg = parse(cs.color); if (!fg) continue;
+        var bg = bgOf(el, w);
+        var r = ratio(over(fg, bg), bg);
+        var big = parseFloat(cs.fontSize) >= 24 ||
+                  (parseFloat(cs.fontSize) >= 18.66 && parseInt(cs.fontWeight, 10) >= 700);
+        seen++;
+        if (r < (big ? 3 : 4.5)) low.push(el.className + " " + r.toFixed(2));
+      }
+      row(8, "контраст ≥ 4.5:1 обходом усіх текстових вузлів",
+        "критерій 20. Заміряно, а не оцінено оком",
+        low.length === 0, low.length ? low.length + " нижче порогу: " + low.slice(0, 2).join(" · ")
+                                     : seen + " вузлів, мінімум ≥ 4.5");
+
+      /* 9 · цілі дотику ----------------------------------------------------- */
+      /* ⚠ WCAG 2.2 SC 2.5.8 має виняток «Inline»: ціль усередині речення або
+         блоку тексту під правило НЕ підпадає. Інакше кожне посилання в прозі
+         (а їх в уроці десятки) вічно світилося б провалом. */
+      var small = [], inlineSkipped = 0;
+      Array.prototype.forEach.call(d.querySelectorAll("a, button, [tabindex='0']"), function (el) {
+        if (!el.offsetParent) return;
+        var disp = w.getComputedStyle(el).display;
+        if (disp === "inline" || disp === "inline flow-root") { inlineSkipped++; return; }
+        var r = el.getBoundingClientRect();
+        if (r.width && (r.width < 24 || r.height < 24)) small.push((el.className || el.tagName) +
+          " " + Math.round(r.width) + "×" + Math.round(r.height));
+      });
+      row(9, "кожна ціль дотику ≥ 24×24",
+        "§6.8 п.6 · WCAG 2.2 SC 2.5.8 AA. 44 — це AAA, і власник його прямо заборонив",
+        small.length === 0, small.length ? small.length + ": " + small.slice(0, 2).join(" · ")
+                                         : "усі ≥ 24 (інлайнових пропущено: " + inlineSkipped + ")");
+
+      /* 10 · хекси в нашому CSS -------------------------------------------- */
+      var hex = [];
+      Array.prototype.forEach.call(d.styleSheets, function (ss) {
+        var href = ss.href || "";
+        if (!/components-010\.css/.test(href)) return;
+        var rules; try { rules = ss.cssRules; } catch (e) { return; }
+        (function walk(list) {
+          Array.prototype.forEach.call(list, function (r) {
+            if (r.cssRules) return walk(r.cssRules);
+            if (r.cssText && /#[0-9a-f]{3,8}\b/i.test(r.cssText)) hex.push(r.selectorText);
+          });
+        })(rules);
+      });
+      row(10, "нуль хекс-літералів у <code>components-010.css</code>",
+        "критерій 2. Значення живуть рівно в одному місці",
+        hex.length === 0, hex.length ? hex.join(", ") : "0");
+
+      /* 11 · сітка прози ---------------------------------------------------- */
+      var p = d.querySelector(".ds-prose > section > p");
+      var t = d.querySelector(".ds-prose .term");
+      var pw = Math.round(p.getBoundingClientRect().width);
+      var tw = Math.round(t.getBoundingClientRect().width);
+      row(11, "сітка прози: текст 672, «широке» 768",
+        "Д3. Працює лише якщо друга сітка є й на <code>&lt;section&gt;</code> — інакше нічого не розпирається",
+        pw === 672 && tw === 768, "текст " + pw + " · термінал " + tw);
+
+      /* 12 · маркери списків ------------------------------------------------ */
+      var ul = d.querySelector(".ds-prose > section > ul");
+      var lst = ul ? w.getComputedStyle(ul).listStyleType : "—";
+      row(12, "маркери списків справді малюються",
+        "preflight Tailwind ставить <code>list-style: none</code>; правило кольору <code>::marker</code> без цього мертве (живе в проді з 2023)",
+        lst !== "none", lst);
+    }
+
+    document.getElementById("run").addEventListener("click", run);
+    document.getElementById("stage").src = "t2-lesson.html?pos=mid&state=open&lab=1&v=" + Date.now();
+    setTimeout(run, 3000);
+  </script>
+</body>
+
+</html>

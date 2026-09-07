@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<!-- ============================================================================
+     010 · ШАБЛОН T5 — РОАДМАП (roadmap.html)
+     ----------------------------------------------------------------------------
+     Роль: «видно, що проєкт живий і куди він іде».
+
+     ⚠ У ЦІЙ РОЗМІТЦІ НЕМАЄ ЖОДНОГО ПУНКТУ, ЖОДНОЇ НАЗВИ СЕКЦІЇ І ЖОДНОГО
+     ЗАГОЛОВКА. Увесь текст сторінки приходить із roadmap.json через
+     js/rm-render.js. Винятки за побудовою: <title>/<meta> і літерали
+     renderError() — вони працюють саме тоді, коли даних немає.
+
+     ⚠ ЛОГІКА НЕ ПЕРЕПИСАНА. rm-render.js — побайтова копія проду з однією
+     заміною імені токена; rm-motion.js — копія з 36 перейменуваннями та
+     двома структурними доповненнями, названими в його шапці. Дві латентні
+     пастки render.js (gi >= 2 і зворотне сортування в гілці dropped) НЕ
+     ЧІПАЛИСЬ — пряма заборона брифа.
+
+     ⚠ Дефект D-01 макета 003 (прогрес змійки не переносився на щойно
+     створені вузли) сюди НЕ повернувся: копія зроблена з коду САЙТУ, де він
+     виправлений, а не з макета 003, де він лишився.
+
+     ⚠ Власна шапка .rm-head лишається (§7.6, п.5). Спільний футер F1 — так.
+     data-own-title: <title> приходить із roadmap.json, а не з config.json.
+     ========================================================================= -->
+<html lang="uk"
+      data-config="config.json"
+      data-roadmap="roadmap.json"
+      data-course="academy"
+      data-density="landing"
+      data-lit
+      data-own-title>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Роадмап — AI Академія та AI Architect</title>
+  <meta name="description" content="Публічний план розвитку двох освітніх платформ: що зроблено, що робимо просто зараз і що попереду.">
+  <meta name="theme-color" content="#161311">
+  <meta property="og:title" content="Роадмап — AI Академія та AI Architect">
+  <meta property="og:type" content="website">
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Порядок обовʼязковий: токени → компоненти → сторінковий файл. -->
+  <link rel="stylesheet" href="../../files/css/tokens.css">
+  <link rel="stylesheet" href="../../files/css/components.css">
+  <link rel="stylesheet" href="_shared/b1-stub.css">
+  <link rel="stylesheet" href="../../files/css/roadmap.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../../files/js/tw-theme.js"></script>
+
+  <!-- M1: @view-transition тут СВІДОМО НЕМАЄ. З ним кожен перехід на цю
+       сторінку кидає неперехвачений InvalidStateError (перевірено справжнім
+       кліком по <a href>), і жодного переходу при цьому не видно: сторінка
+       малюється після fetch даних, тобто транзакція скасовується. -->
+</head>
+
+<body id="top">
+
+<a class="ds-skip" href="#main">Перейти до вмісту</a>
+<div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+<!-- Текст noscript тут ІНШИЙ (сторінка без JS не працює взагалі), розмітка
+     та сама. #configError на роадмапі свідомо немає: конфіг потрібен лише
+     футеру, а весь контент приходить із roadmap.json (рішення задачі 003). -->
+<noscript>
+  <div class="ds-note ds-note--warn" role="alert">
+    <span class="ds-note__glyph" aria-hidden="true">▲</span>
+    <p class="ds-note__body">
+      Ця сторінка збирається з файлу даних, тож для неї потрібен JavaScript.
+      Курси працюють і без нього — <a data-brand-back href="index.html">поверніться до курсу</a>.
+    </p>
+  </div>
+</noscript>
+
+<header class="rm-head">
+  <div class="rm-head__in">
+    <a href="#top" class="rm-brand">
+      <span class="rm-brand__mark" aria-hidden="true">AIA</span>
+      <span class="rm-brand__name">Роадмап</span>
+    </a>
+    <a id="backLink" href="index.html" class="rm-back">
+      <span class="rm-back__arrow" aria-hidden="true">←</span>
+      <span id="backLabel">До AI Академії</span>
+    </a>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="rm-hero" aria-labelledby="heroTitle">
+    <div class="rm-hero__in">
+      <p class="rm-eyebrow" id="heroEyebrow"><span class="rm-eyebrow__slash" aria-hidden="true">//</span>&nbsp;</p>
+      <h1 class="rm-hero__title" id="heroTitle"></h1>
+      <p class="rm-hero__lead" id="heroLead"></p>
+      <dl class="rm-counts" id="heroCounts" aria-label="Стан плану розвитку"></dl>
+      <p class="rm-updated" id="heroUpdated"></p>
+    </div>
+  </section>
+
+  <div class="rm-timeline" id="timeline">
+    <svg class="rm-trail" id="trail" aria-hidden="true" focusable="false" preserveAspectRatio="none"></svg>
+    <span class="rm-axis" id="axisProbe" aria-hidden="true"></span>
+    <div class="rm-sections" id="sections"></div>
+  </div>
+
+  <section class="rm-outro" id="outro" aria-labelledby="outroTitle" hidden></section>
+
+</main>
+
+<!-- ════════════ §6.6 · ФУТЕР, ПРОФІЛЬ F1 (повний) ════════════
+     На роадмапі #footerMeta свідомо немає: дата оновлення вже стоїть у hero
+     (з roadmap.json), а config.json дав би другу, іншу дату й версію лише
+     однієї з двох платформ. .rm-entry тут має aria-current="page" і веде
+     на #top — ми вже на роадмапі.
+     ⚠ js/config.js ВИДАЛЯЄ будь-який <li> із порожнім data-link. У проді
+     links.github і links.telegram порожні в усіх трьох конфігах, тож живий
+     користувач бачить у колонці «Проєкт» ДВА рядки, а не чотири (П-11). -->
+<footer class="ds-ftr">
+  <div class="ds-ftr__grid">
+    <div>
+      <!-- data-brand, а НЕ data-site="name": сторінка спільна на дві
+           платформи, і js/rm-render.js перемикає бренд за ?from=. -->
+      <p class="ds-h4" data-brand>AI Академія</p>
+      <p class="ds-small" data-site="disclaimer">Матеріали курсу неофіційні. Claude — торгова марка Anthropic PBC.</p>
+    </div>
+    <nav aria-label="Посилання проєкту">
+      <p class="ds-eyebrow">Проєкт</p>
+      <ul class="ds-ftr__list">
+        <li><a href="certificate.html">Мої сертифікати ↗</a></li>
+        <li><a data-link="github" href="#">GitHub ↗</a></li>
+        <li><a data-link="telegram" href="#">Telegram ↗</a></li>
+        <li><button type="button" id="contactTrigger" class="ds-btn ds-btn--quiet ds-btn--sm">Написати нам</button></li>
+      </ul>
+      <a class="rm-entry" href="#top" aria-current="page">
+        <span class="rm-entry__label">План розвитку</span>
+        <span class="rm-entry__arrow" aria-hidden="true">→</span>
+        <span class="rm-entry__rule" aria-hidden="true"></span>
+      </a>
+    </nav>
+    <nav aria-label="Першоджерела">
+      <p class="ds-eyebrow">Першоджерела</p>
+      <ul class="ds-ftr__list">
+        <li><a data-link="officialDocs" href="#">Документація Claude ↗</a></li>
+        <li><a data-link="officialCourses" href="#">Офіційні курси Anthropic ↗</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="ds-ftr__bar">
+    <span>Зроблено спільнотою · <a href="#top">Нагору ↑</a></span>
+  </div>
+</footer>
+
+<!-- GSAP 3.13.0, рівно три файли: ядро + ScrollTrigger + CustomEase.
+     Ліцензія: gsap.com/licensing — усе GSAP безкоштовне для комерційного
+     використання з 30.04.2025, атрибуції не вимагає (звірено 2026-09-07). -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/CustomEase.min.js"></script>
+
+<!-- §5.3 · js/motion.js підключається ПЕРШИМ із наших: rm-render.js у кінці
+     render() чіпає DOM, і AIA.motion має вже існувати. -->
+<script src="../../files/js/motion.js"></script>
+<!-- Порядок render → motion безпечний: обидва класичні скрипти, парсяться
+     синхронно, тому слухач rm:rendered у motion реєструється раніше, ніж
+     може завершитись fetch у render. -->
+<script src="js/rm-render.js"></script>
+<script src="js/rm-motion.js"></script>
+<script src="js/b3-demo.js"></script>
+</body>
+</html>

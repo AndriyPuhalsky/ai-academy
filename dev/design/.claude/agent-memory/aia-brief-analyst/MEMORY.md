@@ -9,3 +9,5 @@
 - [Design task file priority](design_task_files.md) — `00-decisions.md` > `00-review.md` > `task.md`, and why
 - [Дизайн-система 009](project_aia_design_system_009.md) — пʼять артефактів, без воріт, Figma-first, префікс `ds-`; виміряний масштаб боргу і три уточнення до 00-review
 - [Механізм reduced-motion](reference_reduced_motion_mechanism.md) — одні ворота `--motion` замість 57 рядків списку; виміряна пастка: getComputedStyle не рахує calc() без @property
+- [Міграція 010](project_aia_migration_010.md) — виміряний масштаб сайту (66 сторінок, 388 класів, лише 30 тема-залежних утиліт) і чому `tailwind.config` став файлом із самих `var()`
+- [Мовчазні розбіжності контракту](reference_silent_contract_mismatches.md) — CSS чекає одного, JS дає інше; чотири виміряні приклади й три перевірки, які їх ловлять
