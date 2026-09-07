@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html lang="uk" class="scroll-smooth" data-config="architect.config.json">
+<html lang="uk" data-config="architect.config.json" data-course="architect" data-density="landing" data-lit>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Architect — курс «від нуля до AI-інженера» українською</title>
   <meta name="description" content="Поглиблений практичний курс українською: будуй і деплой реальні AI-продукти й агентів, керуючи Claude Code — від встановлення до продакшну. 22 модулі, 6 фаз." />
-  <meta name="theme-color" content="#141312" />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
   <meta property="og:title" content="AI Architect — від нуля до AI-інженера" />
   <meta property="og:description" content="22 модулі, 6 фаз: Claude API, промптинг, tool use, RAG, агенти, бекенд, деплой, LLMOps. З повним кодом і капстоуном для портфоліо." />
   <meta property="og:type" content="website" />
@@ -15,121 +17,108 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: стара мова → токени → компоненти → сторінковий
+       файл → Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно.
+       css/custom.css лишається до етапу 9 і стоїть ПЕРШИМ, щоб на спільних
+       селекторах (:focus-visible, .term, .rm-entry, .gbtn) вигравала нова система. -->
+  <link rel="stylesheet" href="css/custom.css" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/components.css" />
+
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ink:    "#141312",
-            surface:"#1E1B18",
-            raised: "#272320",
-            line:   "#3A342E",
-            "line-strong": "#736A5E",
-            ivory:  "#F0EEE6",
-            muted:  "#A8A095",
-            faint:  "#9A9184",
-            clay:   "#D97757",
-            "clay-deep": "#C4674A",
-            sand:   "#E8DCC3"
-          },
-          fontFamily: {
-            display: ["Literata", "Georgia", "serif"],
-            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
-            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
-          },
-          maxWidth: { content: "72rem" }
-        }
-      }
-    };
-  </script>
-
-  <link rel="stylesheet" href="css/custom.css" />
+  <script src="js/tw-theme.js"></script>
 </head>
 
-<body id="top" class="bg-ink font-sans text-ivory antialiased">
+<body id="top">
 
-  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
   <div id="ariaLive" class="sr-only" aria-live="polite"></div>
 
   <noscript>
-    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
-      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
     </div>
   </noscript>
 
   <!-- Оголошення (рендериться з config.announcement, якщо enabled: true) -->
-  <div id="announcement" hidden class="border-b border-clay/30 bg-clay/10"></div>
+  <div id="announcement" hidden class="ds-wrap ds-band"></div>
 
-  <!-- ШАПКА -->
-  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
-    <div class="mx-auto flex h-16 max-w-content items-center justify-between gap-4 px-5 sm:px-8">
-      <a href="#top" class="flex items-center gap-2.5">
-        <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIA</span>
-        <span class="font-display text-lg" data-site="name">AI Architect</span>
+  <!-- ШАПКА · профіль H1 (лендінг) -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <a class="ds-hdr__brand" href="#top">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIA</span>
+        <span data-site="name">AI Architect</span>
       </a>
 
-      <nav aria-label="Головна навігація" class="hidden items-center gap-7 text-sm text-muted sm:flex">
-        <a href="#tracks" class="transition hover:text-ivory">Фази</a>
-        <a href="#syllabus" class="transition hover:text-ivory">Програма</a>
-        <!-- 005 · «Курси» замість одного перехресного посилання: блоків платформи
-             стало три, і схема «кожен лендінг посилається на кожен» дала б шість
-             перехресних пунктів. Порядок списку — рішення власника 2026-09-04.
-             Поведінка — initCourses() у js/ui.js, той самий патерн, що initMenu. -->
-        <div class="relative">
-          <button id="coursesBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="coursesMenu"
-                  class="flex min-h-[24px] items-center gap-1.5 transition hover:text-ivory">
+      <nav class="ds-nav" aria-label="Головна навігація">
+        <a class="ds-nav__link" href="#tracks">Фази</a>
+        <a class="ds-nav__link" href="#syllabus">Програма</a>
+
+        <!-- 005 · «Курси» замість шести перехресних посилань. Поведінка —
+             initDropdown() у js/ui.js, клавіатурний контракт §6.3. -->
+        <div class="ds-nav__group">
+          <button id="coursesBtn" type="button" class="ds-nav__link ds-nav__trigger"
+                  aria-haspopup="true" aria-expanded="false" aria-controls="coursesMenu">
             Курси
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M5 9l7 7 7-7" />
-            </svg>
+                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg>
           </button>
-          <div id="coursesMenu" class="absolute right-0 top-full z-50 mt-3 hidden w-60 rounded-xl border border-line bg-surface p-1.5 shadow-2xl">
-            <a href="index.html" class="block rounded-lg px-3 py-2 transition hover:bg-raised hover:text-ivory text-muted">Базовий</a>
-            <a href="architect.html" class="block rounded-lg px-3 py-2 transition hover:bg-raised hover:text-ivory text-sand" aria-current="page">AI Architect</a>
-            <a href="claude-code.html" class="block rounded-lg px-3 py-2 transition hover:bg-raised hover:text-ivory text-muted">Claude Code CLI</a>
+          <div id="coursesMenu" class="ds-nav__menu" role="menu" aria-labelledby="coursesBtn">
+            <a class="ds-nav__link" role="menuitem" href="index.html">Базовий</a>
+            <a class="ds-nav__link" role="menuitem" href="architect.html" aria-current="page">AI Architect</a>
+            <a class="ds-nav__link" role="menuitem" href="claude-code.html">Claude Code CLI</a>
           </div>
         </div>
-        <a data-link="github" href="#" class="transition hover:text-ivory">GitHub ↗</a>
+
+        <a class="ds-nav__link" data-link="github" href="#">GitHub ↗</a>
       </nav>
 
-      <div class="flex items-center gap-3">
-        <div id="aiaAuth" class="slot"></div>
-        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
-        <button id="menuBtn" type="button" aria-expanded="false" aria-controls="mobileMenu"
-                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory sm:hidden">
-          <span class="sr-only">Меню</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-            <path d="M3 6h18M3 12h18M3 18h18" />
-          </svg>
-        </button>
-      </div>
-    </div>
+      <span class="ds-hdr__spacer"></span>
 
-    <!-- Мобільне меню -->
-    <div id="mobileMenu" class="hidden border-t border-line/60 bg-ink sm:hidden">
-      <nav aria-label="Мобільна навігація" class="mx-auto flex max-w-content flex-col gap-1 px-5 py-4 text-sm">
-        <a href="#tracks" class="rounded-lg px-3 py-2.5 text-muted transition hover:bg-surface hover:text-ivory">Фази</a>
-        <a href="#syllabus" class="rounded-lg px-3 py-2.5 text-muted transition hover:bg-surface hover:text-ivory">Програма</a>
-        <!-- 005 · на мобілці випадайка не потрібна: меню вже розгорнуте списком,
-             тому три курси стоять поспіль під підписом-заголовком. -->
-        <p class="px-3 pb-1 pt-3 font-mono text-xs uppercase tracking-[0.18em] text-faint">Курси</p>
-        <a href="index.html" class="rounded-lg px-3 py-2.5 transition hover:bg-surface hover:text-ivory text-muted">Базовий</a>
-        <a href="architect.html" class="rounded-lg px-3 py-2.5 transition hover:bg-surface hover:text-ivory text-sand" aria-current="page">AI Architect</a>
-        <a href="claude-code.html" class="rounded-lg px-3 py-2.5 transition hover:bg-surface hover:text-ivory text-muted">Claude Code CLI</a>
-        <a data-link="github" href="#" class="rounded-lg px-3 py-2.5 text-muted transition hover:bg-surface hover:text-ivory">GitHub ↗</a>
-      </nav>
+      <!-- Слот авторизації (js/auth-ui.js). Ширина фіксована --hdr-slot-w → CLS = 0 -->
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+
+      <button id="menuBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="mobileMenu">
+        <span class="sr-only">Меню</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
     </div>
   </header>
 
+  <!-- §6.4 · МОБІЛЬНЕ МЕНЮ ЛЕНДІНГА (≤640). Це НЕ шторка змісту уроку: поріг
+       640, у потоці під шапкою, без підложки й без блокування скролу, курси
+       розгорнуті списком. Стан тримає data-open, не клас `hidden`. -->
+  <div id="mobileMenu" class="ds-nav__drawer" data-open="false">
+    <nav aria-label="Мобільна навігація">
+      <a class="ds-nav__link" href="#tracks">Фази</a>
+      <a class="ds-nav__link" href="#syllabus">Програма</a>
+      <p class="ds-eyebrow">Курси</p>
+      <a class="ds-nav__link" href="index.html">Базовий</a>
+      <a class="ds-nav__link" href="architect.html" aria-current="page">AI Architect</a>
+      <a class="ds-nav__link" href="claude-code.html">Claude Code CLI</a>
+      <a class="ds-nav__link" data-link="github" href="#">GitHub ↗</a>
+    </nav>
+  </div>
+
   <!-- Банер помилки завантаження config (показується лише якщо fetch не вдався) -->
-  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
-    <div class="mx-auto max-w-content px-5 py-3 font-mono text-sm text-sand sm:px-8">
-      ⚠ Не вдалося завантажити <code>architect.config.json</code>. Відкрий сайт через локальний сервер,
-      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">architect.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
     </div>
   </div>
 
@@ -156,7 +145,7 @@
             Почати курс
           </a>
           <a href="index.html"
-             class="inline-flex items-center gap-2 rounded-lg border border-line px-6 py-3 font-medium text-ivory transition hover:border-clay/60 hover:text-sand">
+             class="inline-flex items-center gap-2 rounded-lg border border-line px-6 py-3 font-medium text-ivory transition hover:border-accent-edge hover:text-sand">
             ← Спершу базовий курс
           </a>
         </div>
@@ -166,12 +155,12 @@
           У цьому курсі ти навчишся керувати цим у коді й будувати на цьому реальні продукти.
         </p>
 
-        <p id="heroStats" class="mt-12 border-t border-line/70 pt-6 font-mono text-sm text-muted"></p>
+        <p id="heroStats" class="mt-12 border-t border-line pt-6 font-mono text-sm text-muted"></p>
       </div>
     </section>
 
     <!-- ФАЗИ -->
-    <section id="tracks" class="scroll-mt-24 border-t border-line/60">
+    <section id="tracks" class="scroll-mt-24 border-t border-line">
       <div class="mx-auto max-w-content px-5 py-16 sm:px-8 sm:py-20">
         <div class="mb-10 flex flex-wrap items-end justify-between gap-6">
           <div>
@@ -183,13 +172,15 @@
             Кожна фаза спирається на попередню.
           </p>
         </div>
-        <div id="tracksGrid"
-             class="grid gap-px overflow-hidden rounded-xl border border-line/60 bg-line/60 sm:grid-cols-2 lg:grid-cols-3"></div>
+        <!-- ⚠ 010 · контейнер більше не сітка карток: js/config.js малює сюди
+             .ds-row ds-row--track — рядки з власним верхнім хайрлайном.
+             Сітка `gap-px bg-line` дала б рамку навколо рамки. -->
+        <div id="tracksGrid" class="mt-12"></div>
       </div>
     </section>
 
     <!-- ПРОГРАМА КУРСУ -->
-    <section id="syllabus" class="scroll-mt-24 border-t border-line/60">
+    <section id="syllabus" class="scroll-mt-24 border-t border-line">
       <div class="mx-auto max-w-content px-5 py-16 sm:px-8 sm:py-20">
         <div class="mb-2 flex flex-wrap items-end justify-between gap-6">
           <div>
@@ -208,49 +199,48 @@
   </main>
 
   <!-- ФУТЕР -->
-  <footer class="border-t border-line/60">
-    <div class="mx-auto grid max-w-content gap-10 px-5 py-12 sm:px-8 md:grid-cols-[1.4fr,1fr,1fr]">
+  <footer class="ds-ftr">
+    <div class="ds-ftr__grid">
       <div>
-        <p class="mb-3 font-display text-xl" data-site="name">AI Architect</p>
-        <p class="max-w-sm text-sm leading-relaxed text-muted" data-site="disclaimer"></p>
+        <p class="ds-h4" data-site="name">AI Architect</p>
+        <p class="ds-small" data-site="disclaimer"></p>
       </div>
       <nav aria-label="Посилання проєкту">
-        <p class="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-faint">Проєкт</p>
-        <ul class="space-y-2 text-sm">
-          <li><a href="certificate.html" class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand">Мої сертифікати ↗</a></li>
-          <li><a href="index.html" class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand">Безкоштовний курс ↗</a></li>
-          <li><a data-link="github" href="#" class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand">GitHub ↗</a></li>
-          <li><a data-link="telegram" href="#" class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand">Telegram ↗</a></li>
-          <li><button type="button" id="contactTrigger" class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand">Написати нам</button></li>
+        <p class="ds-eyebrow">Проєкт</p>
+        <!-- ⚠ Список ЗМІННОЇ довжини: js/config.js видаляє <li> з порожнім
+             data-link, а links.github і links.telegram порожні в усіх трьох
+             конфігах. Реально людина бачить два рядки, а не чотири (П-11). -->
+        <ul class="ds-ftr__list">
+          <li><a href="certificate.html">Мої сертифікати ↗</a></li>
+          <li><a data-link="github" href="#">GitHub ↗</a></li>
+          <li><a data-link="telegram" href="#">Telegram ↗</a></li>
+          <li><button type="button" id="contactTrigger" class="ds-btn ds-btn--quiet ds-btn--sm">Написати нам</button></li>
         </ul>
 
-        <!-- 003 · точка входу на сторінку плану розвитку. Ставиться ПІСЛЯ
-             закриття списку, усередині тієї самої nav: .rm-entry не рядок
-             списку. aria-current тут не ставиться — тільки на roadmap.html.
-             Зростання висоти футера на +64px — рішення власника 2026-08-26. -->
-        <a class="rm-entry" href="roadmap.html?from=architect">
+        <!-- 003 · точка входу на сторінку плану розвитку. Стоїть ПІСЛЯ списку,
+             усередині тієї самої nav: .rm-entry не рядок списку. -->
+        <a class="rm-entry" href="roadmap.html">
           <span class="rm-entry__label">План розвитку</span>
           <span class="rm-entry__arrow" aria-hidden="true">→</span>
           <span class="rm-entry__rule" aria-hidden="true"></span>
         </a>
       </nav>
       <nav aria-label="Першоджерела">
-        <p class="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-faint">Першоджерела</p>
-        <ul class="space-y-2 text-sm">
-          <li><a data-link="officialDocs" href="#" class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand">Документація Claude ↗</a></li>
-          <li><a data-link="officialCourses" href="#" class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand">Офіційні курси Anthropic ↗</a></li>
+        <p class="ds-eyebrow">Першоджерела</p>
+        <ul class="ds-ftr__list">
+          <li><a data-link="officialDocs" href="#">Документація Claude ↗</a></li>
+          <li><a data-link="officialCourses" href="#">Офіційні курси Anthropic ↗</a></li>
         </ul>
       </nav>
     </div>
-    <div class="border-t border-line/60">
-      <div class="mx-auto flex max-w-content flex-wrap items-center justify-between gap-3 px-5 py-5 font-mono text-xs text-faint sm:px-8">
-        <span id="footerMeta"></span>
-        <span>Зроблено спільнотою · <a href="#top" class="transition hover:text-sand">Нагору ↑</a></span>
-      </div>
+    <div class="ds-ftr__bar">
+      <span id="footerMeta"></span>
+      <span>Зроблено спільнотою · <a href="#top">Нагору ↑</a></span>
     </div>
   </footer>
 
   <!-- Порядок важливий: прогрес → UI (слухачі подій) → конфіг (рендер і події) -->
+  <script src="js/motion.js"></script>
   <script src="js/progress.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/config.js"></script>

@@ -34,7 +34,7 @@ function show(html) {
 
 function validCard(row) {
   return (
-    '<div class="rounded-2xl border border-clay/50 bg-surface p-8 text-center">' +
+    '<div class="rounded-2xl border border-accent-edge bg-surface p-8 text-center">' +
       '<p class="font-display text-2xl text-clay">✓ Сертифікат дійсний</p>' +
       '<p class="mt-5 text-sm text-muted">Виданий на ім\'я</p>' +
       '<p class="mt-1 font-display text-3xl">' + esc(row.full_name) + '</p>' +

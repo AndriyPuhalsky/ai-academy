@@ -1,54 +1,49 @@
 <!DOCTYPE html>
-<html lang="uk" class="scroll-smooth" data-config="config.json">
+<html lang="uk" data-config="config.json" data-course="academy" data-density="lesson" data-lit>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Мій сертифікат — AI Академія</title>
-  <meta name="theme-color" content="#141312" />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
   <script>document.documentElement.classList.add("js");</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: стара мова → токени → компоненти → сторінковий
+       файл → Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно.
+       css/custom.css лишається до етапу 9 і стоїть ПЕРШИМ, щоб на спільних
+       селекторах (:focus-visible, .term, .rm-entry, .gbtn) вигравала нова система. -->
+  <link rel="stylesheet" href="css/custom.css" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/components.css" />
+
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: { extend: {
-        colors: {
-          ink: "#141312", surface: "#1E1B18", raised: "#272320", line: "#3A342E", "line-strong": "#736A5E",
-          ivory: "#F0EEE6", muted: "#A8A095", faint: "#9A9184",
-          clay: "#D97757", "clay-deep": "#C4674A", sand: "#E8DCC3"
-        },
-        fontFamily: {
-          display: ["Literata", "Georgia", "serif"],
-          sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
-          mono: ["'IBM Plex Mono'", "ui-monospace", "monospace"]
-        },
-        maxWidth: { content: "72rem" }
-      } }
-    };
-  </script>
-  <link rel="stylesheet" href="css/custom.css" />
+  <script src="js/tw-theme.js"></script>
 </head>
-<body class="bg-ink font-sans text-ivory antialiased">
+<body>
 
-  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
   <div id="ariaLive" class="sr-only" aria-live="polite"></div>
 
-  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
-    <div class="mx-auto flex h-16 max-w-content items-center justify-between gap-4 px-5 sm:px-8">
-      <a href="index.html" class="flex items-center gap-2.5">
-        <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink">AIA</span>
-        <span class="font-display text-lg">AI Академія</span>
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <a class="ds-hdr__brand" href="index.html">
+        <span class="ds-hdr__mark" aria-hidden="true">AIA</span>
+        <span>AI Академія</span>
       </a>
-      <div class="flex items-center gap-3">
-        <a href="index.html#syllabus" class="text-sm text-muted transition hover:text-ivory">Курс</a>
-        <a href="verify.html" class="text-sm text-muted transition hover:text-ivory">Перевірка</a>
-        <div id="aiaAuth" class="slot"></div>
-        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
-      </div>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Мої сертифікати</span>
+      <span class="ds-hdr__spacer"></span>
+      <a class="ds-nav__link" href="index.html#syllabus">Курс</a>
+      <a class="ds-nav__link" href="verify.html">Перевірка</a>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
     </div>
   </header>
 
@@ -65,8 +60,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+  <script src="js/motion.js"></script>
   <script src="js/progress.js"></script>
   <script src="js/certificate.js"></script>
+  <!-- ui.js потрібен саме тут: у ньому живе AIA.chrome.initDropdown, яким
+       js/auth-ui.js відкриває аркуш акаунта в шапці (рішення власника Р-1). -->
+  <script src="js/ui.js"></script>
   <script src="js/auth-ui.js"></script>
   <script type="module" src="js/auth.js"></script>
 </body>

@@ -168,7 +168,7 @@ function buildModal() {
   if (modalEl) return;
   modalEl = document.createElement("div");
   modalEl.id = "aiaContactModal";
-  modalEl.className = "fixed inset-0 z-[60] hidden items-center justify-center bg-ink/80 p-4 backdrop-blur";
+  modalEl.className = "fixed inset-0 z-[60] hidden items-center justify-center bg-overlay p-4 backdrop-blur";
   // 006 · П-02 · Роль і назва діалогу. tabindex="-1" потрібен, щоб пастка
   // Tab мала куди повернути фокус, якщо всередині картки не лишилось
   // жодного фокусовного елемента.
@@ -183,11 +183,11 @@ function buildModal() {
         '<button type="button" id="ctClose" class="text-faint transition hover:text-sand" aria-label="Закрити">✕</button>' +
       "</div>" +
       '<div id="ctFormWrap" class="space-y-3">' +
-        '<input id="ctName" type="text" placeholder="Ім\'я та прізвище" autocomplete="name" maxlength="' + MAX_NAME + '" class="w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm text-ivory outline-none transition focus:border-clay/60" />' +
-        '<input id="ctEmail" type="email" placeholder="Email" autocomplete="email" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="' + MAX_EMAIL + '" class="w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm text-ivory outline-none transition focus:border-clay/60" />' +
-        '<input id="ctTelegram" type="text" placeholder="Telegram (необов\'язково)" autocomplete="off" maxlength="' + MAX_TELEGRAM + '" class="w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm text-ivory outline-none transition focus:border-clay/60" />' +
+        '<input id="ctName" type="text" placeholder="Ім\'я та прізвище" autocomplete="name" maxlength="' + MAX_NAME + '" class="w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm text-ivory outline-none transition focus:border-accent-edge" />' +
+        '<input id="ctEmail" type="email" placeholder="Email" autocomplete="email" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="' + MAX_EMAIL + '" class="w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm text-ivory outline-none transition focus:border-accent-edge" />' +
+        '<input id="ctTelegram" type="text" placeholder="Telegram (необов\'язково)" autocomplete="off" maxlength="' + MAX_TELEGRAM + '" class="w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm text-ivory outline-none transition focus:border-accent-edge" />' +
         "<div>" +
-          '<textarea id="ctMessage" rows="4" placeholder="Опиши питання чи ідею" maxlength="' + MAX_MESSAGE + '" class="w-full resize-none rounded-lg border border-line bg-ink px-3 py-2 text-sm text-ivory outline-none transition focus:border-clay/60"></textarea>' +
+          '<textarea id="ctMessage" rows="4" placeholder="Опиши питання чи ідею" maxlength="' + MAX_MESSAGE + '" class="w-full resize-none rounded-lg border border-line bg-ink px-3 py-2 text-sm text-ivory outline-none transition focus:border-accent-edge"></textarea>' +
           '<p id="ctCounter" class="mt-1 text-right text-xs text-faint">0/' + MAX_MESSAGE + '</p>' +
         "</div>" +
         // Honeypot: приховане поле-пастка для ботів. Справжній відвідувач його не бачить
@@ -199,7 +199,7 @@ function buildModal() {
       "</div>" +
       '<div id="ctDone" class="hidden">' +
         '<p class="text-ivory">Дякуємо! Повідомлення надіслано — відповімо найближчим часом.</p>' +
-        '<button type="button" id="ctDoneClose" class="mt-4 w-full rounded-lg border border-line px-4 py-2.5 text-sm text-muted transition hover:border-clay/60 hover:text-sand">Закрити</button>' +
+        '<button type="button" id="ctDoneClose" class="mt-4 w-full rounded-lg border border-line px-4 py-2.5 text-sm text-muted transition hover:border-accent-edge hover:text-sand">Закрити</button>' +
       "</div>" +
     "</div>";
   document.body.appendChild(modalEl);

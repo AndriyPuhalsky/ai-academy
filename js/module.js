@@ -244,7 +244,7 @@
     var title = $("#completeTitle");
 
     if (done) {
-      btn.className = BTN_BASE + "border border-clay/60 text-clay hover:border-line hover:text-muted";
+      btn.className = BTN_BASE + "border border-accent-edge text-clay hover:border-line hover:text-muted";
       btn.textContent = "✓ Завершено · натисни, щоб скинути";
       if (title) title.textContent = "Модуль пройдено!";
     } else {
@@ -272,7 +272,7 @@
       action = '<a href="../' + esc(prev.slug) + '" class="mt-5 inline-flex rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep">Перейти до Модуля ' + prev.number + " →</a>";
     } else {
       msg = "Цей модуль поки заблоковано.";
-      action = '<a href="' + homeHref(cfg) + '" class="mt-5 inline-flex rounded-lg border border-line px-5 py-2.5 transition hover:border-clay/60">На головну</a>';
+      action = '<a href="' + homeHref(cfg) + '" class="mt-5 inline-flex rounded-lg border border-line px-5 py-2.5 transition hover:border-accent-edge">На головну</a>';
     }
 
     var wrap = document.createElement("div");

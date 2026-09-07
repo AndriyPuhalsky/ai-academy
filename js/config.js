@@ -43,6 +43,13 @@
     }
   }
 
+  /* Контракт системи руху (П-10): вузли, створені ПІСЛЯ асинхронного fetch,
+     інакше лишаються невидимими назавжди — так уже було тричі (003 D-01,
+     005 Б-01, 009 D-04). Тому кожен render() закінчується цим викликом. */
+  function bindMotion(root) {
+    if (window.AIA && window.AIA.motion && root) window.AIA.motion.bind(root);
+  }
+
   function completedSet() {
     return window.AIAProgress ? window.AIAProgress.completedSet() : new Set();
   }
@@ -104,10 +111,18 @@
     var box = $("#announcement");
     if (!box || !a || !a.enabled || !a.text) return;
 
+    // Жодної Tailwind-утиліти: клас, що приходить у DOM лише з JS, CDN
+    // генерує через ~53 мс (006 D-02). Тільки компонентні класи.
     box.innerHTML =
-      '<div class="mx-auto flex max-w-content items-center justify-between gap-4 px-5 py-2.5 sm:px-8">' +
-        '<p class="font-mono text-xs text-sand sm:text-sm">' + esc(a.text) + '</p>' +
-        '<button type="button" data-dismiss class="shrink-0 text-faint transition hover:text-sand" aria-label="Закрити оголошення">✕</button>' +
+      '<div class="ds-note ds-note--accent">' +
+        '<span class="ds-note__glyph" aria-hidden="true">i</span>' +
+        // ⚠ .ds-note — сітка `auto 1fr`, тому третій прямий нащадок падає в
+        // ДРУГИЙ рядок. Кнопка закриття мусить лишитись у рядку тексту, тож
+        // вона живе всередині __body. Значення — з токенів, не числа.
+        '<p class="ds-note__body" style="display:flex;align-items:baseline;justify-content:space-between;gap:var(--s-4)">' +
+          '<span>' + esc(a.text) + '</span>' +
+          '<button type="button" data-dismiss class="ds-btn ds-btn--quiet ds-btn--sm ds-btn--icon" aria-label="Закрити оголошення">✕</button>' +
+        '</p>' +
       '</div>';
     box.hidden = false;
     box.querySelector("[data-dismiss]").addEventListener("click", function () {
@@ -156,25 +171,41 @@
 
     grid.innerHTML = tracks.map(function (t) {
       var count = modules.filter(function (m) { return m.track === t.id; }).length;
+      // Римські номери заслужені: кожен трек спирається на попередній.
       return (
-        '<div class="reveal bg-surface p-6">' +
-          '<p class="mb-4 font-mono text-sm text-clay">' + (ROMAN[t.order - 1] || t.order) + '</p>' +
-          '<h3 class="mb-2 font-display text-xl">' + esc(t.title) + '</h3>' +
-          '<p class="mb-5 text-sm leading-relaxed text-muted">' + esc(t.subtitle) + '</p>' +
-          '<p class="font-mono text-xs text-faint">' + count + " " + plural(count, ["модуль", "модулі", "модулів"]) + '</p>' +
+        '<div class="ds-row ds-row--track" data-reveal>' +
+          '<span class="ds-row__n">' + (ROMAN[t.order - 1] || t.order) + '</span>' +
+          '<span class="ds-row__main">' +
+            '<span class="ds-row__title">' + esc(t.title) + '</span>' +
+            '<span class="ds-row__desc">' + esc(t.subtitle) + '</span>' +
+          '</span>' +
+          '<span class="ds-row__side"><span class="ds-row__meta">' +
+            count + " " + plural(count, ["модуль", "модулі", "модулів"]) +
+          '</span></span>' +
         '</div>'
       );
     }).join("");
+    bindMotion(grid);
   }
 
   /* ---------- Програма курсу ---------- */
 
+  /* ⚠ Стан НІКОЛИ не кодується лише кольором і лише формою: слово лишається
+     завжди, гліф і форма додаються (правило 3 системи, П-25). «Доступний» —
+     стан за замовчуванням, тому гліфа не отримує: його кодує акцентна межа. */
   function badgeFor(module, done) {
-    if (done) return '<span class="js-badge badge badge-done">✓ Пройдено</span>';
-    if (module.status === "ready") return '<span class="js-badge badge badge-ready">Доступний</span>';
-    return '<span class="js-badge badge badge-soon">Скоро</span>';
+    if (done) return '<span class="js-badge ds-badge ds-badge--done" data-glyph="✓">Пройдено</span>';
+    if (module.status === "ready") return '<span class="js-badge ds-badge ds-badge--ready">Доступний</span>';
+    return '<span class="js-badge ds-badge ds-badge--soon" data-glyph="○">Скоро</span>';
   }
 
+  /* ⚠ Тут був рядок ДЕВʼЯТИ Tailwind-утиліт (`group grid grid-cols-[auto,1fr]
+     gap-x-4 rounded-xl border border-line bg-surface px-5 py-5 transition
+     hover:border-clay з альфою 50 …`). Дві причини прибрати:
+     1. клас, що приходить у DOM лише з JS, Tailwind CDN генерує через ~53 мс
+        (006 D-02, зсув 64,8 px);
+     2. `hover:border-clay` з альфою 50 після переходу теми на var() став би
+        rgba(0,0,0,0) — повністю прозорим, без помилки в консолі. */
   function moduleCard(m, done) {
     var isReady = m.status === "ready";
     var num = String(m.number).padStart(2, "0");
@@ -184,33 +215,31 @@
       " · ≈ " + m.durationMin + " хв";
 
     var inner =
-      '<span class="pt-1 font-mono text-sm text-faint">' + num + '</span>' +
-      '<div>' +
-        '<div class="flex flex-wrap items-center gap-3">' +
-          '<h4 class="font-display text-lg">' + esc(m.title) + '</h4>' +
-          badgeFor(m, done) +
-        '</div>' +
-        '<p class="mt-1.5 text-sm leading-relaxed text-muted">' + esc(m.description) + '</p>' +
-        '<p class="mt-3 font-mono text-xs text-faint">' + meta + '</p>' +
-      '</div>';
+      '<span class="ds-row__n">' + num + '</span>' +
+      '<span class="ds-row__main">' +
+        '<span class="ds-row__title">' + esc(m.title) + '</span>' +
+        '<span class="ds-row__desc">' + esc(m.description) + '</span>' +
+        '<span class="ds-row__meta">' + meta + '</span>' +
+      '</span>' +
+      '<span class="ds-row__side">' + badgeFor(m, done) +
+        (isReady ? '<span class="ds-row__go" aria-hidden="true">→</span>' : "") +
+      '</span>';
 
     if (isReady) {
       return (
-        '<li class="reveal">' +
-          '<a href="' + esc(m.slug) + '" data-module-id="' + esc(m.id) + '" ' +
-             'class="group grid grid-cols-[auto,1fr] gap-x-4 rounded-xl border border-line bg-surface px-5 py-5 transition hover:border-clay/50 hover:bg-raised sm:grid-cols-[auto,1fr,auto] sm:gap-x-6 sm:px-6">' +
+        '<li data-reveal>' +
+          '<a class="ds-row" href="' + esc(m.slug) + '" data-module-id="' + esc(m.id) + '">' +
             inner +
-            '<span class="hidden items-center text-clay opacity-0 transition group-hover:opacity-100 sm:flex" aria-hidden="true">→</span>' +
           '</a>' +
         '</li>'
       );
     }
 
-    // Модулі зі статусом "soon" — видимі, але неклікабельні
+    // Модулі зі статусом "soon" — видимі, але неклікабельні. Приглушеність
+    // формою (пунктирний кант), а не тихішим кольором.
     return (
-      '<li class="reveal">' +
-        '<div data-module-id="' + esc(m.id) + '" aria-disabled="true" ' +
-             'class="grid grid-cols-[auto,1fr] gap-x-4 rounded-xl border border-line/70 bg-surface/60 px-5 py-5 sm:gap-x-6 sm:px-6">' +
+      '<li data-reveal>' +
+        '<div class="ds-row ds-row--locked" data-module-id="' + esc(m.id) + '" aria-disabled="true">' +
           inner +
         '</div>' +
       '</li>'
@@ -233,48 +262,41 @@
       if (!own.length) return "";
 
       return (
-        '<div>' +
-          '<div class="mb-6 flex flex-wrap items-baseline gap-x-4 gap-y-1">' +
-            '<span class="font-mono text-sm text-clay">' + esc(trackWord) + (ROMAN[t.order - 1] || t.order) + '</span>' +
-            '<h3 class="font-display text-2xl">' + esc(t.title) + '</h3>' +
-          '</div>' +
-          '<ol class="space-y-3">' + own.map(function (m) { return moduleCard(m, done.has(m.id)); }).join("") + '</ol>' +
-        '</div>'
+        '<section>' +
+          '<p class="ds-eyebrow text-accent">' + esc(trackWord) + (ROMAN[t.order - 1] || t.order) + '</p>' +
+          '<h3 class="ds-h3">' + esc(t.title) + '</h3>' +
+          '<ol class="ds-plain">' + own.map(function (m) { return moduleCard(m, done.has(m.id)); }).join("") + '</ol>' +
+        '</section>'
       );
     }).join("");
+    bindMotion(list);
   }
 
   /* ---------- Донати ---------- */
 
   function donationCard(method) {
     var label = esc(method.label);
-    var note = method.note ? '<span class="text-xs text-faint">' + esc(method.note) + '</span>' : "";
+    var note = method.note ? '<span class="ds-small">' + esc(method.note) + '</span>' : "";
     var head =
-      '<div class="flex items-baseline justify-between gap-3">' +
-        '<h3 class="font-medium">' + label + '</h3>' + note +
+      '<div class="ds-fld__row">' +
+        '<h3 class="ds-h4">' + label + '</h3>' + note +
       '</div>';
 
     var body;
     if (method.type === "link") {
       body =
-        '<a href="' + esc(method.value) + '" target="_blank" rel="noopener noreferrer" ' +
-           'class="mt-auto inline-flex w-fit items-center gap-1.5 rounded-lg border border-line px-4 py-2 text-sm transition hover:border-clay/60 hover:text-sand">' +
-          'Відкрити ↗' +
-        '</a>';
+        '<a class="ds-btn ds-btn--secondary" href="' + esc(method.value) + '" ' +
+           'target="_blank" rel="noopener noreferrer">Відкрити ↗</a>';
     } else {
-      // type === "copy": показуємо значення повністю (перенесення рядків) і кнопку копіювання
+      // type === "copy": показуємо значення повністю (перенесення рядків)
       var copyValue = method.copyValue != null ? method.copyValue : method.value;
       body =
-        '<div class="mt-auto flex flex-col gap-2">' +
-          '<code class="min-w-0 whitespace-pre-wrap break-all rounded-lg border border-line bg-ink px-3 py-2 font-mono text-xs text-sand">' + esc(method.value) + '</code>' +
-          '<button type="button" data-copy="' + esc(copyValue) + '" ' +
-                  'class="w-fit shrink-0 rounded-lg border border-line px-3 py-2 text-sm transition hover:border-clay/60 hover:text-sand">' +
-            'Копіювати' +
-          '</button>' +
-        '</div>';
+        '<div class="ds-code"><pre class="ds-code__pre">' + esc(method.value) + '</pre></div>' +
+        '<button type="button" class="ds-btn ds-btn--secondary ds-btn--sm ds-btn--copy" ' +
+                'data-copy="' + esc(copyValue) + '">Копіювати</button>';
     }
 
-    return '<div class="reveal flex h-full flex-col gap-4 rounded-xl border border-line bg-surface p-5">' + head + body + '</div>';
+    return '<div class="ds-card ds-donate" data-reveal>' + head + body + '</div>';
   }
 
   function renderDonations(cfg) {
@@ -294,6 +316,7 @@
 
     var methods = (d.methods || []).filter(function (m) { return m.enabled !== false; });
     $("#donationGrid").innerHTML = methods.map(donationCard).join("");
+    bindMotion($("#donationGrid"));
   }
 
   /* ---------- Футер і прогрес у шапці ---------- */
@@ -415,16 +438,24 @@
       // самий бокс тієї самої ширини, бо резервували рівно довжину тексту.
       pill.removeAttribute("data-reserved");
       pill.hidden = false;
+      // Резерв і заповнення міряються ОДНАКОВО: --navprog-ch ставиться і тут,
+      // і в reserveNavProgress(), тому обидва стани — той самий бокс тієї
+      // самої ширини, і CLS = 0 навіть якщо кеш резерву був порожній.
+      pill.style.setProperty("--navprog-ch", String(text.length));
+      pill.style.setProperty("--navprog-short-ch", String(text.length - NAVPROG_LABEL.length));
       // innerHTML, а не textContent: слово-мітка живе в окремому span, який
       // до 640 px схований візуально. У кеш і далі йде довжина ПОВНОГО тексту
       // (13/14) — діапазон валідації readNavProgressChars() не змінюється.
-      // 006 · D-02: клас .navprog-label з css/custom.css, а не пара утиліт
-      // sr-only/sm:not-sr-only. Клас приходить у DOM лише з JS, і Tailwind CDN
-      // генерував для нього правило вже ПІСЛЯ вставки (QA: 53 мс), тому пілюля
-      // весь цей час була вужчою і зсувала шапку. Дубль цього рядка —
-      // js/claude-code-render.js, правити синхронно.
-      pill.innerHTML = '<span class="navprog-label">' + NAVPROG_LABEL + "</span>" +
-        esc(doneCount + "/" + total);
+      // 006 · D-02: власний клас зі СТАТИЧНОГО CSS (.ds-pill__label), а не пара
+      // утиліт sr-only/sm:not-sr-only. Клас, який приходить у DOM лише з JS,
+      // Tailwind CDN генерує вже ПІСЛЯ вставки (QA: 53 мс), і пілюля весь цей
+      // час була вужчою — шапка зсувалась на 64,8 px.
+      // ⚠ Дубль цього рядка — js/claude-code-render.js: там і досі
+      // .navprog-label із css/custom.css. Синхронізувати на етапі 5 (Ф-В).
+      pill.innerHTML = '<span class="ds-pill__label">' + NAVPROG_LABEL.trim() + "</span>" +
+        '<span class="ds-num">' + esc(doneCount + "/" + total) + "</span>";
+      pill.classList.remove("ds-pill--unknown");
+      pill.classList.toggle("ds-pill--full", doneCount === total);
       rememberNavProgress(text.length);
     } else if (progressHydrated()) {
       // Нуль означає «нічого не пройдено» тільки ПІСЛЯ гідратації: до неї кеш
@@ -442,8 +473,9 @@
     $all("[data-module-id]").forEach(function (card) {
       var badge = card.querySelector(".js-badge");
       if (badge && done.has(card.getAttribute("data-module-id"))) {
-        badge.className = "js-badge badge badge-done";
-        badge.textContent = "✓ Пройдено";
+        badge.className = "js-badge ds-badge ds-badge--done";
+        badge.setAttribute("data-glyph", "✓");
+        badge.textContent = "Пройдено";
       }
     });
     updateNavProgress(cfg);

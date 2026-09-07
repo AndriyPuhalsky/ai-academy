@@ -1,84 +1,80 @@
 <!DOCTYPE html>
-<html lang="uk" class="scroll-smooth" data-config="../architect.config.json">
+<html lang="uk" data-config="../architect.config.json" data-course="architect" data-density="lesson" data-lit>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Модуль 4 · Як влаштована розробка — AI Architect</title>
   <meta name="description" content="Під капотом першої сторінки: файли й папки, що означає «запустити», клієнт і сервер, API та JSON — простими словами й на твоєму прикладі." />
-  <meta name="theme-color" content="#141312" />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
 
   <script>document.documentElement.classList.add("js");</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: стара мова → токени → компоненти → сторінковий
+       файл → Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно.
+       css/custom.css лишається до етапу 9 і стоїть ПЕРШИМ, щоб на спільних
+       селекторах (:focus-visible, .term, .rm-entry, .gbtn) вигравала нова система. -->
+  <link rel="stylesheet" href="../css/custom.css" />
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ink: "#141312", surface: "#1E1B18", raised: "#272320",
-            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
-            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
-            sand: "#E8DCC3"
-          },
-          fontFamily: {
-            display: ["Literata", "Georgia", "serif"],
-            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
-            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
-          },
-          maxWidth: { content: "72rem" }
-        }
-      }
-    };
-  </script>
-
-  <link rel="stylesheet" href="../css/custom.css" />
+  <script src="../js/tw-theme.js"></script>
 </head>
 
-<body data-module="a04" class="bg-ink font-sans text-ivory antialiased">
+<body data-module="a04">
 
-  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
   <div id="ariaLive" class="sr-only" aria-live="polite"></div>
 
   <noscript>
-    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
-      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
     </div>
   </noscript>
 
-  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
-    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
-      <div class="flex items-center gap-3">
-        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
-                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
-          <span class="sr-only">Зміст курсу</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-            <path d="M3 6h18M3 12h18M3 18h18" />
-          </svg>
-        </button>
-        <a href="../index.html" class="flex items-center gap-2.5">
-          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIA</span>
-          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Architect</span>
-        </a>
-        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
-        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 04</span>
-      </div>
-      <div class="flex items-center gap-3">
-        <div id="aiaAuth" class="slot"></div>
-        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
-        <a href="../index.html" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">На головну</a>
-      </div>
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../index.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIA</span>
+        <span data-site="name">AI Architect</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Модуль 04</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../index.html">На головну</a>
     </div>
   </header>
 
-  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
-    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
-      ⚠ Не вдалося завантажити <code>architect.config.json</code>. Відкрий сайт через локальний сервер,
-      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">architect.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
     </div>
   </div>
 
@@ -360,19 +356,21 @@ flowchart LR
     </main>
   </div>
 
-  <footer class="mt-16 border-t border-line/60">
-    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
-      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
-      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../index.html">На головну ↑</a></span>
     </div>
   </footer>
 
+  <script src="../js/motion.js"></script>
   <script src="../js/progress.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/config.js"></script>
   <script src="../js/module.js"></script>
   <script src="../js/quiz.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
   <script src="../js/mermaid-init.js"></script>
   <script src="../js/auth-ui.js"></script>
   <script type="module" src="../js/auth.js"></script>

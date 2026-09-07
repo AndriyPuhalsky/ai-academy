@@ -95,7 +95,7 @@
       '<div class="rounded-2xl border border-line bg-surface p-8 text-center">' +
         '<p class="font-display text-2xl">Сертифіката ще немає</p>' +
         '<p class="mt-3 text-muted">Проходь модулі по черзі — щойно завершиш останній модуль курсу, сертифікат з\'явиться тут автоматично.</p>' +
-        '<a href="index.html#syllabus" class="mt-5 inline-flex rounded-lg border border-line px-5 py-2.5 transition hover:border-clay/60">До програми курсу →</a>' +
+        '<a href="index.html#syllabus" class="mt-5 inline-flex rounded-lg border border-line px-5 py-2.5 transition hover:border-accent-edge">До програми курсу →</a>' +
       '</div>';
   }
 
@@ -113,8 +113,8 @@
           '</div>' +
           '<div class="flex flex-col gap-2">' +
             '<button type="button" data-cert="' + esc(cert.public_code) + '" class="cert-dl inline-flex items-center justify-center rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep">Завантажити PDF</button>' +
-            '<a href="' + esc(verifyUrl(cert.public_code)) + '" target="_blank" rel="noopener" class="inline-flex items-center justify-center rounded-lg border border-line px-5 py-2.5 text-sm transition hover:border-clay/60">Сторінка перевірки ↗</a>' +
-            '<a href="' + esc(b.program) + '" class="inline-flex items-center justify-center rounded-lg border border-line px-5 py-2.5 text-sm transition hover:border-clay/60">До програми курсу →</a>' +
+            '<a href="' + esc(verifyUrl(cert.public_code)) + '" target="_blank" rel="noopener" class="inline-flex items-center justify-center rounded-lg border border-line px-5 py-2.5 text-sm transition hover:border-accent-edge">Сторінка перевірки ↗</a>' +
+            '<a href="' + esc(b.program) + '" class="inline-flex items-center justify-center rounded-lg border border-line px-5 py-2.5 text-sm transition hover:border-accent-edge">До програми курсу →</a>' +
           '</div>' +
         '</div>' +
       '</div>'

@@ -1008,60 +1008,22 @@
     return false;   // ключа немає → гість (частіший випадок)
   }
 
-  /* --- FIX-1 (дефект D-1): ширина скелетона = ширина майбутнього контрола ---
-     Плитка імені в макеті — 100px «на око», а ім'я в кожного своє, тому
-     підміна розсувала шапку (QA: група 439 → 468 px, внесок CLS 0.00054).
-     Порахувати ширину тексту наперед не можна — її знає тільки браузер і
-     тільки після рендера. Тому міряємо реальний слот один раз і кладемо
-     число в localStorage: наступне завантаження ставить плитці рівно ту
-     ширину, якої слоту забракне. Ключ у localStorage вже і так є (без
-     сесії залогінений скелетон не показується взагалі), тож кеш існує
-     завжди, окрім найпершого рендера після цього деплою. */
-  var SLOT_W_KEY = "aia:slotW";
-
-  function cachedSlotWidth() {
-    try {
-      var v = parseFloat(localStorage.getItem(SLOT_W_KEY));
-      // Верхня межа: max-width імені 12rem + дві плитки + два gap = 392px.
-      return (isFinite(v) && v > 200 && v <= 392) ? v : 0;
-    } catch (e) { return 0; }   // приватний режим — просто без кеша
-  }
-
-  function rememberSlotWidth(slot) {
-    if (!slot || isNarrow()) return;   // <640px скелетон і контрол — той самий кружечок
-    var save = function () {
-      try {
-        if (isNarrow()) return;
-        var w = slot.getBoundingClientRect().width;
-        if (w > 200) localStorage.setItem(SLOT_W_KEY, String(Math.round(w * 100) / 100));
-      } catch (e) { /* приватний режим або зникла нода — не наша біда */ }
-    };
-    // Міряти до завантаження шрифту не можна: моноширинний фолбек дасть
-    // іншу ширину, і кеш зафіксує хибне число.
-    if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === "function") {
-      document.fonts.ready.then(save, save);
-    } else {
-      save();
-    }
-  }
+  /* --- 010 · КЕША ШИРИНИ СЛОТА БІЛЬШЕ НЕМАЄ -----------------------------
+     Був FIX-1 (дефект D-1): ширину майбутнього контрола міряли на живій
+     сторінці й клали в localStorage, бо імʼя в кожного своє й підміна
+     скелетона розсувала шапку. Тепер ширина слота ФІКСОВАНА токеном
+     --hdr-slot-w (192 px на десктопі, --ctl-h-md на ≤640), тому три стани
+     збігаються ЗА КОНСТРУКЦІЄЮ — без заміру, без кеша й без окремого
+     випадку для приватного режиму. Разом із кешем зникли cachedSlotWidth()
+     і rememberSlotWidth(); ключ aia:slotW у сховищі більше не пишеться.
+     Це можливо лише тому, що в шапці лишилось РІВНО ДВА елементи стану
+     «залогінений» — аватар і імʼя (рішення власника Р-1). --- */
 
   function skeletonHtml(isUser, narrow) {
-    if (!isUser) return '<span class="sk sk--guest" aria-hidden="true"></span>';
-    if (narrow) return '<span class="sk sk--avatar" aria-hidden="true"></span>';
-    // FIX-10 · скелетон повторює СТРУКТУРУ контрола, а не одну плиту:
-    // ширина імені в цей момент ще нікому не відома.
-    // FIX-1 · але сумарна ширина — відома з попереднього візиту. Плитці
-    // імені лишається різниця; сусідні дві й обидва gap беремо з токенів,
-    // щоб число не роз'їхалось із CSS, якщо токен колись зміниться.
-    var w = cachedSlotWidth();
-    var nameStyle = w
-      ? ' style="--sk-name-w: calc(' + w + 'px - var(--sk-certs-w) - var(--sk-out-w) - var(--s-3) * 2)"'
-      : "";
-    return '<span class="sk-row" aria-hidden="true">' +
-             '<span class="sk sk--name"' + nameStyle + "></span>" +
-             '<span class="sk sk--certs"></span>' +
-             '<span class="sk sk--out"></span>' +
-           "</span>";
+    if (!isUser) return '<span class="ds-skel ds-skel--guest" data-delayed aria-hidden="true"></span>';
+    if (narrow)  return '<span class="ds-skel ds-skel--avatar" data-delayed aria-hidden="true"></span>';
+    return '<span class="ds-skel ds-skel--name" data-delayed aria-hidden="true"></span>' +
+           '<span class="ds-skel ds-skel--avatar" data-delayed aria-hidden="true"></span>';
   }
 
   function slotEl() { return document.getElementById("aiaAuth"); }
@@ -1095,10 +1057,10 @@
   }
 
   function swapSlot(slot, html, after) {
-    var sk = slot.querySelector(".sk, .sk-row");
+    var sk = slot.querySelector(".ds-skel");
     var ms = reducedMotion() ? 0 : CROSS_MS;
     if (sk && ms) {
-      Array.prototype.forEach.call(slot.querySelectorAll(".sk"), function (n) {
+      Array.prototype.forEach.call(slot.querySelectorAll(".ds-skel"), function (n) {
         n.classList.add("is-leaving");
       });
       setTimeout(function () { slot.innerHTML = html; after(); }, ms);
@@ -1120,30 +1082,70 @@
     if (o.status === "user") {
       var name = o.name || o.email || T.name.fallback;
       var editable = o.name || "";
+
+      /* --- АРКУШ АКАУНТА (рішення власника Р-1, 2026-09-07) ---------------
+         У шапці лишаються РІВНО ДВА елементи: імʼя й аватар. «Сертифікати»
+         і «Вийти» переїхали в аркуш, який відкриває аватар. Аркуш — це не
+         новий візуал: той самий уже намальований дропдаун, що й «Курси»
+         (.ds-nav__group + .ds-nav__trigger[aria-expanded] + .ds-nav__menu),
+         з тим самим клавіатурним контрактом §6.3 (AIA.chrome.initDropdown).
+         Ціна рішення — фіксовані 192 px слота, тобто CLS = 0 без заміру.
+
+         ⚠ Жодної Tailwind-утиліти: клас, що приходить у DOM лише з JS, CDN
+         генерує через ~53 мс (006 D-02). Усе тут — компонентні класи. */
       var html =
-        '<div class="slot__real" style="display:contents">' +
-          '<button type="button" class="slot__name" id="aiaNameBtn" aria-label="' + esc(T.slot.editName) + '" title="' + esc(name) + '">' + esc(name) + "</button>" +
-          '<a class="slot__link" href="' + esc(certUrl) + '">' + esc(T.slot.certs) + "</a>" +
-          '<button type="button" class="slot__out" id="aiaLogout">' + esc(T.slot.out) + "</button>" +
-          '<button type="button" class="slot__avatar" id="aiaAvatar" aria-label="' + esc(T.sheet.open) + '" aria-haspopup="dialog">' + esc(initial(name)) + "</button>" +
-        "</div>";
+        '<button type="button" class="ds-btn ds-btn--quiet ds-btn--sm ds-btn--name" id="aiaNameBtn" ' +
+                'aria-label="' + esc(T.slot.editName) + '" title="' + esc(name) + '">' + esc(name) + '</button>' +
+        '<div class="ds-nav__group">' +
+          '<button type="button" class="ds-avatar ds-nav__trigger" id="aiaAvatar" ' +
+                  'aria-haspopup="true" aria-expanded="false" aria-controls="aiaAccountMenu" ' +
+                  'aria-label="' + esc(T.sheet.open) + ": " + esc(name) + '">' + esc(initial(name)) + '</button>' +
+          '<div class="ds-nav__menu" id="aiaAccountMenu" role="menu" aria-labelledby="aiaAvatar">' +
+            '<button type="button" class="ds-nav__link ds-nav__trigger" role="menuitem" data-act="name">' +
+              esc(T.sheet.nameRow) + '</button>' +
+            '<a class="ds-nav__link" role="menuitem" href="' + esc(certUrl) + '" data-act="certs">' +
+              esc(T.slot.certs) + ' ↗</a>' +
+            '<button type="button" class="ds-nav__link ds-nav__trigger" role="menuitem" data-act="out">' +
+              esc(T.slot.out) + '</button>' +
+          '</div>' +
+        '</div>';
 
       swapSlot(slot, html, function () {
-        rememberSlotWidth(slot);   // FIX-1 · замір для скелетона наступного завантаження
         var nb = document.getElementById("aiaNameBtn");
         if (nb) nb.addEventListener("click", function () { editNameFrom(nb, editable); });
-        var out = document.getElementById("aiaLogout");
-        if (out) out.addEventListener("click", doSignOut);
+
         var av = document.getElementById("aiaAvatar");
-        if (av) av.addEventListener("click", function () {
-          openAccountSheet({ name: name, email: o.email, opener: av });
+        var menu = document.getElementById("aiaAccountMenu");
+        /* Клавіатурний контракт §6.3 живе в js/ui.js однією функцією — тут
+           він не дублюється. Якщо ui.js на сторінці немає, аватар лишається
+           звичайною кнопкою: аркуш просто не відкривається, але імʼя,
+           перейменування й посилання на сертифікати працюють. */
+        if (window.AIA && window.AIA.chrome && window.AIA.chrome.initDropdown) {
+          window.AIA.chrome.initDropdown(av, menu);
+        }
+        if (menu) menu.addEventListener("click", function (e) {
+          var b = e.target.closest("[data-act]");
+          if (!b) return;
+          var act = b.getAttribute("data-act");
+          if (act === "name") { editNameFrom(av, editable); return; }
+          if (act === "out")  { doSignOut(); return; }
+          /* act === "certs" — посилання спрацює саме */
         });
       });
       return;
     }
 
+    /* Гість. ⚠ Заміряно на 390 px: слот на мобілці має ширину аватара (40 px),
+       і кнопка зі словом «Увійти» стискалась до 40 px — напис вилазив за
+       власну межу. Тому в кнопці ОДРАЗУ є і гліф, і слово: на десктопі видно
+       слово, на ≤640 — гліф, а слово лишається в дереві доступності
+       (.ds-btn__text зі статичного CSS, не sr-only з Tailwind). */
     swapSlot(slot,
-      '<button type="button" class="slot__login slot__real" id="aiaLogin">' + esc(T.slot.login) + "</button>",
+      '<button type="button" class="ds-btn ds-btn--secondary ds-btn--sm ds-btn--auth" id="aiaLogin">' +
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+             'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' +
+        '<span class="ds-btn__text">' + esc(T.slot.login) + '</span></button>',
       function () {
         var b = document.getElementById("aiaLogin");
         if (b) b.addEventListener("click", function () { openAuthModal({ opener: b }); });
