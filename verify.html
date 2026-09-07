@@ -50,7 +50,7 @@
     </div>
   </header>
 
-  <main id="main" class="mx-auto max-w-narrow px-5 py-10 sm:px-8 sm:py-16">
+  <main id="main" class="mx-auto max-w-narrow px-5 py-10 sm:px-8 sm:py-16" data-page-in>
     <p class="ds-eyebrow">Перевірка</p>
     <h1 class="ds-h2 mt-2">Перевірити сертифікат</h1>
     <p class="ds-lead mt-4">
@@ -59,11 +59,18 @@
     </p>
 
     <!-- Поле НЕ схоже на пошук: код сертифіката — це 12 символів [0-9a-f],
-         тож поле набирається моношрифтом і тримає 12 знакомісць.
-         ⚠ Живого лічильника «n / 12» тут ще немає: він живе в js/verify.js,
-         а той мігрує на етапі 8. Статичний «0 / 12» був би брехнею. -->
+         тож поле набирається моношрифтом, тримає 12 знакомісць і має ЖИВИЙ
+         лічильник. Причина не косметична: без нього людина дізнається, що
+         переписала код неповністю, ТІЛЬКИ після відповіді бази — тобто «не
+         знайдено» показують і на короткий код, і на чужий. Лічильник розводить
+         ці два випадки ДО натискання кнопки. Рахує js/verify.js (етап 8);
+         початкове «0 / 12» стоїть у розмітці, щоб рядок не зʼявлявся пізніше
+         й не зсував поле. aria-hidden: те саме сказано словами в #verifyHint. -->
     <div class="ds-fld ds-fld--code mt-8" id="verifyField">
-      <label class="ds-fld__label" for="verifyInput">Код сертифіката</label>
+      <div class="ds-fld__row">
+        <label class="ds-fld__label" for="verifyInput">Код сертифіката</label>
+        <span class="ds-fld__count" id="verifyCount" data-state="short" aria-hidden="true">0 / 12</span>
+      </div>
       <div class="flex items-start gap-2">
         <input id="verifyInput" class="ds-fld__input" type="text"
                inputmode="latin" autocapitalize="off" autocomplete="off" spellcheck="false"
@@ -75,12 +82,16 @@
         Великі й малі літери, пробіли та кириличні двійники латинських літер
         виправляються автоматично.
       </p>
+      <!-- Помилка стоїть БІЛЯ ПОЛЯ, а не лише зверху сторінки (правило ds-fld).
+           Кнопка «Перевірити» свідомо НЕ блокується: заблокована кнопка не
+           пояснює, чого від людини хочуть, і не читається як помилка. -->
+      <p class="ds-fld__error" id="verifyFieldError" hidden>Введи код сертифіката — поле порожнє.</p>
     </div>
 
     <!-- role="status" на непорожньому контейнері + aria-atomic: js/verify.js
          кладе сюди готову картку одним innerHTML, і скрінрідер читає її
          цілком, а не лише дельту. Так є в проді (правка 006 D-03). -->
-    <div id="verifyResult" class="mt-8" role="status" aria-live="polite" aria-atomic="true">
+    <div id="verifyResult" class="mt-8 grid gap-4" role="status" aria-live="polite" aria-atomic="true">
       <div class="ds-empty">
         <p class="ds-small">Код сертифіката — 12 символів під QR-кодом на аркуші.</p>
         <p class="ds-small">Він же відкривається за посиланням із самого PDF.</p>
