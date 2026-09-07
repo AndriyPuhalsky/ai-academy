@@ -60,37 +60,57 @@
     ].join("\n");
   }
 
+  function fallback(n) {
+    var box = n.closest(".ds-diag");
+    if (box && !box.querySelector(".ds-diag__fallback")) {
+      var p = document.createElement("p");
+      p.className = "ds-diag__fallback";
+      p.textContent = "Діаграму не вдалося намалювати — нижче її текстовий опис.";
+      box.insertBefore(p, box.firstChild);
+    }
+  }
+
   function run() {
     if (!global.mermaid || !global.AIA || !global.AIA.mermaidTheme) return;
     var defs = classDefs();
     var nodes = document.querySelectorAll("pre.mermaid:not([data-mermaid-ready])");
     if (!nodes.length) return;
     Array.prototype.forEach.call(nodes, function (n) {
-      /* Дописуємо в КІНЕЦЬ: classDef має бути оголошений до `class X hl`?
-         Ні — Mermaid збирає весь граф перед відмальовкою, тож порядок
-         усередині діаграми не має значення. Перевірено на c05 і m05. */
-      n.textContent = n.textContent.replace(/\s+$/, "") + "\n" + defs + "\n";
+      var src = n.textContent.replace(/\s+$/, "");
+      /* ⚠ 010 · Ф-Б. classDef розуміють ЛИШЕ flowchart/graph. sequenceDiagram
+         на ньому падає з `Parse error … got 'INVALID'`, і в проді через це
+         не малювались шість діаграм на п'яти сторінках AI Architect
+         (architect-03, -04, -08 ×2, -10, -12). Дописуємо вибірково.
+         Порядок усередині діаграми значення не має — Mermaid збирає граф
+         цілком перед відмальовкою. */
+      if (/^\s*(flowchart|graph)\b/.test(src)) src += "\n" + defs + "\n";
+      n.textContent = src;
       n.setAttribute("data-mermaid-ready", "1");
     });
     mermaid.initialize(global.AIA.mermaidTheme.config());
-    mermaid.run({ nodes: nodes }).catch(function (e) {
-      /* Діаграма, яка не намалювалась, не має лишати порожню коробку:
-         показуємо запасний рядок компонента (_base §14). */
-      Array.prototype.forEach.call(nodes, function (n) {
-        var box = n.closest(".ds-diag");
-        if (box && !box.querySelector(".ds-diag__fallback")) {
-          var p = document.createElement("p");
-          p.className = "ds-diag__fallback";
-          p.textContent = "Діаграму не вдалося намалювати — нижче її текстовий опис.";
-          box.insertBefore(p, box.firstChild);
-        }
+    /* ⚠ 010 · Ф-Б. Повузлово, а не одним викликом на весь список: у спільного
+       .catch() немає способу дізнатись, ЯКА діаграма впала, тому одне падіння
+       вішало напис «не вдалося намалювати» на всі здорові діаграми сторінки
+       (заміряно на architect-08: 2 падіння → 3 написи при 3 діаграмах). */
+    Array.prototype.forEach.call(nodes, function (n) {
+      mermaid.run({ nodes: [n] }).catch(function (e) {
+        fallback(n);
+        console.error("[AIA] mermaid:", e);
       });
-      console.error("[AIA] mermaid:", e);
     });
   }
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
-  else run();
+  /* ⚠ 010 · Ф-Б. Запуск ПІСЛЯ завантаження вебшрифта, а не на DOMContentLoaded:
+     Mermaid міряє ширину міток тим шрифтом, який доступний у мить відмальовки,
+     і на фолбеку вони виходять вужчими за вміст. Заміряно на module-01:
+     23 з 39 міток були обрізані, найгірше — на 9 px («Штучний інтелек…»). */
+  function start() {
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(run);
+    else run();
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
+  else start();
   global.AIA = global.AIA || {};
   global.AIA.mermaidRun = run;
 })(window);
