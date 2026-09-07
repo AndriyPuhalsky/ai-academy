@@ -29,7 +29,7 @@
 | ----- | ---- | ------------ |
 | `aia-build-pm` | `dev/build/NNN-slug/01-plan.md`, `README.md` (індекс), `JOURNAL.md` | увесь код — план пишеться з коду, а не навпаки |
 | `aia-build-backend` | `tg/telegram_index.ts`, `tg/CHANGELOG.md`, `js/auth.js`, `js/progress.js`, `js/module.js`, `js/certificate.js`, `js/verify.js`, `dev/build/NNN-slug/02-backend/` | HTML, `css/`, `wrangler.toml`, `.assetsignore`, `.gitignore` |
-| `aia-build-frontend` | HTML у корені й `modules/`, `css/custom.css`, `config.json`, `architect.config.json`, JS-код інтеракцій, `dev/build/NNN-slug/03-frontend/` | `tg/`, схема Supabase, `wrangler.toml`, `.assetsignore` |
+| `aia-build-frontend` | HTML у корені й `modules/`, `css/*.css` (`tokens`, `components`, `claude-code`, `roadmap`), `config.json`, `architect.config.json`, JS-код інтеракцій, `dev/build/NNN-slug/03-frontend/` | `tg/`, схема Supabase, `wrangler.toml`, `.assetsignore` |
 | `aia-build-qa` | **тільки** `dev/build/NNN-slug/04-qa/` | усе інше. Тестувальник не лагодить те, що знайшов — він це описує |
 
 **Поза зоною для всіх чотирьох, без винятків:**
@@ -293,9 +293,13 @@ Supabase Dashboard живим браузером. Правила ті самі, 
 - **Регістр шляхів — завжди нижній.** Це вже раз ламало прод (папка `CSS/` проти посилань
   `css/`): macOS не чутлива до регістру, Cloudflare — чутливий. Звіряти регістр у кожному
   новому посиланні перед комітом.
-- **Палітра продубльована в 38 HTML-файлах** (`tailwind.config` у кожному). Новий токен =
-  38 однакових правок; це не помилка, а поточний стан. Робити скриптом і перевіряти
-  `grep -c`, а не руками по одному.
+- **Палітра БІЛЬШЕ НЕ дубльована по файлах** (з 2026-09-07, задача 010). Було: 66 копій
+  `tailwind.config` у HTML, тобто новий токен = 66 однакових правок. Стало: **один
+  `js/tw-theme.js`**, який читає `var(--токен)` з `css/tokens.css`. Новий токен = **одна**
+  правка в `tokens.css`; `grep -c 'tailwind.config' *.html modules/*.html` має давати **0**.
+  ⚠ **Альфа-модифікатори Tailwind (`bg-ink/85`) на `var()`-кольорі дають
+  `rgba(0,0,0,0)` — повністю прозоре, без помилки в консолі.** Не вживати їх узагалі;
+  для напівпрозорих ролей є готові токени (`--c-accent-quiet` тощо).
 - `js/auth.js` завжди читає кореневий `config.json`, навіть зі сторінок `/modules/` —
   щоб вхід був спільним для всіх курсів. Не «оптимізувати» це на відносний шлях.
 - Реальна перевірка порядку проходження модулів — на сервері (RPC `submit_quiz`);
