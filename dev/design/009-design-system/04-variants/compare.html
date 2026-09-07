@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="uk" data-course="academy" data-motion="standard" data-density="landing" data-lit>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>009 · Три варіанти поруч</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_base/tokens.css">
+<link rel="stylesheet" href="_base/components.css">
+<style>
+  /* Ця сторінка — прилад порівняння, а не частина системи. Вона користується
+     токенами системи, але власних компонентів не заводить. */
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--c-bg); color: var(--c-text); font-family: var(--f-sans); font-size: var(--fs-ui); line-height: var(--lh-ui); display: flex; flex-direction: column; }
+  .cmp-bar { position: sticky; top: 0; z-index: var(--z-header); display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-4); padding: var(--s-3) var(--s-4); background: var(--c-surface); border-bottom: var(--bw) solid var(--c-line); }
+  .cmp-grp { display: flex; align-items: center; gap: var(--s-2); }
+  .cmp-grp > span { font-family: var(--f-mono); font-size: var(--fs-eyebrow); letter-spacing: var(--tr-eyebrow); color: var(--c-text-3); }
+  .cmp-stage { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--bw); background: var(--c-line); min-height: 0; }
+  .cmp-col { display: flex; flex-direction: column; background: var(--c-bg); min-width: 0; min-height: 0; }
+  .cmp-col > header { display: flex; align-items: baseline; gap: var(--s-3); padding: var(--s-3) var(--s-4); border-bottom: var(--bw) solid var(--c-line); }
+  .cmp-col h2 { margin: 0; font-family: var(--f-display); font-size: var(--fs-h3); line-height: var(--lh-h3); font-weight: var(--w-regular); }
+  .cmp-col p { margin: 0; font-family: var(--f-mono); font-size: var(--fs-eyebrow); color: var(--c-text-3); }
+  .cmp-col iframe { flex: 1; width: 100%; border: 0; background: var(--c-bg); }
+  .cmp-note { padding: var(--s-3) var(--s-4); font-size: var(--fs-small); color: var(--c-text-3); border-top: var(--bw) solid var(--c-line); }
+  .cmp-note code { font-family: var(--f-mono); color: var(--c-text-2); }
+  /* Один стовпець на вузькому: три поруч на 390px не порівняння, а обман. */
+  @media (max-width: 1024px) { .cmp-stage { grid-template-columns: 1fr; } .cmp-col iframe { height: 70vh; flex: none; } }
+  /* Режим «лише один»: три стовпці по ~500px показують МОБІЛЬНУ композицію
+     макета (ліва моноколонка лягає рядком на ≤1024). Щоб побачити десктопну —
+     один варіант на всю ширину. Без цього порівняння було б неповним. */
+  .cmp-stage[data-view="a"] .cmp-col:not([data-col="a"]),
+  .cmp-stage[data-view="b"] .cmp-col:not([data-col="b"]),
+  .cmp-stage[data-view="c"] .cmp-col:not([data-col="c"]) { display: none; }
+  .cmp-stage[data-view="a"], .cmp-stage[data-view="b"], .cmp-stage[data-view="c"] { grid-template-columns: 1fr; }
+</style>
+</head>
+<body>
+
+<div class="cmp-bar">
+  <div class="cmp-grp"><span>екран</span>
+      <select class="ds-fld__input" id="sec" aria-label="Секція, яку показати в усіх трьох варіантах" style="width:auto;padding-right:var(--s-6)">
+        <option value="">початок сторінки</option>
+        <option value="#ladder">драбина</option>
+        <option value="#accents">акценти й стани</option>
+        <option value="#type">типографіка</option>
+        <option value="#scales">шкали</option>
+        <option value="#btn">кнопка</option>
+        <option value="#fields">поле, картка, бейдж</option>
+        <option value="#content">контент уроку</option>
+        <option value="#term">термінал</option>
+        <option value="#chrome">хром</option>
+        <option value="#motion">рух</option>
+        <option value="#tests">тести</option>
+      </select>
+  </div>
+  <div class="cmp-grp" id="viewgrp"><span>показ</span>
+    <button class="ds-btn ds-btn--sm ds-btn--secondary" data-view="all" aria-pressed="true">три поруч</button>
+    <button class="ds-btn ds-btn--sm ds-btn--ghost" data-view="a" aria-pressed="false">лише A</button>
+    <button class="ds-btn ds-btn--sm ds-btn--ghost" data-view="b" aria-pressed="false">лише B</button>
+    <button class="ds-btn ds-btn--sm ds-btn--ghost" data-view="c" aria-pressed="false">лише C</button>
+  </div>
+  <div class="cmp-grp" data-set="course"><span>курс</span>
+    <button class="ds-btn ds-btn--sm ds-btn--secondary" data-v="academy" aria-pressed="true">Академія</button>
+    <button class="ds-btn ds-btn--sm ds-btn--ghost" data-v="architect" aria-pressed="false">Architect</button>
+    <button class="ds-btn ds-btn--sm ds-btn--ghost" data-v="terminal" aria-pressed="false">Термінал</button>
+  </div>
+  <div class="cmp-grp" data-set="motion"><span>рух</span>
+    <button class="ds-btn ds-btn--sm ds-btn--ghost" data-v="calm" aria-pressed="false">calm</button>
+    <button class="ds-btn ds-btn--sm ds-btn--secondary" data-v="standard" aria-pressed="true">standard</button>
+    <button class="ds-btn ds-btn--sm ds-btn--ghost" data-v="bold" aria-pressed="false">bold</button>
+  </div>
+  <div class="cmp-grp" data-set="density"><span>щільність</span>
+    <button class="ds-btn ds-btn--sm ds-btn--secondary" data-v="landing" aria-pressed="true">лендінг</button>
+    <button class="ds-btn ds-btn--sm ds-btn--ghost" data-v="lesson" aria-pressed="false">урок</button>
+  </div>
+  <div class="cmp-grp"><span>reduce</span>
+    <button class="ds-btn ds-btn--sm ds-btn--ghost" id="rm" aria-pressed="false">вимкнено</button>
+  </div>
+  <div class="cmp-grp"><span>світло згори</span>
+    <button class="ds-btn ds-btn--sm ds-btn--secondary" id="lit" aria-pressed="true">увімкнено</button>
+  </div>
+</div>
+
+<div class="cmp-stage" data-view="all">
+  <section class="cmp-col" data-col="a">
+    <header><h2>A · Дідона й кістка</h2><p>Prata · Golos Text · JetBrains Mono</p></header>
+    <iframe title="Варіант A" src="variant-a/index.html?notest=1" data-v="a"></iframe>
+  </section>
+  <section class="cmp-col" data-col="b">
+    <header><h2>B · Плакат і графіт</h2><p>Unbounded · Onest · Martian Mono</p></header>
+    <iframe title="Варіант B" src="variant-b/index.html?notest=1" data-v="b"></iframe>
+  </section>
+  <section class="cmp-col" data-col="c">
+    <header><h2>C · Важкий серіф і попіл</h2><p>Yeseva One · Commissioner · Geist Mono</p></header>
+    <iframe title="Варіант C" src="variant-c/index.html?notest=1" data-v="c"></iframe>
+  </section>
+</div>
+
+<p class="cmp-note">Перемикачі згори діють одразу на всі три. Варіанти відрізняються рівно двома речами — типопарою й значеннями L1 у <code>variant.css</code>; <code>components.css</code>, <code>motion.js</code> і розмітка <code>index.html</code> у трьох папках побайтово однакові. Тести T1–T6 вимкнені тут навмисно (<code>?notest=1</code>), щоб не міряти сім ширин тричі; кожен варіант проганяє їх у себе окремо.</p>
+
+<script>
+/* Прилад, а не компонент: жодного числа, жодного кольору — усе з токенів. */
+(function () {
+  var root = document.documentElement;
+  var frames = function () { return Array.prototype.slice.call(document.querySelectorAll('.cmp-stage iframe')); };
+  var ATTRS = ['data-course', 'data-motion', 'data-density', 'data-lit'];
+
+  /* Стан переносимо в кожен iframe: вони того самого походження, тож
+     достатньо поставити ті самі атрибути на їхній <html>. */
+  function push() {
+    frames().forEach(function (f) {
+      var d = f.contentDocument; if (!d) return;
+      ATTRS.forEach(function (a) {
+        if (root.hasAttribute(a)) d.documentElement.setAttribute(a, root.getAttribute(a));
+        else d.documentElement.removeAttribute(a);
+      });
+      d.documentElement.classList.toggle('rm', root.classList.contains('rm'));
+    });
+  }
+
+  function scrollAll(sel) {
+    frames().forEach(function (f) {
+      var d = f.contentDocument; if (!d) return;
+      if (!sel) { f.contentWindow.scrollTo(0, 0); return; }
+      var t = d.querySelector(sel); if (!t) return;
+      t.scrollIntoView({ block: 'start', behavior: 'auto' });
+      /* Липка шапка макета накрила б заголовок секції. Її висоту беремо
+         виміром, а не числом: у трьох варіантів вона різна (типопара). */
+      var hdr = d.querySelector('.ds-hdr');
+      if (hdr) f.contentWindow.scrollBy(0, -hdr.getBoundingClientRect().height);
+    });
+  }
+
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest('.cmp-grp[data-set] .ds-btn');
+    if (b) {
+      var grp = b.closest('.cmp-grp'), name = grp.getAttribute('data-set');
+      root.setAttribute('data-' + name, b.getAttribute('data-v'));
+      Array.prototype.forEach.call(grp.querySelectorAll('.ds-btn'), function (x) {
+        var on = x === b;
+        x.setAttribute('aria-pressed', on ? 'true' : 'false');
+        x.className = 'ds-btn ds-btn--sm ' + (on ? 'ds-btn--secondary' : 'ds-btn--ghost');
+      });
+      push(); return;
+    }
+    var vb = ev.target.closest('#viewgrp .ds-btn');
+    if (vb) {
+      var view = vb.getAttribute('data-view');
+      document.querySelector('.cmp-stage').setAttribute('data-view', view);
+      Array.prototype.forEach.call(document.querySelectorAll('#viewgrp .ds-btn'), function (x) {
+        var on = x === vb;
+        x.setAttribute('aria-pressed', on ? 'true' : 'false');
+        x.className = 'ds-btn ds-btn--sm ' + (on ? 'ds-btn--secondary' : 'ds-btn--ghost');
+      });
+      /* iframe, який щойно змінив ширину, мусить перерахувати макет і
+         повернутись на ту саму секцію — інакше порівняння з'їде. */
+      requestAnimationFrame(function () { scrollAll(document.getElementById('sec').value); });
+      return;
+    }
+    if (ev.target.closest('#rm')) {
+      var on = root.classList.toggle('rm'), r = document.getElementById('rm');
+      r.setAttribute('aria-pressed', on ? 'true' : 'false');
+      r.textContent = on ? 'увімкнено' : 'вимкнено';
+      r.className = 'ds-btn ds-btn--sm ' + (on ? 'ds-btn--secondary' : 'ds-btn--ghost');
+      push(); return;
+    }
+    if (ev.target.closest('#lit')) {
+      var lon = !root.hasAttribute('data-lit'), l = document.getElementById('lit');
+      if (lon) root.setAttribute('data-lit', ''); else root.removeAttribute('data-lit');
+      l.setAttribute('aria-pressed', lon ? 'true' : 'false');
+      l.textContent = lon ? 'увімкнено' : 'вимкнено';
+      l.className = 'ds-btn ds-btn--sm ' + (lon ? 'ds-btn--secondary' : 'ds-btn--ghost');
+      push();
+    }
+  });
+
+  document.getElementById('sec').addEventListener('change', function (e) { scrollAll(e.target.value); });
+  frames().forEach(function (f) { f.addEventListener('load', function () { push(); scrollAll(document.getElementById('sec').value); }); });
+})();
+</script>
+</body>
+</html>

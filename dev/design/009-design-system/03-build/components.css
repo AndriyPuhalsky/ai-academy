@@ -1,0 +1,790 @@
+/* ============================================================================
+   AIA DESIGN SYSTEM v1 · КОМПОНЕНТИ
+   ----------------------------------------------------------------------------
+   Префікс класів — ds- (перевірено grep 2026-09-07: 0 вживань у HTML/CSS/JS
+   сайту, тож старий і новий шар можуть співіснувати на одній сторінці під час
+   міграції 010). Токени L3 — --<comp>-*, префікс ПЕРШИЙ.
+
+   Реєстр префіксів (інших вводити не можна):
+     btn · fld · card · badge · pill · prog · hdr · nav · ftr · dlg · sheet
+     snav · mnav · note · quiz · code · term · tbl · diag · skel · toast · skip
+     avatar · tag
+
+   НАСКРІЗНІ ПРАВИЛА
+   1. Одна висота контролів: sm 32 / md 40 / lg 48. Мінімальна ціль дотику
+      24×24 (WCAG 2.2 SC 2.5.8, AA). 44×44 — це AAA, а не мінімум, і
+      «фіксувати» 40 до 44 без причини заборонено.
+   2. <button> ЗАВЖДИ отримує явний background. Без нього браузер бере світлий
+      ButtonFace і ivory-текст зникає. На <a> цієї пастки немає — саме тому
+      баг виглядає як «іноді».
+   3. Стан ніколи не кодується лише кольором — форма, товщина, накреслення, гліф.
+   4. Компоненти пишуться семантичними класами + custom properties, а не рядком
+      Tailwind-утиліт усередині JS. Дві модалки розʼїхались саме через це.
+   5. Український текст на 10–15 % довший — кожен компонент показується
+      з довгим українським рядком, а не з Lorem.
+   6. Компонент не знає про сторінку: жодних margin назовні, жодного
+      position:fixed без токена --z-*.
+   ========================================================================== */
+
+
+/* ============================================================================
+   0. БАЗА, ФОКУС, ПОЯВА
+   ========================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--f-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ПОДВІЙНЕ КІЛЬЦЕ ФОКУСА. Знайдене незалежно у трьох дуже різних системах
+   (Vercel Geist, Supabase Docs, basement.studio). Чому воно краще за outline
+   саме в нас: кільце має гарантований розділювальний шар кольору фону, тому
+   читається і на --c-bg, і на --c-sunken (полотні термінала), де простий
+   outline зливається з полотном.
+   border-radius: inherit — наявне кільце проду хардкодить 6px, і навколо
+   пілюлі це виглядає зламано. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 var(--bw-strong) var(--c-bg),
+    0 0 0 calc(var(--bw-strong) * 2) var(--c-focus);
+  border-radius: inherit;
+  /* M6 · кільце зʼявляється МИТТЄВО (тривалість 0); переходить лише колір. */
+  transition: box-shadow 0s, color var(--dur-hover) var(--e-out);
+}
+
+/* M2 · reveal. Стан спокою — ВИДИМИЙ. Ховає лише JS, і лише після того,
+   як спостерігач приєднаний (див. motion.js, рішення 2). */
+[data-reveal] { opacity: 1; transform: none; }
+[data-reveal="armed"] {
+  opacity: 0;
+  transform: translateY(var(--move-reveal));
+}
+[data-reveal="in"] {
+  opacity: 1;
+  transform: none;
+  transition: opacity var(--dur-reveal) var(--e-out), transform var(--dur-reveal) var(--e-out);
+}
+
+.ds-eyebrow {
+  font-family: var(--f-mono);
+  font-size: var(--fs-eyebrow);
+  line-height: var(--lh-eyebrow);
+  letter-spacing: var(--tr-eyebrow);
+  color: var(--c-text-3);
+  /* БЕЗ text-transform: uppercase. Український капслок довший і читається
+     гірше, а tracked-out ALL-CAPS — найпомітніший шаблонний тік. */
+}
+
+h1, .ds-h1 { font-family: var(--f-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--tr-display); font-weight: var(--w-regular); margin: 0; }
+h2, .ds-h2 { font-family: var(--f-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--tr-display); font-weight: var(--w-regular); margin: 0; }
+h3, .ds-h3 { font-family: var(--f-sans); font-size: var(--fs-h3); line-height: var(--lh-h3); font-weight: var(--w-semi); margin: 0; }
+h4, .ds-h4 { font-family: var(--f-sans); font-size: var(--fs-h4); line-height: var(--lh-h4); font-weight: var(--w-semi); margin: 0; }
+/* Пʼятого рівня заголовків не буває. Потреба в ньому — сигнал, що структура
+   неправильна, а не що бракує токена. */
+
+.ds-lead  { font-size: var(--fs-lead);  line-height: var(--lh-lead);  color: var(--c-text-2); margin: 0; }
+.ds-small { font-size: var(--fs-small); line-height: var(--lh-small); color: var(--c-text-3); margin: 0; }
+.ds-num   { font-variant-numeric: tabular-nums; font-family: var(--f-mono); }
+
+
+/* ============================================================================
+   1. ds-btn — ОДНА сутність замість 12 CSS-означень + інлайн-утиліт
+   ----------------------------------------------------------------------------
+   Замінює: .slot__login, .aia-submit, .aia-panel__act, .aia-text-btn, .aia-close,
+   .quiz-restart, .term__copy/.term__more, .cc-btn, .cc-donate__btn, .rm-cta,
+   .rm-group__btn + сімʼю інлайн-утиліт (26 місць у 10 HTML і js/contact.js:198).
+   Було: 7 різних висот (24·32·33·37·40·41·44·48) і 4 радіуси (4·6·8·8.8).
+   .gbtn Google лишається ПОРУЧ і недоторканим — чужий брендовий актив.
+   ========================================================================== */
+.ds-btn {
+  --btn-h: var(--ctl-h-md);
+  --btn-pad-x: var(--s-4);
+  --btn-fs: var(--fs-ui);
+  --btn-bg: var(--c-surface);
+  --btn-fg: var(--c-text);
+  --btn-edge: transparent;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  height: var(--btn-h);
+  min-width: var(--hit-min);
+  padding: 0 var(--btn-pad-x);
+  border: var(--bw) solid var(--btn-edge);
+  border-radius: var(--r-control);
+  background: var(--btn-bg);          /* правило 2: явний background завжди */
+  color: var(--btn-fg);
+  font-family: var(--f-sans);
+  font-size: var(--btn-fs);
+  line-height: var(--lh-ui);
+  font-weight: var(--w-medium);
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  isolation: isolate;
+  transition: background-color var(--dur-hover) var(--e-out),
+              border-color var(--dur-hover) var(--e-out),
+              color var(--dur-hover) var(--e-out),
+              transform var(--dur-tap) var(--e-out);
+}
+/* M4 · hover як АЛЬФА-ШАР над поверхнею, а не інший хекс. Прийом Atlassian:
+   так hover працює на будь-якій сходинці драбини без нових токенів. */
+.ds-btn::after {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background: transparent;
+  transition: background-color var(--dur-hover) var(--e-out);
+  pointer-events: none;
+  z-index: 1;
+}
+.ds-btn:hover::after  { background: var(--c-veil-hover); }
+.ds-btn:active::after { background: var(--c-veil-press); }
+/* M5 · натиснулось фізично */
+.ds-btn:active { transform: scale(var(--scale-press)); }
+
+.ds-btn--sm { --btn-h: var(--ctl-h-sm); --btn-pad-x: var(--s-3); --btn-fs: var(--fs-small); }
+.ds-btn--lg { --btn-h: var(--ctl-h-lg); --btn-pad-x: var(--s-6); --btn-fs: var(--fs-body); }
+
+.ds-btn--primary   { --btn-bg: var(--c-accent); --btn-fg: var(--c-on-accent); --btn-edge: var(--c-accent); font-weight: var(--w-semi); }
+.ds-btn--primary:hover { --btn-bg: var(--c-accent-hover); --btn-edge: var(--c-accent-hover); }
+.ds-btn--secondary { --btn-bg: var(--c-surface); --btn-fg: var(--c-text); --btn-edge: var(--c-line-strong); }
+.ds-btn--ghost     { --btn-bg: transparent; --btn-fg: var(--c-text-2); --btn-edge: transparent; }
+.ds-btn--quiet     { --btn-bg: transparent; --btn-fg: var(--c-text-3); --btn-edge: transparent; font-weight: var(--w-regular); }
+.ds-btn--quiet:hover { --btn-fg: var(--c-text); }
+.ds-btn--danger    { --btn-bg: transparent; --btn-fg: var(--c-err-text); --btn-edge: var(--c-err-edge); }
+
+.ds-btn[disabled], .ds-btn[aria-disabled="true"] {
+  --btn-fg: var(--c-text-disabled);
+  --btn-bg: var(--c-surface);
+  --btn-edge: var(--c-line);
+  cursor: not-allowed;
+  /* Стан читається не лише кольором: зникає альфа-шар і зʼявляється пунктир. */
+  border-style: dashed;
+}
+.ds-btn[disabled]:hover::after, .ds-btn[aria-disabled="true"]:hover::after { background: transparent; }
+.ds-btn[disabled]:active, .ds-btn[aria-disabled="true"]:active { transform: none; }
+
+/* Стан «виконується»: гліф-обертання + слово. Кадр 0% читабельний (П4). */
+.ds-btn[data-loading="true"] { pointer-events: none; }
+.ds-btn__spin {
+  width: 1em; height: 1em; flex: none;
+  border: var(--bw-strong) solid currentColor;
+  border-top-color: transparent;
+  border-radius: var(--r-pill);
+  animation: ds-spin var(--dur-loop-pulse) linear infinite;
+  animation-play-state: var(--loop-state);
+}
+@keyframes ds-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* Іконкова кнопка: гліф лишається малим, ціль дотику — не менша за --hit-min. */
+.ds-btn--icon { --btn-pad-x: 0; width: var(--btn-h); }
+
+/* Чужий брендовий актив. Береться як є: офіційні заливка, обведення, паддінги,
+   локалізований підпис, SVG без перефарбування. Власні 4px радіуса лишаються.
+   У злиття 13 → 1 НЕ входить. */
+.gbtn {
+  display: inline-flex; align-items: center; gap: var(--g-gap);
+  height: var(--g-h); padding: 0 var(--g-pad-end) 0 var(--g-pad-start);
+  border: 1px solid var(--g-light-stroke);
+  border-radius: var(--g-radius);
+  background: var(--g-light-fill);
+  color: var(--g-light-text);
+  font-family: var(--f-sans);       /* Google Sans не використовуємо навіть попри доступність */
+  font-size: var(--g-font-size); line-height: var(--g-line-height);
+  letter-spacing: var(--g-tracking); font-weight: var(--g-weight);
+  cursor: pointer;
+  transition: background-color var(--g-transition);
+}
+.gbtn:hover { background: var(--g-light-hover); }
+.gbtn svg { width: var(--g-logo); height: var(--g-logo); flex: none; }
+
+
+/* ============================================================================
+   2. ds-fld — поле вводу
+   Замінює .aia-input (4) + чотири поля js/contact.js + поле verify.html + textarea.
+   ========================================================================== */
+.ds-fld { display: flex; flex-direction: column; gap: var(--s-2); }
+.ds-fld__label { font-size: var(--fs-label); line-height: var(--lh-label); color: var(--c-text-2); font-weight: var(--w-medium); }
+.ds-fld__input {
+  height: var(--ctl-h-md);
+  padding: 0 var(--s-3);
+  border: var(--bw) solid var(--c-line-strong);   /* межа ІДЕНТИФІКУЄ контрол → 3.06 */
+  border-radius: var(--r-control);
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--f-sans);
+  font-size: var(--fs-ui);
+  width: 100%;
+  transition: border-color var(--dur-hover) var(--e-out), background-color var(--dur-hover) var(--e-out);
+}
+textarea.ds-fld__input { height: auto; min-height: calc(var(--ctl-h-md) * 3); padding: var(--s-3); line-height: var(--lh-ui); resize: vertical; }
+.ds-fld__input::placeholder { color: var(--c-text-disabled); }
+.ds-fld__input:hover { border-color: var(--c-text-3); }
+.ds-fld__input:focus { border-color: var(--c-accent); }
+.ds-fld__input[readonly] { background: var(--c-surface); color: var(--c-text-2); }
+.ds-fld__input[disabled] { background: var(--c-surface); color: var(--c-text-disabled); border-style: dashed; cursor: not-allowed; }
+.ds-fld__row { display: flex; justify-content: space-between; gap: var(--s-3); }
+.ds-fld__hint { font-size: var(--fs-small); color: var(--c-text-3); }
+.ds-fld__count { font-size: var(--fs-small); color: var(--c-text-3); font-variant-numeric: tabular-nums; font-family: var(--f-mono); }
+/* Помилка — БІЛЯ ПОЛЯ, не лише зверху; колір --c-err-text (не акцент);
+   гліф + слово, а не лише колір. */
+.ds-fld--error .ds-fld__input { border-color: var(--c-err-edge); border-width: var(--bw-strong); }
+.ds-fld__error { display: flex; align-items: flex-start; gap: var(--s-2); font-size: var(--fs-small); line-height: var(--lh-small); color: var(--c-err-text); }
+.ds-fld__error::before { content: "✕"; font-family: var(--f-mono); flex: none; }
+
+
+/* ============================================================================
+   3. ds-card
+   Замінює розсип `rounded-2xl border border-line bg-surface` по HTML.
+   ========================================================================== */
+.ds-card {
+  display: block;
+  padding: var(--s-6);
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-card);
+  background: var(--c-surface);
+  color: inherit;
+  text-decoration: none;
+  position: relative;
+  isolation: isolate;
+  transition: border-color var(--dur-hover) var(--e-out), background-color var(--dur-hover) var(--e-out);
+}
+a.ds-card:hover, .ds-card--link:hover { border-color: var(--c-line-strong); background: var(--c-raised); }
+a.ds-card:active, .ds-card--link:active { transform: scale(var(--scale-press)); }
+.ds-card[aria-disabled="true"] { border-style: dashed; color: var(--c-text-disabled); }
+/* ЄДИНА плита предмета на сторінку — і єдине місце, де в системі є обʼєм.
+   Прецедент 005: полотно термінала темніше за сторінку, і без плити воно
+   читається як діра, а не як предмет. Двох плит на сторінці не буває:
+   два джерела світла вбивають ефект предмета. */
+.ds-card--desk { background: var(--c-desk); border-color: var(--c-line-strong); box-shadow: var(--sh-desk); }
+
+
+/* ============================================================================
+   4. ds-badge — стан кодується ФОРМОЮ, не лише кольором
+   Замінює .badge + -ready / -soon / -done (рендериться з js/config.js:172
+   і js/claude-code-render.js:278).
+   ========================================================================== */
+.ds-badge {
+  --badge-fg: var(--c-text-2);
+  --badge-edge: var(--c-line-strong);
+  --badge-bg: transparent;
+  display: inline-flex; align-items: center; gap: var(--s-1);
+  min-height: var(--hit-min);
+  padding: 0 var(--s-2);
+  border: var(--bw) solid var(--badge-edge);
+  border-radius: var(--r-pill);
+  background: var(--badge-bg);
+  color: var(--badge-fg);
+  font-family: var(--f-mono);
+  font-size: var(--fs-label);
+  line-height: var(--lh-label);
+  white-space: nowrap;
+}
+.ds-badge::before { content: attr(data-glyph); font-family: var(--f-mono); }
+.ds-badge--ready { --badge-fg: var(--c-accent); --badge-edge: var(--c-accent-edge); --badge-bg: var(--c-accent-quiet); }
+.ds-badge--done  { --badge-fg: var(--c-ok-text); --badge-edge: var(--c-ok-edge); --badge-bg: var(--c-ok-quiet); }
+/* «Скоро» — приглушеність ФОРМОЮ: пунктир і відсутність заливки, а не тихіший
+   колір. Саме тут стара система робила помилку (badge-soon кольором faint). */
+.ds-badge--soon  { --badge-fg: var(--c-text-3); --badge-edge: var(--c-line-strong); border-style: dashed; }
+.ds-badge--warn  { --badge-fg: var(--c-warn-text); --badge-edge: var(--c-warn-edge); --badge-bg: var(--c-warn-quiet); border-style: dashed; }
+.ds-badge--err   { --badge-fg: var(--c-err-text); --badge-edge: var(--c-err-edge); --badge-bg: var(--c-err-quiet); border-width: var(--bw-strong); }
+.ds-badge--info  { --badge-fg: var(--c-info-text); --badge-edge: var(--c-info-edge); --badge-bg: var(--c-info-quiet); }
+
+
+/* ============================================================================
+   5. ds-pill + ds-prog — прогрес курсу
+   ----------------------------------------------------------------------------
+   ⚠ CLS. Пастка 006 D-02: клас, що приходить із Tailwind CDN, зʼявляється
+   через ~53 мс і дає зсув 64.8 px. Тому тут ВЛАСНИЙ клас і резерв місця
+   з першого кадру: ширина рахується в ch, а не «як вийде».
+   ========================================================================== */
+.ds-pill {
+  --pill-ch: 7ch;                      /* «12 / 23» + запас; резерв із першого кадру */
+  display: inline-flex; align-items: center; gap: var(--s-2);
+  min-width: var(--pill-ch);
+  min-height: var(--hit-min);
+  padding: 0 var(--s-3);
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-pill);
+  background: var(--c-surface);
+  color: var(--c-text-2);
+  font-family: var(--f-mono);
+  font-size: var(--fs-label);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ds-pill--unknown { color: var(--c-text-3); border-style: dashed; }
+.ds-pill--full { color: var(--c-ok-text); border-color: var(--c-ok-edge); }
+
+.ds-prog { display: block; height: var(--bw-strong); background: var(--c-line); border-radius: var(--r-pill); overflow: hidden; }
+.ds-prog__bar {
+  display: block; height: 100%;
+  background: var(--c-accent);
+  transform-origin: left center;
+  transform: scaleX(var(--prog-v, 0));   /* НЕ width: анімуємо тільки transform */
+  transition: transform var(--dur-state) var(--e-out);
+}
+
+
+/* ============================================================================
+   6. ds-note (callout) — 622 вживання в проді, з них 82 «sand»
+   ========================================================================== */
+.ds-note {
+  --note-edge: var(--c-line-strong);
+  --note-fg: var(--c-text-2);
+  --note-bg: var(--c-surface);
+  --note-rule: var(--bw-strong);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--s-2) var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border: var(--bw) solid var(--c-line);
+  border-left: var(--note-rule) solid var(--note-edge);
+  border-radius: var(--r-inner);
+  background: var(--note-bg);
+  color: var(--note-fg);
+}
+.ds-note__glyph { font-family: var(--f-mono); color: var(--note-edge); grid-row: 1; }
+/* Довгий український заголовок у два рядки НЕ ламає лівий кант: кант — це
+   border-left самого блока, а не псевдоелемент фіксованої висоти. */
+.ds-note__title { grid-row: 1; margin: 0; font-size: var(--fs-h4); line-height: var(--lh-h4); font-weight: var(--w-semi); color: var(--c-text); }
+.ds-note__body { grid-column: 2; margin: 0; font-size: var(--fs-ui); line-height: var(--lh-body); }
+.ds-note--accent { --note-edge: var(--c-accent-edge); --note-bg: var(--c-accent-quiet); }
+.ds-note--ok   { --note-edge: var(--c-ok-edge);   --note-bg: var(--c-ok-quiet); }
+.ds-note--warn { --note-edge: var(--c-warn-edge); --note-bg: var(--c-warn-quiet); border-left-style: dashed; }
+.ds-note--err  { --note-edge: var(--c-err-edge);  --note-bg: var(--c-err-quiet); }
+.ds-note--info { --note-edge: var(--c-info-edge); --note-bg: var(--c-info-quiet); }
+.ds-note--ok   .ds-note__glyph { color: var(--c-ok-text); }
+.ds-note--warn .ds-note__glyph { color: var(--c-warn-text); }
+.ds-note--err  .ds-note__glyph { color: var(--c-err-text); }
+.ds-note--info .ds-note__glyph { color: var(--c-info-text); }
+
+
+/* ============================================================================
+   7. ds-hdr / ds-nav / ds-ftr — липка шапка, меню, футер
+   ========================================================================== */
+.ds-hdr {
+  position: sticky; top: 0;
+  z-index: var(--z-header);
+  display: flex; align-items: center; gap: var(--s-4);
+  height: var(--s-16);
+  padding: 0 var(--s-6);
+  background: var(--c-bg);
+  border-bottom: var(--bw) solid var(--c-line);
+}
+/* Низький екран: шапка уроку стає непрозорою й тоншою. Поріг --vh-short. */
+@media (max-height: 700px) { .ds-hdr { height: var(--s-12); background: var(--c-bg); } }
+
+.ds-hdr__brand { font-family: var(--f-display); font-size: var(--fs-h3); letter-spacing: var(--tr-display); color: var(--c-text); text-decoration: none; }
+.ds-hdr__spacer { flex: 1 1 auto; min-width: 0; }
+.ds-hdr__brand { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ds-hdr__burger { flex: none; }
+/* Слот акаунта: ширина фіксована в усіх трьох станах (гість / залогінений /
+   під час перевірки), тому CLS = 0 при будь-якій підміні. */
+.ds-hdr__slot { min-width: calc(var(--w-card) / 2); min-height: var(--ctl-h-sm); display: flex; justify-content: flex-end; align-items: center; gap: var(--s-2); }
+
+/* ≤640 · мобільний стан шапки. Знайдено тестом T6: на 320px шапка розпирала
+   документ на +16px, бо .ds-nav і резерв слота акаунта разом не влазять
+   у 320 − 48 паддінгу й у flex-рядку без wrap нижче min-content не стискаються.
+   Десктопна навігація тут поступається місцем тригеру шторки, а резерв слота
+   зменшується до кружечка аватара — CLS лишається нульовим, бо на цій ширині
+   слот саме кружечком і буває. */
+@media (max-width: 640px) {
+  .ds-hdr { padding: 0 var(--s-4); gap: var(--s-2); }
+  .ds-hdr > .ds-nav { display: none; }
+  .ds-hdr__slot { min-width: var(--ctl-h-md); }
+  /* Підлога ширини: без неї бренд у рядку з бургером стискається до нуля
+     й шапка лишається без назви курсу (видно на 390px). */
+  .ds-hdr__brand { font-size: var(--fs-h4); min-width: 8ch; }
+  /* ⚠ Цей блок мусить стояти ПІСЛЯ оголошень .ds-hdr__* : медіа-запит НЕ додає
+     специфічності, тож пізніший .ds-hdr__brand { min-width: 0 } перебивав би його. */
+}
+@media (min-width: 640px) { .ds-hdr__burger { display: none; } }
+
+.ds-nav { display: flex; align-items: center; gap: var(--s-1); }
+.ds-nav__link {
+  display: inline-flex; align-items: center;
+  min-height: var(--hit-min); padding: var(--s-1) var(--s-2);
+  border-radius: var(--r-inner);
+  color: var(--c-text-2); text-decoration: none;
+  font-size: var(--fs-ui);
+  transition: color var(--dur-hover) var(--e-out), background-color var(--dur-hover) var(--e-out);
+}
+.ds-nav__link:hover { color: var(--c-text); background: var(--c-veil-hover); }
+.ds-nav__link[aria-current] { color: var(--c-accent); }
+.ds-nav__menu {
+  position: absolute; min-width: var(--w-sidebar);
+  margin-top: var(--s-2); padding: var(--s-2);
+  border: var(--bw) solid var(--c-line-strong); border-radius: var(--r-control);
+  background: var(--c-raised);
+  display: grid; gap: var(--s-1);
+  opacity: 0; transform: translateY(var(--move-micro)); pointer-events: none;
+  transition: opacity var(--dur-state) var(--e-out), transform var(--dur-state) var(--e-out);
+}
+.ds-nav__trigger[aria-expanded="true"] + .ds-nav__menu { opacity: 1; transform: none; pointer-events: auto; }
+
+.ds-ftr { padding: var(--s-12) var(--s-6); border-top: var(--bw) solid var(--c-line); color: var(--c-text-3); font-size: var(--fs-ui); }
+/* Ціль дотику футерних посилань — не менша за --hit-min. У проді вони 20 px. */
+.ds-ftr a { display: inline-flex; align-items: center; min-height: var(--hit-min); color: var(--c-text-2); }
+
+
+/* ============================================================================
+   8. ds-dlg + ds-sheet — ОДИН компонент замість двох філософій
+   ----------------------------------------------------------------------------
+   Обʼєднує .aia-scrim/.aia-card (js/auth-ui.js) і рядок Tailwind-утиліт
+   усередині js/contact.js. Було: дві ширини (384 vs 448), два джерела тих
+   самих 80 %/8px, два способи задати шар (CSS 60 vs z-[60]) і НУЛЬ руху
+   в другій модалці.
+   ========================================================================== */
+.ds-dlg { position: fixed; inset: 0; z-index: var(--z-scrim); display: grid; place-items: center; padding: var(--s-4); }
+.ds-dlg__scrim {
+  position: absolute; inset: 0;
+  background: var(--c-overlay);
+  backdrop-filter: blur(var(--blur-scrim));
+  opacity: 0;
+  transition: opacity var(--dur-enter) var(--e-out);
+}
+.ds-dlg__card {
+  position: relative; z-index: var(--z-dialog);
+  width: 100%; max-width: var(--w-card);
+  padding: var(--s-6);
+  border: var(--bw) solid var(--c-line-strong);
+  border-radius: var(--r-card);
+  background: var(--c-surface);
+  box-shadow: var(--sh-dialog);
+  opacity: 0;
+  transform: translateY(var(--move-card));
+  transition: opacity var(--dur-enter) var(--e-out), transform var(--dur-enter) var(--e-out);
+}
+/* Підложка Й картка йдуть РАЗОМ, без каскаду й без затримки. */
+.ds-dlg[data-open="true"] .ds-dlg__scrim { opacity: 1; }
+.ds-dlg[data-open="true"] .ds-dlg__card  { opacity: 1; transform: none; }
+/* Вихід коротший за вхід. */
+.ds-dlg[data-open="false"] .ds-dlg__scrim,
+.ds-dlg[data-open="false"] .ds-dlg__card { transition-duration: var(--dur-exit); transition-timing-function: var(--e-in); }
+.ds-dlg[hidden] { display: none; }
+
+/* На ≤640 діалог стає аркушем. Смужки-«хапалки» НЕМАЄ свідомо: жесту
+   перетягування не існує, і обіцяти його не можна. */
+@media (max-width: 640px) {
+  .ds-dlg { place-items: end stretch; padding: 0; }
+  .ds-dlg__card {
+    max-width: none;
+    border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+    border-bottom: none;
+    box-shadow: var(--sh-sheet);
+    transform: translateY(var(--s-16));
+    transition-duration: var(--dur-sheet);
+    transition-timing-function: var(--e-sheet);
+  }
+  .ds-dlg[data-open="true"] .ds-dlg__card { transform: none; }
+}
+
+
+/* ============================================================================
+   9. ds-snav + ds-mnav — сайдбар уроку і prev/next
+   ========================================================================== */
+.ds-snav { width: var(--w-sidebar); display: grid; gap: var(--s-1); align-content: start; }
+/* Пристикований сайдбар — свідомо ПІД шапкою. Окремі токени для двох випадків
+   (дефект 006 D-01: одне значення 50 обслуговувало обидва; доведено A/B
+   25 із 25 проб). */
+@media (min-width: 1024px) { .ds-snav { position: sticky; top: var(--s-16); z-index: var(--z-sidebar); } }
+.ds-snav__item {
+  display: flex; align-items: center; gap: var(--s-2);
+  min-height: var(--hit-min); padding: var(--s-2) var(--s-3);
+  border-left: var(--bw-strong) solid transparent;
+  border-radius: 0 var(--r-inner) var(--r-inner) 0;
+  color: var(--c-text-2); text-decoration: none; font-size: var(--fs-ui);
+  /* Фокус не ховається під липкою шапкою (дефект 005). */
+  scroll-margin-top: calc(var(--s-16) + var(--s-4));
+  transition: color var(--dur-hover) var(--e-out), border-color var(--dur-hover) var(--e-out), background-color var(--dur-hover) var(--e-out);
+}
+.ds-snav__item:hover { background: var(--c-veil-hover); color: var(--c-text); }
+.ds-snav__item[aria-current="true"] { border-left-color: var(--c-accent); color: var(--c-text); background: var(--c-accent-quiet); }
+.ds-snav__item--done { color: var(--c-text-3); }
+.ds-snav__item--done::after { content: "✓"; font-family: var(--f-mono); color: var(--c-ok-text); margin-left: auto; }
+.ds-snav__item--locked { color: var(--c-text-disabled); border-left-style: dashed; border-left-color: var(--c-line-strong); cursor: not-allowed; }
+.ds-snav__item--locked::after { content: "○"; font-family: var(--f-mono); margin-left: auto; }
+/* Мобільна шторка — НАД шапкою. */
+.ds-snav--drawer { position: fixed; inset: 0 auto 0 0; z-index: var(--z-drawer); background: var(--c-surface); padding: var(--s-4); overflow: auto; }
+
+.ds-mnav { display: flex; justify-content: space-between; gap: var(--s-3); }
+
+
+/* ============================================================================
+   10. ds-quiz — 57 сторінок, ~390 питань
+   Хардкод #8FA66B / #C2D3A7 / #C0564F / #E0938B → --c-ok-* / --c-err-*.
+   #C0564F у проді дає 4.14/3.82/3.48 — провал AA на всіх трьох поверхнях.
+   ========================================================================== */
+.ds-quiz { border: var(--bw) solid var(--c-line); border-radius: var(--r-card); background: var(--c-surface); padding: var(--s-6); }
+.ds-quiz__q { font-size: var(--fs-h4); font-weight: var(--w-semi); margin: 0 0 var(--s-4); }
+.ds-quiz__opts { display: grid; gap: var(--s-2); margin: 0; padding: 0; list-style: none; }
+.ds-quiz__opt {
+  display: flex; align-items: flex-start; gap: var(--s-3);
+  min-height: var(--ctl-h-md); padding: var(--s-3);
+  border: var(--bw) solid var(--c-line-strong);
+  border-radius: var(--r-control);
+  background: var(--c-bg);
+  color: var(--c-text-2);
+  font-size: var(--fs-ui); text-align: left; width: 100%;
+  font-family: var(--f-sans); cursor: pointer;
+  transition: border-color var(--dur-hover) var(--e-out), color var(--dur-hover) var(--e-out);
+}
+.ds-quiz__opt::before { content: attr(data-key); font-family: var(--f-mono); color: var(--c-text-3); flex: none; }
+.ds-quiz__opt:hover { border-color: var(--c-text-3); color: var(--c-text); }
+.ds-quiz__opt[aria-pressed="true"] { border-color: var(--c-accent-edge); background: var(--c-accent-quiet); color: var(--c-text); }
+/* Стан не лише кольором: додається гліф і товщина канта. */
+.ds-quiz__opt--ok  { border-color: var(--c-ok-edge);  border-width: var(--bw-strong); color: var(--c-ok-text); }
+.ds-quiz__opt--bad { border-color: var(--c-err-edge); border-width: var(--bw-strong); color: var(--c-err-text); border-style: dashed; }
+.ds-quiz__opt--ok::after  { content: "✓"; font-family: var(--f-mono); margin-left: auto; }
+.ds-quiz__opt--bad::after { content: "✕"; font-family: var(--f-mono); margin-left: auto; }
+.ds-quiz__explain { margin-top: var(--s-4); font-size: var(--fs-ui); line-height: var(--lh-body); color: var(--c-text-2); }
+
+
+/* ============================================================================
+   11. ds-code — блок коду
+   ----------------------------------------------------------------------------
+   ⚠ СПЕЦИФІЧНІСТЬ. `.prose-aia pre` = (0,1,1) і бʼє будь-який одинарний клас
+   (0,1,0) на всіх 57 сторінках уроків: накидає другу рамку, другий фон і
+   підміняє white-space: pre на pre-wrap, від чого моноширинні колонки
+   розсипаються. Тому селектор нижче — (0,2,0) і ЯВНО скидає сім властивостей.
+   Це перше, що треба перевіряти при перенесенні.
+   ========================================================================== */
+.ds-code { border: var(--bw) solid var(--c-line); border-radius: var(--r-inner); background: var(--c-sunken); overflow: hidden; min-width: 0; }
+.ds-code > .ds-code__pre {
+  margin: 0;                                  /* 1 */
+  border: 0;                                  /* 2 */
+  background: transparent;                    /* 3 */
+  border-radius: 0;                           /* 4 */
+  padding: var(--s-4);                        /* 5 */
+  white-space: pre;                           /* 6 — НЕ pre-wrap: колонки */
+  word-break: normal;                         /* 7 */
+  overflow-x: auto;
+  font-family: var(--f-mono);
+  font-size: var(--fs-code);
+  line-height: var(--lh-code);
+  color: var(--c-text-2);
+  tab-size: 2;
+}
+.ds-code__head { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-2) var(--s-3); background: var(--c-raised); border-bottom: var(--bw) solid var(--c-line); font-family: var(--f-mono); font-size: var(--fs-label); color: var(--c-text-3); }
+.ds-code__head .ds-btn { margin-left: auto; }
+/* Інлайновий код. overflow-wrap обовʼязковий: у 005 на пʼяти сторінках із
+   чотирнадцяти горизонтальний скрол давали саме нерозривні рядки в <code>,
+   а не таблиці — причину тоді назвали неправильно. */
+.ds-code--inline { display: inline; padding: 0 var(--s-1); border-radius: var(--r-inner); background: var(--c-raised); font-family: var(--f-mono); font-size: var(--fs-code); color: var(--c-text); overflow-wrap: anywhere; word-break: break-word; }
+.ds-code--user  { border-left: var(--bw-strong) solid var(--c-accent-edge); }
+.ds-code--model { border-left: var(--bw-strong) solid var(--c-line-strong); }
+
+
+/* ============================================================================
+   12. .term — ПЕРЕВДЯГАЄТЬСЯ, НЕ ПЕРЕПИСУЄТЬСЯ (Д8)
+   ----------------------------------------------------------------------------
+   Це ЄДИНИЙ компонент системи, який зберігає свої продові імена класів, а не
+   отримує префікс ds-. Причина: 101 блок · 767 рядків · 48 кнопок копіювання
+   в 26 уроках, і Д8 прямо забороняє чіпати розмітку. Змінюються токени —
+   структура рядка, маркери-колонки й друк через clip-path лишаються дослівно.
+   Токени L3 при цьому мають правильний префікс: --term-*.
+
+   ТРИ НЕПОРУШНІ ПРАВИЛА, які тут зберігаються:
+   1. Буфер копіювання БАЙТ У БАЙТ дорівнює видимому тексту.
+      .term__line — inline-block, символи \n лишаються в потоці <pre> ПОЗА
+      обгортками, інакше копіювання дає подвоєні переноси.
+   2. Маркери ⏺ └─ ❯ — окремі елементи ФІКСОВАНОЇ ширини колонки (1ch / 2ch),
+      а пробіл після маркера лишається СПРАВЖНІМ символом рядка, а не шириною
+      коробки. Тому скопійоване збігається з видимим, а гліф можна замінити,
+      не зсунувши сітку.
+   3. Друк — clip-path + steps(). НУЛЬ посимвольної вставки в DOM: ціна не в
+      fps (він однаковий), а в 166 записах у DOM, зірваному виділенні тексту
+      на кожному символі й 166 перечитуваннях рядка скрінрідером.
+   ========================================================================== */
+.term {
+  --term-radius: var(--r-inner);
+  --term-mark-w: 1ch;
+  --term-mark-w-lg: 2ch;
+  --term-gap: var(--s-6);
+  margin: var(--term-gap) 0;
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--term-radius);
+  background: var(--c-sunken);
+  overflow: hidden;      /* тримає скрол ВСЕРЕДИНІ блока */
+  min-width: 0;          /* без цього flex/grid-предок розсуне сторінку */
+}
+.term:first-child { margin-top: 0; }
+.term:last-child  { margin-bottom: 0; }
+/* Плита під терміналом — той самий «стіл» 005, тепер як роль системи. */
+.term--desk { background: var(--c-sunken); box-shadow: var(--sh-desk); border-color: var(--c-line-strong); }
+
+.term__chrome { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-2) var(--s-3); background: var(--c-raised); border-bottom: var(--bw) solid var(--c-line); font-family: var(--f-mono); font-size: var(--fs-label); color: var(--c-text-3); }
+.term__dots { width: var(--s-2); height: var(--s-2); border-radius: var(--r-pill); background: var(--c-line-strong); flex: none; }
+.term__title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.term__chrome .ds-btn { margin-left: auto; }
+
+/* (0,2,0) — б'є `.prose-aia pre` (0,1,1) усередині уроку. Сім скидань явно. */
+.term > .term__body {
+  margin: 0; border: 0; background: transparent; border-radius: 0;
+  padding: var(--s-4); white-space: pre; word-break: normal;
+  overflow-x: auto;
+  font-family: var(--f-mono);
+  font-size: var(--fs-code);
+  line-height: var(--lh-code);
+  color: var(--c-prose);
+  position: relative;
+}
+.term__line { display: inline-block; }
+.term__mark { display: inline-block; width: var(--term-mark-w); }
+.term__mark--lg { width: var(--term-mark-w-lg); }
+.term__in   { color: var(--c-text); }
+.term__tool { color: var(--c-accent); }
+.term__meta { color: var(--c-text-3); }
+.term__ok   { color: var(--c-ok-text); }
+.term__err  { color: var(--c-err-text); }   /* було #C97070 — 4.48 на raised, провал */
+.term__add  { color: var(--c-ok-text); }    /* окреме імʼя: «додано» ≠ «успіх» */
+.term__del  { color: var(--c-err-text); }   /* окреме імʼя: «видалено» ≠ «помилка» */
+.term__pick { color: var(--c-text); }
+.term__line--pick { background: var(--c-accent-quiet); }
+.term__status { padding: var(--s-2) var(--s-3); border-top: var(--bw) solid var(--c-line); font-family: var(--f-mono); font-size: var(--fs-label); color: var(--c-text-3); }
+.term__status b { color: var(--c-text); font-weight: var(--w-medium); }
+
+/* M10 · друк. clip-path + steps(N) по символах; каретка на ЗОВНІШНЬОМУ шарі,
+   бо всередині <pre> псевдоелемент із content: потрапляє в буфер не так, як видно. */
+@property --term-rev { syntax: "<number>"; inherits: true; initial-value: 1; }
+.term.is-typing .term__clip { animation: term-type var(--term-type-dur, 0s) steps(var(--term-steps, 1)) both; }
+.term__clip { display: block; clip-path: inset(0 calc((1 - var(--term-rev)) * 100%) 0 0); }
+@keyframes term-type { from { --term-rev: 0; } to { --term-rev: 1; } }
+/* Довгий вивід: згортання. height не анімуємо — тільки grid-template-rows. */
+.term--long > .term__body { max-height: calc(var(--s-32) * 2); }
+.term--long.is-open > .term__body { max-height: none; }
+.term__foot { display: flex; justify-content: center; padding: var(--s-2); border-top: var(--bw) solid var(--c-line); }
+
+
+/* ============================================================================
+   13. ds-tbl — 182 таблиці в проді (111 у модулях)
+   Дефект D-01 задачі 005: 100 таблиць без обгортки давали горизонтальний
+   скрол на 14 сторінках. Обгортка тут обовʼязкова частина компонента.
+   ========================================================================== */
+.ds-tbl__wrap { overflow-x: auto; border: var(--bw) solid var(--c-line); border-radius: var(--r-inner); min-width: 0; }
+.ds-tbl { width: 100%; border-collapse: collapse; font-size: var(--fs-ui); }
+.ds-tbl th, .ds-tbl td { padding: var(--s-2) var(--s-3); text-align: left; border-bottom: var(--bw) solid var(--c-line); vertical-align: top; overflow-wrap: anywhere; }
+.ds-tbl thead th { background: var(--c-raised); color: var(--c-text); font-weight: var(--w-semi); position: sticky; top: 0; }
+.ds-tbl tbody tr:last-child td { border-bottom: 0; }
+.ds-tbl td:first-child { color: var(--c-text); font-family: var(--f-mono); font-size: var(--fs-small); white-space: nowrap; }
+.ds-tbl__empty { padding: var(--s-8); text-align: center; color: var(--c-text-3); }
+
+
+/* ============================================================================
+   14. ds-diag — 248 обгорток діаграм. Тема Mermaid будується з токенів
+   (mermaid-theme.js), а не з 13 власних хексів.
+   ========================================================================== */
+.ds-diag { border: var(--bw) solid var(--c-line); border-radius: var(--r-inner); background: var(--c-surface); padding: var(--s-4); overflow-x: auto; min-width: 0; }
+.ds-diag__caption { margin-top: var(--s-2); font-size: var(--fs-small); color: var(--c-text-3); }
+.ds-diag__fallback { display: flex; align-items: center; gap: var(--s-2); color: var(--c-warn-text); font-size: var(--fs-ui); }
+.ds-diag__fallback::before { content: "▲"; font-family: var(--f-mono); }
+
+
+/* ============================================================================
+   15. ds-skel — скелетон. Shimmer ТІЛЬКИ transform: translateX,
+   ніколи background-position (той іде через paint).
+   Розмір = розмір майбутнього контрола, тому CLS = 0.
+   ========================================================================== */
+.ds-skel { position: relative; overflow: hidden; border-radius: var(--r-inner); background: var(--c-raised); }
+.ds-skel::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, var(--c-shimmer), transparent);
+  transform: translateX(-100%);
+  animation: ds-shimmer var(--dur-shimmer) var(--e-out) infinite;
+  animation-play-state: var(--loop-state);   /* П4 */
+}
+/* Кадр 0% сам по собі читабельний: пауза в будь-який момент лишає легальну плитку. */
+@keyframes ds-shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+.ds-skel--guest  { width: calc(var(--s-16) + var(--s-3)); height: var(--ctl-h-sm); }
+.ds-skel--user   { width: min(calc(var(--w-card) * 0.8), 100%); height: var(--ctl-h-sm); }
+.ds-skel--avatar { width: var(--ctl-h-md); height: var(--ctl-h-md); border-radius: var(--r-pill); }
+.ds-skel--name   { width: min(calc(var(--w-card) / 2), 100%); height: var(--s-4); }
+.ds-skel--certs  { width: 100%; max-width: var(--w-narrow); height: var(--s-16); }
+.ds-skel--out    { width: 100%; height: var(--s-12); }
+/* Скелетон зʼявляється не раніше 150 мс — раніше не показуємо нічого. */
+.ds-skel[data-delayed] { animation-delay: var(--delay-skeleton); }
+
+
+/* ============================================================================
+   16. ds-toast + #ariaLive
+   ========================================================================== */
+.ds-toast {
+  position: fixed; z-index: var(--z-toast);
+  left: var(--s-4); bottom: var(--s-4);
+  display: flex; align-items: center; gap: var(--s-3);
+  max-width: var(--w-card);
+  padding: var(--s-3) var(--s-4);
+  border: var(--bw) solid var(--c-line-strong);
+  border-radius: var(--r-control);
+  background: var(--c-raised);
+  color: var(--c-text);
+  font-size: var(--fs-ui);
+  box-shadow: var(--sh-dialog);
+}
+.ds-toast::before { content: attr(data-glyph); font-family: var(--f-mono); flex: none; }
+.ds-toast--ok  { border-color: var(--c-ok-edge);  color: var(--c-ok-text); }
+.ds-toast--err { border-color: var(--c-err-edge); color: var(--c-err-text); }
+.ds-toast--info{ border-color: var(--c-info-edge);color: var(--c-info-text); }
+.ds-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+
+/* ============================================================================
+   17. ds-skip · ds-tag · ds-avatar
+   ========================================================================== */
+.ds-skip {
+  position: absolute; left: var(--s-2); top: var(--s-2);
+  z-index: var(--z-skip);
+  transform: translateY(calc(-1 * (var(--s-16) + var(--s-4))));
+  padding: var(--s-2) var(--s-4);
+  border-radius: var(--r-control);
+  background: var(--c-accent); color: var(--c-on-accent);
+  font-size: var(--fs-ui); font-weight: var(--w-semi); text-decoration: none;
+  transition: transform var(--dur-state) var(--e-out);
+}
+.ds-skip:focus-visible { transform: none; }
+
+.ds-tag { display: inline-flex; align-items: center; min-height: var(--hit-min); padding: 0 var(--s-2); border-radius: var(--r-inner); background: var(--c-raised); color: var(--c-text-2); font-family: var(--f-mono); font-size: var(--fs-label); }
+
+.ds-avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: var(--ctl-h-md); height: var(--ctl-h-md);
+  border-radius: var(--r-pill);
+  border: var(--bw) solid var(--c-line-strong);
+  background: var(--c-raised); color: var(--c-text);
+  font-family: var(--f-mono); font-size: var(--fs-small);
+  overflow: hidden;
+}
+.ds-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+
+/* ============================================================================
+   18. Порожній стан · «папір» · друк
+   ========================================================================== */
+/* Порожньо — не діра: рядок пояснення + дія. Висота така сама, як у заповненого. */
+.ds-empty { display: grid; gap: var(--s-3); place-items: center; padding: var(--s-8); border: var(--bw) dashed var(--c-line-strong); border-radius: var(--r-card); color: var(--c-text-3); text-align: center; }
+
+/* Єдина світла поверхня в системі. Не тема й не режим: жоден компонент
+   не має світлого варіанта. Тільки превʼю сертифіката і @media print. */
+.ds-paper { background: var(--c-paper-bg); color: var(--c-paper-text); padding: var(--s-8); border-radius: var(--r-inner); }
+.ds-paper__name { font-family: var(--f-display); font-size: var(--fs-h2); line-height: var(--lh-h2); }
+/* Хайрлайн під імʼям — репліка 280px із PDF сертифіката. min() обовʼязковий:
+   фіксовані 280 при паддінгу «паперу» 32×2 розпирали документ на 320px
+   (знайдено тестом T6 — це був останній горизонтальний скрол у макеті). */
+.ds-paper__rule { height: var(--bw-strong); width: min(var(--w-sidebar), 100%); background: var(--c-accent); margin: var(--s-4) 0; }
+.ds-paper__quiet { color: var(--c-paper-quiet); font-size: var(--fs-small); }
+
+@media print {
+  body { background: var(--c-paper-bg); color: var(--c-paper-text); }
+  .ds-hdr, .ds-ftr, .ds-snav, .ds-toast, .ds-skip { display: none; }
+}

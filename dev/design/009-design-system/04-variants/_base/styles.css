@@ -1,0 +1,94 @@
+/* ============================================================================
+   AIA DESIGN SYSTEM v1 · STYLEGUIDE — ХРОМ СТОРІНКИ
+   ----------------------------------------------------------------------------
+   Тільки риштування самого інструмента. Компонентів тут немає — вони в
+   components.css. Жодного хекса й жодного магічного числа: усе через var().
+
+   КОМПОЗИЦІЙНИЙ ПРИНЦИП: асиметрична сітка з лівою моноколонкою.
+   Ліворуч — вузька колонка метаданих (імена токенів, виміряні числа, статуси
+   тестів), набрана моно; праворуч — контент. Це не декор: у довіднику системи
+   в кожного рядка справді є метадані, і моно тут несе роль «технологічність
+   і контроль», а не орнамент. Точка спокою — велике ліве поле.
+   ========================================================================== */
+
+.sg-shell { max-width: var(--w-wide); margin: 0 auto; padding: 0 var(--s-6); }
+
+.sg-hero { padding: var(--s-24) 0 var(--s-20); border-bottom: var(--bw) solid var(--c-line); }
+.sg-hero__title { max-width: 14ch; }
+.sg-hero__lead { margin-top: var(--s-6); max-width: 56ch; }
+.sg-hero__meta { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-8); }
+
+/* Сітка секції: мета + тіло. На ≤1024 моноколонка стає рядком над контентом. */
+.sg-sec { display: grid; grid-template-columns: var(--w-meta) minmax(0, 1fr); gap: var(--s-10); padding: var(--s-section) 0; border-bottom: var(--bw) solid var(--c-line); }
+.sg-sec__meta { display: flex; flex-direction: column; gap: var(--s-2); position: sticky; top: calc(var(--s-16) + var(--s-4)); align-self: start; }
+.sg-sec__body { display: flex; flex-direction: column; gap: var(--s-6); min-width: 0; }
+.sg-sec__note { color: var(--c-text-3); font-size: var(--fs-small); line-height: var(--lh-small); }
+@media (max-width: 1024px) {
+  .sg-sec { grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
+  .sg-sec__meta { position: static; flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: var(--s-3); }
+}
+
+.sg-group { display: flex; flex-direction: column; gap: var(--s-3); }
+.sg-group__h { font-family: var(--f-mono); font-size: var(--fs-label); color: var(--c-text-3); letter-spacing: var(--tr-eyebrow); }
+.sg-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3); }
+.sg-stack { display: flex; flex-direction: column; gap: var(--s-3); }
+/* min(...) обовʼязковий: minmax(672px, 1fr) НЕ стискається нижче 672 і дає
+   горизонтальний скрол на 320/360/390/640 — знайдено тестом T6. */
+.sg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(var(--w-narrow), 100%), 1fr)); gap: var(--s-4); }
+.sg-grid--tight { grid-template-columns: repeat(auto-fill, minmax(min(calc(var(--w-card) * 0.7), 100%), 1fr)); }
+
+/* Драбина нейтралей: кожна сходинка з роллю й ОБЧИСЛЕНИМ у рантаймі контрастом. */
+.sg-ladder { display: grid; gap: var(--bw); }
+.sg-ladder__row { display: grid; grid-template-columns: calc(var(--s-32) - var(--s-4)) 7ch 9ch 6ch minmax(0, 1fr); gap: var(--s-4); align-items: center; }
+.sg-ladder__sw { height: var(--s-10); border-radius: var(--r-inner); border: var(--bw) solid var(--c-line); }
+.sg-ladder__k, .sg-ladder__v, .sg-ladder__c { font-family: var(--f-mono); font-size: var(--fs-small); font-variant-numeric: tabular-nums; }
+.sg-ladder__v { color: var(--c-text-3); }
+.sg-ladder__c { color: var(--c-text-2); text-align: right; }
+.sg-ladder__r { color: var(--c-text-2); font-size: var(--fs-ui); }
+@media (max-width: 640px) {
+  .sg-ladder__row { grid-template-columns: var(--s-16) 7ch 1fr; }
+  .sg-ladder__v, .sg-ladder__c { display: none; }
+}
+
+/* Демонстраційне полотно, на якому перевіряють компонент на трьох поверхнях. */
+.sg-canvas { display: grid; gap: var(--s-4); padding: var(--s-5); border: var(--bw) dashed var(--c-line); border-radius: var(--r-card); }
+.sg-canvas--bg { background: var(--c-bg); }
+.sg-canvas--surface { background: var(--c-surface); }
+.sg-canvas--raised { background: var(--c-raised); }
+.sg-canvas--sunken { background: var(--c-sunken); }
+.sg-canvas__tag { font-family: var(--f-mono); font-size: var(--fs-label); color: var(--c-text-3); }
+
+/* Панель керування: три перемикачі + reduce. Липка, бо нею користуються
+   під час перегляду будь-якої секції. */
+.sg-bar { position: sticky; top: 0; z-index: var(--z-header); display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-4); padding: var(--s-3) var(--s-6); background: var(--c-bg); border-bottom: var(--bw) solid var(--c-line); }
+/* Група сама теж мусить переноситись: на 320 три кнопки в ряд дають 306px,
+   і разом із паддінгом панелі це розпирало документ (знайдено тестом T6). */
+.sg-bar__g { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); min-width: 0; }
+@media (max-width: 640px) { .sg-bar { padding: var(--s-2) var(--s-3); gap: var(--s-2); } }
+.sg-bar__l { font-family: var(--f-mono); font-size: var(--fs-label); color: var(--c-text-3); }
+
+/* Вивід тестів. PASS / FAIL друкуються текстом на сторінці. */
+.sg-test { border: var(--bw) solid var(--c-line-strong); border-radius: var(--r-inner); background: var(--c-surface); overflow: hidden; }
+.sg-test__h { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); background: var(--c-raised); font-family: var(--f-mono); font-size: var(--fs-small); }
+.sg-test__out { margin: 0; padding: var(--s-4); font-family: var(--f-mono); font-size: var(--fs-small); line-height: var(--lh-code); color: var(--c-text-2); white-space: pre-wrap; overflow-wrap: anywhere; max-height: calc(var(--s-32) * 2); overflow: auto; }
+.sg-verdict { font-family: var(--f-mono); font-weight: var(--w-semi); }
+.sg-verdict--pass { color: var(--c-ok-text); }
+.sg-verdict--fail { color: var(--c-err-text); }
+.sg-verdict--wait { color: var(--c-text-3); }
+
+/* Шкала z: показана візуально, зі зсувом сходинками. */
+.sg-z { position: relative; height: calc(var(--s-32) + var(--s-16)); isolation: isolate; }
+.sg-z__l { position: absolute; left: calc(var(--i) * var(--s-3)); top: calc(var(--i) * var(--s-4)); width: min(calc(var(--w-card) * 0.55), calc(100% - var(--s-32))); padding: var(--s-2) var(--s-3); border: var(--bw) solid var(--c-line-strong); border-radius: var(--r-inner); background: var(--c-raised); font-family: var(--f-mono); font-size: var(--fs-label); }
+
+.sg-mono { font-family: var(--f-mono); font-size: var(--fs-small); color: var(--c-text-3); font-variant-numeric: tabular-nums; }
+.sg-anchor { scroll-margin-top: calc(var(--s-16) + var(--s-6)); }
+.sg-hr { height: var(--bw); background: var(--c-line); border: 0; margin: 0; }
+
+/* Демонстраційні елементи майданчика руху. L1 · єдиний цикл на сторінці.
+   Кадр 0% дорівнює стану спокою й сам по собі читабельний (П4). */
+.sg-pulse { width: var(--s-3); height: var(--s-3); border-radius: var(--r-pill); background: var(--c-accent); animation: sg-breath var(--dur-loop-pulse) var(--e-breath) infinite; animation-play-state: var(--loop-state); }
+@keyframes sg-breath { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(var(--scale-pop)); } }
+/* M7 · height НІКОЛИ не анімуємо: тільки grid-template-rows 0fr → 1fr. */
+.sg-collapse { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--dur-state) var(--e-out); }
+.sg-collapse > * { overflow: hidden; min-height: 0; }
+.sg-collapse.is-open { grid-template-rows: 1fr; }
