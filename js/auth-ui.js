@@ -1100,7 +1100,7 @@
           '<button type="button" class="ds-avatar ds-nav__trigger" id="aiaAvatar" ' +
                   'aria-haspopup="true" aria-expanded="false" aria-controls="aiaAccountMenu" ' +
                   'aria-label="' + esc(T.sheet.open) + ": " + esc(name) + '">' + esc(initial(name)) + '</button>' +
-          '<div class="ds-nav__menu" id="aiaAccountMenu" role="menu" aria-labelledby="aiaAvatar">' +
+          '<div class="ds-nav__menu ds-nav__menu--acct" id="aiaAccountMenu" role="menu" aria-labelledby="aiaAvatar">' +
             '<button type="button" class="ds-nav__link ds-nav__trigger" role="menuitem" data-act="name">' +
               esc(T.sheet.nameRow) + '</button>' +
             '<a class="ds-nav__link" role="menuitem" href="' + esc(certUrl) + '" data-act="certs">' +
