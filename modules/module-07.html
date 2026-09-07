@@ -82,25 +82,25 @@
   </div>
 
   <!-- Затемнення під мобільною шторкою сайдбара -->
-  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
 
     <!-- САЙДБАР: програма курсу + уроки модуля (рендериться js/module.js) -->
-    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
       <div id="sidebarNav" class="lg:pt-10">
-        <p class="snav-count">Завантаження програми…</p>
+        <p class="ds-snav__count">Завантаження програми…</p>
       </div>
     </aside>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-3xl">
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
 
         <!-- Вступ модуля -->
-        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Трек III · Розробка з Claude</p>
-        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">RAG і робота зі знаннями</h1>
-        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Середній · 5 уроків · ≈ 60 хв читання</p>
-        <p class="mt-6 text-lg">
+        <p class="ds-eyebrow">Трек III · Розробка з Claude</p>
+        <h1 class="ds-h1">RAG і робота зі знаннями</h1>
+        <p class="ds-small ds-num">Середній · 5 уроків · ≈ 60 хв читання</p>
+        <p class="ds-lead">
           Контекстне вікно велике, але скінченне — і за кожен вхідний токен ти платиш.
           Що робити, коли знань — база FAQ, сотні договорів, ціла внутрішня вікі —
           більше, ніж розумно класти у промпт? Відповідь індустрії — RAG,
@@ -111,8 +111,8 @@
         <hr />
 
         <!-- УРОК 7.1 -->
-        <section id="l1" data-lesson="7.1 Навіщо RAG" class="scroll-mt-24">
-          <h2><span class="lesson-no">7.1</span>Навіщо RAG: межі «вкласти все у промпт»</h2>
+        <section id="l1" data-lesson="7.1 Навіщо RAG">
+          <h2><span class="ds-prose__no">7.1</span>Навіщо RAG: межі «вкласти все у промпт»</h2>
           <p>
             Здавалося б, рішення очевидне: контекст великий — клади всі документи в кожен
             запит. На практиці це ламається з трьох причин.
@@ -136,22 +136,22 @@
             <strong>Generation</strong> (відповісти, спираючись на них).
           </p>
 
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart LR
   Q["Питання"] --> R["Пошук: знайти релевантні фрагменти в базі знань"]
   R --> C["У промпт кладемо лише знайдене"]
   C --> M["Модель відповідає, спираючись на фрагменти"]
-  style R fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class R hl
             </pre>
-            <p class="diagram-caption">RAG — системна версія «заземлення» з Модуля 4: документи тепер добираються
+            <p class="ds-diag__caption">RAG — системна версія «заземлення» з Модуля 4: документи тепер добираються
               автоматично</p>
           </div>
         </section>
 
         <!-- УРОК 7.2 -->
-        <section id="l2" data-lesson="7.2 Embeddings" class="scroll-mt-24">
-          <h2><span class="lesson-no">7.2</span>Embeddings: зміст як координати</h2>
+        <section id="l2" data-lesson="7.2 Embeddings">
+          <h2><span class="ds-prose__no">7.2</span>Embeddings: зміст як координати</h2>
           <p>
             Перше питання RAG: як шукати? Пошук за ключовими словами ламається на
             синонімах: для нього «банкет» і «святкова вечеря на 40 осіб» — різні рядки,
@@ -170,9 +170,9 @@ flowchart LR
             Ось уся математика на іграшкових векторах:
           </p>
 
-          <div class="example">
-            <div class="example-head"><span>Python · косинусна подібність</span></div>
-            <pre>def cosine(a, b):
+          <div class="ds-code">
+            <div class="ds-code__head"><span>Python · косинусна подібність</span></div>
+            <pre class="ds-code__pre">def cosine(a, b):
     dot = sum(x * y for x, y in zip(a, b))
     norm_a = sum(x * x for x in a) ** 0.5
     norm_b = sum(x * x for x in b) ** 0.5
@@ -187,8 +187,8 @@ print(cosine(v_banquet, v_buffet))    # ≈ 0.99 — теми близькі
 print(cosine(v_banquet, v_invoice))   # ≈ 0.13 — теми різні</pre>
           </div>
 
-          <div class="callout">
-            <span class="callout-title">Важлива деталь</span>
+          <div class="ds-note">
+            <span class="ds-note__title">Важлива деталь</span>
             <p>
               Ембедер — окрема спеціалізована модель, не Claude. Для продакшну беруть
               готові рішення — наприклад, Voyage AI (його рекомендує документація
@@ -200,8 +200,8 @@ print(cosine(v_banquet, v_invoice))   # ≈ 0.13 — теми різні</pre>
         </section>
 
         <!-- УРОК 7.3 -->
-        <section id="l3" data-lesson="7.3 Chunking" class="scroll-mt-24">
-          <h2><span class="lesson-no">7.3</span>Chunking: різати з розумом</h2>
+        <section id="l3" data-lesson="7.3 Chunking">
+          <h2><span class="ds-prose__no">7.3</span>Chunking: різати з розумом</h2>
           <p>
             Документи в базу знань потрапляють не цілком, а <strong>чанками</strong> —
             фрагментами. Навіщо різати: пошук влучає в конкретний абзац, а не у
@@ -218,8 +218,8 @@ print(cosine(v_banquet, v_invoice))   # ≈ 0.13 — теми різні</pre>
                разом із липкою шапкою. Обгортка — той самий компонент, яким у 005
                закрито 9 таблиць уроків AI Термінала: tabindex + role="region"
                потрібні, щоб область прокручувалась і з клавіатури. -->
-          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Стратегії chunking">
-          <table>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Стратегії chunking">
+          <table class="ds-tbl">
             <thead>
               <tr>
                 <th>Стратегія</th>
@@ -256,8 +256,8 @@ print(cosine(v_banquet, v_invoice))   # ≈ 0.13 — теми різні</pre>
         </section>
 
         <!-- УРОК 7.4 -->
-        <section id="l4" data-lesson="7.4 Повний цикл RAG" class="scroll-mt-24">
-          <h2><span class="lesson-no">7.4</span>Повний цикл RAG у коді</h2>
+        <section id="l4" data-lesson="7.4 Повний цикл RAG">
+          <h2><span class="ds-prose__no">7.4</span>Повний цикл RAG у коді</h2>
           <p>
             RAG живе у два етапи. <strong>Індексація</strong> — заздалегідь і нечасто:
             порізати документи, порахувати embeddings, скласти у сховище.
@@ -265,7 +265,7 @@ print(cosine(v_banquet, v_invoice))   # ≈ 0.13 — теми різні</pre>
             зібрати промпт, отримати відповідь.
           </p>
 
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart TD
   subgraph IDX["Етап 1 · Індексація — заздалегідь"]
@@ -280,14 +280,14 @@ flowchart TD
     S --> P["Промпт: знайдені чанки + питання"]
     P --> M["Claude: відповідь із посиланнями"]
   end
-  style S fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class S hl
             </pre>
-            <p class="diagram-caption">Індексація — рідко, пошук — на кожен запит</p>
+            <p class="ds-diag__caption">Індексація — рідко, пошук — на кожен запит</p>
           </div>
 
-          <div class="example">
-            <div class="example-head"><span>Python · мінімальний RAG</span></div>
-            <pre>from anthropic import Anthropic
+          <div class="ds-code">
+            <div class="ds-code__head"><span>Python · мінімальний RAG</span></div>
+            <pre class="ds-code__pre">from anthropic import Anthropic
 
 client = Anthropic()
 MODEL = "claude-sonnet-5"
@@ -359,8 +359,8 @@ print(answer("Скільки коштує доставка фуршету по �
         </section>
 
         <!-- УРОК 7.5 -->
-        <section id="l5" data-lesson="7.5 Цитування і вибір" class="scroll-mt-24">
-          <h2><span class="lesson-no">7.5</span>Цитування джерел і чесний вибір підходу</h2>
+        <section id="l5" data-lesson="7.5 Цитування і вибір">
+          <h2><span class="ds-prose__no">7.5</span>Цитування джерел і чесний вибір підходу</h2>
           <p>
             Чому цитування — не прикраса, а вимога: посилання на джерело робить відповідь
             перевірюваною, а галюцинацію — видимою. Користувач клікає на [faq-02]
@@ -380,7 +380,8 @@ print(answer("Скільки коштує доставка фуршету по �
             Це ще одна система — індекс, синхронізація, моніторинг, — і вона має
             окупатися.
           </p>
-          <table>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: коли брати RAG, а коли досить контексту">
+          <table class="ds-tbl">
             <thead>
               <tr>
                 <th>Ситуація</th>
@@ -406,6 +407,7 @@ print(answer("Скільки коштує доставка фуршету по �
               </tr>
             </tbody>
           </table>
+          </div>
           <p>
             Правило треку: починай із найпростішого, що працює. RAG дав моделі пам'ять,
             tool use з Модуля 6 — руки. У Модулі 8 побачимо MCP — відкритий стандарт,
@@ -416,8 +418,8 @@ print(answer("Скільки коштує доставка фуршету по �
 
         <hr />
 
-        <div class="callout callout-sand">
-          <span class="callout-title">Підсумок модуля</span>
+        <div class="ds-note ds-note--accent">
+          <span class="ds-note__title">Підсумок модуля</span>
           <ul>
             <li>RAG = знайти → підкласти → відповісти: не тягни бібліотеку, принеси сторінки.</li>
             <li>Embedding — координати змісту: близькі за сенсом тексти мають близькі вектори; міряємо косинусом.</li>
@@ -429,7 +431,7 @@ print(answer("Скільки коштує доставка фуршету по �
         </div>
 
         <!-- КВІЗ -->
-        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+        <section id="quiz" data-lesson="Квіз: перевір себе">
           <h2>Квіз: перевір себе</h2>
           <p>
             Вісім питань про пошук і знання. Обирай відповідь — і одразу отримуй пояснення.
@@ -535,25 +537,25 @@ print(answer("Скільки коштує доставка фуршету по �
       }
       </script>
 
-      <div class="max-w-3xl">
+      <div class="mt-12 grid gap-6 max-w-prose">
         <!-- Позначка завершення (js/module.js + js/progress.js) -->
         <div
-          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
-            <p class="mt-1 text-sm text-muted">
+            <p id="completeTitle" class="ds-h4">Модуль позаду?</p>
+            <p class="ds-small">
               Познач його завершеним — позначка збережеться в цьому браузері
               й з'явиться на головній сторінці.
             </p>
           </div>
           <button id="completeBtn" type="button"
-            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            class="ds-btn ds-btn--primary">
             Позначити завершеним
           </button>
         </div>
 
         <!-- Попередній / наступний модуль (рендерить js/module.js) -->
-        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
       </div>
 
     </main>

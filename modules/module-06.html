@@ -82,26 +82,26 @@
   </div>
 
   <!-- Затемнення під мобільною шторкою сайдбара -->
-  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
 
     <!-- САЙДБАР: програма курсу + уроки модуля (рендериться js/module.js) -->
-    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
       <div id="sidebarNav" class="lg:pt-10">
-        <p class="snav-count">Завантаження програми…</p>
+        <p class="ds-snav__count">Завантаження програми…</p>
       </div>
     </aside>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-3xl">
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
 
         <!-- Вступ модуля -->
-        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Трек III · Розробка з Claude</p>
-        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Tool Use: інструменти для Claude
+        <p class="ds-eyebrow">Трек III · Розробка з Claude</p>
+        <h1 class="ds-h1">Tool Use: інструменти для Claude
         </h1>
-        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Середній · 5 уроків · ≈ 60 хв читання</p>
-        <p class="mt-6 text-lg">
+        <p class="ds-small ds-num">Середній · 5 уроків · ≈ 60 хв читання</p>
+        <p class="ds-lead">
           У Модулі 1 ми чесно визнали: модель уміє одне — генерувати текст. Вона не подивиться
           погоду, не зазирне у твою базу замовлень і не надішле лист. Tool Use — протокол,
           що закриває цю прірву: модель формулює структуровані запити, а виконує їх твій код.
@@ -112,8 +112,8 @@
         <hr />
 
         <!-- УРОК 6.1 -->
-        <section id="l1" data-lesson="6.1 Концепція tool use" class="scroll-mt-24">
-          <h2><span class="lesson-no">6.1</span>Модель просить — код виконує</h2>
+        <section id="l1" data-lesson="6.1 Концепція tool use">
+          <h2><span class="ds-prose__no">6.1</span>Модель просить — код виконує</h2>
           <p>
             Працює це так. Ти описуєш моделі набір <strong>інструментів</strong> — по суті,
             функцій твого коду. Коли модель вирішує, що для відповіді потрібен інструмент,
@@ -123,8 +123,8 @@
             відповідь уже з реальними даними.
           </p>
 
-          <div class="callout">
-            <span class="callout-title">Мантра модуля</span>
+          <div class="ds-note">
+            <span class="ds-note__title">Мантра модуля</span>
             <p>
               Модель — мозок, твій код — руки. Жоден інструмент не виконується без твоєї
               участі: ти валідуєш аргументи, обмежуєш права, логуєш кожен виклик.
@@ -139,7 +139,7 @@
             виконуєш ти.
           </p>
 
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart TD
   U["Запит користувача + опис інструментів"] --> M["Модель"]
@@ -147,10 +147,10 @@ flowchart TD
   T --> C["Твій код виконує функцію"]
   C --> R["tool_result повертається в розмову"]
   R --> M2["Модель: фінальна відповідь з реальними даними"]
-  style T fill:#2A211C,stroke:#D97757,color:#F0EEE6
-  style C stroke:#E8DCC3
+  class T hl
+  class C hl
             </pre>
-            <p class="diagram-caption">Один цикл tool use; далі побачиш, що модель може просити кілька викликів поспіль
+            <p class="ds-diag__caption">Один цикл tool use; далі побачиш, що модель може просити кілька викликів поспіль
             </p>
           </div>
 
@@ -167,8 +167,8 @@ flowchart TD
         </section>
 
         <!-- УРОК 6.2 -->
-        <section id="l2" data-lesson="6.2 JSON Schema" class="scroll-mt-24">
-          <h2><span class="lesson-no">6.2</span>Опис інструмента: JSON Schema</h2>
+        <section id="l2" data-lesson="6.2 JSON Schema">
+          <h2><span class="ds-prose__no">6.2</span>Опис інструмента: JSON Schema</h2>
           <p>
             Інструмент описується трьома полями: <code>name</code>,
             <code>description</code> та <code>input_schema</code> — схемою аргументів
@@ -181,9 +181,9 @@ flowchart TD
             інструмент, що повертає і коли його використовувати — а коли ні.
           </p>
 
-          <div class="example">
-            <div class="example-head"><span>JSON · опис інструмента</span></div>
-            <pre>{
+          <div class="ds-code">
+            <div class="ds-code__head"><span>JSON · опис інструмента</span></div>
+            <pre class="ds-code__pre">{
   "name": "get_orders_for_date",
   "description": "Повертає список замовлень кейтерингу на вказану дату: тип події, кількість гостей, статус. Використовуй, коли користувач питає про завантаженість дня або конкретні замовлення. Не використовуй для дат у минулому місяці — їх немає в активній базі.",
   "input_schema": {
@@ -219,16 +219,16 @@ flowchart TD
         </section>
 
         <!-- УРОК 6.3 -->
-        <section id="l3" data-lesson="6.3 Повний цикл у коді" class="scroll-mt-24">
-          <h2><span class="lesson-no">6.3</span>Повний цикл: tool_use → tool_result</h2>
+        <section id="l3" data-lesson="6.3 Повний цикл у коді">
+          <h2><span class="ds-prose__no">6.3</span>Повний цикл: tool_use → tool_result</h2>
           <p>
             Зберемо все в робочий код. Сценарій: асистент кейтерингу, який уміє діставати
             замовлення з «бази» (для прикладу — мок-функція).
           </p>
 
-          <div class="example">
-            <div class="example-head"><span>Python · повний цикл tool use</span></div>
-            <pre>import json
+          <div class="ds-code">
+            <div class="ds-code__head"><span>Python · повний цикл tool use</span></div>
+            <pre class="ds-code__pre">import json
 from anthropic import Anthropic
 
 client = Anthropic()
@@ -310,8 +310,8 @@ print(response.content[0].text)</pre>
               агента, до якого ми дійдемо в Модулі 9.</li>
           </ul>
 
-          <div class="callout">
-            <span class="callout-title">Помилки інструментів</span>
+          <div class="ds-note">
+            <span class="ds-note__title">Помилки інструментів</span>
             <p>
               Якщо функція впала — не ховай це. Поверни <code>tool_result</code>
               із полем <code>"is_error": true</code> і людським описом проблеми:
@@ -322,8 +322,8 @@ print(response.content[0].text)</pre>
         </section>
 
         <!-- УРОК 6.4 -->
-        <section id="l4" data-lesson="6.4 Паралельні виклики" class="scroll-mt-24">
-          <h2><span class="lesson-no">6.4</span>Кілька інструментів і паралельні виклики</h2>
+        <section id="l4" data-lesson="6.4 Паралельні виклики">
+          <h2><span class="ds-prose__no">6.4</span>Кілька інструментів і паралельні виклики</h2>
           <p>
             Справжня сила з'являється з меню: дай моделі кілька інструментів — і вона
             сама обере потрібний для кожного кроку. Обирає вона за описами, тож якість
@@ -358,8 +358,8 @@ print(response.content[0].text)</pre>
         </section>
 
         <!-- УРОК 6.5 -->
-        <section id="l5" data-lesson="6.5 Структурований вивід" class="scroll-mt-24">
-          <h2><span class="lesson-no">6.5</span>Структурований вивід через інструменти</h2>
+        <section id="l5" data-lesson="6.5 Структурований вивід">
+          <h2><span class="ds-prose__no">6.5</span>Структурований вивід через інструменти</h2>
           <p>
             У Модулях 3 і 5 ми вибивали чистий JSON інструкціями та префілом. Працює,
             але без гарантій структури: модель може перейменувати ключ або забути поле.
@@ -370,9 +370,9 @@ print(response.content[0].text)</pre>
             Виконувати нічого не треба: сама «функція» — фікція.
           </p>
 
-          <div class="example">
-            <div class="example-head"><span>Python · структурований вивід</span></div>
-            <pre>extract_tool = {
+          <div class="ds-code">
+            <div class="ds-code__head"><span>Python · структурований вивід</span></div>
+            <pre class="ds-code__pre">extract_tool = {
     "name": "save_order_request",
     "description": "Зберігає структуровану заявку на кейтеринг, "
                    "витягнуту з листа клієнта.",
@@ -404,15 +404,15 @@ order = response.content[0].input   # готовий dict за схемою
 print(order["event_type"], order["guests"])</pre>
           </div>
 
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart LR
   E["Лист клієнта"] --> M["Модель + форсований інструмент зі схемою"]
   M --> I["block.input — об'єкт строго за схемою"]
   I --> DB["Твоя база чи CRM"]
-  style M fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class M hl
             </pre>
-            <p class="diagram-caption">«Виклик» нікуди не йде — нам потрібні лише його аргументи</p>
+            <p class="ds-diag__caption">«Виклик» нікуди не йде — нам потрібні лише його аргументи</p>
           </div>
 
           <p>
@@ -431,8 +431,8 @@ flowchart LR
 
         <hr />
 
-        <div class="callout callout-sand">
-          <span class="callout-title">Підсумок модуля</span>
+        <div class="ds-note ds-note--accent">
+          <span class="ds-note__title">Підсумок модуля</span>
           <ul>
             <li>Модель нічого не виконує: tool use — це структуровані запити, а руки — твій код.</li>
             <li>Інструмент = name + description + JSON Schema; description — це промпт, і він вирішує.</li>
@@ -444,7 +444,7 @@ flowchart LR
         </div>
 
         <!-- КВІЗ -->
-        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+        <section id="quiz" data-lesson="Квіз: перевір себе">
           <h2>Квіз: перевір себе</h2>
           <p>
             Вісім питань про інструменти. Обирай відповідь — і одразу отримуй пояснення.
@@ -550,25 +550,25 @@ flowchart LR
       }
       </script>
 
-      <div class="max-w-3xl">
+      <div class="mt-12 grid gap-6 max-w-prose">
         <!-- Позначка завершення (js/module.js + js/progress.js) -->
         <div
-          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
-            <p class="mt-1 text-sm text-muted">
+            <p id="completeTitle" class="ds-h4">Модуль позаду?</p>
+            <p class="ds-small">
               Познач його завершеним — позначка збережеться в цьому браузері
               й з'явиться на головній сторінці.
             </p>
           </div>
           <button id="completeBtn" type="button"
-            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            class="ds-btn ds-btn--primary">
             Позначити завершеним
           </button>
         </div>
 
         <!-- Попередній / наступний модуль (рендерить js/module.js) -->
-        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
       </div>
 
     </main>

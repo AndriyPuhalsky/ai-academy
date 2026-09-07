@@ -78,23 +78,23 @@
     </div>
   </div>
 
-  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
 
-    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
       <div id="sidebarNav" class="lg:pt-10">
-        <p class="snav-count">Завантаження програми…</p>
+        <p class="ds-snav__count">Завантаження програми…</p>
       </div>
     </aside>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-3xl">
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
 
-        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза B · Будуємо з LLM</p>
-        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Промпт-інжиніринг промислового рівня</h1>
-        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Практика · 5 уроків · ≈ 65 хв</p>
-        <p class="mt-6 text-lg">
+        <p class="ds-eyebrow">Фаза B · Будуємо з LLM</p>
+        <h1 class="ds-h1">Промпт-інжиніринг промислового рівня</h1>
+        <p class="ds-small ds-num">Практика · 5 уроків · ≈ 65 хв</p>
+        <p class="ds-lead">
           У минулому модулі модель відповідала вільним текстом — добре для читання очима. Але щоб
           <em>програма</em> могла надійно обробити відповідь, потрібен передбачуваний, машиночитаний
           результат. Цей модуль навчить отримувати від моделі стабільний JSON і застосувати це на ділі:
@@ -105,8 +105,8 @@
         <hr />
 
         <!-- УРОК 9.1 -->
-        <section id="l1" data-lesson="9.1 Передбачуваність" class="scroll-mt-24">
-          <h2><span class="lesson-no">9.1</span>Від «гарної відповіді» до передбачуваної</h2>
+        <section id="l1" data-lesson="9.1 Передбачуваність">
+          <h2><span class="ds-prose__no">9.1</span>Від «гарної відповіді» до передбачуваної</h2>
           <p>
             У чаті ти читаєш відповідь сам — і вільний текст це окей. У коді вільний текст — проблема.
             Уяви: програма хоче дістати з відповіді ціну. Сьогодні модель пише «Ціна: 200 грн», завтра —
@@ -123,7 +123,7 @@
             <li><strong>Дай структуру:</strong> проси конкретний формат (JSON із полями), а не «опиши».</li>
             <li><strong>Перевіряй:</strong> код має валідувати відповідь і гідно реагувати, якщо вона не така.</li>
           </ul>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Зміна мислення.</strong> Ти більше не «спілкуєшся» з моделлю — ти проєктуєш
             <em>контракт</em>: «на такий вхід дай рівно такий вихід». Решта модуля — як цей контракт
             закріпити технічно.</p>
@@ -133,14 +133,14 @@
         <hr />
 
         <!-- УРОК 9.2 -->
-        <section id="l2" data-lesson="9.2 Структурований JSON" class="scroll-mt-24">
-          <h2><span class="lesson-no">9.2</span>Структурований вивід: надійний JSON</h2>
+        <section id="l2" data-lesson="9.2 Структурований JSON">
+          <h2><span class="ds-prose__no">9.2</span>Структурований вивід: надійний JSON</h2>
           <p>
             Рішення — попросити відповідь у форматі <strong>JSON</strong> (Модуль 4) із чітко заданими
             полями. <strong>Аналогія:</strong> це різниця між «напиши есе» і «заповни анкету: настрій,
             тема, чи терміново». Анкету з полями легко прочитати автоматично; есе — ні.
           </p>
-          <pre><code>system = (
+          <pre class="ds-code__pre"><code>system = (
     "Ти аналізуєш відгук клієнта. Поверни ЛИШЕ JSON без пояснень, "
     "за схемою: {\"sentiment\": \"позитивний|нейтральний|негативний\", "
     "\"theme\": str, \"urgent\": bool}."
@@ -154,7 +154,7 @@ response = client.messages.create(
 import json
 data = json.loads(response.content[0].text)   # текст JSON -> словник Python
 print(data["sentiment"], data["urgent"])        # негативний True</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Розбір.</strong> <code>json.loads()</code> перетворює <em>рядок</em> із JSON на
             словник Python — і далі дістаєш поля як зі звичайного словника (Модуль 6):
             <code>data["sentiment"]</code>. Назва <code>loads</code> = «load string». Зворотна дія —
@@ -166,11 +166,11 @@ print(data["sentiment"], data["urgent"])        # негативний True</cod
             <code>json.loads</code> на цьому спіткнеться. Надійний трюк — <strong>префіл</strong>: останнім
             ходом ставиш початок відповіді асистента з <code>{</code>, і модель продовжує одразу з JSON:
           </p>
-          <pre><code>messages = [
+          <pre class="ds-code__pre"><code>messages = [
     {"role": "user", "content": "Замовлення йшло два тижні, жах!"},
     {"role": "assistant", "content": "{"},      # префіл: змушуємо почати з JSON
 ]</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Чому це працює.</strong> Модель завжди <em>продовжує</em> вже написане (Модуль 8:
             вона передбачає наступний токен). Поставивши за неї <code>{</code>, ти ніби почав речення
             замість співрозмовника — і їй лишається продовжити саме JSON. Маленька деталь: оскільки
@@ -182,8 +182,8 @@ print(data["sentiment"], data["urgent"])        # негативний True</cod
         <hr />
 
         <!-- УРОК 9.3 -->
-        <section id="l3" data-lesson="9.3 Техніки промптингу" class="scroll-mt-24">
-          <h2><span class="lesson-no">9.3</span>Техніки, що різко підвищують якість</h2>
+        <section id="l3" data-lesson="9.3 Техніки промптингу">
+          <h2><span class="ds-prose__no">9.3</span>Техніки, що різко підвищують якість</h2>
           <p>Кілька прийомів, які перетворюють «так собі» на «точно те, що треба»:</p>
           <ul>
             <li><strong>Дай приклади (few-shot).</strong> Покажи 1–3 приклади «вхід → бажаний вихід».
@@ -195,14 +195,14 @@ print(data["sentiment"], data["urgent"])        # негативний True</cod
             <li><strong>Низька temperature</strong> (Модуль 8) для задач із «правильною» відповіддю.</li>
             <li><strong>Будь конкретним</strong> щодо мови, формату й крайніх випадків.</li>
           </ul>
-          <pre><code># Приклад few-shot прямо в системному промпті:
+          <pre class="ds-code__pre"><code># Приклад few-shot прямо в системному промпті:
 system = (
     "Класифікуй звернення. Поверни лише JSON {\"category\": ..., \"urgent\": ...}.\n"
     "Приклад:\n"
     "Вхід: 'Дякую, кур'єр приїхав вчасно!'\n"
     "Вихід: {\"category\": \"доставка\", \"urgent\": false}"
 )</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Чому приклад такий сильний.</strong> Один зразок бажаного виводу пояснює формат
             краще за абзац інструкцій. Модель «бачить» точну форму — і повторює її. Це перше, що варто
             спробувати, коли відповіді «майже, але не зовсім» правильні.</p>
@@ -212,29 +212,29 @@ system = (
         <hr />
 
         <!-- УРОК 9.4 -->
-        <section id="l4" data-lesson="9.4 Будуємо видобувач даних" class="scroll-mt-24">
-          <h2><span class="lesson-no">9.4</span>Проєкт: видобувач даних зі звернень</h2>
+        <section id="l4" data-lesson="9.4 Будуємо видобувач даних">
+          <h2><span class="ds-prose__no">9.4</span>Проєкт: видобувач даних зі звернень</h2>
           <p>
             З'єднаємо все в реальний інструмент. Уяви бізнес, що отримує сотні звернень клієнтів вільним
             текстом. Наш видобувач читатиме кожне й повертатиме акуратний структурований запис, який можна
             скласти в таблицю чи базу. Ось логіка:
           </p>
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart LR
   T["Хаотичний текст<br/>звернення"] --> M["Claude<br/>(system: схема JSON)"]
   M --> J["JSON-запис"]
   J --> P["json.loads<br/>(словник Python)"]
   P --> U["Готово: у таблицю / базу"]
-  style U fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class U hl
             </pre>
-            <p class="diagram-caption">Видобувач: хаотичний текст → модель за схемою → JSON → готові структуровані дані</p>
+            <p class="ds-diag__caption">Видобувач: хаотичний текст → модель за схемою → JSON → готові структуровані дані</p>
           </div>
           <p>
             Попроси Claude Code: «створи файл <code>extractor.py</code>, що класифікує звернення клієнта в
             JSON за схемою category/sentiment/urgent/summary, з префілом і температурою 0». Вийде приблизно так:
           </p>
-          <pre><code>import os, json
+          <pre class="ds-code__pre"><code>import os, json
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
@@ -267,7 +267,7 @@ ticket = "Замовлення йшло два тижні і досі не пр�
 print(extract(ticket))
 # {'category': 'доставка', 'sentiment': 'негативний', 'urgent': True,
 #  'summary': 'Затримка доставки, вимога повернення коштів'}</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Розбір ключових місць.</strong> <code>temperature=0</code> — бо нам потрібна
             однаковість, а не фантазія. Префіл <code>{"role": "assistant", "content": "{"}</code> змушує
             модель почати з JSON. Рядок <code>raw = "{" + resp.content[0].text</code> повертає на місце ту
@@ -284,13 +284,13 @@ print(extract(ticket))
         <hr />
 
         <!-- УРОК 9.5 -->
-        <section id="l5" data-lesson="9.5 Надійність і валідація" class="scroll-mt-24">
-          <h2><span class="lesson-no">9.5</span>Надійність: не довіряй — перевіряй</h2>
+        <section id="l5" data-lesson="9.5 Надійність і валідація">
+          <h2><span class="ds-prose__no">9.5</span>Надійність: не довіряй — перевіряй</h2>
           <p>
             Модель надійна, але не ідеальна: колись може повернути криве або неповне. Продакшн-код це
             <strong>передбачає</strong> й не падає. Додамо «запобіжник» навколо нашого видобувача:
           </p>
-          <pre><code>def safe_extract(text):
+          <pre class="ds-code__pre"><code>def safe_extract(text):
     try:
         data = extract(text)                 # пробуємо дістати й розпарсити
         for field in ["category", "sentiment", "urgent", "summary"]:
@@ -300,7 +300,7 @@ print(extract(ticket))
     except (json.JSONDecodeError, ValueError) as e:
         print("Некоректна відповідь, варто повторити:", e)
         return None                          # тут можна повторити запит</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Розбір.</strong> <code>try:</code> — пробуємо ризиковану дію; якщо всередині станеться
             помилка, керування «впаде» в <code>except</code> замість краху (Модуль 6). Цикл перевіряє, що
             кожне очікуване поле є у відповіді; якщо ні — ми <em>самі</em> кидаємо помилку через
@@ -308,7 +308,7 @@ print(extract(ticket))
             не розпарсився, і нашу власну. Повертаючи <code>None</code>, ми сигналізуємо «відповідь
             непридатна» — і вище можемо повторити запит.</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Підсумок модуля.</strong> Ти вмієш діставати від моделі надійний JSON (з префілом),
             підсилювати якість прикладами й «обдумуванням», і валідувати результат — тобто перетворювати
             модель на передбачуваний компонент продукту. Ти збудував робочий видобувач даних — повноцінний
@@ -320,7 +320,7 @@ print(extract(ticket))
         <hr />
 
         <!-- КВІЗ -->
-        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+        <section id="quiz" data-lesson="Квіз: перевір себе">
           <h2>Квіз: перевір себе</h2>
           <p>Шість питань без дедлайнів. Обирай відповідь — і одразу бачиш пояснення.</p>
           <div data-quiz="quizData"></div>
@@ -401,21 +401,21 @@ print(extract(ticket))
       }
       </script>
 
-      <div class="max-w-3xl">
-        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <div class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p id="completeTitle" class="font-medium text-ivory">Видобувач працює?</p>
-            <p class="mt-1 text-sm text-muted">
+            <p id="completeTitle" class="ds-h4">Видобувач працює?</p>
+            <p class="ds-small">
               Познач модуль завершеним — і відкриється Модуль 10: даємо моделі «руки» (tool use).
             </p>
           </div>
           <button id="completeBtn" type="button"
-                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+                  class="ds-btn ds-btn--primary">
             Позначити завершеним
           </button>
         </div>
 
-        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
       </div>
 
     </main>

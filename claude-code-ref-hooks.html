@@ -59,7 +59,10 @@
       <span class="ds-hdr__spacer"></span>
       <div id="aiaAuth" class="ds-hdr__slot"></div>
       <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
-      <a class="ds-nav__link" href="claude-code.html#refs">До довідників</a>
+      <!-- На <640 текстове посилання ховається: заміряно на 320 px — воно
+           переносилось у два рядки й вилазило за 64 px шапки (−5…69).
+           Вихід із довідника лишається на бренді та у футері. -->
+      <a class="ds-nav__link hidden sm:inline-flex" href="claude-code.html#refs">До довідників</a>
     </div>
   </header>
 
@@ -74,56 +77,78 @@
     </div>
   </div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[260px,1fr] lg:gap-12">
+  <div class="ds-ref">
 
     <!-- ЗМІСТ СТОРІНКИ (статичний: js/module.js тут не підключений).
          Підписи пунктів перенесені дослівно з колишнього розділу «Зміст» усередині статті. -->
-    <nav aria-label="Зміст довідника" class="border-b border-line py-6 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:overflow-y-auto lg:border-b-0 lg:py-10">
-      <p class="mb-3 font-mono text-xs uppercase tracking-[0.18em] text-faint">Зміст</p>
-      <ul class="grid gap-2 text-sm text-muted">
-        <li><a href="#how" class="transition hover:text-ivory">Як влаштована ця сторінка</a></li>
-        <li><a href="#nomatcher" class="transition hover:text-ivory">Три речі, які ламають хук мовчки</a>
-          <span class="mt-0.5 block text-xs text-faint">— події без
+    <details id="refToc" class="ds-ref__toc" open>
+      <!-- На <1024 зміст — смуга-акордеон; ВІДКРИТИЙ у розмітці, згортає його
+           рядок скрипта нижче. Тобто JS тільки згортає, ніколи не ховає. -->
+      <summary class="ds-ref__sum">Зміст довідника</summary>
+      <nav aria-label="Зміст довідника">
+      <p class="ds-ref__group">Зміст</p>
+      <ul>
+        <li><a href="#how">Як влаштована ця сторінка</a></li>
+        <li><a href="#nomatcher">Три речі, які ламають хук мовчки</a>
+          <span class="mt-0.5 block text-xs text-fg-3">— події без
             <code>matcher</code>, межі поля <code>if</code>, таймаути за замовчуванням</span></li>
-        <li><a href="#common-in" class="transition hover:text-ivory">Спільні поля входу</a>
-          <span class="mt-0.5 block text-xs text-faint">— те, що приходить кожній події</span></li>
-        <li><a href="#common-out" class="transition hover:text-ivory">Спільні поля виходу й коди завершення</a></li>
-        <li><a href="#events" class="transition hover:text-ivory">Повна таблиця 33 подій</a>:
-          <span class="mt-0.5 block text-xs text-faint">
-            <a href="#g-session" class="transition hover:text-ivory">сесія й оточення</a> ·
-            <a href="#g-talk" class="transition hover:text-ivory">хід розмови</a> ·
-            <a href="#g-tools" class="transition hover:text-ivory">інструменти й дозволи</a> ·
-            <a href="#g-agents" class="transition hover:text-ivory">субагенти й задачі</a> ·
-            <a href="#g-worktree" class="transition hover:text-ivory">копії репозиторію</a> ·
-            <a href="#g-model" class="transition hover:text-ivory">зміна моделі</a> ·
-            <a href="#g-mcp" class="transition hover:text-ivory">діалоги MCP</a></span></li>
-        <li><a href="#block" class="transition hover:text-ivory">Хто блокує, а хто ні</a>
-          <span class="mt-0.5 block text-xs text-faint">— 15 подій проти 18</span></li>
-        <li><a href="#types" class="transition hover:text-ivory">П'ять типів обробників</a>
-          <span class="mt-0.5 block text-xs text-faint">і фонові хуки</span></li>
-        <li><a href="#where" class="transition hover:text-ivory">Де оголошується хук</a>
-          <span class="mt-0.5 block text-xs text-faint">і що з довірою до теки</span></li>
-        <li><a href="#versions" class="transition hover:text-ivory">Межі версій</a>
-          <span class="mt-0.5 block text-xs text-faint">— що з чого працює</span></li>
-        <li><a href="#check" class="transition hover:text-ivory">Перевір свою збірку</a>
-          <span class="mt-0.5 block text-xs text-faint">— дві безкоштовні команди</span></li>
-        <li><a href="#nothere" class="transition hover:text-ivory">Чого тут немає</a></li>
+        <li><a href="#common-in">Спільні поля входу</a>
+          <span class="mt-0.5 block text-xs text-fg-3">— те, що приходить кожній події</span></li>
+        <li><a href="#common-out">Спільні поля виходу й коди завершення</a></li>
+        <!-- ⚠ Сім якорів груп були одним рядком через « · ». У новій рейці
+             .ds-ref__toc a — display: block (ціль дотику 24 px), тому крапки
+             лишались самотніми рядками між посиланнями. Форма змісту тут —
+             вкладений список, як у довіднику settings.json. -->
+        <li><a href="#events">Повна таблиця 33 подій</a>
+          <ul>
+            <li class="pl-3 text-fg-2"><a href="#g-session">сесія й оточення</a></li>
+            <li class="pl-3 text-fg-2"><a href="#g-talk">хід розмови</a></li>
+            <li class="pl-3 text-fg-2"><a href="#g-tools">інструменти й дозволи</a></li>
+            <li class="pl-3 text-fg-2"><a href="#g-agents">субагенти й задачі</a></li>
+            <li class="pl-3 text-fg-2"><a href="#g-worktree">копії репозиторію</a></li>
+            <li class="pl-3 text-fg-2"><a href="#g-model">зміна моделі</a></li>
+            <li class="pl-3 text-fg-2"><a href="#g-mcp">діалоги MCP</a></li>
+          </ul></li>
+        <li><a href="#block">Хто блокує, а хто ні</a>
+          <span class="mt-0.5 block text-xs text-fg-3">— 15 подій проти 18</span></li>
+        <li><a href="#types">П'ять типів обробників</a>
+          <span class="mt-0.5 block text-xs text-fg-3">і фонові хуки</span></li>
+        <li><a href="#where">Де оголошується хук</a>
+          <span class="mt-0.5 block text-xs text-fg-3">і що з довірою до теки</span></li>
+        <li><a href="#versions">Межі версій</a>
+          <span class="mt-0.5 block text-xs text-fg-3">— що з чого працює</span></li>
+        <li><a href="#check">Перевір свою збірку</a>
+          <span class="mt-0.5 block text-xs text-fg-3">— дві безкоштовні команди</span></li>
+        <li><a href="#nothere">Чого тут немає</a></li>
       </ul>
-      <p class="mt-6 border-t border-line pt-4 text-sm">
-        <a href="claude-code.html" class="text-muted transition hover:text-ivory">← До курсу</a>
-      </p>
-    </nav>
+      <p class="ds-ref__group">Курс</p>
+      <ul>
+        <li><a href="claude-code.html">← До курсу</a></li>
+      </ul>
+      </nav>
+    </details>
+    <script>
+      /* Єдиний рядок логіки на цій сторінці: згортає зміст нижче 1024 px.
+         Без нього (JS вимкнено) зміст лишається розгорнутим — так само, як сьогодні. */
+      (function(){var t=document.getElementById("refToc");
+        if(t&&!matchMedia("(min-width: 1024px)").matches)t.open=false;})();
+    </script>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-4xl">
+    <main id="main" class="ds-ref__main" data-page-in>
+      <!-- Шапка сторінки довідника — СЕСТРА статті, а не її перший абзац:
+           надзаголовок і числа не входять у сітку прози (§35 components.css). -->
+      <header class="ds-ref__head">
+        <p class="ds-eyebrow">Довідник курсу</p>
+        <h1 class="ds-h1">Усі події хуків</h1>
+        <ul class="ds-ref__stat">
+          <li><b>33</b> події за документацією на 2026-09-04</li>
+          <li>встановлена 2.1.236 знає <b>31</b></li>
+        </ul>
+      </header>
 
-        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Довідник курсу</p>
-        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Усі події хуків</h1>
-        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">
-          33 події за документацією на 2026-09-04; встановлена 2.1.236 знає 31
-        </p>
+      <article class="ds-prose">
 
-        <p class="mt-6 text-lg">
+        <p class="ds-lead">
           <strong>Перехоплювач подій</strong> (hook) — це твоя команда, яку Claude Code запускає сам,
           коли в сесії стається щось конкретне: почалась сесія, викликається інструмент, агент
           закінчив відповідати. Ця сторінка — таблиця всіх подій, на які можна почепити таку
@@ -139,14 +164,14 @@
           нічого не блокує. Сюди повертайся по подробиці.
         </p>
 
-        <section id="how" class="scroll-mt-24">
+        <section id="how">
         <h2>Як влаштована ця сторінка</h2>
 
         <p>
           Перехоплювач описується трьома рівнями вкладеності, і колонки таблиці повторюють ці рівні:
         </p>
 
-        <div class="diagram">
+        <div class="ds-diag">
           <pre class="mermaid">
 flowchart TD
   E["Подія — КОЛИ запускати: PreToolUse"] --> M["matcher — ЗА ЯКИХ УМОВ: лише Bash"]
@@ -155,17 +180,17 @@ flowchart TD
   I --> S["Твоя команда"]
   S --> O["Вихід: JSON на stdout + код завершення"]
   O --> D["Claude Code вирішує, що робити далі"]
-  style E fill:#2A211C,stroke:#D97757,color:#F0EEE6
-  style D fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class E hl
+  class D hl
           </pre>
-          <p class="diagram-caption">
+          <p class="ds-diag__caption">
             Три рівні конфігурації й два канали відповіді. Колонки великої таблиці нижче —
             це «коли», «за яких умов», «що приходить» і «що можна віддати».
           </p>
         </div>
 
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Як влаштована ця сторінка">
-        <table>
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Як влаштована ця сторінка">
+        <table class="ds-tbl">
           <thead>
             <tr>
               <th>Колонка</th>
@@ -203,7 +228,7 @@ flowchart TD
 
         <hr />
 
-        <section id="nomatcher" class="scroll-mt-24">
+        <section id="nomatcher">
         <h2>Три речі, які ламають хук мовчки</h2>
 
         <p>
@@ -219,10 +244,10 @@ flowchart TD
           спрацьовує <strong>щоразу</strong>. Ось повний список таких подій:
         </p>
 
-        <div class="tokens">
-          <span>UserPromptSubmit</span><span>PostToolBatch</span><span>Stop</span><span>TeammateIdle</span>
-          <span>TaskCreated</span><span>TaskCompleted</span><span>WorktreeCreate</span><span>WorktreeRemove</span>
-          <span>MessageDisplay</span><span>CwdChanged</span>
+        <div class="flex flex-wrap gap-2">
+          <span class="ds-tag">UserPromptSubmit</span><span class="ds-tag">PostToolBatch</span><span class="ds-tag">Stop</span><span class="ds-tag">TeammateIdle</span>
+          <span class="ds-tag">TaskCreated</span><span class="ds-tag">TaskCompleted</span><span class="ds-tag">WorktreeCreate</span><span class="ds-tag">WorktreeRemove</span>
+          <span class="ds-tag">MessageDisplay</span><span class="ds-tag">CwdChanged</span>
         </div>
 
         <p>
@@ -238,9 +263,9 @@ flowchart TD
           інструмента, а й на його аргументи. Але працює він <strong>тільки на подіях про інструменти</strong>:
         </p>
 
-        <div class="tokens">
-          <span>PreToolUse</span><span>PostToolUse</span><span>PostToolUseFailure</span>
-          <span>PermissionRequest</span><span>PermissionDenied</span>
+        <div class="flex flex-wrap gap-2">
+          <span class="ds-tag">PreToolUse</span><span class="ds-tag">PostToolUse</span><span class="ds-tag">PostToolUseFailure</span>
+          <span class="ds-tag">PermissionRequest</span><span class="ds-tag">PermissionDenied</span>
         </div>
 
         <p>
@@ -272,8 +297,8 @@ flowchart TD
           Claude Code бере одне з цих значень:
         </p>
 
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця таймаутів за замовчуванням">
-          <table class="min-w-[40rem]">
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця таймаутів за замовчуванням">
+          <table class="ds-tbl min-w-[40rem]">
             <thead>
               <tr>
                 <th>Випадок</th>
@@ -334,7 +359,7 @@ flowchart TD
 
         <hr />
 
-        <section id="common-in" class="scroll-mt-24">
+        <section id="common-in">
         <h2>Спільні поля входу</h2>
 
         <p>
@@ -343,8 +368,8 @@ flowchart TD
           специфічне для події, — у великій таблиці нижче.
         </p>
 
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця спільних полів входу">
-          <table class="min-w-[42rem]">
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця спільних полів входу">
+          <table class="ds-tbl min-w-[42rem]">
             <thead>
               <tr>
                 <th>Поле</th>
@@ -410,7 +435,7 @@ flowchart TD
         </p>
         </section>
 
-        <section id="common-out" class="scroll-mt-24">
+        <section id="common-out">
         <h2>Спільні поля виходу й коди завершення</h2>
 
         <p>
@@ -421,8 +446,8 @@ flowchart TD
           подій це зазначено.
         </p>
 
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця спільних полів виходу">
-          <table class="min-w-[42rem]">
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця спільних полів виходу">
+          <table class="ds-tbl min-w-[42rem]">
             <thead>
               <tr>
                 <th>Поле</th>
@@ -468,8 +493,8 @@ flowchart TD
 
         <h3>Коди завершення</h3>
 
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця кодів завершення">
-          <table class="min-w-[40rem]">
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця кодів завершення">
+          <table class="ds-tbl min-w-[40rem]">
             <thead>
               <tr>
                 <th>Код</th>
@@ -505,7 +530,7 @@ flowchart TD
 
         <hr />
 
-        <section id="events" class="scroll-mt-24">
+        <section id="events">
         <h2>Повна таблиця: 33 події</h2>
 
         <p>
@@ -515,11 +540,11 @@ flowchart TD
           таблицю клавішею Tab, гортати стрілками.
         </p>
 
-        <section id="g-session" class="scroll-mt-24">
+        <section id="g-session">
         <h3>Сесія й оточення — 8 подій</h3>
 
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця подій: сесія й оточення">
-          <table class="min-w-[54rem]">
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця подій: сесія й оточення">
+          <table class="ds-tbl min-w-[54rem]">
             <thead>
               <tr>
                 <th>Подія</th>
@@ -636,11 +661,11 @@ flowchart TD
         </div>
         </section>
 
-        <section id="g-talk" class="scroll-mt-24">
+        <section id="g-talk">
         <h3>Хід розмови — 7 подій</h3>
 
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця подій: хід розмови">
-          <table class="min-w-[54rem]">
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця подій: хід розмови">
+          <table class="ds-tbl min-w-[54rem]">
             <thead>
               <tr>
                 <th>Подія</th>
@@ -742,7 +767,7 @@ flowchart TD
         </div>
         </section>
 
-        <section id="g-tools" class="scroll-mt-24">
+        <section id="g-tools">
         <h3>Інструменти й дозволи — 7 подій</h3>
 
         <p>
@@ -757,8 +782,8 @@ flowchart TD
           збігається ні з чим.
         </p>
 
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця подій: інструменти й дозволи">
-          <table class="min-w-[54rem]">
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця подій: інструменти й дозволи">
+          <table class="ds-tbl min-w-[54rem]">
             <thead>
               <tr>
                 <th>Подія</th>
@@ -859,11 +884,11 @@ flowchart TD
         </div>
         </section>
 
-        <section id="g-agents" class="scroll-mt-24">
+        <section id="g-agents">
         <h3>Субагенти й задачі — 5 подій</h3>
 
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця подій: субагенти й задачі">
-          <table class="min-w-[54rem]">
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця подій: субагенти й задачі">
+          <table class="ds-tbl min-w-[54rem]">
             <thead>
               <tr>
                 <th>Подія</th>
@@ -933,11 +958,11 @@ flowchart TD
         </div>
         </section>
 
-        <section id="g-worktree" class="scroll-mt-24">
+        <section id="g-worktree">
         <h3>Копії репозиторію — 2 події</h3>
 
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця подій: копії репозиторію">
-          <table class="min-w-[54rem]">
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця подій: копії репозиторію">
+          <table class="ds-tbl min-w-[54rem]">
             <thead>
               <tr>
                 <th>Подія</th>
@@ -979,11 +1004,12 @@ flowchart TD
         </div>
         </section>
 
-        <section id="g-model" class="scroll-mt-24">
+        <section id="g-model">
         <h3>Зміна моделі — 2 події</h3>
 
-        <div class="callout">
-          <span class="callout-title">Саме тут проходить розрив 33 / 31</span>
+        <div class="ds-note">
+          <span class="ds-note__glyph" aria-hidden="true">i</span>
+          <p class="ds-note__title">Саме тут проходить розрив 33 / 31</p>
           <p>
             Обидві події підписані в документації як «requires Claude Code v2.1.251 or later».
             У збірці <strong>2.1.236</strong>, на якій знімалися екрани цього курсу, їх немає —
@@ -998,8 +1024,8 @@ flowchart TD
           </p>
         </div>
 
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця подій: зміна моделі">
-          <table class="min-w-[54rem]">
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця подій: зміна моделі">
+          <table class="ds-tbl min-w-[54rem]">
             <thead>
               <tr>
                 <th>Подія</th>
@@ -1011,7 +1037,7 @@ flowchart TD
             </thead>
             <tbody>
               <tr>
-                <td><code>PreModelSwitch</code><br /><span class="text-faint">2.1.251+</span></td>
+                <td><code>PreModelSwitch</code><br /><span class="text-fg-3">2.1.251+</span></td>
                 <td>перед тим, як застосувати зміну моделі, яку попросив ти або клієнт:
                   <code>/model</code> і його меню, вибір через <code>Option+P</code> / <code>Alt+P</code>,
                   налаштування «Model» у <code>/config</code>, увімкнення швидкого режиму, запит від
@@ -1034,7 +1060,7 @@ flowchart TD
                   <strong>теж блокує</strong> перемикання</td>
               </tr>
               <tr>
-                <td><code>PostModelSwitch</code><br /><span class="text-faint">2.1.251+</span></td>
+                <td><code>PostModelSwitch</code><br /><span class="text-fg-3">2.1.251+</span></td>
                 <td>після того, як модель сесії змінилась — включно з автоматичним відкатом,
                   входом і виходом із режиму плану при налаштуванні <code>opusplan</code> і
                   відновленням моделі при <code>resume</code>. ⚠ Не спрацьовує, коли модель із
@@ -1051,7 +1077,7 @@ flowchart TD
         </div>
         </section>
 
-        <section id="g-mcp" class="scroll-mt-24">
+        <section id="g-mcp">
         <h3>Діалоги MCP-серверів — 2 події</h3>
 
         <p>
@@ -1060,8 +1086,8 @@ flowchart TD
           може посеред роботи попросити ввід у людини — це й називається elicitation.
         </p>
 
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця подій: діалоги MCP">
-          <table class="min-w-[54rem]">
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця подій: діалоги MCP">
+          <table class="ds-tbl min-w-[54rem]">
             <thead>
               <tr>
                 <th>Подія</th>
@@ -1102,7 +1128,7 @@ flowchart TD
 
         <hr />
 
-        <section id="block" class="scroll-mt-24">
+        <section id="block">
         <h2>Хто блокує, а хто ні</h2>
 
         <p>
@@ -1110,12 +1136,12 @@ flowchart TD
           <code>2</code> (а часто й <code>decision: "block"</code>) зупиняє дію:
         </p>
 
-        <div class="tokens">
-          <span>PreToolUse</span><span>UserPromptSubmit</span><span>UserPromptExpansion</span>
-          <span>Stop</span><span>SubagentStop</span><span>TeammateIdle</span><span>TaskCreated</span>
-          <span>TaskCompleted</span><span>ConfigChange</span><span>PostToolBatch</span>
-          <span>PreCompact</span><span>PreModelSwitch</span><span>Elicitation</span>
-          <span>ElicitationResult</span><span>WorktreeCreate</span>
+        <div class="flex flex-wrap gap-2">
+          <span class="ds-tag">PreToolUse</span><span class="ds-tag">UserPromptSubmit</span><span class="ds-tag">UserPromptExpansion</span>
+          <span class="ds-tag">Stop</span><span class="ds-tag">SubagentStop</span><span class="ds-tag">TeammateIdle</span><span class="ds-tag">TaskCreated</span>
+          <span class="ds-tag">TaskCompleted</span><span class="ds-tag">ConfigChange</span><span class="ds-tag">PostToolBatch</span>
+          <span class="ds-tag">PreCompact</span><span class="ds-tag">PreModelSwitch</span><span class="ds-tag">Elicitation</span>
+          <span class="ds-tag">ElicitationResult</span><span class="ds-tag">WorktreeCreate</span>
         </div>
 
         <p>
@@ -1134,11 +1160,11 @@ flowchart TD
         </ul>
         </section>
 
-        <section id="types" class="scroll-mt-24">
+        <section id="types">
         <h2>П'ять типів обробників</h2>
 
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця типів обробників">
-          <table class="min-w-[46rem]">
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця типів обробників">
+          <table class="ds-tbl min-w-[46rem]">
             <thead>
               <tr>
                 <th><code>type</code></th>
@@ -1202,11 +1228,11 @@ flowchart TD
         </ul>
         </section>
 
-        <section id="where" class="scroll-mt-24">
+        <section id="where">
         <h2>Де оголошується хук</h2>
 
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця місць оголошення хука">
-          <table class="min-w-[46rem]">
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця місць оголошення хука">
+          <table class="ds-tbl min-w-[46rem]">
             <thead>
               <tr>
                 <th>Місце</th>
@@ -1284,7 +1310,7 @@ flowchart TD
         </ul>
         </section>
 
-        <section id="versions" class="scroll-mt-24">
+        <section id="versions">
         <h2>Межі версій</h2>
 
         <p>
@@ -1293,8 +1319,8 @@ flowchart TD
           не так, як тут написано, спершу подивись на свою версію.
         </p>
 
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця меж версій">
-          <table class="min-w-[46rem]">
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця меж версій">
+          <table class="ds-tbl min-w-[46rem]">
             <thead>
               <tr>
                 <th>Версія</th>
@@ -1379,7 +1405,7 @@ flowchart TD
         </div>
         </section>
 
-        <section id="check" class="scroll-mt-24">
+        <section id="check">
         <h2>Перевір свою збірку</h2>
 
         <p>
@@ -1391,7 +1417,7 @@ flowchart TD
           <figcaption class="term__chrome">
             <span class="term__dots" aria-hidden="true"></span>
             <span class="term__title" id="p1t">номер встановленої збірки · macOS 26.5.2, 2026-09-04</span>
-            <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
           </figcaption>
           <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --version</span></span>
 <span class="term__line">2.1.236 (Claude Code)</span></pre>
@@ -1407,7 +1433,7 @@ flowchart TD
           <figcaption class="term__chrome">
             <span class="term__dots" aria-hidden="true"></span>
             <span class="term__title" id="p2t">яких подій немає у 2.1.236 · macOS 26.5.2, 2026-09-04</span>
-            <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
           </figcaption>
           <pre class="term__body" tabindex="0" role="group" aria-labelledby="p2t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" &gt; /tmp/cc-strings.txt</span></span>
 <span class="term__line"><span class="term__meta">$</span> <span class="term__in">for e in SessionStart Setup InstructionsLoaded UserPromptSubmit UserPromptExpansion MessageDisplay PreToolUse PermissionRequest PostToolUse PostToolUseFailure PostToolBatch PermissionDenied Notification SubagentStart SubagentStop TaskCreated TaskCompleted Stop StopFailure TeammateIdle ConfigChange CwdChanged DirectoryAdded FileChanged WorktreeCreate WorktreeRemove PreCompact PostCompact PreModelSwitch PostModelSwitch SessionEnd Elicitation ElicitationResult; do grep -q "$e" /tmp/cc-strings.txt || echo "немає: $e"; done</span></span>
@@ -1415,8 +1441,9 @@ flowchart TD
 <span class="term__line"><span class="term__err">немає: PostModelSwitch</span></span></pre>
         </figure>
 
-        <div class="callout callout-sand">
-          <span class="callout-title">Як це читати</span>
+        <div class="ds-note ds-note--accent">
+          <span class="ds-note__glyph" aria-hidden="true">i</span>
+          <p class="ds-note__title">Як це читати</p>
           <p>
             <code>strings</code> дістає з програми всі текстові рядки; <code>grep -q</code> мовчки
             перевіряє, чи є там потрібний. Порожня відповідь означала б, що всі 33 події на місці.
@@ -1438,7 +1465,7 @@ flowchart TD
         </div>
         </section>
 
-        <section id="nothere" class="scroll-mt-24">
+        <section id="nothere">
         <h2>Чого тут немає</h2>
 
         <ul>
@@ -1456,8 +1483,9 @@ flowchart TD
             <a href="claude-code-ref-commands.html">«Усі команди й клавіші»</a>.</li>
         </ul>
 
-        <div class="callout">
-          <span class="callout-title">Одне попередження, яке не можна пропустити</span>
+        <div class="ds-note">
+          <span class="ds-note__glyph" aria-hidden="true">i</span>
+          <p class="ds-note__title">Одне попередження, яке не можна пропустити</p>
           <p>
             Обробник типу <code>command</code> виконує команди оболонки <strong>з твоїми повними
             правами</strong>: він може змінити, видалити або прочитати будь-що, до чого має доступ
@@ -1467,14 +1495,15 @@ flowchart TD
         </div>
         </section>
 
-        <p class="mt-10 font-mono text-xs text-faint">
+        <p class="mt-10 font-mono text-xs text-fg-3">
           Джерело: <a href="https://code.claude.com/docs/en/hooks" target="_blank"
             rel="noopener noreferrer">code.claude.com/docs/en/hooks</a>, прочитано 2026-09-04 ·
           перевірки запущені на macOS 26.5.2, Claude Code 2.1.236 · остання опублікована збірка того
           ж дня — 2.1.260
         </p>
-        <div class="callout">
-          <span class="callout-title">Звідки взяті числа й чому біля них дата</span>
+        <div class="ds-note">
+          <span class="ds-note__glyph" aria-hidden="true">i</span>
+          <p class="ds-note__title">Звідки взяті числа й чому біля них дата</p>
           <p>
             Усе на цій сторінці — з живої сторінки документації
             <a href="https://code.claude.com/docs/en/hooks" target="_blank"
@@ -1490,16 +1519,16 @@ flowchart TD
         </div>
 
 
-        <nav aria-label="Навігація довідника" class="ref-cards mt-10 grid gap-4 sm:grid-cols-2">
+        <nav aria-label="Навігація довідника" class="mt-10 grid gap-4 sm:grid-cols-2">
           <a href="modules/claude-code-16.html"
-            class="rounded-xl border border-line bg-surface p-5 transition hover:border-line-strong">
-            <span class="font-mono text-xs uppercase tracking-[0.14em] text-faint">Урок за темою</span>
-            <span class="mt-1 block text-ivory">Модуль 16 · Перехоплювачі подій (hooks)</span>
+            class="ds-card">
+            <span class="ds-eyebrow">Урок за темою</span>
+            <span class="mt-1 block text-fg">Модуль 16 · Перехоплювачі подій (hooks)</span>
           </a>
           <a href="claude-code.html#refs"
-            class="rounded-xl border border-line bg-surface p-5 transition hover:border-line-strong">
-            <span class="font-mono text-xs uppercase tracking-[0.14em] text-faint">Решта полиці</span>
-            <span class="mt-1 block text-ivory">Усі довідники курсу</span>
+            class="ds-card">
+            <span class="ds-eyebrow">Решта полиці</span>
+            <span class="mt-1 block text-fg">Усі довідники курсу</span>
           </a>
         </nav>
 

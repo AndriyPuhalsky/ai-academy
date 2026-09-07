@@ -78,23 +78,23 @@
     </div>
   </div>
 
-  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
 
-    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
       <div id="sidebarNav" class="lg:pt-10">
-        <p class="snav-count">Завантаження програми…</p>
+        <p class="ds-snav__count">Завантаження програми…</p>
       </div>
     </aside>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-3xl">
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
 
-        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза C · Агенти й команди агентів</p>
-        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Будуємо агента крок за кроком</h1>
-        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Агенти · 8 уроків · ≈ 100 хв</p>
-        <p class="mt-6 text-lg">
+        <p class="ds-eyebrow">Фаза C · Агенти й команди агентів</p>
+        <h1 class="ds-h1">Будуємо агента крок за кроком</h1>
+        <p class="ds-small ds-num">Агенти · 8 уроків · ≈ 100 хв</p>
+        <p class="ds-lead">
           Теорію розібрали — тепер збудуємо <strong>справжнього агента</strong>, що сам виконує
           багатокрокову задачу. Зробимо корисну штуку: агент-аналітик, який отримує дані продажів, рахує
           підсумки, складає звіт і зберігає у файл. Ти отримаєш <strong>повний файл, який можна скопіювати
@@ -104,8 +104,8 @@
         <hr />
 
         <!-- УРОК 13.1 -->
-        <section id="l1" data-lesson="13.1 Задача й план" class="scroll-mt-24">
-          <h2><span class="lesson-no">13.1</span>Задача й план: думаємо інструментами</h2>
+        <section id="l1" data-lesson="13.1 Задача й план">
+          <h2><span class="ds-prose__no">13.1</span>Задача й план: думаємо інструментами</h2>
           <p>
             Наша мета: <em>«Підготувати тижневий звіт про продажі — порахувати загальну суму й середній чек,
             скласти короткий текст і зберегти у файл»</em>. Це класична багатокрокова задача: треба дані,
@@ -120,18 +120,18 @@
             <li><strong>calculate</strong> — порахувати суму й середнє (модель не має рахувати велике сама).</li>
             <li><strong>save_report</strong> — зберегти готовий звіт у файл.</li>
           </ul>
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart LR
   G["Мета: тижневий звіт"] --> S["get_sales_data<br/>(дані)"]
   S --> C["calculate<br/>(сума, середнє)"]
   C --> R["save_report<br/>(файл)"]
   R --> F["Готово"]
-  style F fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class F hl
             </pre>
-            <p class="diagram-caption">Агент сам пройде ці кроки — наша справа дати йому інструменти й мету</p>
+            <p class="ds-diag__caption">Агент сам пройде ці кроки — наша справа дати йому інструменти й мету</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Важливо.</strong> Ми <em>не</em> програмуємо послідовність кроків жорстко. Ми лише
             даємо інструменти й мету — а <em>порядок</em> агент вирішує сам. У цьому й сила: зміниться задача
             — той самий набір інструментів спрацює інакше, без переписування логіки.</p>
@@ -141,10 +141,10 @@ flowchart LR
         <hr />
 
         <!-- УРОК 13.2 -->
-        <section id="l2" data-lesson="13.2 Готуємо інструменти" class="scroll-mt-24">
-          <h2><span class="lesson-no">13.2</span>Готуємо інструменти (функції)</h2>
+        <section id="l2" data-lesson="13.2 Готуємо інструменти">
+          <h2><span class="ds-prose__no">13.2</span>Готуємо інструменти (функції)</h2>
           <p>Спершу — самі функції (це звичайний Python із Модуля 6):</p>
-          <pre><code>def get_sales_data():
+          <pre class="ds-code__pre"><code>def get_sales_data():
     # У реальному продукті — запит до бази/таблиці. Тут — приклад.
     return "Пн 1200, Вт 1500, Ср 900, Чт 2100, Пт 1800 (грн)"
 
@@ -159,7 +159,7 @@ def save_report(filename, content):
     with open(filename, "w", encoding="utf-8") as f:   # відкриваємо файл на запис
         f.write(content)
     return f"Звіт збережено у файл {filename}"</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Розбір.</strong> <code>with open(filename, "w", ...) as f:</code> — відкриває файл на
             запис (<code>"w"</code> = write) і гарантовано закриє його після (той самий «менеджер контексту»,
             що й у стрімінгу, Модуль 8). <code>encoding="utf-8"</code> — щоб українські літери збереглись
@@ -167,7 +167,7 @@ def save_report(filename, content):
             <strong>ніколи не виконуй <code>eval</code> на довільному введенні у проді</strong> — це
             вразливість; для серйозних задач беруть безпечні бібліотеки-калькулятори.</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Чому calculate, а не «хай модель порахує сама».</strong> Моделі іноді помиляються в
             арифметиці, особливо з великими числами. Доручаючи підрахунок коду, ти отримуєш <em>точний</em>
             результат. Модель вирішує, <em>що</em> порахувати, а інструмент рахує надійно — це поділ праці.</p>
@@ -177,10 +177,10 @@ def save_report(filename, content):
         <hr />
 
         <!-- УРОК 13.3 -->
-        <section id="l3" data-lesson="13.3 Описуємо інструменти" class="scroll-mt-24">
-          <h2><span class="lesson-no">13.3</span>Описуємо інструменти для моделі</h2>
+        <section id="l3" data-lesson="13.3 Описуємо інструменти">
+          <h2><span class="ds-prose__no">13.3</span>Описуємо інструменти для моделі</h2>
           <p>Тепер — анкети <code>input_schema</code> (Модуль 10), щоб модель знала, які інструменти є й що вони приймають:</p>
-          <pre><code>tools = [
+          <pre class="ds-code__pre"><code>tools = [
     {"name": "get_sales_data", "description": "Повертає дані продажів за тиждень",
      "input_schema": {"type": "object", "properties": {}}},
 
@@ -195,7 +195,7 @@ def save_report(filename, content):
                                      "content": {"type": "string"}},
                       "required": ["filename", "content"]}},
 ]</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Дрібниці, що мають значення.</strong> У <code>get_sales_data</code> поле
             <code>properties</code> порожнє <code>{}</code> — бо функція не приймає аргументів. У
             <code>calculate</code> опис містить приклад (<code>'1200+1500'</code>) — це підказує моделі
@@ -207,14 +207,14 @@ def save_report(filename, content):
         <hr />
 
         <!-- УРОК 13.4 -->
-        <section id="l4" data-lesson="13.4 Повний agent.py" class="scroll-mt-24">
-          <h2><span class="lesson-no">13.4</span>Збираємо повний agent.py</h2>
+        <section id="l4" data-lesson="13.4 Повний agent.py">
+          <h2><span class="ds-prose__no">13.4</span>Збираємо повний agent.py</h2>
           <p>
             А тепер — <strong>увесь файл цілком</strong>. Це не фрагмент: скопіюй у <code>agent.py</code>,
             запусти — і агент працюватиме. Він поєднує інструменти, їх описи, карту імен, системний промпт
             (мету) і цикл агента з Модуля 12 (тут із друком кроків і системним промптом):
           </p>
-          <pre><code>import os
+          <pre class="ds-code__pre"><code>import os
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
@@ -298,7 +298,7 @@ def run_agent(task, max_steps=10):
 
 # === 6) ЗАПУСК ===
 print(run_agent("Підготуй тижневий звіт про продажі."))</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Як читати цей файл.</strong> Блоки 1–3 — підготовка (функції, описи, карта). Блок 4 —
             мета агента в <code>SYSTEM</code> (Модуль 8). Блок 5 — той самий цикл, що в Модулі 12, лише з
             додаванням <code>system=SYSTEM</code> у виклик і друком кожного кроку. Блок 6 — запуск. Зверни
@@ -310,11 +310,11 @@ print(run_agent("Підготуй тижневий звіт про продаж�
         <hr />
 
         <!-- УРОК 13.5 -->
-        <section id="l5" data-lesson="13.5 Запускаємо й спостерігаємо" class="scroll-mt-24">
-          <h2><span class="lesson-no">13.5</span>Запускаємо й спостерігаємо</h2>
+        <section id="l5" data-lesson="13.5 Запускаємо й спостерігаємо">
+          <h2><span class="ds-prose__no">13.5</span>Запускаємо й спостерігаємо</h2>
           <p>Запусти у терміналі:</p>
-          <pre><code>python agent.py        # або python3 agent.py на macOS / Linux</code></pre>
-          <div class="callout">
+          <pre class="ds-code__pre"><code>python agent.py        # або python3 agent.py на macOS / Linux</code></pre>
+          <div class="ds-note">
             <p><strong>Що ти маєш побачити</strong> (приблизно — деталі залежать від моделі):</p>
             <p><code>[крок 1] виклик: get_sales_data({})</code><br/>
             <code>[крок 2] виклик: calculate({'expression': '1200+1500+900+2100+1800'})</code><br/>
@@ -328,7 +328,7 @@ print(run_agent("Підготуй тижневий звіт про продаж�
             вирішив узяти дані, двічі звернутись до калькулятора (для суми й середнього), скласти текст і
             зберегти його. Ти не писав «спочатку це, потім те» — порядок агент склав сам. Це і є автономність.
           </p>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Якщо нічого не друкується / помилка одразу.</strong> Найчастіше — не підвантажився
             ключ. Перевір, що <code>.env</code> у тій самій папці й містить <code>ANTHROPIC_API_KEY</code>
             (Модуль 7), і що встановлені бібліотеки (<code>pip install anthropic python-dotenv</code>).</p>
@@ -338,8 +338,8 @@ print(run_agent("Підготуй тижневий звіт про продаж�
         <hr />
 
         <!-- УРОК 13.6 -->
-        <section id="l6" data-lesson="13.6 Типові помилки" class="scroll-mt-24">
-          <h2><span class="lesson-no">13.6</span>Типові помилки й налагодження</h2>
+        <section id="l6" data-lesson="13.6 Типові помилки">
+          <h2><span class="ds-prose__no">13.6</span>Типові помилки й налагодження</h2>
           <p>
             Агенти рідко працюють ідеально з першого разу — і це нормально навіть для досвідчених. Друк
             кроків (<code>[крок N] виклик: ...</code>) — твій головний діагностичний інструмент. Ось
@@ -362,7 +362,7 @@ print(run_agent("Підготуй тижневий звіт про продаж�
               Лік: переконайся, що ім'я в <code>tools</code> точно збігається з ключем у
               <code>tool_functions</code> і з назвою функції.</li>
           </ul>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Золоте правило налагодження агента.</strong> Спершу <em>подивись на друк кроків</em> —
             він майже завжди показує, де саме все пішло не так. А якщо незрозуміло — скопіюй друк і код у
             Claude Code й попроси: «агент поводиться ось так, ось кроки й код — що не так і як виправити?».</p>
@@ -372,14 +372,14 @@ print(run_agent("Підготуй тижневий звіт про продаж�
         <hr />
 
         <!-- УРОК 13.7 -->
-        <section id="l7" data-lesson="13.7 Покращуємо промпт" class="scroll-mt-24">
-          <h2><span class="lesson-no">13.7</span>Покращуємо агента через системний промпт</h2>
+        <section id="l7" data-lesson="13.7 Покращуємо промпт">
+          <h2><span class="ds-prose__no">13.7</span>Покращуємо агента через системний промпт</h2>
           <p>
             Перша версія працює — тепер зробімо її надійнішою. Якість агента на 80% залежить від
             <strong>системного промпта</strong>: чим чіткіша мета, формат і межі, тим стабільніша поведінка.
             Порівняй слабкий і сильний варіанти:
           </p>
-          <pre><code># Слабкий (розпливчастий):
+          <pre class="ds-code__pre"><code># Слабкий (розпливчастий):
 SYSTEM = "Ти аналітик. Зроби звіт про продажі."
 
 # Сильний (чітка мета + формат + межі):
@@ -391,7 +391,7 @@ SYSTEM = (
     "4) збережи у файл report.txt через save_report і заверши.\n"
     "Не вигадуй дані — бери лише з get_sales_data."
 )</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Що дає сильний промпт.</strong> Чіткі кроки зменшують блукання (менше зайвих
             викликів = дешевше й швидше). Заданий формат звіту робить результат передбачуваним. Правило «не
             вигадуй дані» захищає від галюцинацій. Межа «коли збережено — заверши» прибирає ризик зациклення.
@@ -406,13 +406,13 @@ SYSTEM = (
         <hr />
 
         <!-- УРОК 13.8 -->
-        <section id="l8" data-lesson="13.8 Варіації задачі" class="scroll-mt-24">
-          <h2><span class="lesson-no">13.8</span>Варіації: гнучкість агентного підходу</h2>
+        <section id="l8" data-lesson="13.8 Варіації задачі">
+          <h2><span class="ds-prose__no">13.8</span>Варіації: гнучкість агентного підходу</h2>
           <p>
             Найкраще відчути силу агента — змінити задачу <strong>без зміни коду</strong>. Той самий
             <code>agent.py</code>, ті самі інструменти — лише інший запит:
           </p>
-          <pre><code>print(run_agent("Який день був найкращим за продажами і на скільки він кращий за середній?"))
+          <pre class="ds-code__pre"><code>print(run_agent("Який день був найкращим за продажами і на скільки він кращий за середній?"))
 # Агент сам: візьме дані -> порахує середнє -> порівняє -> відповість.
 
 print(run_agent("Підрахуй лише суму продажів за перші три дні тижня."))
@@ -423,16 +423,16 @@ print(run_agent("Підрахуй лише суму продажів за пер
             сценарій.
           </p>
           <p>А щоб розширити можливості — додай інструмент за патерном із Модуля 12 (функція + опис + запис у карту). Наприклад, <code>send_email</code>, щоб агент ще й надсилав звіт:</p>
-          <pre><code>def send_email(to, subject, body):
+          <pre class="ds-code__pre"><code>def send_email(to, subject, body):
     # реально — виклик API пошти; обережно: це ДІЯ назовні (Модуль 15)
     return f"Лист до {to} підготовлено"
 # + опис у tools, + запис у tool_functions — і агент зможе ним користуватись.</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Обережно з діями назовні.</strong> Інструменти, що <em>надсилають</em> чи
             <em>змінюють</em> щось (пошта, оплата, видалення), потребують підтвердження людини (Модуль 12, і
             докладніше — Модуль 15). Читати дані — безпечно; діяти назовні — лише свідомо.</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Підсумок модуля.</strong> Ти збудував повного робочого агента від плану до запуску:
             визначив задачу, написав інструменти та їх описи, зібрав цілісний <code>agent.py</code>, простежив
             його роботу, навчився діагностувати типові помилки за друком кроків, посилив системний промпт і
@@ -444,7 +444,7 @@ print(run_agent("Підрахуй лише суму продажів за пер
         <hr />
 
         <!-- КВІЗ -->
-        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+        <section id="quiz" data-lesson="Квіз: перевір себе">
           <h2>Квіз: перевір себе</h2>
           <p>Сім питань без дедлайнів. Обирай відповідь — і одразу бачиш пояснення.</p>
           <div data-quiz="quizData"></div>
@@ -536,21 +536,21 @@ print(run_agent("Підрахуй лише суму продажів за пер
       }
       </script>
 
-      <div class="max-w-3xl">
-        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <div class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p id="completeTitle" class="font-medium text-ivory">Агент працює?</p>
-            <p class="mt-1 text-sm text-muted">
+            <p id="completeTitle" class="ds-h4">Агент працює?</p>
+            <p class="ds-small">
               Познач модуль завершеним — і відкриється Модуль 14: команда агентів, що працюють разом.
             </p>
           </div>
           <button id="completeBtn" type="button"
-                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+                  class="ds-btn ds-btn--primary">
             Позначити завершеним
           </button>
         </div>
 
-        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
       </div>
 
     </main>

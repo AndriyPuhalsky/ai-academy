@@ -78,23 +78,23 @@
     </div>
   </div>
 
-  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
 
-    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
       <div id="sidebarNav" class="lg:pt-10">
-        <p class="snav-count">Завантаження програми…</p>
+        <p class="ds-snav__count">Завантаження програми…</p>
       </div>
     </aside>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-3xl">
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
 
-        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза C · Агенти й команди агентів</p>
-        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Що таке AI-агент</h1>
-        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Агенти · 7 уроків · ≈ 90 хв</p>
-        <p class="mt-6 text-lg">
+        <p class="ds-eyebrow">Фаза C · Агенти й команди агентів</p>
+        <h1 class="ds-h1">Що таке AI-агент</h1>
+        <p class="ds-small ds-num">Агенти · 7 уроків · ≈ 90 хв</p>
+        <p class="ds-lead">
           Ось ми й дійшли до серця твоєї мети. Досі модель робила один крок: відповіла або один раз
           викликала інструмент. <strong>Агент</strong> — це коли модель сама проходить багато кроків
           поспіль, вирішуючи, що робити далі, поки не виконає задачу. У цьому модулі ми розберемо ідею,
@@ -105,8 +105,8 @@
         <hr />
 
         <!-- УРОК 12.1 -->
-        <section id="l1" data-lesson="12.1 Агент проти виклику" class="scroll-mt-24">
-          <h2><span class="lesson-no">12.1</span>Агент проти простого виклику</h2>
+        <section id="l1" data-lesson="12.1 Агент проти виклику">
+          <h2><span class="ds-prose__no">12.1</span>Агент проти простого виклику</h2>
           <p>
             У Модулі 10 модель один раз попросила інструмент, отримала результат — і дала відповідь. Це як
             відповісти на одне питання. <strong>Агент</strong> працює інакше: він отримує <em>мету</em> і
@@ -119,14 +119,14 @@
             зібрати дані, порахувати, оформити й зберегти — крок за кроком, без твоїх вказівок на кожен рух.
           </p>
           <p>Порівняймо прямо:</p>
-          <pre><code>Простий виклик (Модуль 10):
+          <pre class="ds-code__pre"><code>Простий виклик (Модуль 10):
   ти -> модель -> [один інструмент] -> відповідь.   Один прохід, кінець.
 
 Агент (цей модуль):
   ти -> модель -> інструмент -> результат ->
         модель -> інструмент -> результат ->
         модель -> ... -> фінальна відповідь.        Багато проходів, поки не готово.</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Коротко.</strong> Агент = модель + інструменти + <strong>цикл</strong>, у якому вона
             сама керує послідовністю дій до результату. Усе технічне ти вже знаєш із Модуля 10 — лишилось
             повторити tool use багато разів. Саме цей цикл і розглянемо.</p>
@@ -136,14 +136,14 @@
         <hr />
 
         <!-- УРОК 12.2 -->
-        <section id="l2" data-lesson="12.2 Цикл агента" class="scroll-mt-24">
-          <h2><span class="lesson-no">12.2</span>Цикл агента: думай → дій → спостерігай</h2>
+        <section id="l2" data-lesson="12.2 Цикл агента">
+          <h2><span class="ds-prose__no">12.2</span>Цикл агента: думай → дій → спостерігай</h2>
           <p>
             В основі будь-якого агента — простий повторюваний цикл із трьох кроків. Модель <strong>думає</strong>,
             що зробити; <strong>діє</strong> (викликає інструмент); <strong>спостерігає</strong> результат;
             і вирішує — задача виконана чи треба ще крок:
           </p>
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart TD
   G["Мета / задача"] --> T["Думай:<br/>що зробити далі?"]
@@ -152,9 +152,9 @@ flowchart TD
   O --> D{"Задача<br/>виконана?"}
   D -- "Ні" --> T
   D -- "Так" --> F["Фінальна відповідь"]
-  style F fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class F hl
             </pre>
-            <p class="diagram-caption">Серце агента: цикл «думай → дій → спостерігай», поки мету не досягнуто</p>
+            <p class="ds-diag__caption">Серце агента: цикл «думай → дій → спостерігай», поки мету не досягнуто</p>
           </div>
           <p>
             Це майже точно цикл tool use з Модуля 10 — лише замість одного проходу він
@@ -162,7 +162,7 @@ flowchart TD
             викликати інший, ще раз перший — будь-яку послідовність, яку вважатиме за потрібне. А коли
             вирішить, що задача виконана, просто дасть фінальну відповідь замість запиту інструмента.
           </p>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Звідки агент «знає», коли зупинитись.</strong> Згадай <code>stop_reason</code>
             (Модуль 8): поки модель просить інструменти, він дорівнює <code>"tool_use"</code> — цикл триває.
             Щойно модель відповідає звичайним текстом (інструмент більше не потрібен) — цикл завершується.
@@ -173,8 +173,8 @@ flowchart TD
         <hr />
 
         <!-- УРОК 12.3 -->
-        <section id="l3" data-lesson="12.3 Коли агент потрібен" class="scroll-mt-24">
-          <h2><span class="lesson-no">12.3</span>Коли агент потрібен, а коли — ні</h2>
+        <section id="l3" data-lesson="12.3 Коли агент потрібен">
+          <h2><span class="ds-prose__no">12.3</span>Коли агент потрібен, а коли — ні</h2>
           <p>
             Агенти потужні, але це не «срібна куля». Вони <strong>повільніші</strong> (багато кроків =
             багато викликів моделі), <strong>дорожчі</strong> (за кожен крок платиш токенами) і
@@ -187,11 +187,11 @@ flowchart TD
             <li><strong>Агент зайвий:</strong> задача проста й однокрокова. Класифікувати один відгук —
               достатньо простого виклику (Модуль 9). Відповісти по документах — RAG (Модуль 11).</li>
           </ul>
-          <pre><code>Питання для себе перед тим, як будувати агента:
+          <pre class="ds-code__pre"><code>Питання для себе перед тим, як будувати агента:
   1. Чи потрібно кілька кроків?        Ні -> простий виклик.
   2. Чи кроки відомі наперед?          Так -> звичайний код/конвеєр, не агент.
   3. Чи треба рішення "на ходу"?       Так -> ось тут і потрібен агент.</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Правило великого пальця.</strong> Починай із найпростішого, що вирішує задачу:
             простий виклик → tool use → RAG → і лише якщо потрібна справжня багатокрокова автономність —
             агент. Зайвий агент додає вартість, повільність і місця для помилок без користі.</p>
@@ -201,15 +201,15 @@ flowchart TD
         <hr />
 
         <!-- УРОК 12.4 -->
-        <section id="l4" data-lesson="12.4 Повний мінімальний агент" class="scroll-mt-24">
-          <h2><span class="lesson-no">12.4</span>Будуємо повний мінімальний агент</h2>
+        <section id="l4" data-lesson="12.4 Повний мінімальний агент">
+          <h2><span class="ds-prose__no">12.4</span>Будуємо повний мінімальний агент</h2>
           <p>
             Тепер — повний робочий файл, який можна <strong>скопіювати й запустити</strong> (нічого не
             розкидано по інших модулях). Це той самий tool use з Модуля 10, обгорнутий у цикл. Попроси
             Claude Code: «створи файл <code>simple_agent.py</code> — агент з інструментом погоди й циклом із
             межею кроків». Ось весь файл:
           </p>
-          <pre><code>import os
+          <pre class="ds-code__pre"><code>import os
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
@@ -268,7 +268,7 @@ def run_agent(task, max_steps=8):
 
 # 5) Запуск
 print(run_agent("Яка погода в Києві та Львові?"))</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Розбір по блоках.</strong> Блоки 1–3 — підготовка (інструмент, його опис, карта
             імен). Блок 4 — серце: <code>for step in range(max_steps)</code> повторює цикл із запобіжником.
             На кожному кроці робимо запит із інструментами; якщо <code>stop_reason != "tool_use"</code> —
@@ -276,7 +276,7 @@ print(run_agent("Яка погода в Києві та Львові?"))</code><
             знаходимо функцію за іменем, виконуємо (<code>**block.input</code> — розпакування аргументів,
             Модуль 10) і повертаємо всі результати одним повідомленням. Потім — наступне коло.</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Чому задача про два міста.</strong> Ми спитали погоду <em>в Києві та Львові</em>
             навмисно: це змусить агента викликати інструмент <strong>не один раз</strong> — і ти на власні
             очі побачиш, як цикл повторюється. Саме це й відрізняє агента від одиничного виклику.</p>
@@ -286,13 +286,13 @@ print(run_agent("Яка погода в Києві та Львові?"))</code><
         <hr />
 
         <!-- УРОК 12.5 -->
-        <section id="l5" data-lesson="12.5 Крок за кроком" class="scroll-mt-24">
-          <h2><span class="lesson-no">12.5</span>Що відбувається крок за кроком</h2>
+        <section id="l5" data-lesson="12.5 Крок за кроком">
+          <h2><span class="ds-prose__no">12.5</span>Що відбувається крок за кроком</h2>
           <p>
             Запусти <code>python simple_agent.py</code>. Зовні ти побачиш одну фінальну відповідь, але
             всередині цикл прокрутився кілька разів. Ось що там сталося:
           </p>
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 sequenceDiagram
   participant K as Твій код (цикл)
@@ -304,15 +304,15 @@ sequenceDiagram
   M-->>K: фінальний текст (stop_reason != tool_use)
   K->>K: цикл завершується, повертаємо текст
             </pre>
-            <p class="diagram-caption">Один запуск агента — кілька проходів циклу всередині</p>
+            <p class="ds-diag__caption">Один запуск агента — кілька проходів циклу всередині</p>
           </div>
           <p>Щоб побачити це <strong>на власні очі</strong>, додай у цикл один рядок-«шпигун»:</p>
-          <pre><code>        for block in resp.content:
+          <pre class="ds-code__pre"><code>        for block in resp.content:
             if block.type == "tool_use":
                 print(f"[крок {step+1}] виклик: {block.name}({block.input})")  # &lt;-- додай
                 func = tool_functions[block.name]
                 ...</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Що ти маєш побачити</strong> у терміналі (приблизно):</p>
             <p><code>[крок 1] виклик: get_weather({'city': 'Київ'})</code><br/>
             <code>[крок 1] виклик: get_weather({'city': 'Львів'})</code><br/>
@@ -320,7 +320,7 @@ sequenceDiagram
             <p>Бачиш? Модель попросила інструмент <em>двічі</em> (по разу на місто), отримала результати — і
             аж тоді дала фінальну відповідь. Це і є «думай → дій → спостерігай» у дії.</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Чому це важливо.</strong> Цей друк («шпигун») — твоє вікно у «голову» агента. Коли
             щось піде не так, саме він покаже, який інструмент і з якими аргументами викликала модель і де
             саме збій. Ми активно користуватимемось ним у наступному модулі.</p>
@@ -330,14 +330,14 @@ sequenceDiagram
         <hr />
 
         <!-- УРОК 12.6 -->
-        <section id="l6" data-lesson="12.6 Кілька інструментів" class="scroll-mt-24">
-          <h2><span class="lesson-no">12.6</span>Даємо агенту кілька інструментів</h2>
+        <section id="l6" data-lesson="12.6 Кілька інструментів">
+          <h2><span class="ds-prose__no">12.6</span>Даємо агенту кілька інструментів</h2>
           <p>
             Справжня сила агента — коли в нього кілька інструментів і він сам обирає потрібний під кожен
             крок. Додамо до погоди ще один — поточний час. Зміни в нашому файлі мінімальні: додаємо функцію,
             її опис і запис у карту.
           </p>
-          <pre><code># нова функція-інструмент
+          <pre class="ds-code__pre"><code># нова функція-інструмент
 def get_time(city):
     return f"У місті {city} зараз 14:30"   # приклад; реально — через бібліотеку часу
 
@@ -357,7 +357,7 @@ tool_functions["get_time"] = get_time
 
 # тепер агент сам обере інструмент під запитання:
 print(run_agent("Яка погода в Києві і котра там година?"))</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Що ти маєш побачити.</strong> Агент викличе <code>get_weather</code> (для погоди)
             <em>і</em> <code>get_time</code> (для часу), а тоді поєднає обидва в одну відповідь. Зверни увагу:
             ми <strong>не вказували</strong>, який інструмент коли брати — модель вирішила це сама,
@@ -373,8 +373,8 @@ print(run_agent("Яка погода в Києві і котра там годи
         <hr />
 
         <!-- УРОК 12.7 -->
-        <section id="l7" data-lesson="12.7 Безпека й межі" class="scroll-mt-24">
-          <h2><span class="lesson-no">12.7</span>Безпека й межі агента</h2>
+        <section id="l7" data-lesson="12.7 Безпека й межі">
+          <h2><span class="ds-prose__no">12.7</span>Безпека й межі агента</h2>
           <p>
             Агент діє сам — а отже, потрібні запобіжники. Це не формальність: агент із доступом до реальних
             дій (видалити файл, надіслати лист, витратити гроші) може наробити шкоди, якщо помилиться чи
@@ -393,7 +393,7 @@ print(run_agent("Яка погода в Києві і котра там годи
             <li><strong>Контроль вартості.</strong> Цикл = багато викликів. Пам'ятай про токени (Модуль 8) і
               ліміт витрат у консолі (Модуль 2).</li>
           </ul>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Підсумок модуля.</strong> Агент — це модель + інструменти + цикл «думай → дій →
             спостерігай», що повторюється до результату. Ти зрозумів, коли агент доречний, зібрав
             <em>повний робочий</em> мінімальний агент, простежив його роботу крок за кроком, додав другий
@@ -405,7 +405,7 @@ print(run_agent("Яка погода в Києві і котра там годи
         <hr />
 
         <!-- КВІЗ -->
-        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+        <section id="quiz" data-lesson="Квіз: перевір себе">
           <h2>Квіз: перевір себе</h2>
           <p>Сім питань без дедлайнів. Обирай відповідь — і одразу бачиш пояснення.</p>
           <div data-quiz="quizData"></div>
@@ -497,21 +497,21 @@ print(run_agent("Яка погода в Києві і котра там годи
       }
       </script>
 
-      <div class="max-w-3xl">
-        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <div class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p id="completeTitle" class="font-medium text-ivory">Зрозумів, що таке агент?</p>
-            <p class="mt-1 text-sm text-muted">
+            <p id="completeTitle" class="ds-h4">Зрозумів, що таке агент?</p>
+            <p class="ds-small">
               Познач модуль завершеним — і відкриється Модуль 13: збудуємо реального агента під задачу.
             </p>
           </div>
           <button id="completeBtn" type="button"
-                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+                  class="ds-btn ds-btn--primary">
             Позначити завершеним
           </button>
         </div>
 
-        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
       </div>
 
     </main>

@@ -82,25 +82,25 @@
   </div>
 
   <!-- Затемнення під мобільною шторкою сайдбара -->
-  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
 
     <!-- САЙДБАР: програма курсу + уроки модуля (рендериться js/module.js) -->
-    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
       <div id="sidebarNav" class="lg:pt-10">
-        <p class="snav-count">Завантаження програми…</p>
+        <p class="ds-snav__count">Завантаження програми…</p>
       </div>
     </aside>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-3xl">
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
 
         <!-- Вступ модуля -->
-        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Трек III · Розробка з Claude</p>
-        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Model Context Protocol</h1>
-        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Просунутий · 5 уроків · ≈ 70 хв читання</p>
-        <p class="mt-6 text-lg">
+        <p class="ds-eyebrow">Трек III · Розробка з Claude</p>
+        <h1 class="ds-h1">Model Context Protocol</h1>
+        <p class="ds-small ds-num">Просунутий · 5 уроків · ≈ 70 хв читання</p>
+        <p class="ds-lead">
           У Модулі 6 модель отримала руки, у сьомому — пам'ять. Але кожна інтеграція досі
           писалася вручну і жила лише у твоєму коді. MCP — Model Context Protocol,
           відкритий стандарт, представлений Anthropic наприкінці 2024 року, — робить
@@ -112,8 +112,8 @@
         <hr />
 
         <!-- УРОК 8.1 -->
-        <section id="l1" data-lesson="8.1 Проблема N×M" class="scroll-mt-24">
-          <h2><span class="lesson-no">8.1</span>Проблема N×M інтеграцій</h2>
+        <section id="l1" data-lesson="8.1 Проблема N×M">
+          <h2><span class="ds-prose__no">8.1</span>Проблема N×M інтеграцій</h2>
           <p>
             Порахуймо чесно. У тебе M застосунків зі штучним інтелектом: чат-асистент,
             помічник в IDE, внутрішній агент. І N джерел: GitHub, база замовлень, CRM,
@@ -128,7 +128,7 @@
             M + N компонентів замість M × N.
           </p>
 
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart TB
   subgraph OLD["До: кожен з кожним"]
@@ -145,9 +145,9 @@ flowchart TB
     P --- G2["MCP-сервер GitHub"]
     P --- DB2["MCP-сервер бази"]
   end
-  style P fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class P hl
             </pre>
-            <p class="diagram-caption">Чотири кастомні інтеграції перетворюються на чотири стандартні компоненти — і
+            <p class="ds-diag__caption">Чотири кастомні інтеграції перетворюються на чотири стандартні компоненти — і
               далі різниця лише зростає</p>
           </div>
 
@@ -162,8 +162,8 @@ flowchart TB
         </section>
 
         <!-- УРОК 8.2 -->
-        <section id="l2" data-lesson="8.2 Архітектура MCP" class="scroll-mt-24">
-          <h2><span class="lesson-no">8.2</span>Архітектура: host → client → server</h2>
+        <section id="l2" data-lesson="8.2 Архітектура MCP">
+          <h2><span class="ds-prose__no">8.2</span>Архітектура: host → client → server</h2>
           <p>У протоколі три ролі.</p>
           <ul>
             <li><strong>Host</strong> — застосунок, у якому живе модель: Claude Desktop,
@@ -182,7 +182,7 @@ flowchart TB
             <strong>HTTP</strong> для віддалених.
           </p>
 
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart LR
   subgraph HOST["Host — застосунок з моделлю"]
@@ -194,9 +194,9 @@ flowchart LR
   C2 ---|"JSON-RPC"| S2["MCP-сервер: файли"]
   S1 --> D1["PostgreSQL"]
   S2 --> D2["Локальний диск"]
-  style LLM fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class LLM hl
             </pre>
-            <p class="diagram-caption">Один клієнт — один сервер; серверів у хоста може бути скільки завгодно</p>
+            <p class="ds-diag__caption">Один клієнт — один сервер; серверів у хоста може бути скільки завгодно</p>
           </div>
 
           <p>
@@ -206,8 +206,8 @@ flowchart LR
             в контекст розмови.
           </p>
 
-          <div class="callout">
-            <span class="callout-title">Ключова думка</span>
+          <div class="ds-note">
+            <span class="ds-note__title">Ключова думка</span>
             <p>
               Сервер не знає і не мусить знати, який саме хост його викликає. Саме ця
               взаємна анонімність дає переносимість: сервер бази замовлень, написаний
@@ -218,13 +218,14 @@ flowchart LR
         </section>
 
         <!-- УРОК 8.3 -->
-        <section id="l3" data-lesson="8.3 Tools, resources, prompts" class="scroll-mt-24">
-          <h2><span class="lesson-no">8.3</span>Три примітиви: tools, resources, prompts</h2>
+        <section id="l3" data-lesson="8.3 Tools, resources, prompts">
+          <h2><span class="ds-prose__no">8.3</span>Три примітиви: tools, resources, prompts</h2>
           <p>
             Сервер може пропонувати три типи можливостей — і різниця між ними не в тому,
             «що це», а в тому, <strong>хто ініціює використання</strong>.
           </p>
-          <table>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: три примітиви MCP — хто ініціює використання">
+          <table class="ds-tbl">
             <thead>
               <tr>
                 <th>Примітив</th>
@@ -250,6 +251,7 @@ flowchart LR
               </tr>
             </tbody>
           </table>
+          </div>
           <ul>
             <li><strong>Tools</strong> — наш Модуль 6 у стандартизованій обгортці:
               функції зі схемами, які модель викликає за потреби.</li>
@@ -271,8 +273,8 @@ flowchart LR
         </section>
 
         <!-- УРОК 8.4 -->
-        <section id="l4" data-lesson="8.4 Власний MCP-сервер" class="scroll-mt-24">
-          <h2><span class="lesson-no">8.4</span>Перший власний MCP-сервер</h2>
+        <section id="l4" data-lesson="8.4 Власний MCP-сервер">
+          <h2><span class="ds-prose__no">8.4</span>Перший власний MCP-сервер</h2>
           <p>
             Офіційний Python SDK має шар FastMCP, який робить сервер майже декларативним:
             декоратор перетворює функцію на tool, type hints стають JSON-схемою,
@@ -280,9 +282,9 @@ flowchart LR
             Тут вони генеруються самі — і це чесна винагорода за розуміння механіки.
           </p>
 
-          <div class="example">
-            <div class="example-head"><span>Python · server.py — сервер кейтерингу</span></div>
-            <pre>from mcp.server.fastmcp import FastMCP
+          <div class="ds-code">
+            <div class="ds-code__head"><span>Python · server.py — сервер кейтерингу</span></div>
+            <pre class="ds-code__pre">from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("catering")
 
@@ -323,9 +325,9 @@ if __name__ == "__main__":
             сказати хосту, де його знайти. Для Claude Desktop це запис у конфігурації:
           </p>
 
-          <div class="example">
-            <div class="example-head"><span>JSON · фрагмент конфігурації хоста</span></div>
-            <pre>{
+          <div class="ds-code">
+            <div class="ds-code__head"><span>JSON · фрагмент конфігурації хоста</span></div>
+            <pre class="ds-code__pre">{
   "mcpServers": {
     "catering": {
       "command": "python",
@@ -347,8 +349,8 @@ if __name__ == "__main__":
         </section>
 
         <!-- УРОК 8.5 -->
-        <section id="l5" data-lesson="8.5 Екосистема і безпека" class="scroll-mt-24">
-          <h2><span class="lesson-no">8.5</span>Екосистема готових серверів і безпека</h2>
+        <section id="l5" data-lesson="8.5 Екосистема і безпека">
+          <h2><span class="ds-prose__no">8.5</span>Екосистема готових серверів і безпека</h2>
           <p>
             Перед тим як писати свій сервер — перевір каталоги готових: файлова система,
             Git і GitHub, бази даних, пошук, месенджери, таск-трекери — екосистема
@@ -387,8 +389,8 @@ if __name__ == "__main__":
 
         <hr />
 
-        <div class="callout callout-sand">
-          <span class="callout-title">Підсумок модуля</span>
+        <div class="ds-note ds-note--accent">
+          <span class="ds-note__title">Підсумок модуля</span>
           <ul>
             <li>MCP перетворює M×N інтеграцій на M+N: одна спільна мова для застосунків і джерел.</li>
             <li>Архітектура: host (застосунок) → client (конектор 1:1) → server (перед джерелом); JSON-RPC поверх stdio
@@ -402,7 +404,7 @@ if __name__ == "__main__":
         </div>
 
         <!-- КВІЗ -->
-        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+        <section id="quiz" data-lesson="Квіз: перевір себе">
           <h2>Квіз: перевір себе</h2>
           <p>
             Вісім питань про протокол. Обирай відповідь — і одразу отримуй пояснення.
@@ -508,25 +510,25 @@ if __name__ == "__main__":
       }
       </script>
 
-      <div class="max-w-3xl">
+      <div class="mt-12 grid gap-6 max-w-prose">
         <!-- Позначка завершення (js/module.js + js/progress.js) -->
         <div
-          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
-            <p class="mt-1 text-sm text-muted">
+            <p id="completeTitle" class="ds-h4">Модуль позаду?</p>
+            <p class="ds-small">
               Познач його завершеним — позначка збережеться в цьому браузері
               й з'явиться на головній сторінці.
             </p>
           </div>
           <button id="completeBtn" type="button"
-            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            class="ds-btn ds-btn--primary">
             Позначити завершеним
           </button>
         </div>
 
         <!-- Попередній / наступний модуль (рендерить js/module.js) -->
-        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
       </div>
 
     </main>

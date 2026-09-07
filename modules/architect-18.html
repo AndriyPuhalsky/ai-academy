@@ -78,23 +78,23 @@
     </div>
   </div>
 
-  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
 
-    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
       <div id="sidebarNav" class="lg:pt-10">
-        <p class="snav-count">Завантаження програми…</p>
+        <p class="ds-snav__count">Завантаження програми…</p>
       </div>
     </aside>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-3xl">
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
 
-        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза D · Продакшн</p>
-        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">LLMOps, вартість, моніторинг</h1>
-        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Продакшн · 7 уроків · ≈ 85 хв</p>
-        <p class="mt-6 text-lg">
+        <p class="ds-eyebrow">Фаза D · Продакшн</p>
+        <h1 class="ds-h1">LLMOps, вартість, моніторинг</h1>
+        <p class="ds-small ds-num">Продакшн · 7 уроків · ≈ 85 хв</p>
+        <p class="ds-lead">
           Задеплоїти продукт — лише півсправи. Тепер ним треба <strong>керувати</strong>: знати, скільки він
           коштує, бачити, що в ньому відбувається, переживати збої й не втрачати якість. Цей набір практик
           називають <strong>LLMOps</strong> (експлуатація систем на мовних моделях). Розберемо кожну з
@@ -104,8 +104,8 @@
         <hr />
 
         <!-- УРОК 18.1 -->
-        <section id="l1" data-lesson="18.1 Що таке LLMOps" class="scroll-mt-24">
-          <h2><span class="lesson-no">18.1</span>Що таке LLMOps і навіщо воно</h2>
+        <section id="l1" data-lesson="18.1 Що таке LLMOps">
+          <h2><span class="ds-prose__no">18.1</span>Що таке LLMOps і навіщо воно</h2>
           <p>
             <strong>LLMOps</strong> — це експлуатація живих продуктів на мовних моделях: облік витрат,
             логування, надійність, моніторинг якості й керування промптами. Простими словами — усе, що
@@ -117,18 +117,18 @@
             зовсім інше. Без цього навіть гарний ресторан швидко прогорить. LLMOps — це і є щоденне
             «керування рестораном» для твого AI-продукту.
           </p>
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart LR
   D["Живий продукт"] --> MON["Моніторинг:<br/>вартість, логи, помилки"]
   MON --> IMP["Висновки:<br/>оптимізувати, виправити"]
   IMP --> UP["Оновити (git push)"]
   UP --> D
-  style D fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class D hl
             </pre>
-            <p class="diagram-caption">LLMOps — це постійний цикл: спостерігай → роби висновки → оновлюй</p>
+            <p class="ds-diag__caption">LLMOps — це постійний цикл: спостерігай → роби висновки → оновлюй</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Чому це окрема навичка.</strong> Модель — недетермінована (відповіді різняться),
             платна (за токени) і залежна від зовнішнього сервісу (бувають збої). Тому до звичайного коду
             додаються нові турботи: контроль грошей, видимість поведінки й стійкість. Освоїш їх — і твої
@@ -139,14 +139,14 @@ flowchart LR
         <hr />
 
         <!-- УРОК 18.2 -->
-        <section id="l2" data-lesson="18.2 Облік вартості" class="scroll-mt-24">
-          <h2><span class="lesson-no">18.2</span>Облік токенів і вартості</h2>
+        <section id="l2" data-lesson="18.2 Облік вартості">
+          <h2><span class="ds-prose__no">18.2</span>Облік токенів і вартості</h2>
           <p>
             Перше правило проду: <strong>знай, скільки витрачаєш</strong>. Кожна відповідь несе в собі
             лічильник токенів (<code>usage</code>, Модуль 8). Зробимо помічника, що рахує орієнтовну
             вартість кожного виклику:
           </p>
-          <pre><code># Ціни УМОВНІ — звіряй актуальні на docs.claude.com
+          <pre class="ds-code__pre"><code># Ціни УМОВНІ — звіряй актуальні на docs.claude.com
 PRICE_IN = 3.0    # $ за мільйон вхідних токенів
 PRICE_OUT = 15.0  # $ за мільйон вихідних токенів
 
@@ -160,7 +160,7 @@ resp = client.messages.create(
 )
 cost = estimate_cost(resp.usage)
 print(f"токени: {resp.usage.input_tokens} + {resp.usage.output_tokens}, ~${cost:.5f}")</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Розбір.</strong> <code>estimate_cost</code> бере вхідні й вихідні токени з
             <code>usage</code> і множить на ціну за мільйон (Модуль 8). Зворотний слеш <code>\</code> в кінці
             рядка — це перенесення довгого виразу на наступний рядок (для читабельності).
@@ -168,13 +168,13 @@ print(f"токени: {resp.usage.input_tokens} + {resp.usage.output_tokens}, ~$
             запиту.</p>
           </div>
           <p>Щоб контролювати загальні витрати — накопичуй суму (а в проді ще й пиши у файл/лог):</p>
-          <pre><code>total_cost = 0.0    # глобальний лічильник
+          <pre class="ds-code__pre"><code>total_cost = 0.0    # глобальний лічильник
 
 def track(resp):
     global total_cost
     total_cost += estimate_cost(resp.usage)
     print(f"всього витрачено за сесію: ~${total_cost:.4f}")</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Підказка з безпеки бюджету.</strong> Поєднай це з лімітом витрат у консолі Anthropic
             (Модуль 2) — він страхує на рівні акаунта. А власний лічильник дає тобі точну картину: який
             ендпоінт чи функція «з'їдає» найбільше, і де є сенс оптимізувати (урок 18.6).</p>
@@ -184,15 +184,15 @@ def track(resp):
         <hr />
 
         <!-- УРОК 18.3 -->
-        <section id="l3" data-lesson="18.3 Логування" class="scroll-mt-24">
-          <h2><span class="lesson-no">18.3</span>Логування: бачимо, що відбувається</h2>
+        <section id="l3" data-lesson="18.3 Логування">
+          <h2><span class="ds-prose__no">18.3</span>Логування: бачимо, що відбувається</h2>
           <p>
             Локально ти бачив усе через <code>print</code> у терміналі. Але задеплоєний продукт працює без
             тебе — ти не дивишся в його екран цілодобово. Тому потрібні <strong>логи</strong>: запис того,
             що відбувається, який зберігається й який можна переглянути згодом.
           </p>
           <p>У Python для цього є вбудований модуль <code>logging</code> — кращий за <code>print</code> для проду:</p>
-          <pre><code>import logging
+          <pre class="ds-code__pre"><code>import logging
 
 logging.basicConfig(
     filename="app.log",                 # писати в файл (а не лише на екран)
@@ -204,14 +204,14 @@ logging.basicConfig(
 logging.info("Запит: %s", question)                  # звичайна подія
 logging.warning("Повільна відповідь: %.1f c", delay) # попередження
 logging.error("Помилка виклику: %s", error)          # помилка</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Чому logging кращий за print.</strong> Він додає <em>час</em> до кожного запису
             (видно, коли що сталося), має <em>рівні</em> (INFO/WARNING/ERROR — легко відфільтрувати важливе),
             і пише у <em>файл</em>, що зберігається. У проді саме за логами ти зрозумієш, що пішло не так,
             коли користувач поскаржиться. <code>%s</code> — це місце, куди підставиться значення (тут
             <code>question</code>).</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Обережно з приватністю.</strong> Не логуй секрети (ключі!) і будь обачним із
             персональними даними користувачів. Логуй те, що потрібно для діагностики, а чутливе — приховуй
             або не пиши взагалі (детальніше про PII — Модуль 19).</p>
@@ -221,14 +221,14 @@ logging.error("Помилка виклику: %s", error)          # помил�
         <hr />
 
         <!-- УРОК 18.4 -->
-        <section id="l4" data-lesson="18.4 Надійність: повтори" class="scroll-mt-24">
-          <h2><span class="lesson-no">18.4</span>Надійність: повтори, backoff і таймаути</h2>
+        <section id="l4" data-lesson="18.4 Надійність: повтори">
+          <h2><span class="ds-prose__no">18.4</span>Надійність: повтори, backoff і таймаути</h2>
           <p>
             Зовнішній сервіс іноді відповідає помилкою: <strong>429</strong> (забагато запитів) чи
             <strong>5xx</strong> (тимчасовий збій). Надійний продукт не падає від цього, а
             <strong>чекає й повторює</strong> з паузою, що зростає (експоненційний backoff, Модуль 8):
           </p>
-          <pre><code>import time, logging
+          <pre class="ds-code__pre"><code>import time, logging
 
 def call_with_retry(messages, max_retries=3):
     for attempt in range(max_retries):
@@ -241,14 +241,14 @@ def call_with_retry(messages, max_retries=3):
             logging.warning("Спроба %d не вдалась: %s; чекаю %ds", attempt + 1, e, wait)
             time.sleep(wait)       # пауза перед повтором
     raise RuntimeError("Не вдалося отримати відповідь після кількох спроб")</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Розбір.</strong> Цикл <code>for attempt in range(max_retries)</code> дає кілька
             спроб. <code>2 ** attempt</code> — пауза 1, 2, 4 секунди (зростає, щоб не «довбати»
             перевантажений сервіс). <code>time.sleep(wait)</code> чекає перед наступною спробою. Якщо всі
             спроби провалились — кидаємо помилку через <code>raise</code> (Модуль 6). Кожну невдачу пишемо в
             лог (урок 18.3), щоб бачити проблеми.</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Корисно знати.</strong> Офіційний SDK уже вміє робити повтори автоматично — але
             власний обгортач дає тобі контроль (скільки спроб, логування, запасний варіант). Також варто
             задавати <strong>таймаут</strong> — максимальний час очікування відповіді, щоб запит не «висів»
@@ -259,14 +259,14 @@ def call_with_retry(messages, max_retries=3):
         <hr />
 
         <!-- УРОК 18.5 -->
-        <section id="l5" data-lesson="18.5 Версіонування промптів" class="scroll-mt-24">
-          <h2><span class="lesson-no">18.5</span>Версіонування промптів</h2>
+        <section id="l5" data-lesson="18.5 Версіонування промптів">
+          <h2><span class="ds-prose__no">18.5</span>Версіонування промптів</h2>
           <p>
             Промпт — це теж код, від якого залежить поведінка продукту. Якщо тримати його «десь у рядку» й
             міняти наосліп, одного дня зміна погіршить якість — і ти не зможеш швидко повернути як було. Тому
             промпти <strong>версіонують</strong>: зберігають в одному місці з номерами версій.
           </p>
-          <pre><code>PROMPTS = {
+          <pre class="ds-code__pre"><code>PROMPTS = {
     "support_v1": "Ти асистент підтримки. Відповідай на питання клієнтів.",
     "support_v2": ("Ти асистент підтримки. Відповідай коротко, чемно й "
                    "українською. Якщо не знаєш — чесно скажи про це."),
@@ -276,13 +276,13 @@ ACTIVE_PROMPT = "support_v2"     # яку версію використовує�
 system = PROMPTS[ACTIVE_PROMPT]
 # ... передаємо system у виклик моделі ...
 logging.info("Використано промпт: %s", ACTIVE_PROMPT)   # фіксуємо версію в лозі</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Що це дає.</strong> Зміна промпта стає <em>свідомою й оборотною</em>: погіршив якість
             у <code>v3</code> — миттєво повертаєшся на <code>v2</code>, змінивши один рядок. А запис версії в
             лог дозволяє зрозуміти, який саме промпт дав ту чи іншу відповідь. Це той самий принцип
             «збережень», що й Git (Модуль 5), але для поведінки моделі.</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Як перевіряти, що нова версія краща.</strong> Не «на око», а на наборі тестових
             прикладів — це оцінювання (evals), яким присвячено наступний модуль. Спочатку прогнав
             <code>v3</code> на тестах, переконався, що краще — і лише тоді зробив активною.</p>
@@ -292,14 +292,14 @@ logging.info("Використано промпт: %s", ACTIVE_PROMPT)   # фі�
         <hr />
 
         <!-- УРОК 18.6 -->
-        <section id="l6" data-lesson="18.6 Оптимізація вартості" class="scroll-mt-24">
-          <h2><span class="lesson-no">18.6</span>Оптимізація вартості</h2>
+        <section id="l6" data-lesson="18.6 Оптимізація вартості">
+          <h2><span class="ds-prose__no">18.6</span>Оптимізація вартості</h2>
           <p>Коли продукт працює, з'являється сенс економити. Чотири головні важелі:</p>
           <ul>
             <li><strong>Кешуй повтори.</strong> Якщо одне й те саме питання приходить часто — не плати за
               нього щоразу, віддавай збережену відповідь:</li>
           </ul>
-          <pre><code>cache = {}    # простий кеш: питання -> відповідь
+          <pre class="ds-code__pre"><code>cache = {}    # простий кеш: питання -> відповідь
 
 def ask_cached(question):
     if question in cache:           # вже відповідали — беремо з кешу безкоштовно
@@ -316,7 +316,7 @@ def ask_cached(question):
             <li><strong>Тримай <code>max_tokens</code> розумним.</strong> Не проси 4000 токенів, якщо
               відповідь — два речення.</li>
           </ul>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Як вирішувати.</strong> Спершу <em>виміряй</em> (урок 18.2), де витрати найбільші,
             і оптимізуй саме там. Передчасна оптимізація навмання — марнування часу. На масштабі тисяч
             запитів ці чотири важелі вирішують, прибутковий продукт чи збитковий.</p>
@@ -326,8 +326,8 @@ def ask_cached(question):
         <hr />
 
         <!-- УРОК 18.7 -->
-        <section id="l7" data-lesson="18.7 Моніторинг і алерти" class="scroll-mt-24">
-          <h2><span class="lesson-no">18.7</span>Моніторинг і алерти</h2>
+        <section id="l7" data-lesson="18.7 Моніторинг і алерти">
+          <h2><span class="ds-prose__no">18.7</span>Моніторинг і алерти</h2>
           <p>
             Моніторинг — це постійне відстеження «здоров'я» продукту, щоб помітити проблему <em>раніше</em>,
             ніж про неї скажуть користувачі. Що варто тримати на оці:
@@ -338,17 +338,17 @@ def ask_cached(question):
             <li><strong>Затримка (latency)</strong> — як швидко відповідає; зросла = проблема.</li>
             <li><strong>Обсяг запитів</strong> — скільки людей користується; допомагає планувати витрати.</li>
           </ul>
-          <pre><code>Звідки це брати:
+          <pre class="ds-code__pre"><code>Звідки це брати:
   - логи (урок 18.3) — твоє головне джерело правди про події;
   - панель хостингу (Модуль 17) — там видно логи й базові метрики живого сервісу;
   - консоль Anthropic — використання й витрати на рівні акаунта.</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Алерти — щоб не дивитись постійно.</strong> Сенс не в тому, щоб цілодобово вдивлятися
             в графіки, а щоб система <em>сама</em> повідомила про проблему: ліміт витрат у консолі (Модуль 2)
             як «стоп-кран» на гроші, сповіщення платформи про падіння сервісу. Налаштуй ключові алерти один
             раз — і спи спокійно.</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Підсумок модуля.</strong> Ти вмієш рахувати вартість кожного виклику, логувати події
             у проді, переживати збої через повтори з backoff, версіонувати промпти з можливістю відкату,
             оптимізувати витрати (кеш, дешевша модель, підрізання контексту) і знаєш, що моніторити та як
@@ -360,7 +360,7 @@ def ask_cached(question):
         <hr />
 
         <!-- КВІЗ -->
-        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+        <section id="quiz" data-lesson="Квіз: перевір себе">
           <h2>Квіз: перевір себе</h2>
           <p>Сім питань без дедлайнів. Обирай відповідь — і одразу бачиш пояснення.</p>
           <div data-quiz="quizData"></div>
@@ -452,21 +452,21 @@ def ask_cached(question):
       }
       </script>
 
-      <div class="max-w-3xl">
-        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <div class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p id="completeTitle" class="font-medium text-ivory">Продукт під контролем?</p>
-            <p class="mt-1 text-sm text-muted">
+            <p id="completeTitle" class="ds-h4">Продукт під контролем?</p>
+            <p class="ds-small">
               Познач модуль завершеним — і відкриється Модуль 19: якість і безпека AI-продукту.
             </p>
           </div>
           <button id="completeBtn" type="button"
-                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+                  class="ds-btn ds-btn--primary">
             Позначити завершеним
           </button>
         </div>
 
-        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
       </div>
 
     </main>

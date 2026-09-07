@@ -82,25 +82,25 @@
   </div>
 
   <!-- Затемнення під мобільною шторкою сайдбара -->
-  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
 
     <!-- САЙДБАР: програма курсу + уроки модуля (рендериться js/module.js) -->
-    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
       <div id="sidebarNav" class="lg:pt-10">
-        <p class="snav-count">Завантаження програми…</p>
+        <p class="ds-snav__count">Завантаження програми…</p>
       </div>
     </aside>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-3xl">
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
 
         <!-- Вступ модуля -->
-        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Трек IV · Агенти та продакшн</p>
-        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Evals: оцінювання якості</h1>
-        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Просунутий · 4 уроки · ≈ 55 хв читання</p>
-        <p class="mt-6 text-lg">
+        <p class="ds-eyebrow">Трек IV · Агенти та продакшн</p>
+        <h1 class="ds-h1">Evals: оцінювання якості</h1>
+        <p class="ds-small ds-num">Просунутий · 4 уроки · ≈ 55 хв читання</p>
+        <p class="ds-lead">
           Модуль 9 закінчився питанням: агент працює — але наскільки добре? Промпт
           «покращили» — а чи справді? У звичайній розробці на такі питання відповідають
           тести; в LLM-системах їхній аналог — evals. Це останній технічний інструмент
@@ -111,8 +111,8 @@
         <hr />
 
         <!-- УРОК 10.1 -->
-        <section id="l1" data-lesson="10.1 Чому «на око» бреше" class="scroll-mt-24">
-          <h2><span class="lesson-no">10.1</span>Чому «на око» не працює</h2>
+        <section id="l1" data-lesson="10.1 Чому «на око» бреше">
+          <h2><span class="ds-prose__no">10.1</span>Чому «на око» не працює</h2>
           <p>
             Типова сцена. Ти переформулював промпт, спробував на двох-трьох прикладах —
             «о, стало краще!» — і задеплоїв. За тиждень у проді посипалися кейси,
@@ -137,16 +137,16 @@
             до зміни, прогнав після — порівняв числа.
           </p>
 
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart TD
   CH["Зміна промпта"] --> A["«На око»: 2–3 улюблені приклади"]
   CH --> B["Eval: фіксований набір із 50 кейсів"]
   A --> A2["Невидимі регресії випливають у проді"]
   B --> B2["Число до і після: рішення на фактах"]
-  style B fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class B hl
             </pre>
-            <p class="diagram-caption">Та сама зміна — два різні рівні впевненості</p>
+            <p class="ds-diag__caption">Та сама зміна — два різні рівні впевненості</p>
           </div>
 
           <p>
@@ -157,8 +157,8 @@ flowchart TD
         </section>
 
         <!-- УРОК 10.2 -->
-        <section id="l2" data-lesson="10.2 Тестовий набір" class="scroll-mt-24">
-          <h2><span class="lesson-no">10.2</span>Тестовий набір: золотий запас якості</h2>
+        <section id="l2" data-lesson="10.2 Тестовий набір">
+          <h2><span class="ds-prose__no">10.2</span>Тестовий набір: золотий запас якості</h2>
           <p>
             Кейс — це вхід плюс очікування: точна відповідь, перелік обов'язкових
             елементів або критерії якості. Зберігати найзручніше простим JSON поруч
@@ -166,9 +166,9 @@ flowchart TD
             нашого класифікатора звернень із Модулів 4 і 9:
           </p>
 
-          <div class="example">
-            <div class="example-head"><span>JSON · eval_cases.json</span></div>
-            <pre>[
+          <div class="ds-code">
+            <div class="ds-code__head"><span>JSON · eval_cases.json</span></div>
+            <pre class="ds-code__pre">[
   {"id": "c01",
    "input": "Хочемо фуршет на 25 осіб наступної п'ятниці",
    "expected": "нове_замовлення"},
@@ -208,8 +208,8 @@ flowchart TD
             що реально приходить у систему, а не те, що зручно перевіряти.
           </p>
 
-          <div class="callout">
-            <span class="callout-title">Не плутати з тренуванням</span>
+          <div class="ds-note">
+            <span class="ds-note__title">Не плутати з тренуванням</span>
             <p>
               Eval-набір нічого не «навчає» — ми не дотреновуємо модель. Це лише
               лінійка: нею вимірюють, а не виховують. Тому той самий набір чесно
@@ -220,8 +220,8 @@ flowchart TD
         </section>
 
         <!-- УРОК 10.3 -->
-        <section id="l3" data-lesson="10.3 Три способи оцінки" class="scroll-mt-24">
-          <h2><span class="lesson-no">10.3</span>Три способи оцінювання</h2>
+        <section id="l3" data-lesson="10.3 Три способи оцінки">
+          <h2><span class="ds-prose__no">10.3</span>Три способи оцінювання</h2>
           <p>
             Кейси є — лишилося вирішити, <em>хто</em> ставитиме оцінку. Варіантів три,
             і вони не конкуренти, а інструменти під різні задачі.
@@ -238,7 +238,8 @@ flowchart TD
               перевіряє відповідь за рубрикою: масштабований спосіб міряти
               суб'єктивне — тисяча кейсів за обід.</li>
           </ul>
-          <table>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: методи оцінювання — що міряють, ціна, головний ризик">
+          <table class="ds-tbl">
             <thead>
               <tr>
                 <th>Метод</th>
@@ -268,6 +269,7 @@ flowchart TD
               </tr>
             </tbody>
           </table>
+          </div>
           <p>
             Правила надійного судді-моделі: чітка рубрика прямо в промпті; оцінка
             повертається структуровано — форсованим інструментом із Модуля 6, а не
@@ -286,15 +288,15 @@ flowchart TD
         </section>
 
         <!-- УРОК 10.4 -->
-        <section id="l4" data-lesson="10.4 Цикл покращення" class="scroll-mt-24">
-          <h2><span class="lesson-no">10.4</span>Ітеративний цикл покращення</h2>
+        <section id="l4" data-lesson="10.4 Цикл покращення">
+          <h2><span class="ds-prose__no">10.4</span>Ітеративний цикл покращення</h2>
           <p>
             Збираємо процес: зафіксував базлайн → зробив <em>одну</em> зміну → прогнав
             набір → порівняв метрику → прийняв або відкотив. А прод тим часом постачає
             нові кейси в набір.
           </p>
 
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart LR
   BASE["Базлайн: метрика поточного промпта"] --> CH["Одна зміна промпта"]
@@ -305,15 +307,15 @@ flowchart LR
   ACC --> CH
   REJ --> CH
   PROD["Падіння в проді"] -.->|"стає кейсом назавжди"| RUN
-  style CMP stroke:#D97757
-  style PROD fill:#2A211C,stroke:#E8DCC3,color:#F0EEE6
+  class CMP hl
+  class PROD hl
             </pre>
-            <p class="diagram-caption">Той самий цикл, що й у звичайній розробці з тестами, — лише лінійка інша</p>
+            <p class="ds-diag__caption">Той самий цикл, що й у звичайній розробці з тестами, — лише лінійка інша</p>
           </div>
 
-          <div class="example">
-            <div class="example-head"><span>Python · eval-раннер для класифікатора</span></div>
-            <pre>import json
+          <div class="ds-code">
+            <div class="ds-code__head"><span>Python · eval-раннер для класифікатора</span></div>
+            <pre class="ds-code__pre">import json
 from anthropic import Anthropic
 
 client = Anthropic()
@@ -385,8 +387,8 @@ for fail in failures:
 
         <hr />
 
-        <div class="callout callout-sand">
-          <span class="callout-title">Підсумок модуля</span>
+        <div class="ds-note ds-note--accent">
+          <span class="ds-note__title">Підсумок модуля</span>
           <ul>
             <li>«На око» бреше: недетермінованість, вибіркова пам'ять, невидимі регресії.</li>
             <li>Eval = набір кейсів + спосіб оцінки + метрика; двадцять кейсів кращі за нуль.</li>
@@ -398,7 +400,7 @@ for fail in failures:
         </div>
 
         <!-- КВІЗ -->
-        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+        <section id="quiz" data-lesson="Квіз: перевір себе">
           <h2>Квіз: перевір себе</h2>
           <p>
             Вісім питань про вимірювання якості. Обирай відповідь — і одразу отримуй
@@ -505,25 +507,25 @@ for fail in failures:
       }
       </script>
 
-      <div class="max-w-3xl">
+      <div class="mt-12 grid gap-6 max-w-prose">
         <!-- Позначка завершення (js/module.js + js/progress.js) -->
         <div
-          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
-            <p class="mt-1 text-sm text-muted">
+            <p id="completeTitle" class="ds-h4">Модуль позаду?</p>
+            <p class="ds-small">
               Познач його завершеним — позначка збережеться в цьому браузері
               й з'явиться на головній сторінці.
             </p>
           </div>
           <button id="completeBtn" type="button"
-            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            class="ds-btn ds-btn--primary">
             Позначити завершеним
           </button>
         </div>
 
         <!-- Попередній / наступний модуль (рендерить js/module.js) -->
-        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
       </div>
 
     </main>
