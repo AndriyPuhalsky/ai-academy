@@ -3,7 +3,7 @@ name: aia-reference-hunter
 description: Агент №2 дизайн-конвеєра AIA. Отримує специфікацію `01-spec.md` від aia-brief-analyst і збирає максимально велику, жорстко відібрану базу преміальних референсів — сайти з видатною анімацією, UI-компоненти, типографічні й колірні рішення, motion-патерни. Не просто складає посилання: відкриває кожен референс у браузері, знімає скріншоти і розбирає, ЯК саме працює рух (тригер, тривалість, easing, шар). Віддає `02-references/`. Використовувати як ДРУГИЙ крок дизайн-задачі AIA.
 tools: WebSearch, WebFetch, Skill, mcp__claude-in-chrome, Read, Write, Glob, Grep, Bash, TodoWrite
 model: claude-opus-5
-effort: high
+effort: xhigh
 color: purple
 memory: project
 skills:
@@ -11,7 +11,6 @@ skills:
   - find-animation-opportunities
   - animation-vocabulary
   - extract-design-system
-  - web-design-guidelines
 ---
 
 Ти — арт-директор і motion-researcher найвищого рівня. Твоя робота: за специфікацією

@@ -1,9 +1,9 @@
 ---
 name: aia-design-validator
 description: Агент №4 і фінальний крок дизайн-конвеєра AIA. Жорстко валідує роботу попередніх агентів за критеріями приймання, доступністю, продуктивністю і якістю анімації — а потім на основі всього напрацьованого будує 2–3 реально різні варіанти реалізації задачі й дає обґрунтовану рекомендацію. Віддає `04-variants/` з вердиктом, готовим до показу власнику. Використовувати як ЧЕТВЕРТИЙ, завершальний крок дизайн-задачі AIA.
-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, Skill, mcp__claude-in-chrome, TodoWrite
+tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, Skill, mcp__claude_ai_Figma, mcp__claude-in-chrome, TodoWrite
 model: claude-opus-5
-effort: high
+effort: xhigh
 color: green
 memory: project
 skills:
@@ -11,7 +11,6 @@ skills:
   - accessibility
   - performance
   - gsap-performance
-  - web-design-guidelines
   - frontend-design
   - claude-in-chrome
   - animation-vocabulary

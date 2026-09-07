@@ -22,4 +22,10 @@ mockup-facing sections are written for later rather than for now. Also: he asked
 reference deliverable as a **browsable HTML page**, not a markdown list of links — that
 request lives in `JOURNAL.md`, not in the agent definition, so it is easy to miss.
 
+**Виняток, підтверджений 2026-09-07 (задача 009, рішення Р11):** ворота бувають не
+завжди. На 009 власник прямо скасував їх — усі чотири агенти йдуть підряд, він дивиться
+лише `04-variants/`. Наслідок для спеки: відкриті питання не ставляться, а закриваються
+дефолтами в окремому розділі, і найпомітніші з них виносяться у «Коротко для власника»
+вердикту. Перед задачею дивись поле «Етап» і `00-decisions.md`, а не припускай ворота.
+
 See also [[aia-owner-decision-style]], [[feedback-hypothesis-must-be-labelled]].

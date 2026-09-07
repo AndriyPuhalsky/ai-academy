@@ -3,12 +3,11 @@ name: aia-brief-analyst
 description: Агент №1 дизайн-конвеєра AIA. Читає заповнений бриф `dev/design/NNN-slug/task.md` і перетворює його на вичерпну технічну специфікацію `01-spec.md`, за якою наступні агенти працюють без жодного уточнюючого питання. Заземляє бриф у реальність поточного сайту, перекладає розмиті побажання в точну термінологію руху, фіксує критерії приймання і чесно виносить угору все, що в брифі не визначено. Використовувати щоразу як ПЕРШИЙ крок роботи над дизайн-задачею AIA.
 tools: Read, Glob, Grep, Write, Bash, WebFetch, Skill, TodoWrite
 model: claude-opus-5
-effort: high
+effort: xhigh
 color: blue
 memory: project
 skills:
   - animation-vocabulary
-  - web-design-guidelines
   - ui-ux-pro-max
 ---
 
