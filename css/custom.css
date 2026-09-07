@@ -64,35 +64,17 @@ html {
 }
 
 /* ============================================================
-   Стрімінг заголовка «токен за токеном»
-   Поки JS не запустився (html без .js) — текст видно одразу,
-   тож сторінка лишається читабельною без скриптів.
+   010 · ЕТАП 8 · БЛОК СТРІМІНГУ ЗАГОЛОВКА ВИДАЛЕНИЙ
+   Тут жили `.js [data-stream] { visibility: hidden }` + `.is-streaming` /
+   `.is-done` + `.caret` / `@keyframes caret-blink`. Усе це обслуговувало
+   js/ui.js → streamHero(), який вставляв текст у DOM посимвольно. Заміна —
+   typeHero() + `.ds-hero__type` (clip-path + steps) і `.ds-hero__caret`
+   у css/components.css, секція 24 D2/D3.
+   ⚠ Правило `visibility: hidden` мусило піти В ТОМУ Ж КОМІТІ, що typeHero():
+   новий друк не додає ні `.is-streaming`, ні `.is-done`, тому обидва рядки
+   hero лишались би невидимими (заміряно живцем: h1 у DOM, 904×135 px,
+   opacity 1, а на екрані порожньо).
    ============================================================ */
-.js [data-stream] {
-  visibility: hidden;
-}
-.js [data-stream].is-streaming,
-.js [data-stream].is-done {
-  visibility: visible;
-}
-
-.caret {
-  display: inline-block;
-  width: 0.5em;
-  height: 0.92em;
-  margin-left: 0.1em;
-  border-radius: 2px;
-  background: #D97757;
-  vertical-align: -0.06em;
-  animation: caret-blink 1.05s steps(1) infinite;
-}
-.caret.is-gone {
-  transition: opacity 0.6s ease;
-  opacity: 0;
-}
-@keyframes caret-blink {
-  50% { opacity: 0; }
-}
 
 /* ============================================================
    Поява блоків при скролі (елементи з класом .reveal)

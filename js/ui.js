@@ -1,7 +1,7 @@
 /* ============================================================
    AI Академія — поведінка спільного хрому:
-   1) стрімінг hero-заголовка «токен за токеном» (фішка сайту:
-      жива демонстрація того, як LLM генерує текст);
+   1) друк hero-заголовка (фішка сайту: жива демонстрація того, як
+      LLM генерує текст) — clip-path + steps(), НУЛЬ записів у DOM;
    2) мобільне меню лендінга (.ds-nav__drawer) і випадайка «Курси»
       з повним клавіатурним контрактом §6.3;
    3) копіювання реквізитів у буфер обміну.
@@ -15,79 +15,60 @@
      z-index: стан тримає aria-expanded, вигляд — .ds-nav__menu;
    · initDropdown винесений у AIA.chrome — тим самим механізмом
      js/auth-ui.js відкриває аркуш акаунта (рішення власника Р-1);
-   · reduced-motion питається в AIA.motion.on(), а не в matchMedia:
+   · reduced-motion питається в AIA.motion, а не в matchMedia:
      matchMedia бачить лише системну настройку й не знає ні про
-     пресет data-motion, ні про --motion (пастка П-27).
+     пресет data-motion, ні про --motion (пастка П-27);
+   · [ЕТАП 8] друк заголовка більше не вставляє символи в DOM —
+     див. коментар до typeHero(). Разом зі streamHero() пішли
+     tokenize(), delay() і власний motionOn(): останній існував рівно
+     для тієї гілки, а typeHero() питає AIA.motion.cps() напряму.
    ============================================================ */
 (function (global) {
   "use strict";
 
   var AIA = global.AIA = global.AIA || {};
 
-  /* Рух дозволений? Джерело правди — AIA.motion (токен --motion).
-     matchMedia лишається лише як запасний шлях, якщо motion.js не
-     завантажився: тоді поводимось як раніше. */
-  function motionOn() {
-    if (AIA.motion && typeof AIA.motion.on === "function") return AIA.motion.on();
-    return !(global.matchMedia && global.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  }
+  /* ---------- 1. M10 · друк заголовка hero ----------
+     010 · було: токенізатор «під BPE» + await-цикл, який дописував шматки
+     в textContent. Ціна — ~30 записів у DOM на рядок, зірване виділення
+     тексту мишею й стільки ж перечитувань скрінрідером; каретка малювалась
+     класами .caret / .is-gone з css/custom.css, який зникає на етапі 9.
 
-  /* ---------- 1. Стрімінг заголовка ---------- */
+     Стало — той самий механізм, що вже несе всі 101 термінал сайту:
+     clip-path: inset() + steps(N) на .ds-hero__type (components.css, D2).
+     Записів у DOM НУЛЬ, текст лежить у розмітці з першого кадру.
 
-  // Грубе наближення BPE-токенізації: ріжемо слова на шматки
-  // по 2–4 символи, щоб поява виглядала як справжня генерація.
-  function tokenize(text) {
-    var out = [];
-    text.split(/(\s+)/).forEach(function (part) {
-      if (!part) return;
-      if (/^\s+$/.test(part)) { out.push(part); return; }
-      var i = 0;
-      while (i < part.length) {
-        var len = Math.min(part.length - i, 2 + Math.floor(Math.random() * 3));
-        out.push(part.slice(i, i + len));
-        i += len;
-      }
-    });
-    return out;
-  }
-
-  function delay(ms) {
-    return new Promise(function (resolve) { setTimeout(resolve, ms); });
-  }
-
-  async function streamHero() {
+     ⚠ П-05 · швидкість --p-term-speed-cps — ЄДИНИЙ токен руху, на який ДІЛЯТЬ,
+     тому вона свідомо не множиться на --motion. Гілку вимкнення бере саме
+     перевірка cps: AIA.motion.cps() віддає Infinity, коли рух вимкнено
+     (системна настройка, пресет data-motion або html.rm), і тоді текст просто
+     стоїть на місці, а каретка гаситься атрибутом data-gone.
+     ⚠ Кількість кроків steps() = довжина рядка в символах, тривалість = n / cps.
+     Обидва — через custom properties, бо @keyframes не бачить JS-змінних. */
+  function typeHero() {
     var parts = Array.prototype.slice.call(document.querySelectorAll("[data-stream]"));
     var caret = document.getElementById("heroCaret");
     if (!parts.length) return;
-
-    // Рух вимкнено — показуємо текст одразу, без анімації
-    if (!motionOn()) {
-      parts.forEach(function (el) { el.classList.add("is-done"); });
-      if (caret) caret.remove();
+    var M = AIA.motion;
+    var cps = (M && M.cps) ? M.cps() : Infinity;
+    if (!isFinite(cps) || cps <= 0) {
+      parts.forEach(function (el) { el.classList.remove("is-typing"); });
+      if (caret) caret.setAttribute("data-gone", "");
       return;
     }
-
-    for (var p = 0; p < parts.length; p++) {
-      var el = parts[p];
-      var full = el.textContent;
-      el.textContent = "";
-      el.classList.add("is-streaming");
-
-      var tokens = tokenize(full);
-      for (var t = 0; t < tokens.length; t++) {
-        el.textContent += tokens[t];
-        await delay(34 + Math.random() * 58);
-      }
-
-      el.classList.add("is-done");
-      if (p < parts.length - 1) await delay(260); // пауза між рядками
-    }
-
-    // Даємо каретці поблимати і м'яко прибираємо
-    if (caret) {
-      setTimeout(function () { caret.classList.add("is-gone"); }, 2400);
-      setTimeout(function () { caret.remove(); }, 3200);
-    }
+    var pause = M.dur("state");          /* пауза між рядками — токен, не число */
+    var acc = 0;
+    parts.forEach(function (el) {
+      var n = (el.textContent || "").length;
+      el.style.setProperty("--hero-steps", n);
+      el.style.setProperty("--hero-type-dur", (n / cps) + "s");
+      el.style.setProperty("--hero-type-delay", acc + "s");
+      el.classList.remove("is-typing");
+      void el.offsetWidth;               /* рестарт анімації без таймера */
+      el.classList.add("is-typing");
+      acc += n / cps + pause;
+    });
+    if (caret) caret.removeAttribute("data-gone");
   }
 
   /* ---------- 2. Мобільне меню лендінга (≤640) ----------
@@ -285,7 +266,7 @@
     initMenu();
     initCourses();
     initCopyButtons();
-    streamHero();
+    typeHero();
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
