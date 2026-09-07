@@ -10,3 +10,6 @@
 - [Межа: акаунт створює власник](feedback_account_creation_boundary.md) — дозвіл у task.md знімає питання про базу, але не про дію; що робити натомість
 - [Сертифікат: D-04/D-05/QR закриті](project_certificate_pdf_findings.md) — 27 МБ→0,42 МБ, 2 клікабельні області, QR читається; перевіряти сам файл, а не шаблон; імʼя брати з `profiles`, не з метаданих
 - [Клік по посиланню в PDF](method_pdf_link_click_testing.md) — стенд pdf.js з AnnotationLayer; переглядач Chrome завмирає; ⚠️ стенд працює лише в АКТИВНІЙ вкладці
+- [Масовий аудит діаграм Mermaid](method_mermaid_mass_audit.md) — стенд в одному документі замість 58 iframe (768/704/350 → 766/702/348); ⛔ iframe ламає нативний рендер Mermaid
+- [Накладання діаграм = колізія id](project_mermaid_id_collision.md) — `mermaid-${Date.now()}` + неawait-нуті run(); доказ через заморожений Date.now; await — лише запас, не фікс
+- [Діаграми стискаються до нечитабельного](project_mermaid_shrink_to_fit.md) — useMaxWidth: 61/100 дрібніші за 100 % на 1440, 4 px тексту в гіршій; платформне, є і в проді
