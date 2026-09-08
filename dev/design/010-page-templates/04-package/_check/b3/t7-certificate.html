@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<!-- ============================================================================
+     010 · ШАБЛОН T7 — СЕРТИФІКАТ (certificate.html + PDF)
+     ----------------------------------------------------------------------------
+     Роль: «мій сертифікат, і його можна завантажити або показати».
+
+     ⚠ «ПАПІР» — ЄДИНА СВІТЛА ПОВЕРХНЯ СИСТЕМИ, і реєстр L2 прямо забороняє
+     --c-paper-* «в UI». Тому картка сертифіката на сторінці ТЕМНА, як усе
+     інше, а папір показується рівно у двох місцях: у превʼю в діалозі
+     («Переглянути») і в @media print. Це не компроміс — це і є правило.
+
+     ⚠ PDF ГЕНЕРУЄТЬСЯ З DOM. js/certificate.js будує прихований вузол
+     1123×794 px і знімає його html2canvas. Тому зміна розмітки картки
+     на цій сторінці PDF не чіпає, а зміна buildCertNode() — чіпає.
+     Три обмеження, які коштували крові в 005, переносяться дослівно:
+       · JPEG 0.9, не PNG (27 МБ → 0,42 МБ на два аркуші);
+       · doc.link поверх [data-verify-link] — інакше URL у PDF не клікнути;
+       · бібліотека QR — саме qrcode@1.4.4. Версія 1.5.3 віддає на CDN 404,
+         і QR не працював НІКОЛИ, поки цього не помітили.
+
+     ⚠ ІМʼЯ В СЕРТИФІКАТІ — ЗНІМОК. maybe_issue_certificate вставляє
+     full_name через on conflict do nothing, тож зміна імені в профілі ПІСЛЯ
+     видачі сертифікат не переписує. Шаблон мусить це сказати словами, а не
+     вдавати, що імʼя редаговане.
+     ========================================================================= -->
+<html lang="uk"
+      data-config="config.json"
+      data-course="academy"
+      data-density="lesson"
+      data-lit>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Мій сертифікат — AI Академія</title>
+  <meta name="theme-color" content="#161311">
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../../files/css/tokens.css">
+  <link rel="stylesheet" href="../../files/css/components.css">
+  <link rel="stylesheet" href="_shared/b1-stub.css">
+  <link rel="stylesheet" href="_shared/b3-demo.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../../files/js/tw-theme.js"></script>
+</head>
+
+<body id="top">
+
+<a class="ds-skip" href="#main">Перейти до вмісту</a>
+<div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+<!-- ════════════ ШАПКА, ПРОФІЛЬ H3 (довідник / сертифікат) ════════════ -->
+<header class="ds-hdr">
+  <a class="ds-hdr__brand" href="index.html">
+    <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIA</span>
+    <span data-site="name">AI Академія</span>
+  </a>
+  <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+  <span class="ds-hdr__crumb">Сертифікати</span>
+
+  <span class="ds-hdr__spacer"></span>
+
+  <div id="aiaAuth" class="ds-hdr__slot">
+    <span class="ds-avatar" aria-hidden="true">ОК</span>
+  </div>
+  <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+  <a class="ds-nav__link hidden sm:inline-flex" href="verify.html">Перевірка</a>
+</header>
+
+<main id="main" class="mx-auto max-w-prose px-5 py-10 sm:px-8 sm:py-16" data-page-in>
+
+  <p class="ds-eyebrow">Сертифікати</p>
+  <h1 class="ds-h2 mt-2">Мій сертифікат</h1>
+  <p class="ds-lead mt-4">
+    Тут зберігаються сертифікати за пройдені курси. Завантаж PDF, подивись,
+    як він виглядає, або поділись посиланням на перевірку.
+  </p>
+
+  <div id="certBody" class="mt-8 grid gap-4" data-state-group>
+
+    <!-- 1 · не увійшов -->
+    <div data-state="guest" hidden>
+      <div class="ds-empty">
+        <p class="ds-h4">Спершу увійди</p>
+        <p class="ds-small">Сертифікати привʼязані до акаунта. Увійди, щоб переглянути свої.</p>
+        <button type="button" class="ds-btn ds-btn--primary">Увійти або зареєструватися</button>
+      </div>
+    </div>
+
+    <!-- 2 · завантаження. Скелетон РОЗМІРУ МАЙБУТНЬОЇ КАРТКИ, тому CLS = 0. -->
+    <div data-state="loading" hidden>
+      <div class="ds-card">
+        <span class="ds-skel ds-skel--name block" aria-hidden="true"></span>
+        <span class="ds-skel ds-skel--certs mt-4 block" aria-hidden="true"></span>
+      </div>
+    </div>
+
+    <!-- 3 · сертифіката ще немає -->
+    <div data-state="empty" hidden>
+      <div class="ds-empty">
+        <p class="ds-h4">Сертифіката ще немає</p>
+        <p class="ds-small">
+          Проходь модулі по черзі — щойно завершиш останній модуль курсу,
+          сертифікат зʼявиться тут автоматично.
+        </p>
+        <a href="index.html#syllabus" class="ds-btn ds-btn--secondary">До програми курсу →</a>
+      </div>
+    </div>
+
+    <!-- 4 · один сертифікат (типовий випадок) -->
+    <div data-state="one" hidden>
+      <article class="ds-card">
+        <p class="ds-eyebrow">Сертифікат</p>
+        <h2 class="ds-h3 mt-1">AI Термінал — Claude Code в терміналі</h2>
+        <p class="ds-small mt-2">Видано 4 вересня 2026</p>
+        <p class="ds-small mt-1">Код <code class="ds-code--inline">a1b2c3d4e5f6</code></p>
+
+        <div class="mt-6 flex flex-wrap gap-2">
+          <button type="button" class="ds-btn ds-btn--primary">Завантажити PDF</button>
+          <button type="button" class="ds-btn ds-btn--secondary" data-dlg-open="certPreview">Переглянути</button>
+          <a class="ds-btn ds-btn--quiet" href="verify.html?code=a1b2c3d4e5f6" target="_blank" rel="noopener">Сторінка перевірки ↗</a>
+        </div>
+
+        <!-- Імʼя — знімок, а не посилання на профіль. Сказано словами, бо
+             інакше людина міняє імʼя в профілі й чекає, що PDF зміниться. -->
+        <p class="ds-small mt-6">
+          Імʼя на сертифікаті — <strong>Олександра Кривошапко-Задорожня</strong> —
+          записане в момент видачі. Зміна імені в профілі його не переписує:
+          для перевидачі напиши нам.
+        </p>
+      </article>
+    </div>
+
+    <!-- 5 · два сертифікати різних курсів. Бренд PDF іде за slug курсу
+         (ai-essentials / ai-architect / claude-code) — фікс 006. -->
+    <div data-state="two" hidden>
+      <div class="grid gap-4">
+        <article class="ds-card">
+          <p class="ds-eyebrow">Сертифікат</p>
+          <h2 class="ds-h3 mt-1">AI Термінал — Claude Code в терміналі</h2>
+          <p class="ds-small mt-2">Видано 4 вересня 2026 · середній результат 94 %</p>
+          <p class="ds-small mt-1">Код <code class="ds-code--inline">a1b2c3d4e5f6</code></p>
+          <div class="mt-6 flex flex-wrap gap-2">
+            <button type="button" class="ds-btn ds-btn--primary">Завантажити PDF</button>
+            <button type="button" class="ds-btn ds-btn--secondary" data-dlg-open="certPreview">Переглянути</button>
+            <a class="ds-btn ds-btn--quiet" href="verify.html?code=a1b2c3d4e5f6" target="_blank" rel="noopener">Сторінка перевірки ↗</a>
+          </div>
+        </article>
+        <article class="ds-card">
+          <p class="ds-eyebrow">Сертифікат</p>
+          <h2 class="ds-h3 mt-1">AI Architect — практичний курс</h2>
+          <p class="ds-small mt-2">Видано 22 серпня 2026 · середній результат 88 %</p>
+          <p class="ds-small mt-1">Код <code class="ds-code--inline">9f8e7d6c5b4a</code></p>
+          <div class="mt-6 flex flex-wrap gap-2">
+            <!-- Стан «виконується»: гліф-обертання + СЛОВО. Кадр 0% читабельний. -->
+            <button type="button" class="ds-btn ds-btn--primary" data-loading="true">
+              <span class="ds-btn__spin" aria-hidden="true"></span>Готуємо PDF…
+            </button>
+            <button type="button" class="ds-btn ds-btn--secondary" data-dlg-open="certPreview">Переглянути</button>
+            <a class="ds-btn ds-btn--quiet" href="verify.html?code=9f8e7d6c5b4a" target="_blank" rel="noopener">Сторінка перевірки ↗</a>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <!-- 6 · не вдалося завантажити список -->
+    <div data-state="error" hidden>
+      <div class="ds-note ds-note--err" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">✕</span>
+        <p class="ds-note__title">Не вдалося завантажити сертифікати</p>
+        <p>Онови сторінку. Якщо не допомогло — сертифікат нікуди не подівся, напиши нам.</p>
+        <p><button type="button" class="ds-btn ds-btn--secondary ds-btn--sm">Оновити</button></p>
+      </div>
+    </div>
+
+    <!-- 7 · PDF не згенерувався -->
+    <div data-state="pdferror" hidden>
+      <article class="ds-card">
+        <p class="ds-eyebrow">Сертифікат</p>
+        <h2 class="ds-h3 mt-1">AI Термінал — Claude Code в терміналі</h2>
+        <div class="ds-note ds-note--warn mt-6">
+          <span class="ds-note__glyph" aria-hidden="true">▲</span>
+          <p class="ds-note__title">PDF не згенерувався</p>
+          <p>
+            Бібліотеки для PDF не завантажились. Сертифікат при цьому дійсний —
+            його можна показати за <a href="verify.html?code=a1b2c3d4e5f6">посиланням на перевірку</a>.
+          </p>
+        </div>
+        <div class="mt-6 flex flex-wrap gap-2">
+          <button type="button" class="ds-btn ds-btn--primary">Спробувати ще раз</button>
+          <button type="button" class="ds-btn ds-btn--secondary" data-dlg-open="certPreview">Переглянути</button>
+        </div>
+      </article>
+    </div>
+
+  </div>
+
+  <!-- ── ПАНЕЛЬ МАКЕТА · У КОД САЙТУ НЕ ЇДЕ ────────────────────────────── -->
+  <aside class="b3-panel" aria-label="Перемикач станів макета">
+    <p class="ds-eyebrow">Стани шаблона — панель макета, у код сайту не їде</p>
+    <div class="b3-panel__row">
+      <button type="button" class="ds-btn ds-btn--sm ds-btn--secondary" data-state-btn="guest" aria-pressed="false">не увійшов</button>
+      <button type="button" class="ds-btn ds-btn--sm ds-btn--secondary" data-state-btn="loading" aria-pressed="false">завантаження</button>
+      <button type="button" class="ds-btn ds-btn--sm ds-btn--secondary" data-state-btn="empty" aria-pressed="false">немає</button>
+      <button type="button" class="ds-btn ds-btn--sm ds-btn--secondary" data-state-btn="one" aria-pressed="true">один</button>
+      <button type="button" class="ds-btn ds-btn--sm ds-btn--secondary" data-state-btn="two" aria-pressed="false">два + генерація</button>
+      <button type="button" class="ds-btn ds-btn--sm ds-btn--secondary" data-state-btn="error" aria-pressed="false">помилка списку</button>
+      <button type="button" class="ds-btn ds-btn--sm ds-btn--secondary" data-state-btn="pdferror" aria-pressed="false">помилка PDF</button>
+      <button type="button" class="ds-btn ds-btn--sm ds-btn--ghost" data-toggle-rm aria-pressed="false">
+        <span data-toggle-label>рух увімкнено</span>
+      </button>
+    </div>
+    <p class="ds-small">
+      Восьмий стан — друк: <kbd>Cmd/Ctrl+P</kbd> при відкритому превʼю.
+      На аркуш іде тільки «папір», шапка й панель зникають.
+    </p>
+  </aside>
+
+</main>
+
+<!-- ════════════ ПРЕВʼЮ «ПАПІР» — ЄДИНЕ СВІТЛЕ МІСЦЕ СТОРІНКИ ════════════
+     Це спрощена репліка першого аркуша PDF, а не сам PDF: пропорція A4-ландшафт,
+     ті самі ролі токенів --c-paper-*, той самий порядок блоків. Її задача —
+     дати людині побачити документ до завантаження 0,42 МБ, і водночас показати
+     фронтендеру, які саме токени читає getComputedStyle у certificate.js.
+     Ширина аркуша керує кеглем через @container, тому на 320 px текст не
+     перетворюється на кашу. -->
+<div class="ds-dlg" id="certPreview" hidden data-open="false" role="dialog" aria-modal="true"
+     aria-labelledby="certPreviewTitle">
+  <div class="ds-dlg__scrim"></div>
+  <div class="ds-dlg__card">
+    <div class="ds-dlg__head">
+      <div>
+        <p class="ds-eyebrow">Превʼю першого аркуша</p>
+        <h2 class="ds-h3" id="certPreviewTitle">Сертифікат · AI Термінал</h2>
+      </div>
+      <button type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-btn--quiet" data-dlg-close>
+        <span class="sr-only">Закрити превʼю</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+    </div>
+
+    <div class="ds-paper ds-paper--sheet">
+      <div>
+        <p class="ds-paper__eyebrow">AI ТЕРМІНАЛ</p>
+        <p class="ds-h2" style="margin-top:.4em">Сертифікат</p>
+        <p class="ds-paper__eyebrow">про успішне проходження курсу</p>
+        <p class="ds-paper__name" style="margin-top:.7em">Олександра Кривошапко-Задорожня</p>
+        <div class="ds-paper__rule" style="margin-inline:auto"></div>
+        <p class="ds-paper__course">«AI Термінал — Claude Code в терміналі»</p>
+        <p class="ds-paper__code" style="margin-top:.9em">КОД ПЕРЕВІРКИ · a1b2c3d4e5f6</p>
+      </div>
+    </div>
+
+    <div class="ds-dlg__bar">
+      <button type="button" class="ds-btn ds-btn--primary">Завантажити PDF · ≈0,4 МБ</button>
+      <button type="button" class="ds-btn ds-btn--quiet" data-dlg-close>Закрити</button>
+    </div>
+    <p class="ds-small" style="margin-top:var(--s-4)">
+      У PDF два аркуші: сам сертифікат і додаток із результатами по модулях.
+      Посилання на перевірку в PDF клікабельне — воно накладається анотацією
+      поверх QR і рядка з адресою.
+    </p>
+  </div>
+</div>
+
+<script src="../../files/js/motion.js"></script>
+<script src="js/b3-demo.js"></script>
+<script>
+  /* Дефолтний стан шаблона — «один сертифікат». */
+  if (!new URLSearchParams(location.search).get("state")) {
+    document.querySelector('[data-state="one"]').hidden = false;
+  }
+</script>
+</body>
+</html>

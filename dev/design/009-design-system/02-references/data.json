@@ -1,0 +1,1544 @@
+{
+ "meta": {
+  "title": "009 · Референси до єдиної дизайн-системи AIA",
+  "lede": "Зібрано агентом №2 конвеєра за §13.1 специфікації. Усе, що тут названо числом, **виміряно сьогодні в браузері** (headless Chrome 1228, вʼюпорт 1440×900, `colorScheme: dark`, локаль uk-UA), а не переказано з опису. Скріншоти знято в кількох точках скролу — під кожним підписано, у якій саме. Де вимірювання не вийшло, це сказано прямо в розділі «Межі методу».",
+  "facts": [
+   "Зібрано: 2026-09-07",
+   "Переглянуто кандидатів: 76 сторінок",
+   "Відібрано: 38 референсів",
+   "Оцінено візуально: 38 з 38",
+   "Скріншотів: 172",
+   "Гарнітур прогнано через рендер-тест: 31",
+   "Власних лабораторій: 3"
+  ],
+  "footer": "Файл згенеровано `build.js` з `data.json` — правити треба дані, не HTML. Лабораторії лежать у `lab/` і відкриваються будь-яким `python3 -m http.server`. Уся числова частина відтворювана: скрипти вимірювання лишились у робочій папці сесії, метод описано в розділі «Межі методу»."
+ },
+ "sections": [
+  {
+   "id": "vysnovok",
+   "num": "00",
+   "title": "Стислий висновок для білдера",
+   "intro": null,
+   "html": "\n<div class=\"note\">\n<p><b>Візуальний напрям, який вимальовується: «темна тепла нейтраль + один високо-контрастний дисплейний шрифт + моно як технічна деталь».</b>\nТри відчуття з Р6 розподіляються по трьох різних засобах, а не по одному: «серйозно й дорого» дає <b>типографіка</b>\n(дисплейний серіф або широкий гротеск проти дуже спокійного тексту), «технологічність і контроль» дає <b>моно</b> в метаданих,\nмаркерах і числах, «цікавість і захват» дає <b>рух</b> — і тільки він. Жоден із 20 преміальних сайтів поза IT, які я відкрив,\nне робить «вау» кольором: у Herzog&nbsp;&amp; de Meuron уся сторінка — це #111111, #EEEEEE і фотографії, і цього досить.</p>\n<p><b>Три прийоми, які варто взяти обовʼязково.</b>\n<b>(1)</b> Дванадцятисходинкова драбина Radix із <i>роллю на кожній сходинці</i> — вона закриває найслабшу ділянку §3.3\n(17 фактичних сходинок при трьох названих) і дає готові стани ok/warn/err/info, які <i>не є акцентом</i> і проходять AA на всіх трьох наших поверхнях.\n<b>(2)</b> Подвійне кільце фокуса `0 0 0 2px <фон>, 0 0 0 4px <акцент>` — я зустрів його незалежно у трьох дуже різних місцях (Geist, Supabase, basement.studio);\nна темному воно читається там, де звичайний `outline` зливається.\n<b>(3)</b> Драбина тривалостей із <i>призначенням у назві</i>, як у Carbon (70 / 110 / 150 / 240 / 400 / 700 мс, кожна з поясненням, для чого саме) —\nце те, чого бракує нашим 35 тривалостям із трьох задач.</p>\n<p><b>Чого свідомо уникати.</b> Стагера як «фірмового прийому»: з пʼяти преміальних сайтів, які я просканував на інкрементні затримки,\n<b>жоден не має стагера взагалі</b> — вони показують блок цілком. Наш cap&nbsp;8 з §6.1 — це не компроміс, це вже щедро (виміряно: 30 карток без cap = 2249 мс очікування).\nЩе уникати: заливки акцентом під білий текст (наш `clay #D97757` дає з білим <b>3.12:1</b> — це провал), «тихого» тексту нижче AA\n(наш `quiz bad #C0564F` дає 3.48 на `raised` — провал уже в проді) і будь-якого сайту-референса, де рух живе в canvas: Rive красивий, але це 125 IntersectionObserver і нуль CSS — не наш стек.</p>\n<p><b>Типопара — це вісь варіантів (Д2), і я приношу чотири готові, а не описи.</b> Усі чотири зібрані з гарнітур, які\n(а) пройшли <b>рендер-тест 18 українських гліфів</b> включно з `ʼ` і `₴`, (б) підтверджені у Figma списком `00-review`,\n(в) мають OFL 1.1, (г) разом важать <b>164–215 КБ</b> на всі три ролі — це вдвічі менше за бюджет §11.27, порахований на одну родину.</p>\n</div>"
+  },
+  {
+   "id": "typo",
+   "num": "01",
+   "title": "Типографіка: доказова частина",
+   "intro": "Головна вимога 009: не «гарний шрифт», а доказ. Нижче — 31 гарнітура, кожна прогнана через рендер-тест у канвасі (гліф малюється обраною гарнітурою і дефолтним фолбеком; однакові пікселі = гарнітури гліфа немає, браузер підставив чужий). Контроль «A» доводить, що родина взагалі завантажилась. Вага `woff2` — не з опису, а сума реально завантажених файлів з `fonts.googleapis.com` для підмножин `latin` + `cyrillic`.",
+   "html": "\n<div class=\"note\"><b>Дві знахідки, які міняють постановку задачі.</b><br>\n<b>(1)</b> Український апостроф `ʼ` (U+02BC) лежить не в кириличній підмножині Google Fonts, а в <b>латинській</b>\n(`unicode-range: … U+02BB-02BC …`). Тобто сторінка, яка вантажить «тільки кирилицю», лишиться без апострофа. Це не теорія: діапазони процитовано з живої відповіді CSS-API.<br>\n<b>(2)</b> Кирилична підмножина Google Fonts — це `U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116`.\nГривня `₴` (U+20B4) не входить <b>у жодну</b> з двох: усі 31 гарнітура намалювали її, але приходить вона з іншої підмножини — перевіряти окремо, якщо `₴` зʼявиться в інтерфейсі.</div>\n<table class='data'><thead><tr><th>Гарнітура</th><th>Роль</th><th>Рендер-тест кирилиці</th><th>latin+cyrillic</th><th>у Figma</th><th>Автор / походження</th><th>Нотатка</th></tr></thead><tbody><tr><td><b>Unbounded</b></td><td>display</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>160.8 КБ <span style='color:var(--n10)'>(400/700)</span></td><td class='m'><span class=g-ok>так</span></td><td>Google (спільнота)</td><td style='color:var(--n10)'>дуже широкий; latin-ext важить 230 КБ, але українська сторінка його не тягне</td></tr><tr><td><b>Arsenal</b></td><td>display / sans</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>34.8 КБ <span style='color:var(--n10)'>(400/700)</span></td><td class='m'><span class=g-ok>так</span></td><td>Андрій Шевченко · Київ</td><td style='color:var(--n10)'>єдина в списку, намальована для української мови; лише 400/700</td></tr><tr><td><b>Bona Nova</b></td><td>display</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>53.3 КБ <span style='color:var(--n10)'>(400/700)</span></td><td class='m'><span class=g-warn>не звірено</span></td><td>Capitalics · Мачальський / Гайдріх · Польща</td><td style='color:var(--n10)'>у перевіреному списку Figma НЕМАЄ — звірити перед вибором</td></tr><tr><td><b>Brygada 1918</b></td><td>display</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>72.5 КБ <span style='color:var(--n10)'>(400/600)</span></td><td class='m'><span class=g-warn>не звірено</span></td><td>Capitalics · Польща</td><td style='color:var(--n10)'>у перевіреному списку Figma НЕМАЄ</td></tr><tr><td><b>Golos Text</b></td><td>sans</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>176.1 КБ <span style='color:var(--n10)'>(400/500/600)</span></td><td class='m'><span class=g-ok>так</span></td><td>Корольова / Кузьмін · ParaType</td><td style='color:var(--n10)'>ParaType</td></tr><tr><td><b>Onest</b></td><td>sans</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>145.4 КБ <span style='color:var(--n10)'>(400/500/600)</span></td><td class='m'><span class=g-ok>так</span></td><td>Волошин / Кудрявцев</td><td style='color:var(--n10)'></td></tr><tr><td><b>Commissioner</b></td><td>sans</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>184.4 КБ <span style='color:var(--n10)'>(400/500/600)</span></td><td class='m'><span class=g-ok>так</span></td><td>Kostas Bartsokas · Греція</td><td style='color:var(--n10)'>варіативна, 9 ваг, найширший діапазон</td></tr><tr><td><b>Manrope</b></td><td>sans</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>114.6 КБ <span style='color:var(--n10)'>(400/500/600)</span></td><td class='m'><span class=g-ok>так</span></td><td>Михайло Шаранда</td><td style='color:var(--n10)'></td></tr><tr><td><b>Wix Madefor Display</b></td><td>display</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>66.2 КБ <span style='color:var(--n10)'>(400/700)</span></td><td class='m'><span class=g-ok>так</span></td><td>Dalton Maag · Лондон</td><td style='color:var(--n10)'></td></tr><tr><td><b>Wix Madefor Text</b></td><td>sans</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>101.1 КБ <span style='color:var(--n10)'>(400/500/600)</span></td><td class='m'><span class=g-ok>так</span></td><td>Dalton Maag · Лондон</td><td style='color:var(--n10)'></td></tr><tr><td><b>Prata</b></td><td>display</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>19.0 КБ <span style='color:var(--n10)'>(400)</span></td><td class='m'><span class=g-ok>так</span></td><td>Cyreal</td><td style='color:var(--n10)'>один накрес 400; дідона максимального контрасту</td></tr><tr><td><b>Yeseva One</b></td><td>display</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>17.2 КБ <span style='color:var(--n10)'>(400)</span></td><td class='m'><span class=g-ok>так</span></td><td>Jovanny Lemonad</td><td style='color:var(--n10)'>Reserved Font Name «Yeseva»; один накрес</td></tr><tr><td><b>Forum</b></td><td>display</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>23.3 КБ <span style='color:var(--n10)'>(400)</span></td><td class='m'><span class=g-warn>не звірено</span></td><td>Денис Машаров</td><td style='color:var(--n10)'>у списку Figma немає</td></tr><tr><td><b>Oranienbaum</b></td><td>display</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>17.5 КБ <span style='color:var(--n10)'>(400)</span></td><td class='m'><span class=g-warn>не звірено</span></td><td>Поспєлов / Lemonad</td><td style='color:var(--n10)'>у списку Figma немає</td></tr><tr><td><b>Playfair Display</b></td><td>display</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>116.4 КБ <span style='color:var(--n10)'>(400/700)</span></td><td class='m'><span class=g-ok>так</span></td><td>Claus Eggers Sørensen · Данія</td><td style='color:var(--n10)'>дуже вживана</td></tr><tr><td><b>Cormorant Garamond</b></td><td>display</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>115.1 КБ <span style='color:var(--n10)'>(400/600)</span></td><td class='m'><span class=g-ok>так</span></td><td>Christian Thalmann · Швейцарія</td><td style='color:var(--n10)'></td></tr><tr><td><b>Spectral</b></td><td>text-serif</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>48.2 КБ <span style='color:var(--n10)'>(400/600)</span></td><td class='m'><span class=g-ok>так</span></td><td>Production Type · Франція</td><td style='color:var(--n10)'></td></tr><tr><td><b>Piazzolla</b></td><td>text-serif</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>101.2 КБ <span style='color:var(--n10)'>(400/600)</span></td><td class='m'><span class=g-ok>так</span></td><td>HT Fonts · Аргентина</td><td style='color:var(--n10)'></td></tr><tr><td><b>Geist</b></td><td>sans</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>129.5 КБ <span style='color:var(--n10)'>(400/500/600)</span></td><td class='m'><span class=g-ok>так</span></td><td>Vercel</td><td style='color:var(--n10)'>асоціація з Vercel/SaaS</td></tr><tr><td><b>Fira Sans</b></td><td>sans</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>72.6 КБ <span style='color:var(--n10)'>(400/500/600)</span></td><td class='m'><span class=g-ok>так</span></td><td>Carrois · Німеччина</td><td style='color:var(--n10)'></td></tr><tr><td><b>Tektur</b></td><td>display</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>40.5 КБ <span style='color:var(--n10)'>(400/700)</span></td><td class='m'><span class=g-warn>не звірено</span></td><td>Adam Jagosz · Польща</td><td style='color:var(--n10)'>у списку Figma немає; межує з «техно»</td></tr><tr><td><b>Old Standard TT</b></td><td>display</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>43.2 КБ <span style='color:var(--n10)'>(400/700)</span></td><td class='m'><span class=g-warn>не звірено</span></td><td>Олексій Крюков</td><td style='color:var(--n10)'>у списку Figma немає</td></tr><tr><td><b>Alice</b></td><td>text-serif</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>28.3 КБ <span style='color:var(--n10)'>(400)</span></td><td class='m'><span class=g-warn>не звірено</span></td><td>Ксенія Ерулевич · Cyreal</td><td style='color:var(--n10)'>у списку Figma немає</td></tr><tr><td><b>Podkova</b></td><td>display</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span></td><td class='m'>77.7 КБ <span style='color:var(--n10)'>(400/600)</span></td><td class='m'><span class=g-ok>так</span></td><td>Cyreal</td><td style='color:var(--n10)'></td></tr><tr><td><b>JetBrains Mono</b></td><td>mono</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span> · крок 0.60em <span class=\"g-ok\">рівний для кирилиці</span></td><td class='m'>117.9 КБ <span style='color:var(--n10)'>(400/500/700)</span></td><td class='m'><span class=g-ok>так</span></td><td>JetBrains · Чехія</td><td style='color:var(--n10)'></td></tr><tr><td><b>Martian Mono</b></td><td>mono</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span> · крок 0.70em <span class=\"g-ok\">рівний для кирилиці</span></td><td class='m'>66.6 КБ <span style='color:var(--n10)'>(400/600)</span></td><td class='m'><span class=g-ok>так</span></td><td>Evil Martians</td><td style='color:var(--n10)'>крок 0,7em — рядок термінала на 17 % ширший</td></tr><tr><td><b>Geist Mono</b></td><td>mono</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span> · крок 0.60em <span class=\"g-ok\">рівний для кирилиці</span></td><td class='m'>70.2 КБ <span style='color:var(--n10)'>(400/500)</span></td><td class='m'><span class=g-ok>так</span></td><td>Vercel</td><td style='color:var(--n10)'>асоціація з Vercel/SaaS</td></tr><tr><td><b>Victor Mono</b></td><td>mono</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span> · крок 0.60em <span class=\"g-ok\">рівний для кирилиці</span></td><td class='m'>66.6 КБ <span style='color:var(--n10)'>(400/500)</span></td><td class='m'><span class=g-ok>так</span></td><td>Rune Bjørnerås · Норвегія</td><td style='color:var(--n10)'>курсив рукописний — на любителя</td></tr><tr><td><b>Fira Code</b></td><td>mono</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span> · крок 0.60em <span class=\"g-ok\">рівний для кирилиці</span></td><td class='m'>94.3 КБ <span style='color:var(--n10)'>(400/500)</span></td><td class='m'><span class=g-ok>так</span></td><td>Mozilla / Прокопов</td><td style='color:var(--n10)'>ліґатури коду</td></tr><tr><td><b>IBM Plex Mono</b></td><td>mono</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span> · крок 0.60em <span class=\"g-ok\">рівний для кирилиці</span></td><td class='m'>30.3 КБ <span style='color:var(--n10)'>(400/500)</span></td><td class='m'><span class=g-ok>так</span></td><td>IBM · Bold Monday</td><td style='color:var(--n10)'>уже стоїть на сайті — не «нова мова»</td></tr><tr><td><b>Lilex</b></td><td>mono</td><td class='m'><span class=\"g-ok\">PASS · 18/18</span> · крок 0.60em <span class=\"g-ok\">рівний для кирилиці</span></td><td class='m'>109.8 КБ <span style='color:var(--n10)'>(400/500)</span></td><td class='m'><span class=g-warn>не звірено</span></td><td>Mikhael Khrustik (на базі IBM Plex Mono)</td><td style='color:var(--n10)'>у списку Figma немає (доданий у GF 2025-12)</td></tr></tbody></table>\n<p class=\"intro\">Ваги в дужках — той набір, який я міряв. Для типопар нижче взято скорочені набори (2 ваги на родину), тому там числа менші.\n«не звірено» у стовпчику Figma означає рівно те, що написано: цієї родини немає в переліку, який фактично перевірив `00-review`, — а не що її там немає.</p>\n\n<h3 style=\"font:600 17px/1.4 var(--f-s);margin:32px 0 10px\">Чотири типопари, зібрані й показані</h3>\n<div class=\"shots\"><figure><a href=\"shots/lab-typepairs.jpg\" target=\"_blank\"><img src=\"shots/lab-typepairs.jpg\" alt=\"Чотири типопари\"></a>\n<figcaption>lab/typepairs.html · однаковий текст, однакові кольори, однакова геометрія — різниця лише в гарнітурах. Знято повною сторінкою, DPR 2.</figcaption></figure>\n<figure><a href=\"shots/lab-glyph-test.jpg\" target=\"_blank\"><img src=\"shots/lab-glyph-test.jpg\" alt=\"Рендер-тест кирилиці\"></a>\n<figcaption>lab/glyph-test.html · 31 гарнітура × 18 гліфів. Стовпчик «ширини» доводить, що моно лишається моноширинним і для кирилиці.</figcaption></figure></div>\n\n<table class=\"data\"><thead><tr><th>Пара</th><th>Характер одним реченням</th><th>Display</th><th>Sans</th><th>Mono</th><th>Разом</th><th>Ризик</th></tr></thead><tbody>\n<tr><td class=\"m\"><b>A</b></td><td>Дідона високого контрасту проти дуже спокійного тексту — «дорого» найкоротшим шляхом.</td><td class=\"m\">Prata 400</td><td class=\"m\">Golos Text 400/600</td><td class=\"m\">JetBrains Mono 400/500</td><td class=\"m\">19+117+79 = <b>215 КБ</b></td><td>Prata має один накрес; на &lt;24 px тонкі штрихи на темному «випадають» — тільки заголовки.</td></tr>\n<tr><td class=\"m\"><b>B</b></td><td>Широкий дисплейний гротеск і тепла нейтраль — «захопливо» і найдалі від поточного вигляду.</td><td class=\"m\">Unbounded 700</td><td class=\"m\">Onest 400/600</td><td class=\"m\">Martian Mono 400/600</td><td class=\"m\">33+97+67 = <b>197 КБ</b></td><td>Martian Mono має крок 0,7em замість 0,6em — рядок термінала на 17 % ширший, колонки маркерів 1ch/2ch треба переміряти.</td></tr>\n<tr><td class=\"m\"><b>C</b></td><td>Важкий дисплейний серіф і найширший діапазон ваг у тексті — «серйозно» з запасом.</td><td class=\"m\">Yeseva One 400</td><td class=\"m\">Commissioner 400/600</td><td class=\"m\">Geist Mono 400/500</td><td class=\"m\">17+123+70 = <b>210 КБ</b></td><td>Reserved Font Name «Yeseva»; Geist Mono тягне асоціацію з Vercel.</td></tr>\n<tr><td class=\"m\"><b>D</b></td><td>Резерв: український слід — гарнітура, намальована для української мови.</td><td class=\"m\">Arsenal 700</td><td class=\"m\">Wix Madefor Text 400/600</td><td class=\"m\">JetBrains Mono 400/500</td><td class=\"m\">17+68+79 = <b>164 КБ</b></td><td>Arsenal має лише 400/700 — третьої ваги для UI немає, доведеться будувати ієрархію кеглем.</td></tr>\n</tbody></table>\n\n<h3 style=\"font:600 17px/1.4 var(--f-s);margin:32px 0 10px\">Ліцензія — дослівно</h3>\n<p class=\"intro\">Усі одинадцять гарнітур із чотирьох пар ліцензовані під SIL Open Font License 1.1. Дозвільний абзац у всіх файлах збігається слово в слово; цитую його один раз з\n<a href=\"https://raw.githubusercontent.com/google/fonts/main/ofl/arsenal/OFL.txt\" target=\"_blank\">raw.githubusercontent.com/google/fonts/main/ofl/arsenal/OFL.txt</a>, звірено 2026-09-07:</p>\n<div class=\"quote\">Permission is hereby granted, free of charge, to any person obtaining a copy of the Font Software, to use, study, copy, merge, embed, modify, redistribute, and sell modified and unmodified copies of the Font Software, subject to the following conditions:</div>\n<p class=\"intro\">Перші рядки (рядок про копірайт) у кожному файлі свої — вони ж є доказом авторства:</p>\n<div class=\"quote\">ofl/arsenal/OFL.txt        Copyright 2012 The Arsenal Project Authors (andrij.design@gmail.com)\nofl/prata/OFL.txt          Copyright 2011 The Prata Project Authors (https://github.com/cyrealtype/Prata)\nofl/unbounded/OFL.txt      Copyright 2022 The Unbounded Project Authors (https://github.com/googlefonts/unbounded)\nofl/yesevaone/OFL.txt      Copyright 2012 The Yeseva One Project Authors (lemonad@jovanny.ru), with Reserved Font Name \"Yeseva\".\nofl/golostext/OFL.txt      Copyright 2019 The Golos Text Project Authors (https://github.com/googlefonts/golos-text)\nofl/onest/OFL.txt          Copyright 2021 The Onest Project Authors (https://github.com/googlefonts/onest)\nofl/commissioner/OFL.txt   Copyright 2019 The Commissioner Project Authors (https://github.com/kosbarts/Commissioner)\nofl/wixmadefortext/OFL.txt Copyright 2023 The Wix Madefor Project Authors (https://github.com/wix/wixmadefor)\nofl/jetbrainsmono/OFL.txt  Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)\nofl/martianmono/OFL.txt    Copyright 2021 The Martian Mono Project Authors (https://github.com/evilmartians/mono)\nofl/geistmono/OFL.txt      Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font.git)</div>\n<div class=\"note\"><b>Практичний наслідок RFN.</b> Yeseva One і Oranienbaum мають Reserved Font Name. Це не забороняє використання —\nце забороняє <b>називати так само</b> модифіковану версію. Оскільки 010 може захотіти субсетинг `woff2` (§4.2), субсет під іншою назвою — це вже модифікація. Дрібниця, але саме такі дрібниці спливають на релізі.</div>\n"
+  },
+  {
+   "id": "color",
+   "num": "02",
+   "title": "Колір: драбина, стани, акценти",
+   "intro": "Спека називає цю ділянку найслабшою: сайт має ≈17 фактичних сходинок нейтралі при трьох названих, а стани сьогодні дорівнюють акценту. Нижче — готова модель драбини з ролями та **виміряні** значення станів, які нічого не позичають в акценту. Усі контрасти пораховані проти НАШИХ трьох поверхонь `#141312` / `#1E1B18` / `#272320`, а не проти чорного.",
+   "html": "\n<h3 style=\"font:600 17px/1.4 var(--f-s);margin:0 0 10px\">Драбина з роллю на кожній сходинці (Radix Colors, темна тема)</h3>\n<table class='data'><thead><tr><th>Сходинка</th><th>Значення</th><th>Контраст до 1</th><th>Роль за Radix</th></tr></thead><tbody><tr><td class='m'>sand-1</td><td class='m'><span class=\"sw\" style=\"background:#111110\"></span>#111110</td><td class='m'>1.0</td><td>фон застосунку</td></tr><tr><td class='m'>sand-2</td><td class='m'><span class=\"sw\" style=\"background:#191918\"></span>#191918</td><td class='m'>1.07</td><td>тонша поверхня</td></tr><tr><td class='m'>sand-3</td><td class='m'><span class=\"sw\" style=\"background:#222221\"></span>#222221</td><td class='m'>1.19</td><td>поверхня компонента (спокій)</td></tr><tr><td class='m'>sand-4</td><td class='m'><span class=\"sw\" style=\"background:#2a2a28\"></span>#2a2a28</td><td class='m'>1.31</td><td>поверхня (hover)</td></tr><tr><td class='m'>sand-5</td><td class='m'><span class=\"sw\" style=\"background:#31312e\"></span>#31312e</td><td class='m'>1.45</td><td>поверхня (active)</td></tr><tr><td class='m'>sand-6</td><td class='m'><span class=\"sw\" style=\"background:#3b3a37\"></span>#3b3a37</td><td class='m'>1.66</td><td>тонка декоративна межа</td></tr><tr><td class='m'>sand-7</td><td class='m'><span class=\"sw\" style=\"background:#494844\"></span>#494844</td><td class='m'>2.06</td><td>межа компонента</td></tr><tr><td class='m'>sand-8</td><td class='m'><span class=\"sw\" style=\"background:#62605b\"></span>#62605b</td><td class='m'>3.01</td><td>сильна межа / кільце фокуса</td></tr><tr><td class='m'>sand-9</td><td class='m'><span class=\"sw\" style=\"background:#6f6d66\"></span>#6f6d66</td><td class='m'>3.65</td><td>суцільна заливка</td></tr><tr><td class='m'>sand-10</td><td class='m'><span class=\"sw\" style=\"background:#7c7b74\"></span>#7c7b74</td><td class='m'>4.45</td><td>суцільна заливка (hover)</td></tr><tr><td class='m'>sand-11</td><td class='m'><span class=\"sw\" style=\"background:#b5b3ad\"></span>#b5b3ad</td><td class='m'>9.01</td><td>ТЕКСТ низького контрасту</td></tr><tr><td class='m'>sand-12</td><td class='m'><span class=\"sw\" style=\"background:#eeeeec\"></span>#eeeeec</td><td class='m'>16.26</td><td>ТЕКСТ високого контрасту</td></tr></tbody></table>\n<div class=\"note\">Наші сьогоднішні `#141312` / `#1E1B18` / `#272320` лягають майже точно на sand-1 / sand-2 / sand-3.\nТобто драбину не треба вигадувати — треба <b>назвати сходинки, яких у нас 17 і які всі безіменні</b>. Головне, що дає ця модель:\nкожна сходинка має роль, тому питання «якого кольору hover картки» більше не існує — це сходинка 4.</div>\n\n<h3 style=\"font:600 17px/1.4 var(--f-s);margin:32px 0 10px\">Стани, які не є акцентом — з виміряним контрастом</h3>\n<table class='data'><thead><tr><th>Роль</th><th>Текстовий крок</th><th>Контраст на bg / surface / raised</th><th>Крок для межі й заливки</th><th>Контраст як межа</th><th>«Рідна» межа Radix (крок 8) на surface</th><th>Тон</th></tr></thead><tbody><tr><td class='m'>ok</td><td class='m'>green-11 <span class=\"sw\" style=\"background:#3dd68c\"></span>#3dd68c</td><td class='m'><span class=\"g-ok\">9.89</span> / <span class=\"g-ok\">9.14</span> / <span class=\"g-ok\">8.31</span></td><td class='m'>green-10 <span class=\"sw\" style=\"background:#33b074\"></span>#33b074</td><td class='m'><span class=\"g-ok\">6.72</span> / <span class=\"g-ok\">6.21</span> / <span class=\"g-ok\">5.64</span></td><td class='m'>green-8 <span class=\"sw\" style=\"background:#2f7c57\"></span>#2f7c57 → <span class=\"g-ok\">3.38</span></td><td class='m'>151°</td></tr><tr><td class='m'>ok · тепліший</td><td class='m'>jade-11 <span class=\"sw\" style=\"background:#1fd8a4\"></span>#1fd8a4</td><td class='m'><span class=\"g-ok\">10.09</span> / <span class=\"g-ok\">9.32</span> / <span class=\"g-ok\">8.47</span></td><td class='m'>jade-10 <span class=\"sw\" style=\"background:#27b08b\"></span>#27b08b</td><td class='m'><span class=\"g-ok\">6.78</span> / <span class=\"g-ok\">6.26</span> / <span class=\"g-ok\">5.69</span></td><td class='m'>jade-8 <span class=\"sw\" style=\"background:#2a7e68\"></span>#2a7e68 → <span class=\"g-ok\">3.5</span></td><td class='m'>163°</td></tr><tr><td class='m'>warn</td><td class='m'>amber-11 <span class=\"sw\" style=\"background:#ffca16\"></span>#ffca16</td><td class='m'><span class=\"g-ok\">12.12</span> / <span class=\"g-ok\">11.19</span> / <span class=\"g-ok\">10.18</span></td><td class='m'>amber-10 <span class=\"sw\" style=\"background:#ffd60a\"></span>#ffd60a</td><td class='m'><span class=\"g-ok\">13.14</span> / <span class=\"g-ok\">12.14</span> / <span class=\"g-ok\">11.04</span></td><td class='m'>amber-8 <span class=\"sw\" style=\"background:#8f6424\"></span>#8f6424 → <span class=\"g-ok\">3.28</span></td><td class='m'>46°</td></tr><tr><td class='m'>warn · тепліший</td><td class='m'>gold-11 <span class=\"sw\" style=\"background:#cbb99f\"></span>#cbb99f</td><td class='m'><span class=\"g-ok\">9.7</span> / <span class=\"g-ok\">8.96</span> / <span class=\"g-ok\">8.15</span></td><td class='m'>gold-10 <span class=\"sw\" style=\"background:#a39073\"></span>#a39073</td><td class='m'><span class=\"g-ok\">6.0</span> / <span class=\"g-ok\">5.55</span> / <span class=\"g-ok\">5.04</span></td><td class='m'>gold-8 <span class=\"sw\" style=\"background:#696256\"></span>#696256 → <span class=\"g-bad\">2.84</span></td><td class='m'>35°</td></tr><tr><td class='m'>err</td><td class='m'>red-11 <span class=\"sw\" style=\"background:#ff9592\"></span>#ff9592</td><td class='m'><span class=\"g-ok\">8.81</span> / <span class=\"g-ok\">8.13</span> / <span class=\"g-ok\">7.4</span></td><td class='m'>red-10 <span class=\"sw\" style=\"background:#ec5d5e\"></span>#ec5d5e</td><td class='m'><span class=\"g-ok\">5.56</span> / <span class=\"g-ok\">5.14</span> / <span class=\"g-ok\">4.67</span></td><td class='m'>red-8 <span class=\"sw\" style=\"background:#b54548\"></span>#b54548 → <span class=\"g-ok\">3.19</span></td><td class='m'>2°</td></tr><tr><td class='m'>err · тепліший</td><td class='m'>tomato-11 <span class=\"sw\" style=\"background:#ff977d\"></span>#ff977d</td><td class='m'><span class=\"g-ok\">8.81</span> / <span class=\"g-ok\">8.14</span> / <span class=\"g-ok\">7.4</span></td><td class='m'>tomato-10 <span class=\"sw\" style=\"background:#ec6142\"></span>#ec6142</td><td class='m'><span class=\"g-ok\">5.62</span> / <span class=\"g-ok\">5.19</span> / <span class=\"g-ok\">4.72</span></td><td class='m'>tomato-8 <span class=\"sw\" style=\"background:#ac4d39\"></span>#ac4d39 → <span class=\"g-ok\">3.16</span></td><td class='m'>12°</td></tr><tr><td class='m'>info</td><td class='m'>blue-11 <span class=\"sw\" style=\"background:#70b8ff\"></span>#70b8ff</td><td class='m'><span class=\"g-ok\">8.83</span> / <span class=\"g-ok\">8.15</span> / <span class=\"g-ok\">7.41</span></td><td class='m'>blue-10 <span class=\"sw\" style=\"background:#3b9eff\"></span>#3b9eff</td><td class='m'><span class=\"g-ok\">6.65</span> / <span class=\"g-ok\">6.14</span> / <span class=\"g-ok\">5.58</span></td><td class='m'>blue-8 <span class=\"sw\" style=\"background:#2870bd\"></span>#2870bd → <span class=\"g-ok\">3.38</span></td><td class='m'>210°</td></tr><tr><td class='m'>info · тепліший</td><td class='m'>cyan-11 <span class=\"sw\" style=\"background:#4ccce6\"></span>#4ccce6</td><td class='m'><span class=\"g-ok\">9.8</span> / <span class=\"g-ok\">9.05</span> / <span class=\"g-ok\">8.23</span></td><td class='m'>cyan-10 <span class=\"sw\" style=\"background:#23afd0\"></span>#23afd0</td><td class='m'><span class=\"g-ok\">7.17</span> / <span class=\"g-ok\">6.62</span> / <span class=\"g-ok\">6.02</span></td><td class='m'>cyan-8 <span class=\"sw\" style=\"background:#11809c\"></span>#11809c → <span class=\"g-ok\">3.75</span></td><td class='m'>190°</td></tr></tbody></table>\n<div class=\"note\"><b>Виміряна пастка, яка коштувала б білдеру кола QA.</b> Крок 8 у Radix названий «сильна межа / кільце фокуса»,\nі він розрахований на контраст 3:1 <b>проти сходинки 1–2</b>. На наших поверхнях він цього не тримає: `sand-8 #62605b` дає\n<b>2.95 / 2.73 / 2.48</b>. Для §5.1.2 («усе, що межею ідентифікує контрол, ≥ 3:1») брати треба <b>крок 9 або 10</b>, не 8.</div>\n\n<h3 style=\"font:600 17px/1.4 var(--f-s);margin:32px 0 10px\">Аудит того, що вже стоїть у проді</h3>\n<table class='data'><thead><tr><th>Що це сьогодні</th><th>Значення</th><th>Роль · поріг</th><th>На bg / surface / raised</th><th>Вирок</th><th>Текст НА ньому</th></tr></thead><tbody><tr><td>clay (акцент)</td><td class='m'><span class=\"sw\" style=\"background:#D97757\"></span>#D97757</td><td class='m'>текст/заливка · поріг 4.5</td><td class='m'><span class=\"g-ok\">5.94</span> / <span class=\"g-ok\">5.49</span> / <span class=\"g-ok\">4.99</span></td><td class='m'><span class=g-ok>проходить</span></td><td class='m'>білий: <span class=\"g-bad\">3.12</span> · ink #141312: <span class=\"g-ok\">5.94</span></td></tr><tr><td>clay-deep (hover)</td><td class='m'><span class=\"sw\" style=\"background:#C4674A\"></span>#C4674A</td><td class='m'>текст/заливка · поріг 4.5</td><td class='m'><span class=\"g-ok\">4.76</span> / <span class=\"g-bad\">4.4</span> / <span class=\"g-bad\">4.0</span></td><td class='m'><span class=g-bad>падає на 2 з 3</span></td><td class='m'>білий: <span class=\"g-bad\">3.9</span> · ink #141312: <span class=\"g-ok\">4.76</span></td></tr><tr><td>quiz ok</td><td class='m'><span class=\"sw\" style=\"background:#8FA66B\"></span>#8FA66B</td><td class='m'>текст · поріг 4.5</td><td class='m'><span class=\"g-ok\">6.92</span> / <span class=\"g-ok\">6.39</span> / <span class=\"g-ok\">5.81</span></td><td class='m'><span class=g-ok>проходить</span></td><td class='m'>білий: <span class=\"g-bad\">2.68</span> · ink #141312: <span class=\"g-ok\">6.92</span></td></tr><tr><td>quiz ok-2</td><td class='m'><span class=\"sw\" style=\"background:#C2D3A7\"></span>#C2D3A7</td><td class='m'>текст · поріг 4.5</td><td class='m'><span class=\"g-ok\">11.64</span> / <span class=\"g-ok\">10.75</span> / <span class=\"g-ok\">9.77</span></td><td class='m'><span class=g-ok>проходить</span></td><td class='m'>білий: <span class=\"g-bad\">1.59</span> · ink #141312: <span class=\"g-ok\">11.64</span></td></tr><tr><td>quiz bad</td><td class='m'><span class=\"sw\" style=\"background:#C0564F\"></span>#C0564F</td><td class='m'>текст · поріг 4.5</td><td class='m'><span class=\"g-bad\">4.14</span> / <span class=\"g-bad\">3.82</span> / <span class=\"g-bad\">3.48</span></td><td class='m'><span class=g-bad>падає на 3 з 3</span></td><td class='m'>білий: <span class=\"g-bad\">4.48</span> · ink #141312: <span class=\"g-bad\">4.14</span></td></tr><tr><td>quiz bad-2</td><td class='m'><span class=\"sw\" style=\"background:#E0938B\"></span>#E0938B</td><td class='m'>текст · поріг 4.5</td><td class='m'><span class=\"g-ok\">7.7</span> / <span class=\"g-ok\">7.11</span> / <span class=\"g-ok\">6.47</span></td><td class='m'><span class=g-ok>проходить</span></td><td class='m'>білий: <span class=\"g-bad\">2.41</span> · ink #141312: <span class=\"g-ok\">7.7</span></td></tr><tr><td>term ok</td><td class='m'><span class=\"sw\" style=\"background:#7FA87F\"></span>#7FA87F</td><td class='m'>текст · поріг 4.5</td><td class='m'><span class=\"g-ok\">6.9</span> / <span class=\"g-ok\">6.37</span> / <span class=\"g-ok\">5.8</span></td><td class='m'><span class=g-ok>проходить</span></td><td class='m'>білий: <span class=\"g-bad\">2.69</span> · ink #141312: <span class=\"g-ok\">6.9</span></td></tr><tr><td>term err</td><td class='m'><span class=\"sw\" style=\"background:#C97070\"></span>#C97070</td><td class='m'>текст · поріг 4.5</td><td class='m'><span class=\"g-ok\">5.33</span> / <span class=\"g-ok\">4.93</span> / <span class=\"g-bad\">4.48</span></td><td class='m'><span class=g-bad>падає на 1 з 3</span></td><td class='m'>білий: <span class=\"g-bad\">3.48</span> · ink #141312: <span class=\"g-ok\">5.33</span></td></tr><tr><td>faint</td><td class='m'><span class=\"sw\" style=\"background:#9A9184\"></span>#9A9184</td><td class='m'>текст · поріг 4.5</td><td class='m'><span class=\"g-ok\">5.97</span> / <span class=\"g-ok\">5.52</span> / <span class=\"g-ok\">5.01</span></td><td class='m'><span class=g-ok>проходить</span></td><td class='m'>білий: <span class=\"g-bad\">3.11</span> · ink #141312: <span class=\"g-ok\">5.97</span></td></tr><tr><td>muted</td><td class='m'><span class=\"sw\" style=\"background:#A8A095\"></span>#A8A095</td><td class='m'>текст · поріг 4.5</td><td class='m'><span class=\"g-ok\">7.18</span> / <span class=\"g-ok\">6.63</span> / <span class=\"g-ok\">6.03</span></td><td class='m'><span class=g-ok>проходить</span></td><td class='m'>білий: <span class=\"g-bad\">2.58</span> · ink #141312: <span class=\"g-ok\">7.18</span></td></tr><tr><td>line</td><td class='m'><span class=\"sw\" style=\"background:#3A342E\"></span>#3A342E</td><td class='m'>декоративний хайрлайн · поріг 0.0</td><td class='m'>1.51 / 1.4 / 1.27</td><td class='m'><span style=color:var(--n10)>не ідентифікує контрол — для --c-line-strong потрібне інше значення</span></td><td class='m'>білий: <span class=\"g-ok\">12.28</span> · ink #141312: <span class=\"g-bad\">1.51</span></td></tr></tbody></table>\n<div class=\"note\"><b>Три живі провали, які ця таблиця робить видимими.</b>\nКолір «неправильна відповідь» у квізі `#C0564F` падає нижче AA на всіх трьох поверхнях (4.14 / 3.82 / 3.48) — це 57 сторінок уроків.\n`term-err #C97070` падає на `raised` (4.48 проти 4.5 — за два соті). І `clay #D97757` як заливка під <b>білим</b> текстом дає 3.12 —\nтому `--c-on-accent` мусить бути темним `ink`, а не білим (5.94). Це не рекомендація на майбутнє: перші два вже в проді.</div>\n\n<h3 style=\"font:600 17px/1.4 var(--f-s);margin:32px 0 10px\">Тріо акцентів під Д1 (три курси, один скелет)</h3>\n<table class='data'><thead><tr><th>Тріо (крок 10)</th><th></th><th>Тони</th><th>Мінімальна ΔH · поріг 30°</th><th>Як текст на surface</th><th>Ink на заливці</th></tr></thead><tbody><tr><td class='m'>amber / jade / blue</td><td class='m'><span class=\"sw\" style=\"background:#ffd60a\"></span><span class=\"sw\" style=\"background:#27b08b\"></span><span class=\"sw\" style=\"background:#3b9eff\"></span></td><td class='m'>50° / 164° / 210°</td><td class='m'><span class=g-ok>46°</span></td><td class='m'>12.14 / 6.26 / 6.14</td><td class='m'>13.14 / 6.78 / 6.65</td></tr><tr><td class='m'>amber / cyan / ruby</td><td class='m'><span class=\"sw\" style=\"background:#ffd60a\"></span><span class=\"sw\" style=\"background:#23afd0\"></span><span class=\"sw\" style=\"background:#ec5a72\"></span></td><td class='m'>50° / 191° / 350°</td><td class='m'><span class=g-ok>60°</span></td><td class='m'>12.14 / 6.62 / 5.12</td><td class='m'>13.14 / 7.17 / 5.54</td></tr><tr><td class='m'>bronze / jade / blue</td><td class='m'><span class=\"sw\" style=\"background:#ae8c7e\"></span><span class=\"sw\" style=\"background:#27b08b\"></span><span class=\"sw\" style=\"background:#3b9eff\"></span></td><td class='m'>18° / 164° / 210°</td><td class='m'><span class=g-ok>46°</span></td><td class='m'>5.59 / 6.26 / 6.14</td><td class='m'>6.06 / 6.78 / 6.65</td></tr><tr><td class='m'>orange / jade / cyan</td><td class='m'><span class=\"sw\" style=\"background:#ff801f\"></span><span class=\"sw\" style=\"background:#27b08b\"></span><span class=\"sw\" style=\"background:#23afd0\"></span></td><td class='m'>26° / 164° / 191°</td><td class='m'><span class=g-bad>27°</span></td><td class='m'>6.82 / 6.26 / 6.62</td><td class='m'>7.39 / 6.78 / 7.17</td></tr><tr><td class='m'>gold / tomato / cyan</td><td class='m'><span class=\"sw\" style=\"background:#a39073\"></span><span class=\"sw\" style=\"background:#ec6142\"></span><span class=\"sw\" style=\"background:#23afd0\"></span></td><td class='m'>36° / 11° / 191°</td><td class='m'><span class=g-bad>25°</span></td><td class='m'>5.55 / 5.19 / 6.62</td><td class='m'>6.0 / 5.62 / 7.17</td></tr><tr><td class='m'>orange / gold / bronze</td><td class='m'><span class=\"sw\" style=\"background:#ff801f\"></span><span class=\"sw\" style=\"background:#a39073\"></span><span class=\"sw\" style=\"background:#ae8c7e\"></span></td><td class='m'>26° / 36° / 18°</td><td class='m'><span class=g-bad>8°</span></td><td class='m'>6.82 / 5.55 / 5.59</td><td class='m'>7.39 / 6.0 / 6.06</td></tr></tbody></table>\n<p class=\"intro\">Вимога §5.1.4 — ΔH ≥ 30° між сусідніми курсами. Три «теплі» тріо (`orange/gold/bronze`, `gold/tomato/cyan`, `orange/jade/cyan`)\nїї <b>не проходять</b>: тони злипаються. Проходять ті, де курси розведені по колу. Це прямий аргумент за <b>Д1 у формулюванні «один тональний ряд, різний тон»</b>,\nа не «три різні кольори бренду»: чим тепліше й ближче тони, тим гірше курси розрізняються без читання.</p>\n"
+  },
+  {
+   "id": "motion",
+   "num": "03",
+   "title": "Каталог руху: десять ефектів §6.1 і референси з числами",
+   "intro": "На кожен із десяти іменованих ефектів — не менше двох джерел, і в кожного числа: тригер, тривалість, крива, зсув, шар, кількість одночасних тригерів. Там, де живого референса знайти не вдалося, це сказано прямо, а число дає власна лабораторія.",
+   "html": "\n<table class=\"data\"><thead><tr><th>Ефект</th><th>Референс 1 — з числами</th><th>Референс 2 — з числами</th><th>Що саме беремо</th></tr></thead><tbody>\n<tr><td class=\"m\"><b>M1 page-in</b></td>\n<td>IBM Carbon: `durationSlow01 = 400ms` з дослівним призначенням «large hero transitions», крива входу `cubic-bezier(0, 0, 0.38, 0.9)`. Джерело — пакет `@carbon/motion@11`, не сторінка документації.</td>\n<td>Material 3: `duration-long2 = 500ms` + `easing-emphasized-decelerate = cubic-bezier(0.05, 0.7, 0.1, 1)`; узято з `tokens/versions/v0_192/_md-sys-motion.scss`.</td>\n<td>Наші ~520 мс із §6.1 лежать рівно між цими двома. Беремо <b>криву</b>: обидві системи для входу використовують <i>деселеративну</i> криву з нульовим стартовим x — рух починається миттєво й довго гальмує.</td></tr>\n\n<tr><td class=\"m\"><b>M2 reveal</b></td>\n<td>Herzog &amp; de Meuron: `opacity 0.25s ease-out` на 41 елементі + `transform 0.15s ease-out` на 57; 33 IntersectionObserver на 65 цілей; сторінка 6193 px; безкінечних циклів — нуль.</td>\n<td>A. Lange &amp; Söhne: `opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1)` на 76 елементах, 1 IO, 8 слухачів скролу, сторінка 7005 px.</td>\n<td>Обидва преміальні сайти тримають <b>ту саму тривалість 250 мс</b> і рухають лише `opacity` (+ дрібний `transform`). Наші 480 мс — удвічі повільніше за те, що робить люкс.</td></tr>\n\n<tr><td class=\"m\"><b>M3 stagger</b></td>\n<td><b>Негативний результат, і він цінний:</b> сканування інкрементних `transition-delay`/`animation-delay` на пʼяти преміальних сайтах (godly, minimal.gallery, Herzog &amp; de Meuron, Lange, Bang &amp; Olufsen) дало <b>нуль</b> стагерів. Максимум — рівна затримка `0.1s` на пʼяти елементах у Lange.</td>\n<td>Власна лабораторія: 30 карток, крок 60 мс, тривалість 480 мс. Без cap останній елемент завершує рух на <b>2249 мс</b>, з cap 8 — на <b>982 мс</b>. Різниця 1267 мс.</td>\n<td>Cap 8 з §6.1 підтверджено числом. І ширший висновок: стагер — не «фірмовий прийом» преміального сайту, а виняток; на уроці (`data-density=\"lesson\"`, крок 0) його справедливо немає.</td></tr>\n\n<tr><td class=\"m\"><b>M4 hover</b></td>\n<td>Atlassian: `150ms cubic-bezier(0.4, 1, 0.6, 1)`, зміна — <b>напівпрозорий шар</b> `rgba(206,206,217,0.07)`, не інший колір. Токени `--motion-duration-*`: 50 / 100 / 150 / 200 / 250 / 400 мс.</td>\n<td>Carbon: `110ms cubic-bezier(0.5, 0, 0.1, 1)`; Bang &amp; Olufsen: `color 0.2s cubic-bezier(0.165, 0.84, 0.44, 1)` на 43 елементах; basement.studio: `0.06s linear` до `#FF4D00`.</td>\n<td>Наші 150 мс — рівно медіана. Беремо прийом Atlassian: hover як <b>альфа-шар над поверхнею</b>, а не окремий хекс — тоді hover працює на будь-якій сходинці драбини без нових токенів.</td></tr>\n\n<tr><td class=\"m\"><b>M5 press</b></td>\n<td>Radix Themes: `:active` не масштабує, а додає `filter: brightness(1.08)`. Виміряно примусовим псевдостаном через CDP, не «на око».</td>\n<td>Atlassian: `:active` = альфа-шар `rgba(227,228,242,0.12)` замість hover-шару `0.07`. shadcn/ui: те саме, зміна альфи фону.</td>\n<td><b>Несподіванка:</b> жодна з чотирьох перевірених темних систем не використовує `scale` на натисканні. Наш `--scale-press: 0.98` лишається (він фізичніший), але поруч треба мати альфа-крок — на елементах без власного фону масштабувати нічого.</td></tr>\n\n<tr><td class=\"m\"><b>M6 focus</b></td>\n<td>Geist: `--ds-focus-ring: 0 0 0 2px hsla(0,0%,4%,1), 0 0 0 4px hsla(210,100%,66%,1)` — <b>подвійне кільце</b>: спершу 2 px кольору фону, потім 4 px акценту.</td>\n<td>Supabase Docs: `0 0 0 2px <фон>, 0 0 0 4px <акцент 55 %>`; basement.studio: `0 0 0 2px #000, 0 0 0 3px #FF4D00`. Плюс класика: Atlassian і Radix — `outline: 2px solid, offset 2px`.</td>\n<td>Подвійне кільце. Причина, чому воно краще за `outline` саме в нас: кільце має гарантований розділювальний шар кольору фону, тому читається і на `--c-bg`, і на `--c-sunken` (полотні термінала), де простий `outline` зливається.</td></tr>\n\n<tr><td class=\"m\"><b>M7 state-change</b></td>\n<td>Radix accordion: `height: 0 → var(--radix-accordion-content-height)`, <b>300 мс `cubic-bezier(0.87, 0, 0.13, 1)`</b> — різко-симетрична крива. shadcn повторює один в один (`accordion-down` / `accordion-up`).</td>\n<td>Radix Themes, поява поповерів: `translateY(4px) scale(0.97) → 0/1`; Radix Primitives, дропдауни: `translateY(2px)` + `opacity`. Fluent: `height, visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1)`.</td>\n<td>Тривалість 300 мс і криву. Але <b>не механізм</b>: Radix анімує `height` через змінну, яку міряє JS, а §6.1 це прямо забороняє — у нас `grid-template-rows: 0fr→1fr`. Зсув 2–4 px — доказ, що для мікроентранса цього досить.</td></tr>\n\n<tr><td class=\"m\"><b>M8 count</b></td>\n<td>Власна лабораторія: 00 000 → 12 345 за 900 мс, <b>однакова кількість знаків на всіх кадрах</b>. Onest без `tabular-nums` — ширина гуляє <b>35.22 px</b> за 56 кадрів; з `tabular-nums` — рівно <b>0 px</b>; Yeseva One / старостильні цифри — 14.59 px.</td>\n<td>Живого референса <b>не знайдено</b>: серед 20 преміальних сайтів поза IT лічильника-тікера немає в жодного. Єдине, де він трапляється, — SaaS-лендінги, які відсіює Р7. Числову опору дають Carbon (`durationSlow02 = 700ms`, «slow, immersive motion») і M3 (`duration-extra-long1 = 700ms`).</td>\n<td>Правило «tabular-nums скрізь, де число змінюється» тепер має ціну в пікселях: 35 px стрибка на кеглі 34 px. І другий висновок: якщо лічильника немає в жодного люксу — можливо, він нам теж не потрібен ніде, крім прогресу курсу.</td></tr>\n\n<tr><td class=\"m\"><b>M9 scroll-scrub</b></td>\n<td>scroll-driven-animations.style: `view-timeline: --header-vtl` + `animation-duration: auto` + `animation-timeline`; <b>0 IntersectionObserver, 0 слухачів скролу, 0 rAF</b> на сторінці 10018 px. Це нативний CSS без жодного JS.</td>\n<td>Apple, MacBook Pro: сторінка 30857 px, <b>50 слухачів скролу</b>, 3 IO, 808 елементів із переходами; вхід глобальної навігації `0.32s cubic-bezier(0.4, 0, 0.6, 1)`.</td>\n<td>Наш бюджет «1 ScrollTrigger на сторінку» виглядає суворим, поки не побачиш Apple з 50 слухачами. Але головне — <b>нативний шлях</b>: там, де ефект чисто декоративний, `animation-timeline: view()` дає той самий результат за нуль JS і без ризику §6.7.</td></tr>\n\n<tr><td class=\"m\"><b>M10 typing</b></td>\n<td>Власна лабораторія: той самий рядок, та сама швидкість 32 симв/с. Посимвольна вставка — <b>166 записів у DOM</b>, 68 мс у головному потоці (за CPU ×6 — 181–230 мс). `clip-path: inset()` + `steps(166)` — <b>1 запис</b>, головний потік не задіяний. Кадрів довших за 32 мс — нуль в обох (машина швидка).</td>\n<td>Власний прецедент 005: три пресети 24 / 32 / 44 симв/с, уже перевірені на 101 блоці `.term` у 26 уроках.</td>\n<td>Заборона посимвольної вставки з §6.1 підтверджена не «продуктивністю» (fps однаковий), а трьома іншими цінами: 166× записів у DOM, зірване виділення тексту на кожному символі й 166 перечитувань рядка скрінрідером.</td></tr>\n\n<tr><td class=\"m\"><b>L1 loop</b></td>\n<td>basement.studio: рівно <b>один</b> безкінечний цикл на всю сторінку 6714 px — `pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite`.</td>\n<td>Fixel (MacPaw): `weight-change 7s ease-out infinite` — цикл анімує <b>вісь варіативного шрифта</b>, тобто демонструє сам продукт. Radix: `rt-spinner-leaf-fade 0.8s linear`, `rt-skeleton-pulse 1s ease`. Christie's: `pulse 1.8s ease`.</td>\n<td>Бюджет Д12 (≤2 на лендінг, ≤1 на урок) підтверджений практикою: сайт-студія з репутацією «ми робимо рух» обходиться одним циклом. Прийом Fixel — цикл, який щось <b>розповідає</b>, а не просто блимає, — єдиний, який варто копіювати.</td></tr>\n</tbody></table>\n\n<div class=\"shots\"><figure><a href=\"shots/lab-motion.jpg\" target=\"_blank\"><img src=\"shots/lab-motion.jpg\" alt=\"Лабораторія руху\"></a>\n<figcaption>lab/motion-lab.html · три експерименти друкують числа в самій сторінці; відкривається локально й перераховується наживо.</figcaption></figure></div>\n\n<h3 style=\"font:600 17px/1.4 var(--f-s);margin:32px 0 10px\">Готові драбини тривалостей — дослівно з джерел</h3>\n<div class=\"quote\">@carbon/motion@11 (Apache-2.0), файл lib/index.js — коментарі авторів збережено:\n  durationFast01     =  70ms   /* Micro-interactions such as button and toggle. Instant response to user action. */\n  durationFast02     = 110ms   /* Micro-interactions such as fade in. Subtle entrance or exit of small UI elements. */\n  durationModerate01 = 150ms   /* Micro-interactions, small expansion, short distance movements. Default transition speed. */\n  durationModerate02 = 240ms   /* Expansion, system communication, toast. */\n  durationSlow01     = 400ms   /* Large expansion, important system notifications. */\n  durationSlow02     = 700ms   /* Background dimming, large hero transitions. */\n  easings.standard.productive = cubic-bezier(0.2, 0, 0.38, 0.9)\n  easings.entrance.productive = cubic-bezier(0, 0, 0.38, 0.9)\n  easings.exit.productive     = cubic-bezier(0.2, 0, 1, 0.9)\n\nMaterial 3, tokens/versions/v0_192/_md-sys-motion.scss (Apache-2.0):\n  short1..4  =  50 / 100 / 150 / 200 ms      medium1..4 = 250 / 300 / 350 / 400 ms\n  long1..4   = 450 / 500 / 550 / 600 ms      extra-long1..4 = 700 / 800 / 900 / 1000 ms\n  easing-emphasized            = cubic-bezier(0.2, 0, 0, 1)\n  easing-emphasized-decelerate = cubic-bezier(0.05, 0.7, 0.1, 1)\n  easing-emphasized-accelerate = cubic-bezier(0.3, 0, 0.8, 0.15)\n  easing-standard              = cubic-bezier(0.2, 0, 0, 1)\n\nAtlassian, зчитано з живого :root на atlassian.design (темна тема):\n  --motion-duration-instant/fast/normal/medium/slow/slower = 50 / 100 / 150 / 200 / 250 / 400 ms\n  --motion-ease-out    = cubic-bezier(0, 0.4, 0, 1)\n  --motion-ease-in-out = cubic-bezier(0.4, 0, 0, 1)\n  --motion-ease-spring = cubic-bezier(0.34, 1.56, 0.64, 1)\n\nVercel Geist, зчитано з живого :root на vercel.com/geist/colors (темна тема):\n  --ds-motion-timing-swift     = cubic-bezier(.175, .885, .32, 1.1)   /* перескок на 1.1 */\n  --ds-motion-overlay-duration = .3s      --ds-motion-overlay-scale = .96\n  --ds-motion-popover-duration = .2s</div>\n<div class=\"note\">Спільне в усіх чотирьох: <b>тривалість має імʼя і призначення</b>, а не число. У нас сьогодні ~35 тривалостей із трьох задач і жодної драбини.\nДруге спільне: кривих мало (3–4 на систему) — це рівно те, що вимагає §6.5.</div>\n"
+  },
+  {
+   "id": "dir1",
+   "num": "04",
+   "title": "Напрям 1 — «важкий люкс» поза IT",
+   "intro": "Там, де дорожнеча вже вирішена: архітектурні бюро, годинникові мануфактури, галереї, аукціонні доми, видавництва. Головне, що звідти беремо, — не картинка, а **дисципліна**: скільки саме руху дозволяє собі сайт, який продає предмет за шестизначну суму. Світлі сайти позначені як світлі — з них беремо тільки типографіку й ритм полів.",
+   "refs": [
+    {
+     "id": "r01",
+     "name": "Herzog & de Meuron",
+     "url": "https://www.herzogdemeuron.com/",
+     "cls": "живий сайт · архітектура",
+     "theme": "темний",
+     "feas": "легко — усе відтворюється CSS + IntersectionObserver",
+     "why": "Сторінка 6193 px, на якій **нуль градієнтів, нуль тіней, нуль безкінечних циклів** і рівно два кольори — полотно `#111111` і текст `#EEEEEE` (контраст 17.4:1). Уся ієрархія тримається на сітці колонок і на тому, що зображення стоять на різній висоті. Проєкти пронумеровані наскрізно («492.1 Villa Roccabruna», «482.2 TITLIS Tower») — номер працює як частина типографіки, а не як службова мітка.",
+     "motion": "Тригер — вхід у вʼюпорт, 33 IntersectionObserver на 65 цілей (по спостерігачу на секцію, не на елемент). Рухаються два шари: `opacity 0.25s ease-out` (41 елемент) і `transform 0.15s ease-out` (57). Скрол слухають 3 обробники на всю сторінку. Стагера немає — блок зʼявляється цілком. Відчуття «каталог, який гортають», а не «сайт, який себе показує», дає саме коротка тривалість: 250 мс на межі помітності.",
+     "take": "Наскрізну нумерацію як типографічний елемент (у нас є 57 уроків і три курси) і правило «межа + сходинка поверхні замість тіні» — цей сайт доводить, що глибина взагалі не потрібна.",
+     "nums": [
+      [
+       "полотно / текст",
+       "`#111111` / `#EEEEEE` — контраст 17.4:1"
+      ],
+      [
+       "сторінка",
+       "6193 px · 139 елементів із переходами"
+      ],
+      [
+       "спостерігачі",
+       "33 IO / 65 цілей · 3 слухачі скролу"
+      ],
+      [
+       "цикли",
+       "0"
+      ],
+      [
+       "текст",
+       "16 px / 27.2 px — інтерліньяж 1.70"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "herzogdemeuron-0.jpg",
+       "cap": "верх сторінки"
+      },
+      {
+       "src": "herzogdemeuron-1.jpg",
+       "cap": "≈35 % скролу — сітка проєктів із різною висотою карток"
+      },
+      {
+       "src": "herzogdemeuron-2.jpg",
+       "cap": "≈70 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r02",
+     "name": "Gagosian",
+     "url": "https://gagosian.com/",
+     "cls": "живий сайт · галерея",
+     "theme": "світлий з темними смугами",
+     "feas": "середньо — інверсія секцій вимагає двох наборів токенів",
+     "why": "Ритм сторінки будується **інверсією**: темна смуга — світла смуга — темна. Заголовки набрані вузьким гротеском у капітелі з інтерліньяжем **менше кегля** (60 px шрифт при 48 px рядка, тобто 0.8), тіло — Minion Pro 19/22.5. Кнопка «Explore Now» — прямокутник з 1 px межею і нульовим радіусом. Жодного скруглення, жодної тіні на 9185 px.",
+     "motion": "Тригер — вхід у вʼюпорт, 9 спостерігачів на 146 цілей; 9 слухачів скролу тримають горизонтальні рейки. Рух мінімальний: зміна прозорості й горизонтальне гортання рейок.",
+     "take": "Прийом «інверсія смуги замість роздільника»: секцію відділяє не лінія, а зміна полотна. У нас це закривало б потребу в декоративних `--c-line` між блоками лендінга.",
+     "nums": [
+      [
+       "заголовок",
+       "60 px / 48 px — інтерліньяж 0.80, вага 700"
+      ],
+      [
+       "тіло",
+       "Minion Pro 19 px / 22.5 px"
+      ],
+      [
+       "сторінка",
+       "9185 px · 80 елементів із переходами"
+      ],
+      [
+       "спостерігачі",
+       "9 IO / 146 цілей"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "gagosian-1.jpg",
+       "cap": "≈35 % скролу — межа темної й світлої смуги видно в одному кадрі"
+      }
+     ]
+    },
+    {
+     "id": "r03",
+     "name": "A. Lange & Söhne",
+     "url": "https://www.alange-soehne.com/en/",
+     "cls": "живий сайт · годинникова мануфактура",
+     "theme": "темний (полотно `#000000`)",
+     "feas": "легко",
+     "why": "Мануфактура, де вся мова — це **міжлітерний простір**: заголовок 55/68 з `letter-spacing: 2px`, тіло 17/25 з `0.8px`. Розріджений набір робить сторінку повільною на читання — і саме це відчувається як «дорого». Тіла тексту 17 px — рівно наш `--fs-body`.",
+     "motion": "Один прийом, помножений на 76 елементів: `opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1)`. Плюс `color 0.15s` на посиланнях. Безкінечних циклів два, обидва — індикатори завантаження (`0.75s linear`, `1s ease-in-out`), тобто цикл дозволений тільки там, де щось справді триває.",
+     "take": "`letter-spacing` як носій «дорого»: +2 px на заголовку і +0.8 px на тексті. У нас `--tr-eyebrow: 0.18em` є лише для надрядка — цей сайт показує, що трекінг має бути токеном і для H1.",
+     "nums": [
+      [
+       "заголовок",
+       "55 px / 68 px · letter-spacing 2 px"
+      ],
+      [
+       "тіло",
+       "17 px / 25 px · letter-spacing 0.8 px"
+      ],
+      [
+       "рух",
+       "`opacity 0.25s cubic-bezier(0.4,0,0.2,1)` × 76"
+      ],
+      [
+       "цикли",
+       "2 — обидва індикатори завантаження"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "lange-0.jpg",
+       "cap": "верх сторінки"
+      },
+      {
+       "src": "lange-1.jpg",
+       "cap": "≈30 % скролу"
+      },
+      {
+       "src": "lange-2.jpg",
+       "cap": "≈60 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r04",
+     "name": "David Chipperfield Architects",
+     "url": "https://davidchipperfield.com/",
+     "cls": "живий сайт · архітектура",
+     "theme": "світлий",
+     "feas": "легко — брати нічого технічно складного",
+     "why": "Сторінка **21 946 px** — і на ній рівно 62 елементи з переходами, 1 IntersectionObserver і 1 слухач скролу. Це найрадикальніша економія руху з усього, що я відкрив. Типографіка: Monument Grotesk 42.4/48.4 для заголовків, тіло 17.68/24.2 (інтерліньяж 1.37 — щільніше за наш 1.75).",
+     "motion": "Практично немає. Один спостерігач на всю сторінку. Це і є повідомлення: тут показують роботу, а не сайт.",
+     "take": "Контраргумент до §6.1 у чистому вигляді: якщо на 22 000 px вистачає одного спостерігача, то наш бюджет «1 ScrollTrigger» — це не обмеження, а норма галузі.",
+     "nums": [
+      [
+       "сторінка",
+       "21 946 px"
+      ],
+      [
+       "рух",
+       "62 елементи · 1 IO · 1 слухач скролу"
+      ],
+      [
+       "тіло",
+       "17.68 px / 24.2 px — інтерліньяж 1.37"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "chipperfield-0.jpg",
+       "cap": "верх"
+      },
+      {
+       "src": "chipperfield-1.jpg",
+       "cap": "≈40 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r05",
+     "name": "Bang & Olufsen",
+     "url": "https://www.bang-olufsen.com/en/us/",
+     "cls": "живий сайт · аудіотехніка",
+     "theme": "світлий з темними секціями",
+     "feas": "легко",
+     "why": "Єдина крива, яку варто забрати з цього сайту: `cubic-bezier(0.165, 0.84, 0.44, 1)` — це easeOutQuart, «швидко зрушив, довго доводить». Вона стоїть на 43 елементах і саме вона робить наведення «дорогим»: реакція миттєва, зупинка мʼяка.",
+     "motion": "Тригер — вказівник. `color 0.2s cubic-bezier(0.165, 0.84, 0.44, 1)` × 43; `opacity 0.4s ease-in-out` × 20 на входженнях; 21 спостерігач на 54 цілі. Циклів нуль.",
+     "take": "Криву `cubic-bezier(0.165, 0.84, 0.44, 1)` як кандидата в `--e-out`. Вона різкіша на старті за нашу і саме тому відчувається дорожче за стандартну `ease-out`.",
+     "nums": [
+      [
+       "hover",
+       "`color 0.2s cubic-bezier(0.165, 0.84, 0.44, 1)` × 43"
+      ],
+      [
+       "входження",
+       "`opacity 0.4s ease-in-out` × 20"
+      ],
+      [
+       "спостерігачі",
+       "21 IO / 54 цілі"
+      ],
+      [
+       "сторінка",
+       "5537 px"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "bang-olufsen-1.jpg",
+       "cap": "≈35 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r06",
+     "name": "Phillips",
+     "url": "https://www.phillips.com/",
+     "cls": "живий сайт · аукціонний дім",
+     "theme": "світлий",
+     "feas": "легко",
+     "why": "На 4573 px — **28 елементів із переходами**. Пара «дисплейний шрифт для лотів + Montserrat 14 px для всього іншого» тримає ієрархію без жодного другого кольору. Найтихіший з аукціонних домів і найкраще складений.",
+     "motion": "Тригер — вказівник і вхід у вʼюпорт. `color, background-color, border-color, box-shadow 0.25s ease-out` × 13; `box-shadow 0.25s ease` × 8. 6 спостерігачів на 36 цілей, 10 слухачів скролу.",
+     "take": "Дисципліну числа: 28 анімованих елементів на цілу сторінку — це орієнтир, з яким варто звіряти наш styleguide.",
+     "nums": [
+      [
+       "рух",
+       "28 елементів на 4573 px"
+      ],
+      [
+       "hover",
+       "`0.25s ease-out` на кольорі, межі й тіні"
+      ],
+      [
+       "спостерігачі",
+       "6 IO / 36 цілей"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "phillips-1.jpg",
+       "cap": "≈35 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r07",
+     "name": "Fitzcarraldo Editions",
+     "url": "https://fitzcarraldoeditions.com/",
+     "cls": "живий сайт · видавництво",
+     "theme": "світлий",
+     "feas": "легко",
+     "why": "Видавництво, у якого вся ідентичність — це **одна гарнітура (Adobe Caslon Pro) і два кольори обкладинок**. 11 елементів із переходами, нуль спостерігачів на 3770 px. Доказ, що «преміально» може означати «нічого не відбувається».",
+     "motion": "Практично немає: 11 переходів, 0 IntersectionObserver, 0 циклів.",
+     "take": "Аргумент для `verdict.md`: варіант із мінімумом руху має право бути одним із трьох, і він не «бідний».",
+     "nums": [
+      [
+       "рух",
+       "11 переходів · 0 IO · 0 циклів"
+      ],
+      [
+       "типографіка",
+       "Adobe Caslon Pro 16/24 — одна гарнітура на весь сайт"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "fitzcarraldo-0.jpg",
+       "cap": "верх сторінки"
+      }
+     ]
+    },
+    {
+     "id": "r08",
+     "name": "teenage engineering",
+     "url": "https://teenage.engineering/",
+     "cls": "живий сайт · промисловий дизайн",
+     "theme": "світлий",
+     "feas": "легко",
+     "why": "15 233 px сторінки і **3 елементи з переходами**. Уся мова — фотографія предмета на порожньому полі й підпис 16/24 вагою 300. Найрадикальніший приклад «предмет важливіший за оформлення».",
+     "motion": "Три переходи на всю сторінку, нуль спостерігачів, нуль циклів.",
+     "take": "Ідею «плити предмета» з 005 (`--c-desk`) можна довести до кінця: предмет має власне поле, і на цьому полі не відбувається нічого.",
+     "nums": [
+      [
+       "сторінка",
+       "15 233 px · 3 елементи з переходами"
+      ],
+      [
+       "підпис",
+       "16 px / 24 px вага 300"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "teenage-engineering-0.jpg",
+       "cap": "верх сторінки"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dir2",
+   "num": "05",
+   "title": "Напрям 2 — публічні дизайн-системи і styleguide-сторінки",
+   "intro": "Це прямий референс артефакту D нашої задачі: не маркетинговий лендінг, а сама система — як показують токени, стани, рух, як роблять playground. Усе виміряно в темній темі.",
+   "refs": [
+    {
+     "id": "r10",
+     "name": "Radix Colors — Scales / Understanding the scale",
+     "url": "https://www.radix-ui.com/colors/docs/palette-composition/scales",
+     "cls": "дизайн-система · колір",
+     "theme": "темний",
+     "feas": "легко — це чисті значення, брати можна одразу",
+     "why": "Найкраща відповідь на нашу §3.3, яку я знайшов. **12 сходинок, у кожної названа роль**: 1–2 фон застосунку, 3–5 поверхні компонента у трьох станах, 6–8 межі трьох сил, 9–10 суцільні заливки, 11–12 текст. Тобто питання «якого кольору hover картки» перестає існувати. Тепла шкала `sand` майже збігається з нашими поверхнями: `#111110` / `#191918` / `#222221` проти наших `#141312` / `#1E1B18` / `#272320`.",
+     "motion": "Сама сторінка майже нерухома (9 елементів із переходами) — і це правильно для каталогу значень: колір не можна оцінити, поки він рухається.",
+     "take": "Модель драбини цілком: 12 названих сходинок замість наших 17 безіменних. Плюс готові стани (див. розділ 02) — крок 11 кожної шкали проходить AA на всіх трьох наших поверхнях.",
+     "nums": [
+      [
+       "сходинок",
+       "12 на шкалу, кожна з роллю"
+      ],
+      [
+       "шкал",
+       "30+ у темному варіанті"
+      ],
+      [
+       "збіг із нами",
+       "`sand-1/2/3` = `#111110`/`#191918`/`#222221`"
+      ],
+      [
+       "рух на сторінці",
+       "9 елементів — навмисно майже нуль"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "radix-scales-0.jpg",
+       "cap": "верх — вибір шкали"
+      },
+      {
+       "src": "radix-scales-1.jpg",
+       "cap": "≈35 % скролу — теплі шкали в темному варіанті"
+      },
+      {
+       "src": "radix-understanding-1.jpg",
+       "cap": "сторінка «Understanding the scale» — пояснення ролі кожної сходинки"
+      }
+     ]
+    },
+    {
+     "id": "r11",
+     "name": "Radix Themes Playground",
+     "url": "https://www.radix-ui.com/themes/playground",
+     "cls": "дизайн-система · playground",
+     "theme": "темний",
+     "feas": "середньо — панель і перемикачі писати самим, але логіка проста",
+     "why": "Це **буквальна форма нашого артефакту D**: плаваюча панель із перемикачами «Accent color · Gray color · Appearance · Radius · Scaling · Panel background» і кнопкою «Copy Theme», а весь каталог компонентів під нею перемальовується наживо. Одна сторінка 20 842 px показує всі компоненти в усіх станах.",
+     "motion": "Тригер — клік у панелі; переозначується набір CSS-змінних на корені, компоненти переходять кольором за 150 мс. Поява поповерів — `translateY(4px) scale(0.97) → 0/1`, тобто зсув **4 px**, а не 12. Циклів два, обидва службові: `rt-spinner-leaf-fade 0.8s linear`, `rt-skeleton-pulse 1s ease`.",
+     "take": "Конструкцію панелі під наш styleguide: замість «Accent color» — три курси (Д1), замість «Appearance» — три пресети `data-motion`, замість «Scaling» — дві щільності `data-density`. Плюс «Copy Theme» → у нас це «скопіювати `variant.css`».",
+     "nums": [
+      [
+       "сторінка",
+       "20 842 px — увесь каталог компонентів"
+      ],
+      [
+       "перемикачів у панелі",
+       "6 осей + експорт теми"
+      ],
+      [
+       "мікроентранс",
+       "`translateY(4px) scale(0.97)`, 150 мс"
+      ],
+      [
+       "цикли",
+       "2, обидва службові"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "radix-playground-0.jpg",
+       "cap": "верх — панель теми праворуч"
+      },
+      {
+       "src": "radix-playground-1.jpg",
+       "cap": "≈25 % скролу"
+      },
+      {
+       "src": "radix-playground-2.jpg",
+       "cap": "≈50 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r12",
+     "name": "Vercel Geist",
+     "url": "https://vercel.com/geist/colors",
+     "cls": "дизайн-система · токени + бренди",
+     "theme": "темний (полотно `#000000`)",
+     "feas": "легко",
+     "why": "10 колірних шкал × 10 сходинок, окремі alpha-версії кожної, і — головне — **розділ «Brands», де одна система обслуговує шість продуктів** (Vercel, Next.js, Turbo, v0, eve, AI SDK). Це готова відповідь на Д1. Токени лежать у `:root` живими змінними, тому їх можна не переказувати, а зчитати.",
+     "motion": "Тригери — вказівник і фокус. Базовий перехід `all 0.15s cubic-bezier(0.4, 0, 0.2, 1)` × 19. Токени руху названі за призначенням: `--ds-motion-overlay-duration: .3s` зі `scale .96`, `--ds-motion-popover-duration: .2s`, і одна крива на все — `--ds-motion-timing-swift: cubic-bezier(.175, .885, .32, 1.1)` з **перескоком 1.1** на кінці.",
+     "take": "Три речі: (1) подвійне кільце фокуса `--ds-focus-ring`, (2) іменування токенів руху за компонентом (`overlay`, `popover`), а не за числом, (3) структуру розділу «Brands» як зразок того, як показувати три наші курси в одній системі.",
+     "nums": [
+      [
+       "шкали",
+       "10 × 10 сходинок + alpha-двійники"
+      ],
+      [
+       "фон / текст",
+       "`hsla(0,0%,4%)` / `hsla(0,0%,93%)`"
+      ],
+      [
+       "фокус",
+       "`0 0 0 2px hsla(0,0%,4%,1), 0 0 0 4px hsla(210,100%,66%,1)`"
+      ],
+      [
+       "стани",
+       "green `hsl(131,43%,57%)` · amber `hsl(39,90%,50%)` · red `hsl(358,100%,69%)` · blue `hsl(210,100%,66%)`"
+      ],
+      [
+       "крива",
+       "`cubic-bezier(.175,.885,.32,1.1)` — одна на систему"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "geist-colors-0.jpg",
+       "cap": "верх — 10 шкал у темній темі"
+      },
+      {
+       "src": "geist-typography-0.jpg",
+       "cap": "сторінка типографіки"
+      },
+      {
+       "src": "geist-brand-nextjs-0.jpg",
+       "cap": "розділ Brands: та сама система, інший продукт"
+      }
+     ]
+    },
+    {
+     "id": "r13",
+     "name": "IBM Carbon",
+     "url": "https://carbondesignsystem.com/guidelines/motion/overview/",
+     "cls": "дизайн-система · рух і колір",
+     "theme": "темний (тема g100)",
+     "feas": "легко",
+     "why": "Єдина система з переглянутих, де **кожна тривалість має дослівно записане призначення** в самому пакеті: «Micro-interactions such as button and toggle. Instant response to user action.» — це коментар у коді, а не в документації. Драбина 70 / 110 / 150 / 240 / 400 / 700 мс і три пари кривих (standard / entrance / exit) × два характери (productive / expressive).",
+     "motion": "На сайті: `color, background-color, outline 0.11s ease` × 124, `transform 0.11s ease` × 13, кнопка — `0.07s cubic-bezier(0.2, 0, 0.38, 0.9)`. 115–117 спостерігачів (документаційний сайт, багато демо). Фокус — інвертоване біле кільце `outline: 2px solid #fff` з `offset: -2px` **всередині** кнопки плюс синя межа.",
+     "take": "Форму драбини: наші тривалості мусять називатись за призначенням і мати рівно один рядок пояснення. І пару entrance/exit: вхід і вихід не однакові — у виходу `x2 = 1`, тобто він прискорюється до кінця.",
+     "nums": [
+      [
+       "драбина",
+       "70 / 110 / 150 / 240 / 400 / 700 мс"
+      ],
+      [
+       "криві",
+       "standard `(0.2,0,0.38,0.9)` · entrance `(0,0,0.38,0.9)` · exit `(0.2,0,1,0.9)`"
+      ],
+      [
+       "hover кнопки",
+       "`0.07s cubic-bezier(0.5,0,0.1,1)`"
+      ],
+      [
+       "фокус",
+       "`outline: 2px solid #fff, offset -2px` + межа `#0F62FE`"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "carbon-motion-0.jpg",
+       "cap": "сторінка руху, тема g100"
+      },
+      {
+       "src": "carbon-color-0.jpg",
+       "cap": "токени кольору"
+      },
+      {
+       "src": "carbon-themes-1.jpg",
+       "cap": "чотири теми однієї системи"
+      }
+     ]
+    },
+    {
+     "id": "r14",
+     "name": "Atlassian Design System",
+     "url": "https://atlassian.design/foundations/color-new/color-palette-new",
+     "cls": "дизайн-система · токени",
+     "theme": "темний (`#1F1F21`)",
+     "feas": "легко",
+     "why": "Найближча до нас за задачею: одна система на кілька продуктів, темна тема як рівноправна. Токени руху зчитуються з живого `:root`. Найцінніше — **інтеракція через альфа-шар**: hover це `rgba(206,206,217,0.07)`, active — `rgba(227,228,242,0.12)`, тобто один прийом працює на будь-якому фоні й не потребує окремого хекса на кожну поверхню.",
+     "motion": "Тригери — вказівник, натискання, фокус. `background-color, border-color, color 0.05s cubic-bezier(0.4, 1, 0.6, 1)` × 70 (це 50 мс — на межі сприйняття), `opacity 0.15s ease` × 154. Фокус — `outline: 2px solid #8FB8F6, offset 2px`. Токени: 50/100/150/200/250/400 мс, `--motion-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1)`.",
+     "take": "Альфа-шар замість другого хекса для hover/active — це прямо скорочує наш реєстр L2 і робить `ds-btn` однією сутністю на всіх поверхнях.",
+     "nums": [
+      [
+       "hover / active",
+       "альфа `0.07` → `0.12` поверх поточної поверхні"
+      ],
+      [
+       "тривалості",
+       "50/100/150/200/250/400 мс"
+      ],
+      [
+       "фокус",
+       "`outline: 2px solid #8FB8F6, offset 2px`"
+      ],
+      [
+       "пружина",
+       "`cubic-bezier(0.34, 1.56, 0.64, 1)`"
+      ],
+      [
+       "текст",
+       "`#CECFD2` на `#1F1F21` — 10.56:1"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "atlassian-color-0.jpg",
+       "cap": "темна тема, палітра"
+      },
+      {
+       "src": "atlassian-color-1.jpg",
+       "cap": "≈30 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r15",
+     "name": "Material 3 — Easing and duration",
+     "url": "https://m3.material.io/styles/motion/easing-and-duration/tokens-specs",
+     "cls": "дизайн-система · рух",
+     "theme": "темний",
+     "feas": "легко",
+     "why": "16 тривалостей чотирма групами (short/medium/long/extra-long) і сім кривих із розділенням на «emphasized» та «standard» — тобто система прямо кодує, що акцентний рух і службовий рух мають різні криві. Значення взяв не зі сторінки (вона рендериться скриптом), а з першоджерела — `tokens/versions/v0_192/_md-sys-motion.scss`.",
+     "motion": "Ключова пара: `easing-emphasized-decelerate cubic-bezier(0.05, 0.7, 0.1, 1)` для входу і `easing-emphasized-accelerate cubic-bezier(0.3, 0, 0.8, 0.15)` для виходу. Вхід гальмує, вихід прискорюється — саме тому вихід відчувається коротшим за ту саму тривалість.",
+     "take": "Асиметрію входу й виходу. У §6.1 у нас `--e-out` на всьому; варто мати другу криву для виходу, інакше діалог «липне» при закритті.",
+     "nums": [
+      [
+       "тривалості",
+       "short 50–200 · medium 250–400 · long 450–600 · extra-long 700–1000 мс"
+      ],
+      [
+       "вхід",
+       "`cubic-bezier(0.05, 0.7, 0.1, 1)`"
+      ],
+      [
+       "вихід",
+       "`cubic-bezier(0.3, 0, 0.8, 0.15)`"
+      ],
+      [
+       "стандарт",
+       "`cubic-bezier(0.2, 0, 0, 1)`"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "m3-motion-tokens-0.jpg",
+       "cap": "сторінка токенів руху"
+      }
+     ]
+    },
+    {
+     "id": "r16",
+     "name": "Adobe Spectrum — Motion / Color system",
+     "url": "https://spectrum.adobe.com/page/motion/",
+     "cls": "дизайн-система · рух і колір",
+     "theme": "темний",
+     "feas": "середньо",
+     "why": "Спектр цінний одним: він показує **як пояснювати рух текстом і схемою**, а не демо. Сторінка руху — 4211 px пояснень із діаграмами кривих; сторінка кольору — 12 489 px з поясненням, чому яка сходинка існує. Це формат, у якому наш styleguide має описувати десять ефектів §6.1.",
+     "motion": "Сама сторінка майже нерухома: `all 0.125s ease-in-out` × 48. 4 спостерігачі на 35 цілей.",
+     "take": "Формат подачі: кожен ефект — назва, призначення, тривалість, крива, приклад. Саме цього бракує нашій таблиці §6.1, коли її побачить хтось, крім автора.",
+     "nums": [
+      [
+       "сторінка руху",
+       "4211 px пояснень"
+      ],
+      [
+       "базовий перехід",
+       "`all 0.125s ease-in-out` × 48"
+      ],
+      [
+       "текст",
+       "`#EBEBEB`, 16/24, колонка 976 px"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "spectrum-motion-0.jpg",
+       "cap": "сторінка руху"
+      },
+      {
+       "src": "spectrum-color-0.jpg",
+       "cap": "система кольору"
+      }
+     ]
+    },
+    {
+     "id": "r17",
+     "name": "animations.dev",
+     "url": "https://animations.dev/",
+     "cls": "навчальний продукт про рух",
+     "theme": "темний (`#111110`)",
+     "feas": "легко",
+     "why": "Найближчий аналог того, що ми будуємо: **освітній продукт про анімацію, зроблений на темній теплій нейтралі** `#111110` — майже наш `--c-bg`. Колонка тексту 442 px, 53 символи в рядку, контраст 12.48:1. Тобто «серйозно й дорого» тут зроблено вузькою колонкою й теплим чорним, без жодного кольору.",
+     "motion": "Базовий перехід `0.15s cubic-bezier(0.4, 0, 0.2, 1)` × 120 і `color 0.2s ease` × 121. Єдиний безкінечний цикл — марка (`marquee-third`) з тривалістю **230–320 с**, тобто рух настільки повільний, що не читається як анімація. 4 спостерігачі на 6 цілей.",
+     "take": "Прийом «дуже довгий цикл»: якщо марка йде 250 секунд, вона не бореться за увагу. Це відповідь на Д12 інакшим способом — не забороняти цикл, а зробити його повільнішим за увагу.",
+     "nums": [
+      [
+       "полотно",
+       "`#111110` — тепла нейтраль, майже наш `--c-bg`"
+      ],
+      [
+       "колонка",
+       "442 px · 53 символи в рядку · 16/25.6"
+      ],
+      [
+       "контраст тексту",
+       "12.48:1"
+      ],
+      [
+       "цикл",
+       "марка 230–320 с"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "animations-dev-0.jpg",
+       "cap": "верх"
+      },
+      {
+       "src": "animations-dev-1.jpg",
+       "cap": "≈30 % скролу"
+      },
+      {
+       "src": "animations-dev-2.jpg",
+       "cap": "≈60 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r18",
+     "name": "Motion (motion.dev) — Examples",
+     "url": "https://motion.dev/examples",
+     "cls": "бібліотека руху · каталог демо",
+     "theme": "темний (`#0C0D11`)",
+     "feas": "середньо — самі демо на JS-бібліотеці, значення переносяться",
+     "why": "Каталог із 50 946 px демо, де кожен приклад — окремий іменований прийом із кодом. Це модель для нашого «playground десяти ефектів»: не одна сторінка з усім, а сітка карток, кожна з яких запускається окремо.",
+     "motion": "Домінує одна пара значень, повторена сотні разів: `transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)` × 438 і `border-color 0.18s cubic-bezier(0.25, 1, 0.5, 1)` × 438. Перша — expo-out (майже миттєвий старт, дуже довге гальмування), друга — quart-out. Лише 2 спостерігачі й 2 слухачі скролу на 50 000 px.",
+     "take": "Криву `cubic-bezier(0.16, 1, 0.3, 1)` як кандидата в `--e-out` для великих рухів: вона робить 400 мс схожими на 250.",
+     "nums": [
+      [
+       "сторінка",
+       "50 946 px · 1862 елементи з переходами"
+      ],
+      [
+       "головна крива",
+       "`cubic-bezier(0.16, 1, 0.3, 1)` × 438 при 0.4 с"
+      ],
+      [
+       "друга крива",
+       "`cubic-bezier(0.25, 1, 0.5, 1)` при 0.18 с"
+      ],
+      [
+       "спостерігачі",
+       "2 IO на всю сторінку"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "motion-dev-examples-0.jpg",
+       "cap": "верх каталогу"
+      },
+      {
+       "src": "motion-dev-examples-1.jpg",
+       "cap": "≈25 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r19",
+     "name": "shadcn/ui — Themes",
+     "url": "https://ui.shadcn.com/themes",
+     "cls": "дизайн-система · перемикач акценту",
+     "theme": "темний",
+     "feas": "легко",
+     "why": "Друга (після Radix) готова форма «слоту акценту»: сітка кольорів, і вся сторінка компонентів перефарбовується. Технічно — переозначення набору змінних на корені; жоден компонент про акцент не знає.",
+     "motion": "Перехід `0.15s cubic-bezier(0.4, 0, 0.2, 1)` на кольорі й фоні. Знайдено один випадок нативного `animation-timeline` у стилях — тобто система вже пробує scroll-driven CSS.",
+     "take": "Підтвердження, що слот акценту (Д1) технічно коштує рівно пʼять змінних і нічого більше — саме як записано в §5.1.3.",
+     "nums": [
+      [
+       "механізм",
+       "переозначення змінних на `:root`, компоненти не змінюються"
+      ],
+      [
+       "перехід",
+       "`0.15s cubic-bezier(0.4,0,0.2,1)`"
+      ],
+      [
+       "нативний scroll-driven",
+       "1 правило `animation-timeline` у стилях"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "shadcn-themes-0.jpg",
+       "cap": "сітка акцентів"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dir3",
+   "num": "06",
+   "title": "Напрям 3 — кирилиця як первинна, а не як додаток",
+   "intro": "Що беремо: типопари, де `Ґ Є І Ї` намальовані, а не адаптовані, і як живе довгий український рядок у вузькій колонці. Головна знахідка напряму: **українські преміальні студії не беруть шрифт із Google Fonts — вони беруть український**. Це не обовʼязково наш шлях (Figma-обмеження, Д15), але це пояснює, чому їхні сторінки виглядають інакше.",
+   "refs": [
+    {
+     "id": "r20",
+     "name": "banda.agency",
+     "url": "https://banda.agency/",
+     "cls": "живий сайт · рекламна агенція",
+     "theme": "світлий з чорними блоками",
+     "feas": "середньо — гарнітури KTF немає у Figma й немає в Google Fonts",
+     "why": "Уся навігація набрана **KTF Prima** (Kyiv Type Foundry) кеглем 50 px з `letter-spacing: -2px` — тобто українське слово працює як зображення. Апостроф у «Зв’язок» і «Кар’єра» стоїть правильний (U+2019), і це видно з першого екрана. Це найкращий доказ, що український набір може бути носієм преміальності сам по собі.",
+     "motion": "Тригер — вхід у вʼюпорт: 56 спостерігачів на 58 цілей (майже по спостерігачу на елемент — дорого, але дає точний контроль). Базовий перехід `0.25s cubic-bezier(0.4, 0, 0.2, 1)` × 30, `opacity 0.2s` × 22. 22 слухачі скролу.",
+     "take": "Прийом «навігація як типографічний блок»: пункти меню кеглем 50 px замість 14 px. У нас це кандидат для мобільної шторки `ds-mnav`, де місця багато, а пунктів пʼять.",
+     "nums": [
+      [
+       "гарнітура",
+       "KTF Prima — Kyiv Type Foundry, не Google Fonts"
+      ],
+      [
+       "навігація",
+       "50 px / 42.5 px · letter-spacing −2 px"
+      ],
+      [
+       "спостерігачі",
+       "56 IO / 58 цілей · 22 слухачі скролу"
+      ],
+      [
+       "перехід",
+       "`0.25s cubic-bezier(0.4,0,0.2,1)` × 30"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "banda-1.jpg",
+       "cap": "≈35 % скролу — українська навігація кеглем 50 px"
+      },
+      {
+       "src": "banda-2.jpg",
+       "cap": "≈70 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r21",
+     "name": "Fixel (MacPaw)",
+     "url": "https://fixel.macpaw.com/",
+     "cls": "сайт українського шрифта",
+     "theme": "світлий (`#F7F5F2`)",
+     "feas": "середньо — сам шрифт безкоштовний, але його немає у Figma-переліку",
+     "why": "Український варіативний гротеск від MacPaw, безкоштовний. Сторінка 20 369 px, зроблена як **демонстрація осі ваги**: заголовок 406 px, і вага живе. Це найкращий приклад того, як зробити безкінечний цикл, який щось означає.",
+     "motion": "Єдиний цикл — `weight-change 7s ease-out infinite`, що анімує `font-variation-settings`; перехід на цю ж властивість `0.3s ease` × 5. Плюс `stroke-dashoffset 1s ease-in` × 5 для малювання контурів. 2 спостерігачі на 6 цілей.",
+     "take": "Ідею «цикл демонструє продукт»: якщо в нас буде один цикл на лендінг (Д12), він має показувати щось із курсу — курсор термінала, індикатор прогресу, — а не абстрактне пульсування.",
+     "nums": [
+      [
+       "цикл",
+       "`weight-change 7s ease-out infinite` на осі ваги"
+      ],
+      [
+       "перехід",
+       "`font-variation-settings 0.3s ease`"
+      ],
+      [
+       "сторінка",
+       "20 369 px · h1 406 px"
+      ],
+      [
+       "контури",
+       "`stroke-dashoffset 1s ease-in` × 5"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "fixel-macpaw-0.jpg",
+       "cap": "верх"
+      },
+      {
+       "src": "fixel-macpaw-1.jpg",
+       "cap": "≈35 % скролу"
+      },
+      {
+       "src": "fixel-macpaw-2.jpg",
+       "cap": "≈70 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r22",
+     "name": "Мистецький арсенал",
+     "url": "https://artarsenal.in.ua/",
+     "cls": "живий сайт · культурна інституція",
+     "theme": "світлий",
+     "feas": "легко",
+     "why": "Культурна інституція, яка набрала **весь інтерфейс моноширинним** (dejavuMono 15/23 у тілі, 26 px у заголовках секцій) — і саме це дало їй «серйозно й архівно» без жодного декору. Це прямий аргумент за нашу третю роль `--f-mono`: моно може бути не тільки в коді.",
+     "motion": "Тригери — вказівник і клік. `all 0.2s ease` × 82 і `all 0.3s ease` × 76 — тобто сайт користується лише двома тривалостями. Спостерігачів нуль, 11 слухачів скролу. Циклів нуль.",
+     "take": "Розширення ролі `--f-mono` за межі коду: метадані уроку, номери модулів, підписи — усе, що є «архівним», може бути моно. Це дешевий спосіб дати «технологічність і контроль» (Р6) без жодного кольору.",
+     "nums": [
+      [
+       "типографіка",
+       "моно 15/23 у тілі, 26/31 у заголовках"
+      ],
+      [
+       "рух",
+       "дві тривалості на весь сайт: 0.2 с і 0.3 с"
+      ],
+      [
+       "спостерігачі",
+       "0 IO · 11 слухачів скролу"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "artarsenal-1.jpg",
+       "cap": "≈35 % скролу"
+      },
+      {
+       "src": "artarsenal-2.jpg",
+       "cap": "≈70 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r23",
+     "name": "Ukraїner",
+     "url": "https://www.ukrainer.net/",
+     "cls": "живий сайт · медіа, довгі тексти",
+     "theme": "світлий",
+     "feas": "легко",
+     "why": "Власна гарнітура «UA-brand» у трьох накресленнях (Black для заголовків 44/49.28 вага 800, Bold для лідів 22/26). Найкращий український приклад **великого заголовка, який не розсипається** на довгому слові — а українські слова довгі.",
+     "motion": "Тригерів мало: 143 елементи з переходами, нуль спостерігачів, 6 слухачів скролу. Рух не є частиною мови цього сайту.",
+     "take": "Пропорцію заголовка: 44/49.28 — інтерліньяж **1.12** на вазі 800. Наш `--fs-h1` clamp(36→64) має мати саме такий інтерліньяж, інакше українські двоповерхові слова злипнуться.",
+     "nums": [
+      [
+       "заголовок",
+       "44 px / 49.28 px — інтерліньяж 1.12, вага 800"
+      ],
+      [
+       "лід",
+       "22 px / 26 px вага 700"
+      ],
+      [
+       "рух",
+       "143 переходи · 0 IO"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "ukrainer-0.jpg",
+       "cap": "верх"
+      },
+      {
+       "src": "ukrainer-1.jpg",
+       "cap": "≈35 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r24",
+     "name": "Довженко-Центр",
+     "url": "https://dovzhenkocentre.org/",
+     "cls": "живий сайт · кіноархів",
+     "theme": "світлий",
+     "feas": "середньо",
+     "why": "Єдиний з українських сайтів у добірці, який справді користується GSAP (3.6.1). Гарнітура MazzardH, заголовок секції 151 px. Кіноархівна естетика: великі числа, монохром, курсор-каретка.",
+     "motion": "Цикл `blink 1s steps(5, start) infinite` — курсор, що блимає **кроками**, а не плавно. Це саме те, що потрібно нашому `.term`: `steps()` замість `ease` дає відчуття «пристрій», а не «анімація». Переходи: `all 0.3s ease-in-out` × 78, один із перескоком `cubic-bezier(0.175, 0.885, 0.32, 1.275)` × 3. 119 цілей спостереження.",
+     "take": "Каретку на `steps()` — прийом дешевий і точний за настроєм. І підтвердження, що перескок (`1.275`) варто тримати рівно на трьох елементах, а не на всіх.",
+     "nums": [
+      [
+       "GSAP",
+       "3.6.1 — єдиний український сайт у добірці з GSAP"
+      ],
+      [
+       "каретка",
+       "`blink 1s steps(5, start) infinite`"
+      ],
+      [
+       "перескок",
+       "`cubic-bezier(0.175, 0.885, 0.32, 1.275)` — рівно 3 елементи"
+      ],
+      [
+       "заголовок",
+       "151 px"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "dovzhenko-0.jpg",
+       "cap": "верх"
+      },
+      {
+       "src": "dovzhenko-1.jpg",
+       "cap": "≈40 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r25",
+     "name": "PinchukArtCentre",
+     "url": "https://pinchukartcentre.org/",
+     "cls": "живий сайт · галерея",
+     "theme": "світлий",
+     "feas": "легко",
+     "why": "Власна гарнітура «Pinchuk Art Centre», дуже дрібний UI (14/17.5) і величезні поля. Українська та англійська версії набрані однією гарнітурою без «просідання» кирилиці — рідкісний випадок.",
+     "motion": "Нуль спостерігачів, 195 елементів із переходами, 3 слухачі скролу — рух суто інтерфейсний.",
+     "take": "Пропорцію «дрібний UI + великі поля»: у нас `--fs-ui` 14 px уже є, бракує саме полів. Тут поле навколо контенту більше за сам контент.",
+     "nums": [
+      [
+       "UI",
+       "14 px / 17.5 px"
+      ],
+      [
+       "рух",
+       "195 переходів · 0 IO · 3 слухачі скролу"
+      ],
+      [
+       "текст",
+       "18/23.4, контраст 13.76:1"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "pinchukartcentre-0.jpg",
+       "cap": "верх"
+      },
+      {
+       "src": "pinchukartcentre-1.jpg",
+       "cap": "≈35 % скролу"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dir4",
+   "num": "07",
+   "title": "Напрям 4 — рух як матеріал, а не як декор",
+   "intro": "Сайти, де рух передає вагу, інерцію, шар, глибину — і де це можна виміряти. Для кожного названо, скільки тригерів працює одночасно: саме це число вирішує, чи можна прийом перенести в наш бюджет «1 ScrollTrigger на сторінку».",
+   "refs": [
+    {
+     "id": "r30",
+     "name": "scroll-driven-animations.style",
+     "url": "https://scroll-driven-animations.style/",
+     "cls": "демо + документація · нативний CSS",
+     "theme": "світлий",
+     "feas": "легко — і це найважливіше в цьому референсі",
+     "why": "Каталог нативних scroll-driven анімацій CSS. Головне число: сторінка **10 018 px, і на ній нуль IntersectionObserver, нуль слухачів скролу, нуль rAF**. Весь рух дає браузер сам через `view-timeline` / `animation-timeline` з `animation-duration: auto`.",
+     "motion": "Механізм: `header { view-timeline: --header-vtl }` + на елементі `animation: appear linear both; animation-timeline: view()`. Тривалість не задається — її задає прохід елемента через вʼюпорт. Це буквально M2 і M9 з §6.1, зроблені без єдиного рядка JS.",
+     "take": "Дві речі: (1) для чисто декоративних появ — нативний `animation-timeline: view()` замість спостерігача, бо тоді дефект §6.7 («вузли після render() лишились прозорими») **структурно неможливий**; (2) `animation-duration: auto` як маркер того, що анімацією керує не час.",
+     "nums": [
+      [
+       "сторінка",
+       "10 018 px"
+      ],
+      [
+       "JS-тригери",
+       "0 IO · 0 слухачів скролу · 0 rAF"
+      ],
+      [
+       "механізм",
+       "`view-timeline` + `animation-timeline` + `animation-duration: auto`"
+      ],
+      [
+       "підтримка",
+       "Chrome/Edge — так; Safari — перевіряти окремо"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "scroll-driven-0.jpg",
+       "cap": "верх"
+      },
+      {
+       "src": "scroll-driven-1.jpg",
+       "cap": "≈30 % скролу"
+      },
+      {
+       "src": "scroll-driven-2.jpg",
+       "cap": "≈60 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r31",
+     "name": "Apple — MacBook Pro",
+     "url": "https://www.apple.com/macbook-pro/",
+     "cls": "живий сайт · продуктова сторінка",
+     "theme": "темний (полотно `#000000`)",
+     "feas": "важко — відео-скраб і послідовності кадрів поза нашим бюджетом",
+     "why": "Еталон «рух як матеріал» у масовому продукті: 30 857 px, 808 елементів із переходами. Але цікаве не це, а **ціна**: 50 слухачів скролу і лише 3 IntersectionObserver. Тобто Apple будує все на ручному обчисленні прогресу, а не на спостерігачах.",
+     "motion": "Вхід глобальної навігації — `0.32s cubic-bezier(0.4, 0, 0.6, 1)` × 6. Прихована деталь: `loading-fade` має **вісім проміжних ключів** (100 → 90 → 70 → 60 → 40 → 30 → 20 → 13 % прозорості) — тобто навіть згасання плейсхолдера намальоване вручну, а не залишене на easing.",
+     "take": "Не прийом, а орієнтир вартості: якщо Apple тримає 50 слухачів скролу, наше «1 ScrollTrigger» — це свідомо інша, дешевша ліга, і в `verdict.md` це треба назвати перевагою, а не обмеженням.",
+     "nums": [
+      [
+       "сторінка",
+       "30 857 px · 808 елементів із переходами"
+      ],
+      [
+       "тригери",
+       "50 слухачів скролу · 3 IO"
+      ],
+      [
+       "навігація",
+       "`0.32s cubic-bezier(0.4, 0, 0.6, 1)`"
+      ],
+      [
+       "згасання",
+       "8 проміжних ключів у `loading-fade`"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "apple-macbook-0.jpg",
+       "cap": "верх"
+      },
+      {
+       "src": "apple-macbook-1.jpg",
+       "cap": "≈15 % скролу"
+      },
+      {
+       "src": "apple-macbook-2.jpg",
+       "cap": "≈35 % скролу"
+      },
+      {
+       "src": "apple-macbook-3.jpg",
+       "cap": "≈60 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r32",
+     "name": "basement.studio",
+     "url": "https://basement.studio/",
+     "cls": "живий сайт · студія",
+     "theme": "темний (полотно `#000000`)",
+     "feas": "середньо — фокус і hover легко, дифузні полотна ні",
+     "why": "Чистий чорний, Geist 87/78 з `letter-spacing: −3.48px` (−0.04em) у заголовку, помаранчевий `#FF4D00` як єдиний акцент. Найцінніше — **фокус подвійним кільцем** `0 0 0 2px #000, 0 0 0 3px #FF4D00`: чорне кільце відділяє акцентне від будь-якого фону.",
+     "motion": "Hover — `color 0.06s linear` до `#FF4D00`: 60 мс, тобто на межі миттєвості. Входження — `opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)` × 41, `transform 0.3s` × 5. Рівно **один** безкінечний цикл на 6714 px: `pulse 2s cubic-bezier(0.4, 0, 0.6, 1)`. 1 спостерігач, 7 слухачів скролу.",
+     "take": "Подвійне кільце фокуса (третій незалежний доказ прийому) і hover 60 мс на кольорі: для текстових посилань це відчувається як «мить», а не як анімація.",
+     "nums": [
+      [
+       "заголовок",
+       "87 px / 78 px · letter-spacing −3.48 px"
+      ],
+      [
+       "акцент",
+       "`#FF4D00` — єдиний колір на сайті"
+      ],
+      [
+       "hover",
+       "`color 0.06s linear`"
+      ],
+      [
+       "фокус",
+       "`0 0 0 2px #000, 0 0 0 3px #FF4D00`"
+      ],
+      [
+       "цикли",
+       "рівно 1 на 6714 px"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "basement-studio-0.jpg",
+       "cap": "верх"
+      },
+      {
+       "src": "basement-studio-1.jpg",
+       "cap": "≈35 % скролу"
+      },
+      {
+       "src": "basement-studio-2.jpg",
+       "cap": "≈70 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r33",
+     "name": "Rive",
+     "url": "https://rive.app/",
+     "cls": "живий сайт · рушій інтерактивної графіки",
+     "theme": "темний (полотно `#000000`)",
+     "feas": "не в нашому стеку — увесь рух живе в canvas, CSS-переходів нуль",
+     "why": "Показовий саме як межа: на 5330 px **нуль елементів із CSS-переходами** і 125 IntersectionObserver на 134 цілі. Тобто все, що рухається, намальоване рушієм у canvas. Виглядає дорого, але жоден прийом звідси не переноситься в наш стек без окремої залежності.",
+     "motion": "Спостерігачі керують запуском і зупинкою сцен; CSS не задіяний узагалі. Це і є діагностична ознака: якщо `animatedCount == 0`, а IO сотня — перед тобою canvas, а не верстка.",
+     "take": "Метод, а не прийом: перед тим як брати сайт у референси, звірити `animatedCount` і кількість IO. Нуль переходів при сотні спостерігачів = канвас = не наш стек.",
+     "nums": [
+      [
+       "CSS-переходи",
+       "0 на 5330 px"
+      ],
+      [
+       "спостерігачі",
+       "125 IO / 134 цілі"
+      ],
+      [
+       "висновок",
+       "рух у canvas, не у верстці"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "rive-1.jpg",
+       "cap": "≈35 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r34",
+     "name": "Radix Primitives — Accordion",
+     "url": "https://www.radix-ui.com/primitives/docs/components/accordion",
+     "cls": "компонент · зміна стану",
+     "theme": "темний",
+     "feas": "середньо — механізм у нас інший, значення ті самі",
+     "why": "Еталонні значення для M7. Розкриття: `height: 0 → var(--radix-accordion-content-height)`, **300 мс, `cubic-bezier(0.87, 0, 0.13, 1)`** — крива, симетрично різка з обох боків. Поява поповерів і меню — `opacity` + `translateY(2px)`, тобто зсув **два пікселі**.",
+     "motion": "Тригер — клік. Один ключ на розкриття, один на згортання, дзеркальні. Дрібні поверхні (меню, тултип) рухаються на 2 px, більші (поповер Radix Themes) — на 4 px зі `scale(0.97)`.",
+     "take": "Тривалість 300 мс і криву `cubic-bezier(0.87, 0, 0.13, 1)` для `state-change`. **Не механізм**: вони анімують `height` через змінну, виміряну JS, а §6.1 вимагає `grid-template-rows: 0fr→1fr`. Зсув 2–4 px — доказ, що 12 px для мікроентранса забагато.",
+     "nums": [
+      [
+       "розкриття",
+       "300 мс `cubic-bezier(0.87, 0, 0.13, 1)`"
+      ],
+      [
+       "меню / тултип",
+       "`translateY(2px)` + `opacity`"
+      ],
+      [
+       "поповер",
+       "`translateY(4px) scale(0.97)`"
+      ],
+      [
+       "наш обхід",
+       "`grid-template-rows: 0fr→1fr` замість `height`"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "radix-accordion-0.jpg",
+       "cap": "верх сторінки компонента"
+      }
+     ]
+    },
+    {
+     "id": "r35",
+     "name": "minimal.gallery",
+     "url": "https://minimal.gallery/",
+     "cls": "галерея · темна",
+     "theme": "темний (`#000000` / картки `#181818`)",
+     "feas": "легко",
+     "why": "Корисна не як референс смаку, а як **джерело кандидатів**: галерея, відфільтрована за мінімалізмом, у темній темі. Картка `#181818` на `#000000` — саме та різниця сходинок, якою наша система має відділяти `--c-surface` від `--c-bg`.",
+     "motion": "401 елемент із переходами, нуль спостерігачів — усе на hover.",
+     "take": "Не прийом, а джерело: сюди варто повертатись агенту №4, якщо для варіанта C забракне прикладів.",
+     "nums": [
+      [
+       "поверхні",
+       "`#000000` фон · `#181818` картка · текст `#B3B3B3`"
+      ],
+      [
+       "рух",
+       "401 перехід · 0 IO"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "minimal-gallery-0.jpg",
+       "cap": "верх галереї"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dir5",
+   "num": "08",
+   "title": "Напрям 5 — довге читання на темному",
+   "intro": "Наш учень проводить в уроці години. Питання не «чи гарно», а «чи можна це читати сорок годин». Нижче — виміряні на живих сторінках кегль, інтерліньяж, ширина колонки, символів у рядку й контраст. Останній рядок — наш поточний стан для порівняння.",
+   "html": "<table class='data'><thead><tr><th>Продукт</th><th>Полотно</th><th>Кегль / рядок</th><th>Інтерліньяж</th><th>Ширина колонки</th><th>Символів у рядку</th><th>Контраст</th><th>Гарнітура</th></tr></thead><tbody><tr><td>react.dev</td><td class='m'>#23272F</td><td class='m'>17px / 30px</td><td class='m'>1.76</td><td class='m'>1024 px</td><td class='m'>177</td><td class='m'>13.97</td><td class='m'>Optimistic Text</td></tr><tr><td>docs.astro.build</td><td class='m'>#17181C</td><td class='m'>16px / 28px</td><td class='m'>1.75</td><td class='m'>720 px</td><td class='m'>91</td><td class='m'>10.06</td><td class='m'>-apple-system</td></tr><tr><td>laravel.com/docs</td><td class='m'>oklch(0.205 0 0)</td><td class='m'>16px / 28.8px</td><td class='m'>1.8</td><td class='m'>616 px</td><td class='m'>75</td><td class='m'>10.01</td><td class='m'>InstrumentSans</td></tr><tr><td>supabase.com/docs</td><td class='m'>oklch(0.19 0.0025 159)</td><td class='m'>15px / 28px</td><td class='m'>1.87</td><td class='m'>706 px</td><td class='m'>92</td><td class='m'>—</td><td class='m'>Inter</td></tr><tr><td>polaris.shopify.com</td><td class='m'>#0D1213</td><td class='m'>16px / 24px</td><td class='m'>1.5</td><td class='m'>810 px</td><td class='m'>73</td><td class='m'>13.15</td><td class='m'>Inter</td></tr><tr><td>animations.dev</td><td class='m'>#111110</td><td class='m'>16px / 25.6px</td><td class='m'>1.6</td><td class='m'>442 px</td><td class='m'>53</td><td class='m'>12.48</td><td class='m'>inter</td></tr><tr><td>fluent2.microsoft.design</td><td class='m'>#1F1F1F</td><td class='m'>16px / 24px</td><td class='m'>1.5</td><td class='m'>768 px</td><td class='m'>97</td><td class='m'>13.07</td><td class='m'>Segoe UI</td></tr><tr><td>atlassian.design</td><td class='m'>#1F1F21</td><td class='m'>14px / 20px</td><td class='m'>1.43</td><td class='m'>756 px</td><td class='m'>112</td><td class='m'>10.56</td><td class='m'>Atlassian Sans</td></tr><tr style='background:rgba(255,128,31,.08)'><td><b>наш `.prose-aia` сьогодні</b></td><td class='m'>#141312</td><td class='m'>17 px / 29.75 px</td><td class='m'>1.75</td><td class='m'>768 px (`--w-prose`)</td><td class='m'>~90</td><td class='m'>15.97</td><td class='m'>Literata</td></tr></tbody></table>\n<div class=\"note\"><b>Що показує таблиця.</b> Розкид кегля мінімальний — 15–17 px; розкид інтерліньяжу теж — 1.75–1.87.\nНаш `.prose-aia` (17 / 1.75) лежить у центрі діапазону й міняти його немає підстав.\nА от <b>ширина колонки розходиться вдвічі</b>: 442 px в animations.dev проти 810 px у Polaris.\nКласична межа «45–75 символів» витримана лише в animations.dev (53); документаційні сайти сидять на 73–92 і читаються гірше.\nНаш `--w-prose` = 768 px дає ~90 символів у рядку — це <b>верхня межа комфорту</b>, і 009 має або звузити колонку, або підняти інтерліньяж; обидва варіанти є в таблиці як живі приклади.</div>\n<div class=\"note\"><b>Контраст «тихого» тексту.</b> Жоден із семи темних продуктів не опускає основний текст нижче <b>10:1</b>\n(react.dev 13.97, astro 10.06, laravel 10.01, polaris 13.15, animations.dev 12.48, fluent 13.07, atlassian 10.56).\nТобто «приглушений» у преміальних темних інтерфейсах — це не 4.5, а 8–10. Наша пастка `faint` (§3.3) мала б рішення саме тут:\nприглушувати <b>формою</b> (кегль, вага, трекінг), а колір тримати в діапазоні 8–10.</div>\n",
+   "refs": [
+    {
+     "id": "r40",
+     "name": "react.dev",
+     "url": "https://react.dev/learn/thinking-in-react",
+     "cls": "документація · темна тема",
+     "theme": "темний (`#23272F`)",
+     "feas": "легко",
+     "why": "Найближчий до нас формат: довгий урок із кодом, ілюстраціями й врізками. Тіло **17 px / 30 px** — рівно наш кегль з інтерліньяжем 1.76. Контраст тексту 13.97:1. Врізки-callout відрізняються не кольором фону, а лівим кантом і іконкою.",
+     "motion": "Тригери — вхід у вʼюпорт і клік. 59 елементів із переходами на 10 893 px, 13 спостерігачів на 169 цілей, 49 слухачів скролу (їх тримає навігація «на цій сторінці»). Циклів нуль — на сторінці, яку читають годину, це принципово.",
+     "take": "Підтвердження наших 17/1.75 і головне — **нуль безкінечних циклів на сторінці уроку**. Це сильніше, ніж наш Д12 (≤1): у продукту, який читають найдовше, їх немає взагалі.",
+     "nums": [
+      [
+       "тіло",
+       "17 px / 30 px — інтерліньяж 1.76"
+      ],
+      [
+       "контраст",
+       "13.97:1 на `#23272F`"
+      ],
+      [
+       "цикли",
+       "0"
+      ],
+      [
+       "тригери",
+       "13 IO / 169 цілей · 49 слухачів скролу"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "react-dev-0.jpg",
+       "cap": "верх уроку"
+      },
+      {
+       "src": "react-dev-1.jpg",
+       "cap": "≈30 % скролу"
+      },
+      {
+       "src": "react-dev-2.jpg",
+       "cap": "≈60 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r41",
+     "name": "Astro Docs",
+     "url": "https://docs.astro.build/en/concepts/islands/",
+     "cls": "документація · темна тема",
+     "theme": "темний (`#17181C`)",
+     "feas": "легко",
+     "why": "Тіло 16/28 (інтерліньяж 1.75), колонка 720 px, контраст 10.06:1. Найдисциплінованіша з документацій: **32 елементи з переходами і нуль слухачів скролу** на 5882 px. Врізки різняться кантом і фоном на одну сходинку темніше.",
+     "motion": "Практично немає: 32 переходи, 2 спостерігачі на 118 цілей, 0 слухачів скролу, 0 циклів.",
+     "take": "Ціль для нашої сторінки уроку: 32 переходи й нуль слухачів скролу — це те, у що має вкластися `data-density=\"lesson\"`.",
+     "nums": [
+      [
+       "тіло",
+       "16 px / 28 px · колонка 720 px · 91 символ у рядку"
+      ],
+      [
+       "контраст",
+       "10.06:1"
+      ],
+      [
+       "рух",
+       "32 переходи · 0 слухачів скролу · 0 циклів"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "astro-docs-0.jpg",
+       "cap": "верх"
+      },
+      {
+       "src": "astro-docs-1.jpg",
+       "cap": "≈30 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r42",
+     "name": "Laravel Docs",
+     "url": "https://laravel.com/docs/12.x/eloquent",
+     "cls": "документація · темна тема",
+     "theme": "темний (`oklch(0.205 0 0)`)",
+     "feas": "легко",
+     "why": "Сторінка **58 341 px** — найдовше з усього, що я міряв, і при цьому читабельне: 16/28.8 (інтерліньяж 1.80), колонка 616 px, 75 символів у рядку — єдина документація в добірці, що вкладається в класичну межу. Контраст 10.01:1.",
+     "motion": "324 елементи з переходами, 4 спостерігачі на 41 ціль, 6 слухачів скролу. Циклів нуль.",
+     "take": "Ширину колонки 616 px і 75 символів як цільове значення для `--w-prose`: наші 768 px дають ~90 і читаються помітно важче.",
+     "nums": [
+      [
+       "сторінка",
+       "58 341 px"
+      ],
+      [
+       "тіло",
+       "16 px / 28.8 px · 616 px · 75 символів"
+      ],
+      [
+       "контраст",
+       "10.01:1"
+      ],
+      [
+       "цикли",
+       "0"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "laravel-docs-0.jpg",
+       "cap": "верх"
+      },
+      {
+       "src": "laravel-docs-1.jpg",
+       "cap": "≈30 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "r43",
+     "name": "Supabase Docs",
+     "url": "https://supabase.com/docs/guides/auth",
+     "cls": "документація · темна тема",
+     "theme": "темний (`oklch(0.19 0.0025 159)`)",
+     "feas": "легко",
+     "why": "Постачальник нашого власного бекенду. Тіло 15/28 — найбільший інтерліньяж у добірці (**1.87**), колонка 706 px. Найцікавіше — фокус: `box-shadow: 0 0 0 2px <фон>, 0 0 0 4px <акцент 55 %>`, тобто те саме подвійне кільце, що в Geist, але з напівпрозорим зовнішнім кільцем.",
+     "motion": "Hover посилань — `0.2s cubic-bezier(0, 0, 0.2, 1)` зі зміною фону й межі в `oklab`. 4 спостерігачі на 117 цілей, 5 слухачів скролу.",
+     "take": "Варіант подвійного кільця з альфою 55 % — мʼякший за суцільний і краще лягає на теплу нейтраль.",
+     "nums": [
+      [
+       "тіло",
+       "15 px / 28 px — інтерліньяж 1.87"
+      ],
+      [
+       "фокус",
+       "`0 0 0 2px <фон>, 0 0 0 4px <акцент 55 %>`"
+      ],
+      [
+       "hover",
+       "`0.2s cubic-bezier(0, 0, 0.2, 1)`"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "supabase-docs-0.jpg",
+       "cap": "верх"
+      },
+      {
+       "src": "supabase-docs-1.jpg",
+       "cap": "≈30 % скролу"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "slot",
+   "num": "09",
+   "title": "Одна система — кілька продуктів (Д1): чотири готові механіки",
+   "intro": "Вимога §13.1 — не менше двох прикладів. Знайшов чотири, і всі чотири роблять це **однаково**: компонент нічого не знає про бренд, змінюється тільки набір змінних на корені. Це рівно те, що записано в §5.1.3.",
+   "html": "\n<table class=\"data\"><thead><tr><th>Система</th><th>Скільки продуктів</th><th>Механіка</th><th>Що з цього наше</th></tr></thead><tbody>\n<tr><td><b>Vercel Geist</b></td><td class=\"m\">6 — Vercel, Next.js, Turbo, v0, eve, AI SDK</td>\n<td>Окремий розділ «Brands» у самій системі: спільні компоненти, у кожного продукту власний набір змінних бренду.</td>\n<td>Форма подачі: у нашому styleguide має бути розділ «Курси», де три акценти показані поруч на одному екрані, а не три окремі сторінки.</td></tr>\n<tr><td><b>Radix Themes</b></td><td class=\"m\">12+ акцентів як властивість `accentColor`</td>\n<td>Акцент — параметр теми; переозначується набір `--accent-1…12`, жоден компонент не змінюється.</td>\n<td>Прямий прообраз `[data-course=\"academy|architect|terminal\"]` з рівно пʼятьма змінними (§5.1.3).</td></tr>\n<tr><td><b>IBM Carbon</b></td><td class=\"m\">4 теми (white, g10, g90, g100) на всі продукти IBM</td>\n<td>Теми як окремі набори токенів; компоненти читають семантичні імена (`$layer-01`, `$border-strong`), не значення.</td>\n<td>Дисципліна імен: компонент читає роль, а не сходинку. Це те саме правило шарів, що в §5.1 («L1 не зʼявляється у верстці»).</td></tr>\n<tr><td><b>Atlassian</b></td><td class=\"m\">Jira, Confluence, Bitbucket…</td>\n<td>Один набір токенів, темна тема рівноправна; інтеракція через альфа-шари, тому акцент не бере участі в hover/active взагалі.</td>\n<td>Найважливіше для нас: якщо hover — це альфа, то <b>слот акценту не розростається</b> з пʼяти змінних до пятнадцяти.</td></tr>\n</tbody></table>\n<div class=\"note\"><b>Спільний висновок для Д1.</b> Жодна з чотирьох систем не міняє під бренд геометрію, тривалості чи криві — тільки колір.\nЦе підтверджує дефолт Д1 у формулюванні «спільний скелет + слот акценту» і водночас закриває спокусу дати курсам різні радіуси чи різний рух.</div>\n",
+   "refs": []
+  },
+  {
+   "id": "anti",
+   "num": "10",
+   "title": "Антиреференси",
+   "intro": "Р7 забороняє приносити це як референси — тому вони тут окремо і з числами: щоб було видно, **чим саме** воно погане, а не «мені не подобається». Усі чотири виміряні так само, як і решта.",
+   "refs": [
+    {
+     "id": "a01",
+     "name": "LangChain — типовий AI/SaaS",
+     "url": "https://www.langchain.com/",
+     "cls": "антиреференс · AI-платформа",
+     "theme": "темний (`#030710`)",
+     "feas": "не брати — прямо під Р7",
+     "why": "Полотно `#030710` — це **холодний синьо-чорний**, а не нейтраль: у ньому синього більше, ніж червоного, вдвічі. Текст `#CCE9FF` і `#7FC8FF` — теж холодний блакитний. У результаті сторінка виглядає «як усі»: за цією парою кольорів продукт неможливо впізнати. Плюс канонічна структура «hero → три фічі → стрічка логотипів».",
+     "motion": "GSAP 3.15.0, 271 елемент із переходами на 7335 px, 2 спостерігачі. Рух є, але він не несе змісту — це рух заради руху, третій пункт Р7.",
+     "take": "**Нічого.** Тримати як тест: якщо в нашому варіанті полотно холодніше за нейтраль, а акцент — блакитний, ми зробили саме це.",
+     "nums": [
+      [
+       "полотно",
+       "`#030710` — синьо-чорний, не нейтраль"
+      ],
+      [
+       "текст",
+       "`#CCE9FF` × 619, `#7FC8FF` × 144"
+      ],
+      [
+       "рух",
+       "GSAP 3.15.0 · 271 елемент"
+      ],
+      [
+       "структура",
+       "hero → фічі → логотипи"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "anti-ai-saas-0.jpg",
+       "cap": "верх"
+      },
+      {
+       "src": "anti-ai-saas-1.jpg",
+       "cap": "≈30 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "a02",
+     "name": "Projector Institute",
+     "url": "https://prjctr.com/",
+     "cls": "антиреференс · українська курс-платформа",
+     "theme": "кольорове полотно `#3548FE`",
+     "feas": "не брати — під Р7 («шаблонні курс-платформи»)",
+     "why": "Найближчий до нас за галуззю й країною — і тому найкорисніший як межа. Полотно — насичений синій `#3548FE` на весь перший екран, слоган величезним кеглем, промо-смуга зверху, карусель «1/3» одразу під героєм. Типографіка при цьому пристойна (власна UniverseFont, правильний апостроф) — тобто справа не в шрифті, а в **тому, що сторінка продає, а не пояснює**.",
+     "motion": "64 елементи з переходами, 3 спостерігачі на 76 цілей, 7 слухачів скролу. Рух службовий, карусельний.",
+     "take": "**Нічого як прийом.** Але як формулювання для `verdict.md`: «серйозно й дорого» відрізняється від «яскраво й продає» не якістю виконання, а тим, що фон не кричить.",
+     "nums": [
+      [
+       "полотно",
+       "`#3548FE` — насичений синій на весь екран"
+      ],
+      [
+       "структура",
+       "промо-смуга → слоган → карусель"
+      ],
+      [
+       "рух",
+       "64 переходи · 3 IO"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "anti-prjctr-0.jpg",
+       "cap": "верх"
+      },
+      {
+       "src": "anti-prjctr-1.jpg",
+       "cap": "≈35 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "a03",
+     "name": "Coursera",
+     "url": "https://www.coursera.org/",
+     "cls": "антиреференс · курс-платформа",
+     "theme": "світлий",
+     "feas": "не брати — під Р7",
+     "why": "Джерело відчуття «дешево» тут вимірюване: **78 IntersectionObserver на 79 цілей** — тобто майже на кожну картку каталогу окремий спостерігач; заголовок Source Sans Pro 48 px; акцент `#0056D2` — стандартний «інституційний синій». Сторінка складається з рядів однакових карток, і жоден ряд не важливіший за інший.",
+     "motion": "83 елементи з переходами, 23 слухачі скролу. Рух — поява карток каталогу.",
+     "take": "**Нічого.** Діагностика: коли на сторінці немає жодної домінанти, кількість спостерігачів починає дорівнювати кількості карток. Це маркер, який ми можемо перевіряти в себе автоматично.",
+     "nums": [
+      [
+       "спостерігачі",
+       "78 IO / 79 цілей — по одному на картку"
+      ],
+      [
+       "акцент",
+       "`#0056D2`"
+      ],
+      [
+       "заголовок",
+       "Source Sans Pro 48 px"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "anti-coursera-0.jpg",
+       "cap": "верх"
+      },
+      {
+       "src": "anti-coursera-1.jpg",
+       "cap": "≈35 % скролу"
+      }
+     ]
+    },
+    {
+     "id": "a04",
+     "name": "Udemy",
+     "url": "https://www.udemy.com/courses/development/",
+     "cls": "антиреференс · курс-платформа",
+     "theme": "світлий",
+     "feas": "не брати — під Р7",
+     "why": "Фіолетовий `oklch(0.4841 0.2342 293.93)` як акцент — саме той тон, який Р7 називає першим. 69 спостерігачів на 102 цілі, сторінка з рядів карток. Головна сторінка віддає бот-стіну, тому міряв розділ каталогу — це чесно зафіксовано.",
+     "motion": "39 елементів із переходами, 69 IO. Руху майже немає, і це не робить сторінку тихішою — бо тихість дає композиція, а не відсутність анімації.",
+     "take": "**Нічого.** Корисний висновок: «мало руху» ≠ «спокійно». Наш варіант із мінімумом руху (як Fitzcarraldo) працює лише разом із композиційною тишею.",
+     "nums": [
+      [
+       "акцент",
+       "`oklch(0.4841 0.2342 293.93)` — фіолетовий"
+      ],
+      [
+       "спостерігачі",
+       "69 IO / 102 цілі"
+      ],
+      [
+       "зауваження",
+       "головна віддає бот-стіну — міряв `/courses/development/`"
+      ]
+     ],
+     "shots": [
+      {
+       "src": "anti-udemy-0.jpg",
+       "cap": "каталог"
+      },
+      {
+       "src": "anti-udemy-1.jpg",
+       "cap": "≈30 % скролу"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "limits",
+   "num": "11",
+   "title": "Межі методу: що саме перевірено, а що ні",
+   "intro": null,
+   "html": "\n<div class=\"note\"><b>Як усе міряно.</b> Chrome for Testing 1228 через playwright-core, headless, вʼюпорт 1440×900, DPR 1 (лабораторії — DPR 2),\n`colorScheme: dark`, локаль `uk-UA`. Перед зніманням кадрів сторінка чиститься від фіксованих оверлеїв cookie/consent —\n<b>банери не приймалися й не відхилялися, елементи просто видалялись із DOM для знімка</b>. Скрол — `behavior: 'instant'` у задані частки висоти,\nпауза 1.8 с на догортання ледачих зображень. Лічильники тригерів — обгортки над `IntersectionObserver` і `addEventListener('scroll')`, встановлені\nдо завантаження сторінки. Стани `:hover` / `:active` / `:focus-visible` знімалися не мишею, а через CDP `CSS.forcePseudoState` — тому значення точні й відтворювані.</div>\n<table class=\"data\"><thead><tr><th>Що</th><th>Стан</th><th>Наслідок для агента №3</th></tr></thead><tbody>\n<tr><td class=\"m\">kyivtype.com</td><td><span class=\"g-bad\">домен не резолвиться</span></td><td>Kyiv Type як джерело гарнітур не перевірено. KTF Prima бачив лише в дії на banda.agency.</td></tr>\n<tr><td class=\"m\">rastvortsev.com</td><td><span class=\"g-bad\">таймаут 45 с</span></td><td>Те саме — український шрифтовий каталог лишився неперевіреним.</td></tr>\n<tr><td class=\"m\">land-book.com/?tag=dark, s2.spectrum.adobe.com</td><td><span class=\"g-bad\">віддали порожню сторінку</span></td><td>Не оцінені взагалі; у добірку не входять.</td></tr>\n<tr><td class=\"m\">mercedes-benz.com</td><td><span class=\"g-warn\">0 елементів із переходами після зняття consent-шару</span></td><td>Вимір недостовірний — не описую.</td></tr>\n<tr><td class=\"m\">Bona Nova, Brygada 1918, Forum, Oranienbaum, Alice, Old Standard TT, Tektur, Lilex</td><td><span class=\"g-warn\">рендер-тест пройшли, наявність у Figma не звірена</span></td><td>Кирилиця в них справжня, але перед вибором у Figma перевірити самому. У чотирьох запропонованих парах жодної з них немає — саме тому.</td></tr>\n<tr><td class=\"m\">Гривня `₴` (U+20B4)</td><td><span class=\"g-ok\">намалювали всі 31</span></td><td>Але приходить вона не з підмножини `cyrillic` і не з `latin` — якщо `₴` зʼявиться в інтерфейсі, перевірити, що підмножина з нею вантажиться.</td></tr>\n<tr><td class=\"m\">`prefers-reduced-motion` на чужих сайтах</td><td><span class=\"g-warn\">не перевіряв</span></td><td>Усі виміри руху зроблено з увімкненим рухом. Як поводяться ці сайти при `reduce` — окрема робота, і вона стосується вже нашого механізму §6.4, а не референсів.</td></tr>\n<tr><td class=\"m\">Мобільні вʼюпорти</td><td><span class=\"g-warn\">не міряв</span></td><td>Уся добірка знята на 1440 px. Для §11.25 (нуль горизонтального скролу на 320–1440) референсів тут немає — це робота агента №4 на нашому власному макеті.</td></tr>\n<tr><td class=\"m\">Safari</td><td><span class=\"g-warn\">не перевірявся</span></td><td>Стосується єдиного прийому — нативного `animation-timeline: view()` (r30). Перед тим як закладати його в систему, звірити підтримку самому.</td></tr>\n</tbody></table>\n<div class=\"note\"><b>Чого я свідомо не приносив.</b> Zed, Claude Code, Linear, Warp, Val Town, Vaul, Raycast, anthropic.com, Cloudflare Year in Review,\nkononenkogroup.com — за §13.1 вони вже розібрані в 001 / 003 / 005, і повторно не відкривались. Oxide Computer і Tailscale не приносив за\nвласною памʼяттю добірки 005 (обидва вже відхилені власником). Dribbble і awwwards як джерела не використовував: для анімаційної системи\nнерухома картинка не дає нічого, чого не дає живий сайт.</div>\n"
+  }
+ ]
+}

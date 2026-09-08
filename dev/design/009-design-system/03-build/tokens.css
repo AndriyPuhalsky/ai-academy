@@ -1,0 +1,750 @@
+/* ============================================================================
+   AIA DESIGN SYSTEM v1 · ТОКЕНИ
+   ----------------------------------------------------------------------------
+   Задача 009. Режим — «нова мова» (Р1). Тема одна: темна (Р9).
+   Форма файла успадкована з 001 (04-variants/shared/tokens.css): пронумеровані
+   секції, коментар-причина біля кожного нетривіального числа, чужі токени —
+   окремою секцією. Змінилось наповнення, не форма.
+
+   ЄДИНЕ МІСЦЕ, ДЕ ЖИВУТЬ ЗНАЧЕННЯ. У styles.css, components.css і motion.js
+   немає жодного хекса, жодного rgba()-літерала й жодного магічного числа.
+
+   ТРИ ШАРИ
+     L1 ПРИМІТИВ   --p-*        сирі значення. У верстці НЕ вживаються ніколи.
+                                Єдиний шар, який перевизначає variant.css.
+     L2 СЕМАНТИКА  --c-* --fs-* --s-* --r-* --z-* --dur-* --e-* ...
+                                ролі. Закритий реєстр (секція 1). Без префікса.
+     L3 КОМПОНЕНТ  --<comp>-*   геометрія одного компонента. Префікс ПЕРШИЙ.
+
+   ТРИ ЗАЛІЗНІ ПРАВИЛА
+     1. L1 не зʼявляється у верстці й у L3. Компонент читає тільки L2 і власні L3.
+     2. L2 — закритий реєстр. Немає рядка в таблиці нижче — токен нелегальний.
+     3. Усе, що не в реєстрі L2, починається з префікса компонента, і префікс
+        стоїть ПЕРШИМ: --term-dur-line, а не --dur-term-line. Саме порядок робить
+        колізію --rail-w (184 vs 132 в одному глобальному :root) неможливою:
+        --rm-rail-w і --cc-rail-w не можуть зіткнутись.
+
+   СЕКЦІЇ
+     1. Реєстр L2 (таблиця) і таблиця перейменувань
+     2. L1 · колір
+     3. L1 · типографіка, простір, геометрія, шари, пороги
+     4. L1 · рух — сирі числа БЕЗ одиниць
+     5. Механізм руху: @property + дві похідні одиниці
+     6. L2 · семантика
+     7. Слот акценту курсу · щільність · пресети інтенсивності
+     8. prefers-reduced-motion (рівно два рядки) · чужі токени Google
+   ========================================================================== */
+
+
+/* ============================================================================
+   1. РЕЄСТР L2 — закритий список. Додати імʼя в L2 = дописати сюди рядок.
+   ----------------------------------------------------------------------------
+   імʼя                  група      що означає                       де заборонено
+   ---------------------------------------------------------------------------
+   --c-bg                поверхня   фон сторінки                     —
+   --c-surface           поверхня   картка, панель, поле             —
+   --c-raised            поверхня   піднята поверхня в картці        —
+   --c-sunken            поверхня   полотно коду й термінала         поза кодом/терміналом
+   --c-desk              поверхня   ЄДИНА плита предмета             більше одного разу на сторінку
+   --c-overlay           поверхня   підложка діалогу                 поза ds-dlg
+   --c-veil-hover        поверхня   шар hover над будь-якою поверхнею як колір тексту
+   --c-veil-press        поверхня   шар натискання                   як колір тексту
+   --c-shimmer           поверхня   відблиск скелетона               поза ds-skel
+   --c-text              текст      основний                         —
+   --c-text-2            текст      вторинний                        —
+   --c-text-3            текст      третинний, підписи               у довгому читанні
+   --c-text-disabled     текст      найтихіший дозволений (4.64)     у активному контролі
+   --c-prose             текст      довге читання                    в UI-щільності
+   --c-on-accent         текст      НА акцентній заливці             будь-де, крім акценту
+   --c-on-paper          текст      на «папері»                      поза папером
+   --c-line              межа       ТІЛЬКИ декоративний хайрлайн     як межа контрола (1.71)
+   --c-line-lit          межа       верхній кант, «світло згори»     як повна межа
+   --c-line-strong       межа       усе, що ідентифікує контрол      —
+   --c-line-accent       межа       акцентна межа                    —
+   --c-focus             межа       зовнішнє кільце фокуса           як заливка
+   --c-accent            акцент     акцент курсу                     для помилки
+   --c-accent-hover      акцент     hover акценту                    для помилки
+   --c-accent-quiet      акцент     альфа-тінт акценту               як колір тексту
+   --c-accent-edge       акцент     акцентна межа контрола           як колір тексту
+   --c-ok|warn|err|info-text|edge|quiet
+                         стан       12 токенів; жоден не є акцентом  як брендовий колір
+   --c-paper-bg|text|quiet|rule
+                         папір      єдине світле; сертифікат і @media print   в UI
+   --f-display           шрифт      заголовки                        у тексті довшому за заголовок
+   --f-sans              шрифт      інтерфейс і текст                —
+   --f-mono              шрифт      код, термінал, метадані, числа   у довгому читанні
+   --fs-h1|h2|h3|h4      кегль      РІВНО чотири рівні               пʼятого рівня не буває
+   --fs-lead|body|ui|small|label|eyebrow|code   кегль   текст і UI    —
+   --lh-*                рядок      інтерліньяж парою до кожного --fs-*   —
+   --w-regular|medium|semi   вага   три ваги; четверта = окреме рішення  —
+   --tr-display|eyebrow  трекінг    —                                —
+   --s-1…--s-32          відступ    --s-N = N×4px, без винятків      em-відступи в компонентах
+   --s-section           відступ    fluid ритм секцій лендінга       усередині компонента
+   --r-inner|control|card|sheet|pill   радіус   пʼять значень        шосте значення
+   --bw|--bw-strong      межа       1px / 2px                        —
+   --sh-dialog|sheet|desk  тінь     РІВНО три                        четверта тінь
+   --blur-scrim          розмиття   єдиний backdrop-filter           —
+   --z-below…--z-skip    шар        10 рівнів, крок 100              числовий z-index поза списком
+   --w-sidebar|card|narrow|prose|content|wide|meta   ширина   —      —
+   --bp-sm|md|lg|xl|vh-short   поріг   КОНСТАНТА-ДОКУМЕНТАЦІЯ        у var() всередині @media
+   --motion|--motion-scale|--motion-travel|--motion-stagger   рух   множники   —
+   --dur-u|--move-u      рух        дві похідні одиниці              —
+   --dur-*|--delay-*     рух        тривалості з призначенням у назві  літерал ms у правилі
+   --move-*              рух        зсуви                            літерал px у правилі
+   --scale-press|pop     рух        масштаби                         —
+   --e-out|in|sheet|breath|pop   рух   РІВНО пʼять кривих            шоста без причини в NOTES
+   --stag-list|--stag-cap|--scrub|--loop-state   рух   —             —
+   ----------------------------------------------------------------------------
+   ТАБЛИЦЯ ПЕРЕЙМЕНУВАНЬ (усі відомі колізії проду закриті структурно)
+
+   було                              стає                де
+   ---------------------------------------------------------------------------
+   --rail-w 184px  (003, custom.css:981)      --rm-rail-w        виконує 010
+   --rail-w 132px  (005, claude-code.css:57)  --cc-rail-w        виконує 010
+     ↑ обидва падали в ОДИН глобальний :root; вигравав другий за порядком
+       підключення, на 66 сторінках роздавався мертвий 184px
+   --node-r, --node-r-ahead, --node-r-now (003)   --rm-node-r*   010
+   --node-r, --node-r-exam (005)                  --cc-node-r*   010
+   --e-breath (завела 003, споживає .term 005)    ПРОМОЦІЯ в L2  тут, секція 6
+     ↑ криву вживають два незалежні компоненти → це вже семантика
+       («конверт єдиного циклу»), а не приватне число сторінки
+   --fs-body 14px (001, UI)                       --fs-ui        тут
+   .prose-aia 1.0625rem без токена (уроки)        --fs-body 17px тут
+   --fs-hero|h2|lead|item*|desc|count|meta|row (003, глобальні)  --rm-fs-*  010
+   --amp-*, --scrub-trail, --scrub-outro, --dur-line, --dur-row-*,
+   --dur-outro, --stag-done, --stag-ahead, --move-row*, --move-hero,
+   --move-arrow, --move-outro, --scale-node-hover, --scale-pulse,
+   --opacity-pulse, --dur-pulse*, --dur-expand, --dur-state, --dur-count,
+   --delay-count, --delay-outro, --hero-reserve (003, глобальні)  --rm-*   010
+   --dur-term-*, --stag-term-*, --move-term-*, --scale-term-pop,
+   --delay-term-*, --speed-term-cps, --opacity-term-pulse, --e-term,
+   --e-pop (005)      --term-dur-*, --term-stag-*, --term-move-*,
+                      --term-speed-cps, --term-e-*   ← префікс на позицію 1
+   --c-term-* (005)                               лишаються (префікс уже перший)
+   .aia-submit[disabled] ×2 (custom.css:1697 і :2079)   одне правило   010
+     ↑ перше оголошення мертве й роздається 67 сторінкам
+   z-index:50 як «і сайдбар, і шторка» (custom.css:336/379)
+                      --z-sidebar 90 + --z-drawer 200   тут, секція 3
+   ========================================================================== */
+
+
+/* ============================================================================
+   2. L1 · КОЛІР
+   ----------------------------------------------------------------------------
+   Драбина побудована в OKLCH і перевірена контрастом, а не оком.
+   Нижні вісім сходинок — рівний перцептивний крок (≈0.033 OKLCH L), як у Radix;
+   верхні пʼять — за цільовим контрастом до фону. Тому «якого кольору hover
+   картки» більше не питання: це сходинка, а не смак.
+
+   Драбина ТЕПЛА свідомо — це єдина риса, яку нова мова успадковує: холодні
+   сірі на темному читаються як «AI/SaaS», а це антиреференс Р7. Формально:
+   тон n-0 і n-1200 різняться на 10.9° (поріг ≤20°).
+   ========================================================================== */
+:root {
+  /* --- нейтралі: 13 сходинок, у кожної роль --- */
+  --p-n-0:     #0E0C0A;  /* полотно коду й термінала — темніше за фон (потреба доведена в 005) */
+  --p-n-100:   #161311;  /* фон сторінки */
+  --p-n-200:   #1E1A17;  /* поверхня: картка, панель, поле        · 1.07 до фону */
+  --p-n-300:   #26221D;  /* піднята поверхня всередині картки     · 1.17 */
+  --p-n-400:   #2F2A24;  /* поверхня hover — лишається як сходинка драбини, у роботі
+                            hover робить завіса --c-veil-hover (прийом Atlassian) */
+  --p-n-500:   #38322C;  /* поверхня active */
+  --p-n-600:   #433C35;  /* декоративний хайрлайн                 · 1.71 — контролів НЕ ідентифікує */
+  --p-n-700:   #544D44;  /* верхній кант «світло згори»           · 2.22 */
+  --p-n-800:   #746C62;  /* межа, що ідентифікує контрол          · 3.06 на raised (SC 1.4.11) */
+  --p-n-900:   #938A7D;  /* найтихіший дозволений текст           · 4.64 на raised */
+  --p-n-1000:  #ADA599;  /* третинний текст, підписи              · 7.59 */
+  --p-n-1100:  #D0C8BB;  /* текст прози, вторинний                · 11.15 */
+  --p-n-1200:  #F0E9DF;  /* основний текст — кістка, не білило    · 15.35 */
+
+  /* Матеріал, а не сходинка: тепла плита під предметом. Прецедент 005 —
+     полотно термінала темніше за сторінку, і без плити воно читається як діра. */
+  --p-desk:    #261D16;
+
+  /* Альфа замість нових сходинок. Прийом Atlassian: hover і натискання —
+     напівпрозорий шар над БУДЬ-ЯКОЮ поверхнею. Тому драбина не росте, а слот
+     акценту лишається на пʼяти іменах замість пʼятнадцяти. */
+  --p-n-scrim:      rgba(14, 12, 10, 0.82);
+  --p-n-veil-hover: rgba(240, 233, 223, 0.05);
+  --p-n-veil-press: rgba(240, 233, 223, 0.09);
+  --p-n-shimmer:    rgba(240, 233, 223, 0.07);
+
+  /* --- акценти: три тони одної світлоти й одної хроми (Д1) ---
+     ΔH: шафран↔патина 133.2° · патина↔лазур 54.2° (поріг ≥30° ✓).
+     Кожен як текст на surface 5.68–5.70; --c-on-accent на кожному 6.42–6.43.
+     БІЛИЙ на будь-якому з них дає 3.04 — саме тому on-accent темний. */
+  --p-accent-academy-500:    #BF8A3A;  /* шафран  · AI Академія */
+  --p-accent-academy-600:    #CF9F58;  /* hover світлішає, а не темнішає: тема темна */
+  --p-accent-academy-edge:   #966400;  /* як межа контрола · 3.10 на raised */
+  --p-accent-academy-quiet:  rgba(191, 138, 58, 0.14);
+
+  --p-accent-architect-500:  #1FA68E;  /* патина · AI Architect */
+  --p-accent-architect-600:  #4BB9A1;
+  --p-accent-architect-edge: #007D67;
+  --p-accent-architect-quiet: rgba(31, 166, 142, 0.14);
+
+  --p-accent-terminal-500:   #7692DC;  /* лазур · AI Термінал */
+  --p-accent-terminal-600:   #8BA6EB;
+  --p-accent-terminal-edge:  #536CB3;
+  --p-accent-terminal-quiet: rgba(118, 146, 220, 0.14);
+
+  /* --- стани: свідомо СВІТЛІШІ й ТИХІШІ за акцент ---
+     Акцент — матеріал (хрома 0.115 OKLCH), стан — позначка (0.04–0.098).
+     Усі чотири тримають 6.94–7.05 на найсвітлішій поверхні: сім темних
+     довідників не опускають текст нижче 10:1, і 4.5 тут було б замало.
+     Жоден не дорівнює жодному акценту (критерій 4). */
+  --p-ok-text:    #88B791;  /* 6.94 на raised */
+  --p-ok-edge:    #4B7955;  /* 3.13 на raised */
+  --p-ok-quiet:   rgba(136, 183, 145, 0.13);
+  --p-warn-text:  #B3B064;  /* 7.01 · тон 21.6° від шафрану — тому в ds-note і ds-badge
+                               warn ОБОВʼЯЗКОВО має гліф ▲ і пунктирний кант */
+  --p-warn-edge:  #757123;
+  --p-warn-quiet: rgba(179, 176, 100, 0.13);
+  --p-err-text:   #DE9D96;  /* 7.05 · замінює хардкод #C0564F, який у проді дає
+                               4.14/3.82/3.48 — провал AA на всіх трьох поверхнях,
+                               на 57 сторінках уроків */
+  --p-err-edge:   #9B5E59;
+  --p-err-quiet:  rgba(222, 157, 150, 0.13);
+  --p-info-text:  #8FB1C3;  /* 6.96 */
+  --p-info-edge:  #537383;
+  --p-info-quiet: rgba(143, 177, 195, 0.13);
+
+  /* --- папір: єдина світла група в системі (Д11) ---
+     Не тема й не режим: жоден компонент не має світлого варіанта.
+     Вживається рівно у двох місцях — превʼю сертифіката і @media print. */
+  --p-paper-bg:    #F9F3E7;
+  --p-paper-ink:   #231D18;  /* 15.08 на папері */
+  --p-paper-quiet: #746C62;  /* 4.68 — свідомо темніше за #8a7f6f (3.58) з PDF */
+  --p-paper-edge:  #CCC4BC;
+}
+
+
+/* ============================================================================
+   3. L1 · ТИПОГРАФІКА, ПРОСТІР, ГЕОМЕТРІЯ, ШАРИ, ПОРОГИ
+   ----------------------------------------------------------------------------
+   Типопара — точка відліку варіанта A. Характер: дідона високого контрасту
+   проти дуже спокійного тексту. Причина вимірна, не смакова: Prata дає
+   найбільший контраст характеру між заголовком і текстом при 19 КБ на всю
+   дисплейну роль, Golos Text має три ваги для UI, а JetBrains Mono має крок
+   0.60em — той самий, що в нинішнього IBM Plex Mono, тож 101 блок .term і
+   колонки маркерів 1ch/2ch не доведеться переміряти.
+   Ліцензії процитовані в NOTES.md дослівно з URL і датою звірки.
+   ========================================================================== */
+:root {
+  --p-font-display: Prata, "Times New Roman", Georgia, serif;
+  --p-font-sans:    "Golos Text", system-ui, -apple-system, sans-serif;
+  --p-font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Кеглі. Fluid — тільки clamp() з rem на кінцях і vw у середині (форма 003).
+     Голий vw без clamp на 320px ламає верстку — заборонено. */
+  --p-fs-h1:      clamp(2.25rem, 1.10rem + 5.20vw, 4rem);      /* 36 → 64 */
+  --p-fs-h2:      clamp(1.625rem, 1.10rem + 2.30vw, 2.375rem); /* 26 → 38 */
+  --p-fs-h3:      1.25rem;    /* 20 — фіксовано */
+  --p-fs-h4:      1.0625rem;  /* 17 — відрізняється ВАГОЮ, не кеглем.
+                                 Пʼятого рівня не буває: потреба в ньому означає,
+                                 що структура неправильна, а не що бракує токена. */
+  --p-fs-lead:    clamp(1rem, 0.93rem + 0.30vw, 1.125rem);     /* 16 → 18 */
+  --p-fs-body:    1.0625rem;  /* 17 — довге читання (було .prose-aia без токена) */
+  --p-fs-ui:      0.875rem;   /* 14 — щільний інтерфейс (було --fs-body 001) */
+  --p-fs-small:   0.8125rem;  /* 13 */
+  --p-fs-label:   0.75rem;    /* 12 */
+  --p-fs-eyebrow: 0.6875rem;  /* 11 */
+  --p-fs-code:    0.845rem;   /* 13.52 — збережено з проду: рядок ×1.66 = 22.44px,
+                                 на цьому числі змірені 101 блок .term */
+
+  --p-lh-h1: 1.06;  --p-lh-h2: 1.14;  --p-lh-h3: 1.3;   --p-lh-h4: 1.45;
+  --p-lh-lead: 1.6;
+  --p-lh-body: 1.75;   /* центр діапазону семи темних довідників (1.75–1.87) */
+  --p-lh-ui: 1.5;   --p-lh-small: 1.55;  --p-lh-label: 1.4;  --p-lh-eyebrow: 1.4;
+  --p-lh-code: 1.66;
+
+  --p-wt-regular: 400;
+  --p-wt-medium:  500;
+  --p-wt-semi:    600;   /* третя й остання вага; четверта = окреме рішення з причиною */
+
+  --p-tr-display: -0.02em;  /* Prata на великому кеглі розсипається без стиснення */
+  --p-tr-eyebrow:  0.08em;  /* моно-надзаголовок. БЕЗ верхнього регістру:
+                               український капслок довший і читається гірше,
+                               а tracked-out ALL-CAPS — найчастіший шаблонний тік */
+
+  /* Спейсинг: --s-N = N × 4px, без винятків. */
+  --p-space-1: 4px;    --p-space-2: 8px;    --p-space-3: 12px;   --p-space-4: 16px;
+  --p-space-5: 20px;   --p-space-6: 24px;   --p-space-8: 32px;   --p-space-10: 40px;
+  --p-space-12: 48px;  --p-space-16: 64px;  --p-space-20: 80px;  --p-space-24: 96px;
+  --p-space-32: 128px;
+  --p-space-section: clamp(4rem, 2.5rem + 6vw, 8rem);  /* ритм секцій лендінга */
+
+  /* Радіуси: пʼять значень, інших не буває.
+     0.55rem (8.8px) з .quiet-restart і 4px з .gbtn сюди не входять —
+     перший ретирується, другий лишається чужим активом (секція 8). */
+  --p-radius-inner:   6px;
+  --p-radius-control: 8px;
+  --p-radius-sheet:  10px;
+  --p-radius-card:   16px;
+  --p-radius-pill:  999px;
+
+  --p-bw-1: 1px;
+  --p-bw-2: 2px;
+
+  /* Тіні — РІВНО ТРИ (Д3). Глибина в цій системі — межами й сходинками
+     поверхонь; тінь має право лише на те, що фізично покинуло площину
+     сторінки, і на одну плиту предмета. Девʼять тіней — це градієнтний шум. */
+  --p-sh-dialog: 0 25px 50px -12px rgba(0, 0, 0, 0.60);
+  --p-sh-sheet:  0 -12px 40px rgba(0, 0, 0, 0.50);
+  --p-sh-desk:   0 18px 40px -18px rgba(0, 0, 0, 0.75);
+  --p-blur-scrim: 8px;   /* єдиний backdrop-filter у системі */
+
+  /* Геометрія контролів. 40 — базова висота (успадковано з 001 і від офіційної
+     кнопки Google, яку масштабувати не можна). Мінімальна ціль дотику 24×24 —
+     це WCAG 2.2 SC 2.5.8 (AA); 44×44 — AAA, а не мінімум. */
+  --p-ctl-sm: 32px;   /* щільні місця: термінал, роадмап */
+  --p-ctl-md: 40px;
+  --p-ctl-lg: 48px;   /* CTA лендінга */
+  --p-hit-min: 24px;
+
+  /* Шари. Крок 100 лишає місце вставити рівень без переномерації.
+     Два ОКРЕМІ токени для сайдбара — прямий наслідок дефекту D-01 задачі 006,
+     де одне значення 50 обслуговувало два взаємовиключні випадки
+     (доведено A/B: 25 із 25 проб). */
+  --p-z-below:  -1;
+  --p-z-base:    0;
+  --p-z-raised:  1;
+  --p-z-sidebar: 90;   /* пристикований сайдбар уроку — свідомо ПІД шапкою */
+  --p-z-header:  100;
+  --p-z-drawer:  200;  /* мобільна шторка — НАД шапкою */
+  --p-z-scrim:   300;
+  --p-z-dialog:  310;
+  --p-z-toast:   400;
+  --p-z-skip:    500;
+
+  /* Ширини контейнерів — числа з живого проду, не вигадані. */
+  --p-w-sidebar: 280px;   /* сітка уроку */
+  --p-w-card:    384px;
+  --p-w-narrow:  672px;   /* 42rem · max-w-2xl ×63 */
+  --p-w-prose:   768px;   /* 48rem · max-w-3xl ×116 */
+  --p-w-content: 1152px;  /* 72rem · max-w-content ×28 */
+  --p-w-wide:    1408px;  /* 88rem · max-w-[88rem] ×263 */
+  --p-w-meta:    168px;   /* ліва моноколонка метаданих — композиційна вісь системи */
+
+  /* ⚠ ПОРОГИ — НЕ ТОКЕНИ В ТЕХНІЧНОМУ СЕНСІ.
+     Медіа-запит НЕ читає var(): `@media (min-width: var(--bp-md))` мовчки
+     не спрацює. Це константи-документація: у CSS пишуться літералами, і кожен
+     літерал у @media мусить бути одним із пʼяти чисел нижче. Перевірка — тест T5. */
+  --p-bp-sm: 640;    /* sm: ×907 · заміняє також 420 */
+  --p-bp-md: 768;    /* md: ×124 · заміняє 700, 860, 900 */
+  --p-bp-lg: 1024;   /* lg: ×434 */
+  --p-bp-xl: 1440;   /* нове, під контейнер 1408 · заміняє 1600 */
+  --p-vh-short: 700; /* низький екран · заміняє також 820 */
+}
+
+
+/* ============================================================================
+   4. L1 · РУХ — СИРІ ЧИСЛА БЕЗ ОДИНИЦЬ
+   ----------------------------------------------------------------------------
+   Драбина тривалостей, у якої в кожної сходинки НАПИСАНЕ ПРИЗНАЧЕННЯ, а не
+   просто число. Форма взята з @carbon/motion@11 (Apache-2.0), де кожна
+   тривалість підписана автором; у нас сьогодні ~35 тривалостей із трьох задач
+   і жодної драбини.
+
+   Числа БЕЗ одиниць — це не стиль, це несуча конструкція: одиницю додає
+   --dur-u / --move-u у секції 5, і саме множення на них робить гасіння
+   автоматичним для токенів, яких ще не існує.
+   ========================================================================== */
+:root {
+  --p-dur-tap:        90;    /* M5 натискання — миттєва відповідь на дію */
+  --p-dur-exit:      130;    /* зникання діалогу; вихід завжди коротший за вхід */
+  --p-dur-hover:     150;    /* M4 hover: колір / межа / opacity */
+  --p-dur-enter:     180;    /* поява діалогу; підложка Й картка разом, без каскаду */
+  --p-dur-state:     220;    /* M7 зміна стану, розкриття, crossfade */
+  --p-dur-reveal:    380;    /* M2 поява у вʼюпорті. Спека каже ~480; беру 380 —
+                                на двох преміальних сайтах поза IT це виміряно
+                                як 250 мс (Herzog & de Meuron, A. Lange & Söhne),
+                                тобто 480 удвічі повільніше за те, що робить люкс.
+                                380 — компроміс: ще читається як «прийшло», але
+                                вже не як «вантажиться». Відступ названий у NOTES. */
+  --p-dur-sheet:     400;    /* мобільний аркуш, крива Vaul */
+  --p-dur-page-in:   520;    /* M1 вхід документа */
+  --p-dur-count:     900;    /* M8 лічильник */
+  --p-dur-shimmer:  1400;    /* скелетон: один прохід відблиску */
+  --p-dur-loop-pulse: 1900;  /* L1 єдиний безкінечний цикл */
+  --p-delay-skeleton: 150;   /* раніше 150 мс скелетон не показуємо взагалі */
+
+  --p-stag-list: 60;   /* M3 крок стагера (діапазон 40–90) */
+  --p-stag-cap:   8;   /* після 8-го елемента затримка НЕ росте.
+                          Виміряно: 30 карток без cap — останній фінішує на 2249 мс,
+                          з cap 8 — на 982 мс. Ширший висновок з добірки: стагер
+                          не є фірмовим прийомом преміального сайту — з пʼяти
+                          просканованих він є в НУЛЯ. */
+
+  --p-move-micro:   2;   /* мікроентранс поповера (виміряно в Radix Primitives) */
+  --p-move-exit:    4;
+  --p-move-card:    8;
+  --p-move-reveal: 12;
+
+  --p-scale-press: 0.02;  /* дельта: масштаб = 1 − delta */
+  --p-scale-pop:   0.03;
+
+  --p-scrub: 0.8;         /* M9 інерція привʼязки до скролу */
+
+  /* ⚠ ЄДИНИЙ ТОКЕН РУХУ, ЯКИЙ НЕ МНОЖИТЬСЯ НА --motion.
+     На нього ДІЛЯТЬ, і нуль дав би Infinity. Правило П5: такий токен
+     зобовʼязаний мати суфікс -cps (або -rate), і гілку його вимкнення
+     бере на себе JS (motion.js). Це єдиний дозволений виняток у системі. */
+  --p-term-speed-cps: 32;
+
+  /* Криві — РІВНО ПʼЯТЬ на всю систему. Шоста = окреме рішення з причиною
+     в NOTES.md. Три в щоденному вжитку + дві спеціальні. */
+  --p-e-out:    cubic-bezier(0.22, 1, 0.36, 1);      /* усе, що зʼявляється й реагує */
+  --p-e-in:     cubic-bezier(0.4, 0, 1, 1);          /* усе, що зникає */
+  --p-e-sheet:  cubic-bezier(0.32, 0.72, 0, 1);      /* мобільний аркуш (Vaul) */
+  --p-e-breath: cubic-bezier(0.45, 0, 0.55, 1);      /* конверт єдиного циклу.
+                                                        ПРОМОЦІЯ: криву завела 003,
+                                                        а споживає компонент 005 —
+                                                        два незалежні споживачі
+                                                        роблять це семантикою */
+  --p-e-pop:    cubic-bezier(0.34, 1.56, 0.64, 1);   /* одне «вистрибування» */
+}
+
+
+/* ============================================================================
+   5. МЕХАНІЗМ РУХУ — @property + дві похідні одиниці
+   ----------------------------------------------------------------------------
+   Це найважливіша інженерна частина задачі. Сьогодні гасіння руху в проді —
+   57 ПОІМЕННИХ перевизначень трьох поколінь, з коментарями «нове туди САМО
+   не потрапляє» тричі. Нижче — механізм, після якого поіменного списку немає.
+
+   ⚠ ПАСТКА, ЯКА МОВЧКИ ЛАМАЄ GSAP І ЯКОЇ НЕ ВИДНО.
+   getComputedStyle() для НЕЗАРЕЄСТРОВАНОГО custom property повертає
+   невирахуваний рядок `calc(180 * calc(1 * 1 * 1ms + 0.001ms))`.
+   parseFloat від нього = NaN → помічник ms() (js/roadmap-motion.js:60) тихо
+   бере fallback → рух лишається живим навіть при prefers-reduced-motion,
+   і жоден скріншот цього не покаже.
+
+   Закривається ДВОМА правилами ОДНОЧАСНО, і обидва застосовані:
+     (1) JS ніколи не читає складені токени. Він читає --motion, --motion-scale,
+         --motion-travel і сирі --p-* і множить сам (див. motion.js).
+     (2) Кожен складений токен руху зареєстрований через @property нижче.
+         Виміряно в Chrome: після реєстрації той самий виклик повертає
+         0.18018s при --motion:1 і 0.00018s при --motion:0.
+   ========================================================================== */
+
+@property --motion         { syntax: "<number>"; inherits: true; initial-value: 1; }
+@property --motion-scale   { syntax: "<number>"; inherits: true; initial-value: 1; }
+@property --motion-travel  { syntax: "<number>"; inherits: true; initial-value: 1; }
+@property --motion-stagger { syntax: "<number>"; inherits: true; initial-value: 1; }
+@property --dur-u  { syntax: "<time>";   inherits: true; initial-value: 1ms; }
+@property --move-u { syntax: "<length>"; inherits: true; initial-value: 1px; }
+
+@property --dur-tap        { syntax: "<time>"; inherits: true; initial-value: 0s; }
+@property --dur-exit       { syntax: "<time>"; inherits: true; initial-value: 0s; }
+@property --dur-hover      { syntax: "<time>"; inherits: true; initial-value: 0s; }
+@property --dur-enter      { syntax: "<time>"; inherits: true; initial-value: 0s; }
+@property --dur-state      { syntax: "<time>"; inherits: true; initial-value: 0s; }
+@property --dur-reveal     { syntax: "<time>"; inherits: true; initial-value: 0s; }
+@property --dur-sheet      { syntax: "<time>"; inherits: true; initial-value: 0s; }
+@property --dur-page-in    { syntax: "<time>"; inherits: true; initial-value: 0s; }
+@property --dur-count      { syntax: "<time>"; inherits: true; initial-value: 0s; }
+@property --dur-shimmer    { syntax: "<time>"; inherits: true; initial-value: 0s; }
+@property --dur-loop-pulse { syntax: "<time>"; inherits: true; initial-value: 0s; }
+@property --delay-skeleton { syntax: "<time>"; inherits: true; initial-value: 0s; }
+@property --stag-list      { syntax: "<time>"; inherits: true; initial-value: 0s; }
+
+@property --move-micro  { syntax: "<length>"; inherits: true; initial-value: 0px; }
+@property --move-exit   { syntax: "<length>"; inherits: true; initial-value: 0px; }
+@property --move-card   { syntax: "<length>"; inherits: true; initial-value: 0px; }
+@property --move-reveal { syntax: "<length>"; inherits: true; initial-value: 0px; }
+
+@property --scale-press { syntax: "<number>"; inherits: true; initial-value: 1; }
+@property --scale-pop   { syntax: "<number>"; inherits: true; initial-value: 1; }
+
+:root {
+  /* ЄДИНІ ворота руху. 1 = рух є, 0 = руху немає. Більше нічого перемикати не треба. */
+  --motion:         1;
+  --motion-scale:   1;   /* пресет інтенсивності: тривалості */
+  --motion-travel:  1;   /* пресет інтенсивності: зсуви */
+  --motion-stagger: 1;   /* пресет інтенсивності: стагер */
+  --loop-state: running;
+
+  /* Дві похідні одиниці — усе інше будується з них.
+     ⚠ Чому НЕ рівний нуль: нульова тривалість не породжує подій
+     transitionend / animationend, і будь-який JS, який на них чекає, зависає
+     назавжди. Тому додається епсилон — і його величина порахована, а не взята
+     з голови. Спека пропонує 0.001ms; вимірювання показало, що епсилон
+     МНОЖИТЬСЯ на сире число токена, тож найдовший токен системи (--p-dur-loop-pulse
+     = 1900) давав 1900 × 0.001 = 1.9 мс і провалював критерій «жодна обчислена
+     тривалість не перевищує 1 мс». 0.0004ms дає 1900 × 0.0004 = 0.76 мс — під
+     порогом, і водночас найкоротший токен (90) лишається ненульовим (0.036 мс),
+     тобто подія приходить. При --motion:1 епсилон додає ті самі 0.76 мс до
+     1900 мс — 0.04 %, непомітно. */
+  --dur-u:  calc(var(--motion) * var(--motion-scale)  * 1ms + 0.0004ms);
+  --move-u: calc(var(--motion) * var(--motion-travel) * 1px);
+
+  /* П1 · будь-яка тривалість або затримка = calc(<L1-число> * var(--dur-u)).
+          Літерал ms або s у правилі — дефект. */
+  --dur-tap:        calc(var(--p-dur-tap)        * var(--dur-u));
+  --dur-exit:       calc(var(--p-dur-exit)       * var(--dur-u));
+  --dur-hover:      calc(var(--p-dur-hover)      * var(--dur-u));
+  --dur-enter:      calc(var(--p-dur-enter)      * var(--dur-u));
+  --dur-state:      calc(var(--p-dur-state)      * var(--dur-u));
+  --dur-reveal:     calc(var(--p-dur-reveal)     * var(--dur-u));
+  --dur-sheet:      calc(var(--p-dur-sheet)      * var(--dur-u));
+  --dur-page-in:    calc(var(--p-dur-page-in)    * var(--dur-u));
+  --dur-count:      calc(var(--p-dur-count)      * var(--dur-u));
+  --dur-shimmer:    calc(var(--p-dur-shimmer)    * var(--dur-u));
+  --dur-loop-pulse: calc(var(--p-dur-loop-pulse) * var(--dur-u));
+  --delay-skeleton: calc(var(--p-delay-skeleton) * var(--dur-u));
+  --stag-list:      calc(var(--p-stag-list) * var(--motion-stagger) * var(--dur-u));
+
+  /* П2 · будь-який зсув = calc(<L1-число> * var(--move-u)). */
+  --move-micro:  calc(var(--p-move-micro)  * var(--move-u));
+  --move-exit:   calc(var(--p-move-exit)   * var(--move-u));
+  --move-card:   calc(var(--p-move-card)   * var(--move-u));
+  --move-reveal: calc(var(--p-move-reveal) * var(--move-u));
+
+  /* П3 · будь-який масштаб = calc(1 ± var(--motion) * <дельта>).
+          Форма працює для будь-якого масштабу й гаситься тими ж воротами. */
+  --scale-press: calc(1 - var(--motion) * var(--p-scale-press));
+  --scale-pop:   calc(1 + var(--motion) * var(--p-scale-pop));
+
+  --stag-cap: var(--p-stag-cap);
+  --scrub:    calc(var(--motion) * var(--p-scrub));
+  /* П5 · виняток: на швидкість ДІЛЯТЬ, тому вона не множиться на --motion. */
+  --term-speed-cps: var(--p-term-speed-cps);
+}
+
+/* П4 · будь-яка безкінечна анімація ОБОВʼЯЗКОВО має в тому самому правилі
+        animation-play-state: var(--loop-state), а її кадр 0% дорівнює стану
+        спокою і сам по собі читабельний — щоб пауза в будь-який момент
+        лишала легальний кадр. Перевірка — grep по `infinite`. */
+
+
+/* ============================================================================
+   6. L2 · СЕМАНТИКА — ролі. Це єдиний шар, який читає верстка.
+   ========================================================================== */
+:root {
+  /* --- поверхні --- */
+  --c-bg:         var(--p-n-100);
+  --c-surface:    var(--p-n-200);
+  --c-raised:     var(--p-n-300);
+  --c-sunken:     var(--p-n-0);     /* полотно коду й термінала */
+  --c-desk:       var(--p-desk);    /* ЄДИНА плита предмета на сторінку */
+  --c-overlay:    var(--p-n-scrim);
+  --c-veil-hover: var(--p-n-veil-hover);
+  --c-veil-press: var(--p-n-veil-press);
+  --c-shimmer:    var(--p-n-shimmer);
+
+  /* --- текст. Усі проходять 4.5:1 на bg, surface, raised, sunken і desk. --- */
+  --c-text:          var(--p-n-1200);
+  --c-text-2:        var(--p-n-1100);
+  --c-text-3:        var(--p-n-1000);
+  --c-text-disabled: var(--p-n-900);
+  --c-prose:         var(--p-n-1100);
+  --c-on-paper:      var(--p-paper-ink);
+  /* Приглушеність кодується ФОРМОЮ, не кольором: пунктир, тонший контур,
+     менший кегль, менша щільність. Побічна вигода — критерій «стан не лише
+     кольором» закривається сам. Токена «тихий текст нижче 4.5» тут немає
+     і не буде: саме на ньому спіткнувся faint у попередній системі. */
+
+  /* --- межі --- */
+  --c-line:        var(--p-n-600);   /* ТІЛЬКИ декоративні хайрлайни · 1.71 */
+  --c-line-lit:    var(--p-n-700);   /* верхній кант (див. секцію 7, шар data-lit) */
+  --c-line-strong: var(--p-n-800);   /* усе, що межею ідентифікує контрол · 3.06 */
+
+  /* --- стани: 12 токенів, жоден не є акцентом --- */
+  --c-ok-text:    var(--p-ok-text);    --c-ok-edge:   var(--p-ok-edge);   --c-ok-quiet:   var(--p-ok-quiet);
+  --c-warn-text:  var(--p-warn-text);  --c-warn-edge: var(--p-warn-edge); --c-warn-quiet: var(--p-warn-quiet);
+  --c-err-text:   var(--p-err-text);   --c-err-edge:  var(--p-err-edge);  --c-err-quiet:  var(--p-err-quiet);
+  --c-info-text:  var(--p-info-text);  --c-info-edge: var(--p-info-edge); --c-info-quiet: var(--p-info-quiet);
+
+  /* --- папір: єдине світле в системі --- */
+  --c-paper-bg:    var(--p-paper-bg);
+  --c-paper-text:  var(--p-paper-ink);
+  --c-paper-quiet: var(--p-paper-quiet);
+  --c-paper-rule:  var(--p-paper-edge);
+
+  /* --- типографіка --- */
+  --f-display: var(--p-font-display);
+  --f-sans:    var(--p-font-sans);
+  --f-mono:    var(--p-font-mono);
+
+  --fs-h1: var(--p-fs-h1);           --lh-h1: var(--p-lh-h1);
+  --fs-h2: var(--p-fs-h2);           --lh-h2: var(--p-lh-h2);
+  --fs-h3: var(--p-fs-h3);           --lh-h3: var(--p-lh-h3);
+  --fs-h4: var(--p-fs-h4);           --lh-h4: var(--p-lh-h4);
+  --fs-lead: var(--p-fs-lead);       --lh-lead: var(--p-lh-lead);
+  --fs-body: var(--p-fs-body);       --lh-body: var(--p-lh-body);
+  --fs-ui: var(--p-fs-ui);           --lh-ui: var(--p-lh-ui);
+  --fs-small: var(--p-fs-small);     --lh-small: var(--p-lh-small);
+  --fs-label: var(--p-fs-label);     --lh-label: var(--p-lh-label);
+  --fs-eyebrow: var(--p-fs-eyebrow); --lh-eyebrow: var(--p-lh-eyebrow);
+  --fs-code: var(--p-fs-code);       --lh-code: var(--p-lh-code);
+
+  --w-regular: var(--p-wt-regular);
+  --w-medium:  var(--p-wt-medium);
+  --w-semi:    var(--p-wt-semi);
+  --tr-display: var(--p-tr-display);
+  --tr-eyebrow: var(--p-tr-eyebrow);
+
+  /* --- простір, радіуси, межі, тіні --- */
+  --s-1: var(--p-space-1);   --s-2: var(--p-space-2);   --s-3: var(--p-space-3);
+  --s-4: var(--p-space-4);   --s-5: var(--p-space-5);   --s-6: var(--p-space-6);
+  --s-8: var(--p-space-8);   --s-10: var(--p-space-10); --s-12: var(--p-space-12);
+  --s-16: var(--p-space-16); --s-20: var(--p-space-20); --s-24: var(--p-space-24);
+  --s-32: var(--p-space-32); --s-section: var(--p-space-section);
+
+  --r-inner:   var(--p-radius-inner);
+  --r-control: var(--p-radius-control);
+  --r-sheet:   var(--p-radius-sheet);
+  --r-card:    var(--p-radius-card);
+  --r-pill:    var(--p-radius-pill);
+
+  --bw:        var(--p-bw-1);
+  --bw-strong: var(--p-bw-2);
+
+  --sh-dialog: var(--p-sh-dialog);
+  --sh-sheet:  var(--p-sh-sheet);
+  --sh-desk:   var(--p-sh-desk);
+  --blur-scrim: var(--p-blur-scrim);
+
+  /* --- геометрія й шари --- */
+  --ctl-h-sm: var(--p-ctl-sm);
+  --ctl-h-md: var(--p-ctl-md);
+  --ctl-h-lg: var(--p-ctl-lg);
+  --hit-min:  var(--p-hit-min);
+
+  --z-below: var(--p-z-below);     --z-base: var(--p-z-base);
+  --z-raised: var(--p-z-raised);   --z-sidebar: var(--p-z-sidebar);
+  --z-header: var(--p-z-header);   --z-drawer: var(--p-z-drawer);
+  --z-scrim: var(--p-z-scrim);     --z-dialog: var(--p-z-dialog);
+  --z-toast: var(--p-z-toast);     --z-skip: var(--p-z-skip);
+  /* Числовий z-index поза цим списком заборонений. Локальні перекриття
+     всередині компонента робляться через isolation: isolate + 0/1/2
+     у власному контексті накладання. */
+
+  --w-sidebar: var(--p-w-sidebar); --w-card: var(--p-w-card);
+  --w-narrow: var(--p-w-narrow);   --w-prose: var(--p-w-prose);
+  --w-content: var(--p-w-content); --w-wide: var(--p-w-wide);
+  --w-meta: var(--p-w-meta);
+
+  --bp-sm: var(--p-bp-sm);  --bp-md: var(--p-bp-md);  --bp-lg: var(--p-bp-lg);
+  --bp-xl: var(--p-bp-xl);  --vh-short: var(--p-vh-short);
+
+  /* --- криві --- */
+  --e-out:    var(--p-e-out);
+  --e-in:     var(--p-e-in);
+  --e-sheet:  var(--p-e-sheet);
+  --e-breath: var(--p-e-breath);
+  --e-pop:    var(--p-e-pop);
+}
+
+
+/* ============================================================================
+   7. СЛОТ АКЦЕНТУ КУРСУ · ЩІЛЬНІСТЬ · ПРЕСЕТИ ІНТЕНСИВНОСТІ
+   ----------------------------------------------------------------------------
+   Три курси = один скелет + один слот. Переозначувати можна РІВНО пʼять
+   токенів; будь-яке шосте імʼя в блоці курсу — дефект (перевіряє тест T5).
+   Жодна з чотирьох переглянутих чужих систем (Geist, Radix Themes, Carbon,
+   Atlassian) не міняє під бренд геометрію, тривалості чи криві — тільки колір.
+   ========================================================================== */
+:root,
+[data-course="academy"] {
+  --c-accent:       var(--p-accent-academy-500);
+  --c-accent-hover: var(--p-accent-academy-600);
+  --c-accent-quiet: var(--p-accent-academy-quiet);
+  --c-accent-edge:  var(--p-accent-academy-edge);
+  --c-on-accent:    var(--p-n-0);
+}
+[data-course="architect"] {
+  --c-accent:       var(--p-accent-architect-500);
+  --c-accent-hover: var(--p-accent-architect-600);
+  --c-accent-quiet: var(--p-accent-architect-quiet);
+  --c-accent-edge:  var(--p-accent-architect-edge);
+  --c-on-accent:    var(--p-n-0);
+}
+[data-course="terminal"] {
+  --c-accent:       var(--p-accent-terminal-500);
+  --c-accent-hover: var(--p-accent-terminal-600);
+  --c-accent-quiet: var(--p-accent-terminal-quiet);
+  --c-accent-edge:  var(--p-accent-terminal-edge);
+  --c-on-accent:    var(--p-n-0);
+}
+:root { --c-line-accent: var(--c-accent-edge); --c-focus: var(--c-accent-hover); }
+
+/* --- дві щільності (Р8): лендінг — повний вау, урок — мікроінтеракції --- */
+[data-density="lesson"] {
+  --motion-travel:  0.5;   /* зсуви вдвічі менші */
+  --motion-stagger: 0;     /* стагера на уроці немає: список читається, а не сиплеться */
+}
+
+/* --- три пресети інтенсивності (форма з 005). Це НЕ вісь варіантів,
+       а перемикач усередині кожного варіанта. --- */
+[data-motion="calm"]     { --motion-scale: 0.85; --motion-travel: 0.5; --motion-stagger: 0.5; --loop-state: paused; }
+[data-motion="standard"] { --motion-scale: 1;    --motion-travel: 1;   --motion-stagger: 1; }
+[data-motion="bold"]     { --motion-scale: 1.15; --motion-travel: 1.4; --motion-stagger: 1.3; }
+[data-motion="calm"][data-density="lesson"],
+[data-motion="standard"][data-density="lesson"],
+[data-motion="bold"][data-density="lesson"] { --motion-stagger: 0; }
+
+/* ----------------------------------------------------------------------------
+   ЕСТЕТИЧНИЙ РИЗИК — «СВІТЛО ЗГОРИ». Опційний шар, вимикається зняттям
+   атрибута data-lit з <html>. Зворотний у пʼять рядків (нижче їх рівно пʼять).
+
+   Що це. У системі без тіней (Д3: тіней рівно три, і всі — для того, що
+   фізично покинуло площину) глибину дає тільки сходинка поверхні. Тут вона
+   дістає ще й НАПРЯМОК: верхня межа піднятого елемента на одну сходинку
+   драбини світліша за решту трьох. Поодинці це невидимо; на трьохстах
+   елементах читається як одне джерело світла згори.
+
+   Чому це захищається. Прецедент — «стіл» 005: одна плита, одна тінь, одне
+   джерело світла, три токени й один div. Тут те саме рішення, зведене до
+   правила замість обʼєкта: не додаємо предмет, а даємо канту напрямок.
+   ---------------------------------------------------------------------------- */
+[data-lit] .ds-card,
+[data-lit] .ds-note,
+[data-lit] .ds-dlg__card,
+[data-lit] .ds-fld__input,
+[data-lit] .term { border-top-color: var(--c-line-lit); }
+
+
+/* ============================================================================
+   8. prefers-reduced-motion · ЧУЖІ ТОКЕНИ
+   ----------------------------------------------------------------------------
+   П6 · У цьому файлі НЕМАЄ блока reduced-motion зі списком імен.
+   Медіа-запит містить РІВНО ДВА РЯДКИ. Третій рядок у ньому = дефект.
+   Було в проді: 57 поіменних перевизначень трьох поколінь.
+
+   Тест механізму: додати `--dur-zzz: calc(999 * var(--dur-u))`, застосувати
+   до нового елемента, увімкнути reduce — елемент нерухомий, і цей блок
+   при цьому НЕ редагувався.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  :root { --motion: 0; --loop-state: paused; }
+}
+
+/* Той самий механізм класом — щоб режим можна було перемкнути прямо в макеті,
+   не лізучи в налаштування системи. Теж рівно два рядки. */
+html.rm { --motion: 0; --loop-state: paused; }
+
+/* ----------------------------------------------------------------------------
+   ЧУЖІ БРЕНДОВІ АКТИВИ — НЕ НАШІ ТОКЕНИ.
+   Кнопка Google береться як є: офіційні заливка, обведення, паддінги,
+   локалізований підпис, SVG без перефарбування. Не входить у злиття кнопок
+   (13 → 1) і не отримує наших радіусів: її 4px лишаються її 4px.
+   Джерело: developers.google.com/identity/branding-guidelines.
+   Google Sans не використовуємо навіть попри технічну доступність.
+   ---------------------------------------------------------------------------- */
+:root {
+  --g-light-fill:   #FFFFFF;
+  --g-light-stroke: #747775;
+  --g-light-text:   #1F1F1F;
+  --g-light-hover:  #F7F8F8;
+  --g-dark-fill:    #131314;
+  --g-dark-stroke:  #8E918F;
+  --g-dark-text:    #E3E3E3;
+  --g-h: 40px;   --g-radius: 4px;   --g-pad-start: 12px;  --g-pad-end: 12px;
+  --g-logo: 18px; --g-gap: 10px;    --g-font-size: 14px;  --g-line-height: 20px;
+  --g-tracking: 0.25px; --g-weight: 500;
+  /* 218ms — власне значення віджета Google. Воно теж мусить гаситись, тому
+     єдиний виняток із П1: тут літерал дозволений, бо число не наше. */
+  --g-transition: calc(218 * var(--dur-u));
+}

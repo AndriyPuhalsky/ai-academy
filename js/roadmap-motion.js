@@ -1,12 +1,45 @@
 /* ============================================================
    003 · РОАДМАП — ХОРЕОГРАФІЯ
    ------------------------------------------------------------
-   ДОСЛІВНА копія dev/design/003-roadmap/04-variants/_base/motion.js.
-   Змінені рівно два коментарі — обидва посилались на шляхи макета.
-   Коду не змінено ні на символ: саме тут живуть усі пʼять
-   регресійних фіксів (§6 SUMMARY.md), і кожен із них невидимий
-   і в коді, і на скріншоті. «Здоровий рефакторинг» тут повертає
-   дефекти, які вже раз пройшли крізь код-ревʼю.
+   Походження: dev/design/003-roadmap/04-variants/_base/motion.js.
+   Саме тут живуть усі пʼять регресійних фіксів (§6 SUMMARY.md), і
+   кожен із них невидимий і в коді, і на скріншоті. «Здоровий
+   рефакторинг» тут повертає дефекти, які вже раз пройшли крізь
+   код-ревʼю. Зокрема — перенесення прогресу змійки на щойно
+   створені вузли (дефект D-01 кола 1 задачі 003, у макеті він
+   лишився невиправленим; повторний імпорт того файла принесе його
+   назад).
+
+   010 (2026-09-07) · МІГРАЦІЯ НА ДИЗАЙН-СИСТЕМУ 009. Логіка НЕ
+   переписана. Змінено рівно три речі, кожна підписана на місці:
+
+     1 · 36 ІМЕН ТОКЕНІВ — синхронно з css/roadmap.css, куди вони
+         переїхали з глобального :root файла css/custom.css. Розсинхрон
+         тут НЕ ВИДНО на екрані: num()/ms() тихо беруть fallback, і
+         сторінка анімується старими зашитими числами (П-06). Пʼять
+         імен зведені до системних, бо система вже має цю роль:
+           --scrub-trail, --scrub-outro → --scrub          (0.8, збіг)
+           --dur-pulse                  → --dur-loop-pulse (1900, збіг)
+           --dur-pulse-in               → --dur-enter      (180, збіг)
+           --dur-count 800              → --dur-count      (900)
+           --e-slow, --e-count          → --e-out (кривих у системі
+                                          рівно пʼять, шоста заборонена)
+         ⚠ 37-ме імʼя живе НЕ в лапках, а всередині рядка var(--c-ink)
+         у drawNode() — автозаміна за шаблоном його не бачить.
+
+     2 · motionOn() + staticState() — П-27. gsap.matchMedia() бачить
+         ЛИШЕ системну настройку; пресет data-motion="calm" і перемикач
+         html.rm ставлять --motion: 0, і без цієї перевірки роадмап
+         лишався б живим саме там, де рух вимкнули.
+
+     3 · root.classList.add("rm-armed") першим рядком observeRows() —
+         полярність приховування перевернута (ховає клас від JS, а не
+         сам CSS), плюс дві страховки того самого дефекту: що вже у
+         вʼюпорті — не ховається, і на visibilitychange спостереження
+         переоголошується.
+
+   ⚠ Перейменування йде ОДНИМ комітом із css/roadmap.css і
+   js/roadmap-render.js.
 
    Головне архітектурне рішення файлу:
    на всю сторінку створюється РІВНО ДВА ScrollTrigger'и —
@@ -25,10 +58,10 @@
    рахується нативним path.getPointAtLength(), а це і дешевше,
    і точніше для нашої задачі.
 
-   Третє: усі числа руху читаються з tokens.css. У цьому файлі
-   немає жодної тривалості, кривої чи зсуву — змінюється токен,
-   змінюється рух. Це і робить @media (prefers-reduced-motion)
-   керівним і для JS теж.
+   Третє: усі числа руху читаються з токенів. У цьому файлі немає
+   жодної тривалості, кривої чи зсуву — змінюється токен, змінюється
+   рух. Після 010 сторінкові токени лежать у css/roadmap.css, системні
+   — у css/tokens.css, а гасіння руху робить один множник --motion.
    ============================================================ */
 (function () {
   "use strict";
@@ -82,22 +115,59 @@
     return out;
   }
 
+  /* ⚠ ДОДАНО 010. Єдині ворота руху всієї системи. Читається СИРИЙ --motion
+     (число без одиниць), а не складений токен: getComputedStyle для
+     незареєстрованого складеного property повертає невирахуваний рядок,
+     і parseFloat дає NaN (П-01). --motion зареєстрований у tokens.css. */
+  function motionOn() { return num("--motion", 1) === 1; }
+
+  /* ⚠ ДОДАНО 010 · КОЛО ФІКСІВ · D-11. Окремі ворота для БЕЗКІНЕЧНИХ циклів.
+     `--motion` вимикає рух цілком (reduce, html.rm), `--loop-state` вимикає
+     ЛИШЕ цикли — і саме його ставить пресет data-motion="calm", який
+     --motion лишає одиницею. Для CSS цей токен уже працює скрізь
+     (animation-play-state), для GSAP його не читав ніхто: заміряно на цій
+     сторінці — під `calm` таймлайн пульсу лишався paused() === false.
+     Читаємо той самий токен, що й CSS; helper живе в AIA.motion, тут — лише
+     фолбек на випадок, якщо motion.js не піднявся. */
+  function loopOn() {
+    var M = window.AIA && window.AIA.motion;
+    if (M && M.loopOn) return M.loopOn();
+    return str("--loop-state") !== "paused";
+  }
+
+  /* Стан без руху: уся інформація доступна, лінія підсвічена повністю
+     (інакше «пройдений» відрізок читався б як дефект), лічильники одразу
+     мають фінальні числа, кільце «В роботі» стоїть на своєму піку.
+     Той самий код виконує гілка reduce нижче — тому він винесений сюди
+     й викликається з двох місць, а не дублюється. */
+  function staticState() {
+    setTrailProgress(1);
+    document.querySelectorAll(".rm-count__num").forEach(function (n) {
+      n.textContent = n.getAttribute("data-count");
+    });
+    if (HAS_GSAP) {
+      gsap.set(".rm-now__ring", { opacity: num("--rm-opacity-pulse", 0.55), scale: 1 });
+      var outro = document.getElementById("outro");
+      if (outro) gsap.set(outro.children, { clearProps: "all" });
+    }
+  }
+
   function T() {
     return {
-      ampDone:  num("--amp-done", 22),
-      ampNow:   num("--amp-now", 72),
-      ampAhead: num("--amp-ahead", 44),
-      ampLead:  num("--amp-lead", 34),
-      nodeR:      num("--node-r", 3.5),
-      nodeRAhead: num("--node-r-ahead", 4),
-      nodeRNow:   num("--node-r-now", 5),
-      ringNow:    num("--node-ring-now", 10),
-      punch:      num("--node-punch", 3),
-      tick:       num("--group-tick", 18),
-      trailW:     num("--trail-w", 2),
-      fadeIn:     num("--trail-fade-in", 96),
-      fadeOut:    num("--trail-fade-out", 140),
-      dash:       str("--trail-dash") || "5 9"
+      ampDone:  num("--rm-amp-done", 22),
+      ampNow:   num("--rm-amp-now", 72),
+      ampAhead: num("--rm-amp-ahead", 44),
+      ampLead:  num("--rm-amp-lead", 34),
+      nodeR:      num("--rm-node-r", 3.5),
+      nodeRAhead: num("--rm-node-r-ahead", 4),
+      nodeRNow:   num("--rm-node-r-now", 5),
+      ringNow:    num("--rm-node-ring-now", 10),
+      punch:      num("--rm-node-punch", 3),
+      tick:       num("--rm-group-tick", 18),
+      trailW:     num("--rm-trail-w", 2),
+      fadeIn:     num("--rm-trail-fade-in", 96),
+      fadeOut:    num("--rm-trail-fade-out", 140),
+      dash:       str("--rm-trail-dash") || "5 9"
     };
   }
 
@@ -282,7 +352,13 @@ function buildLUT() {
     if (p.state === "group") {
       g.appendChild(el("line", {
         class: "rm-node__punch-line", x1: p.x - t.tick / 2, y1: p.y, x2: p.x + t.tick / 2, y2: p.y,
-        stroke: "var(--c-ink)", "stroke-width": t.trailW + 4
+        /* ⚠ 37-ме імʼя токена, і воно ЄДИНЕ, яке живе не в лапках `"--імʼя"`,
+           а всередині рядка `var(…)`. Автозаміна за шаблоном "--name" його
+           не бачить: у проді тут стояв var(--c-ink) — токен, якого в системі
+           009 більше немає. «Пробій» вузла кольором тла мусить бути тим самим
+           кольором, що фон сторінки, тобто --c-bg. Помилки в консолі немає:
+           SVG просто отримує невалідний stroke і риска зникає. */
+        stroke: "var(--c-bg)", "stroke-width": t.trailW + 4
       }));
       g.appendChild(el("line", {
         class: "rm-node__core", x1: p.x - t.tick / 2, y1: p.y, x2: p.x + t.tick / 2, y2: p.y
@@ -461,6 +537,16 @@ function buildLUT() {
 
   var io = null;
   function observeRows(scope) {
+    /* ⚠ ДОДАНО 010 (один рядок, логіки не змінює).
+       До 010 css/roadmap.css ховав рядки правилом `.js .rm-row { opacity: 0 }`,
+       тобто контент ховав САМ CSS, а показував його IntersectionObserver.
+       Якщо колбек не доставлено — фонова вкладка, оклюзія, headless — рядок
+       лишався невидимим НАЗАВЖДИ (це дефекти 003 D-01 і 005 Б-01).
+       Тепер ховає лише клас, який ставиться ТУТ, за крок до io.observe():
+       немає JS — немає класу — увесь контент видно. Те саме структурне
+       рішення, що [data-reveal] у системі 009. */
+    if (motionOn()) root.classList.add("rm-armed");
+
     var targets = (scope || document).querySelectorAll(
       ".rm-row:not(.is-in):not(.is-anchored), .rm-void:not(.is-in), .rm-group__head:not(.is-in), .rm-panel:not(.is-in)"
     );
@@ -474,15 +560,37 @@ function buildLUT() {
           .map(function (e) { return e.target; });
         batch.forEach(function (n, i) {
           var stag = n.classList.contains("rm-row--ahead")
-            ? ms("--stag-ahead", 100) : ms("--stag-done", 70);
+            ? ms("--rm-stag-ahead", 100) : ms("--rm-stag-done", 70);
           n.style.setProperty("--rm-delay", (i * stag) + "ms");
           n.classList.add("is-in");
           io.unobserve(n);
         });
       }, { threshold: 0.1, rootMargin: "0px 0px -6% 0px" });
     }
-    Array.prototype.forEach.call(targets, function (n) { io.observe(n); });
+    /* ⚠ ДОДАНО 010, чотири рядки. Те саме структурне рішення, що вже стоїть у
+       js/motion.js для [data-reveal], — рівно тому, що роадмап має ВЛАСНИЙ
+       спостерігач і фікс системи його не покриває.
+       (1) Що вже у вʼюпорті — не ховаємо взагалі: M5 називається «поява при
+           вході у вʼюпорт», а те, що вже там, нікуди не входить. Це знімає
+           спалах «показали → сховали → показали» на першому екрані.
+       (2) Головне: робить видимість контенту НЕЗАЛЕЖНОЮ від асинхронної
+           доставки IntersectionObserver. Заміряно в живому Chrome: у вкладці,
+           яка не рендериться, колбеки IO не приходять ЖОДНОГО разу, і без
+           цього рядка 22 із 40 пунктів на ?data=max лишались невидимими. */
+    var vh = window.innerHeight || root.clientHeight;
+    Array.prototype.forEach.call(targets, function (n) {
+      var r = n.getBoundingClientRect();
+      if (r.width > 0 && r.top < vh && r.bottom > 0) { n.classList.add("is-in"); return; }
+      io.observe(n);
+    });
   }
+
+  /* Момент, коли вкладка стає видимою, — це рівно момент, коли недоставлені
+     колбеки вже не прийдуть, а контент має бути на екрані. Один слухач на
+     документ, нуль роботи на кадр. Дзеркалить js/motion.js. */
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) observeRows();
+  });
 
   /* ============================================================
      4. ЗВ'ЯЗОК РЯДКА З ВУЗЛОМ (M9)
@@ -549,6 +657,12 @@ function buildLUT() {
       return;
     }
 
+    /* ⚠ П-27. gsap.matchMedia() бачить ТІЛЬКИ системну настройку користувача.
+       Пресет data-motion="calm" і перемикач html.rm ставлять --motion: 0, і
+       без цієї перевірки роадмап лишався б живим саме там, де рух вимкнули.
+       Ворота ті самі, що в усієї системи: --motion. */
+    if (!motionOn()) { staticState(); return; }
+
     var mm = gsap.matchMedia();
 
     /* ---- 5.1 Повний рух ---- */
@@ -560,41 +674,41 @@ function buildLUT() {
       var tl = gsap.timeline();
       tl.from(".rm-hl__in", {
         yPercent: 106,
-        duration: sec("--dur-line", 520),
+        duration: sec("--rm-dur-line", 520),
         ease: ease("--e-out", "power3.out"),
-        stagger: sec("--stag-line", 75)
+        stagger: sec("--rm-stag-line", 75)
       }, 0);
       tl.from(".rm-eyebrow", {
-        autoAlpha: 0, y: num("--move-hero", 18) / 2,
-        duration: sec("--dur-line", 520), ease: ease("--e-out", "power3.out")
+        autoAlpha: 0, y: num("--rm-move-hero", 18) / 2,
+        duration: sec("--rm-dur-line", 520), ease: ease("--e-out", "power3.out")
       }, 0);
       tl.from(".rm-hero__lead", {
-        autoAlpha: 0, y: num("--move-hero", 18),
-        duration: sec("--dur-line", 520), ease: ease("--e-out", "power3.out")
+        autoAlpha: 0, y: num("--rm-move-hero", 18),
+        duration: sec("--rm-dur-line", 520), ease: ease("--e-out", "power3.out")
       }, "-=0.30");
 
       /* M3 · лічильники. tabular-nums у CSS, тож ширина не стрибає. */
-      var countStart = tl.duration() - sec("--dur-line", 520) + sec("--delay-count", 150);
+      var countStart = tl.duration() - sec("--rm-dur-line", 520) + sec("--rm-delay-count", 150);
       document.querySelectorAll(".rm-count__num").forEach(function (n) {
         var target = parseInt(n.getAttribute("data-count"), 10) || 0;
         var o = { v: 0 };
         tl.to(o, {
           v: target,
-          duration: sec("--dur-count", 800),
-          ease: ease("--e-count", "expo.out"),
+          duration: sec("--dur-count", 900),
+          ease: ease("--e-out", "expo.out"),
           snap: { v: 1 },
           onUpdate: function () { n.textContent = Math.round(o.v); }
         }, countStart);
       });
       tl.from(".rm-count", {
-        autoAlpha: 0, y: num("--move-hero", 18),
-        duration: sec("--dur-line", 520),
+        autoAlpha: 0, y: num("--rm-move-hero", 18),
+        duration: sec("--rm-dur-line", 520),
         ease: ease("--e-out", "power3.out"),
-        stagger: sec("--stag-done", 70)
+        stagger: sec("--rm-stag-done", 70)
       }, countStart);
       tl.from(".rm-updated", {
         autoAlpha: 0,
-        duration: sec("--dur-line", 520), ease: ease("--e-out", "power3.out")
+        duration: sec("--rm-dur-line", 520), ease: ease("--e-out", "power3.out")
       }, ">-0.3");
 
       /* ---- ScrollTrigger №1 з двох: ЗМІЙКА (M4) ----
@@ -609,9 +723,9 @@ function buildLUT() {
         onUpdate: function () { setTrailProgress(proxy.p); },
         scrollTrigger: {
           trigger: timeline,
-          start: str("--trail-start") || "top 78%",
-          end: str("--trail-end") || "bottom 62%",
-          scrub: num("--scrub-trail", 0.8)
+          start: str("--rm-trail-start") || "top 78%",
+          end: str("--rm-trail-end") || "bottom 62%",
+          scrub: num("--scrub", 0.8)
         }
       });
       setTrailProgress(0);
@@ -623,15 +737,15 @@ function buildLUT() {
       if (outro && !outro.hidden) {
         gsap.from(outro.querySelectorAll(".rm-eyebrow, .rm-outro__title, .rm-outro__text, .rm-outro__actions"), {
           autoAlpha: 0,
-          y: num("--move-outro", 20),
-          duration: sec("--dur-outro", 480),
+          y: num("--rm-move-outro", 20),
+          duration: sec("--rm-dur-outro", 480),
           ease: ease("--e-out", "power3.out"),
-          stagger: sec("--stag-done", 70),
+          stagger: sec("--rm-stag-done", 70),
           scrollTrigger: {
             trigger: outro,
             start: "center 70%",
             end: "center 40%",
-            scrub: num("--scrub-outro", 0.8)
+            scrub: num("--scrub", 0.8)
           }
         });
       }
@@ -662,6 +776,18 @@ function buildLUT() {
          Порівняння шести конструкцій —
          dev/design/003-roadmap/04-variants/verdict.md. */
       var pulse = null;
+      var pulseRest = null;      /* стан спокою кільця, коли цикли вимкнені */
+      /* ⚠ D-11. Стан спокою тут НЕ «завмерти там, де застало» (так робить
+         CSS animation-play-state), а той самий, який сторінка вже показує
+         під prefers-reduced-motion: кільце стоїть на своєму піку — див.
+         staticState(). Інакше пресет `calm` лишав би кільце на випадковій
+         альфі десь між 0 і 0,55. */
+      function syncPulse() {
+        if (!pulse) return;
+        if (loopOn()) { pulse.play(); return; }
+        pulse.pause();
+        if (pulseRest) pulseRest();
+      }
       function bindPulse() {
         // Фазу зберігаємо: rebind трапляється на кожному render()
         // (resize, розгортання групи), і без цього кільце щоразу
@@ -670,20 +796,27 @@ function buildLUT() {
         if (pulse) pulse.kill();
         var rings = svg.querySelectorAll(".rm-now__ring");
         if (!rings.length) return;
-        var peak  = num("--opacity-pulse", 0.55);
-        var dur   = sec("--dur-pulse", 1900);
-        var durIn = Math.min(sec("--dur-pulse-in", 180), dur * 0.4);
+        var peak  = num("--rm-opacity-pulse", 0.55);
+        var dur   = sec("--dur-loop-pulse", 1900);
+        var durIn = Math.min(sec("--dur-enter", 180), dur * 0.4);
         var eEnv  = ease("--e-breath", "sine.inOut");
-        var eOut  = ease("--e-slow", "power3.out");
+        var eOut  = ease("--e-out", "power3.out");
         gsap.set(rings, { scale: 1, opacity: 0 });
         pulse = gsap.timeline({ repeat: -1 })
           .to(rings, { opacity: peak, duration: durIn, ease: eEnv }, 0)
           .to(rings, { opacity: 0, duration: dur - durIn, ease: eEnv }, durIn)
-          .to(rings, { scale: num("--scale-pulse", 1.9), duration: dur, ease: eOut }, 0);
+          .to(rings, { scale: num("--rm-scale-pulse", 1.9), duration: dur, ease: eOut }, 0);
         if (phase) pulse.totalTime(phase);
+        pulseRest = function () { gsap.set(rings, { opacity: peak, scale: 1 }); };
+        syncPulse();     /* пресет міг стояти `calm` ще до першого bind() */
       }
       rebindPulse = bindPulse;
       bindPulse();
+
+      /* Пресет перемикають за життя сторінки — реагуємо тим самим каналом,
+         яким система роздає зміну атрибутів <html> (AIA.motion.onPreset). */
+      var M0 = window.AIA && window.AIA.motion;
+      if (M0 && M0.onPreset) M0.onPreset(syncPulse);
 
       return function () {
         // Прибираємо за собою: інакше слухачі накопичувались би при кожному
@@ -691,6 +824,7 @@ function buildLUT() {
         // системне налаштування руху, не перезавантажуючи сторінку).
         rebindPulse = null;
         if (pulse) pulse.kill();
+        pulse = null;              /* хук onPreset лишається жити — йому потрібен null */
         tl.kill();
       };
     });
@@ -700,15 +834,7 @@ function buildLUT() {
        (інакше «пройдений» відрізок читався б як дефект), лічильники
        одразу мають фінальні числа, loop зупинений, рядки видимі
        (це робить CSS-блок у styles.css). */
-    mm.add("(prefers-reduced-motion: reduce)", function () {
-      setTrailProgress(1);
-      document.querySelectorAll(".rm-count__num").forEach(function (n) {
-        n.textContent = n.getAttribute("data-count");
-      });
-      gsap.set(".rm-now__ring", { opacity: num("--opacity-pulse", 0.55), scale: 1 });
-      var outro = document.getElementById("outro");
-      if (outro) gsap.set(outro.children, { clearProps: "all" });
-    });
+    mm.add("(prefers-reduced-motion: reduce)", function () { staticState(); });
   }
 
 })();

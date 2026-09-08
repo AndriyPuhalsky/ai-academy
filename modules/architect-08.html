@@ -1,111 +1,107 @@
 <!DOCTYPE html>
-<html lang="uk" class="scroll-smooth" data-config="../architect.config.json">
+<html lang="uk" data-config="../architect.config.json" data-course="architect" data-density="lesson" data-lit>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Модуль 8 · Claude API у коді — AI Architect</title>
   <meta name="description" content="Перша програма, що звертається до моделі: встановлюємо SDK, робимо перший дзвінок, ведемо діалог, задаємо роль, керуємо параметрами, стрімимо й рахуємо токени." />
-  <meta name="theme-color" content="#141312" />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
 
   <script>document.documentElement.classList.add("js");</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег.
+       010 · етап 9: стара мова (окремий файл зі спадщиною 2023–2026)
+       видалена цілком, тому в каскаді лишились рівно ці файли. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ink: "#141312", surface: "#1E1B18", raised: "#272320",
-            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
-            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
-            sand: "#E8DCC3"
-          },
-          fontFamily: {
-            display: ["Literata", "Georgia", "serif"],
-            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
-            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
-          },
-          maxWidth: { content: "72rem" }
-        }
-      }
-    };
-  </script>
-
-  <link rel="stylesheet" href="../css/custom.css" />
+  <script src="../js/tw-theme.js"></script>
 </head>
 
-<body data-module="a08" class="bg-ink font-sans text-ivory antialiased">
+<body data-module="a08">
 
-  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
   <div id="ariaLive" class="sr-only" aria-live="polite"></div>
 
   <noscript>
-    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
-      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
     </div>
   </noscript>
 
-  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
-    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
-      <div class="flex items-center gap-3">
-        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
-                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
-          <span class="sr-only">Зміст курсу</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-            <path d="M3 6h18M3 12h18M3 18h18" />
-          </svg>
-        </button>
-        <a href="../index.html" class="flex items-center gap-2.5">
-          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIA</span>
-          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Architect</span>
-        </a>
-        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
-        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 08</span>
-      </div>
-      <div class="flex items-center gap-3">
-        <div id="aiaAuth" class="slot"></div>
-        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
-        <a href="../index.html" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">На головну</a>
-      </div>
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../index.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIA</span>
+        <span data-site="name">AI Architect</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Модуль 08</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../index.html">На головну</a>
     </div>
   </header>
 
-  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
-    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
-      ⚠ Не вдалося завантажити <code>architect.config.json</code>. Відкрий сайт через локальний сервер,
-      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">architect.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
     </div>
   </div>
 
-  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
 
-    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
       <div id="sidebarNav" class="lg:pt-10">
-        <p class="snav-count">Завантаження програми…</p>
+        <p class="ds-snav__count">Завантаження програми…</p>
       </div>
     </aside>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-3xl">
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
 
-        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза B · Будуємо з LLM</p>
-        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Claude API у коді</h1>
-        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Практика · 6 уроків · ≈ 75 хв</p>
-        <p class="mt-6 text-lg">
+        <p class="ds-eyebrow">Фаза B · Будуємо з LLM</p>
+        <h1 class="ds-h1">Claude API у коді</h1>
+        <p class="ds-small ds-num">Практика · 6 уроків · ≈ 75 хв</p>
+        <p class="ds-lead">
           Фундамент позаду — час на головне. Зараз твоя власна програма вперше по-справжньому заговорить
           із Claude. Ми, як завжди, керуватимемо Claude Code (він напише файли), але тепер ти вже вмієш
           читати код, тож розумітимеш кожен рядок. Підемо повільно, з аналогіями й розбором. Наприкінці в
           тебе буде робочий скрипт, що спілкується з моделлю.
         </p>
 
-        <div class="callout">
+        <div class="ds-note">
           <p><strong>Спираємось на попереднє.</strong> Ключ ми вже отримали й поклали в <code>.env</code>
           (Модуль 7), а код читати навчилися (Модуль 6). Тут усе складеться разом. Бібліотеки, які
           знадобляться: <code>anthropic</code> (офіційний SDK) і <code>python-dotenv</code>. Можеш
@@ -116,8 +112,8 @@
         <hr />
 
         <!-- УРОК 8.1 -->
-        <section id="l1" data-lesson="8.1 Перший дзвінок" class="scroll-mt-24">
-          <h2><span class="lesson-no">8.1</span>Перший дзвінок до моделі</h2>
+        <section id="l1" data-lesson="8.1 Перший дзвінок">
+          <h2><span class="ds-prose__no">8.1</span>Перший дзвінок до моделі</h2>
           <p>
             Нагадування для тих, хто з нуля: модель не шукає готових відповідей — вона передбачає текст
             маленькими шматочками-<strong>токенами</strong> (приблизно частина слова). Це важливо, бо саме
@@ -130,7 +126,7 @@
             <code>.env</code>, надсилає Claude одне повідомлення й друкує відповідь». Він створить приблизно
             таке:
           </p>
-          <pre><code>import os
+          <pre class="ds-code__pre"><code>import os
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
@@ -150,13 +146,13 @@ print(response.usage.input_tokens)             # скільки токенів �
 print(response.usage.output_tokens)            # скільки на відповідь
 print(response.stop_reason)                    # чому генерація завершилась</code></pre>
           <p>Запусти його в терміналі:</p>
-          <pre><code>python chat.py        # або python3 chat.py на macOS/Linux</code></pre>
-          <div class="callout">
+          <pre class="ds-code__pre"><code>python chat.py        # або python3 chat.py на macOS/Linux</code></pre>
+          <div class="ds-note">
             <p><strong>Що ти маєш побачити.</strong> Відповідь моделі текстом, а під нею — кілька чисел
             (токени) і причину завершення (наприклад, <code>end_turn</code>). Якщо так — вітаю, твоя
             програма щойно поговорила з Claude!</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Розбір рядок за рядком.</strong> <code>load_dotenv()</code> + <code>os.getenv(...)</code>
             дістають ключ із <code>.env</code> (Модуль 7). <code>client = Anthropic(...)</code> — це наш
             «телефон» до API. <code>client.messages.create(...)</code> — сам дзвінок: у дужках поля «бланку».
@@ -166,7 +162,7 @@ print(response.stop_reason)                    # чому генерація з�
             <code>usage</code>, причина завершення в <code>stop_reason</code>.</p>
           </div>
           <p>Запам'ятай «анатомію» будь-якого виклику — далі вона лише обростатиме деталями:</p>
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart LR
   subgraph REQ["Запит (бланк)"]
@@ -177,17 +173,17 @@ flowchart LR
   end
   REQ --> API["Claude API"]
   API --> R["Відповідь:<br/>content (текст) + usage (токени)"]
-  style API fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class API hl
             </pre>
-            <p class="diagram-caption">На вході — складові «бланку», на виході — структурована відповідь</p>
+            <p class="ds-diag__caption">На вході — складові «бланку», на виході — структурована відповідь</p>
           </div>
         </section>
 
         <hr />
 
         <!-- УРОК 8.2 -->
-        <section id="l2" data-lesson="8.2 Ролі та пам'ять" class="scroll-mt-24">
-          <h2><span class="lesson-no">8.2</span>Ролі та пам'ять: як вести діалог</h2>
+        <section id="l2" data-lesson="8.2 Ролі та пам'ять">
+          <h2><span class="ds-prose__no">8.2</span>Ролі та пам'ять: як вести діалог</h2>
           <p>
             Поле <code>messages</code> — список реплік, у кожної є роль: <code>user</code> (людина) або
             <code>assistant</code> (модель). А тепер найнесподіваніше для новачків правило:
@@ -199,7 +195,7 @@ flowchart LR
             розмови. Модель — такий клерк. «Пам'ять» діалогу існує лише тому, що ти щоразу надсилаєш усю
             історію наново.
           </p>
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 sequenceDiagram
   participant T as Твій код
@@ -211,9 +207,9 @@ sequenceDiagram
   M-->>T: відповідь 2
   Note over T,M: модель отримує всю історію щоразу
             </pre>
-            <p class="diagram-caption">«Пам'ять» — це історія, яку додаєш ти; сама модель нічого не зберігає</p>
+            <p class="ds-diag__caption">«Пам'ять» — це історія, яку додаєш ти; сама модель нічого не зберігає</p>
           </div>
-          <pre><code>messages = [
+          <pre class="ds-code__pre"><code>messages = [
     {"role": "user", "content": "Запам'ятай число 7."}
 ]
 r1 = client.messages.create(model=MODEL, max_tokens=200, messages=messages)
@@ -224,7 +220,7 @@ messages.append({"role": "user", "content": "Яке число я просив �
 
 r2 = client.messages.create(model=MODEL, max_tokens=200, messages=messages)
 print(r2.content[0].text)   # "7" — бо ми передали всю історію</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Наслідок для гаманця.</strong> Що довша розмова, то довшу історію ти щоразу
             надсилаєш — і за всі ці токени платиш знову. Тому в реальних застосунках довгі діалоги
             підрізають або стискають у короткий підсумок. Це не дрібниця — повернемось до вартості в уроці 8.6.</p>
@@ -234,8 +230,8 @@ print(r2.content[0].text)   # "7" — бо ми передали всю істо
         <hr />
 
         <!-- УРОК 8.3 -->
-        <section id="l3" data-lesson="8.3 Системний промпт" class="scroll-mt-24">
-          <h2><span class="lesson-no">8.3</span>Системний промпт: задаємо роль і правила</h2>
+        <section id="l3" data-lesson="8.3 Системний промпт">
+          <h2><span class="ds-prose__no">8.3</span>Системний промпт: задаємо роль і правила</h2>
           <p>
             Окреме поле <code>system</code> — інструкція «хто ти і як поводься», що діє на весь діалог.
           </p>
@@ -244,7 +240,7 @@ print(r2.content[0].text)   # "7" — бо ми передали всю істо
             системний промпт — <em>посадова інструкція</em> працівника: роль, тон, формат, межі. Пишеться
             раз і діє на всі наступні запити.
           </p>
-          <pre><code>response = client.messages.create(
+          <pre class="ds-code__pre"><code>response = client.messages.create(
     model=MODEL,
     max_tokens=400,
     system=(
@@ -254,7 +250,7 @@ print(r2.content[0].text)   # "7" — бо ми передали всю істо
     ),
     messages=[{"role": "user", "content": "Що таке депозит?"}],
 )</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Стоп, що це за лапки на кожному рядку?</strong> Текст розбито на три рядки, кожен у
             своїх лапках, без жодних плюсів. Це особливість Python: <strong>сусідні рядкові літерали
             автоматично склеюються в один</strong>. Тобто <code>"abc" "def"</code> для Python — це
@@ -265,7 +261,7 @@ print(r2.content[0].text)   # "7" — бо ми передали всю істо
           <p>
             Сила в тому, що той самий <code>user</code>-запит дасть різні відповіді залежно від інструкції:
           </p>
-          <pre><code>system="Пояснюй як дитині 10 років, одним абзацом."   # проста відповідь
+          <pre class="ds-code__pre"><code>system="Пояснюй як дитині 10 років, одним абзацом."   # проста відповідь
 system="Ти фінансовий аналітик. Відповідай точно, з нюансами."  # фахова відповідь</code></pre>
           <p>Це твій головний важіль керування продуктом: тут живе «характер» асистента.</p>
         </section>
@@ -273,8 +269,8 @@ system="Ти фінансовий аналітик. Відповідай точ�
         <hr />
 
         <!-- УРОК 8.4 -->
-        <section id="l4" data-lesson="8.4 Параметри" class="scroll-mt-24">
-          <h2><span class="lesson-no">8.4</span>Параметри: керуємо відповіддю</h2>
+        <section id="l4" data-lesson="8.4 Параметри">
+          <h2><span class="ds-prose__no">8.4</span>Параметри: керуємо відповіддю</h2>
           <p><strong>Аналогія.</strong> Уяви на «бланку» кілька регуляторів-ручок. Покрутиш — зміниться характер відповіді:</p>
           <ul>
             <li><strong>max_tokens</strong> — стеля довжини відповіді (у токенах). Як ліміт на поїздку:
@@ -283,18 +279,18 @@ system="Ти фінансовий аналітик. Відповідай точ�
               вище — різноманітніше й креативніше.</li>
             <li><strong>stop_sequences</strong> — «стоп-слова»: щойно модель їх згенерує, генерація обірветься.</li>
           </ul>
-          <pre><code>response = client.messages.create(
+          <pre class="ds-code__pre"><code>response = client.messages.create(
     model=MODEL,
     max_tokens=500,
     temperature=0.2,                 # факти, код, видобування — низька «творчість»
     messages=[{"role": "user", "content": "Випиши 3 ключові тези тексту..."}],
 )</code></pre>
           <p>Інтуїція для temperature — обирай під тип задачі:</p>
-          <pre><code>0.0 ──────── 0.3 ──────── 0.7 ──────── 1.0
+          <pre class="ds-code__pre"><code>0.0 ──────── 0.3 ──────── 0.7 ──────── 1.0
 точність    аналіз      письмо      брейнсторм
 (код,       (витяг      (тексти,    (ідеї,
 факти)      даних)      пояснення)  варіанти)</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Правило великого пальця.</strong> Є «правильна» відповідь (код, видобування) →
             низька temperature (0–0.3). Потрібне розмаїття (ідеї, креатив) → вища. Почни з 0.2–0.3 і
             підкручуй за результатом.</p>
@@ -304,15 +300,15 @@ system="Ти фінансовий аналітик. Відповідай точ�
         <hr />
 
         <!-- УРОК 8.5 -->
-        <section id="l5" data-lesson="8.5 Стрімінг" class="scroll-mt-24">
-          <h2><span class="lesson-no">8.5</span>Стрімінг: відповідь, що з'являється на очах</h2>
+        <section id="l5" data-lesson="8.5 Стрімінг">
+          <h2><span class="ds-prose__no">8.5</span>Стрімінг: відповідь, що з'являється на очах</h2>
           <p>
             <strong>Аналогія.</strong> Без стрімінгу — це офіціант, що чекає, поки приготуються всі страви,
             і виносить разом: ти сидиш перед порожнім столом. Зі <strong>стрімінгом</strong> кожну страву
             несуть, щойно готова. Технічно: текст надходить шматочками, щойно генерується, і користувач
             бачить, як він «друкується». Так працюють усі чат-інтерфейси.
           </p>
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 sequenceDiagram
   participant U as Користувач
@@ -325,16 +321,16 @@ sequenceDiagram
   M-->>A: шматок "кіт..."
   A-->>U: показує текст одразу, по шматках
             </pre>
-            <p class="diagram-caption">Стрімінг прибирає «паузу очікування» — критично для гарного UX</p>
+            <p class="ds-diag__caption">Стрімінг прибирає «паузу очікування» — критично для гарного UX</p>
           </div>
-          <pre><code>with client.messages.stream(
+          <pre class="ds-code__pre"><code>with client.messages.stream(
     model=MODEL,
     max_tokens=500,
     messages=[{"role": "user", "content": "Напиши коротку казку про кота."}],
 ) as stream:
     for text in stream.text_stream:           # перебираємо шматочки по черзі
         print(text, end="", flush=True)        # друкуємо одразу, без переносу рядка</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Розбір незнайомого.</strong> <code>with ... as stream:</code> — «менеджер контексту»:
             він сам коректно відкриє й закриє потік (не лишиться «висіти»). <code>for text in
             stream.text_stream:</code> — звичайний цикл (Модуль 6) по шматочках, що надходять.
@@ -346,38 +342,38 @@ sequenceDiagram
         <hr />
 
         <!-- УРОК 8.6 -->
-        <section id="l6" data-lesson="8.6 Токени й вартість" class="scroll-mt-24">
-          <h2><span class="lesson-no">8.6</span>Токени, вартість і трохи про надійність</h2>
+        <section id="l6" data-lesson="8.6 Токени й вартість">
+          <h2><span class="ds-prose__no">8.6</span>Токени, вартість і трохи про надійність</h2>
           <p>
             Те, що відрізняє інженера від «погрався з API»: контроль вартості. Грубе правило:
             <strong>≈ 1 токен — це ~4 символи</strong> (українською зазвичай більше токенів, ніж
             англійською). Скільки витрачено — у відповіді, у <code>usage</code> (бачили в уроці 8.1):
           </p>
-          <pre><code>print(response.usage.input_tokens)    # вхід (твій запит)
+          <pre class="ds-code__pre"><code>print(response.usage.input_tokens)    # вхід (твій запит)
 print(response.usage.output_tokens)   # вихід (відповідь)</code></pre>
           <p>
             <strong>Вартість.</strong> Аналогія — таксі-лічильник: платиш за «пробіг» у токенах. Вхід і
             вихід тарифікуються окремо, і вихід зазвичай дорожчий. Ціни вказують «за мільйон токенів»:
           </p>
-          <pre><code>вартість = (вхідні_токени  / 1_000_000) * ціна_входу
+          <pre class="ds-code__pre"><code>вартість = (вхідні_токени  / 1_000_000) * ціна_входу
          + (вихідні_токени / 1_000_000) * ціна_виходу
 
 # Приклад (ЦІНИ УМОВНІ — звіряй актуальні на docs.claude.com):
 # вхід 1000 ток. * $3/млн  = $0.003
 # вихід 500 ток. * $15/млн = $0.0075
 # разом ≈ $0.0105 за один запит</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Інженерні висновки.</strong> Дешевші/швидші моделі — для простих задач, дорожчі —
             лише там, де треба «розум». Довгу історію підрізай (урок 8.2). <code>max_tokens</code> тримай
             розумним. Пам'ятаєш ліміт витрат у консолі (Модуль 2)? Він страхує, поки вчишся.</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Коротко про збої.</strong> Інколи API відповідає помилкою: <strong>429</strong>
             («забагато запитів») чи <strong>5xx</strong> (тимчасовий збій). Надійний код не падає, а чекає
             й повторює спробу з паузою, що зростає (так званий backoff). Хороша новина: офіційний SDK уже
             робить це автоматично — тобі лише корисно знати, що так буває.</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Підсумок модуля.</strong> Твоя програма вміє звертатися до моделі, вести діалог із
             історією, задавати роль через <code>system</code>, керувати відповіддю параметрами, стрімити
             текст і рахувати токени з вартістю. Наступний модуль підніме якість самих запитів: як отримувати
@@ -389,7 +385,7 @@ print(response.usage.output_tokens)   # вихід (відповідь)</code></
         <hr />
 
         <!-- КВІЗ -->
-        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+        <section id="quiz" data-lesson="Квіз: перевір себе">
           <h2>Квіз: перевір себе</h2>
           <p>Сім питань без дедлайнів. Обирай відповідь — і одразу бачиш пояснення.</p>
           <div data-quiz="quizData"></div>
@@ -481,39 +477,41 @@ print(response.usage.output_tokens)   # вихід (відповідь)</code></
       }
       </script>
 
-      <div class="max-w-3xl">
-        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <div class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p id="completeTitle" class="font-medium text-ivory">Програма заговорила з Claude?</p>
-            <p class="mt-1 text-sm text-muted">
+            <p id="completeTitle" class="ds-h4">Програма заговорила з Claude?</p>
+            <p class="ds-small">
               Познач модуль завершеним — і відкриється Модуль 9: надійний JSON і видобувач даних.
             </p>
           </div>
           <button id="completeBtn" type="button"
-                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+                  class="ds-btn ds-btn--primary">
             Позначити завершеним
           </button>
         </div>
 
-        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
       </div>
 
     </main>
   </div>
 
-  <footer class="mt-16 border-t border-line/60">
-    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
-      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
-      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../index.html">На головну ↑</a></span>
     </div>
   </footer>
 
+  <script src="../js/motion.js"></script>
   <script src="../js/progress.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/config.js"></script>
   <script src="../js/module.js"></script>
   <script src="../js/quiz.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
   <script src="../js/mermaid-init.js"></script>
   <script src="../js/auth-ui.js"></script>
   <script type="module" src="../js/auth.js"></script>

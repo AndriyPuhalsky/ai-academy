@@ -1,111 +1,107 @@
 <!DOCTYPE html>
-<html lang="uk" class="scroll-smooth" data-config="../architect.config.json">
+<html lang="uk" data-config="../architect.config.json" data-course="architect" data-density="lesson" data-lit>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Модуль 20 · Екосистема моделей — AI Architect</title>
   <meta name="description" content="Карта екосистеми: закриті моделі через API, відкриті (Llama, Mistral), локальні моделі — і як обирати модель під задачу й бюджет, не прив'язуючись до однієї." />
-  <meta name="theme-color" content="#141312" />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
 
   <script>document.documentElement.classList.add("js");</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег.
+       010 · етап 9: стара мова (окремий файл зі спадщиною 2023–2026)
+       видалена цілком, тому в каскаді лишились рівно ці файли. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ink: "#141312", surface: "#1E1B18", raised: "#272320",
-            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
-            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
-            sand: "#E8DCC3"
-          },
-          fontFamily: {
-            display: ["Literata", "Georgia", "serif"],
-            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
-            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
-          },
-          maxWidth: { content: "72rem" }
-        }
-      }
-    };
-  </script>
-
-  <link rel="stylesheet" href="../css/custom.css" />
+  <script src="../js/tw-theme.js"></script>
 </head>
 
-<body data-module="a20" class="bg-ink font-sans text-ivory antialiased">
+<body data-module="a20">
 
-  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
   <div id="ariaLive" class="sr-only" aria-live="polite"></div>
 
   <noscript>
-    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
-      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
     </div>
   </noscript>
 
-  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
-    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
-      <div class="flex items-center gap-3">
-        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
-                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
-          <span class="sr-only">Зміст курсу</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-            <path d="M3 6h18M3 12h18M3 18h18" />
-          </svg>
-        </button>
-        <a href="../index.html" class="flex items-center gap-2.5">
-          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIA</span>
-          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Architect</span>
-        </a>
-        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
-        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 20</span>
-      </div>
-      <div class="flex items-center gap-3">
-        <div id="aiaAuth" class="slot"></div>
-        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
-        <a href="../index.html" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">На головну</a>
-      </div>
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../index.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIA</span>
+        <span data-site="name">AI Architect</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Модуль 20</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../index.html">На головну</a>
     </div>
   </header>
 
-  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
-    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
-      ⚠ Не вдалося завантажити <code>architect.config.json</code>. Відкрий сайт через локальний сервер,
-      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">architect.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
     </div>
   </div>
 
-  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
 
-    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
       <div id="sidebarNav" class="lg:pt-10">
-        <p class="snav-count">Завантаження програми…</p>
+        <p class="ds-snav__count">Завантаження програми…</p>
       </div>
     </aside>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-3xl">
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
 
-        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза E · Ширше і далі</p>
-        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Екосистема моделей</h1>
-        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Підсумок · 6 уроків · ≈ 65 хв</p>
-        <p class="mt-6 text-lg">
+        <p class="ds-eyebrow">Фаза E · Ширше і далі</p>
+        <h1 class="ds-h1">Екосистема моделей</h1>
+        <p class="ds-small ds-num">Підсумок · 6 уроків · ≈ 65 хв</p>
+        <p class="ds-lead">
           Весь курс ми будували з Claude — і це чудовий вибір. Але існує цілий світ інших моделей, і
           інженеру варто розуміти карту: коли брати топову закриту модель, коли — відкриту, а коли —
           локальну. Цей модуль дає орієнтацію в екосистемі й, головне, <strong>рамку вибору</strong> моделі
           під задачу й бюджет.
         </p>
 
-        <div class="callout">
+        <div class="ds-note">
           <p><strong>Про актуальність.</strong> Конкретні назви моделей, їхні версії, ціни й рейтинги
           змінюються дуже швидко. Тому тут — стабільні <em>принципи</em> й категорії, а свіжі порівняння
           завжди звіряй у документації провайдерів і на актуальних бенчмарках. Принципи вибору живуть довго;
@@ -115,8 +111,8 @@
         <hr />
 
         <!-- УРОК 20.1 -->
-        <section id="l1" data-lesson="20.1 Карта екосистеми" class="scroll-mt-24">
-          <h2><span class="lesson-no">20.1</span>Карта екосистеми моделей</h2>
+        <section id="l1" data-lesson="20.1 Карта екосистеми">
+          <h2><span class="ds-prose__no">20.1</span>Карта екосистеми моделей</h2>
           <p>Усе різноманіття моделей зручно поділити за двома осями. Перша — <strong>хто володіє моделлю</strong>:</p>
           <ul>
             <li><strong>Закриті (пропрієтарні).</strong> Доступ лише через API провайдера; «вагів» моделі ти
@@ -125,7 +121,7 @@
               запускати самому. Приклади: Llama (Meta), Mistral, Qwen та інші.</li>
           </ul>
           <p>Друга вісь — <strong>де модель працює</strong>: у хмарі провайдера (через API) чи на твоєму залізі (локально/самостійний хостинг).</p>
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart TD
   M["Мовні моделі"] --> C["Закриті<br/>(тільки через API)"]
@@ -133,11 +129,11 @@ flowchart TD
   C --> C1["Claude, GPT, Gemini..."]
   O --> O1["Хостиш сам / у хмарі на GPU"]
   O --> O2["Локально на своїй машині"]
-  style C1 fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class C1 hl
             </pre>
-            <p class="diagram-caption">Дві осі: закрита/відкрита модель і де вона працює (API хмари чи твоє залізо)</p>
+            <p class="ds-diag__caption">Дві осі: закрита/відкрита модель і де вона працює (API хмари чи твоє залізо)</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Що тобі вже знайомо.</strong> Увесь курс ти користувався закритою моделлю через API
             (Claude) — найпростіший і найшвидший шлях до якісного результату. Тепер додамо до картини
             відкриті й локальні варіанти, щоб ти міг свідомо обирати під ситуацію.</p>
@@ -147,8 +143,8 @@ flowchart TD
         <hr />
 
         <!-- УРОК 20.2 -->
-        <section id="l2" data-lesson="20.2 Закриті моделі" class="scroll-mt-24">
-          <h2><span class="lesson-no">20.2</span>Закриті моделі (через API)</h2>
+        <section id="l2" data-lesson="20.2 Закриті моделі">
+          <h2><span class="ds-prose__no">20.2</span>Закриті моделі (через API)</h2>
           <p>
             Це шлях, яким ми йшли: реєструєшся в провайдера, береш ключ, звертаєшся через API. Сюди належать
             найсильніші на сьогодні моделі.
@@ -165,7 +161,7 @@ flowchart TD
             <li>залежність від провайдера (його ціни, ліміти, доступність);</li>
             <li>дані йдуть на сервер провайдера (важливо для чутливих сценаріїв — Модуль 19).</li>
           </ul>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Добра новина для інженера.</strong> API більшості провайдерів схожі за ідеєю:
             повідомлення з ролями, системний промпт, токени (усе, що ти вже знаєш із Модуля 8). Тому
             перейти з одного провайдера на іншого — не переписати все з нуля, а адаптувати виклики. Деталі
@@ -176,8 +172,8 @@ flowchart TD
         <hr />
 
         <!-- УРОК 20.3 -->
-        <section id="l3" data-lesson="20.3 Відкриті моделі" class="scroll-mt-24">
-          <h2><span class="lesson-no">20.3</span>Відкриті моделі (open-weight)</h2>
+        <section id="l3" data-lesson="20.3 Відкриті моделі">
+          <h2><span class="ds-prose__no">20.3</span>Відкриті моделі (open-weight)</h2>
           <p>
             У відкритих моделей (Llama, Mistral, Qwen тощо) <strong>ваги опубліковані</strong> — тобто ти
             можеш завантажити саму модель і запускати її де завгодно: на власному сервері з GPU, у хмарі або
@@ -197,7 +193,7 @@ flowchart TD
             <li>зазвичай потрібні потужні відеокарти (GPU), особливо для більших моделей;</li>
             <li>якість топових відкритих моделей часто трохи нижча за найкращі закриті (хоч розрив швидко скорочується).</li>
           </ul>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Коли це доречно.</strong> Відкриті моделі сяють, коли критична приватність даних,
             коли обсяги величезні (і оплата за токен стає завеликою), або коли потрібне глибоке
             налаштування під специфічну задачу. Для швидкого старту й найвищої якості «з коробки» закрита
@@ -208,8 +204,8 @@ flowchart TD
         <hr />
 
         <!-- УРОК 20.4 -->
-        <section id="l4" data-lesson="20.4 Локальні моделі" class="scroll-mt-24">
-          <h2><span class="lesson-no">20.4</span>Локальні моделі</h2>
+        <section id="l4" data-lesson="20.4 Локальні моделі">
+          <h2><span class="ds-prose__no">20.4</span>Локальні моделі</h2>
           <p>
             Окремо варто згадати <strong>запуск моделі локально</strong> — прямо на твоєму комп'ютері, без
             інтернету й без жодного зовнішнього сервісу. Є зручні інструменти, що дозволяють завантажити
@@ -228,7 +224,7 @@ flowchart TD
             <li>якість менших локальних моделей зазвичай нижча за хмарні топові;</li>
             <li>для серйозного навантаження на багатьох користувачів локальний запуск на одній машині не годиться.</li>
           </ul>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Практичний орієнтир.</strong> Локальні моделі — чудові для приватних, офлайн чи
             навчальних сценаріїв і прототипів. Для публічного продукту з багатьма користувачами й високою
             якістю частіше беруть API закритої моделі або хостинг відкритої в хмарі на GPU. Точні вимоги до
@@ -239,8 +235,8 @@ flowchart TD
         <hr />
 
         <!-- УРОК 20.5 -->
-        <section id="l5" data-lesson="20.5 Як обрати" class="scroll-mt-24">
-          <h2><span class="lesson-no">20.5</span>Як обрати модель під задачу</h2>
+        <section id="l5" data-lesson="20.5 Як обрати">
+          <h2><span class="ds-prose__no">20.5</span>Як обрати модель під задачу</h2>
           <p>
             Немає «найкращої моделі» взагалі — є найкраща <em>під конкретну задачу й обмеження</em>. Оцінюй
             за кількома осями:
@@ -252,7 +248,7 @@ flowchart TD
             <li><strong>Приватність:</strong> чи можна надсилати дані зовнішньому провайдеру?</li>
             <li><strong>Контроль:</strong> чи потрібне донавчання під свою специфіку?</li>
           </ul>
-          <pre><code>Грубий орієнтир (не догма):
+          <pre class="ds-code__pre"><code>Грубий орієнтир (не догма):
 
   Проста масова задача (класифікація, теги)
      -> дешевша/швидша модель (закрита або невелика відкрита)
@@ -268,7 +264,7 @@ flowchart TD
 
   Прототип / навчання / офлайн
      -> локальна модель</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Практична порада.</strong> Часто розумно <em>комбінувати</em>: дешева модель для
             простих кроків, дорога — лише там, де треба «розум» (пам'ятаєш оптимізацію вартості, Модуль 18?).
             І завжди перевіряй вибір евалами (Модуль 19): прожени свій тест-набір на кандидатах і порівняй
@@ -279,14 +275,14 @@ flowchart TD
         <hr />
 
         <!-- УРОК 20.6 -->
-        <section id="l6" data-lesson="20.6 Не прив'язуйся" class="scroll-mt-24">
-          <h2><span class="lesson-no">20.6</span>Гнучкість: не прив'язуйся до однієї моделі</h2>
+        <section id="l6" data-lesson="20.6 Не прив'язуйся">
+          <h2><span class="ds-prose__no">20.6</span>Гнучкість: не прив'язуйся до однієї моделі</h2>
           <p>
             Екосистема змінюється щомісяця: виходять нові моделі, дешевшають ціни, зсуваються лідери. Тому
             мудро будувати код так, щоб <strong>модель можна було замінити</strong> без переписування всього
             продукту. Пам'ятаєш принцип із Модуля 15 — відокремлювати логіку від деталей? Застосуй його й тут:
           </p>
-          <pre><code># Увесь продукт кличе ОДНУ функцію — а яка модель/провайдер усередині, сховано тут:
+          <pre class="ds-code__pre"><code># Увесь продукт кличе ОДНУ функцію — а яка модель/провайдер усередині, сховано тут:
 def ask_model(prompt):
     resp = client.messages.create(
         model=MODEL, max_tokens=500,
@@ -296,12 +292,12 @@ def ask_model(prompt):
 
 # Захотів змінити модель чи навіть провайдера?
 # Міняєш лише цю функцію — решта коду (агенти, бекенд, тріаж) не чіпається.</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Чому це важливо.</strong> Якщо виклики моделі розкидані по всьому коду, зміна
             провайдера — це біль. Якщо вони сховані за однією функцією-«перемикачем» — це кілька рядків. Така
             маленька дисципліна економить дні роботи в майбутньому й дає свободу обирати найкраще під момент.</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Підсумок модуля.</strong> Ти бачиш карту екосистеми: закриті моделі через API
             (просто й якісно), відкриті open-weight (контроль, приватність, вартість на масштабі), локальні
             (приватність, офлайн, навчання). Ти вмієш обирати під задачу за осями якість/вартість/швидкість/
@@ -314,7 +310,7 @@ def ask_model(prompt):
         <hr />
 
         <!-- КВІЗ -->
-        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+        <section id="quiz" data-lesson="Квіз: перевір себе">
           <h2>Квіз: перевір себе</h2>
           <p>Шість питань без дедлайнів. Обирай відповідь — і одразу бачиш пояснення.</p>
           <div data-quiz="quizData"></div>
@@ -395,39 +391,41 @@ def ask_model(prompt):
       }
       </script>
 
-      <div class="max-w-3xl">
-        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <div class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p id="completeTitle" class="font-medium text-ivory">Орієнтуєшся в екосистемі?</p>
-            <p class="mt-1 text-sm text-muted">
+            <p id="completeTitle" class="ds-h4">Орієнтуєшся в екосистемі?</p>
+            <p class="ds-small">
               Познач модуль завершеним — і відкриється Модуль 21: капстоун, кульмінація курсу.
             </p>
           </div>
           <button id="completeBtn" type="button"
-                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+                  class="ds-btn ds-btn--primary">
             Позначити завершеним
           </button>
         </div>
 
-        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
       </div>
 
     </main>
   </div>
 
-  <footer class="mt-16 border-t border-line/60">
-    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
-      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
-      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../index.html">На головну ↑</a></span>
     </div>
   </footer>
 
+  <script src="../js/motion.js"></script>
   <script src="../js/progress.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/config.js"></script>
   <script src="../js/module.js"></script>
   <script src="../js/quiz.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
   <script src="../js/mermaid-init.js"></script>
   <script src="../js/auth-ui.js"></script>
   <script type="module" src="../js/auth.js"></script>

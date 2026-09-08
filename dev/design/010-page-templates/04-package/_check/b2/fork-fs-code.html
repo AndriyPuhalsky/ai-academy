@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<!-- ============================================================================
+     010 · Б2 · РОЗВИЛКА ВЛАСНИКА: кегль коду на мобілці. Два кадри поруч.
+     Рішення не наше. Тут — обидва варіанти живцем і числа під ними.
+     ============================================================================ -->
+<html lang="uk" data-course="terminal" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>010 · Б2 · розвилка: кегль коду на мобілці</title>
+  <link rel="stylesheet" href="../../files/css/tokens.css">
+  <link rel="stylesheet" href="../../files/css/components.css">
+  <style>
+    body { margin: 0; padding: var(--s-6) var(--s-6) var(--s-24); }
+    .fk__head { max-width: var(--w-prose); }
+    .fk__pair { display: flex; flex-wrap: wrap; gap: var(--s-8); margin: var(--s-8) 0; align-items: flex-start; }
+    .fk__col { border: var(--bw) solid var(--c-line); border-radius: var(--r-card);
+               background: var(--c-surface); padding: var(--s-4); width: min(100%, 420px); }
+    .fk__col--pick { border-color: var(--c-accent-edge); background: var(--c-accent-quiet); }
+    .fk__vp { overflow: hidden; border: var(--bw) solid var(--c-line-strong);
+              border-radius: var(--r-inner); background: var(--c-bg);
+              width: 390px; height: 560px; }
+    .fk__vp iframe { border: 0; display: block; }
+    .fk__num { display: flex; justify-content: space-between; gap: var(--s-3);
+               padding: var(--s-2) 0; border-bottom: var(--bw) solid var(--c-line);
+               font-size: var(--fs-small); }
+    .fk__num b { font-family: var(--f-mono); font-variant-numeric: tabular-nums; color: var(--c-text); font-weight: var(--w-medium); }
+    @media (max-width: 900px) { .fk__vp { width: 100%; } }
+  </style>
+</head>
+
+<body>
+  <div class="fk__head">
+    <p class="ds-eyebrow">010 · Б2 · розвилка, яку вирішує власник</p>
+    <h1 class="ds-h2">Кегль коду на екрані вужчому за 640</h1>
+    <p class="ds-lead">Прод дає <b>12&nbsp;px</b> нижче 640 і 13,52 вище. Система 009 — плаский
+      <b>13,52</b> на всіх ширинах. Обидва кадри нижче — той самий урок, той самий термінал,
+      вʼюпорт 390&nbsp;px.</p>
+
+    <div class="ds-note ds-note--info">
+      <span class="ds-note__glyph" aria-hidden="true">i</span>
+      <span class="ds-note__title">Що саме тут вирішується</span>
+      <p>Не «читабельність» — 12 і 13,52&nbsp;px обидва читабельні. Вирішується, скільки
+        символів термінала видно <b>без горизонтального скролу</b>. Уроки курсу «AI Термінал» —
+        це 767 рядків справжнього виводу CLI, і рядок довжиною 82 символи там не рідкість:
+        це 95-й процентиль.</p>
+    </div>
+  </div>
+
+  <div class="fk__pair">
+    <div class="fk__col fk__col--pick">
+      <p class="ds-eyebrow">Варіант A · система 009 · плаский 13,52 px</p>
+      <div class="fk__vp"><iframe id="a" width="390" height="560"></iframe></div>
+      <div id="na"></div>
+    </div>
+    <div class="fk__col">
+      <p class="ds-eyebrow">Варіант B · як у проді · 12 px нижче 640</p>
+      <div class="fk__vp"><iframe id="b" width="390" height="560"></iframe></div>
+      <div id="nb"></div>
+    </div>
+  </div>
+
+  <div class="fk__head">
+    <h2 class="ds-h3">Рекомендація Б2 — варіант A (плаский 13,52)</h2>
+    <p>Різниця у видимих символах — <b>п'ять</b> (38 проти 43), тобто 13&nbsp;%. Різниця у
+      кількості рядків, які взагалі не вміщаються, — теж невелика: переміряно по всіх
+      <b>767</b> рядках терміналів у 56 уроках, при 13,52&nbsp;px не вміщається
+      <b>39,0&nbsp;%</b> рядків, при 12&nbsp;px — <b>33,1&nbsp;%</b>. Тобто зменшення кегля
+      <em>не</em> прибирає горизонтальний скрол: воно прибирає його для одного рядка з
+      шістнадцяти, а решта скролиться однаково.</p>
+    <p>За плаский кегль — уся добірка мобільних референсів 010: кегль коду на телефоні не
+      зменшує <b>ніхто</b>, Laravel і MDN тримають 16&nbsp;px. Проти — наш власний вміст із
+      рядками на 222 символи.</p>
+    <p><b>Ціна помилки асиметрична й мала:</b> це один рядок у
+      <code class="ds-code--inline">tokens.css</code>
+      (<code class="ds-code--inline">@media (max-width: 640px) { :root { --fs-code: var(--p-fs-label) } }</code>),
+      і його можна додати або зняти в будь-який момент без жодної правки розмітки.</p>
+  </div>
+
+  <script>
+    var SRC = "t2-lesson.html?pos=mid&state=open&fork=1&code=";
+    function load() {
+      var t = Date.now();
+      document.getElementById("a").src = SRC + "system&v=" + t;
+      document.getElementById("b").src = SRC + "prod&v=" + t;
+    }
+    function row(label, value) {
+      return '<p class="fk__num"><span>' + label + "</span><b>" + value + "</b></p>";
+    }
+    function measure(id, out) {
+      var d = document.getElementById(id).contentDocument;
+      if (!d) return;
+      var term = d.querySelector(".term__body");
+      if (!term) return;
+      var w = d.defaultView, cs = w.getComputedStyle(term);
+      var fs = parseFloat(cs.fontSize);
+      var inner = term.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      var chars = Math.floor(inner / (fs * 0.6));
+      document.getElementById(out).innerHTML =
+        row("кегль", fs + " px") +
+        row("видимих символів", chars) +
+        row("рядок 82 символи (p95)", (82 / chars).toFixed(2) + " екрана") +
+        row("найдовший рядок уроків (222)", (222 / chars).toFixed(2) + " екрана") +
+        row("рядків із 767 не вміщається", (fs > 13 ? "299 (39,0 %)" : "254 (33,1 %)"));
+    }
+    load();
+    setTimeout(function () { measure("a", "na"); measure("b", "nb"); }, 2500);
+  </script>
+</body>
+
+</html>

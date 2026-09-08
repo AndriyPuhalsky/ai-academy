@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+<html lang="uk" data-config="../claude-code.config.json" data-course="terminal" data-density="lesson" data-lit>
 
 <head>
   <meta charset="UTF-8" />
@@ -7,110 +7,100 @@
   <title>Модуль 11 · Скільки це коштує — AI Термінал</title>
   <meta name="description"
     content="Ліміти підписок і оплата за токени, команди /usage і /cost, кешування промпту, ціна контексту, сім причин, чому витрата росте в довгій сесії, і коли ключ API вигідніший за підписку." />
-  <meta name="theme-color" content="#141312" />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
 
   <script>document.documentElement.classList.add("js");</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
-    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег.
+       010 · етап 9: стара мова (окремий файл зі спадщиною 2023–2026)
+       видалена цілком, тому в каскаді лишились рівно ці файли. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ink: "#141312", surface: "#1E1B18", raised: "#272320",
-            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
-            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
-            sand: "#E8DCC3"
-          },
-          fontFamily: {
-            display: ["Literata", "Georgia", "serif"],
-            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
-            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
-          },
-          maxWidth: { content: "72rem" }
-        }
-      }
-    };
-  </script>
-
-  <link rel="stylesheet" href="../css/custom.css" />
+  <script src="../js/tw-theme.js"></script>
 </head>
 
-<body data-module="c11" class="bg-ink font-sans text-ivory antialiased">
+<body data-module="c11">
 
-  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
   <div id="ariaLive" class="sr-only" aria-live="polite"></div>
 
   <noscript>
-    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
-      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
     </div>
   </noscript>
 
   <!-- ШАПКА -->
-  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
-    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
-      <div class="flex items-center gap-3">
-        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
-          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
-          <span class="sr-only">Зміст курсу</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" aria-hidden="true">
-            <path d="M3 6h18M3 12h18M3 18h18" />
-          </svg>
-        </button>
-        <a href="../claude-code.html" class="flex items-center gap-2.5">
-          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
-            data-site="shortName">AIT</span>
-          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
-        </a>
-        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
-        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 11</span>
-      </div>
-      <div class="flex items-center gap-3">
-        <div id="aiaAuth" class="slot"></div>
-        <span id="navProgress" hidden
-          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
-        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
-          програми</a>
-      </div>
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../claude-code.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIT</span>
+        <span data-site="name">AI Термінал</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Модуль 11</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../claude-code.html#map">До програми</a>
     </div>
   </header>
 
-  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
-    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
-      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
-      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
     </div>
   </div>
 
   <!-- Затемнення під мобільною шторкою сайдбара -->
-  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
 
     <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
-    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
       <div id="sidebarNav" class="lg:pt-10">
-        <p class="snav-count">Завантаження програми…</p>
+        <p class="ds-snav__count">Завантаження програми…</p>
       </div>
     </aside>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-3xl">
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
 
         <!-- Вступ модуля -->
-        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 2 · Контекст, дозволи, гроші</p>
-        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Скільки це коштує</h1>
-        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Середній · 8 блоків · ≈ 45 хв читання</p>
-        <p class="mt-6 text-lg">
+        <p class="ds-eyebrow">Фаза 2 · Контекст, дозволи, гроші</p>
+        <h1 class="ds-h1">Скільки це коштує</h1>
+        <p class="ds-small ds-num">Середній · 8 блоків · ≈ 45 хв читання</p>
+        <p class="ds-lead">
           Рано чи пізно кожен, хто працює з Claude Code, впирається в одне з двох: або в повідомлення
           «ліміт вичерпано, повертайся о такій-то годині», або в рахунок, більший за очікуваний.
           Обидва випадки мають ту саму причину, і причина ця не в кількості твоїх повідомлень.
@@ -124,8 +114,8 @@
           критичну тему: людина дізнається про ціну після того, як заплатила.
         </p>
 
-        <div class="callout callout-sand">
-          <span class="callout-title">Одразу головне: чому тут майже немає таблиць із числами</span>
+        <div class="ds-note ds-note--accent">
+          <span class="ds-note__title">Одразу головне: чому тут майже немає таблиць із числами</span>
           <p>
             Anthropic не публікує лімітів планів у числах — ні в кількості повідомлень, ні в
             токенах. Це не наша здогадка: сторінка тарифів
@@ -141,8 +131,8 @@
           </p>
         </div>
 
-        <div class="callout">
-          <span class="callout-title">Що в цьому модулі є, а чого немає</span>
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому модулі є, а чого немає</span>
           <p>
             <strong>Є:</strong> два різні способи платити й чим вони відрізняються · що таке ліміт
             сесії та тижневий ліміт · команди <code>/usage</code> і <code>/cost</code> ·
@@ -162,15 +152,15 @@
         <hr />
 
         <!-- БЛОК 1 -->
-        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
-          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
 
           <p>
             Почнемо з єдиного факту, з якого випливає майже все інше в цьому уроці.
           </p>
 
-          <div class="callout">
-            <span class="callout-title">Модель нічого не пам'ятає між запитами</span>
+          <div class="ds-note">
+            <span class="ds-note__title">Модель нічого не пам'ятає між запитами</span>
             <p>
               Документація Claude Code формулює це так: щоразу, коли ти надсилаєш повідомлення,
               Claude Code робить <strong>новий запит до сервера</strong>. Модель не пам'ятає нічого
@@ -200,8 +190,8 @@
             в них упрешся.
           </p>
 
-          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Два різні способи платити — і вони поводяться по-різному">
-          <table>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Два різні способи платити — і вони поводяться по-різному">
+          <table class="ds-tbl">
             <thead>
               <tr>
                 <th>&nbsp;</th>
@@ -242,8 +232,8 @@
             в Claude Code черпає з одного спільного пулу.
           </p>
 
-          <div class="callout">
-            <span class="callout-title">«Рухоме вікно» простими словами</span>
+          <div class="ds-note">
+            <span class="ds-note__title">«Рухоме вікно» простими словами</span>
             <p>
               Це не «з 9:00 до 14:00 у всіх однаково». Вікно рахується від твоєї активності: почав
               працювати — пішов відлік, і приблизно за п'ять годин обмеження скидається. Тому час
@@ -284,8 +274,8 @@
               тарифами API.</li>
           </ul>
 
-          <div class="callout callout-sand">
-            <span class="callout-title">Дата важливіша за число</span>
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Дата важливіша за число</span>
             <p>
               Кожне число вище стоїть поруч із датою звірки навмисно. Це правило всього курсу:
               побачив у будь-якій статті ціну чи ліміт без дати — вважай, що числа немає.
@@ -295,8 +285,8 @@
         </section>
 
         <!-- БЛОК 2 -->
-        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
-          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
 
           <p>
             Головний екран цієї теми — <code>/usage</code>. Це команда, яку набирають
@@ -307,8 +297,8 @@
             статистики.
           </p>
 
-          <div class="callout">
-            <span class="callout-title">Чому знімка цього екрана тут немає</span>
+          <div class="ds-note">
+            <span class="ds-note__title">Чому знімка цього екрана тут немає</span>
             <p>
               Дві причини, і обидві варті того, щоб їх назвати вголос. Перша: <code>/usage</code> —
               це не текст, який можна вивести командою й скопіювати, а мальований інтерфейс, що
@@ -340,7 +330,7 @@
             <figcaption class="term__chrome">
               <span class="term__dots" aria-hidden="true"></span>
               <span class="term__title" id="v1t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
-              <button type="button" class="term__copy"
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
                       data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
             </figcaption>
             <pre class="term__body" tabindex="0" role="group" aria-labelledby="v1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --version</span></span>
@@ -359,7 +349,7 @@
             <figcaption class="term__chrome">
               <span class="term__dots" aria-hidden="true"></span>
               <span class="term__title" id="v2t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
-              <button type="button" class="term__copy"
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
                       data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
             </figcaption>
             <pre class="term__body" tabindex="0" role="group" aria-labelledby="v2t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude auth status --help</span></span>
@@ -381,8 +371,8 @@
             вставляти у власні скрипти й перевіряти вхід автоматично.
           </p>
 
-          <div class="callout">
-            <span class="callout-title">Чому виводу цієї команди тут немає</span>
+          <div class="ds-note">
+            <span class="ds-note__title">Чому виводу цієї команди тут немає</span>
             <p>
               Останній рядок — твоя пошта, а перші два — твій план і твоя організація. У курсі
               стоїть тільки довідка (<code>--help</code>), бо вона однакова в усіх. Якщо ти
@@ -401,7 +391,7 @@
             <figcaption class="term__chrome">
               <span class="term__dots" aria-hidden="true"></span>
               <span class="term__title" id="v3t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
-              <button type="button" class="term__copy"
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
                       data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
             </figcaption>
             <pre class="term__body" tabindex="0" role="group" aria-labelledby="v3t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --help</span></span>
@@ -428,8 +418,8 @@
             з машини:
           </p>
 
-          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Що показує блок Session у /usage">
-          <table>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Що показує блок Session у /usage">
+          <table class="ds-tbl">
             <thead>
               <tr>
                 <th>Рядок зразка</th>
@@ -505,8 +495,8 @@
         </section>
 
         <!-- БЛОК 3 -->
-        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
-          <h2><span class="lesson-no">3</span>Як це працює</h2>
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
 
           <p>
             Якщо весь контекст їде в кожному запиті, то довга сесія мала б коштувати
@@ -535,7 +525,7 @@
             Тому Claude Code складає запит так, щоб найстабільніше йшло першим:
           </p>
 
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart TD
   A["Ти пишеш одне речення"] --> B["Claude Code збирає ВЕСЬ запит наново"]
@@ -545,10 +535,10 @@ flowchart TD
   E --> F{"Початок запиту збігся з тим, що вже оброблено?"}
   F -->|"так, влучення"| G["Стара частина тарифікується приблизно за 10% ціни звичайного вводу"]
   F -->|"ні, промах"| H["Весь запит обробляється як новий ввід, за повною ціною"]
-  style F fill:#2A211C,stroke:#D97757,color:#F0EEE6
-  style H stroke:#D97757
+  class F hl
+  class H hl
             </pre>
-            <p class="diagram-caption">
+            <p class="ds-diag__caption">
               Чому дешева довга сесія стає дорогою від однієї маленької зміни на початку запиту
             </p>
           </div>
@@ -569,8 +559,8 @@ flowchart TD
             там, а не тут.
           </p>
 
-          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Скільки коштує сам токен">
-          <table>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Скільки коштує сам токен">
+          <table class="ds-tbl">
             <thead>
               <tr>
                 <th>Модель</th>
@@ -606,7 +596,7 @@ flowchart TD
           </table>
           </div>
 
-          <p class="!mt-2 text-sm text-muted">
+          <p class="!mt-2 text-sm text-fg-2">
             Усі ціни — за мільйон токенів. Для порівняння: у швидкому режимі
             (модуль 10) Opus 5 і Opus 4.8 тарифікуються за $10 вводу і $50 виводу за мільйон,
             і ця ставка «пласка» на все вікно контексту.
@@ -630,8 +620,8 @@ flowchart TD
             моделей некоректним, — про новий токенізатор. Воно в блоці 6, пункт 8.
           </p>
 
-          <div class="callout callout-sand">
-            <span class="callout-title">Одна порада, яка економить найбільше</span>
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Одна порада, яка економить найбільше</span>
             <p>
               Дослівна підказка з документації: обирай модель і рівень зусиль <strong>на початку
               сесії</strong>, а <code>/compact</code> лишай на природні паузи між задачами.
@@ -646,8 +636,8 @@ flowchart TD
             один повільніший і дорожчий хід, після якого кеш відбудовується заново.
           </p>
 
-          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Що вбиває кеш, а що ні">
-          <table>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Що вбиває кеш, а що ні">
+          <table class="ds-tbl">
             <thead>
               <tr>
                 <th>Скидає кеш</th>
@@ -714,8 +704,8 @@ flowchart TD
             від твого бажання, а від того, як ти платиш:
           </p>
 
-          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Скільки живе кеш">
-          <table>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Скільки живе кеш">
+          <table class="ds-tbl">
             <thead>
               <tr>
                 <th>Що за запит</th>
@@ -764,7 +754,7 @@ flowchart TD
             зовсім різні речі. Ця діаграма — найкорисніша схема всього модуля:
           </p>
 
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart TD
   M["Claude Code відмовився працювати"] --> A{"Що написано в повідомленні?"}
@@ -774,10 +764,10 @@ flowchart TD
   B --> B2["/model на іншу сім'ю - і працюєш далі"]
   C --> C2["/model НЕ рятує: стеля спільна для всіх моделей"]
   D --> D2["Переповнилось контекстне вікно - модуль 6"]
-  style C fill:#2A211C,stroke:#D97757,color:#F0EEE6
-  style C2 stroke:#D97757
+  class C hl
+  class C2 hl
             </pre>
-            <p class="diagram-caption">
+            <p class="ds-diag__caption">
               Одне й те саме слово «ліміт» означає тут три різні речі з трьома різними діями
             </p>
           </div>
@@ -799,8 +789,8 @@ flowchart TD
         </section>
 
         <!-- БЛОК 4 -->
-        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
-          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
 
           <p>
             П'ять кроків. Перший робиться в звичайному терміналі, решта — усередині сесії
@@ -873,8 +863,8 @@ flowchart TD
             <strong>до 200</strong> сесій, яких ще не бачив, і пропускає зовсім короткі.
           </p>
 
-          <div class="callout">
-            <span class="callout-title">Цей крок платний — у прямому сенсі</span>
+          <div class="ds-note">
+            <span class="ds-note__title">Цей крок платний — у прямому сенсі</span>
             <p>
               <code>/insights</code> — це не локальний підрахунок: аналіз іде через той самий
               обліковий запис, що й звичайні сесії, і <strong>його токени зараховуються в твій план
@@ -894,8 +884,8 @@ flowchart TD
         </section>
 
         <!-- БЛОК 5 -->
-        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
-          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
 
           <p>
             Гроші — та тема, у якій найлегше себе обманути відчуттям «начебто стало краще».
@@ -903,8 +893,8 @@ flowchart TD
             здогадок.
           </p>
 
-          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Як перевірити, що вийшло">
-          <table>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Як перевірити, що вийшло">
+          <table class="ds-tbl">
             <thead>
               <tr>
                 <th>Питання</th>
@@ -950,8 +940,8 @@ flowchart TD
           </table>
           </div>
 
-          <div class="callout">
-            <span class="callout-title">Постійний показник замість разової перевірки</span>
+          <div class="ds-note">
+            <span class="ds-note__title">Постійний показник замість разової перевірки</span>
             <p>
               Вартість і час сесії можна тримати перед очима весь час — у рядку стану внизу екрана.
               Він налаштовується власним скриптом, якому Claude Code передає поля
@@ -963,8 +953,8 @@ flowchart TD
         </section>
 
         <!-- БЛОК 6 -->
-        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
-          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
 
           <p>
             Документація має окремий розділ із назвою «Чому використання росте в довгій сесії».
@@ -1095,8 +1085,8 @@ flowchart TD
         </section>
 
         <!-- БЛОК 7 -->
-        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
-          <h2><span class="lesson-no">7</span>Часті питання</h2>
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
 
           <h3>Скільки повідомлень дає Pro?</h3>
           <p>
@@ -1212,8 +1202,8 @@ flowchart TD
         </section>
 
         <!-- БЛОК 8 -->
-        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
-          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
 
           <p>
             Якщо після цього модуля ти вмієш назвати, чим саме платиш, відкрити <code>/usage</code>
@@ -1221,8 +1211,8 @@ flowchart TD
             свою роботу. Решта — звички, які нарощуються самі.
           </p>
 
-          <div class="callout callout-sand">
-            <span class="callout-title">Підсумок модуля</span>
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок модуля</span>
             <ul>
               <li>Ти платиш не за повідомлення, а за обсяг контексту, який їде в
                 <strong>кожному</strong> запиті. Модель не пам'ятає нічого між запитами, тому
@@ -1267,7 +1257,7 @@ flowchart TD
         <hr />
 
         <!-- КВІЗ -->
-        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+        <section id="quiz" data-lesson="Квіз: перевір себе">
           <h2>Квіз: перевір себе</h2>
           <p>
             Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння механіки, а не пам'ять
@@ -1352,59 +1342,46 @@ flowchart TD
       }
       </script>
 
-      <div class="max-w-3xl">
+      <div class="mt-12 grid gap-6 max-w-prose">
         <!-- Позначка завершення (js/module.js + js/progress.js) -->
         <div
-          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
-            <p class="mt-1 text-sm text-muted">
+            <p id="completeTitle" class="ds-h4">Модуль позаду?</p>
+            <p class="ds-small">
               Познач його завершеним — позначка збережеться в цьому браузері
               й з'явиться на головній сторінці.
             </p>
           </div>
           <button id="completeBtn" type="button"
-            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            class="ds-btn ds-btn--primary">
             Позначити завершеним
           </button>
         </div>
 
         <!-- Попередній / наступний модуль (рендерить js/module.js) -->
-        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
       </div>
 
     </main>
   </div>
 
-  <footer class="mt-16 border-t border-line/60">
-    <!-- D-03: вхід у три довідники з будь-якого уроку. Підписи живуть у
-         claude-code.config.json → site.ref* і підставляються через data-site
-         (js/config.js, fillStatic); текст у розмітці — той самий рядок, як
-         запасний варіант, коли конфіг не приїхав. Той самий прийом, що вже
-         стоїть на data-site="name" і data-site="shortName" у шапці. -->
-    <nav aria-label="Довідники курсу"
-      class="mx-auto flex max-w-[88rem] flex-wrap items-center gap-x-6 gap-y-1 border-b border-line/60 px-5 py-4 sm:px-8">
-      <span class="font-mono text-xs uppercase tracking-[0.14em] text-faint" data-site="refsLabel">Довідники</span>
-      <a href="../claude-code-ref-commands.html"
-        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refCommands">Усі команди й клавіші</a>
-      <a href="../claude-code-ref-hooks.html"
-        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refHooks">Таблиця подій</a>
-      <a href="../claude-code-ref-settings.html"
-        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refSettings">Ключі settings.json</a>
-    </nav>
-    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
-      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
-      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../claude-code.html">На головну ↑</a></span>
     </div>
   </footer>
 
   <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
   <script src="../js/progress.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/config.js"></script>
   <script src="../js/module.js"></script>
   <script src="../js/quiz.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
   <script src="../js/mermaid-init.js"></script>
   <script src="../js/auth-ui.js"></script>
   <script type="module" src="../js/auth.js"></script>

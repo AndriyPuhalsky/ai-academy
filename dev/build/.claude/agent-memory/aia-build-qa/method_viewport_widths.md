@@ -1,11 +1,16 @@
 ---
 name: method-viewport-widths
-description: 768/1024 знімаються resize_window (він ПРАЦЮЄ, всупереч старому запису), 390 — тільки реальним iframe; пастки методу
+description: ⚠ resize_window знову НЕ працює (2026-09-08, outerWidth=0) — ширину задавати токенами --w-prose/--w-narrow; решта пасток методу чинна
 metadata:
   type: feedback
 ---
 
-Правило: **1440 і 768 і 1024 — `resize_window`; 390 — реальний `<iframe>`.**
+⚠ **ПЕРЕВІРИТИ ПЕРЕД ВИКОРИСТАННЯМ.** 2026-09-08 `resize_window` рапортував успіх, а
+`innerWidth` не змінювався взагалі (`outerWidth === 0`). Тобто «працює» — властивість сесії,
+не інструмента. Завжди звіряти `innerWidth` після виклику; якщо не змінився — див.
+[[method-hidden-window-traps]], там заміна через токени `--w-prose` / `--w-narrow`.
+
+Правило (коли `resize_window` таки діє): **1440 і 768 і 1024 — `resize_window`; 390 — реальний `<iframe>`.**
 
 **Why:** `resize_window` у цьому оточенні **працює** (перевірено 2026-09-05 на задачі 005:
 768 → `innerWidth` 768, 1024 → 1024, 1180 → 1180). Старий запис у пам'яті, що він «мовчки
@@ -34,4 +39,4 @@ metadata:
   (`scrollHeight + 5000`). Через це я спершу зробив хибний висновок, що дефект накладання
   сайдбара є лише в одному курсі, — насправді він у всіх трьох і в проді.
 
-Див. [[method-contrast-and-a11y-probe]], [[method-cls-measurement]].
+Див. [[method-contrast-and-a11y-probe]], [[method-cls-measurement]], [[method-hidden-window-traps]].

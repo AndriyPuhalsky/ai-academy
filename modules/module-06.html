@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk" class="scroll-smooth" data-config="../config.json">
+<html lang="uk" data-config="../config.json" data-course="academy" data-density="lesson" data-lit>
 
 <head>
   <meta charset="UTF-8" />
@@ -7,111 +7,101 @@
   <title>Модуль 6 · Tool Use: інструменти для Claude — AI Академія</title>
   <meta name="description"
     content="Як дати Claude руки: опис інструментів через JSON Schema, повний цикл tool_use → tool_result, паралельні виклики та гарантований структурований вивід." />
-  <meta name="theme-color" content="#141312" />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
 
   <script>document.documentElement.classList.add("js");</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
-    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег.
+       010 · етап 9: стара мова (окремий файл зі спадщиною 2023–2026)
+       видалена цілком, тому в каскаді лишились рівно ці файли. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ink: "#141312", surface: "#1E1B18", raised: "#272320",
-            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
-            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
-            sand: "#E8DCC3"
-          },
-          fontFamily: {
-            display: ["Literata", "Georgia", "serif"],
-            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
-            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
-          },
-          maxWidth: { content: "72rem" }
-        }
-      }
-    };
-  </script>
-
-  <link rel="stylesheet" href="../css/custom.css" />
+  <script src="../js/tw-theme.js"></script>
 </head>
 
-<body data-module="m06" class="bg-ink font-sans text-ivory antialiased">
+<body data-module="m06">
 
-  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
   <div id="ariaLive" class="sr-only" aria-live="polite"></div>
 
   <noscript>
-    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
-      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
     </div>
   </noscript>
 
   <!-- ШАПКА -->
-  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
-    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
-      <div class="flex items-center gap-3">
-        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
-          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
-          <span class="sr-only">Зміст курсу</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" aria-hidden="true">
-            <path d="M3 6h18M3 12h18M3 18h18" />
-          </svg>
-        </button>
-        <a href="../index.html" class="flex items-center gap-2.5">
-          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
-            data-site="shortName">AIA</span>
-          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Академія</span>
-        </a>
-        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
-        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 06</span>
-      </div>
-      <div class="flex items-center gap-3">
-        <div id="aiaAuth" class="slot"></div>
-        <span id="navProgress" hidden
-          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
-        <a href="../index.html#syllabus" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
-          програми</a>
-      </div>
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../index.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIA</span>
+        <span data-site="name">AI Академія</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Модуль 06</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../index.html#syllabus">До програми</a>
     </div>
   </header>
 
-  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
-    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
-      ⚠ Не вдалося завантажити <code>config.json</code>. Відкрий сайт через локальний сервер,
-      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
     </div>
   </div>
 
   <!-- Затемнення під мобільною шторкою сайдбара -->
-  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
 
     <!-- САЙДБАР: програма курсу + уроки модуля (рендериться js/module.js) -->
-    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
       <div id="sidebarNav" class="lg:pt-10">
-        <p class="snav-count">Завантаження програми…</p>
+        <p class="ds-snav__count">Завантаження програми…</p>
       </div>
     </aside>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-3xl">
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
 
         <!-- Вступ модуля -->
-        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Трек III · Розробка з Claude</p>
-        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Tool Use: інструменти для Claude
+        <p class="ds-eyebrow">Трек III · Розробка з Claude</p>
+        <h1 class="ds-h1">Tool Use: інструменти для Claude
         </h1>
-        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Середній · 5 уроків · ≈ 60 хв читання</p>
-        <p class="mt-6 text-lg">
+        <p class="ds-small ds-num">Середній · 5 уроків · ≈ 60 хв читання</p>
+        <p class="ds-lead">
           У Модулі 1 ми чесно визнали: модель уміє одне — генерувати текст. Вона не подивиться
           погоду, не зазирне у твою базу замовлень і не надішле лист. Tool Use — протокол,
           що закриває цю прірву: модель формулює структуровані запити, а виконує їх твій код.
@@ -122,8 +112,8 @@
         <hr />
 
         <!-- УРОК 6.1 -->
-        <section id="l1" data-lesson="6.1 Концепція tool use" class="scroll-mt-24">
-          <h2><span class="lesson-no">6.1</span>Модель просить — код виконує</h2>
+        <section id="l1" data-lesson="6.1 Концепція tool use">
+          <h2><span class="ds-prose__no">6.1</span>Модель просить — код виконує</h2>
           <p>
             Працює це так. Ти описуєш моделі набір <strong>інструментів</strong> — по суті,
             функцій твого коду. Коли модель вирішує, що для відповіді потрібен інструмент,
@@ -133,8 +123,8 @@
             відповідь уже з реальними даними.
           </p>
 
-          <div class="callout">
-            <span class="callout-title">Мантра модуля</span>
+          <div class="ds-note">
+            <span class="ds-note__title">Мантра модуля</span>
             <p>
               Модель — мозок, твій код — руки. Жоден інструмент не виконується без твоєї
               участі: ти валідуєш аргументи, обмежуєш права, логуєш кожен виклик.
@@ -149,7 +139,7 @@
             виконуєш ти.
           </p>
 
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart TD
   U["Запит користувача + опис інструментів"] --> M["Модель"]
@@ -157,10 +147,10 @@ flowchart TD
   T --> C["Твій код виконує функцію"]
   C --> R["tool_result повертається в розмову"]
   R --> M2["Модель: фінальна відповідь з реальними даними"]
-  style T fill:#2A211C,stroke:#D97757,color:#F0EEE6
-  style C stroke:#E8DCC3
+  class T hl
+  class C hl
             </pre>
-            <p class="diagram-caption">Один цикл tool use; далі побачиш, що модель може просити кілька викликів поспіль
+            <p class="ds-diag__caption">Один цикл tool use; далі побачиш, що модель може просити кілька викликів поспіль
             </p>
           </div>
 
@@ -177,8 +167,8 @@ flowchart TD
         </section>
 
         <!-- УРОК 6.2 -->
-        <section id="l2" data-lesson="6.2 JSON Schema" class="scroll-mt-24">
-          <h2><span class="lesson-no">6.2</span>Опис інструмента: JSON Schema</h2>
+        <section id="l2" data-lesson="6.2 JSON Schema">
+          <h2><span class="ds-prose__no">6.2</span>Опис інструмента: JSON Schema</h2>
           <p>
             Інструмент описується трьома полями: <code>name</code>,
             <code>description</code> та <code>input_schema</code> — схемою аргументів
@@ -191,9 +181,9 @@ flowchart TD
             інструмент, що повертає і коли його використовувати — а коли ні.
           </p>
 
-          <div class="example">
-            <div class="example-head"><span>JSON · опис інструмента</span></div>
-            <pre>{
+          <div class="ds-code">
+            <div class="ds-code__head"><span>JSON · опис інструмента</span></div>
+            <pre class="ds-code__pre">{
   "name": "get_orders_for_date",
   "description": "Повертає список замовлень кейтерингу на вказану дату: тип події, кількість гостей, статус. Використовуй, коли користувач питає про завантаженість дня або конкретні замовлення. Не використовуй для дат у минулому місяці — їх немає в активній базі.",
   "input_schema": {
@@ -229,16 +219,16 @@ flowchart TD
         </section>
 
         <!-- УРОК 6.3 -->
-        <section id="l3" data-lesson="6.3 Повний цикл у коді" class="scroll-mt-24">
-          <h2><span class="lesson-no">6.3</span>Повний цикл: tool_use → tool_result</h2>
+        <section id="l3" data-lesson="6.3 Повний цикл у коді">
+          <h2><span class="ds-prose__no">6.3</span>Повний цикл: tool_use → tool_result</h2>
           <p>
             Зберемо все в робочий код. Сценарій: асистент кейтерингу, який уміє діставати
             замовлення з «бази» (для прикладу — мок-функція).
           </p>
 
-          <div class="example">
-            <div class="example-head"><span>Python · повний цикл tool use</span></div>
-            <pre>import json
+          <div class="ds-code">
+            <div class="ds-code__head"><span>Python · повний цикл tool use</span></div>
+            <pre class="ds-code__pre">import json
 from anthropic import Anthropic
 
 client = Anthropic()
@@ -320,8 +310,8 @@ print(response.content[0].text)</pre>
               агента, до якого ми дійдемо в Модулі 9.</li>
           </ul>
 
-          <div class="callout">
-            <span class="callout-title">Помилки інструментів</span>
+          <div class="ds-note">
+            <span class="ds-note__title">Помилки інструментів</span>
             <p>
               Якщо функція впала — не ховай це. Поверни <code>tool_result</code>
               із полем <code>"is_error": true</code> і людським описом проблеми:
@@ -332,8 +322,8 @@ print(response.content[0].text)</pre>
         </section>
 
         <!-- УРОК 6.4 -->
-        <section id="l4" data-lesson="6.4 Паралельні виклики" class="scroll-mt-24">
-          <h2><span class="lesson-no">6.4</span>Кілька інструментів і паралельні виклики</h2>
+        <section id="l4" data-lesson="6.4 Паралельні виклики">
+          <h2><span class="ds-prose__no">6.4</span>Кілька інструментів і паралельні виклики</h2>
           <p>
             Справжня сила з'являється з меню: дай моделі кілька інструментів — і вона
             сама обере потрібний для кожного кроку. Обирає вона за описами, тож якість
@@ -368,8 +358,8 @@ print(response.content[0].text)</pre>
         </section>
 
         <!-- УРОК 6.5 -->
-        <section id="l5" data-lesson="6.5 Структурований вивід" class="scroll-mt-24">
-          <h2><span class="lesson-no">6.5</span>Структурований вивід через інструменти</h2>
+        <section id="l5" data-lesson="6.5 Структурований вивід">
+          <h2><span class="ds-prose__no">6.5</span>Структурований вивід через інструменти</h2>
           <p>
             У Модулях 3 і 5 ми вибивали чистий JSON інструкціями та префілом. Працює,
             але без гарантій структури: модель може перейменувати ключ або забути поле.
@@ -380,9 +370,9 @@ print(response.content[0].text)</pre>
             Виконувати нічого не треба: сама «функція» — фікція.
           </p>
 
-          <div class="example">
-            <div class="example-head"><span>Python · структурований вивід</span></div>
-            <pre>extract_tool = {
+          <div class="ds-code">
+            <div class="ds-code__head"><span>Python · структурований вивід</span></div>
+            <pre class="ds-code__pre">extract_tool = {
     "name": "save_order_request",
     "description": "Зберігає структуровану заявку на кейтеринг, "
                    "витягнуту з листа клієнта.",
@@ -414,15 +404,15 @@ order = response.content[0].input   # готовий dict за схемою
 print(order["event_type"], order["guests"])</pre>
           </div>
 
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart LR
   E["Лист клієнта"] --> M["Модель + форсований інструмент зі схемою"]
   M --> I["block.input — об'єкт строго за схемою"]
   I --> DB["Твоя база чи CRM"]
-  style M fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class M hl
             </pre>
-            <p class="diagram-caption">«Виклик» нікуди не йде — нам потрібні лише його аргументи</p>
+            <p class="ds-diag__caption">«Виклик» нікуди не йде — нам потрібні лише його аргументи</p>
           </div>
 
           <p>
@@ -441,8 +431,8 @@ flowchart LR
 
         <hr />
 
-        <div class="callout callout-sand">
-          <span class="callout-title">Підсумок модуля</span>
+        <div class="ds-note ds-note--accent">
+          <span class="ds-note__title">Підсумок модуля</span>
           <ul>
             <li>Модель нічого не виконує: tool use — це структуровані запити, а руки — твій код.</li>
             <li>Інструмент = name + description + JSON Schema; description — це промпт, і він вирішує.</li>
@@ -454,7 +444,7 @@ flowchart LR
         </div>
 
         <!-- КВІЗ -->
-        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+        <section id="quiz" data-lesson="Квіз: перевір себе">
           <h2>Квіз: перевір себе</h2>
           <p>
             Вісім питань про інструменти. Обирай відповідь — і одразу отримуй пояснення.
@@ -560,44 +550,46 @@ flowchart LR
       }
       </script>
 
-      <div class="max-w-3xl">
+      <div class="mt-12 grid gap-6 max-w-prose">
         <!-- Позначка завершення (js/module.js + js/progress.js) -->
         <div
-          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
-            <p class="mt-1 text-sm text-muted">
+            <p id="completeTitle" class="ds-h4">Модуль позаду?</p>
+            <p class="ds-small">
               Познач його завершеним — позначка збережеться в цьому браузері
               й з'явиться на головній сторінці.
             </p>
           </div>
           <button id="completeBtn" type="button"
-            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            class="ds-btn ds-btn--primary">
             Позначити завершеним
           </button>
         </div>
 
         <!-- Попередній / наступний модуль (рендерить js/module.js) -->
-        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
       </div>
 
     </main>
   </div>
 
-  <footer class="mt-16 border-t border-line/60">
-    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
-      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
-      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../index.html">На головну ↑</a></span>
     </div>
   </footer>
 
   <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
   <script src="../js/progress.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/config.js"></script>
   <script src="../js/module.js"></script>
   <script src="../js/quiz.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
   <script src="../js/mermaid-init.js"></script>
   <script src="../js/auth-ui.js"></script>
   <script type="module" src="../js/auth.js"></script>

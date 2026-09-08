@@ -97,12 +97,12 @@
   var NAVPROG_KEY = "aia:navProgress:" + CONFIG_URL.split("/").pop();
   var NAVPROG_MAX_WAIT = 8000;   // страховка, якщо гідратації не буде взагалі
 
-  /* 006 · П-08 · Слово «Прогрес:» на екранах вужчих за 640 px ховається у
-     .navprog-label (css/custom.css, база = sr-only): на 390 px воно розпихало
-     шапку так, що назва курсу переносилась у два рядки. Ховаємо саме
+  /* 006 · П-08 · Слово «Прогрес:» на екранах вужчих за 640 px ховається
      візуально, а не hidden sm:inline: геометрія однакова (обидва дають
      нульову ширину до 640), але hidden вилучив би слово з дерева
      доступності — скрінрідер прочитав би голе «3/12».
+     010 · носій — .ds-pill__label зі СТАТИЧНОГО css/components.css замість
+     .navprog-label із css/custom.css (той зникає на етапі 9).
      Довжина рівно 9 символів; на ній стоїть арифметика резерву. */
   var NAVPROG_LABEL = "Прогрес: ";
 
@@ -176,16 +176,23 @@
       // самий бокс тієї самої ширини, бо резервували рівно довжину тексту.
       pill.removeAttribute("data-reserved");
       pill.hidden = false;
+      // 010 · резерв і заповнення міряються ОДНАКОВО: --navprog-ch ставиться
+      // і тут, і в reserveNavProgress(), тому обидва стани — той самий бокс
+      // тієї самої ширини, і CLS = 0 навіть якщо кеш резерву був порожній.
+      pill.style.setProperty("--navprog-ch", String(text.length));
+      pill.style.setProperty("--navprog-short-ch", String(text.length - NAVPROG_LABEL.length));
       // innerHTML, а не textContent: слово-мітка живе в окремому span, який
       // до 640 px схований візуально. У кеш і далі йде довжина ПОВНОГО тексту
       // (13/14) — діапазон валідації readNavProgressChars() не змінюється.
-      // 006 · D-02: клас .navprog-label з css/custom.css, а не пара утиліт
-      // sr-only/sm:not-sr-only. Клас приходить у DOM лише з JS, і Tailwind CDN
-      // генерував для нього правило вже ПІСЛЯ вставки (QA: 53 мс), тому пілюля
-      // весь цей час була вужчою і зсувала шапку. Дубль цього рядка —
-      // js/config.js, правити синхронно.
-      pill.innerHTML = '<span class="navprog-label">' + NAVPROG_LABEL + "</span>" +
-        esc(doneCount + "/" + total);
+      // 006 · D-02: власний клас зі СТАТИЧНОГО CSS (.ds-pill__label), а не пара
+      // утиліт sr-only/sm:not-sr-only. Клас, який приходить у DOM лише з JS,
+      // Tailwind CDN генерує вже ПІСЛЯ вставки (QA: 53 мс), і пілюля весь цей
+      // час була вужчою — шапка зсувалась на 64,8 px.
+      // ⚠ Дубль цього рядка — js/config.js, правити синхронно.
+      pill.innerHTML = '<span class="ds-pill__label">' + NAVPROG_LABEL.trim() + "</span>" +
+        '<span class="ds-num">' + esc(doneCount + "/" + total) + "</span>";
+      pill.classList.remove("ds-pill--unknown");
+      pill.classList.toggle("ds-pill--full", doneCount === total);
       rememberNavProgress(text.length);
     } else if (progressHydrated()) {
       // Нуль означає «нічого не пройдено» тільки ПІСЛЯ гідратації: до неї кеш
@@ -220,43 +227,50 @@
         } else {
           body = '<span class="term__in">' + esc((it.p ? it.p + " " : "") + it.s) + "</span>";
         }
-        return '<span class="term__line term__line--type"><span class="term__clip">' + body + "</span></span>";
+        return '<span class="term__line">' + body + "</span>";
 
       case "tool":
         mark = '<span class="term__mark term__mark--tool" aria-hidden="true">' + esc(it.m) + "</span>";
-        return '<span class="term__line term__line--step">' + mark + ' <span class="term__tool">' +
+        return '<span class="term__line">' + mark + ' <span class="term__tool">' +
           esc(it.s) + "</span>" + esc(it.arg || "") + "</span>";
 
       case "res":
         mark = '<span class="term__mark term__mark--lg term__mark--meta" aria-hidden="true">' + esc(it.m) + "</span>";
-        return '<span class="term__line term__line--step">  ' + mark +
+        return '<span class="term__line">  ' + mark +
           ' <span class="term__meta">' + esc(it.s) + "</span></span>";
 
       case "frame":
         /* Рамка дифу декоративна, ім'я файлу — ні. Тому aria-hidden
            стоїть на рисках, а не на всьому рядку. */
-        return '<span class="term__line term__line--diff"><span class="term__clip"><span class="term__meta">' +
+        return '<span class="term__line"><span class="term__meta">' +
           '<span aria-hidden="true">' + esc(it.left) + "</span>" + esc(it.s) +
-          '<span aria-hidden="true">' + esc(it.right) + "</span></span></span></span>";
+          '<span aria-hidden="true">' + esc(it.right) + "</span></span></span>";
 
       case "add":
       case "del":
-        return '<span class="term__line term__line--diff"><span class="term__clip"><span class="term__' +
-          (it.t === "add" ? "add" : "del") + '">' + esc(it.s) + "</span></span></span>";
+        return '<span class="term__line"><span class="term__' +
+          (it.t === "add" ? "add" : "del") + '">' + esc(it.s) + "</span></span>";
 
       case "ask":
-        return '<span class="term__line term__line--pop"><span class="term__in">' + esc(it.s) + "</span></span>";
+        return '<span class="term__line"><span class="term__in">' + esc(it.s) + "</span></span>";
 
       case "pick":
         mark = '<span class="term__mark term__mark--pick">' + esc(it.m) + "</span>";
-        return '<span class="term__line term__line--pop term__line--pick">  ' + mark +
+        return '<span class="term__line term__line--pick">  ' + mark +
           ' <span class="term__pick">' + esc(it.s) + "</span></span>";
     }
     return "";
   }
 
+  /* 010 · ОДНА обгортка .term__clip на весь <pre>, а не по одній на рядок.
+     Причина в самому механізмі: .term__clip робить clip-path: inset() —
+     ГОРИЗОНТАЛЬНУ штору через увесь блок, а не друк рядок за рядком. Дванадцять
+     вкладених штор і дванадцять таймлайнів GSAP давали той самий кадр, що одна
+     штора, але коштували 9 імен класів у css/custom.css, який зникає на етапі 9.
+     ⚠ Переноси рядків лишаються В ПОТОЦІ <pre>, ПОЗА .term__line — інакше
+     буфер копіювання отримає подвоєні \n (непорушне правило 1 компонента). */
   function sessionHTML(list) {
-    return list.map(sessionLine).join("\n");
+    return '<span class="term__clip">' + list.map(sessionLine).join("\n") + "</span>";
   }
 
   function renderHeroTerminal() {
@@ -265,18 +279,23 @@
     var data = NARROW.matches ? cfg.hero.sessionNarrow : cfg.hero.session;
     pre.innerHTML = sessionHTML(data);
     setText("#heroChrome", cfg.hero.chrome);
-    var obj = document.querySelector(".cc-hero__object");
-    if (obj) obj.classList.remove("is-reserved");
+    /* 010 · коло фіксів · D-06: клас is-reserved більше не існує — резерв
+       висоти живе на самому <pre> сесії через :empty і знімається тим, що
+       <pre> перестає бути порожнім рядком вище. */
+    if (window.AIA && window.AIA.motion) window.AIA.motion.bind(document);
     document.dispatchEvent(new CustomEvent("cc:hero-rendered"));
   }
 
   /* ============================================================
      КАРТА ПРОГРАМИ
      ============================================================ */
+  /* ⚠ Стан НІКОЛИ не кодується лише кольором і лише формою: слово лишається
+     завжди, гліф додається атрибутом data-glyph (правило 3 системи, П-25).
+     Гліф малює .ds-badge::before — той самий механізм, що в js/config.js. */
   function rowBadge(m, isDone, isSoon, isStart) {
     if (isStart) return '<span class="cc-row__start">' + esc(cfg.map.startLabel) + "</span>";
-    if (isDone)  return '<span class="badge badge-done">пройдено</span>';
-    if (isSoon)  return '<span class="badge badge-soon">скоро</span>';
+    if (isDone)  return '<span class="ds-badge ds-badge--done" data-glyph="✓">пройдено</span>';
+    if (isSoon)  return '<span class="ds-badge ds-badge--soon" data-glyph="○">скоро</span>';
     return "";
   }
 
@@ -299,7 +318,7 @@
       var rows = modules.filter(function (m) { return m.track === tr.id; });
       var count = rows.length;
 
-      html += '<li class="cc-phase cc-grid">' +
+      html += '<li class="cc-phase cc-grid" data-reveal>' +
         '<span class="cc-node cc-phase__node" aria-hidden="true"></span>' +
         '<div class="cc-grid__rail">' +
           '<span class="cc-phase__num" aria-hidden="true">' + pad2(tr.order) + "</span>" +
@@ -310,7 +329,7 @@
           (tr.subtitle ? '<p class="cc-phase__sub">' + esc(tr.subtitle) + "</p>" : "") +
           '<ol class="cc-rows">';
 
-      rows.forEach(function (m, idx) {
+      rows.forEach(function (m) {
         var isDone = done.has(m.id);
         var isSoon = m.status === "soon";
         var isStart = m.id === startId;
@@ -319,7 +338,7 @@
         var href = isSoon ? "" : ' href="' + esc(m.slug) + '"';
         var mark = rowBadge(m, isDone, isSoon, isStart);
 
-        html += '<li class="' + cls + '" style="--i:' + idx + '" data-module-id="' + esc(m.id) + '">' +
+        html += '<li class="' + cls + '" data-module-id="' + esc(m.id) + '">' +
           "<" + tag + ' class="cc-row__link"' + href + ">" +
             '<span class="cc-row__name">' + esc(m.title) + "</span>" +
             '<span class="cc-row__leader" aria-hidden="true"></span>' +
@@ -347,7 +366,7 @@
       examHost.innerHTML =
         '<span class="cc-node cc-exam__node" aria-hidden="true"></span>' +
         '<div class="cc-grid__rail"></div>' +
-        '<div class="cc-grid__body">' +
+        '<div class="cc-grid__body" data-reveal>' +
           '<a class="cc-exam__box' + (examDone ? " cc-exam--done" : "") + '"' +
             ' href="' + esc(exam.slug) + '" data-module-id="' + esc(exam.id) + '">' +
             '<div class="cc-exam__head">' +
@@ -360,6 +379,7 @@
             '<p class="cc-exam__meta">' + esc(exam.meta) + "</p>" +
           "</a></div>";
     }
+    if (window.AIA && window.AIA.motion) window.AIA.motion.bind(host.parentNode || document);
     document.dispatchEvent(new CustomEvent("cc:map-rendered"));
   }
 
@@ -437,14 +457,17 @@
       }
     });
 
-    /* Якірні пункти шапки. Випадайка «Курси» поруч — у розмітці. */
+    /* Якірні пункти шапки. Випадайка «Курси» поруч — у розмітці.
+       010 · клас той самий, що в статичних пунктах шапки на двох інших
+       лендінгах: .ds-nav__link. Було `transition hover:text-ivory` і рядок
+       із пʼяти утиліт для мобільного меню — обидва після переходу теми на
+       var() мертві, і «Програма» з «Довідниками» злипались без відступів
+       (знахідка Ф-А, хвиля 1). Компонентний клас ще й знімає П-08: клас,
+       що приходить у DOM лише з JS, Tailwind CDN генерує через ~53 мс. */
     var navDesk = $("#ccNav");
-    if (navDesk && cfg.nav) navDesk.innerHTML = navHTML(cfg.nav, "transition hover:text-ivory");
+    if (navDesk && cfg.nav) navDesk.innerHTML = navHTML(cfg.nav, "ds-nav__link");
     var navMob = $("#ccNavMobile");
-    if (navMob && cfg.nav) {
-      navMob.innerHTML = navHTML(cfg.nav,
-        "rounded-lg px-3 py-2.5 text-muted transition hover:bg-surface hover:text-ivory");
-    }
+    if (navMob && cfg.nav) navMob.innerHTML = navHTML(cfg.nav, "ds-nav__link");
 
     /* hero */
     var title = $("#heroTitle");
@@ -476,7 +499,7 @@
     var outHost = $("#outList");
     if (outHost) {
       outHost.innerHTML = o.items.map(function (it) {
-        return '<li class="cc-out__item">' + esc(it.text) +
+        return '<li class="cc-out__item" data-reveal>' + esc(it.text) +
           '<span class="cc-out__hint">' + esc(it.hint) + "</span></li>";
       }).join("");
     }
@@ -492,7 +515,7 @@
     var refHost = $("#refList");
     if (refHost) {
       refHost.innerHTML = r.items.map(function (it) {
-        return "<li><a class=\"cc-ref\" href=\"" + esc(it.slug) + "\">" +
+        return "<li data-reveal><a class=\"cc-ref\" href=\"" + esc(it.slug) + "\">" +
           '<span class="cc-ref__title">' + esc(it.title) + "</span>" +
           '<span class="cc-ref__sub">' + esc(it.subtitle) + "</span></a></li>";
       }).join("");
@@ -544,49 +567,41 @@
       if (dHost) {
         dHost.innerHTML = d.methods.map(function (m) {
           var isLink = (m.type === "link") || (!m.type && /^https?:\/\//.test(m.value));
+          /* 010 · .cc-donate__btn у новому css/claude-code.css лишає рівно
+             `justify-self: start` — вигляд кнопки дає .cc-btn (він і був
+             задуманий як єдина кнопка сторінки). Без цих двох класів
+             посилання банки виглядало б звичайним текстом, а рішення
+             власника 006 («кнопка банки Відкрити ↗») вимагає саме кнопки. */
           var body = isLink
-            ? '<a class="cc-donate__btn" href="' + esc(m.value) +
+            ? '<a class="cc-btn cc-btn--quiet cc-donate__btn" href="' + esc(m.value) +
               '" target="_blank" rel="noopener noreferrer">Відкрити ↗</a>'
             : '<span class="cc-donate__value">' + esc(m.value) + "</span>";
-          return '<li class="cc-donate__card"><span class="cc-donate__label">' + esc(m.label) + "</span>" +
+          /* 010 · `note` переїхав У ПІДПИС, окремого рядка більше немає:
+             .cc-donate__note у новому css/claude-code.css не існує (він
+             лишився б неоформленим абзацом кеглем тіла тексту). Текст
+             збережений дослівно, змінилась лише його позиція. */
+          return '<li class="cc-donate__card" data-reveal><span class="cc-donate__label">' +
+            esc(m.label) + (m.note ? " · " + esc(m.note) : "") + "</span>" +
             body +
-            (m.note ? '<span class="cc-donate__note">' + esc(m.note) + "</span>" : "") +
             "</li>";
         }).join("");
       }
     }
 
-    /* футер */
-    var f = cfg.footer;
-    setText("#footProject", f.project);
-    setText("#footSources", f.sources);
-    setText("#footMade", f.made);
-    setText("#footTop", f.top);
-    var fl = $("#footLinks");
-    if (fl) {
-      /* min-h-[24px] — ціль дотику 24 px (WCAG 2.5.8), як у #contactTrigger
-         поруч у розмітці claude-code.html. Той самий клас стоїть статично
-         у футерах трьох інших сторінок. */
-      fl.innerHTML = f.links.map(function (l) {
-        return '<li><a href="' + esc(l.href) +
-          '" class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand">' +
-          esc(l.label) + "</a></li>";
-      }).join("");
-    }
+    /* футер
+       ⚠ 010 · футер тепер СТАТИЧНИЙ (профіль F1 §6.6, поставлений у хвилі 1):
+       посилання йдуть через [data-link], а не малюються тут. Разом із ним
+       зникли #footProject / #footSources / #footMade / #footTop / #footLinks /
+       #footSourceLinks — код, що їх шукав, видалений, бо мовчазний no-op на
+       шести id гірший за його відсутність. Ключі cfg.footer.links і
+       cfg.footer.sourceLinks у конфізі лишились і НЕ видаляються: конфіг —
+       не моя зона, а ключ, який ніхто не читає, нічого не ламає.
+       Один рядок конфіга тут ще живий — cfg.footer.contact. */
+    var f = cfg.footer || {};
     var contact = $("#contactTrigger");
     if (contact) {
       if (f.contact) contact.textContent = f.contact;
-      else { var cp = contact.closest("p"); if (cp) cp.remove(); else contact.remove(); }
-    }
-    var fs = $("#footSourceLinks");
-    if (fs) {
-      fs.innerHTML = f.sourceLinks.map(function (l) {
-        var href = cfg.links[l.key];
-        if (!href) return "";
-        return '<li><a href="' + esc(href) + '" target="_blank" rel="noopener noreferrer" ' +
-          'class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand">' +
-          esc(l.label) + " ↗</a></li>";
-      }).join("");
+      else { var cli = contact.closest("li"); if (cli) cli.remove(); else contact.remove(); }
     }
     /* Формат той самий, що renderFooterMeta() у js/config.js — інакше
        три блоки платформи підписані б по-різному. */
@@ -599,11 +614,23 @@
     }
 
     /* оголошення */
+    /* оголошення. Розмітка — дослівно та сама, що в js/config.js:116–127:
+       компонентні класи, нуль Tailwind-утиліт (клас, який приходить у DOM
+       лише з JS, CDN генерує через ~53 мс — П-08). Кнопка закриття живе
+       ВСЕРЕДИНІ __body: .ds-note — сітка `auto 1fr`, і третій прямий
+       нащадок упав би в другий рядок. */
     var ann = $("#announcement");
     if (ann && cfg.announcement && cfg.announcement.enabled && cfg.announcement.text) {
+      ann.innerHTML =
+        '<div class="ds-note ds-note--accent">' +
+          '<span class="ds-note__glyph" aria-hidden="true">i</span>' +
+          '<p class="ds-note__body" style="display:flex;align-items:baseline;justify-content:space-between;gap:var(--s-4)">' +
+            '<span>' + esc(cfg.announcement.text) + '</span>' +
+            '<button type="button" data-dismiss class="ds-btn ds-btn--quiet ds-btn--sm ds-btn--icon" aria-label="Закрити оголошення">✕</button>' +
+          '</p>' +
+        '</div>';
       ann.hidden = false;
-      ann.innerHTML = '<div class="mx-auto max-w-content px-5 py-3 text-sm text-sand sm:px-8">' +
-        esc(cfg.announcement.text) + "</div>";
+      ann.querySelector("[data-dismiss]").addEventListener("click", function () { ann.remove(); });
     }
   }
 
@@ -624,6 +651,11 @@
       // вже не буде, і пілюлю нікому заповнити. Другий виклик закриває саме
       // цей порядок; зворотний порядок закриває слухач унизу файла.
       updateNavProgress(cfg);
+      /* ⚠ КОНТРАКТ СИСТЕМИ 009: AIA.motion.bind() у кінці КОЖНОГО
+         асинхронного render(). Вузли [data-reveal], створені щойно, інакше
+         не потраплять під спостерігач появи — а він тут єдиний власник
+         появи (власного IntersectionObserver у цьому файлі більше немає). */
+      if (window.AIA && window.AIA.motion) window.AIA.motion.bind(document);
       document.dispatchEvent(new CustomEvent("cc:rendered"));
       /* Перемикання широкого / вузького варіанта сесії — це зміна
          ВМІСТУ, а не стилю, тому вимагає перерендеру. */
@@ -634,6 +666,7 @@
     .catch(function (err) {
       var box = document.getElementById("configError");
       if (box) box.hidden = false;
+      if (window.AIA && window.AIA.motion) window.AIA.motion.bind(document);
       console.error("[claude-code] конфіг не завантажився:", err);
     });
 

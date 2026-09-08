@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<!-- ============================================================================
+     010 · ШАБЛОН T6 — VERIFY (verify.html)
+     ----------------------------------------------------------------------------
+     ЄДИНА СТОРІНКА САЙТУ ДЛЯ СТОРОННІХ ЛЮДЕЙ. Часто це перший контакт із
+     проєктом: людині дали код на папері й вона прийшла його перевірити.
+     Тому тут немає ні футера, ні noscript, ні #configError, ні слота
+     авторизації — і це не борг, а рішення (§7.7). Лишається як є.
+
+     ⚠ data-lit НЕ СТАВИТЬСЯ. Ефект «світло згори» на верхньому канті поля
+     дає 2.22 до власного фону при порозі 3:1 (D-03 задачі 009), а поле тут
+     єдине й головне. На решті сторінок data-lit стоїть.
+
+     Власних класів на цій сторінці НУЛЬ: усе зібрано з ds-fld, ds-btn,
+     ds-card, ds-badge, ds-note, ds-empty, ds-skel + утиліт розкладки
+     Tailwind (вони від теми не залежать і не мігрують).
+
+     Рух: мінімум. Фокус поля (M6), поява результату (M7). Нуль циклів,
+     нуль ScrollTrigger, GSAP не підключається.
+     ========================================================================= -->
+<html lang="uk"
+      data-config="config.json"
+      data-course="academy"
+      data-density="lesson">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Перевірка сертифіката — AI Академія</title>
+  <meta name="theme-color" content="#161311">
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../../files/css/tokens.css">
+  <link rel="stylesheet" href="../../files/css/components.css">
+  <link rel="stylesheet" href="_shared/b1-stub.css">
+  <link rel="stylesheet" href="_shared/b3-demo.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../../files/js/tw-theme.js"></script>
+</head>
+
+<body id="top">
+
+<a class="ds-skip" href="#main">Перейти до вмісту</a>
+<div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+<!-- ════════════ ШАПКА, ПРОФІЛЬ H4 (verify) ════════════
+     Бренд · одне текстове посилання. Слота авторизації НЕМАЄ і не буде:
+     сторонній людині нема куди входити, а порожній резерв на 192 px
+     читався б як «тут щось зламалось». -->
+<header class="ds-hdr">
+  <a class="ds-hdr__brand" href="index.html">
+    <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIA</span>
+    <span data-site="name">AI Академія</span>
+  </a>
+  <span class="ds-hdr__spacer"></span>
+  <a class="ds-nav__link" href="index.html#syllabus">До курсу →</a>
+</header>
+
+<main id="main" class="mx-auto max-w-narrow px-5 py-10 sm:px-8 sm:py-16" data-page-in>
+
+  <p class="ds-eyebrow">Перевірка</p>
+  <h1 class="ds-h2 mt-2">Перевірити сертифікат</h1>
+  <p class="ds-lead mt-4">
+    Введи код із сертифіката — 12 символів під QR-кодом, — щоб підтвердити його
+    справжність. Нічого не треба реєструвати: перевірка публічна.
+  </p>
+
+  <!-- ── ПОЛЕ ─────────────────────────────────────────────────────────────
+       Композиційне рішення шаблона: поле НЕ схоже на пошук. Код сертифіката —
+       це 12 символів [0-9a-f], тож поле набирається моношрифтом, тримає
+       12 знакомісць і має ЖИВИЙ ЛІЧИЛЬНИК. Причина не косметична: сьогодні
+       людина дізнається, що переписала код неповністю, ТІЛЬКИ після відповіді
+       бази — тобто «не знайдено» показують і на короткий код, і на чужий.
+       Лічильник розводить ці два випадки ДО натискання кнопки.
+       Логіку лічильника треба перенести в js/verify.js (див. REPORT.md). -->
+  <div class="ds-fld ds-fld--code mt-8" id="verifyField">
+    <div class="ds-fld__row">
+      <label class="ds-fld__label" for="verifyInput">Код сертифіката</label>
+      <span class="ds-fld__count" id="verifyCount" data-state="short" aria-hidden="true">0 / 12</span>
+    </div>
+    <div class="flex items-start gap-2">
+      <input id="verifyInput" class="ds-fld__input" type="text"
+             inputmode="latin" autocapitalize="off" autocomplete="off" spellcheck="false"
+             maxlength="24" placeholder="a1b2c3d4e5f6"
+             aria-describedby="verifyHint">
+      <button id="verifyBtn" type="button" class="ds-btn ds-btn--primary shrink-0">Перевірити</button>
+    </div>
+    <p class="ds-fld__hint" id="verifyHint">
+      Великі й малі літери, пробіли та кириличні двійники латинських літер
+      виправляються автоматично.
+    </p>
+    <!-- Помилка стоїть БІЛЯ ПОЛЯ, а не лише зверху сторінки (правило ds-fld). -->
+    <p class="ds-fld__error" id="verifyFieldError" hidden>Введи код сертифіката — поле порожнє.</p>
+  </div>
+
+  <!-- ── РЕЗУЛЬТАТ ────────────────────────────────────────────────────────
+       role="status" на непорожньому контейнері + aria-atomic: js/verify.js
+       кладе сюди готову картку одним innerHTML, і скрінрідер читає її цілком.
+       Так є в проді (правка 006 D-03) і так лишається. -->
+  <div id="verifyResult" class="mt-8 grid gap-4" role="status" aria-live="polite" aria-atomic="true"
+       data-state-group>
+
+    <!-- 1 · спокій -->
+    <div data-state="idle">
+      <div class="ds-empty">
+        <p class="ds-small">Код сертифіката — 12 символів під QR-кодом на аркуші.</p>
+        <p class="ds-small">Він же відкривається за посиланням із самого PDF.</p>
+      </div>
+    </div>
+
+    <!-- 2 · перевіряємо -->
+    <div data-state="loading" hidden>
+      <div class="ds-card">
+        <span class="ds-skel ds-skel--name block" aria-hidden="true"></span>
+        <p class="ds-small mt-4">Перевіряємо…</p>
+      </div>
+    </div>
+
+    <!-- 3 · валідний -->
+    <div data-state="valid" hidden>
+      <div class="ds-card">
+        <p class="ds-badge ds-badge--done" data-glyph="✓">Сертифікат дійсний</p>
+        <p class="ds-eyebrow mt-6">Виданий на імʼя</p>
+        <p class="ds-h2 mt-1">Олександра Кривошапко-Задорожня</p>
+        <p class="ds-eyebrow mt-5">Курс</p>
+        <p class="ds-h4 mt-1">«AI Термінал — Claude Code в терміналі»</p>
+        <p class="ds-small mt-6">Видано 4 вересня 2026</p>
+        <p class="ds-small mt-1">Код <code class="ds-code--inline">a1b2c3d4e5f6</code></p>
+      </div>
+    </div>
+
+    <!-- 4 · валідний + виправлені омогліфи -->
+    <div data-state="homoglyph" hidden>
+      <div class="ds-card">
+        <p class="ds-badge ds-badge--done" data-glyph="✓">Сертифікат дійсний</p>
+        <p class="ds-eyebrow mt-6">Виданий на імʼя</p>
+        <p class="ds-h2 mt-1">Олександра Кривошапко-Задорожня</p>
+        <p class="ds-eyebrow mt-5">Курс</p>
+        <p class="ds-h4 mt-1">«AI Термінал — Claude Code в терміналі»</p>
+        <p class="ds-small mt-6">Видано 4 вересня 2026</p>
+        <p class="ds-small mt-1">Код <code class="ds-code--inline">a1b2c3d4e5f6</code></p>
+      </div>
+      <div class="ds-note ds-note--info">
+        <span class="ds-note__glyph" aria-hidden="true">i</span>
+        <p>
+          У коді були кириличні літери — ми виправили їх на латиницю:
+          <code class="ds-code--inline">a1b2<b class="text-accent font-semi">c</b>3d4<b class="text-accent font-semi">e</b>5f6</code>.
+          Так буває, коли код переписують з паперу: кирилична
+          <code class="ds-code--inline">с</code> і латинська
+          <code class="ds-code--inline">c</code> виглядають однаково.
+        </p>
+      </div>
+    </div>
+
+    <!-- 5 · не знайдено -->
+    <div data-state="invalid" hidden>
+      <div class="ds-card">
+        <p class="ds-badge ds-badge--soon" data-glyph="○">Сертифікат не знайдено</p>
+        <p class="mt-5">
+          Коду <code class="ds-code--inline">a1b2c3d4ffff</code> у базі немає.
+          Перевір, чи всі 12 символів переписані правильно — найчастіше плутають
+          <code class="ds-code--inline">0</code> і <code class="ds-code--inline">o</code>,
+          <code class="ds-code--inline">1</code> і <code class="ds-code--inline">l</code>.
+        </p>
+      </div>
+    </div>
+
+    <!-- 6 · не знайдено ПІСЛЯ виправлення омогліфів.
+         ⚠ Стан, якого в проді сьогодні немає: js/verify.js показує підказку про
+         кирилицю ТІЛЬКИ на знайденому сертифікаті (рядки 104–110), а в картці
+         «не знайдено» виводить уже виправлений код без жодного пояснення.
+         Людина бачить не той код, який набирала. Дефект Б3-04 у REPORT.md. -->
+    <div data-state="homoglyph-invalid" hidden>
+      <div class="ds-card">
+        <p class="ds-badge ds-badge--soon" data-glyph="○">Сертифікат не знайдено</p>
+        <p class="mt-5">Коду <code class="ds-code--inline">a1b2c3d4ffff</code> у базі немає.</p>
+      </div>
+      <div class="ds-note ds-note--info">
+        <span class="ds-note__glyph" aria-hidden="true">i</span>
+        <p>
+          У введеному коді були кириличні літери — ми замінили їх на латиницю
+          перед пошуком. Якщо код точно правильний, спробуй скопіювати його
+          з PDF, а не переписувати з паперу.
+        </p>
+      </div>
+    </div>
+
+    <!-- 7 · мережа / RPC впали -->
+    <div data-state="neterror" hidden>
+      <div class="ds-note ds-note--err" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">✕</span>
+        <p class="ds-note__title">Не вдалося перевірити</p>
+        <p>Сервер перевірки зараз недоступний. Це не означає, що сертифікат недійсний — спробуй за хвилину.</p>
+        <p><button type="button" class="ds-btn ds-btn--secondary ds-btn--sm">Спробувати ще раз</button></p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── ПАНЕЛЬ МАКЕТА · У КОД САЙТУ НЕ ЇДЕ ────────────────────────────── -->
+  <aside class="b3-panel" aria-label="Перемикач станів макета">
+    <p class="ds-eyebrow">Стани шаблона — панель макета, у код сайту не їде</p>
+    <div class="b3-panel__row">
+      <button type="button" class="ds-btn ds-btn--sm ds-btn--secondary" data-state-btn="idle" aria-pressed="true">спокій</button>
+      <button type="button" class="ds-btn ds-btn--sm ds-btn--secondary" data-state-btn="loading" aria-pressed="false">перевіряємо</button>
+      <button type="button" class="ds-btn ds-btn--sm ds-btn--secondary" data-state-btn="valid" aria-pressed="false">дійсний</button>
+      <button type="button" class="ds-btn ds-btn--sm ds-btn--secondary" data-state-btn="homoglyph" aria-pressed="false">дійсний + кирилиця</button>
+      <button type="button" class="ds-btn ds-btn--sm ds-btn--secondary" data-state-btn="invalid" aria-pressed="false">не знайдено</button>
+      <button type="button" class="ds-btn ds-btn--sm ds-btn--secondary" data-state-btn="homoglyph-invalid" aria-pressed="false">не знайдено + кирилиця</button>
+      <button type="button" class="ds-btn ds-btn--sm ds-btn--secondary" data-state-btn="neterror" aria-pressed="false">помилка мережі</button>
+      <button type="button" class="ds-btn ds-btn--sm ds-btn--ghost" data-toggle-rm aria-pressed="false">
+        <span data-toggle-label>рух увімкнено</span>
+      </button>
+    </div>
+    <p class="ds-small">
+      Порожнє поле перевіряється живою кнопкою «Перевірити» вгорі: помилка
+      зʼявляється біля поля, кнопка НЕ блокується.
+    </p>
+  </aside>
+
+</main>
+
+<script src="../../files/js/motion.js"></script>
+<script src="js/b3-demo.js"></script>
+<script>
+  /* Порожнє поле — єдиний стан, який показується справжньою взаємодією.
+     Кнопка свідомо НЕ disabled: заблокована кнопка не пояснює, чого від
+     людини хочуть, і не читається скрінрідером як помилка. */
+  (function () {
+    var i = document.getElementById("verifyInput");
+    var b = document.getElementById("verifyBtn");
+    var f = document.getElementById("verifyField");
+    var e = document.getElementById("verifyFieldError");
+    var live = document.getElementById("ariaLive");
+    if (!i || !b) return;
+    b.addEventListener("click", function () {
+      var empty = !i.value.replace(/\s+/g, "");
+      f.classList.toggle("ds-fld--error", empty);
+      e.hidden = !empty;
+      i.setAttribute("aria-invalid", String(empty));
+      if (empty) { i.focus(); live.textContent = "Поле порожнє: введи код сертифіката."; }
+      else { live.textContent = "Перевіряємо код."; }
+    });
+    i.addEventListener("input", function () {
+      f.classList.remove("ds-fld--error"); e.hidden = true; i.removeAttribute("aria-invalid");
+    });
+    i.addEventListener("keydown", function (ev) { if (ev.key === "Enter") b.click(); });
+  })();
+</script>
+</body>
+</html>

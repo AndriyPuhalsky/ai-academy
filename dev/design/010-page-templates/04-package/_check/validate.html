@@ -1,0 +1,109 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8">
+<title>010 · перевірка зведеного пакета</title>
+<style>body{font:13px/1.5 ui-monospace,monospace;background:#161311;color:#F0E9DF;margin:16px}
+pre{white-space:pre-wrap}iframe{position:fixed;left:-99999px;top:0;border:0}
+b{color:#BF8A3A}.bad{color:#DE9D96}.ok{color:#88B791}</style></head><body>
+<h1>Перевірка зведеного пакета 010</h1><pre id="out">запуск…</pre>
+<script>
+const OUT=document.getElementById('out');
+const log=s=>{OUT.textContent+=s+"\n"};
+const PAGES=[
+ ["T1a index",      "b1/index.html"],
+ ["T1a architect",  "b1/architect.html"],
+ ["T1b claude-code","b1/claude-code.html"],
+ ["хром каталог",   "b1/chrome.html"],
+ ["T2 урок термінал","b2/t2-lesson.html"],
+ ["T2 урок академія","b2/t2-lesson-academy.html"],
+ ["T3 іспит",       "b2/t3-exam.html"],
+ ["T4 довідник",    "b3/t4-reference.html"],
+ ["T5 роадмап",     "b3/t5-roadmap.html"],
+ ["T6 verify",      "b3/t6-verify.html"],
+ ["T7 сертифікат",  "b3/t7-certificate.html"]
+];
+const W=[320,360,390,430,640,768,1024,1440];
+
+function load(src,w,h){return new Promise(res=>{
+  const f=document.createElement('iframe'); f.width=w; f.height=h||900; f.src=src;
+  f.onload=()=>setTimeout(()=>res(f),1400); document.body.appendChild(f);});}
+
+// ── контраст ────────────────────────────────────────────────────────────
+function lum(c){const [r,g,b]=c.map(v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4)});return .2126*r+.7152*g+.0722*b}
+function parse(s){const m=s&&s.match(/rgba?\(([^)]+)\)/);if(!m)return null;const p=m[1].split(/[ ,\/]+/).filter(Boolean).map(Number);return [p[0],p[1],p[2],p.length>3?p[3]:1]}
+function bgOf(el,win){let n=el;while(n&&n!==win.document.documentElement){const c=parse(win.getComputedStyle(n).backgroundColor);if(c&&c[3]>0.95)return c;n=n.parentElement}
+  const c=parse(win.getComputedStyle(win.document.body).backgroundColor);return c&&c[3]>.95?c:[22,19,17,1]}
+function ratio(a,b){const L1=lum(a),L2=lum(b);return (Math.max(L1,L2)+.05)/(Math.min(L1,L2)+.05)}
+function contrastSweep(win){
+  const d=win.document, res={n:0,fail:[]};
+  const walker=d.createTreeWalker(d.body,NodeFilter.SHOW_TEXT);
+  let t;
+  while(t=walker.nextNode()){
+    const s=(t.nodeValue||"").trim(); if(!s) continue;
+    const el=t.parentElement; if(!el) continue;
+    const cs=win.getComputedStyle(el);
+    if(cs.visibility==='hidden'||cs.display==='none'||parseFloat(cs.opacity)===0) continue;
+    const r=el.getBoundingClientRect(); if(!r.width||!r.height) continue;
+    const fg=parse(cs.color); if(!fg||fg[3]<0.1) continue;
+    const bg=bgOf(el,win);
+    const fpx=parseFloat(cs.fontSize), bold=parseInt(cs.fontWeight,10)>=600;
+    const big=(fpx>=24)||(bold&&fpx>=18.66);
+    const need=big?3:4.5;
+    const cr=ratio([fg[0],fg[1],fg[2]],[bg[0],bg[1],bg[2]]);
+    res.n++;
+    if(cr<need-0.01) res.fail.push({txt:s.slice(0,30),cr:+cr.toFixed(2),need,fs:fpx,cls:el.className&&(''+el.className).slice(0,40)});
+  }
+  return res;
+}
+// ── цілі дотику ─────────────────────────────────────────────────────────
+function hits(win){
+  const bad=[];
+  win.document.querySelectorAll('a[href],button,input,select,textarea,[role="button"],[tabindex]:not([tabindex="-1"])').forEach(el=>{
+    const cs=win.getComputedStyle(el); if(cs.display==='none'||cs.visibility==='hidden')return;
+    const r=el.getBoundingClientRect(); if(!r.width||!r.height)return;
+    if(cs.display==='inline'&&el.closest('p,li,td,.ds-prose'))return; // інлайнове текстове посилання — виняток SC 2.5.8
+    if(r.width<23.5||r.height<23.5) bad.push({t:(el.textContent||el.getAttribute('aria-label')||el.tagName).trim().slice(0,24),w:+r.width.toFixed(1),h:+r.height.toFixed(1)});
+  });
+  return bad;
+}
+
+(async()=>{
+  OUT.textContent='';
+  log('== 1. ГОРИЗОНТАЛЬНИЙ СКРОЛ ==========================================');
+  const scrollBad=[];
+  for(const [name,src] of PAGES){
+    let line=name.padEnd(20);
+    for(const w of W){
+      const f=await load(src,w,900);
+      const d=f.contentDocument;
+      const over=d.documentElement.scrollWidth-d.documentElement.clientWidth;
+      line+= (over>1? ' ✗'+w+':+'+over : ' '+w);
+      if(over>1) scrollBad.push([name,w,over]);
+      f.remove();
+    }
+    log(line);
+  }
+  log(scrollBad.length? '✗ ПРОВАЛІВ: '+scrollBad.length : '✓ нуль горизонтального скролу, '+(PAGES.length*W.length)+' комбінацій');
+
+  log('\n== 2. КОНТРАСТ (обхід усіх текстових вузлів, 1280px) ================');
+  let totalNodes=0, totalFail=0;
+  for(const [name,src] of PAGES){
+    const f=await load(src,1280,900);
+    const r=contrastSweep(f.contentWindow);
+    totalNodes+=r.n; totalFail+=r.fail.length;
+    log(name.padEnd(20)+' вузлів '+String(r.n).padStart(4)+'  провалів '+r.fail.length+(r.fail.length?'  '+JSON.stringify(r.fail.slice(0,4)):''));
+    f.remove();
+  }
+  log((totalFail?'✗':'✓')+' разом вузлів '+totalNodes+', провалів '+totalFail);
+
+  log('\n== 3. ЦІЛІ ДОТИКУ < 24×24 (390px) ==================================');
+  let hb=0;
+  for(const [name,src] of PAGES){
+    const f=await load(src,390,844);
+    const b=hits(f.contentWindow); hb+=b.length;
+    log(name.padEnd(20)+' '+(b.length?'✗ '+JSON.stringify(b.slice(0,4)):'✓ 0'));
+    f.remove();
+  }
+  log((hb?'✗':'✓')+' разом дрібних цілей: '+hb);
+
+  log('\n== ГОТОВО ==');
+})();
+</script></body></html>

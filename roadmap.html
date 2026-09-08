@@ -2,7 +2,7 @@
 <!-- data-own-title: <title> на цій сторінці приходить із roadmap.json
      (copy.pageTitle), а не з config.json. Без цього прапорця два
      асинхронні fetch змагались би за document.title — див. js/config.js. -->
-<html lang="uk" data-config="config.json" data-own-title>
+<html lang="uk" data-config="config.json" data-course="academy" data-density="landing" data-lit data-own-title>
 <head>
   <meta charset="UTF-8" />
   <!-- Роадмап від початку не мав user-scalable=no. Задачею 004 (проходом 005,
@@ -11,7 +11,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Роадмап — AI Академія та AI Architect</title>
   <meta name="description" content="Публічний план розвитку двох освітніх платформ: що зроблено, що робимо просто зараз і що попереду." />
-  <meta name="theme-color" content="#141312" />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
   <meta property="og:title" content="Роадмап — AI Академія та AI Architect" />
   <meta property="og:description" content="Публічний план розвитку двох освітніх платформ: що зроблено, що робимо просто зараз і що попереду." />
   <meta property="og:type" content="website" />
@@ -20,46 +22,31 @@
   <!-- Позначаємо, що JS увімкнено -->
   <script>document.documentElement.classList.add("js");</script>
 
-  <!-- Шрифти: Literata (дисплейний серіф) + IBM Plex Sans/Mono — усі з повною кирилицею -->
+  <!-- Шрифти 009: Prata (дисплейний) + Golos Text + JetBrains Mono.
+       Латиниця вантажиться СВІДОМО: український апостроф ʼ (U+02BC) лежить
+       у латинській підмножині Google Fonts, а не в кириличній. -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
-  <!-- Tailwind через CDN + наша палітра в стилістиці Anthropic -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ink:    "#141312", // глибокий теплий фон сторінки
-            surface:"#1E1B18", // картки
-            raised: "#272320", // картки при наведенні
-            line:   "#3A342E", // межі / роздільники
-            "line-strong": "#736A5E",
-            ivory:  "#F0EEE6", // основний текст
-            muted:  "#A8A095", // другорядний текст
-            faint:  "#9A9184", // третинний текст, підписи
-            clay:   "#D97757", // фірмовий кораловий акцент
-            "clay-deep": "#C4674A",
-            sand:   "#E8DCC3"  // м'який пісочний підсвіт
-          },
-          fontFamily: {
-            display: ["Literata", "Georgia", "serif"],
-            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
-            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
-          },
-          maxWidth: { content: "72rem" }
-        }
-      }
-    };
-  </script>
-
-
-  <!-- Порядок обов'язковий: токени лежать у custom.css, а roadmap.css їх
-       перевизначає у блоці @media (max-height: 700px) — стиснення hero. -->
-  <link rel="stylesheet" href="css/custom.css" />
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег.
+       010 · етап 9: стара мова (окремий файл зі спадщиною 2023–2026)
+       видалена цілком, тому в каскаді лишились рівно ці файли. -->
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/components.css" />
   <link rel="stylesheet" href="css/roadmap.css" />
+
+
+  <!-- Tailwind CDN + тема з токенів (js/tw-theme.js замість 66 інлайнових копій) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/tw-theme.js"></script>
+  <!-- 010 · css/roadmap.css підключений ОСТАННІМ із наших свідомо: 104 токени
+       сторінки (--rm-*) переїхали сюди з глобального :root, який роздавав їх
+       усім 66 сторінкам, хоч потрібні вони одній. Це і є структурне закриття
+       колізії --rail-w 184/132. Блок стиснення hero @media (max-height: 700px)
+       перевизначає --rm-fs-* теж тут. -->
 
   <!-- M1: @view-transition тут СВІДОМО НЕМАЄ. З ним кожен перехід на цю
        сторінку кидає неперехвачений InvalidStateError (перевірено справжнім
@@ -69,15 +56,18 @@
        парі сторінок і з інлайненими в HTML даними. -->
 </head>
 
-<body id="top" class="bg-ink font-sans text-ivory antialiased">
+<body id="top">
 
-  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
   <div id="ariaLive" class="sr-only" aria-live="polite"></div>
 
   <noscript>
-    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
-      Ця сторінка збирається з файлу даних, тож для неї потрібен JavaScript.
-      Курси працюють і без нього — <a class="underline" data-brand-back href="index.html">поверніться до курсу</a>.
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Ця сторінка збирається з файлу даних, тож для неї потрібен JavaScript.
+      Курси працюють і без нього — <a class="underline" data-brand-back href="index.html">поверніться до курсу</a>.</p>
+      </div>
     </div>
   </noscript>
 
@@ -123,25 +113,26 @@
   </main>
 
   <!-- ФУТЕР -->
-  <footer class="border-t border-line/60">
-    <div class="mx-auto grid max-w-content gap-10 px-5 py-12 sm:px-8 md:grid-cols-[1.4fr,1fr,1fr]">
+  <footer class="ds-ftr">
+    <div class="ds-ftr__grid">
       <div>
-        <!-- data-brand, а НЕ data-site="name": сторінка спільна на дві
-             платформи, і js/roadmap-render.js перемикає бренд за ?from=. -->
-        <p class="mb-3 font-display text-xl" data-brand>AI Академія</p>
-        <p class="max-w-sm text-sm leading-relaxed text-muted" data-site="disclaimer"></p>
+        <p class="ds-h4" data-brand>AI Академія</p>
+        <p class="ds-small" data-site="disclaimer"></p>
       </div>
       <nav aria-label="Посилання проєкту">
-        <p class="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-muted">Проєкт</p>
-        <ul class="space-y-2 text-sm">
-          <li><a href="certificate.html" class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand">Мої сертифікати ↗</a></li>
-          <li><a data-link="github" href="#" class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand">GitHub ↗</a></li>
-          <li><a data-link="telegram" href="#" class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand">Telegram ↗</a></li>
-          <li><button type="button" id="contactTrigger" class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand">Написати нам</button></li>
+        <p class="ds-eyebrow">Проєкт</p>
+        <!-- ⚠ Список ЗМІННОЇ довжини: js/config.js видаляє <li> з порожнім
+             data-link, а links.github і links.telegram порожні в усіх трьох
+             конфігах. Реально людина бачить два рядки, а не чотири (П-11). -->
+        <ul class="ds-ftr__list">
+          <li><a href="certificate.html">Мої сертифікати ↗</a></li>
+          <li><a data-link="github" href="#">GitHub ↗</a></li>
+          <li><a data-link="telegram" href="#">Telegram ↗</a></li>
+          <li><button type="button" id="contactTrigger" class="ds-btn ds-btn--quiet ds-btn--sm">Написати нам</button></li>
         </ul>
 
-        <!-- M10 · точка входу. Тут вона веде «нагору», бо ми вже на роадмапі,
-             і саме тут (і тільки тут) стоїть aria-current="page". -->
+        <!-- 003 · точка входу на сторінку плану розвитку. Стоїть ПІСЛЯ списку,
+             усередині тієї самої nav: .rm-entry не рядок списку. -->
         <a class="rm-entry" href="#top" aria-current="page">
           <span class="rm-entry__label">План розвитку</span>
           <span class="rm-entry__arrow" aria-hidden="true">→</span>
@@ -149,20 +140,18 @@
         </a>
       </nav>
       <nav aria-label="Першоджерела">
-        <p class="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-muted">Першоджерела</p>
-        <ul class="space-y-2 text-sm">
-          <li><a data-link="officialDocs" href="#" class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand">Документація Claude ↗</a></li>
-          <li><a data-link="officialCourses" href="#" class="inline-flex min-h-[24px] items-center text-muted transition hover:text-sand">Офіційні курси Anthropic ↗</a></li>
+        <p class="ds-eyebrow">Першоджерела</p>
+        <ul class="ds-ftr__list">
+          <li><a data-link="officialDocs" href="#">Документація Claude ↗</a></li>
+          <li><a data-link="officialCourses" href="#">Офіційні курси Anthropic ↗</a></li>
         </ul>
       </nav>
     </div>
-    <div class="border-t border-line/60">
+    <div class="ds-ftr__bar">
       <!-- #footerMeta тут свідомо немає: дата оновлення роадмапу вже стоїть
-           у hero (з roadmap.json), а config.json дав би другу, іншу дату
-           і версію лише однієї з двох платформ. -->
-      <div class="mx-auto flex max-w-content flex-wrap items-center justify-between gap-3 px-5 py-5 font-mono text-xs text-muted sm:px-8">
-        <span>Зроблено спільнотою · <a href="#top" class="transition hover:text-sand">Нагору ↑</a></span>
-      </div>
+           у hero (з roadmap.json), а config.json дав би другу дату. -->
+      <span></span>
+      <span>Зроблено спільнотою · <a href="#top">Нагору ↑</a></span>
     </div>
   </footer>
 
@@ -174,6 +163,7 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/CustomEase.min.js"></script>
+  <script src="js/motion.js"></script>
 
   <!-- Порядок render → motion безпечний: обидва класичні скрипти, парсяться
        синхронно, тому слухач rm:rendered у motion реєструється раніше, ніж

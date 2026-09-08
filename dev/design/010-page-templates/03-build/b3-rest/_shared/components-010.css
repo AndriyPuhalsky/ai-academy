@@ -1,0 +1,395 @@
+/* ============================================================================
+   010 · ДЕЛЬТА ДО СИСТЕМИ 009 — частка білдера Б3
+   ----------------------------------------------------------------------------
+   Дописується В КІНЕЦЬ css/components.css під час збірки пакета (§8.10).
+   Порядок обовʼязковий: усе тут або доповнює `_base/components.css`, або
+   виправляє його — а виправлення без пізнішого місця в каскаді не працює.
+
+   Що тут звідки:
+     §19 ds-prose            — §8.10.1 спеки, ДОСЛІВНО (A/B перевірка сітки —
+                               у REPORT.md; формулювання спеки не змінене)
+     §20 ds-note виправлення — §8.10.2 спеки, дослівно
+     §21 Safari              — §8.10.3 спеки, дослівно
+     §22 доповнення Б3       — усе, чого немає ні в `_base/`, ні в §8.10:
+                               мертвий sticky у ds-tbl, overscroll, scroll-padding,
+                               @media (hover), .ds-tbl__wrap--tall, ds-fld лічильник,
+                               папір і друк сертифіката, довідник.
+
+   Токенів поза реєстром L2 тут НЕМАЄ. Локальні L3 — з префіксом компонента
+   (`--prose-*`, `--tbl-*`, `--ref-*`, `--paper-*`), префікс завжди перший.
+   ========================================================================== */
+
+
+/* ============================================================================
+   19. ds-prose — довге читання. Замінює .prose-aia (60 сторінок).
+   ----------------------------------------------------------------------------
+   Сітка прози: текст у колонці --w-narrow (≈68–75 символів), а таблиці,
+   код, термінал і діаграми розпираються до --w-prose. Це знімає розвилку
+   «672 чи 768» замість того, щоб її вибирати (Д3).
+   ⚠ Специфічність: .prose-aia pre = (0,1,1). Усі селектори нижче ≥ (0,2,0).
+
+   ⚠ ПЕРЕВІРЕНО, НЕ ЗМІНЕНО (Б3, A/B у живому Chrome 2026-09-07).
+   Була підозра, що `min(100%, var(--w-narrow))` як розмір треку не стискається
+   й розпирає предка на довіднику, де 280px забирає рейка змісту. Заміряно на
+   контейнері 635px: треки дають 0 + 635 + 0, документ 1027 = вікно 1027,
+   скролу НЕМАЄ. Альтернатива `minmax(0, --w-narrow)` дає 48 + 539 + 48 —
+   тобто зберігає розпирання, але вкорочує рядок на 96px без потреби.
+   Лишено формулювання спеки. Числа обох замірів — REPORT.md, розділ «А/Б».
+   ========================================================================== */
+.ds-prose {
+  display: grid;
+  grid-template-columns:
+    [wide-start] minmax(0, calc((var(--w-prose) - var(--w-narrow)) / 2))
+    [text-start] min(100%, var(--w-narrow))
+    [text-end]   minmax(0, calc((var(--w-prose) - var(--w-narrow)) / 2)) [wide-end];
+  justify-content: start;
+  color: var(--c-prose);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+.ds-prose > *                { grid-column: text; min-width: 0; }
+.ds-prose > .ds-tbl__wrap,
+.ds-prose > .ds-code,
+.ds-prose > .ds-diag,
+.ds-prose > .term            { grid-column: wide; }
+@media (max-width: 768px)    { .ds-prose > * { grid-column: 1 / -1; } }
+
+.ds-prose > p                { margin: var(--s-4) 0; }
+.ds-prose > h2               { margin: var(--s-16) 0 var(--s-4); font-family: var(--f-display);
+                               font-size: var(--fs-h2); line-height: var(--lh-h2); color: var(--c-text); }
+.ds-prose > h3               { margin: var(--s-10) 0 var(--s-3); font-size: var(--fs-h3);
+                               line-height: var(--lh-h3); color: var(--c-text); }
+.ds-prose > h4               { margin: var(--s-6) 0 var(--s-2); font-size: var(--fs-h4);
+                               line-height: var(--lh-h4); font-weight: var(--w-semi); color: var(--c-text); }
+.ds-prose > ul,
+.ds-prose > ol               { margin: var(--s-4) 0; padding-left: var(--s-6); }
+.ds-prose li                 { margin: var(--s-2) 0; }
+.ds-prose li::marker         { color: var(--c-accent); }
+.ds-prose strong             { color: var(--c-text); font-weight: var(--w-semi); }
+.ds-prose a                  { color: var(--c-accent); text-underline-offset: 0.2em; }
+.ds-prose > hr               { border: 0; border-top: var(--bw) solid var(--c-line);
+                               margin: var(--s-16) 0; }
+/* Нерозривні рядки в інлайновому <code> — доведена причина горизонтального
+   скролу на 5 сторінках із 14 у задачі 005. Інлайнових <code> у довідниках
+   1 860, в уроках 5 746. */
+.ds-prose code               { font-family: var(--f-mono); font-size: var(--fs-code);
+                               overflow-wrap: anywhere; }
+.ds-prose__no                { font-family: var(--f-mono); color: var(--c-accent);
+                               margin-right: var(--s-2); font-variant-numeric: tabular-nums; }
+/* Перемикач для показу власнику двох кадрів (Д3). У код сайту не їде. */
+.ds-prose[data-prose="wide"] { grid-template-columns: [wide-start text-start] min(100%, var(--w-prose)) [text-end wide-end]; }
+
+/* ⚠ ПРАВКА Б3-02. `.ds-prose li::marker` у списку правил вище — мертвий код,
+   поки preflight Tailwind тримає `list-style: none` на ul/ol (памʼять проєкту,
+   перевірено на проді 2026-09-03: маркерів у списках уроків і довідників
+   немає взагалі). Оголошення нижче повертає маркер, і тільки після нього
+   рядок `li::marker { color }` починає щось означати. Без цього рядка вся
+   акцентна логіка списків — декларація без ефекту. */
+.ds-prose > ul               { list-style: disc; }
+.ds-prose > ol               { list-style: decimal; }
+.ds-prose > ul ul            { list-style: circle; margin: var(--s-2) 0; padding-left: var(--s-5); }
+
+
+/* ============================================================================
+   20. Виправлення ds-note — G7 (§8.10.2, дослівно)
+   ========================================================================== */
+/* 113 із 411 живих .callout мають 2–4 <p> або список. Сітка `auto 1fr`
+   ставить у другу колонку лише один елемент; решта падає під гліф.
+   Потокова розкладка тримає будь-який вміст, а лівий кант лишається
+   border-left самого блока — тобто двохрядковий заголовок його не ламає. */
+.ds-note        { display: block; }
+.ds-note > *    { margin: var(--s-2) 0; }
+.ds-note > :first-child { margin-top: 0; }
+.ds-note > :last-child  { margin-bottom: 0; }
+.ds-note__glyph { float: left; margin-right: var(--s-3); }
+.ds-note__title { display: block; font-size: var(--fs-h4); line-height: var(--lh-h4);
+                  font-weight: var(--w-semi); color: var(--c-text); }
+
+
+/* ============================================================================
+   21. Safari — G8 (§8.10.3, дослівно, обидва рядки в цьому порядку)
+   ========================================================================== */
+/* `safe` у вирівнюванні зʼявився в Safari 17.6 (Chrome 115, FF 63). На
+   старіших Safari оголошення `place-items: safe center` НЕВАЛІДНЕ й
+   відкидається ЦІЛКОМ — діалог лишається без вирівнювання взагалі.
+   Тому спершу базове, потім посилене. */
+.ds-dlg { place-items: center; place-items: safe center; }
+@media (max-width: 640px) { .ds-dlg { align-items: end; align-items: safe end; } }
+/* Безпрефіксний backdrop-filter — лише Safari 18. */
+.ds-dlg__scrim { -webkit-backdrop-filter: blur(var(--blur-scrim));
+                         backdrop-filter: blur(var(--blur-scrim)); }
+
+
+/* ============================================================================
+   22. ДОПОВНЕННЯ Б3 — те, чого немає ні в `_base/`, ні в §8.10
+   ========================================================================== */
+
+/* ---- 22.0 · ⚠ ВИПРАВЛЕННЯ `_base/tokens.css`: --scrub НЕ ЗАРЕЄСТРОВАНИЙ.
+   Заміряно 2026-09-07 у живому Chrome:
+       getComputedStyle(root).getPropertyValue("--scrub")  →  "calc(1 * 0.8)"
+   Це рівно пастка П-01, і вона в системі жива: --scrub — складений токен
+   руху, і його читає JS двох сторінок (roadmap-motion.js, claude-code-motion.js)
+   через num("--scrub"). parseFloat("calc(1 * 0.8)") = NaN → мовчки береться
+   fallback 0.8, тобто при --motion: 0 інерція скролу лишається живою.
+   Критерій приймання 14 вимагає реєстрації КОЖНОГО такого токена; у
+   `_base/tokens.css` серед 25 реєстрацій --scrub немає.
+   Правити `_base/` заборонено, тому реєстрація стоїть тут. @property діє
+   на весь документ незалежно від файла, тож після цього рядка той самий
+   виклик повертає "0.8" при --motion: 1 і "0" при --motion: 0.
+   Перевірка після виправлення — у REPORT.md, дефект Б3-05. ---- */
+@property --scrub { syntax: "<number>"; inherits: true; initial-value: 0; }
+
+/* ---- 22.1 · scroll-padding-top. У системі його немає взагалі.
+   `.ds-snav__item` має scroll-margin-top, тобто система знає про проблему,
+   але покриті лише пункти навігації, а не заголовки прози. На довіднику
+   30 внутрішніх посилань змісту ведуть на <h2>/<h3> — без цього рядка
+   кожне з них ховає ціль під липкою шапкою.
+   Astro і Laravel обидва ставлять 128px; наша шапка 64 + 16 запасу. ---- */
+html { scroll-padding-top: calc(var(--s-16) + var(--s-4)); }
+@media (max-height: 700px) { html { scroll-padding-top: calc(var(--s-12) + var(--s-4)); } }
+
+/* ---- 22.2 · МЕРТВИЙ sticky у ds-tbl. Заміряно (звіт мобільних референсів,
+   пункт 9 і дефект 1): скролпорт для `position: sticky` у thead — це сам
+   `.ds-tbl__wrap`, бо `overflow-x: auto` робить обчислений `overflow-y`
+   рівним `auto`. Обгортка заввишки з таблицю (4917px на 60 рядках) вертикально
+   не прокручується ніколи, тож `top: 0` не спрацьовує ЖОДНОГО разу — на всіх
+   182 таблицях проду. На довіднику це видно найбільше: 69 таблиць, найдовша
+   на 111 рядків.
+
+   Рішення — не «полагодити скрізь», а розділити два випадки:
+     · звичайна таблиця: sticky знімається (він і так не працював),
+       нуль вкладених скролерів, сторінка гортається як текст;
+     · `.ds-tbl__wrap--tall`: обгортка отримує ВЛАСНУ висоту, і тільки
+       тоді sticky стає справжнім. Ставиться руками на ті таблиці, де
+       шапка дійсно потрібна (у довіднику це три «зрізи» на 40+ рядків).
+   Специфічність (0,1,2) = у `_base`, тож виграє порядок каскаду. ---- */
+.ds-tbl thead th { position: static; }
+.ds-tbl__wrap--tall { max-height: min(70vh, calc(var(--s-32) * 5)); overflow: auto; }
+.ds-tbl__wrap--tall .ds-tbl thead th { position: sticky; top: 0; z-index: var(--z-raised); }
+
+/* ---- 22.3 · overscroll-behavior-x на горизонтальних скролерах.
+   У проді це фікс Б-16 (задача 005) на .term__body; система 009 його
+   загубила — заміряно `auto` на всіх шести скролерах. Без нього свайп
+   по таблиці на телефоні докручує таблицю до краю й ТУТ ЖЕ веде браузер
+   «назад» (iOS/Android edge-swipe). ---- */
+.ds-tbl__wrap,
+.ds-diag,
+.term > .term__body,
+.ds-code > .ds-code__pre { overscroll-behavior-x: contain; }
+
+/* ---- 22.4 · hover тільки там, де є вказівник.
+   У `_base/components.css` 10 правил `:hover` не захищені нічим, а Tailwind
+   CDN — це v3, який сам цього не робить. На дотику «залиплий» hover лишається
+   після тапу до наступного тапу деінде. Правити `_base/` заборонено, тому
+   правила знімаються тут — за тим самим принципом, що і 22.2.
+   Список для збірки пакета (Б1 має обгорнути їх у @media (hover: hover)
+   при складанні components.css) — у REPORT.md, розділ «Що потрібно від Б1». ---- */
+@media (hover: none) {
+  .ds-btn:hover::after            { background: transparent; }
+  a.ds-card:hover,
+  .ds-card--link:hover            { border-color: var(--c-line); background: var(--c-surface); }
+  .ds-nav__link:hover             { color: var(--c-text-2); background: transparent; }
+  .ds-snav__item:hover            { background: transparent; color: var(--c-text-2); }
+  .ds-quiz__opt:hover             { border-color: var(--c-line-strong); color: var(--c-text-2); }
+  .ds-fld__input:hover            { border-color: var(--c-line-strong); }
+  .ds-btn--quiet:hover            { --btn-fg: var(--c-text-3); }
+  .gbtn:hover                     { background: var(--g-light-fill); }
+}
+
+/* ---- 22.5 · три мобільні дрібниці, які прод має, а система 009 загубила ---- */
+html { -webkit-tap-highlight-color: transparent; }
+/* Нижній безпечний відступ. Стосується лише того, що фізично стоїть біля
+   нижнього краю: аркуш діалогу й тост. */
+@media (max-width: 640px) {
+  .ds-dlg__card { padding-bottom: calc(var(--s-6) + env(safe-area-inset-bottom, 0px)); }
+  .ds-toast     { bottom: calc(var(--s-4) + env(safe-area-inset-bottom, 0px)); }
+}
+/* Ціль дотику пункту навігації — див. кінець §23. Правило стоїть ТАМ, а не
+   тут, і це не стиль: `.ds-ref__toc a` оголошує padding ШОРТХЕНДОМ, а медіа-
+   запит специфічності не додає. Поставлений тут, блок мовчки програвав би
+   пізнішому шортхенду — заміряно: 37px замість очікуваних 53. Та сама пастка
+   вже ловила систему 009 на .ds-hdr__brand. */
+
+/* ---- 22.6 · ds-fld: лічильник символів як контрол, а не як підпис.
+   `.ds-fld__count` у системі є, але нічим не керується. Тут він отримує
+   стан «замало» — формою (пунктир) і словом, не лише кольором. ---- */
+.ds-fld__count[data-state="short"]  { color: var(--c-text-3); }
+.ds-fld__count[data-state="full"]   { color: var(--c-ok-text); }
+.ds-fld__count[data-state="over"]   { color: var(--c-err-text); }
+.ds-fld--code .ds-fld__input {
+  font-family: var(--f-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.12em;
+  min-width: 0;
+}
+
+
+/* ============================================================================
+   23. ДОВІДНИК (T4) — сторінковий шар, префікс `ref`
+   ----------------------------------------------------------------------------
+   Довідник — це урок без прогресу: та сама рейка --w-sidebar, та сама сітка
+   прози, інша щільність. Тому власних класів тут рівно чотири, і жоден із них
+   не дублює `ds-snav` (у довіднику js/module.js не підключений — зміст
+   статичний і не має ні станів, ні прогресу).
+   ========================================================================== */
+.ds-ref {
+  --ref-gap: var(--s-12);
+  margin: 0 auto;
+  max-width: var(--w-wide);
+  padding: 0 var(--s-5);
+}
+@media (min-width: 640px) { .ds-ref { padding: 0 var(--s-8); } }
+@media (min-width: 1024px) {
+  .ds-ref { display: grid; grid-template-columns: var(--w-sidebar) minmax(0, 1fr); gap: var(--ref-gap); }
+}
+
+.ds-ref__toc {
+  padding: var(--s-6) 0;
+  /* <details> як контейнер: без цього маркер Safari лишається на самому блоці */
+  display: block;
+  border-bottom: var(--bw) solid var(--c-line);
+  font-size: var(--fs-ui);
+}
+@media (min-width: 1024px) {
+  .ds-ref__toc {
+    position: sticky; top: var(--s-16);
+    z-index: var(--z-sidebar);
+    max-height: calc(100vh - var(--s-16));
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    padding: var(--s-10) 0;
+    border-bottom: 0;
+  }
+}
+@media (max-height: 700px) and (min-width: 1024px) {
+  .ds-ref__toc { top: var(--s-12); max-height: calc(100vh - var(--s-12)); }
+}
+/* Смуга-акордеон змісту. На <1024 це єдиний контрол на 48px під шапкою;
+   на ≥1024 маркер зникає, і <details> поводиться як звичайна колонка. */
+.ds-ref__sum {
+  display: flex; align-items: center; gap: var(--s-3);
+  min-height: var(--ctl-h-lg);
+  padding: 0 var(--s-3);
+  margin: calc(var(--s-6) * -1) calc(var(--s-3) * -1) 0;
+  border-radius: var(--r-control);
+  color: var(--c-text-2);
+  font-family: var(--f-mono); font-size: var(--fs-ui);
+  cursor: pointer;
+  list-style: none;                 /* Safari тримає маркер саме тут */
+}
+.ds-ref__sum::-webkit-details-marker { display: none; }
+.ds-ref__sum::after {
+  content: "▾"; margin-left: auto; font-family: var(--f-mono); color: var(--c-accent);
+  transition: transform var(--dur-state) var(--e-out);
+}
+.ds-ref__toc[open] > .ds-ref__sum::after { transform: rotate(180deg); }
+@media (hover: hover) { .ds-ref__sum:hover { color: var(--c-text); background: var(--c-veil-hover); } }
+@media (min-width: 1024px) { .ds-ref__sum { display: none; } }
+
+.ds-ref__toc ul  { list-style: none; margin: 0; padding: 0; display: grid; }
+.ds-ref__toc a {
+  display: block;
+  padding: var(--s-2) var(--s-3);
+  margin-left: calc(var(--s-3) * -1);
+  border-left: var(--bw-strong) solid transparent;
+  border-radius: 0 var(--r-inner) var(--r-inner) 0;
+  color: var(--c-text-2);
+  text-decoration: none;
+  scroll-margin-top: calc(var(--s-16) + var(--s-4));
+  transition: color var(--dur-hover) var(--e-out),
+              border-color var(--dur-hover) var(--e-out),
+              background-color var(--dur-hover) var(--e-out);
+}
+@media (hover: hover) {
+  .ds-ref__toc a:hover { color: var(--c-text); background: var(--c-veil-hover); }
+}
+.ds-ref__toc a[aria-current] {
+  color: var(--c-text);
+  border-left-color: var(--c-accent);
+  background: var(--c-accent-quiet);
+}
+/* Підзаголовок групи в змісті. Не посилання — тому не має цілі дотику. */
+.ds-ref__group {
+  margin: var(--s-5) 0 var(--s-1);
+  font-family: var(--f-mono);
+  font-size: var(--fs-eyebrow);
+  line-height: var(--lh-eyebrow);
+  letter-spacing: var(--tr-eyebrow);
+  color: var(--c-text-3);
+}
+.ds-ref__group:first-child { margin-top: 0; }
+
+.ds-ref__main { min-width: 0; padding: var(--s-10) 0 var(--s-16); }
+
+/* Шапка сторінки довідника: одна метарядкова колонка над заголовком.
+   Числа тут — контент, тому вони моноширинні й табулярні. */
+.ds-ref__head { margin-bottom: var(--s-10); }
+.ds-ref__stat {
+  display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-5);
+  margin: var(--s-4) 0 0; padding: 0; list-style: none;
+  font-family: var(--f-mono); font-size: var(--fs-label);
+  font-variant-numeric: tabular-nums; color: var(--c-text-3);
+}
+.ds-ref__stat b { color: var(--c-text); font-weight: var(--w-medium); }
+
+/* ---- Ціль дотику пункту змісту на дотикових ширинах.
+   Заміряно в мобільній добірці: react.dev дає 46px на пункт меню при кеглі
+   всього 13 — висота береться з padding, не з кегля. У нас було 27.2px
+   (мінімум 20.4). Піднімаємо ВЕРТИКАЛЬНИЙ падінг, шрифт не чіпаємо.
+   ⚠ Блок мусить стояти ПІСЛЯ `.ds-ref__toc a { padding: … }`: медіа-запит
+   специфічності не додає, а шортхенд перебиває padding-block. ---- */
+@media (max-width: 1024px) {
+  .ds-nav__link { padding-block: var(--s-4); }
+  .ds-ref__toc a { padding-block: var(--s-4); }
+}
+
+
+/* ============================================================================
+   24. СЕРТИФІКАТ (T7) — «папір» і друк
+   ----------------------------------------------------------------------------
+   «Папір» — ЄДИНА світла поверхня системи, і живе рівно у двох місцях:
+   превʼю в діалозі й @media print. Реєстр L2 прямо забороняє --c-paper-*
+   «в UI», тому картка сертифіката на сторінці лишається темною, а папір
+   показується тільки коли людина натиснула «Переглянути».
+   ========================================================================== */
+/* Аркуш у превʼю: пропорція A4-ландшафт (1123×794 = 1.414), масштаб від
+   ширини діалогу. width/height НЕ анімуються — це статична геометрія. */
+.ds-paper--sheet {
+  aspect-ratio: 1123 / 794;
+  width: 100%;
+  padding: var(--s-6);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  border: var(--bw-strong) solid var(--c-paper-rule);
+  container-type: inline-size;
+}
+/* ⚠ ВИМІРЯНО, НЕ ВГАДАНО. Спершу тут стояв --c-paper-rule: він виглядає як
+   «тихий текст на папері», але це колір ХАЙРЛАЙНА (#CCC4BC) і дає на папері
+   1.56:1 — провал AA у сім разів. На папері є рівно два легальні кольори
+   тексту: --c-paper-text (15.08) і --c-paper-quiet (4.68). Третього немає,
+   і саме тому «тихо» тут робиться кеглем і моношрифтом, а не кольором.
+   Пропозиція до реєстру L2 — у REPORT.md, дефект Б3-03. */
+.ds-paper__eyebrow {
+  font-family: var(--f-mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: var(--tr-eyebrow);
+  color: var(--c-paper-quiet);
+}
+.ds-paper__course { font-family: var(--f-display); font-size: var(--fs-h3); color: var(--c-paper-text); margin: 0; }
+.ds-paper__code   { font-family: var(--f-mono); font-size: var(--fs-label); color: var(--c-paper-quiet); }
+/* Превʼю мусить лишатись читабельним і в діалозі на 320px: кегль аркуша
+   рахується від ЙОГО ширини, а не від вікна. */
+@container (max-width: 420px) {
+  .ds-paper--sheet .ds-paper__name { font-size: var(--fs-h3); }
+  .ds-paper--sheet .ds-paper__course { font-size: var(--fs-ui); }
+}
+
+/* Друк: на папір іде сам сертифікат і більше нічого. `_base` вже ховає
+   хром; тут додається те, що є лише на цій сторінці. */
+@media print {
+  .ds-ref__toc, .ds-dlg__scrim, .ds-nav, #configError, noscript { display: none !important; }
+  .ds-dlg { position: static; display: block; overflow: visible; padding: 0; }
+  .ds-dlg__card { max-width: none; border: 0; box-shadow: none; padding: 0; opacity: 1; transform: none; }
+  .ds-paper--sheet { border-color: var(--c-paper-rule); break-inside: avoid; }
+}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+<html lang="uk" data-config="../claude-code.config.json" data-course="terminal" data-density="lesson" data-lit>
 
 <head>
   <meta charset="UTF-8" />
@@ -7,110 +7,100 @@
   <title>Модуль 16 · Перехоплювачі подій (hooks) — AI Термінал</title>
   <meta name="description"
     content="Перехоплювачі подій у Claude Code: три рівні конфігурації, matcher, JSON на вході й на виході, семантика кодів виходу (чому exit 1 нічого не блокує), вісім подій, які потрібні насправді, і безпека хуків." />
-  <meta name="theme-color" content="#141312" />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
 
   <script>document.documentElement.classList.add("js");</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
-    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег.
+       010 · етап 9: стара мова (окремий файл зі спадщиною 2023–2026)
+       видалена цілком, тому в каскаді лишились рівно ці файли. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ink: "#141312", surface: "#1E1B18", raised: "#272320",
-            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
-            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
-            sand: "#E8DCC3"
-          },
-          fontFamily: {
-            display: ["Literata", "Georgia", "serif"],
-            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
-            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
-          },
-          maxWidth: { content: "72rem" }
-        }
-      }
-    };
-  </script>
-
-  <link rel="stylesheet" href="../css/custom.css" />
+  <script src="../js/tw-theme.js"></script>
 </head>
 
-<body data-module="c16" class="bg-ink font-sans text-ivory antialiased">
+<body data-module="c16">
 
-  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
   <div id="ariaLive" class="sr-only" aria-live="polite"></div>
 
   <noscript>
-    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
-      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
     </div>
   </noscript>
 
   <!-- ШАПКА -->
-  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
-    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
-      <div class="flex items-center gap-3">
-        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
-          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
-          <span class="sr-only">Зміст курсу</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" aria-hidden="true">
-            <path d="M3 6h18M3 12h18M3 18h18" />
-          </svg>
-        </button>
-        <a href="../claude-code.html" class="flex items-center gap-2.5">
-          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
-            data-site="shortName">AIT</span>
-          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
-        </a>
-        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
-        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 16</span>
-      </div>
-      <div class="flex items-center gap-3">
-        <div id="aiaAuth" class="slot"></div>
-        <span id="navProgress" hidden
-          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
-        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
-          програми</a>
-      </div>
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../claude-code.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIT</span>
+        <span data-site="name">AI Термінал</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Модуль 16</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../claude-code.html#map">До програми</a>
     </div>
   </header>
 
-  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
-    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
-      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
-      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
     </div>
   </div>
 
   <!-- Затемнення під мобільною шторкою сайдбара -->
-  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
 
     <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
-    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
       <div id="sidebarNav" class="lg:pt-10">
-        <p class="snav-count">Завантаження програми…</p>
+        <p class="ds-snav__count">Завантаження програми…</p>
       </div>
     </aside>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-3xl">
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
 
         <!-- Вступ модуля -->
-        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 3 · Налаштування під себе</p>
-        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Перехоплювачі подій (hooks)</h1>
-        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Просунутий · 8 блоків · ≈ 50 хв читання</p>
-        <p class="mt-6 text-lg">
+        <p class="ds-eyebrow">Фаза 3 · Налаштування під себе</p>
+        <h1 class="ds-h1">Перехоплювачі подій (hooks)</h1>
+        <p class="ds-small ds-num">Просунутий · 8 блоків · ≈ 50 хв читання</p>
+        <p class="ds-lead">
           Усе, що ти налаштовував досі, працює через модель. <code>CLAUDE.md</code> — це текст, який
           Claude читає й здебільшого враховує. Навичка — теж текст, який він вирішує підвантажити.
           Навіть правила дозволів спрацьовують тоді, коли модель уже вирішила щось зробити.
@@ -126,8 +116,8 @@
           <code>PreToolUse</code>». Інструкція — прохання. Перехоплювач — механізм.
         </p>
 
-        <div class="callout callout-sand">
-          <span class="callout-title">Одразу головне: <code>exit 1</code> нічого не блокує</span>
+        <div class="ds-note ds-note--accent">
+          <span class="ds-note__title">Одразу головне: <code>exit 1</code> нічого не блокує</span>
           <p>
             У світі командного рядка код завершення <code>1</code> означає «помилка» — так поводиться
             майже кожна програма. У перехоплювачах Claude Code це не так: код <code>1</code>
@@ -137,8 +127,8 @@
           </p>
         </div>
 
-        <div class="callout">
-          <span class="callout-title">Що в цьому модулі є, а чого немає</span>
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому модулі є, а чого немає</span>
           <p>
             <strong>Є:</strong> три рівні конфігурації хука · як обчислюється <code>matcher</code> ·
             що приходить на вхід і що можна віддати на вихід · точна семантика кодів завершення ·
@@ -156,8 +146,8 @@
         <hr />
 
         <!-- ============ 1 ============ -->
-        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
-          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
 
           <p>
             Уяви три дрібниці, які псують роботу щодня.
@@ -220,8 +210,8 @@
             а не паркан.
           </p>
 
-          <div class="callout">
-            <span class="callout-title">Обробник виконується з твоїми повними правами</span>
+          <div class="ds-note">
+            <span class="ds-note__title">Обробник виконується з твоїми повними правами</span>
             <p>
               Дослівне попередження документації: командні хуки виконують команди оболонки
               <strong>з повними правами твого користувача</strong> — вони можуть змінити, видалити
@@ -235,8 +225,8 @@
         <hr />
 
         <!-- ============ 2 ============ -->
-        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
-          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
 
           <p>
             Головного екрана цього модуля — меню <code>/hooks</code> — тут не буде, і на це є
@@ -257,7 +247,7 @@
             <figcaption class="term__chrome">
               <span class="term__dots" aria-hidden="true"></span>
               <span class="term__title" id="p1t">claude doctor · Claude Code 2.1.236 · macOS 26.5.2</span>
-              <button type="button" class="term__copy"
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
                 data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
             </figcaption>
             <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude doctor</span></span>
@@ -274,7 +264,7 @@
 <span class="term__line">FileChanged, DirectoryAdded, MessageDisplay</span></pre>
           </figure>
 
-          <p class="text-sm text-muted">
+          <p class="text-sm text-fg-2">
             Знято 2026-09-04, Claude Code 2.1.236, macOS 26.5.2. Перенесення довгого рядка — це
             перенесення термінала, у файлі він один. Рядок <code>…</code> позначає решту виводу
             <code>claude doctor</code>, яка до хуків стосунку не має.
@@ -298,7 +288,7 @@
             <figcaption class="term__chrome">
               <span class="term__dots" aria-hidden="true"></span>
               <span class="term__title" id="p2t">чи знає моя збірка про цю подію · 2.1.236 · macOS 26.5.2</span>
-              <button type="button" class="term__copy"
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
                 data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
             </figcaption>
             <pre class="term__body" tabindex="0" role="group" aria-labelledby="p2t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c PreModelSwitch</span></span>
@@ -319,8 +309,8 @@
             «нуль» нічого не доводить — може, команда взагалі не працює.
           </p>
 
-          <div class="callout">
-            <span class="callout-title">Чому це головний урок модуля, а не дрібниця</span>
+          <div class="ds-note">
+            <span class="ds-note__title">Чому це головний урок модуля, а не дрібниця</span>
             <p>
               Довідник цього курсу описує <strong>33 події</strong> — за документацією. Твоя
               програма може знати 31, 33 або більше: це залежить від версії, яка стоїть саме в тебе.
@@ -373,8 +363,8 @@
         <hr />
 
         <!-- ============ 3 ============ -->
-        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
-          <h2><span class="lesson-no">3</span>Як це працює</h2>
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
 
           <p>
             Конфігурація перехоплювача має рівно <strong>три рівні вкладеності</strong>, і майже всі
@@ -382,7 +372,7 @@
             окремо.
           </p>
 
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart TD
   E["Рівень 1 · Подія: PreToolUse"] --> M["Рівень 2 · Група фільтра: matcher = Bash"]
@@ -393,10 +383,10 @@ flowchart TD
   S --> O2["код завершення: 0 / 2 / інший"]
   O1 --> D["Claude Code вирішує, чи дія відбудеться"]
   O2 --> D
-  style E fill:#2A211C,stroke:#D97757,color:#F0EEE6
-  style D fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class E hl
+  class D hl
             </pre>
-            <p class="diagram-caption">
+            <p class="ds-diag__caption">
               Подія каже «коли», фільтр — «за яких умов», обробник — «що зробити»; назад скрипт
               говорить двома каналами одразу: текстом у стандартному потоці виводу (stdout —
               те, що програма друкує) і кодом завершення.
@@ -408,7 +398,7 @@ flowchart TD
             правки файла:
           </p>
 
-<pre><code>{
+<pre class="ds-code__pre"><code>{
   "hooks": {
     "PostToolUse": [
       {
@@ -439,8 +429,8 @@ flowchart TD
             Місце файла вирішує, на що саме хук впливає. Документація перелічує сім місць:
           </p>
 
-          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Рівень 1: де живе перехоплювач">
-          <table>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Рівень 1: де живе перехоплювач">
+          <table class="ds-tbl">
             <thead>
               <tr>
                 <th>Де оголошено</th>
@@ -508,8 +498,8 @@ flowchart TD
             символів у ньому:
           </p>
 
-          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Рівень 2: matcher, і чому він поводиться неочікувано">
-          <table>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Рівень 2: matcher, і чому він поводиться неочікувано">
+          <table class="ds-tbl">
             <thead>
               <tr>
                 <th>Що написано</th>
@@ -552,7 +542,7 @@ flowchart TD
             <code>mcp__memory</code> — це точний рядок, який не збігається ні з чим, і хук мовчки
             не спрацює жодного разу.
           </p>
-          <p class="text-sm text-muted">
+          <p class="text-sm text-fg-2">
             Дві версійні межі з документації: коми як роздільник і терпимість до пробілів навколо
             них з'явились у v2.1.191, а дефіси в наборі точного збігу — у v2.1.195. На старіших
             збірках <code>code-reviewer</code> читається як регулярний вираз і ловить ще й
@@ -560,8 +550,8 @@ flowchart TD
           </p>
 
           <h3>Рівень 3: п'ять типів обробників</h3>
-          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Рівень 3: п'ять типів обробників">
-          <table>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Рівень 3: п'ять типів обробників">
+          <table class="ds-tbl">
             <thead>
               <tr>
                 <th><code>type</code></th>
@@ -610,7 +600,7 @@ flowchart TD
             Приклад того, що приходить на <code>InstructionsLoaded</code>, дослівно з документації:
           </p>
 
-<pre><code>{
+<pre class="ds-code__pre"><code>{
   "session_id": "abc123",
   "transcript_path": "/Users/.../.claude/projects/.../transcript.jsonl",
   "cwd": "/Users/my-project",
@@ -625,7 +615,7 @@ flowchart TD
             Каналів назад два, і вони працюють разом. Перший — код завершення.
           </p>
 
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart TD
   A["Скрипт завершився"] --> B{"Код завершення"}
@@ -635,16 +625,16 @@ flowchart TD
   E -->|"так"| F["Код ігнорується, вирішує JSON"]
   E -->|"ні"| G["Неблокуюча помилка: дія проходить"]
   G --> H["У розмові: hook error + перший рядок stderr"]
-  style D fill:#2A211C,stroke:#D97757,color:#F0EEE6
-  style G fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class D hl
+  class G hl
             </pre>
-            <p class="diagram-caption">
+            <p class="ds-diag__caption">
               Дві гілки праворуч — та сама пастка: скрипт «спрацював», а дія відбулась.
             </p>
           </div>
 
-          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Що можна віддати на вихід — і чому exit 1 нічого не робить">
-          <table>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Що можна віддати на вихід — і чому exit 1 нічого не робить">
+          <table class="ds-tbl">
             <thead>
               <tr>
                 <th>Код</th>
@@ -668,8 +658,8 @@ flowchart TD
           </table>
           </div>
 
-          <div class="callout callout-sand">
-            <span class="callout-title">Дослівне попередження документації</span>
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Дослівне попередження документації</span>
             <p>
               «Для більшості подій код 2 — єдиний код, який блокує сам по собі. Без правильного
               JSON на stdout Claude Code трактує код 1 як неблокуючу помилку й виконує дію далі,
@@ -716,7 +706,7 @@ flowchart TD
             обрізаються на <strong>10 000 символів</strong>. Надлишок записується у файл, а Claude
             отримує короткий уривок і шлях до нього.
           </p>
-          <p class="text-sm text-muted">
+          <p class="text-sm text-fg-2">
             Як Claude Code розрізняє JSON і звичайний текст (пробіли по краях не рахуються):
             починається з <code>{</code> <strong>і</strong> закінчується <code>}</code> — читається
             як JSON; починається з <code>{</code>, але не закінчується <code>}</code> — звичайний
@@ -758,8 +748,8 @@ flowchart TD
             саме шукаєш.
           </p>
 
-          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Вісім подій, з яких варто починати">
-          <table>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Вісім подій, з яких варто починати">
+          <table class="ds-tbl">
             <thead>
               <tr>
                 <th>Подія</th>
@@ -915,8 +905,8 @@ flowchart TD
             немає взагалі й тека вважається довіреною — отже, хуки, закомічені в
             <code>.claude/settings.json</code> <strong>чужого репозиторію</strong>, виконаються.
           </p>
-          <div class="callout">
-            <span class="callout-title">Що з цим робити практично</span>
+          <div class="ds-note">
+            <span class="ds-note__title">Що з цим робити практично</span>
             <p>
               Перед тим як запускати <code>claude -p</code> над репозиторієм, який писав не ти,
               документація радить три шляхи: переглянути його теку <code>.claude/</code> вручну;
@@ -935,8 +925,8 @@ flowchart TD
         <hr />
 
         <!-- ============ 4 ============ -->
-        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
-          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
 
           <p>
             Перший перехоплювач має бути таким, який <strong>нічого не змінює</strong>. Тому почнемо
@@ -946,8 +936,8 @@ flowchart TD
             щось серйозніше.
           </p>
 
-          <div class="callout callout-sand">
-            <span class="callout-title">Вправу роби в окремій тимчасовій теці</span>
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Вправу роби в окремій тимчасовій теці</span>
             <p>
               Не в робочому проєкті. Перехоплювач — це код, який виконується сам, і перші спроби
               краще ставити там, де помилка нічого не коштує. Тека, яку не шкода видалити, підходить
@@ -960,7 +950,7 @@ flowchart TD
             Відкрий термінал (модуль 1) і набери ці рядки, натискаючи Enter після кожного:
           </p>
 
-<pre><code>mkdir -p ~/hooks-demo/.claude/hooks
+<pre class="ds-code__pre"><code>mkdir -p ~/hooks-demo/.claude/hooks
 cd ~/hooks-demo</code></pre>
 
           <p>
@@ -972,7 +962,7 @@ cd ~/hooks-demo</code></pre>
 
           <h3>Крок 2. Поклади файл інструкцій, щоб було що завантажувати</h3>
 
-<pre><code>echo "Цей проєкт існує тільки для вправи з перехоплювачами." &gt; CLAUDE.md</code></pre>
+<pre class="ds-code__pre"><code>echo "Цей проєкт існує тільки для вправи з перехоплювачами." &gt; CLAUDE.md</code></pre>
 
           <p>
             Знак <code>&gt;</code> означає «записати вивід команди у файл». Тепер у теці є
@@ -985,7 +975,7 @@ cd ~/hooks-demo</code></pre>
             Створи файл <code>.claude/settings.json</code> у цій самій теці з таким вмістом:
           </p>
 
-<pre><code>{
+<pre class="ds-code__pre"><code>{
   "hooks": {
     "InstructionsLoaded": [
       {
@@ -1020,7 +1010,7 @@ cd ~/hooks-demo</code></pre>
 
           <h3>Крок 4. Запусти сесію й прийми довіру до теки</h3>
 
-<pre><code>claude</code></pre>
+<pre class="ds-code__pre"><code>claude</code></pre>
 
           <p>
             Перший запуск у новій теці майже напевно покаже <strong>діалог довіри до робочої
@@ -1033,14 +1023,14 @@ cd ~/hooks-demo</code></pre>
 
           <h3>Крок 5. Подивись, що записалось</h3>
 
-<pre><code>cat /tmp/claude-hooks.log</code></pre>
+<pre class="ds-code__pre"><code>cat /tmp/claude-hooks.log</code></pre>
 
           <p>
             Якщо у файлі з'явився рядок із <code>session_start</code>, словом
             <code>Project</code> і шляхом до твого <code>CLAUDE.md</code> — перехоплювач працює.
             Це і є твоя перша перевірка: не «здається, спрацював», а рядок у файлі.
           </p>
-          <p class="text-sm text-muted">
+          <p class="text-sm text-fg-2">
             Дослівного знімка цього файла тут немає з двох причин: у шляху стоїть ім'я
             користувача машини, на якій знімався матеріал, а сам запуск сесії вимагає входу в
             обліковий запис, тож відтворити його в ізольованому оточенні не вийшло. Назви полів
@@ -1054,7 +1044,7 @@ cd ~/hooks-demo</code></pre>
             Створи файл <code>.claude/hooks/no-rm-rf.sh</code> з таким вмістом:
           </p>
 
-<pre><code>#!/bin/bash
+<pre class="ds-code__pre"><code>#!/bin/bash
 input=$(cat)
 command=$(echo "$input" | jq -r '.tool_input.command')
 
@@ -1076,8 +1066,8 @@ exit 0</code></pre>
             <code>exit 0</code>.
           </p>
 
-          <div class="callout">
-            <span class="callout-title"><code>exit 0</code> означає «я не маю думки», а не «дозволяю»</span>
+          <div class="ds-note">
+            <span class="ds-note__title"><code>exit 0</code> означає «я не маю думки», а не «дозволяю»</span>
             <p>
               Це важлива тонкість. Вихід із кодом 0 і без JSON не схвалює дію — він нічого не
               вирішує, і далі працює звичайний потік дозволів. Перехоплювач може
@@ -1089,14 +1079,14 @@ exit 0</code></pre>
             Зроби файл виконуваним і додай подію в налаштування:
           </p>
 
-<pre><code>chmod +x .claude/hooks/no-rm-rf.sh</code></pre>
+<pre class="ds-code__pre"><code>chmod +x .claude/hooks/no-rm-rf.sh</code></pre>
 
           <p>
             У <code>.claude/settings.json</code> подія <code>PreToolUse</code> додається
             <strong>сусіднім ключем</strong> усередині того самого розділу <code>hooks</code>:
           </p>
 
-<pre><code>{
+<pre class="ds-code__pre"><code>{
   "hooks": {
     "InstructionsLoaded": [
       {
@@ -1145,8 +1135,8 @@ exit 0</code></pre>
         <hr />
 
         <!-- ============ 5 ============ -->
-        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
-          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
 
           <p>
             Перехоплювачі мовчазні за конструкцією: коли все добре, вони не показують нічого. Це
@@ -1165,7 +1155,7 @@ exit 0</code></pre>
             <figcaption class="term__chrome">
               <span class="term__dots" aria-hidden="true"></span>
               <span class="term__title" id="p4t">перевірка хука без Claude Code · macOS 26.5.2 · jq-1.7.1-apple</span>
-              <button type="button" class="term__copy"
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
                 data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
             </figcaption>
             <pre class="term__body" tabindex="0" role="group" aria-labelledby="p4t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf build"}}' | .claude/hooks/no-rm-rf.sh</span></span>
@@ -1183,7 +1173,7 @@ exit 0</code></pre>
             <strong>0</strong> (рішення немає). Якби на місці двійки була одиниця, ти б побачив це
             тут, за півсекунди, а не через тиждень, коли заборона не спрацює.
           </p>
-          <p class="text-sm text-muted">
+          <p class="text-sm text-fg-2">
             Знято 2026-09-04 на macOS 26.5.2 у тимчасовій теці; скрипт — той самий, що в кроці 6
             блоку 4.
           </p>
@@ -1232,7 +1222,7 @@ exit 0</code></pre>
             що бачить сама програма. Запусти сесію так:
           </p>
 
-<pre><code>claude --debug-file /tmp/claude.log</code></pre>
+<pre class="ds-code__pre"><code>claude --debug-file /tmp/claude.log</code></pre>
 
           <p>
             У лог потрапляють подробиці виконання: які хуки збіглися, їхні коди завершення, повний
@@ -1243,11 +1233,11 @@ exit 0</code></pre>
             слово <code>hook-ran</code>:
           </p>
 
-<pre><code>2026-07-19T02:03:24.382Z [DEBUG] Hook output does not start with {, treating as plain text
+<pre class="ds-code__pre"><code>2026-07-19T02:03:24.382Z [DEBUG] Hook output does not start with {, treating as plain text
 2026-07-19T02:03:24.382Z [DEBUG] Hook PostToolUse:Write (PostToolUse) success:
 hook-ran</code></pre>
 
-          <p class="text-sm text-muted">
+          <p class="text-sm text-fg-2">
             Це приклад із документації, а не знімок з цієї машини. Прапорець <code>--debug</code>
             без імені файла теж працює, але <strong>нічого не друкує в термінал</strong> — лог
             лягає в <code>~/.claude/debug/</code>. Якщо сесія вже запущена без прапорця, увімкнути
@@ -1264,8 +1254,8 @@ hook-ran</code></pre>
         <hr />
 
         <!-- ============ 6 ============ -->
-        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
-          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
 
           <h3>1. <code>exit 1</code> замість <code>exit 2</code></h3>
           <p>
@@ -1336,7 +1326,7 @@ hook-ran</code></pre>
             беззастережний <code>echo</code>, його рядок приклеїться перед твоїм JSON:
           </p>
 
-<pre><code>Shell ready on arm64
+<pre class="ds-code__pre"><code>Shell ready on arm64
 {"decision": "block", "reason": "Not allowed"}</code></pre>
 
           <p>
@@ -1345,7 +1335,7 @@ hook-ran</code></pre>
             нічого не буде. Лікується обгортанням привітання у перевірку інтерактивності:
           </p>
 
-<pre><code># у ~/.zshrc або ~/.bashrc
+<pre class="ds-code__pre"><code># у ~/.zshrc або ~/.bashrc
 if [[ $- == *i* ]]; then
   echo "Shell ready"
 fi</code></pre>
@@ -1358,7 +1348,7 @@ fi</code></pre>
             <code>true</code>:
           </p>
 
-<pre><code>#!/bin/bash
+<pre class="ds-code__pre"><code>#!/bin/bash
 INPUT=$(cat)
 if [ "$(echo "$INPUT" | jq -r '.stop_hook_active')" = "true" ]; then
   exit 0
@@ -1392,8 +1382,8 @@ fi
         <hr />
 
         <!-- ============ 7 ============ -->
-        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
-          <h2><span class="lesson-no">7</span>Часті питання</h2>
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
 
           <h3>Коли писати правило в <code>CLAUDE.md</code>, а коли робити хук?</h3>
           <p>
@@ -1464,7 +1454,7 @@ fi
             <code>$CLAUDE_PROJECT_DIR</code> без фігурних дужок — PowerShell вважає це порожньою
             змінною. Пиши <code>${CLAUDE_PROJECT_DIR}</code> або <code>$env:CLAUDE_PROJECT_DIR</code>.
           </p>
-          <p class="text-sm text-muted">
+          <p class="text-sm text-fg-2">
             Ці факти взяті з документації дослівно: власного знімка з Windows у цьому курсі немає,
             уся жива перевірка велась на macOS 26.5.2.
           </p>
@@ -1492,8 +1482,8 @@ fi
         <hr />
 
         <!-- ============ 8 ============ -->
-        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
-          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
 
           <p>П'ять речей, які варто винести з цього модуля.</p>
           <ol>
@@ -1524,8 +1514,8 @@ fi
             </li>
           </ol>
 
-          <div class="callout">
-            <span class="callout-title">Куди далі</span>
+          <div class="ds-note">
+            <span class="ds-note__title">Куди далі</span>
             <p>
               Повна таблиця всіх подій — довідник
               <a href="../claude-code-ref-hooks.html">«Усі події хуків»</a>: коли спрацьовує, за чим
@@ -1540,7 +1530,7 @@ fi
             </p>
           </div>
 
-          <p class="text-sm text-muted">
+          <p class="text-sm text-fg-2">
             Джерела цього модуля: офіційні сторінки
             <a href="https://code.claude.com/docs/en/hooks" rel="noopener">«Hooks reference»</a> і
             <a href="https://code.claude.com/docs/en/hooks-guide" rel="noopener">«Automate actions with hooks»</a>,
@@ -1552,7 +1542,7 @@ fi
         <hr />
 
         <!-- ============ КВІЗ ============ -->
-        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+        <section id="quiz" data-lesson="Квіз: перевір себе">
           <h2>Перевір себе</h2>
           <div data-quiz="quizData"></div>
         </section>
@@ -1632,59 +1622,46 @@ fi
       }
       </script>
 
-      <div class="max-w-3xl">
+      <div class="mt-12 grid gap-6 max-w-prose">
         <!-- Позначка завершення (js/module.js + js/progress.js) -->
         <div
-          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
-            <p class="mt-1 text-sm text-muted">
+            <p id="completeTitle" class="ds-h4">Модуль позаду?</p>
+            <p class="ds-small">
               Познач його завершеним — позначка збережеться в цьому браузері
               й з'явиться на головній сторінці.
             </p>
           </div>
           <button id="completeBtn" type="button"
-            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            class="ds-btn ds-btn--primary">
             Позначити завершеним
           </button>
         </div>
 
         <!-- Попередній / наступний модуль (рендерить js/module.js) -->
-        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
       </div>
 
     </main>
   </div>
 
-  <footer class="mt-16 border-t border-line/60">
-    <!-- D-03: вхід у три довідники з будь-якого уроку. Підписи живуть у
-         claude-code.config.json → site.ref* і підставляються через data-site
-         (js/config.js, fillStatic); текст у розмітці — той самий рядок, як
-         запасний варіант, коли конфіг не приїхав. Той самий прийом, що вже
-         стоїть на data-site="name" і data-site="shortName" у шапці. -->
-    <nav aria-label="Довідники курсу"
-      class="mx-auto flex max-w-[88rem] flex-wrap items-center gap-x-6 gap-y-1 border-b border-line/60 px-5 py-4 sm:px-8">
-      <span class="font-mono text-xs uppercase tracking-[0.14em] text-faint" data-site="refsLabel">Довідники</span>
-      <a href="../claude-code-ref-commands.html"
-        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refCommands">Усі команди й клавіші</a>
-      <a href="../claude-code-ref-hooks.html"
-        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refHooks">Таблиця подій</a>
-      <a href="../claude-code-ref-settings.html"
-        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refSettings">Ключі settings.json</a>
-    </nav>
-    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
-      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
-      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../claude-code.html">На головну ↑</a></span>
     </div>
   </footer>
 
   <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
   <script src="../js/progress.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/config.js"></script>
   <script src="../js/module.js"></script>
   <script src="../js/quiz.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
   <script src="../js/mermaid-init.js"></script>
   <script src="../js/auth-ui.js"></script>
   <script type="module" src="../js/auth.js"></script>

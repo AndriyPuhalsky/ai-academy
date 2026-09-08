@@ -57,44 +57,92 @@
 
   /* ---------- Мобільна «шторка» сайдбара ---------- */
 
+  /* 010 · js-diff module.js:68 — замок скролу зі СПІЛЬНИМ лічильником.
+     Було document.body.style.overflow: інлайновий стиль не знав про модалки,
+     і два одночасні замки (шторка + «Написати нам») гасили один одного.
+     ⚠ 010 · КЛАС `ds-lock` ЖИВЕ В ТРЬОХ ФАЙЛАХ І МІНЯЄТЬСЯ ЛИШЕ РАЗОМ.
+     Замок ведуть js/module.js (шторка змісту), js/contact.js (модалка
+     «Написати нам») і js/auth-ui.js (діалоги входу). Лічильник спільний —
+     data-aia-lock на <html>. Якщо один із трьох знімає іншу назву класу,
+     ніж вішає сусід, послідовність «шторка → модалка → закрити шторку →
+     закрити модалку» лишає клас на <html> НАЗАВЖДИ, і скрол сторінки
+     заморожений без жодної помилки в консолі.
+     ⚠ `--ds-lock-sbw` — ширина смуги прокрутки, яку `overflow: hidden`
+     забирає. Правило-споживач у css/components.css поки ВІДСУТНЄ (у пакеті
+     є лише `html.ds-lock { overflow: hidden }`) — потрібні два рядки, див.
+     03-frontend/report-d.md, розділ «Потрібні правила в спільних файлах». */
+  function lockScroll(on) {
+    var root = document.documentElement;
+    var n = (parseInt(root.getAttribute("data-aia-lock"), 10) || 0) + (on ? 1 : -1);
+    if (n > 0) {
+      root.setAttribute("data-aia-lock", String(n));
+      if (n > 1) return;
+      var sbw = window.innerWidth - root.clientWidth;
+      root.style.setProperty("--ds-lock-sbw", (sbw > 0 ? sbw : 0) + "px");
+      root.classList.add("ds-lock");
+      return;
+    }
+    root.removeAttribute("data-aia-lock");
+    root.classList.remove("ds-lock");
+    root.style.removeProperty("--ds-lock-sbw");
+  }
+
   function initDrawer() {
     var btn = $("#sidebarBtn");
     var aside = $("#moduleSidebar");
     var overlay = $("#sidebarOverlay");
     if (!btn || !aside || !overlay) return;
 
-    function setOpen(open) {
+    var open = false;
+
+    /* refocus=false там, де фокус забирати не можна: клік по посиланню
+       (він веде на якір уроку) і перехід через 1024 під час читання. */
+    function setOpen(next, refocus) {
+      if (next === open) return;
+      open = next;
       aside.classList.toggle("is-open", open);
       overlay.classList.toggle("is-open", open);
       btn.setAttribute("aria-expanded", String(open));
-      document.body.style.overflow = open ? "hidden" : "";
+      lockScroll(open);
+      if (!open && refocus !== false) btn.focus();
     }
 
-    btn.addEventListener("click", function () {
-      setOpen(!aside.classList.contains("is-open"));
-    });
+    btn.addEventListener("click", function () { setOpen(!open, false); });
     overlay.addEventListener("click", function () { setOpen(false); });
     aside.addEventListener("click", function (e) {
-      if (e.target.closest("a")) setOpen(false);
+      if (e.target.closest("a")) setOpen(false, false);
     });
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") setOpen(false);
     });
+
+    /* 010 · js-diff module.js:62 — без цього замок скролу лишався назавжди:
+       на ≥1024 шторка перетворюється на пристиковану колонку, а лічильник
+       так і стоїть на одиниці. */
+    if (window.matchMedia) {
+      var mq = window.matchMedia("(min-width: 1024px)");
+      var onWide = function (e) { if (e.matches) setOpen(false, false); };
+      if (mq.addEventListener) mq.addEventListener("change", onWide);
+      else if (mq.addListener) mq.addListener(onWide);
+    }
   }
 
   /* ---------- Уроки поточної сторінки ---------- */
 
   function lessonsHtml() {
     return $all("[data-lesson]").map(function (sec) {
-      return '<a class="snav-lesson" href="#' + esc(sec.id) + '">' +
+      return '<a class="ds-snav__lesson" href="#' + esc(sec.id) + '">' +
         esc(sec.getAttribute("data-lesson")) + "</a>";
     }).join("");
   }
 
   var spy = null;
 
+  /* ⚠ 010 · js-diff module.js:104 — спостерігач НЕ ЧІПАТИ. Він висить на
+     <section data-lesson>; будь-яка спроба зробити секцію display: contents
+     дає 0×0 rect і вбиває скролспай на 57 сторінках. */
   function initScrollspy() {
-    var links = $all(".snav-lesson");
+    var links = $all(".ds-snav__lesson");
     var sections = $all("[data-lesson]");
     if (!links.length || !sections.length || !("IntersectionObserver" in window)) return;
 
@@ -131,12 +179,15 @@
     var doneCount = modules.filter(function (m) { return done.has(m.id); }).length;
     var share = total ? Math.round((doneCount / total) * 100) : 0;
 
+    /* ⚠ 010 · П-28 · js-diff module.js:138–140. `.ds-prog__bar` малює
+       transform: scaleX(var(--prog-v)), а НЕ width. Прод ставив width —
+       після міграції смуга лишилась би на нулі назавжди, без помилки. */
     var html =
-      '<a class="snav-home" href="' + homeHref(cfg) + '">← На головну</a>' +
-      '<div class="snav-progressbar" role="img" aria-label="Прогрес курсу: ' + share + '%">' +
-        '<span style="width:' + share + '%"></span>' +
-      "</div>" +
-      '<p class="snav-count">' + doneCount + " з " + total + " модулів завершено</p>";
+      '<a class="ds-snav__home" href="' + homeHref(cfg) + '">← На головну</a>' +
+      '<span class="ds-prog" role="img" aria-label="Прогрес курсу: ' + share + '%">' +
+        '<span class="ds-prog__bar" style="--prog-v:' + (share / 100) + '"></span>' +
+      "</span>" +
+      '<p class="ds-snav__count">' + doneCount + " з " + total + " модулів завершено</p>";
 
     // Префікс уже містить пробіл — семантика та сама, що в js/config.js:227.
     var trackWord = (cfg.site && cfg.site.trackWord != null) ? cfg.site.trackWord : "Трек ";
@@ -145,39 +196,67 @@
       var own = modules.filter(function (m) { return m.track === t.id; });
       if (!own.length) return;
 
-      html += '<p class="snav-track">' + esc(trackWord) + (ROMAN[t.order - 1] || t.order) +
+      html += '<p class="ds-snav__track">' + esc(trackWord) + (ROMAN[t.order - 1] || t.order) +
               " · " + esc(t.title) + "</p>";
 
-      own.forEach(function (m) {
-        var isCurrent = m.id === currentId;
-        var isDone = done.has(m.id);
-        var isReady = m.status === "ready";
-        var isUnlocked = unlocked ? unlocked.has(m.id) : true;
-        var no = String(m.number).padStart(2, "0");
-
-        var inner =
-          '<span class="no">' + no + "</span>" +
-          '<span class="t">' + esc(m.title) +
-            (isDone ? ' <span class="snav-check" aria-label="завершено">✓</span>' : "") +
-          "</span>";
-
-        if (isCurrent) {
-          html += '<span class="snav-item is-current" aria-current="page">' + inner + "</span>";
-          html += '<div class="snav-lessons">' + lessonsHtml() + "</div>";
-        } else if (isReady && isUnlocked) {
-          // Сторінки модулів лежать поруч у /modules, а слаги в config —
-          // відносно кореня, тому додаємо "../"
-          html += '<a class="snav-item" href="../' + esc(m.slug) + '">' + inner + "</a>";
-        } else if (isReady) {
-          html += '<span class="snav-item is-soon" aria-disabled="true">' + inner + '<span class="soon">🔒</span></span>';
-        } else {
-          html += '<span class="snav-item is-soon">' + inner + '<span class="soon">скоро</span></span>';
-        }
-      });
+      own.forEach(function (m) { html += itemHtml(m, done, unlocked); });
     });
+
+    /* 010 · js-diff module.js:118. Модулі з track: null (сьогодні це лише
+       «Фінальний іспит» c23) не потрапляли в сайдбар ЖОДНОГО разу: на
+       сторінці іспиту не підсвічувалось нічого, а лічильник казав «23 з 23»
+       при 22 рядках. Відкат — зняти цей блок цілком, більше нічого не
+       зачіпається. */
+    var orphans = modules.filter(function (m) {
+      return !tracks.some(function (t) { return t.id === m.track; });
+    });
+    if (orphans.length) {
+      html += '<p class="ds-snav__track">' +
+              (orphans[0].kind === "exam" ? "Іспит" : "Поза треками") + "</p>";
+      orphans.forEach(function (m) { html += itemHtml(m, done, unlocked); });
+    }
 
     nav.innerHTML = html;
     initScrollspy();
+    /* Контракт руху: bind() у кінці кожного асинхронного render(). */
+    if (window.AIA && window.AIA.motion) window.AIA.motion.bind(nav);
+  }
+
+  function itemHtml(m, done, unlocked) {
+    var isCurrent = m.id === currentId;
+    var isDone = done.has(m.id);
+    var isReady = m.status === "ready";
+    var isUnlocked = unlocked ? unlocked.has(m.id) : true;
+    var no = String(m.number).padStart(2, "0");
+
+    /* ⚠ 010 · js-diff module.js:160. Власний <span class="snav-check">✓</span>
+       прибраний: гліф малює .ds-snav__item--done::after, і разом вийшло б
+       два ✓ в рядку. Слово для скрінрідера лишається — гліф із ::after
+       читається ненадійно. */
+    var inner =
+      '<span class="ds-snav__no">' + no + "</span>" +
+      '<span class="ds-snav__t">' + esc(m.title) +
+        (isDone ? ' <span class="sr-only">— завершено</span>' : "") +
+      "</span>";
+    var doneMod = isDone ? " ds-snav__item--done" : "";
+
+    if (isCurrent) {
+      /* ⚠ П-24: значення `page`, а не `true` — єдине правильне за WAI-ARIA.
+         Селектор у components.css виправлений на [aria-current] без значення. */
+      return '<span class="ds-snav__item' + doneMod + '" aria-current="page">' + inner + "</span>" +
+             '<div class="ds-snav__lessons">' + lessonsHtml() + "</div>";
+    }
+    if (isReady && isUnlocked) {
+      // Сторінки модулів лежать поруч у /modules, а слаги в config —
+      // відносно кореня, тому додаємо "../"
+      return '<a class="ds-snav__item' + doneMod + '" href="../' + esc(m.slug) + '">' + inner + "</a>";
+    }
+    if (isReady) {
+      return '<span class="ds-snav__item is-soon" aria-disabled="true">' + inner +
+             '<span class="ds-snav__soon">🔒</span></span>';
+    }
+    return '<span class="ds-snav__item is-soon">' + inner +
+           '<span class="ds-snav__soon">скоро</span></span>';
   }
 
   /* ---------- Навігація «попередній / наступний» ---------- */
@@ -194,48 +273,54 @@
     var next = modules[idx + 1];
     var html = "";
 
+    /* data-reveal — це ЄДИНІ вузли уроку з M2: вони народжуються після
+       асинхронного render() і стоять за згином. Секції прози не анімуються. */
+    function card(tag, href, mod, label, title) {
+      var attrs = tag === "a" ? ' href="' + href + '"' : ' aria-disabled="true"';
+      return "<" + tag + ' class="ds-mnav__item' + mod + '"' + attrs + ' data-reveal="">' +
+               '<span class="ds-mnav__label">' + label + "</span>" +
+               '<span class="ds-mnav__title">' + title + "</span>" +
+             "</" + tag + ">";
+    }
+
     // Ліва картка: попередній модуль або повернення на головну
     if (!prev) {
-      html += '<a class="mnav" href="' + homeHref(cfg) + '">' +
-        '<span class="mnav-label">← Назад</span>' +
-        '<span class="mnav-title">Огляд курсу</span></a>';
+      html += card("a", homeHref(cfg), "", "← Назад", "Огляд курсу");
     } else if (prev.status === "ready") {
-      html += '<a class="mnav" href="../' + esc(prev.slug) + '">' +
-        '<span class="mnav-label">← Модуль ' + prev.number + "</span>" +
-        '<span class="mnav-title">' + esc(prev.title) + "</span></a>";
+      html += card("a", "../" + esc(prev.slug), "",
+                   "← Модуль " + prev.number, esc(prev.title));
     } else {
-      html += '<span class="mnav is-soon">' +
-        '<span class="mnav-label">← Модуль ' + prev.number + " · скоро</span>" +
-        '<span class="mnav-title">' + esc(prev.title) + "</span></span>";
+      html += card("span", "", " is-soon",
+                   "← Модуль " + prev.number + " · скоро", esc(prev.title));
     }
 
     // Права картка: наступний модуль (або фінал курсу)
     var currentDone = completedSet().has(currentId);
     if (!next) {
-      html += '<a class="mnav mnav-next" href="../certificate.html">' +
-        '<span class="mnav-label">Готово! →</span>' +
-        '<span class="mnav-title">Ти пройшов(-ла) весь курс! Отримати сертифікат 🎓</span></a>';
+      html += card("a", "../certificate.html", " ds-mnav--next ds-mnav__item--final",
+                   "Готово! →", "Ти пройшов(-ла) весь курс! Отримати сертифікат 🎓");
     } else if (next.status === "ready" && currentDone) {
-      html += '<a class="mnav mnav-next" href="../' + esc(next.slug) + '">' +
-        '<span class="mnav-label">Далі: Модуль ' + next.number + " →</span>" +
-        '<span class="mnav-title">' + esc(next.title) + "</span></a>";
+      html += card("a", "../" + esc(next.slug), " ds-mnav--next",
+                   "Далі: Модуль " + next.number + " →", esc(next.title));
     } else if (next.status === "ready") {
-      html += '<span class="mnav mnav-next is-soon" aria-disabled="true">' +
-        '<span class="mnav-label">🔒 Заверши цей модуль</span>' +
-        '<span class="mnav-title">Далі: Модуль ' + next.number + " — " + esc(next.title) + "</span></span>";
+      html += card("span", "", " ds-mnav--next is-soon",
+                   "🔒 Заверши цей модуль",
+                   "Далі: Модуль " + next.number + " — " + esc(next.title));
     } else {
-      html += '<span class="mnav mnav-next is-soon">' +
-        '<span class="mnav-label">Далі · скоро</span>' +
-        '<span class="mnav-title">Модуль ' + next.number + " — " + esc(next.title) + "</span></span>";
+      html += card("span", "", " ds-mnav--next is-soon",
+                   "Далі · скоро",
+                   "Модуль " + next.number + " — " + esc(next.title));
     }
 
     box.innerHTML = html;
+    if (window.AIA && window.AIA.motion) window.AIA.motion.bind(box);
   }
 
   /* ---------- Кнопка «Позначити завершеним» ---------- */
 
-  var BTN_BASE = "mt-4 shrink-0 rounded-lg px-5 py-2.5 font-medium transition sm:mt-0 ";
-
+  /* 010 · js-diff module.js:238. Було два рядки Tailwind-утиліт (П-08: клас із
+     CDN приходить у DOM через ~53 мс). Стало два модифікатори компонента —
+     і кнопка нарешті має заливку: bg-clay / text-ink у новій темі мертві. */
   function refreshComplete() {
     var btn = $("#completeBtn");
     if (!btn || !window.AIAProgress || !currentId) return;
@@ -243,15 +328,9 @@
     var done = window.AIAProgress.isCompleted(currentId);
     var title = $("#completeTitle");
 
-    if (done) {
-      btn.className = BTN_BASE + "border border-clay/60 text-clay hover:border-line hover:text-muted";
-      btn.textContent = "✓ Завершено · натисни, щоб скинути";
-      if (title) title.textContent = "Модуль пройдено!";
-    } else {
-      btn.className = BTN_BASE + "bg-clay text-ink hover:bg-clay-deep";
-      btn.textContent = "Позначити завершеним";
-      if (title) title.textContent = "Модуль позаду?";
-    }
+    btn.className = "ds-btn " + (done ? "ds-btn--secondary" : "ds-btn--primary");
+    btn.textContent = done ? "✓ Завершено · натисни, щоб скинути" : "Позначити завершеним";
+    if (title) title.textContent = done ? "Модуль пройдено!" : "Модуль позаду?";
   }
 
   /* ---------- Блокування контенту заблокованого модуля ---------- */
@@ -266,21 +345,23 @@
     var msg, action;
     if (!loggedIn) {
       msg = "Цей модуль відкриється після входу та проходження попередніх по черзі.";
-      action = '<button type="button" id="aiaGateLogin" class="mt-5 inline-flex rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep">Увійти / зареєструватися</button>';
+      action = '<button type="button" id="aiaGateLogin" class="ds-btn ds-btn--primary">Увійти / зареєструватися</button>';
     } else if (prev) {
       msg = "Спершу заверши Модуль " + prev.number + " — «" + esc(prev.title) + "».";
-      action = '<a href="../' + esc(prev.slug) + '" class="mt-5 inline-flex rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep">Перейти до Модуля ' + prev.number + " →</a>";
+      action = '<a href="../' + esc(prev.slug) + '" class="ds-btn ds-btn--primary">Перейти до Модуля ' + prev.number + " →</a>";
     } else {
       msg = "Цей модуль поки заблоковано.";
-      action = '<a href="' + homeHref(cfg) + '" class="mt-5 inline-flex rounded-lg border border-line px-5 py-2.5 transition hover:border-clay/60">На головну</a>';
+      action = '<a href="' + homeHref(cfg) + '" class="ds-btn ds-btn--secondary">На головну</a>';
     }
 
+    /* 010 · js-diff module.js:280+. Дев'ять Tailwind-утиліт у рядку JS
+       замінені компонентом .ds-empty--gate — нового класу не заводимо. */
     var wrap = document.createElement("div");
     wrap.id = "aiaGate";
-    wrap.className = "mx-auto max-w-3xl rounded-2xl border border-line bg-surface p-8 text-center";
+    wrap.className = "ds-empty ds-empty--gate";
     wrap.innerHTML =
-      '<p class="font-display text-2xl">🔒 Модуль заблоковано</p>' +
-      '<p class="mt-3 text-muted">' + msg + "</p>" + action;
+      '<p class="ds-h3">🔒 Модуль заблоковано</p>' +
+      '<p class="ds-small">' + msg + "</p>" + action;
     return wrap;
   }
 
@@ -297,12 +378,16 @@
           if (window.AIAAuth) window.AIAAuth.open("Увійди, щоб проходити курс по черзі.");
         });
       }
+      /* П-31: hidden, а не інлайновий display. Атрибут програє будь-якій
+         утиліті розкладки (у preflight це [hidden] = 0,1,0, і .grid теж),
+         тому в components.css стоїть [hidden][hidden] = (0,2,0). Саме через
+         це хвіст уроку (#moduleNav.ds-mnav) міг лишатись видимим під замком. */
       Array.prototype.forEach.call(main.children, function (ch) {
-        if (ch !== gate) ch.style.display = "none";
+        if (ch !== gate) ch.hidden = true;
       });
     } else {
       if (gate) gate.remove();
-      Array.prototype.forEach.call(main.children, function (ch) { ch.style.display = ""; });
+      Array.prototype.forEach.call(main.children, function (ch) { ch.hidden = false; });
     }
   }
 

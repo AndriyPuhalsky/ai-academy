@@ -19,6 +19,9 @@ const MAX_EMAIL = 254;
 const MAX_TELEGRAM = 100;
 const MIN_MESSAGE = 5;
 const MAX_MESSAGE = 2000;
+// Страховка, якщо переходу закриття не сталося взагалі (наприклад, елемент
+// зняли зі сторінки): рівна тій, що в js/auth-ui.js.
+const CLOSE_FALLBACK = 400;
 
 const ERROR_MESSAGES = {
   invalid_name: "Вкажи ім'я та прізвище (щонайменше 2 символи).",
@@ -83,16 +86,16 @@ function loadTurnstileScript() {
 async function renderTurnstile() {
   const holder = modalEl.querySelector("#contactTurnstile");
   const siteKey = cfg && cfg.contact && cfg.contact.turnstileSiteKey;
-  if (isPlaceholder(siteKey)) { holder.classList.add("hidden"); return; }
+  if (isPlaceholder(siteKey)) { holder.hidden = true; return; }
 
-  holder.classList.remove("hidden");
+  holder.hidden = false;
   try {
     await loadTurnstileScript();
     holder.innerHTML = "";
     turnstileWidgetId = window.turnstile.render(holder, { sitekey: siteKey, theme: "dark" });
   } catch (e) {
     console.error("[AIA contact] Turnstile недоступний:", e);
-    holder.classList.add("hidden");
+    holder.hidden = true;
   }
 }
 
@@ -116,23 +119,34 @@ function hasTurnstile() {
 /* Задача 004 п.4 · блокування прокрутки фону, поки модалка відкрита.
    Лічильник — у data-aia-lock на <html>, спільний із js/auth-ui.js:
    дві незалежні модалки не мають знімати блокування одна одній.
-   Стилі — html.aia-scroll-lock у css/custom.css. */
+   Стилі — html.ds-lock у css/components.css.
+   ⚠ 010 · КЛАС `ds-lock` ЖИВЕ В ТРЬОХ ФАЙЛАХ І МІНЯЄТЬСЯ ЛИШЕ РАЗОМ.
+   Замок ведуть js/module.js (шторка змісту), js/contact.js (модалка
+   «Написати нам») і js/auth-ui.js (діалоги входу). Лічильник спільний —
+   data-aia-lock на <html>. Якщо один із трьох знімає іншу назву класу,
+   ніж вішає сусід, послідовність «шторка → модалка → закрити шторку →
+   закрити модалку» лишає клас на <html> НАЗАВЖДИ, і скрол сторінки
+   заморожений без жодної помилки в консолі.
+   ⚠ `--ds-lock-sbw` — ширина смуги прокрутки, яку `overflow: hidden`
+   забирає. Правило-споживач у css/components.css поки ВІДСУТНЄ (у пакеті
+   є лише `html.ds-lock { overflow: hidden }`) — потрібні два рядки, див.
+   03-frontend/report-d.md, розділ «Потрібні правила в спільних файлах». */
 function lockScroll() {
   const root = document.documentElement;
   const n = (parseInt(root.getAttribute("data-aia-lock"), 10) || 0) + 1;
   root.setAttribute("data-aia-lock", String(n));
   if (n > 1) return;
   const sbw = window.innerWidth - root.clientWidth;
-  root.style.setProperty("--aia-sbw", (sbw > 0 ? sbw : 0) + "px");
-  root.classList.add("aia-scroll-lock");
+  root.style.setProperty("--ds-lock-sbw", (sbw > 0 ? sbw : 0) + "px");
+  root.classList.add("ds-lock");
 }
 function unlockScroll() {
   const root = document.documentElement;
   const n = (parseInt(root.getAttribute("data-aia-lock"), 10) || 0) - 1;
   if (n > 0) { root.setAttribute("data-aia-lock", String(n)); return; }
   root.removeAttribute("data-aia-lock");
-  root.classList.remove("aia-scroll-lock");
-  root.style.removeProperty("--aia-sbw");
+  root.classList.remove("ds-lock");
+  root.style.removeProperty("--ds-lock-sbw");
 }
 
 /* 006 · П-02 · Пастка фокуса. Скопійована з js/auth-ui.js (focusables/trap,
@@ -153,7 +167,8 @@ function focusables(root) {
 
 function trap(e) {
   if (e.key !== "Tab" || !modalEl) return;
-  const card = modalEl.firstElementChild;
+  // ⚠ Не firstElementChild: перший нащадок тепер .ds-dlg__scrim.
+  const card = modalEl.querySelector(".ds-dlg__card");
   const list = focusables(card);
   if (!list.length) { e.preventDefault(); modalEl.focus(); return; }
   const first = list[0], last = list[list.length - 1];
@@ -164,11 +179,39 @@ function trap(e) {
   }
 }
 
+/* ---------- Розмітка модалки ----------
+   010 · етап 8. Було: рядок Tailwind-утиліт (`fixed inset-0 z-[60] hidden …`)
+   плюс девʼять утиліт на кожному полі. Стало — ds-dlg / ds-fld / ds-btn зі
+   СТАТИЧНОГО css/components.css. Це закриває давній хвіст «модалка перші
+   ~50 мс нестилізована»: клас, який приходить у DOM лише з JS, Tailwind CDN
+   генерує вже ПІСЛЯ вставки (006 D-02, заміряно 53 мс), а компонентні класи
+   готові з першого кадру.
+
+   ⚠ Мітки полів лишаються ЗОРОВО ПРИХОВАНИМИ (sr-only), а не видимими
+   ds-fld__label. Причина: у пакеті 010 кадру цієї модалки немає, а видимі
+   мітки — це зміна вигляду, а не міграція. Placeholder-и й порядок полів
+   збережені дослівно; WCAG 3.3.2 закриває саме sr-only-мітка (той самий
+   прийом, що в js/auth-ui.js, FIX-4 задачі 001).
+
+   ⚠ Вертикальний ритм — інлайновим grid із токена --s-3, бо Tailwind-утиліт
+   у JS бути не має (див. вище), а нових правил у components.css цей файл не
+   заводить. У grid-контейнері .ds-btn розтягується на всю колонку сам —
+   тому повноширинна кнопка «Надіслати» не потребує w-full.
+
+   ⚠⚠ П-31 У НАЙЧИСТІШОМУ ВИГЛЯДІ: інлайновий `display:grid` перемагає
+   `[hidden][hidden] { display: none }` (інлайн б'є будь-яке правило без
+   !important). Спіймано живцем: блок «Дякуємо! Повідомлення надіслано»
+   висів у щойно відкритій модалці. Тому сітка живе на ВНУТРІШНЬОМУ вузлі,
+   а атрибут hidden — на зовнішньому. Не зливати їх в один div. */
+const STACK = ' style="display:grid;gap:var(--s-3)"';
+
 function buildModal() {
   if (modalEl) return;
   modalEl = document.createElement("div");
   modalEl.id = "aiaContactModal";
-  modalEl.className = "fixed inset-0 z-[60] hidden items-center justify-center bg-ink/80 p-4 backdrop-blur";
+  modalEl.className = "ds-dlg";
+  modalEl.hidden = true;
+  modalEl.setAttribute("data-open", "false");
   // 006 · П-02 · Роль і назва діалогу. tabindex="-1" потрібен, щоб пастка
   // Tab мала куди повернути фокус, якщо всередині картки не лишилось
   // жодного фокусовного елемента.
@@ -176,39 +219,63 @@ function buildModal() {
   modalEl.setAttribute("aria-modal", "true");
   modalEl.setAttribute("aria-labelledby", "ctTitle");
   modalEl.setAttribute("tabindex", "-1");
+
+  const field = (id, type, label, ph, attrs, max) =>
+    '<div class="ds-fld">' +
+      '<label class="sr-only" for="' + id + '">' + label + "</label>" +
+      '<input id="' + id + '" class="ds-fld__input" type="' + type + '" placeholder="' + ph +
+        '" maxlength="' + max + '" ' + attrs + " />" +
+    "</div>";
+
   modalEl.innerHTML =
-    '<div class="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-2xl">' +
-      '<div class="mb-4 flex items-center justify-between">' +
-        '<h2 id="ctTitle" class="font-display text-xl">Написати нам</h2>' +
-        '<button type="button" id="ctClose" class="text-faint transition hover:text-sand" aria-label="Закрити">✕</button>' +
+    '<div class="ds-dlg__scrim"></div>' +
+    '<div class="ds-dlg__card">' +
+      '<div class="ds-dlg__head">' +
+        '<h2 id="ctTitle" class="ds-h3">Написати нам</h2>' +
+        '<button type="button" id="ctClose" class="ds-btn ds-btn--quiet ds-btn--sm ds-btn--icon" aria-label="Закрити">✕</button>' +
       "</div>" +
-      '<div id="ctFormWrap" class="space-y-3">' +
-        '<input id="ctName" type="text" placeholder="Ім\'я та прізвище" autocomplete="name" maxlength="' + MAX_NAME + '" class="w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm text-ivory outline-none transition focus:border-clay/60" />' +
-        '<input id="ctEmail" type="email" placeholder="Email" autocomplete="email" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="' + MAX_EMAIL + '" class="w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm text-ivory outline-none transition focus:border-clay/60" />' +
-        '<input id="ctTelegram" type="text" placeholder="Telegram (необов\'язково)" autocomplete="off" maxlength="' + MAX_TELEGRAM + '" class="w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm text-ivory outline-none transition focus:border-clay/60" />' +
-        "<div>" +
-          '<textarea id="ctMessage" rows="4" placeholder="Опиши питання чи ідею" maxlength="' + MAX_MESSAGE + '" class="w-full resize-none rounded-lg border border-line bg-ink px-3 py-2 text-sm text-ivory outline-none transition focus:border-clay/60"></textarea>' +
-          '<p id="ctCounter" class="mt-1 text-right text-xs text-faint">0/' + MAX_MESSAGE + '</p>' +
+      '<div id="ctFormWrap"><div' + STACK + ">" +
+        field("ctName", "text", "Ім'я та прізвище", "Ім'я та прізвище", 'autocomplete="name"', MAX_NAME) +
+        field("ctEmail", "email", "Email", "Email",
+              'autocomplete="email" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false"', MAX_EMAIL) +
+        field("ctTelegram", "text", "Telegram (необовʼязково)", "Telegram (необов'язково)",
+              'autocomplete="off"', MAX_TELEGRAM) +
+        '<div class="ds-fld">' +
+          '<label class="sr-only" for="ctMessage">Питання чи ідея</label>' +
+          '<textarea id="ctMessage" class="ds-fld__input" rows="4" placeholder="Опиши питання чи ідею" maxlength="' + MAX_MESSAGE + '"></textarea>' +
+          '<span id="ctCounter" class="ds-fld__count" style="text-align:right" aria-hidden="true">0/' + MAX_MESSAGE + "</span>" +
         "</div>" +
         // Honeypot: приховане поле-пастка для ботів. Справжній відвідувач його не бачить
         // і не заповнює; якщо воно непорожнє на сервері — тихо ігноруємо запит.
-        '<input type="text" id="ctHp" name="company" autocomplete="off" tabindex="-1" aria-hidden="true" class="hidden" />' +
-        '<div id="contactTurnstile" class="hidden"></div>' +
-        '<p id="ctError" class="hidden text-sm text-clay"></p>' +
-        '<button type="button" id="ctSubmit" class="w-full rounded-lg bg-clay px-4 py-2.5 font-medium text-ink transition hover:bg-clay-deep">Надіслати</button>' +
-      "</div>" +
-      '<div id="ctDone" class="hidden">' +
-        '<p class="text-ivory">Дякуємо! Повідомлення надіслано — відповімо найближчим часом.</p>' +
-        '<button type="button" id="ctDoneClose" class="mt-4 w-full rounded-lg border border-line px-4 py-2.5 text-sm text-muted transition hover:border-clay/60 hover:text-sand">Закрити</button>' +
-      "</div>" +
+        '<input type="text" id="ctHp" name="company" autocomplete="off" tabindex="-1" aria-hidden="true" hidden />' +
+        /* ⚠ Turnstile — чужий віджет ФІКСОВАНОЇ ширини 300 px. На 320 px він
+           разом із паддінгом картки (2×24) розпирав аркуш до 350 px, і той
+           вилазив за екран на 25 px праворуч і 5 ліворуч (заміряно; кнопка
+           «Закрити» опинялась за краєм). overflow-x робить цей вузол
+           скрол-контейнером, а отже його внесок у min-content дорівнює нулю —
+           аркуш лишається рівно 320 px, а віджет прокручується в собі.
+           На 360 px і ширше ефекту немає: там він і так уміщається. */
+        '<div id="contactTurnstile" style="overflow-x:auto" hidden></div>' +
+        '<p id="ctError" class="ds-fld__error" role="alert" hidden></p>' +
+        '<button type="button" id="ctSubmit" class="ds-btn ds-btn--primary">Надіслати</button>' +
+      "</div></div>" +
+      '<div id="ctDone" hidden><div' + STACK + ">" +
+        "<p>Дякуємо! Повідомлення надіслано — відповімо найближчим часом.</p>" +
+        '<button type="button" id="ctDoneClose" class="ds-btn ds-btn--secondary">Закрити</button>' +
+      "</div></div>" +
     "</div>";
   document.body.appendChild(modalEl);
 
   modalEl.querySelector("#ctClose").addEventListener("click", closeModal);
   modalEl.querySelector("#ctDoneClose").addEventListener("click", closeModal);
-  modalEl.addEventListener("click", (e) => { if (e.target === modalEl) closeModal(); });
+  // Клік по підложці. Було `e.target === modalEl`; тепер підложка — окремий
+  // елемент .ds-dlg__scrim, а сам modalEl лишається прокруткою діалога, тому
+  // перевіряємо обидва.
+  modalEl.addEventListener("mousedown", (e) => {
+    if (e.target === modalEl || e.target.classList.contains("ds-dlg__scrim")) closeModal();
+  });
   document.addEventListener("keydown", (e) => {
-    if (modalEl.classList.contains("hidden")) return;
+    if (modalEl.hidden) return;
     if (e.key === "Escape") { closeModal(); return; }
     trap(e);
   });
@@ -231,8 +298,8 @@ function resetForm() {
   q("#ctHp").value = "";
   q("#ctCounter").textContent = "0/" + MAX_MESSAGE;
   hideError();
-  q("#ctFormWrap").classList.remove("hidden");
-  q("#ctDone").classList.add("hidden");
+  q("#ctFormWrap").hidden = false;
+  q("#ctDone").hidden = true;
 }
 
 function openModal() {
@@ -240,9 +307,17 @@ function openModal() {
   lastFocused = document.activeElement;
   buildModal();
   resetForm();
-  if (modalEl.classList.contains("hidden")) lockScroll();
-  modalEl.classList.remove("hidden");
-  modalEl.classList.add("flex");
+  if (modalEl.hidden) lockScroll();
+  modalEl.hidden = false;
+  /* ⚠ П-10. НЕ requestAnimationFrame. Заміряно 2026-09-07 у живому Chrome:
+     у вкладці, яка не рендериться (фон, оклюзія, згорнуте вікно), rAF не
+     викликається ЖОДНОГО разу — тобто `hidden = false` спрацьовує, а
+     перемикання data-open ні, і людина, повернувшись у вкладку, бачить
+     порожній затемнений екран. Примусовий reflow дає той самий «наступний
+     кадр» для старту переходу, але виконується синхронно й від рендера не
+     залежить. Той самий прийом стоїть у js/motion.js (M2) і в .term. */
+  void modalEl.offsetWidth;
+  modalEl.setAttribute("data-open", "true");
   renderTurnstile();
   setTimeout(() => modalEl.querySelector("#ctName").focus(), 50);
 }
@@ -251,10 +326,26 @@ function closeModal() {
   if (!modalEl) return;
   // Захист від подвійного зняття: Escape і клік по підложці можуть
   // прилетіти на вже закриту модалку.
-  if (modalEl.classList.contains("hidden")) return;
-  modalEl.classList.add("hidden");
-  modalEl.classList.remove("flex");
+  if (modalEl.hidden) return;
+  modalEl.setAttribute("data-open", "false");
   unlockScroll();
+  /* Ховаємо ПІСЛЯ виходу, інакше зникнення буде різким. transitionend
+     приходить навіть при --motion: 0 — епсилон 0.00002ms у tokens.css
+     існує саме для цього (нульова тривалість подій не породжує).
+     setTimeout — страховка, якщо переходу не сталося взагалі. */
+  const card = modalEl.querySelector(".ds-dlg__card");
+  const done = (e) => {
+    /* ⚠ Слухач висить на .ds-dlg, а transitionend СПЛИВАЄ: перехід
+       border-color будь-якого поля чи кнопки всередині картки долетів би
+       сюди й сховав діалог за 50 мс замість 180 (спіймано живцем). Тому
+       фільтр за ціллю і властивістю, а не «будь-який transitionend». */
+    if (e && (e.target !== card || e.propertyName !== "opacity")) return;
+    if (modalEl.getAttribute("data-open") === "true") return;   // встигли відкрити знову
+    modalEl.hidden = true;
+    modalEl.removeEventListener("transitionend", done);
+  };
+  modalEl.addEventListener("transitionend", done);
+  setTimeout(done, CLOSE_FALLBACK);
   // Повертаємо фокус туди, звідки відкривали (зазвичай #contactTrigger).
   // Обнуляємо одразу — повторний Escape по вже закритій модалці до сюди
   // не доходить (гілка вище), але подвійне повернення все одно зайве.
@@ -265,14 +356,14 @@ function closeModal() {
 function showError(msg) {
   const el = modalEl.querySelector("#ctError");
   el.textContent = msg;
-  el.classList.remove("hidden");
+  el.hidden = false;
   const live = document.getElementById("ariaLive");
   if (live) live.textContent = msg;
 }
 function hideError() {
   const el = modalEl.querySelector("#ctError");
   el.textContent = "";
-  el.classList.add("hidden");
+  el.hidden = true;
 }
 
 async function submit() {
@@ -316,8 +407,8 @@ async function submit() {
       showError(ERROR_MESSAGES[data.error] || "Не вдалося надіслати. Спробуй ще раз.");
       return;
     }
-    modalEl.querySelector("#ctFormWrap").classList.add("hidden");
-    modalEl.querySelector("#ctDone").classList.remove("hidden");
+    modalEl.querySelector("#ctFormWrap").hidden = true;
+    modalEl.querySelector("#ctDone").hidden = false;
     const live = document.getElementById("ariaLive");
     if (live) live.textContent = "Повідомлення надіслано";
   } catch (e) {

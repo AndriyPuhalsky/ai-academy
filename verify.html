@@ -1,76 +1,105 @@
 <!DOCTYPE html>
-<html lang="uk" class="scroll-smooth" data-config="config.json">
+<!-- ЄДИНА СТОРІНКА САЙТУ ДЛЯ СТОРОННІХ ЛЮДЕЙ: людині дали код на папері й
+     вона прийшла його перевірити. Тому тут немає ні футера, ні #configError,
+     ні слота авторизації — і це рішення (§7.7), а не борг.
+
+     ⚠ data-lit НЕ СТАВИТЬСЯ. Ефект «світло згори» на верхньому канті поля дає
+     контраст 2.22 при порозі 3:1 (дефект D-03 задачі 009), а поле тут єдине
+     й головне. На решті сторінок data-lit стоїть. -->
+<html lang="uk" data-config="config.json" data-course="academy" data-density="lesson">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Перевірка сертифіката — AI Академія</title>
-  <meta name="theme-color" content="#141312" />
+  <meta name="theme-color" content="#161311" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
   <script>document.documentElement.classList.add("js");</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <!-- Латиниця вантажиться СВІДОМО: український апостроф ʼ (U+02BC) лежить у
+       латинській підмножині Google Fonts, а не в кириличній. -->
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → Tailwind → тема.
+       Tailwind іде ПІСЛЯ наших <link> навмисно: його preflight має стояти
+       в каскаді пізніше, ніж наші правила на голий тег.
+       010 · етап 9: стара мова (окремий файл зі спадщиною 2023–2026)
+       видалена цілком, тому в каскаді лишились рівно ці файли. -->
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/components.css" />
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: { extend: {
-        colors: {
-          ink: "#141312", surface: "#1E1B18", raised: "#272320", line: "#3A342E", "line-strong": "#736A5E",
-          ivory: "#F0EEE6", muted: "#A8A095", faint: "#9A9184",
-          clay: "#D97757", "clay-deep": "#C4674A", sand: "#E8DCC3"
-        },
-        fontFamily: {
-          display: ["Literata", "Georgia", "serif"],
-          sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
-          mono: ["'IBM Plex Mono'", "ui-monospace", "monospace"]
-        },
-        maxWidth: { content: "72rem" }
-      } }
-    };
-  </script>
-  <link rel="stylesheet" href="css/custom.css" />
+  <script src="js/tw-theme.js"></script>
 </head>
-<body class="bg-ink font-sans text-ivory antialiased">
+<body>
 
-  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
   <div id="ariaLive" class="sr-only" aria-live="polite"></div>
 
-  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
-    <div class="mx-auto flex h-16 max-w-content items-center justify-between gap-4 px-5 sm:px-8">
-      <a href="index.html" class="flex items-center gap-2.5">
-        <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink">AIA</span>
-        <span class="font-display text-lg">AI Академія</span>
+  <!-- ШАПКА, ПРОФІЛЬ H4. Слота авторизації немає і не буде: сторонній людині
+       нема куди входити, а порожній резерв на 192 px читався б як поломка. -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <a class="ds-hdr__brand" href="index.html">
+        <span class="ds-hdr__mark" aria-hidden="true">AIA</span>
+        <span>AI Академія</span>
       </a>
-      <a href="index.html#syllabus" class="text-sm text-muted transition hover:text-ivory">До курсу →</a>
+      <span class="ds-hdr__spacer"></span>
+      <a class="ds-nav__link" href="index.html#syllabus">До курсу →</a>
     </div>
   </header>
 
-  <main id="main" class="mx-auto max-w-xl px-5 py-12 sm:px-8 sm:py-16">
-    <p class="font-mono text-sm text-clay">Перевірка</p>
-    <h1 class="mt-2 font-display text-4xl">Перевірити сертифікат</h1>
-    <p class="mt-3 text-muted">Введи код із сертифіката, щоб підтвердити його справжність.</p>
+  <main id="main" class="mx-auto max-w-narrow px-5 py-10 sm:px-8 sm:py-16" data-page-in>
+    <p class="ds-eyebrow">Перевірка</p>
+    <h1 class="ds-h2 mt-2">Перевірити сертифікат</h1>
+    <p class="ds-lead mt-4">
+      Введи код із сертифіката — 12 символів під QR-кодом, — щоб підтвердити його
+      справжність. Нічого не треба реєструвати: перевірка публічна.
+    </p>
 
-    <div class="mt-6 flex gap-2">
-      <!-- 006 · D-03 · Доступна назва: видимого <label> на цій сторінці немає за
-           задумом (поле + кнопка в один рядок), а placeholder назвою не є —
-           він зникає при введенні й не читається як label. aria-label повторює
-           початок placeholder'а, тож WCAG 2.5.3 (Label in Name) не порушено. -->
-      <input id="verifyInput" type="text" aria-label="Код сертифіката"
-             placeholder="Код сертифіката (напр. a1b2c3d4e5f6)"
-             class="min-w-0 flex-1 rounded-lg border border-line bg-surface px-4 py-2.5 font-mono text-sm text-ivory outline-none transition focus:border-clay/60" />
-      <button id="verifyBtn" type="button"
-              class="shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep">Перевірити</button>
+    <!-- Поле НЕ схоже на пошук: код сертифіката — це 12 символів [0-9a-f],
+         тож поле набирається моношрифтом, тримає 12 знакомісць і має ЖИВИЙ
+         лічильник. Причина не косметична: без нього людина дізнається, що
+         переписала код неповністю, ТІЛЬКИ після відповіді бази — тобто «не
+         знайдено» показують і на короткий код, і на чужий. Лічильник розводить
+         ці два випадки ДО натискання кнопки. Рахує js/verify.js (етап 8);
+         початкове «0 / 12» стоїть у розмітці, щоб рядок не зʼявлявся пізніше
+         й не зсував поле. aria-hidden: те саме сказано словами в #verifyHint. -->
+    <div class="ds-fld ds-fld--code mt-8" id="verifyField">
+      <div class="ds-fld__row">
+        <label class="ds-fld__label" for="verifyInput">Код сертифіката</label>
+        <span class="ds-fld__count" id="verifyCount" data-state="short" aria-hidden="true">0 / 12</span>
+      </div>
+      <div class="flex items-start gap-2">
+        <input id="verifyInput" class="ds-fld__input" type="text"
+               inputmode="latin" autocapitalize="off" autocomplete="off" spellcheck="false"
+               maxlength="24" placeholder="a1b2c3d4e5f6"
+               aria-describedby="verifyHint" />
+        <button id="verifyBtn" type="button" class="ds-btn ds-btn--primary shrink-0">Перевірити</button>
+      </div>
+      <p class="ds-fld__hint" id="verifyHint">
+        Великі й малі літери, пробіли та кириличні двійники латинських літер
+        виправляються автоматично.
+      </p>
+      <!-- Помилка стоїть БІЛЯ ПОЛЯ, а не лише зверху сторінки (правило ds-fld).
+           Кнопка «Перевірити» свідомо НЕ блокується: заблокована кнопка не
+           пояснює, чого від людини хочуть, і не читається як помилка. -->
+      <p class="ds-fld__error" id="verifyFieldError" hidden>Введи код сертифіката — поле порожнє.</p>
     </div>
 
-    <!-- role="status" (не aria-live на порожньому контейнері) — щоб результат
-         перевірки озвучувався одразу після відповіді RPC: js/verify.js кладе
-         сюди готову картку одним innerHTML, а aria-atomic="true" змушує
-         прочитати її цілком, а не лише дельту. -->
-    <div id="verifyResult" class="mt-8" role="status" aria-live="polite" aria-atomic="true"></div>
+    <!-- role="status" на непорожньому контейнері + aria-atomic: js/verify.js
+         кладе сюди готову картку одним innerHTML, і скрінрідер читає її
+         цілком, а не лише дельту. Так є в проді (правка 006 D-03). -->
+    <div id="verifyResult" class="mt-8 grid gap-4" role="status" aria-live="polite" aria-atomic="true">
+      <div class="ds-empty">
+        <p class="ds-small">Код сертифіката — 12 символів під QR-кодом на аркуші.</p>
+        <p class="ds-small">Він же відкривається за посиланням із самого PDF.</p>
+      </div>
+    </div>
   </main>
 
+  <script src="js/motion.js"></script>
   <script type="module" src="js/verify.js"></script>
 </body>
 </html>

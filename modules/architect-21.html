@@ -1,104 +1,100 @@
 <!DOCTYPE html>
-<html lang="uk" class="scroll-smooth" data-config="../architect.config.json">
+<html lang="uk" data-config="../architect.config.json" data-course="architect" data-density="lesson" data-lit>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Модуль 21 · Капстоун: реальна AI-система — AI Architect</title>
   <meta name="description" content="Кульмінація курсу: будуємо й розгортаємо реальну AI-систему від ідеї до живого деплою — агент з RAG та інструментами, бекенд, евали й портфоліо." />
-  <meta name="theme-color" content="#141312" />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
 
   <script>document.documentElement.classList.add("js");</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег.
+       010 · етап 9: стара мова (окремий файл зі спадщиною 2023–2026)
+       видалена цілком, тому в каскаді лишились рівно ці файли. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ink: "#141312", surface: "#1E1B18", raised: "#272320",
-            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
-            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
-            sand: "#E8DCC3"
-          },
-          fontFamily: {
-            display: ["Literata", "Georgia", "serif"],
-            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
-            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
-          },
-          maxWidth: { content: "72rem" }
-        }
-      }
-    };
-  </script>
-
-  <link rel="stylesheet" href="../css/custom.css" />
+  <script src="../js/tw-theme.js"></script>
 </head>
 
-<body data-module="a21" class="bg-ink font-sans text-ivory antialiased">
+<body data-module="a21">
 
-  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
   <div id="ariaLive" class="sr-only" aria-live="polite"></div>
 
   <noscript>
-    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
-      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
     </div>
   </noscript>
 
-  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
-    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
-      <div class="flex items-center gap-3">
-        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
-                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
-          <span class="sr-only">Зміст курсу</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-            <path d="M3 6h18M3 12h18M3 18h18" />
-          </svg>
-        </button>
-        <a href="../index.html" class="flex items-center gap-2.5">
-          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIA</span>
-          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Architect</span>
-        </a>
-        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
-        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 21</span>
-      </div>
-      <div class="flex items-center gap-3">
-        <div id="aiaAuth" class="slot"></div>
-        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
-        <a href="../index.html" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">На головну</a>
-      </div>
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../index.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIA</span>
+        <span data-site="name">AI Architect</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Модуль 21</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../index.html">На головну</a>
     </div>
   </header>
 
-  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
-    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
-      ⚠ Не вдалося завантажити <code>architect.config.json</code>. Відкрий сайт через локальний сервер,
-      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">architect.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
     </div>
   </div>
 
-  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
 
-    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
       <div id="sidebarNav" class="lg:pt-10">
-        <p class="snav-count">Завантаження програми…</p>
+        <p class="ds-snav__count">Завантаження програми…</p>
       </div>
     </aside>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-3xl">
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
 
-        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза E · Ширше і далі</p>
-        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Капстоун: реальна AI-система</h1>
-        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Капстоун · 7 уроків · ≈ 150 хв (плюс твоя робота)</p>
-        <p class="mt-6 text-lg">
+        <p class="ds-eyebrow">Фаза E · Ширше і далі</p>
+        <h1 class="ds-h1">Капстоун: реальна AI-система</h1>
+        <p class="ds-small ds-num">Капстоун · 7 уроків · ≈ 150 хв (плюс твоя робота)</p>
+        <p class="ds-lead">
           Це кульмінація курсу. Ми зберемо <strong>повноцінну AI-систему від ідеї до живого деплою</strong>,
           яка поєднує майже все, що ти вивчив: агента, RAG, інструменти, бекенд, деплой, евали й безпеку.
           Результат стане центральним експонатом твого портфоліо. Тут ти вже не просто учень — ти
@@ -108,8 +104,8 @@
         <hr />
 
         <!-- УРОК 21.1 -->
-        <section id="l1" data-lesson="21.1 Як підійти до капстоуну" class="scroll-mt-24">
-          <h2><span class="lesson-no">21.1</span>Що таке капстоун і як до нього підійти</h2>
+        <section id="l1" data-lesson="21.1 Як підійти до капстоуну">
+          <h2><span class="ds-prose__no">21.1</span>Що таке капстоун і як до нього підійти</h2>
           <p>
             Капстоун — це фінальний проєкт, що доводить: ти вмієш не окремі шматки, а <strong>збирати з них
             робочу систему й доводити її до живого продукту</strong>. Саме це цінують роботодавці й клієнти —
@@ -124,7 +120,7 @@
             <li><strong>Спирайся на готове.</strong> Усі цеглинки в тебе вже є — у попередніх модулях лежать
               робочі приклади. Капстоун — це переважно <em>збирання</em>, а не написання з нуля.</li>
           </ul>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Твій проєкт — твій вибір.</strong> Ми пройдемо наскрізний приклад «асистент
             підтримки», але ти можеш зробити <em>своє</em> на тій самій архітектурі: помічник для своєї
             ніші, бот по власних документах, автоматизатор твоєї рутини. Принцип і кроки однакові — підстав
@@ -135,8 +131,8 @@
         <hr />
 
         <!-- УРОК 21.2 -->
-        <section id="l2" data-lesson="21.2 Описуємо проєкт" class="scroll-mt-24">
-          <h2><span class="lesson-no">21.2</span>Обираємо й описуємо проєкт</h2>
+        <section id="l2" data-lesson="21.2 Описуємо проєкт">
+          <h2><span class="ds-prose__no">21.2</span>Обираємо й описуємо проєкт</h2>
           <p>
             Наш приклад — <strong>«Розумний асистент підтримки»</strong> для інтернет-магазину. Перш ніж
             кодити, чітко опишемо, що він робить (це і є робота архітектора):
@@ -149,7 +145,7 @@
               статус замовлення; не вигадує те, чого не знає.</li>
           </ul>
           <p><strong>MVP (перша версія)</strong> навмисно скромний — саме його збудуємо повністю:</p>
-          <pre><code>MVP асистента підтримки:
+          <pre class="ds-code__pre"><code>MVP асистента підтримки:
   1. Відповідає на питання з бази знань (RAG).
   2. Перевіряє статус замовлення за номером (інструмент).
   3. Доступний через вебсторінку (бекенд + простий інтерфейс).
@@ -157,7 +153,7 @@
   + базові евали, гардрейл і логування.
 
 Потім (за бажання): історія діалогу, ескалація на людину, більше інструментів.</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Чому опис важливіший за код.</strong> Чіткий опис задачі й критерію успіху — половина
             проєкту. Він не дає «розповзтися» (коли намагаєшся вліпити все підряд) і дозволяє зрозуміти, коли
             робота <em>завершена</em>. Це навичка, яку дуже цінують у замовленнях.</p>
@@ -167,10 +163,10 @@
         <hr />
 
         <!-- УРОК 21.3 -->
-        <section id="l3" data-lesson="21.3 Архітектура" class="scroll-mt-24">
-          <h2><span class="lesson-no">21.3</span>Архітектура: як частини складаються</h2>
+        <section id="l3" data-lesson="21.3 Архітектура">
+          <h2><span class="ds-prose__no">21.3</span>Архітектура: як частини складаються</h2>
           <p>Ось як виглядає вся система — і де ти кожну частину вже вивчав:</p>
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart TD
   U["Браузер · інтерфейс<br/>(Модуль 16)"] --> B["Бекенд · FastAPI<br/>(Модуль 16)"]
@@ -180,9 +176,9 @@ flowchart TD
   AG --> T2["Інструмент: статус замовлення<br/>(Модуль 10)"]
   T1 --> KB[("База знань")]
   T2 --> DB[("Замовлення")]
-  style U fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class U hl
             </pre>
-            <p class="diagram-caption">Уся система — це з'єднані цеглинки з попередніх модулів</p>
+            <p class="ds-diag__caption">Уся система — це з'єднані цеглинки з попередніх модулів</p>
           </div>
           <p>
             Читається так: користувач пише на сторінці → бекенд приймає запит → передає агенту → агент сам
@@ -190,7 +186,7 @@ flowchart TD
             формулює відповідь. Зверни увагу на елегантність: <strong>і RAG, і статус замовлення — це просто
             інструменти агента</strong> (Модуль 10), а він сам обирає потрібний під питання.
           </p>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Це і є «архітектурне мислення».</strong> Ти не вигадуєш нічого нового — ти
             <em>компонуєш</em> відомі будівельні блоки в систему під конкретну мету. Уміння побачити, які
             цеглинки й як з'єднати — головна навичка AI-інженера, і капстоун її доводить.</p>
@@ -200,14 +196,14 @@ flowchart TD
         <hr />
 
         <!-- УРОК 21.4 -->
-        <section id="l4" data-lesson="21.4 Ядро: агент + RAG + інструмент" class="scroll-mt-24">
-          <h2><span class="lesson-no">21.4</span>Будуємо ядро: агент із RAG та інструментом</h2>
+        <section id="l4" data-lesson="21.4 Ядро: агент + RAG + інструмент">
+          <h2><span class="ds-prose__no">21.4</span>Будуємо ядро: агент із RAG та інструментом</h2>
           <p>
             Серце системи. Даємо агенту <strong>два інструменти</strong> — пошук у базі знань (RAG) і статус
             замовлення — і він сам обирає потрібний. Попроси Claude Code зібрати <code>assistant.py</code>,
             підтягнувши <code>retrieve</code> з Модуля 11 і <code>run_agent</code> з Модуля 13:
           </p>
-          <pre><code># --- Інструмент 1: пошук у базі знань (RAG, Модуль 11) ---
+          <pre class="ds-code__pre"><code># --- Інструмент 1: пошук у базі знань (RAG, Модуль 11) ---
 def search_knowledge(query):
     chunks = retrieve(query)          # retrieve з Модуля 11 (ембедінги + схожість)
     return "\n\n".join(chunks)
@@ -249,14 +245,14 @@ def assistant(question):
 
 print(assistant("Скільки днів на повернення?"))     # -> піде в RAG
 print(assistant("Де моє замовлення 123?"))           # -> візьме статус замовлення</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Розбір ідеї.</strong> Найкрасивіше тут — що <em>RAG став просто інструментом</em>
             <code>search_knowledge</code>. Агент (Модуль 13) дивиться на питання й сам вирішує: про умови —
             викликати пошук у базі, про конкретне замовлення — дістати статус. Ти не пишеш «якщо питання
             таке — роби те»; рішення приймає модель за описами інструментів. Це поєднання Модулів 10, 11 і 13
             в один елегантний механізм.</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Що ти маєш побачити.</strong> На перше питання агент викличе
             <code>search_knowledge</code> й відповість про повернення; на друге — <code>get_order_status</code>
             і повідомить статус замовлення 123. Додай друк кроків (Модуль 13), щоб бачити вибір агента.</p>
@@ -266,13 +262,13 @@ print(assistant("Де моє замовлення 123?"))           # -> віз�
         <hr />
 
         <!-- УРОК 21.5 -->
-        <section id="l5" data-lesson="21.5 Бекенд + інтерфейс" class="scroll-mt-24">
-          <h2><span class="lesson-no">21.5</span>Загортаємо в бекенд і додаємо інтерфейс</h2>
+        <section id="l5" data-lesson="21.5 Бекенд + інтерфейс">
+          <h2><span class="ds-prose__no">21.5</span>Загортаємо в бекенд і додаємо інтерфейс</h2>
           <p>
             Тепер зробимо ядро доступним через браузер. Це рівно те, що в Модулі 16 — лише замість простого
             виклику Claude підставляємо наш <code>assistant()</code>. Додай у <code>main.py</code>:
           </p>
-          <pre><code>import os, logging
+          <pre class="ds-code__pre"><code>import os, logging
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -301,12 +297,12 @@ def ask(q: Question):
             Інтерфейс — той самий простий <code>index.html</code> із Модуля 16 (поле + кнопка + fetch до
             <code>/ask</code>). Запусти бекенд (<code>uvicorn main:app --reload</code>) і відкрий сторінку.
           </p>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Що ти маєш побачити.</strong> На сторінці питаєш «скільки днів на повернення?» —
             отримуєш відповідь із бази знань. Питаєш «де замовлення 123?» — отримуєш статус. Один інтерфейс,
             а під ним — повноцінний агент із двома можливостями. Це вже схоже на справжній продукт.</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Порада зі збирання.</strong> Не намагайся написати все в одному файлі ідеально з
             першого разу. Збирай шарами: спершу переконайся, що <code>assistant()</code> працює в терміналі
             (урок 21.4), і лише тоді загортай у бекенд. Claude Code допоможе акуратно поєднати файли — попроси
@@ -317,33 +313,33 @@ def ask(q: Question):
         <hr />
 
         <!-- УРОК 21.6 -->
-        <section id="l6" data-lesson="21.6 Якість, безпека, моніторинг" class="scroll-mt-24">
-          <h2><span class="lesson-no">21.6</span>Якість, безпека й моніторинг</h2>
+        <section id="l6" data-lesson="21.6 Якість, безпека, моніторинг">
+          <h2><span class="ds-prose__no">21.6</span>Якість, безпека й моніторинг</h2>
           <p>
             Це те, що перетворює «демо» на продукт (і вирізняє тебе серед новачків). Додамо три речі з Фази D.
           </p>
           <p><strong>1. Евали</strong> (Модуль 19) — міні-іспит для асистента:</p>
-          <pre><code>test_cases = [
+          <pre class="ds-code__pre"><code>test_cases = [
     {"input": "Скільки днів на повернення?", "expect": "14"},
     {"input": "Де замовлення 123?",          "expect": "дороз"},   # частина слова "у дорозі"
     {"input": "Яка столиця Франції?",         "expect": "оператора"},  # поза темою -> відмова
 ]
 run_evals(assistant)   # run_evals з Модуля 19</code></pre>
           <p><strong>2. Гардрейл</strong> (Модуль 19) — відсікаємо явно не наші теми ще до моделі:</p>
-          <pre><code>def safe_assistant(question):
+          <pre class="ds-code__pre"><code>def safe_assistant(question):
     blocked = ["медичн", "юридичн", "інвестиц"]
     if any(b in question.lower() for b in blocked):
         return "Вибачте, я допомагаю лише з питаннями про наш магазин і замовлення."
     return assistant(question)
 # у бекенді викликай safe_assistant замість assistant</code></pre>
           <p><strong>3. Логування й вартість</strong> (Модуль 18) — уже додали <code>logging</code> у бекенд; за бажання рахуй токени через <code>estimate_cost</code>.</p>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Що ти маєш побачити.</strong> <code>run_evals(assistant)</code> виведе, скільки кейсів
             пройдено (ціль — усі). Гардрейл на питання «яка столиця Франції?» поверне ввічливу відмову. У
             <code>app.log</code> з'являться записи запитів. Тепер у тебе є <em>докази</em> якості й захист —
             саме це показують замовнику й роботодавцю.</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Це твоя перевага.</strong> Багато хто може «зліпити чат-бота». Дуже мало хто додає
             евали, гардрейли й логування. Саме ця інженерна зрілість робить твій капстоун (і тебе) помітно
             ціннішим.</p>
@@ -353,8 +349,8 @@ run_evals(assistant)   # run_evals з Модуля 19</code></pre>
         <hr />
 
         <!-- УРОК 21.7 -->
-        <section id="l7" data-lesson="21.7 Деплой і портфоліо" class="scroll-mt-24">
-          <h2><span class="lesson-no">21.7</span>Деплоїмо й оформлюємо для портфоліо</h2>
+        <section id="l7" data-lesson="21.7 Деплой і портфоліо">
+          <h2><span class="ds-prose__no">21.7</span>Деплоїмо й оформлюємо для портфоліо</h2>
           <p>
             Фінальний крок — зробити проєкт живим і презентувати його. Деплой ти вже вмієш (Модуль 17):
           </p>
@@ -377,11 +373,11 @@ run_evals(assistant)   # run_evals з Модуля 19</code></pre>
             <li><strong>Чесний список «що далі»:</strong> які покращення планував (історія діалогу, більше
               інструментів) — показує, що ти мислиш як інженер, а не «зробив і забув».</li>
           </ul>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Підказка.</strong> Попроси Claude Code: «напиши README для цього проєкту з описом,
             можливостями, стеком і кроками запуску». Гарний README — недооцінений підсилювач портфоліо.</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Вітаю — ти зробив це!</strong> Ти пройшов шлях від «що вводити в термінал» до
             <em>побудованої й розгорнутої реальної AI-системи</em> з агентом, RAG, інструментами, бекендом,
             деплоєм, евалами й безпекою. Це повноцінний інженерний проєкт і головний експонат твого
@@ -393,7 +389,7 @@ run_evals(assistant)   # run_evals з Модуля 19</code></pre>
         <hr />
 
         <!-- КВІЗ -->
-        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+        <section id="quiz" data-lesson="Квіз: перевір себе">
           <h2>Квіз: перевір себе</h2>
           <p>Шість питань без дедлайнів. Обирай відповідь — і одразу бачиш пояснення.</p>
           <div data-quiz="quizData"></div>
@@ -474,39 +470,41 @@ run_evals(assistant)   # run_evals з Модуля 19</code></pre>
       }
       </script>
 
-      <div class="max-w-3xl">
-        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <div class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p id="completeTitle" class="font-medium text-ivory">Капстоун розгорнуто?</p>
-            <p class="mt-1 text-sm text-muted">
+            <p id="completeTitle" class="ds-h4">Капстоун розгорнуто?</p>
+            <p class="ds-small">
               Познач модуль завершеним — і відкриється фінальний Модуль 22: монетизація і кар'єра.
             </p>
           </div>
           <button id="completeBtn" type="button"
-                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+                  class="ds-btn ds-btn--primary">
             Позначити завершеним
           </button>
         </div>
 
-        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
       </div>
 
     </main>
   </div>
 
-  <footer class="mt-16 border-t border-line/60">
-    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
-      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
-      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../index.html">На головну ↑</a></span>
     </div>
   </footer>
 
+  <script src="../js/motion.js"></script>
   <script src="../js/progress.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/config.js"></script>
   <script src="../js/module.js"></script>
   <script src="../js/quiz.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
   <script src="../js/mermaid-init.js"></script>
   <script src="../js/auth-ui.js"></script>
   <script type="module" src="../js/auth.js"></script>

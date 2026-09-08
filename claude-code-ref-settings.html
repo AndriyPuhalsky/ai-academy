@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk" class="scroll-smooth" data-config="claude-code.config.json" data-own-title>
+<html lang="uk" data-config="claude-code.config.json" data-course="terminal" data-density="lesson" data-lit data-own-title>
 
 <head>
   <meta charset="UTF-8" />
@@ -9,132 +9,141 @@
   <title>Ключі settings.json — довідник · AI Термінал</title>
   <meta name="description"
     content="Повний перелік усіх 223 ключів settings.json Claude Code українською: що робить кожен, у якому файлі його можна задати і які дев'ять пасток роблять правильно написане налаштування недіючим. Звірено з документацією 2026-09-04." />
-  <meta name="theme-color" content="#141312" />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
 
   <script>document.documentElement.classList.add("js");</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
-    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег.
+       010 · етап 9: стара мова (окремий файл зі спадщиною 2023–2026)
+       видалена цілком, тому в каскаді лишились рівно ці файли. -->
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/components.css" />
+
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ink: "#141312", surface: "#1E1B18", raised: "#272320",
-            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
-            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
-            sand: "#E8DCC3"
-          },
-          fontFamily: {
-            display: ["Literata", "Georgia", "serif"],
-            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
-            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
-          },
-          maxWidth: { content: "72rem" }
-        }
-      }
-    };
-  </script>
-
-  <link rel="stylesheet" href="css/custom.css" />
+  <script src="js/tw-theme.js"></script>
 </head>
 
-<body class="bg-ink font-sans text-ivory antialiased">
+<body>
 
-  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
   <div id="ariaLive" class="sr-only" aria-live="polite"></div>
 
   <noscript>
-    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
-      Сторінка читається й без JavaScript — увімкнути його треба лише для входу в акаунт
-      і для кнопок копіювання.
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Сторінка читається й без JavaScript — увімкнути його треба лише для входу в акаунт
+      і для кнопок копіювання.</p>
+      </div>
     </div>
   </noscript>
 
   <!-- ШАПКА · та сама розмітка, що на сторінках модулів, без кнопки сайдбара:
        у довідника немає ні прогресу, ні сусідніх уроків. -->
-  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
-    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
-      <div class="flex items-center gap-3">
-        <a href="claude-code.html" class="flex items-center gap-2.5">
-          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
-            data-site="shortName">AIT</span>
-          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
-        </a>
-        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
-        <span class="hidden font-mono text-sm text-muted md:inline">Довідник</span>
-      </div>
-      <div class="flex items-center gap-3">
-        <div id="aiaAuth" class="slot"></div>
-        <span id="navProgress" hidden
-          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
-        <a href="claude-code.html#refs" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">Усі
-          довідники</a>
-      </div>
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <a class="ds-hdr__brand" href="claude-code.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIT</span>
+        <span data-site="name">AI Термінал</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Довідник</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <!-- На <640 текстове посилання ховається: заміряно на 320 px — воно
+           переносилось у два рядки й вилазило за 64 px шапки (−5…69).
+           Вихід із довідника лишається на бренді та у футері. -->
+      <a class="ds-nav__link hidden sm:inline-flex" href="claude-code.html#refs">Усі довідники</a>
     </div>
   </header>
 
-  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
-    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
-      &#9888; Не вдалося завантажити <code>claude-code.config.json</code>. Сам довідник це не ламає —
-      зникають лише підписи в шапці й футері.
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">&#9888; Не вдалося завантажити <code class="ds-code--inline">claude-code.config.json</code>. Сам довідник це не ламає —
+      зникають лише підписи в шапці й футері.</p>
     </div>
   </div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[260px,1fr] lg:gap-12">
+  <div class="ds-ref">
 
     <!-- ЗМІСТ СТОРІНКИ (статичний: js/module.js тут не підключений).
          Лічильники ключів («— 15 ключів») лишились у розділі #toc усередині статті. -->
-    <nav aria-label="Зміст довідника" class="border-b border-line/60 py-6 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:overflow-y-auto lg:border-b-0 lg:py-10">
-      <p class="mb-3 font-mono text-xs uppercase tracking-[0.18em] text-faint">Зміст</p>
-      <ul class="grid gap-1.5 text-sm text-muted">
-        <li><a href="#files" class="transition hover:text-ivory">Чотири файли — і хто на кого впливає</a></li>
-        <li><a href="#scopes" class="transition hover:text-ivory">Колонка «Область»: як її читати</a></li>
-        <li><a href="#traps" class="transition hover:text-ivory">Дев'ять пасток, через які правильний ключ не працює</a></li>
-        <li><a href="#examples" class="transition hover:text-ivory">Чотири готові приклади</a></li>
-        <li><a href="#toc" class="transition hover:text-ivory">Усі 223 ключі за темами</a></li>
-        <li class="pl-3 text-muted/90"><a href="#permissions" class="transition hover:text-ivory">Дозволи</a></li>
-        <li class="pl-3 text-muted/90"><a href="#sandbox" class="transition hover:text-ivory">Пісочниця</a></li>
-        <li class="pl-3 text-muted/90"><a href="#memory" class="transition hover:text-ivory">Пам'ять і контекст</a></li>
-        <li class="pl-3 text-muted/90"><a href="#interface" class="transition hover:text-ivory">Інтерфейс і термінал</a></li>
-        <li class="pl-3 text-muted/90"><a href="#model" class="transition hover:text-ivory">Моделі й відповіді</a></li>
-        <li class="pl-3 text-muted/90"><a href="#git" class="transition hover:text-ivory">Git і підпис комітів</a></li>
-        <li class="pl-3 text-muted/90"><a href="#hooks" class="transition hover:text-ivory">Перехоплювачі подій і автоматизація</a></li>
-        <li class="pl-3 text-muted/90"><a href="#plugins" class="transition hover:text-ivory">Плагіни й навички</a></li>
-        <li class="pl-3 text-muted/90"><a href="#mcp" class="transition hover:text-ivory">MCP — зовнішні інструменти</a></li>
-        <li class="pl-3 text-muted/90"><a href="#agents" class="transition hover:text-ivory">Агенти, сесії, worktrees</a></li>
-        <li class="pl-3 text-muted/90"><a href="#remote" class="transition hover:text-ivory">Віддалена робота, десктоп, сповіщення</a></li>
-        <li class="pl-3 text-muted/90"><a href="#auth" class="transition hover:text-ivory">Вхід і постачальники моделі</a></li>
-        <li class="pl-3 text-muted/90"><a href="#updates" class="transition hover:text-ivory">Оновлення й версії</a></li>
-        <li class="pl-3 text-muted/90"><a href="#tools" class="transition hover:text-ivory">Інструменти десктопа</a></li>
-        <li class="pl-3 text-muted/90"><a href="#privacy" class="transition hover:text-ivory">Приватність і телеметрія</a></li>
-        <li class="pl-3 text-muted/90"><a href="#enterprise" class="transition hover:text-ivory">Керовані налаштування організації</a></li>
-        <li class="pl-3 text-muted/90"><a href="#globalconfig" class="transition hover:text-ivory">Глобальний конфіг <code>~/.claude.json</code></a></li>
-        <li><a href="#notinlist" class="transition hover:text-ivory">Чого в цьому переліку немає</a></li>
-        <li><a href="#sources" class="transition hover:text-ivory">Звідки взято й коли перевірено</a></li>
+    <details id="refToc" class="ds-ref__toc" open>
+      <!-- На <1024 зміст — смуга-акордеон; ВІДКРИТИЙ у розмітці, згортає його
+           рядок скрипта нижче. Тобто JS тільки згортає, ніколи не ховає. -->
+      <summary class="ds-ref__sum">Зміст довідника</summary>
+      <nav aria-label="Зміст довідника">
+      <p class="ds-ref__group">Зміст</p>
+      <ul>
+        <li><a href="#files">Чотири файли — і хто на кого впливає</a></li>
+        <li><a href="#scopes">Колонка «Область»: як її читати</a></li>
+        <li><a href="#traps">Дев'ять пасток, через які правильний ключ не працює</a></li>
+        <li><a href="#examples">Чотири готові приклади</a></li>
+        <li><a href="#toc">Усі 223 ключі за темами</a></li>
+        <li class="pl-3 text-fg-2"><a href="#permissions">Дозволи</a></li>
+        <li class="pl-3 text-fg-2"><a href="#sandbox">Пісочниця</a></li>
+        <li class="pl-3 text-fg-2"><a href="#memory">Пам'ять і контекст</a></li>
+        <li class="pl-3 text-fg-2"><a href="#interface">Інтерфейс і термінал</a></li>
+        <li class="pl-3 text-fg-2"><a href="#model">Моделі й відповіді</a></li>
+        <li class="pl-3 text-fg-2"><a href="#git">Git і підпис комітів</a></li>
+        <li class="pl-3 text-fg-2"><a href="#hooks">Перехоплювачі подій і автоматизація</a></li>
+        <li class="pl-3 text-fg-2"><a href="#plugins">Плагіни й навички</a></li>
+        <li class="pl-3 text-fg-2"><a href="#mcp">MCP — зовнішні інструменти</a></li>
+        <li class="pl-3 text-fg-2"><a href="#agents">Агенти, сесії, worktrees</a></li>
+        <li class="pl-3 text-fg-2"><a href="#remote">Віддалена робота, десктоп, сповіщення</a></li>
+        <li class="pl-3 text-fg-2"><a href="#auth">Вхід і постачальники моделі</a></li>
+        <li class="pl-3 text-fg-2"><a href="#updates">Оновлення й версії</a></li>
+        <li class="pl-3 text-fg-2"><a href="#tools">Інструменти десктопа</a></li>
+        <li class="pl-3 text-fg-2"><a href="#privacy">Приватність і телеметрія</a></li>
+        <li class="pl-3 text-fg-2"><a href="#enterprise">Керовані налаштування організації</a></li>
+        <li class="pl-3 text-fg-2"><a href="#globalconfig">Глобальний конфіг <code>~/.claude.json</code></a></li>
+        <li><a href="#notinlist">Чого в цьому переліку немає</a></li>
+        <li><a href="#sources">Звідки взято й коли перевірено</a></li>
       </ul>
-      <p class="mt-6 border-t border-line/60 pt-4 text-sm">
-        <a href="claude-code.html" class="text-muted transition hover:text-ivory">← До курсу</a>
-      </p>
-    </nav>
+      <p class="ds-ref__group">Курс</p>
+      <ul>
+        <li><a href="claude-code.html">← До курсу</a></li>
+      </ul>
+      </nav>
+    </details>
+    <script>
+      /* Єдиний рядок логіки на цій сторінці: згортає зміст нижче 1024 px.
+         Без нього (JS вимкнено) зміст лишається розгорнутим — так само, як сьогодні. */
+      (function(){var t=document.getElementById("refToc");
+        if(t&&!matchMedia("(min-width: 1024px)").matches)t.open=false;})();
+    </script>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-4xl">
+    <main id="main" class="ds-ref__main" data-page-in>
+      <!-- Шапка сторінки довідника — СЕСТРА статті, а не її перший абзац:
+           надзаголовок і числа не входять у сітку прози (§35 components.css). -->
+      <header class="ds-ref__head">
+        <p class="ds-eyebrow">Довідник · без тесту й без прогресу</p>
+        <h1 class="ds-h1">Ключі <code class="ds-code--inline">settings.json</code></h1>
+        <ul class="ds-ref__stat">
+          <li><b>223</b> ключі</li>
+          <li>звірено з документацією 2026-09-04</li>
+          <li>перевірки на macOS 26.5.2, збірка Claude Code 2.1.236</li>
+        </ul>
+      </header>
 
-      <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Довідник · без тесту й без прогресу</p>
-      <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Ключі <code
-          class="text-[0.62em] align-middle">settings.json</code></h1>
-      <p class="mt-4 font-mono text-xs text-faint sm:text-sm">
-        223 ключі · звірено з документацією 2026-09-04 · перевірки на macOS 26.5.2, збірка Claude Code 2.1.236
-      </p>
+      <article class="ds-prose">
 
-      <p class="mt-6 text-lg">
+      <p class="ds-lead">
         <code>settings.json</code> — текстовий файл, у якому записано, як поводиться Claude Code:
         що йому дозволено робити без запитання, якою моделлю він відповідає, як виглядає екран.
         Цей довідник перелічує ключі, які Claude Code із таких файлів читає — усі, що були в
@@ -148,8 +157,9 @@
         стоїть поруч з описом, а перед таблицями йде розділ про дев'ять пасток.
       </p>
 
-      <div class="callout">
-        <span class="callout-title">Це не урок — його не проходять</span>
+      <div class="ds-note">
+          <span class="ds-note__glyph" aria-hidden="true">i</span>
+        <p class="ds-note__title">Це не урок — його не проходять</p>
         <p>
           Тут немає тесту, ця сторінка не рахується в прогрес і не входить у сертифікат.
           Сюди повертаються з питанням «як називався той ключ» і йдуть далі.
@@ -166,7 +176,7 @@
 
       <hr />
 
-      <section id="files" class="scroll-mt-24">
+      <section id="files">
         <h2>Чотири файли — і хто на кого впливає</h2>
         <p>
           Ключів багато, а файлів, у які їх пишуть, лише чотири. Плюс п'ятий, окремий,
@@ -179,29 +189,29 @@
           без тильди — тека всередині проєкту.
         </p>
 
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Чотири файли налаштувань">
-        <table class="min-w-[42rem]">
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Чотири файли налаштувань">
+        <table class="ds-tbl min-w-[42rem]">
           <thead>
             <tr><th>Файл</th><th>На кого впливає</th><th>Для чого</th></tr>
           </thead>
           <tbody>
             <tr>
-              <td><code>~/.claude/<wbr>settings.json</code><br /><span class="text-faint">свій, «user»</span></td>
+              <td><code>~/.claude/<wbr>settings.json</code><br /><span class="text-fg-3">свій, «user»</span></td>
               <td>на тебе, у кожному проєкті цієї машини</td>
               <td>особисті вподобання: тема, модель за замовчуванням, свої правила дозволів</td>
             </tr>
             <tr>
-              <td><code>.claude/<wbr>settings.json</code><br /><span class="text-faint">спільний проєктний</span></td>
+              <td><code>.claude/<wbr>settings.json</code><br /><span class="text-fg-3">спільний проєктний</span></td>
               <td>на всіх, хто працює в цій теці; у git-репозиторії — на всіх, хто його клонував, якщо файл закомічений</td>
               <td>командні дозволи, перехоплювачі подій, плагіни, змінні середовища проєкту</td>
             </tr>
             <tr>
-              <td><code>.claude/<wbr>settings.local.json</code><br /><span class="text-faint">локальний</span></td>
+              <td><code>.claude/<wbr>settings.local.json</code><br /><span class="text-fg-3">локальний</span></td>
               <td>тільки на тебе й тільки в цьому проєкті</td>
               <td>особисті винятки з командних домовленостей і проби перед тим, як ділитись</td>
             </tr>
             <tr>
-              <td><code>managed-settings.json</code><br /><span class="text-faint">керований</span></td>
+              <td><code>managed-settings.json</code><br /><span class="text-fg-3">керований</span></td>
               <td>на всіх, кому його розгорнула організація</td>
               <td>політика безпеки; майже нічого з написаного тобою його не перекриває</td>
             </tr>
@@ -267,14 +277,14 @@
 
       <hr />
 
-      <section id="scopes" class="scroll-mt-24">
+      <section id="scopes">
         <h2>Колонка «Область»: як її читати</h2>
         <p>
           У кожній таблиці третя колонка каже, з якого файла ключ узагалі має силу.
           П'ять можливих значень:
         </p>
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Колонка «Область»: як її читати">
-        <table>
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Колонка «Область»: як її читати">
+        <table class="ds-tbl">
           <thead>
             <tr><th>Позначка</th><th>Що означає</th></tr>
           </thead>
@@ -318,14 +328,14 @@
 
       <hr />
 
-      <section id="traps" class="scroll-mt-24">
+      <section id="traps">
         <h2>Дев'ять пасток, через які правильний ключ не працює</h2>
         <p>
           Усе нижче — не рідкісні випадки, а поведінка за замовчуванням, задокументована й
           неочевидна. Якщо налаштування «не спрацювало», спершу шукай себе тут.
         </p>
 
-        <h3 id="trap1" class="scroll-mt-24">1. <code>auto</code> і <code>bypassPermissions</code> із проєктного файла мовчки не діють</h3>
+        <h3 id="trap1">1. <code>auto</code> і <code>bypassPermissions</code> із проєктного файла мовчки не діють</h3>
         <p>
           Ключ <code>permissions.defaultMode</code> задає режим, у якому стартує сесія.
           Два його значення — <code>auto</code> і <code>bypassPermissions</code> — з
@@ -340,7 +350,7 @@
           саме тому старі поради в мережі суперечать нинішній поведінці.
         </p>
 
-        <h3 id="trap2" class="scroll-mt-24">2. Пісочниця має власну, вужчу область</h3>
+        <h3 id="trap2">2. Пісочниця має власну, вужчу область</h3>
         <p>
           Ключів <code>sandbox.*</code> тридцять сім, і область у них не одна на всіх.
           Дванадцять із них проєктний файл не вмикає.
@@ -370,15 +380,15 @@
           Логіка одна — чужий репозиторій не повинен мати змоги послабити твою пісочницю.
         </p>
 
-        <h3 id="trap3" class="scroll-mt-24">3. Сім ключів, де суворіше значення виграє в керованого</h3>
+        <h3 id="trap3">3. Сім ключів, де суворіше значення виграє в керованого</h3>
         <p>
           Загальне правило «керовані налаштування перекривають усе» має рівно сім винятків.
           Для них Claude Code бере <strong>суворіше</strong> значення, звідки б воно не прийшло.
           Це зроблено так, щоб політика організації не могла ввімкнути тобі те, що ти вимкнув
           свідомо.
         </p>
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: 3. Сім ключів, де суворіше значення виграє в керованого">
-        <table>
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: 3. Сім ключів, де суворіше значення виграє в керованого">
+        <table class="ds-tbl">
           <thead>
             <tr><th>Ключ</th><th>Яке значення виграє</th></tr>
           </thead>
@@ -415,13 +425,13 @@
         </table>
         </div>
 
-        <h3 id="trap4" class="scroll-mt-24">4. Дві пари ключів про MCP, які легко сплутати</h3>
+        <h3 id="trap4">4. Дві пари ключів про MCP, які легко сплутати</h3>
         <p>
           Імена відрізняються трьома літерами — <code>json</code> усередині, — а роблять різні
           речі й лежать у різних файлах.
         </p>
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Дві пари ключів MCP">
-        <table class="min-w-[42rem]">
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Дві пари ключів MCP">
+        <table class="ds-tbl min-w-[42rem]">
           <thead>
             <tr><th>Пара</th><th>Де лежить</th><th>Що робить</th></tr>
           </thead>
@@ -447,7 +457,7 @@
           Документація каже про них прямо: перша пара «не має стосунку» до другої.
         </p>
 
-        <h3 id="trap5" class="scroll-mt-24">5. Правила <code>deny</code> не тримають довільні підпроцеси</h3>
+        <h3 id="trap5">5. Правила <code>deny</code> не тримають довільні підпроцеси</h3>
         <p>
           Заборони <code>Read(...)</code> і <code>Edit(...)</code> діють на вбудовані файлові
           інструменти Claude <strong>і</strong> на ті команди Bash, які Claude Code упізнає як
@@ -468,15 +478,15 @@
           інструмента забороняє всі інструменти, а <code>"mcp__*"</code> — усі інструменти MCP.
         </p>
 
-        <h3 id="trap6" class="scroll-mt-24">6. Одна скісна риска на початку шляху означає не те, що здається</h3>
+        <h3 id="trap6">6. Одна скісна риска на початку шляху означає не те, що здається</h3>
         <p>
           <code>Read(/secrets/**)</code> у <strong>своєму</strong> файлі
           <code>~/.claude/settings.json</code> захищає не теку <code>secrets</code> у проєкті,
           а <code>~/.claude/secrets/**</code>. Одна скісна риска прив'язує шлях
           <strong>до джерела налаштувань</strong>, а не до кореня диска.
         </p>
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: 6. Одна скісна риска на початку шляху означає не те, що здається">
-        <table>
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: 6. Одна скісна риска на початку шляху означає не те, що здається">
+        <table class="ds-tbl">
           <thead>
             <tr><th>Запис</th><th>Що означає</th></tr>
           </thead>
@@ -496,7 +506,7 @@
           <code>//**/.env</code>.
         </p>
 
-        <h3 id="trap7" class="scroll-mt-24">7. Виключення <code>CLAUDE.md</code> складаються, а керовані не виключаються</h3>
+        <h3 id="trap7">7. Виключення <code>CLAUDE.md</code> складаються, а керовані не виключаються</h3>
         <p>
           <code>claudeMdExcludes</code> — список файлів пам'яті, які пропустити.
           Списки з різних областей <strong>складаються</strong>, тому виключення з проєктного
@@ -505,9 +515,9 @@
           виключення діють лише на свої, проєктні й локальні файли пам'яті.
         </p>
 
-        <h3 id="trap8" class="scroll-mt-24">8. Зламаний файл: три різні реакції, і одна з них — мовчання</h3>
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: 8. Зламаний файл: три різні реакції, і одна з них — мовчання">
-        <table>
+        <h3 id="trap8">8. Зламаний файл: три різні реакції, і одна з них — мовчання</h3>
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: 8. Зламаний файл: три різні реакції, і одна з них — мовчання">
+        <table class="ds-tbl">
           <thead>
             <tr><th>Що сталось</th><th>Що ти побачиш</th></tr>
           </thead>
@@ -541,7 +551,7 @@
           релізів, тому підкреслений редактором «невідомий ключ» ще не означає помилку.
         </p>
 
-        <h3 id="trap9" class="scroll-mt-24">9. Перелік випереджає твою збірку — і випереджає її сильно</h3>
+        <h3 id="trap9">9. Перелік випереджає твою збірку — і випереджає її сильно</h3>
         <p>
           Документація описує найсвіжішу версію. Встановлена на машині — майже завжди старіша.
           На 4 вересня 2026 року розрив був такий: у каналі <code>latest</code> —
@@ -572,7 +582,7 @@
           <figcaption class="term__chrome">
             <span class="term__dots" aria-hidden="true"></span>
             <span class="term__title" id="t1t">macOS 26.5.2 &middot; zsh 5.9 &middot; Claude Code 2.1.236 &middot; знято 2026-09-04</span>
-            <button type="button" class="term__copy" data-ok="Скопійовано">Копіювати</button>
+            <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet" data-ok="Скопійовано">Копіювати</button>
           </figcaption>
           <pre class="term__body" tabindex="0" role="group" aria-labelledby="t1t"><span class="term__line"><span class="term__meta">anna@MacBook-Air ~ %</span> <span class="term__in">for k in spellcheck modelSettings timeFormat zzFakeKeyName; do printf '%-16s %s\n' "$k" "$(strings "$(which claude)" | grep -c "$k")"; done</span></span>
 <span class="term__line">spellcheck       31</span>
@@ -593,8 +603,9 @@
           домашнього шляху не друкує, бо бере <code>&quot;$(which claude)&quot;</code>
           замість абсолютного шляху до програми.
         </p>
-        <div class="callout">
-          <span class="callout-title">Межа цього способу</span>
+        <div class="ds-note">
+          <span class="ds-note__glyph" aria-hidden="true">i</span>
+          <p class="ds-note__title">Межа цього способу</p>
           <p>
             <code>strings</code> шукає збіг підрядка, а не оголошення ключа. Тому короткі назви
             зі звичайних англійських слів дають хибні спрацювання: <code>timeZone</code> у
@@ -609,7 +620,7 @@
 
       <hr />
 
-      <section id="examples" class="scroll-mt-24">
+      <section id="examples">
         <h2>Чотири готові приклади</h2>
         <p>
           Ці фрагменти можна скопіювати у файл налаштувань як є. Якщо в тебе там уже щось
@@ -622,7 +633,7 @@
           Приклад із документації дослівно. Заборонені файли зникають і з пошуку, і з видачі
           файлових інструментів; редагувати й створювати їх теж не можна.
         </p>
-        <pre><code>{
+        <pre class="ds-code__pre"><code>{
   "permissions": {
     "deny": [
       "Read(./.env)",
@@ -645,7 +656,7 @@
           скриптові на стандартний вхід. <code>padding</code> додає два символи відступу;
           є ще <code>refreshInterval</code> у секундах, і менше за одиницю він не буває.
         </p>
-        <pre><code>{
+        <pre class="ds-code__pre"><code>{
   "statusLine": {
     "type": "command",
     "command": "jq -r '\"[\\(.model.display_name)] \\(.context_window.used_percentage // 0)% context\"'",
@@ -660,7 +671,7 @@
           Старий ключ <code>includeCoAuthoredBy</code> усе ще читається, але щойно ти задаси
           <code>attribution.commit</code> або <code>attribution.pr</code> — він ігнорується.
         </p>
-        <pre><code>{
+        <pre class="ds-code__pre"><code>{
   "attribution": {
     "commit": "",
     "pr": "",
@@ -675,7 +686,7 @@
           <code>light-daltonized</code>, <code>dark-ansi</code> і <code>light-ansi</code>;
           останні дві беруть кольори з палітри самого термінала.
         </p>
-        <pre><code>{
+        <pre class="ds-code__pre"><code>{
   "axScreenReader": true,
   "prefersReducedMotion": true,
   "theme": "dark-daltonized",
@@ -686,7 +697,7 @@
 
       <hr />
 
-      <section id="toc" class="scroll-mt-24">
+      <section id="toc">
         <h2>Усі 223 ключі за темами</h2>
         <p>
           Порядок розділів — від найпотрібнішого до найрідшого, а не за абеткою.
@@ -702,33 +713,33 @@
           <strong>трейлер</strong> — рядок підпису в кінці повідомлення коміту.
         </p>
         <ul>
-              <li><a href="#permissions">Дозволи</a> <span class="text-faint">— 15 ключів</span></li>
-              <li><a href="#sandbox">Пісочниця</a> <span class="text-faint">— 38 ключів</span></li>
-              <li><a href="#memory">Пам'ять і контекст</a> <span class="text-faint">— 11 ключів</span></li>
-              <li><a href="#interface">Інтерфейс і термінал</a> <span class="text-faint">— 37 ключів</span></li>
-              <li><a href="#model">Моделі й відповіді</a> <span class="text-faint">— 20 ключів</span></li>
-              <li><a href="#git">Git і підпис комітів</a> <span class="text-faint">— 7 ключів</span></li>
-              <li><a href="#hooks">Перехоплювачі подій і автоматизація</a> <span class="text-faint">— 9 ключів</span></li>
-              <li><a href="#plugins">Плагіни й навички</a> <span class="text-faint">— 19 ключів</span></li>
-              <li><a href="#mcp">MCP — зовнішні інструменти</a> <span class="text-faint">— 8 ключів</span></li>
-              <li><a href="#agents">Агенти, сесії, worktrees</a> <span class="text-faint">— 11 ключів</span></li>
-              <li><a href="#remote">Віддалена робота, десктоп, сповіщення</a> <span class="text-faint">— 13 ключів</span></li>
-              <li><a href="#auth">Вхід і постачальники моделі</a> <span class="text-faint">— 8 ключів</span></li>
-              <li><a href="#updates">Оновлення й версії</a> <span class="text-faint">— 4 ключі</span></li>
-              <li><a href="#tools">Інструменти десктопа</a> <span class="text-faint">— 3 ключі</span></li>
-              <li><a href="#privacy">Приватність і телеметрія</a> <span class="text-faint">— 5 ключів</span></li>
-              <li><a href="#enterprise">Керовані налаштування організації</a> <span class="text-faint">— 9 ключів</span></li>
-              <li><a href="#globalconfig">Глобальний конфіг <code>~/.claude.json</code></a> <span class="text-faint">— 6 ключів</span></li>
+              <li><a href="#permissions">Дозволи</a> <span class="text-fg-3">— 15 ключів</span></li>
+              <li><a href="#sandbox">Пісочниця</a> <span class="text-fg-3">— 38 ключів</span></li>
+              <li><a href="#memory">Пам'ять і контекст</a> <span class="text-fg-3">— 11 ключів</span></li>
+              <li><a href="#interface">Інтерфейс і термінал</a> <span class="text-fg-3">— 37 ключів</span></li>
+              <li><a href="#model">Моделі й відповіді</a> <span class="text-fg-3">— 20 ключів</span></li>
+              <li><a href="#git">Git і підпис комітів</a> <span class="text-fg-3">— 7 ключів</span></li>
+              <li><a href="#hooks">Перехоплювачі подій і автоматизація</a> <span class="text-fg-3">— 9 ключів</span></li>
+              <li><a href="#plugins">Плагіни й навички</a> <span class="text-fg-3">— 19 ключів</span></li>
+              <li><a href="#mcp">MCP — зовнішні інструменти</a> <span class="text-fg-3">— 8 ключів</span></li>
+              <li><a href="#agents">Агенти, сесії, worktrees</a> <span class="text-fg-3">— 11 ключів</span></li>
+              <li><a href="#remote">Віддалена робота, десктоп, сповіщення</a> <span class="text-fg-3">— 13 ключів</span></li>
+              <li><a href="#auth">Вхід і постачальники моделі</a> <span class="text-fg-3">— 8 ключів</span></li>
+              <li><a href="#updates">Оновлення й версії</a> <span class="text-fg-3">— 4 ключі</span></li>
+              <li><a href="#tools">Інструменти десктопа</a> <span class="text-fg-3">— 3 ключі</span></li>
+              <li><a href="#privacy">Приватність і телеметрія</a> <span class="text-fg-3">— 5 ключів</span></li>
+              <li><a href="#enterprise">Керовані налаштування організації</a> <span class="text-fg-3">— 9 ключів</span></li>
+              <li><a href="#globalconfig">Глобальний конфіг <code>~/.claude.json</code></a> <span class="text-fg-3">— 6 ключів</span></li>
         </ul>
       </section>
 
       <hr />
 
-        <section id="permissions" class="scroll-mt-24">
+        <section id="permissions">
           <h2>Дозволи</h2>
           <p>Що Claude робить без запитання, що з запитанням і що не робить ніколи. Найважливіша група на сторінці: помилка тут коштує не зручності, а безпеки.</p>
-            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Дозволи">
-            <table class="min-w-[42rem]">
+            <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Дозволи">
+            <table class="ds-tbl min-w-[42rem]">
               <thead>
                 <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
               </thead>
@@ -745,7 +756,7 @@
               </tr>
               <tr>
                 <td><code>autoMode.<wbr>classifyAllShell</code></td>
-                <td>Проганяти через класифікатор кожну команду оболонки — навіть ту, що підпадає під вузьке правило <code>allow</code>. <span class="text-faint">потрібна 2.1.193+</span></td>
+                <td>Проганяти через класифікатор кожну команду оболонки — навіть ту, що підпадає під вузьке правило <code>allow</code>. <span class="text-fg-3">потрібна 2.1.193+</span></td>
                 <td>свій або керований</td>
               </tr>
               <tr>
@@ -775,7 +786,7 @@
               </tr>
               <tr>
                 <td><code>permissions.<wbr>blockReadsOutsideWorkingDirectories</code></td>
-                <td>Заборонити файловим інструментам читати поза робочими теками — у <strong>кожному</strong> режимі, включно з <code>bypassPermissions</code>. Якщо хоч одне джерело поставило <code>true</code>, заборона діє. <span class="text-faint">потрібна 2.1.257+</span></td>
+                <td>Заборонити файловим інструментам читати поза робочими теками — у <strong>кожному</strong> режимі, включно з <code>bypassPermissions</code>. Якщо хоч одне джерело поставило <code>true</code>, заборона діє. <span class="text-fg-3">потрібна 2.1.257+</span></td>
                 <td>будь-який</td>
               </tr>
               <tr>
@@ -815,11 +826,11 @@
         </section>
 
         <hr />
-        <section id="sandbox" class="scroll-mt-24">
+        <section id="sandbox">
           <h2>Пісочниця</h2>
           <p>Ізоляція команд Bash від файлів, мережі й облікових даних. Працює на macOS, Linux і WSL2. Тридцять сім із тридцяти восьми ключів починаються з <code>sandbox.</code> — це один вкладений об'єкт, а не тридцять вісім окремих налаштувань.</p>
-            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Пісочниця">
-            <table class="min-w-[42rem]">
+            <div class="ds-tbl__wrap ds-tbl__wrap--tall" tabindex="0" role="region" aria-label="Таблиця: Пісочниця">
+            <table class="ds-tbl min-w-[42rem]">
               <thead>
                 <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
               </thead>
@@ -851,17 +862,17 @@
               </tr>
               <tr>
                 <td><code>sandbox.<wbr>credentials</code></td>
-                <td>Об'єкт: сховати або замаскувати файли й змінні з обліковими даними всередині пісочниці. <span class="text-faint">потрібна 2.1.187+</span></td>
+                <td>Об'єкт: сховати або замаскувати файли й змінні з обліковими даними всередині пісочниці. <span class="text-fg-3">потрібна 2.1.187+</span></td>
                 <td>будь-який</td>
               </tr>
               <tr>
                 <td><code>sandbox.<wbr>credentials.<wbr>allowPlaintextInject</code></td>
-                <td>Дозволити замаскованим обліковим даним доходити до сервісів по звичайному HTTP у довірених тестових мережах. <span class="text-faint">потрібна 2.1.199+</span></td>
+                <td>Дозволити замаскованим обліковим даним доходити до сервісів по звичайному HTTP у довірених тестових мережах. <span class="text-fg-3">потрібна 2.1.199+</span></td>
                 <td>свій або керований</td>
               </tr>
               <tr>
                 <td><code>sandbox.<wbr>credentials.<wbr>awsPairs</code></td>
-                <td>Зв'язати змінні з нестандартними іменами ключів AWS в одну обліковку для перепідписування запитів. <span class="text-faint">потрібна 2.1.224+</span></td>
+                <td>Зв'язати змінні з нестандартними іменами ключів AWS в одну обліковку для перепідписування запитів. <span class="text-fg-3">потрібна 2.1.224+</span></td>
                 <td>свій або керований</td>
               </tr>
               <tr>
@@ -876,7 +887,7 @@
               </tr>
               <tr>
                 <td><code>sandbox.<wbr>credentials.<wbr>sigv4</code></td>
-                <td>Що робити з потоковими, presigned і SigV4A-запитами до AWS: валити чи пропускати як є. <span class="text-faint">потрібна 2.1.224+</span></td>
+                <td>Що робити з потоковими, presigned і SigV4A-запитами до AWS: валити чи пропускати як є. <span class="text-fg-3">потрібна 2.1.224+</span></td>
                 <td>свій або керований</td>
               </tr>
               <tr>
@@ -936,7 +947,7 @@
               </tr>
               <tr>
                 <td><code>sandbox.<wbr>filesystem.<wbr>disabled</code></td>
-                <td>Вимкнути ізоляцію файлової системи, залишивши мережеву. <span class="text-faint">потрібна 2.1.216+</span></td>
+                <td>Вимкнути ізоляцію файлової системи, залишивши мережеву. <span class="text-fg-3">потрібна 2.1.216+</span></td>
                 <td>свій або керований</td>
               </tr>
               <tr>
@@ -996,12 +1007,12 @@
               </tr>
               <tr>
                 <td><code>sandbox.<wbr>network.<wbr>strictAllowlist</code></td>
-                <td>Відхиляти хости поза списком замість того, щоб питати. <span class="text-faint">потрібна 2.1.219+</span></td>
+                <td>Відхиляти хости поза списком замість того, щоб питати. <span class="text-fg-3">потрібна 2.1.219+</span></td>
                 <td>свій або керований</td>
               </tr>
               <tr>
                 <td><code>sandbox.<wbr>network.<wbr>tlsTerminate</code></td>
-                <td>Дозволити проксі пісочниці розшифровувати TLS, щоб читати HTTPS-запити. <span class="text-faint">потрібна 2.1.199+</span></td>
+                <td>Дозволити проксі пісочниці розшифровувати TLS, щоб читати HTTPS-запити. <span class="text-fg-3">потрібна 2.1.199+</span></td>
                 <td>свій або керований</td>
               </tr>
               <tr>
@@ -1021,11 +1032,11 @@
         </section>
 
         <hr />
-        <section id="memory" class="scroll-mt-24">
+        <section id="memory">
           <h2>Пам'ять і контекст</h2>
           <p>Що Claude пам'ятає між сесіями, коли стискає розмову й звідки бере <code>CLAUDE.md</code>.</p>
-            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Пам'ять і контекст">
-            <table class="min-w-[42rem]">
+            <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Пам'ять і контекст">
+            <table class="ds-tbl min-w-[42rem]">
               <thead>
                 <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
               </thead>
@@ -1092,23 +1103,23 @@
         </section>
 
         <hr />
-        <section id="interface" class="scroll-mt-24">
+        <section id="interface">
           <h2>Інтерфейс і термінал</h2>
           <p>Вигляд, клавіші, сповіщення, доступність. Найбільша група після пісочниці — і найбезпечніша для експериментів.</p>
-            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Інтерфейс і термінал">
-            <table class="min-w-[42rem]">
+            <div class="ds-tbl__wrap ds-tbl__wrap--tall" tabindex="0" role="region" aria-label="Таблиця: Інтерфейс і термінал">
+            <table class="ds-tbl min-w-[42rem]">
               <thead>
                 <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
               </thead>
               <tbody>
               <tr>
                 <td><code>askUserQuestionTimeout</code></td>
-                <td>Через скільки простою запитання без відповіді продовжується саме. <span class="text-faint">потрібна 2.1.200+</span></td>
+                <td>Через скільки простою запитання без відповіді продовжується саме. <span class="text-fg-3">потрібна 2.1.200+</span></td>
                 <td>свій або керований</td>
               </tr>
               <tr>
                 <td><code>autoContinueAtUsageLimit</code></td>
-                <td>Чекати у відкритій сесії й продовжити задачу самому, коли ліміт claude.ai скинеться. <strong>Виняток із області:</strong> якщо ключа не задає ні твій файл, ні <code>--settings</code>, ні керовані налаштування, то значення з проєктного чи локального файла не ігнорується, а вимикає цю поведінку. <span class="text-faint">потрібна 2.1.234+</span></td>
+                <td>Чекати у відкритій сесії й продовжити задачу самому, коли ліміт claude.ai скинеться. <strong>Виняток із області:</strong> якщо ключа не задає ні твій файл, ні <code>--settings</code>, ні керовані налаштування, то значення з проєктного чи локального файла не ігнорується, а вимикає цю поведінку. <span class="text-fg-3">потрібна 2.1.234+</span></td>
                 <td>свій або керований</td>
               </tr>
               <tr>
@@ -1118,7 +1129,7 @@
               </tr>
               <tr>
                 <td><code>axScreenReader</code></td>
-                <td>Плоский вивід без декоративних рамок і анімацій — для програм читання з екрана. <span class="text-faint">потрібна 2.1.181+</span></td>
+                <td>Плоский вивід без декоративних рамок і анімацій — для програм читання з екрана. <span class="text-fg-3">потрібна 2.1.181+</span></td>
                 <td>будь-який</td>
               </tr>
               <tr>
@@ -1133,7 +1144,7 @@
               </tr>
               <tr>
                 <td><code>dialogExpiry</code></td>
-                <td>Скільки чекати на відповідь Remote Control або SDK-хоста на переадресований діалог, перш ніж скасувати його. <span class="text-faint">потрібна 2.1.224+</span></td>
+                <td>Скільки чекати на відповідь Remote Control або SDK-хоста на переадресований діалог, перш ніж скасувати його. <span class="text-fg-3">потрібна 2.1.224+</span></td>
                 <td>свій або керований</td>
               </tr>
               <tr>
@@ -1143,7 +1154,7 @@
               </tr>
               <tr>
                 <td><code>emojiCompletionEnabled</code></td>
-                <td>Вимкнути підказки й заміну <code>:shortcode:</code> на емодзі в полі вводу. <span class="text-faint">потрібна 2.1.217+</span></td>
+                <td>Вимкнути підказки й заміну <code>:shortcode:</code> на емодзі в полі вводу. <span class="text-fg-3">потрібна 2.1.217+</span></td>
                 <td>будь-який</td>
               </tr>
               <tr>
@@ -1153,12 +1164,12 @@
               </tr>
               <tr>
                 <td><code>footerLinksRegexes</code></td>
-                <td>Перетворювати ідентифікатори задач і рецензій у виводі на клікабельні значки під полем вводу. <span class="text-faint">потрібна 2.1.176+</span></td>
+                <td>Перетворювати ідентифікатори задач і рецензій у виводі на клікабельні значки під полем вводу. <span class="text-fg-3">потрібна 2.1.176+</span></td>
                 <td>свій або керований</td>
               </tr>
               <tr>
                 <td><code>keybindingFlavor</code></td>
-                <td>Зробити так, щоб <code>Ctrl+W</code> видаляв до попереднього пробілу, як у Bash, а не одне слово. <span class="text-faint">потрібна 2.1.238+</span></td>
+                <td>Зробити так, щоб <code>Ctrl+W</code> видаляв до попереднього пробілу, як у Bash, а не одне слово. <span class="text-fg-3">потрібна 2.1.238+</span></td>
                 <td>будь-який</td>
               </tr>
               <tr>
@@ -1178,7 +1189,7 @@
               </tr>
               <tr>
                 <td><code>respondToBashCommands</code></td>
-                <td>Не відповідати після того, як відпрацювала команда з префіксом <code>!</code>. <span class="text-faint">потрібна 2.1.186+</span></td>
+                <td>Не відповідати після того, як відпрацювала команда з префіксом <code>!</code>. <span class="text-fg-3">потрібна 2.1.186+</span></td>
                 <td>будь-який</td>
               </tr>
               <tr>
@@ -1193,7 +1204,7 @@
               </tr>
               <tr>
                 <td><code>spellcheck</code></td>
-                <td>Підкреслювати слова з помилками в полі вводу — перевіркою, яку ти встановив сам. <span class="text-faint">потрібна 2.1.235+</span></td>
+                <td>Підкреслювати слова з помилками в полі вводу — перевіркою, яку ти встановив сам. <span class="text-fg-3">потрібна 2.1.235+</span></td>
                 <td>свій або керований</td>
               </tr>
               <tr>
@@ -1243,12 +1254,12 @@
               </tr>
               <tr>
                 <td><code>timeFormat</code></td>
-                <td>12- чи 24-годинний формат часу в інтерфейсі, UTC або власний шаблон strftime. <span class="text-faint">потрібна 2.1.257+</span></td>
+                <td>12- чи 24-годинний формат часу в інтерфейсі, UTC або власний шаблон strftime. <span class="text-fg-3">потрібна 2.1.257+</span></td>
                 <td>будь-який</td>
               </tr>
               <tr>
                 <td><code>timeZone</code></td>
-                <td>Показувати час у часовому поясі, відмінному від системного. <span class="text-faint">потрібна 2.1.257+</span></td>
+                <td>Показувати час у часовому поясі, відмінному від системного. <span class="text-fg-3">потрібна 2.1.257+</span></td>
                 <td>будь-який</td>
               </tr>
               <tr>
@@ -1268,7 +1279,7 @@
               </tr>
               <tr>
                 <td><code>vimInsertModeRemaps</code></td>
-                <td>Призначити двоклавішну послідовність режиму INSERT (наприклад, <code>jj</code>) на Escape. <span class="text-faint">потрібна 2.1.208+</span></td>
+                <td>Призначити двоклавішну послідовність режиму INSERT (наприклад, <code>jj</code>) на Escape. <span class="text-fg-3">потрібна 2.1.208+</span></td>
                 <td>свій або керований</td>
               </tr>
               <tr>
@@ -1278,12 +1289,12 @@
               </tr>
               <tr>
                 <td><code>voiceEnabled</code></td>
-                <td>Стара однокнопкова форма вмикання голосового диктування. <span class="text-faint">застарілий із 2.1.92</span></td>
+                <td>Стара однокнопкова форма вмикання голосового диктування. <span class="text-fg-3">застарілий із 2.1.92</span></td>
                 <td>будь-який</td>
               </tr>
               <tr>
                 <td><code>wheelScrollAccelerationEnabled</code></td>
-                <td>Вимкнути прискорення колеса миші в повноекранному рендерері. <span class="text-faint">потрібна 2.1.174+</span></td>
+                <td>Вимкнути прискорення колеса миші в повноекранному рендерері. <span class="text-fg-3">потрібна 2.1.174+</span></td>
                 <td>будь-який</td>
               </tr>
               </tbody>
@@ -1293,11 +1304,11 @@
         </section>
 
         <hr />
-        <section id="model" class="scroll-mt-24">
+        <section id="model">
           <h2>Моделі й відповіді</h2>
           <p>Яка модель відповідає, як сильно вона думає й скільки живе кеш.</p>
-            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Моделі й відповіді">
-            <table class="min-w-[42rem]">
+            <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Моделі й відповіді">
+            <table class="ds-tbl min-w-[42rem]">
               <thead>
                 <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
               </thead>
@@ -1324,7 +1335,7 @@
               </tr>
               <tr>
                 <td><code>enforceAvailableModels</code></td>
-                <td>Тримати варіант «Default» у пікері <code>/model</code> усередині списку <code>availableModels</code>. <span class="text-faint">потрібна 2.1.175+</span></td>
+                <td>Тримати варіант «Default» у пікері <code>/model</code> усередині списку <code>availableModels</code>. <span class="text-fg-3">потрібна 2.1.175+</span></td>
                 <td>будь-який</td>
               </tr>
               <tr>
@@ -1359,17 +1370,17 @@
               </tr>
               <tr>
                 <td><code>modelPicker</code></td>
-                <td>Які моделі показує пікер <code>/model</code>, у твоєму порядку й під твоїми підписами. Рядки з двох джерел не зливаються ніколи. <span class="text-faint">потрібна 2.1.242+</span></td>
+                <td>Які моделі показує пікер <code>/model</code>, у твоєму порядку й під твоїми підписами. Рядки з двох джерел не зливаються ніколи. <span class="text-fg-3">потрібна 2.1.242+</span></td>
                 <td>свій або керований</td>
               </tr>
               <tr>
                 <td><code>modelPricing</code></td>
-                <td>Показувати витрати за контрактними цінами організації замість публічного прайс-листа. <span class="text-faint">потрібна 2.1.242+</span></td>
+                <td>Показувати витрати за контрактними цінами організації замість публічного прайс-листа. <span class="text-fg-3">потрібна 2.1.242+</span></td>
                 <td>лише керований</td>
               </tr>
               <tr>
                 <td><code>modelSettings</code></td>
-                <td>Збережений рівень зусиль окремо для кожної моделі; сюди пише команда <code>/effort</code>. <span class="text-faint">потрібна 2.1.251+</span></td>
+                <td>Збережений рівень зусиль окремо для кожної моделі; сюди пише команда <code>/effort</code>. <span class="text-fg-3">потрібна 2.1.251+</span></td>
                 <td>будь-який</td>
               </tr>
               <tr>
@@ -1379,7 +1390,7 @@
               </tr>
               <tr>
                 <td><code>promptCacheTtl</code></td>
-                <td>Скільки живе кеш промпта для основної розмови. <span class="text-faint">потрібна 2.1.242+</span></td>
+                <td>Скільки живе кеш промпта для основної розмови. <span class="text-fg-3">потрібна 2.1.242+</span></td>
                 <td>будь-який</td>
               </tr>
               <tr>
@@ -1389,12 +1400,12 @@
               </tr>
               <tr>
                 <td><code>subagentPromptCacheTtl</code></td>
-                <td>Скільки живе кеш для субагентів та інших запитів поза основною розмовою. <span class="text-faint">потрібна 2.1.242+</span></td>
+                <td>Скільки живе кеш для субагентів та інших запитів поза основною розмовою. <span class="text-fg-3">потрібна 2.1.242+</span></td>
                 <td>будь-який</td>
               </tr>
               <tr>
                 <td><code>switchModelsOnFlag</code></td>
-                <td>Перемикати модель автоматично чи спинятись, коли запит позначив класифікатор безпеки. <span class="text-faint">потрібна 2.1.170+</span></td>
+                <td>Перемикати модель автоматично чи спинятись, коли запит позначив класифікатор безпеки. <span class="text-fg-3">потрібна 2.1.170+</span></td>
                 <td>будь-який</td>
               </tr>
               <tr>
@@ -1409,11 +1420,11 @@
         </section>
 
         <hr />
-        <section id="git" class="scroll-mt-24">
+        <section id="git">
           <h2>Git і підпис комітів</h2>
           <p>Чим Claude підписує коміти й описи pull request і що він знає про твій репозиторій.</p>
-            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Git і підпис комітів">
-            <table class="min-w-[42rem]">
+            <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Git і підпис комітів">
+            <table class="ds-tbl min-w-[42rem]">
               <thead>
                 <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
               </thead>
@@ -1440,7 +1451,7 @@
               </tr>
               <tr>
                 <td><code>includeCoAuthoredBy</code></td>
-                <td>Старий перемикач підпису комітів і PR. Його замінив <code>attribution</code>; щойно ти задаси <code>attribution.commit</code> чи <code>.pr</code>, цей ключ ігнорується. <span class="text-faint">застарілий із 2.0.62</span></td>
+                <td>Старий перемикач підпису комітів і PR. Його замінив <code>attribution</code>; щойно ти задаси <code>attribution.commit</code> чи <code>.pr</code>, цей ключ ігнорується. <span class="text-fg-3">застарілий із 2.0.62</span></td>
                 <td>будь-який</td>
               </tr>
               <tr>
@@ -1460,11 +1471,11 @@
         </section>
 
         <hr />
-        <section id="hooks" class="scroll-mt-24">
+        <section id="hooks">
           <h2>Перехоплювачі подій і автоматизація</h2>
           <p>Перехоплювачі подій (hooks) — власні команди, які Claude Code запускає у визначені моменти. Повна таблиця подій — в окремому довіднику.</p>
-            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Перехоплювачі подій і автоматизація">
-            <table class="min-w-[42rem]">
+            <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Перехоплювачі подій і автоматизація">
+            <table class="ds-tbl min-w-[42rem]">
               <thead>
                 <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
               </thead>
@@ -1506,12 +1517,12 @@
               </tr>
               <tr>
                 <td><code>workflowKeywordTriggerEnabled</code></td>
-                <td>Чи запускає слово <code>ultracode</code> у промпті робочий процес. <span class="text-faint">потрібна 2.1.157+</span></td>
+                <td>Чи запускає слово <code>ultracode</code> у промпті робочий процес. <span class="text-fg-3">потрібна 2.1.157+</span></td>
                 <td>будь-який</td>
               </tr>
               <tr>
                 <td><code>workflowSizeGuideline</code></td>
-                <td>Скільки агентів Claude намагається задіяти в динамічному робочому процесі. <span class="text-faint">потрібна 2.1.219+</span></td>
+                <td>Скільки агентів Claude намагається задіяти в динамічному робочому процесі. <span class="text-fg-3">потрібна 2.1.219+</span></td>
                 <td>будь-який</td>
               </tr>
               </tbody>
@@ -1521,11 +1532,11 @@
         </section>
 
         <hr />
-        <section id="plugins" class="scroll-mt-24">
+        <section id="plugins">
           <h2>Плагіни й навички</h2>
           <p>Звідки беруться навички (skills), плагіни й маркетплейси і хто має право їх додавати.</p>
-            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Плагіни й навички">
-            <table class="min-w-[42rem]">
+            <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Плагіни й навички">
+            <table class="ds-tbl min-w-[42rem]">
               <thead>
                 <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
               </thead>
@@ -1632,11 +1643,11 @@
         </section>
 
         <hr />
-        <section id="mcp" class="scroll-mt-24">
+        <section id="mcp">
           <h2>MCP — зовнішні інструменти</h2>
           <p>MCP (Model Context Protocol) — спосіб під'єднати до Claude Code зовнішні інструменти. Тут вісім ключів, і два з них легко сплутати з парою з <code>~/.claude.json</code> — див. пастку 4.</p>
-            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: MCP — зовнішні інструменти">
-            <table class="min-w-[42rem]">
+            <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: MCP — зовнішні інструменти">
+            <table class="ds-tbl min-w-[42rem]">
               <thead>
                 <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
               </thead>
@@ -1663,7 +1674,7 @@
               </tr>
               <tr>
                 <td><code>disableClaudeAiConnectors</code></td>
-                <td>Вимкнути конектори claude.ai, щоб Claude Code їх не діставав. <span class="text-faint">потрібна 2.1.182+</span></td>
+                <td>Вимкнути конектори claude.ai, щоб Claude Code їх не діставав. <span class="text-fg-3">потрібна 2.1.182+</span></td>
                 <td>будь-який</td>
               </tr>
               <tr>
@@ -1688,11 +1699,11 @@
         </section>
 
         <hr />
-        <section id="agents" class="scroll-mt-24">
+        <section id="agents">
           <h2>Агенти, сесії, worktrees</h2>
           <p>Субагенти, повідомлення між сесіями й окремі робочі копії репозиторію (worktrees).</p>
-            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Агенти, сесії, worktrees">
-            <table class="min-w-[42rem]">
+            <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Агенти, сесії, worktrees">
+            <table class="ds-tbl min-w-[42rem]">
               <thead>
                 <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
               </thead>
@@ -1704,7 +1715,7 @@
               </tr>
               <tr>
                 <td><code>crossSessionInbound</code></td>
-                <td>Що робити з повідомленнями від твоїх інших сесій: доставляти, показувати сповіщення без доставки чи відхиляти. <span class="text-faint">потрібна 2.1.224+</span></td>
+                <td>Що робити з повідомленнями від твоїх інших сесій: доставляти, показувати сповіщення без доставки чи відхиляти. <span class="text-fg-3">потрібна 2.1.224+</span></td>
                 <td>будь-який</td>
               </tr>
               <tr>
@@ -1719,7 +1730,7 @@
               </tr>
               <tr>
                 <td><code>processWrapper</code></td>
-                <td>Запускати фонові процеси Claude Code через корпоративний лаунчер (macOS і Linux). <span class="text-faint">потрібна 2.1.210+</span></td>
+                <td>Запускати фонові процеси Claude Code через корпоративний лаунчер (macOS і Linux). <span class="text-fg-3">потрібна 2.1.210+</span></td>
                 <td>свій або керований</td>
               </tr>
               <tr>
@@ -1759,11 +1770,11 @@
         </section>
 
         <hr />
-        <section id="remote" class="scroll-mt-24">
+        <section id="remote">
           <h2>Віддалена робота, десктоп, сповіщення</h2>
           <p>Remote Control, Claude Desktop, push-сповіщення на телефон і дзвінок термінала.</p>
-            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Віддалена робота, десктоп, сповіщення">
-            <table class="min-w-[42rem]">
+            <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Віддалена робота, десктоп, сповіщення">
+            <table class="ds-tbl min-w-[42rem]">
               <thead>
                 <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
               </thead>
@@ -1800,7 +1811,7 @@
               </tr>
               <tr>
                 <td><code>enableArtifact</code></td>
-                <td>Вимкнути інструмент Artifact значенням <code>false</code> з будь-якого файла; назад його не вмикає жоден файл. <span class="text-faint">потрібна 2.1.196+</span></td>
+                <td>Вимкнути інструмент Artifact значенням <code>false</code> з будь-якого файла; назад його не вмикає жоден файл. <span class="text-fg-3">потрібна 2.1.196+</span></td>
                 <td>будь-який</td>
               </tr>
               <tr>
@@ -1840,11 +1851,11 @@
         </section>
 
         <hr />
-        <section id="auth" class="scroll-mt-24">
+        <section id="auth">
           <h2>Вхід і постачальники моделі</h2>
           <p>Як здобуваються облікові дані. Майже все тут — для тих, хто працює не через підписку, а через API, Bedrock, Google Cloud або корпоративний шлюз.</p>
-            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Вхід і постачальники моделі">
-            <table class="min-w-[42rem]">
+            <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Вхід і постачальники моделі">
+            <table class="ds-tbl min-w-[42rem]">
               <thead>
                 <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
               </thead>
@@ -1896,11 +1907,11 @@
         </section>
 
         <hr />
-        <section id="updates" class="scroll-mt-24">
+        <section id="updates">
           <h2>Оновлення й версії</h2>
           <p>Який канал оновлень і які версії організація взагалі дозволяє запускати.</p>
-            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Оновлення й версії">
-            <table class="min-w-[42rem]">
+            <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Оновлення й версії">
+            <table class="ds-tbl min-w-[42rem]">
               <thead>
                 <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
               </thead>
@@ -1917,12 +1928,12 @@
               </tr>
               <tr>
                 <td><code>requiredMaximumVersion</code></td>
-                <td>Відмовлятись стартувати на версії, новішій за дозволену організацією. <span class="text-faint">потрібна 2.1.163+</span></td>
+                <td>Відмовлятись стартувати на версії, новішій за дозволену організацією. <span class="text-fg-3">потрібна 2.1.163+</span></td>
                 <td>лише керований</td>
               </tr>
               <tr>
                 <td><code>requiredMinimumVersion</code></td>
-                <td>Відмовлятись стартувати на версії, старішій за ту, якої вимагає організація. <span class="text-faint">потрібна 2.1.163+</span></td>
+                <td>Відмовлятись стартувати на версії, старішій за ту, якої вимагає організація. <span class="text-fg-3">потрібна 2.1.163+</span></td>
                 <td>лише керований</td>
               </tr>
               </tbody>
@@ -1932,11 +1943,11 @@
         </section>
 
         <hr />
-        <section id="tools" class="scroll-mt-24">
+        <section id="tools">
           <h2>Інструменти десктопа</h2>
           <p>Три керовані ключі про панелі Claude Desktop: браузер і симулятор iOS.</p>
-            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Інструменти десктопа">
-            <table class="min-w-[42rem]">
+            <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Інструменти десктопа">
+            <table class="ds-tbl min-w-[42rem]">
               <thead>
                 <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
               </thead>
@@ -1963,11 +1974,11 @@
         </section>
 
         <hr />
-        <section id="privacy" class="scroll-mt-24">
+        <section id="privacy">
           <h2>Приватність і телеметрія</h2>
           <p>Скільки днів живуть транскрипти сесій і що йде назовні.</p>
-            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Приватність і телеметрія">
-            <table class="min-w-[42rem]">
+            <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Приватність і телеметрія">
+            <table class="ds-tbl min-w-[42rem]">
               <thead>
                 <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
               </thead>
@@ -1979,7 +1990,7 @@
               </tr>
               <tr>
                 <td><code>desktopSessionCleanupPeriodDays</code></td>
-                <td>Граничний вік транскриптів Claude Desktop і Cowork у днях. <span class="text-faint">потрібна 2.1.248+</span></td>
+                <td>Граничний вік транскриптів Claude Desktop і Cowork у днях. <span class="text-fg-3">потрібна 2.1.248+</span></td>
                 <td>свій або керований</td>
               </tr>
               <tr>
@@ -2004,18 +2015,18 @@
         </section>
 
         <hr />
-        <section id="enterprise" class="scroll-mt-24">
+        <section id="enterprise">
           <h2>Керовані налаштування організації</h2>
           <p>Дев'ять ключів цього розділу задаються <strong>тільки</strong> з керованого джерела — як і всі інші ключі з позначкою «лише керований», розсипані по решті розділів. Пересічному читачеві вони не знадобляться — вони тут, щоб перелік був повний і щоб було видно, що саме адміністратор може закрити.</p>
-            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Керовані налаштування організації">
-            <table class="min-w-[42rem]">
+            <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Керовані налаштування організації">
+            <table class="ds-tbl min-w-[42rem]">
               <thead>
                 <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
               </thead>
               <tbody>
               <tr>
                 <td><code>disableSideloadFlags</code></td>
-                <td>Відхиляти прапорці CLI, що підсовують плагіни, субагентів і сервери MCP збоку. <span class="text-faint">потрібна 2.1.193+</span></td>
+                <td>Відхиляти прапорці CLI, що підсовують плагіни, субагентів і сервери MCP збоку. <span class="text-fg-3">потрібна 2.1.193+</span></td>
                 <td>лише керований</td>
               </tr>
               <tr>
@@ -2025,7 +2036,7 @@
               </tr>
               <tr>
                 <td><code>managedSourcesBehavior</code></td>
-                <td>Складати всі керовані джерела, які ти розгортаєш, замість того щоб брати одне — найпріоритетніше. <span class="text-faint">потрібна 2.1.242+</span></td>
+                <td>Складати всі керовані джерела, які ти розгортаєш, замість того щоб брати одне — найпріоритетніше. <span class="text-fg-3">потрібна 2.1.242+</span></td>
                 <td>лише керований</td>
               </tr>
               <tr>
@@ -2065,11 +2076,11 @@
         </section>
 
         <hr />
-        <section id="globalconfig" class="scroll-mt-24">
+        <section id="globalconfig">
           <h2>Глобальний конфіг <code>~/.claude.json</code></h2>
           <p>Шість ключів, які живуть <strong>не</strong> в <code>settings.json</code>, а в окремому файлі <code>~/.claude.json</code>. У будь-якому іншому файлі Claude Code їх ігнорує. Здебільшого їх пише сам <code>/config</code>.</p>
-            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Глобальний конфіг ~/.claude.json">
-            <table class="min-w-[42rem]">
+            <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Глобальний конфіг ~/.claude.json">
+            <table class="ds-tbl min-w-[42rem]">
               <thead>
                 <tr><th>Ключ</th><th>Що робить</th><th>Область</th></tr>
               </thead>
@@ -2096,12 +2107,12 @@
               </tr>
               <tr>
                 <td><code>permissionExplainerEnabled</code></td>
-                <td>Пояснення команди по <code>Ctrl+E</code> в діалозі дозволу Bash і PowerShell. Разом із самим поясненням ключ прибрано — у нових збірках він не робить нічого. <span class="text-faint">прибраний у 2.1.257</span></td>
+                <td>Пояснення команди по <code>Ctrl+E</code> в діалозі дозволу Bash і PowerShell. Разом із самим поясненням ключ прибрано — у нових збірках він не робить нічого. <span class="text-fg-3">прибраний у 2.1.257</span></td>
                 <td>~/.claude.json</td>
               </tr>
               <tr>
                 <td><code>teammateDefaultModel</code></td>
-                <td>Типова модель напарника в командах агентів. Ключа більше немає; як модель обирається тепер, каже документація про команди агентів. <span class="text-faint">прибраний у 2.1.234</span></td>
+                <td>Типова модель напарника в командах агентів. Ключа більше немає; як модель обирається тепер, каже документація про команди агентів. <span class="text-fg-3">прибраний у 2.1.234</span></td>
                 <td>~/.claude.json</td>
               </tr>
               </tbody>
@@ -2112,15 +2123,15 @@
 
         <hr />
 
-      <section id="notinlist" class="scroll-mt-24">
+      <section id="notinlist">
         <h2>Чого в цьому переліку немає</h2>
         <p>
           Сторінка перелічує ключі <code>settings.json</code> — і тільки їх. Поруч живуть
           чотири інші набори налаштувань, які теж міняють поведінку Claude Code, але пишуться
           деінде:
         </p>
-        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Налаштування поза settings.json">
-        <table class="min-w-[42rem]">
+        <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Налаштування поза settings.json">
+        <table class="ds-tbl min-w-[42rem]">
           <thead>
             <tr><th>Що</th><th>Де</th><th>Куди дивитись</th></tr>
           </thead>
@@ -2164,7 +2175,7 @@
 
       <hr />
 
-      <section id="sources" class="scroll-mt-24">
+      <section id="sources">
         <h2>Звідки взято й коли перевірено</h2>
         <ul>
           <li>
@@ -2205,8 +2216,9 @@
 
       <hr />
 
-      <div class="callout callout-sand">
-        <span class="callout-title">Термін придатності цієї сторінки — короткий</span>
+      <div class="ds-note ds-note--accent">
+          <span class="ds-note__glyph" aria-hidden="true">i</span>
+        <p class="ds-note__title">Термін придатності цієї сторінки — короткий</p>
         <p>
           Перелік знімали двічі: 3 вересня 2026 року в ньому було 222 ключі, 4 вересня —
           223. За одну ніч додався <code>permissions.<wbr>blockReadsOutsideWorkingDirectories</code>.
@@ -2221,8 +2233,8 @@
       </div>
 
 
-      <div class="mt-12 rounded-xl border border-line bg-surface p-6">
-        <p class="font-medium text-ivory">Два інші довідники курсу</p>
+      <div class="ds-card mt-12">
+        <p class="ds-h4">Два інші довідники курсу</p>
         <ul class="mt-3 space-y-2 text-sm">
           <li><a href="claude-code-ref-commands.html">Усі команди й клавіші</a> — слеш-команди
             й гарячі клавіші в різних контекстах</li>
@@ -2235,15 +2247,16 @@
     </main>
   </div>
 
-  <footer class="mt-16 border-t border-line/60">
-    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
-      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
-      <a href="claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну &#8593;</a>
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="claude-code.html">На головну &#8593;</a></span>
     </div>
   </footer>
 
   <!-- Довіднику не потрібні ні js/module.js (немає сусідніх уроків і сайдбара),
        ні js/quiz.js (немає тесту), ні Mermaid. Решта каркаса — як в уроках. -->
+  <script src="js/motion.js"></script>
   <script src="js/progress.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/config.js"></script>

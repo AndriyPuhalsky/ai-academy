@@ -1,0 +1,623 @@
+/* ============================================================================
+   010 · ДЕЛЬТА ДО `_base/components.css` — частка Б2 (урок T2 + іспит T3)
+   ----------------------------------------------------------------------------
+   Файл складається з двох частин, і межа між ними жорстка:
+
+   ЧАСТИНА 1 — §8.10 спеки 010, ДОСЛІВНО. Пишуть усі три білдери однаково,
+               валідатор звіряє `diff`. Змінювати тут не можна нічого.
+
+   ЧАСТИНА 2 — ДОПИСИ Б2. Кожен блок має номер, причину і, де можливо, число.
+               Це та частина, яку валідатор зливає з дописами Б1 і Б3.
+
+   ЖОДНОГО ХЕКСА, ЖОДНОГО rgba(), ЖОДНОЇ ТРИВАЛОСТІ ЧИСЛОМ. Усе — з tokens.css.
+
+   ⚠ СПЕЦИФІЧНІСТЬ — головна пастка цього файла (П-02 і не тільки). Tailwind CDN
+   підключається ПІСЛЯ наших <link> (§5.2), тому його preflight стоїть у каскаді
+   ПІЗНІШЕ і за рівної специфічності виграє. Наслідок: будь-яке правило на
+   голий тег (`h2`, `p`, `ul`) специфічності (0,0,1) буде мовчки перебите
+   preflight-ом. Тому всі селектори прози нижче ≥ (0,1,1).
+   ========================================================================== */
+
+
+/* ==========================================================================
+   ЧАСТИНА 1 · §8.10 СПЕКИ — ДОСЛІВНО
+   ========================================================================== */
+
+/* ============================================================================
+   19. ds-prose — довге читання. Замінює .prose-aia (60 сторінок).
+   ----------------------------------------------------------------------------
+   Сітка прози: текст у колонці --w-narrow (≈68–75 символів), а таблиці,
+   код, термінал і діаграми розпираються до --w-prose. Це знімає розвилку
+   «672 чи 768» замість того, щоб її вибирати (Д3).
+   ⚠ Специфічність: .prose-aia pre = (0,1,1). Усі селектори нижче ≥ (0,2,0).
+   ========================================================================== */
+.ds-prose {
+  display: grid;
+  grid-template-columns:
+    [wide-start] minmax(0, calc((var(--w-prose) - var(--w-narrow)) / 2))
+    [text-start] min(100%, var(--w-narrow))
+    [text-end]   minmax(0, calc((var(--w-prose) - var(--w-narrow)) / 2)) [wide-end];
+  justify-content: start;
+  color: var(--c-prose);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+.ds-prose > *                { grid-column: text; min-width: 0; }
+.ds-prose > .ds-tbl__wrap,
+.ds-prose > .ds-code,
+.ds-prose > .ds-diag,
+.ds-prose > .term            { grid-column: wide; }
+@media (max-width: 768px)    { .ds-prose > * { grid-column: 1 / -1; } }
+
+.ds-prose > p                { margin: var(--s-4) 0; }
+.ds-prose > h2               { margin: var(--s-16) 0 var(--s-4); font-family: var(--f-display);
+                               font-size: var(--fs-h2); line-height: var(--lh-h2); color: var(--c-text); }
+.ds-prose > h3               { margin: var(--s-10) 0 var(--s-3); font-size: var(--fs-h3);
+                               line-height: var(--lh-h3); color: var(--c-text); }
+.ds-prose > h4               { margin: var(--s-6) 0 var(--s-2); font-size: var(--fs-h4);
+                               line-height: var(--lh-h4); font-weight: var(--w-semi); color: var(--c-text); }
+.ds-prose > ul,
+.ds-prose > ol               { margin: var(--s-4) 0; padding-left: var(--s-6); }
+.ds-prose li                 { margin: var(--s-2) 0; }
+.ds-prose li::marker         { color: var(--c-accent); }
+.ds-prose strong             { color: var(--c-text); font-weight: var(--w-semi); }
+.ds-prose a                  { color: var(--c-accent); text-underline-offset: 0.2em; }
+.ds-prose a:hover            { color: var(--c-accent-hover); }
+.ds-prose > hr               { border: 0; border-top: var(--bw) solid var(--c-line);
+                               margin: var(--s-16) 0; }
+/* Нерозривні рядки в інлайновому <code> — доведена причина горизонтального
+   скролу на 5 сторінках із 14 у задачі 005. Інлайнових <code> тут 5 746. */
+.ds-prose code               { font-family: var(--f-mono); font-size: var(--fs-code);
+                               overflow-wrap: anywhere; }
+.ds-prose__no                { font-family: var(--f-mono); color: var(--c-accent);
+                               margin-right: var(--s-2); font-variant-numeric: tabular-nums; }
+/* Перемикач для показу власнику двох кадрів (Д3). У код сайту не їде. */
+.ds-prose[data-prose="wide"] { grid-template-columns: [wide-start text-start] min(100%, var(--w-prose)) [text-end wide-end]; }
+
+
+/* 113 із 411 живих .callout мають 2–4 <p> або список. Сітка `auto 1fr`
+   ставить у другу колонку лише один елемент; решта падає під гліф.
+   Потокова розкладка тримає будь-який вміст, а лівий кант лишається
+   border-left самого блока — тобто двохрядковий заголовок його не ламає. */
+.ds-note        { display: block; }
+.ds-note > *    { margin: var(--s-2) 0; }
+.ds-note > :first-child { margin-top: 0; }
+.ds-note > :last-child  { margin-bottom: 0; }
+.ds-note__glyph { float: left; margin-right: var(--s-3); }
+.ds-note__title { display: block; font-size: var(--fs-h4); line-height: var(--lh-h4);
+                  font-weight: var(--w-semi); color: var(--c-text); }
+
+
+/* `safe` у вирівнюванні зʼявився в Safari 17.6 (Chrome 115, FF 63). На
+   старіших Safari оголошення `place-items: safe center` НЕВАЛІДНЕ й
+   відкидається ЦІЛКОМ — діалог лишається без вирівнювання взагалі.
+   Тому спершу базове, потім посилене. */
+.ds-dlg { place-items: center; place-items: safe center; }
+@media (max-width: 640px) { .ds-dlg { align-items: end; align-items: safe end; } }
+/* Безпрефіксний backdrop-filter — лише Safari 18. */
+.ds-dlg__scrim { -webkit-backdrop-filter: blur(var(--blur-scrim));
+                         backdrop-filter: blur(var(--blur-scrim)); }
+
+
+/* ==========================================================================
+   ЧАСТИНА 2 · ДОПИСИ Б2
+   ========================================================================== */
+
+/* ============================================================================
+   Б2-20. ds-prose · ДРУГИЙ РІВЕНЬ — реальна розмітка уроку
+   ----------------------------------------------------------------------------
+   ⚠ НАЙВАЖЛИВІШИЙ БЛОК ЦЬОГО ФАЙЛА. §8.10.1 написана під розмітку, у якій
+   абзаци й таблиці — ПРЯМІ діти .ds-prose. У проді це не так: переміряно
+   2026-09-07 — у 56 із 56 уроків увесь зміст лежить усередині
+   <section data-lesson="…"> (5 секцій в architect-01, 6 у module-01,
+   9 у claude-code-05 і в іспиті). Прямими дітьми <article> лишаються тільки
+   шапка уроку (eyebrow, h1, метарядок, вступ) і 1–2 врізки.
+
+   Тобто якби §8.10.1 поїхала в код як є, на 57 сторінках:
+     · жоден <p>, <h2>, <h3>, <h4>, <ul> усередині секції не отримав би НІЧОГО
+       (а Tailwind preflight уже скинув би їм margin і font-size),
+     · жодна таблиця, термінал і діаграма не розперлися б до --w-prose —
+       уся ідея Д3 не працювала б узагалі.
+   Це не видно ні в консолі, ні в збірці.
+
+   ЧОМУ НЕ subgrid і не display: contents:
+     · `display: contents` знімає коробку в <section data-lesson>, а на ній
+       висить IntersectionObserver скролспая (js/module.js:104) — 0×0 rect,
+       спостерігач не спрацьовує ніколи, і scrollspy вмирає на 57 сторінках;
+     · `subgrid` працює, але при відкоті (Safari < 16) оголошення відкидається
+       цілком і сітка перетворюється на одну колонку без попередження.
+   Явна друга сітка з тими самими треками — детермінована: секція має
+   grid-column: wide (тобто рівно --w-prose), і 100% усередині неї дорівнює
+   тим самим 768, тож колонки збігаються піксель у піксель.
+
+   ⚠ ВАЛІДАТОРУ: при злитті пакета правильно ЗАМІНИТИ селектори §8.10.1
+   на `:is()`-версії нижче, а не тримати обидві копії. Значення однакові;
+   тут вони повторені лише тому, що §8.10.1 копіюється дослівно.
+   ========================================================================== */
+.ds-prose > section {
+  grid-column: wide;
+  display: grid;
+  grid-template-columns:
+    [wide-start] minmax(0, calc((var(--w-prose) - var(--w-narrow)) / 2))
+    [text-start] min(100%, var(--w-narrow))
+    [text-end]   minmax(0, calc((var(--w-prose) - var(--w-narrow)) / 2)) [wide-end];
+  justify-content: start;
+  /* Заголовок секції не ховається під липкою шапкою при переході за якорем
+     із сайдбара. Прод робив це утилітою scroll-mt-24 у розмітці — тут це
+     властивість компонента, а не 57 копій класу. */
+  scroll-margin-top: calc(var(--s-16) + var(--s-4));
+}
+.ds-prose > section > *      { grid-column: text; min-width: 0; }
+.ds-prose > section > .ds-tbl__wrap,
+.ds-prose > section > .ds-code,
+.ds-prose > section > .ds-diag,
+.ds-prose > section > .term  { grid-column: wide; }
+@media (max-width: 768px)    { .ds-prose > section > * { grid-column: 1 / -1; } }
+.ds-prose[data-prose="wide"] > section {
+  grid-template-columns: [wide-start text-start] min(100%, var(--w-prose)) [text-end wide-end];
+}
+
+/* Типографіка на обох рівнях. Специфічність :is() = найспецифічніший аргумент
+   (`.ds-prose > section` = 0,1,1), тому весь селектор ≥ (0,1,2) і preflight
+   його не перебиває. */
+:is(.ds-prose, .ds-prose > section) > p  { margin: var(--s-4) 0; }
+:is(.ds-prose, .ds-prose > section) > h2 { margin: var(--s-16) 0 var(--s-4); font-family: var(--f-display);
+                                           font-size: var(--fs-h2); line-height: var(--lh-h2); color: var(--c-text); }
+:is(.ds-prose, .ds-prose > section) > h3 { margin: var(--s-10) 0 var(--s-3); font-size: var(--fs-h3);
+                                           line-height: var(--lh-h3); color: var(--c-text); }
+:is(.ds-prose, .ds-prose > section) > h4 { margin: var(--s-6) 0 var(--s-2); font-size: var(--fs-h4);
+                                           line-height: var(--lh-h4); font-weight: var(--w-semi); color: var(--c-text); }
+:is(.ds-prose, .ds-prose > section) > :is(ul, ol) { margin: var(--s-4) 0; padding-left: var(--s-6); }
+:is(.ds-prose, .ds-prose > section) > hr { border: 0; border-top: var(--bw) solid var(--c-line);
+                                           margin: var(--s-16) 0; }
+/* Заголовки теж мають вихід із-під шапки: до h2 ведуть якорі всередині уроку. */
+:is(.ds-prose, .ds-prose > section) > :is(h1, h2, h3, h4) {
+  scroll-margin-top: calc(var(--s-16) + var(--s-4));
+}
+
+/* ⚠ Маркери списків. У .ds-prose li::marker колір є, а самих маркерів немає:
+   preflight Tailwind ставить `list-style: none` на ul/ol, і правило кольору
+   малює ніщо. Це той самий мертвий рядок, що вже три роки живе в проді
+   (css/custom.css:191). Повертаємо тип маркера явно — інакше вкладені
+   переліки в уроках читаються як суцільний текст. */
+:is(.ds-prose, .ds-prose > section) > ul { list-style: disc; }
+:is(.ds-prose, .ds-prose > section) > ol { list-style: decimal; }
+:is(.ds-prose, .ds-prose > section) ul ul { list-style: circle; margin: var(--s-2) 0; }
+
+/* Заголовок уроку. <h1> без класу preflight скидає до `font-size: inherit`,
+   і назва модуля рендериться як звичайний абзац — рівно те, що вже сталося
+   з <h4> в уроці c05 і три дні лишалось непоміченим. */
+:is(.ds-prose, .ds-prose > section) > h1 {
+  margin: 0; font-family: var(--f-display); font-size: var(--fs-h1);
+  line-height: var(--lh-h1); letter-spacing: var(--tr-display);
+  font-weight: var(--w-regular); color: var(--c-text);
+}
+
+/* Інлайновий <code>: 5 802 у 57 файлах. §8.10.1 дає йому лише гарнітуру, кегль
+   і перенос — тобто після міграції він утрачає підкладку й рамку, які має
+   сьогодні. Замість того щоб дописувати клас ds-code--inline у 5 802 місця
+   (і неминуче зачепити <code> усередині <pre>), беремо ту саму конструкцію,
+   що вже працює в проді: оформлюємо `code` у прозі й ЯВНО скидаємо його
+   всередині блоків коду й термінала. */
+.ds-prose code {
+  padding: 0 var(--s-1);
+  border-radius: var(--r-inner);
+  background: var(--c-raised);
+  color: var(--c-text);
+}
+.ds-prose :is(pre, .term, .ds-code) code {
+  padding: 0; background: none; border-radius: 0;
+  color: inherit; font-size: inherit; overflow-wrap: normal;
+}
+
+/* Підпис під діаграмою / терміналом. 48 разів у проді він має інлайновий
+   style="text-align:left" — єдиний інлайновий стиль у всіх 57 уроках.
+   Модифікатор замість атрибута: інакше після міграції в HTML лишається
+   48 літералів. */
+.ds-diag__caption[data-align="start"] { text-align: left; }
+
+/* Врізка всередині прози тримає власну типографіку: без цього <p> у callout
+   успадковує кегль довгого читання (17px) і врізка перестає бути врізкою. */
+.ds-note > p  { font-size: var(--fs-ui); line-height: var(--lh-body); }
+.ds-note :is(ul, ol) { margin: var(--s-2) 0; padding-left: var(--s-6);
+                       font-size: var(--fs-ui); line-height: var(--lh-body); }
+.ds-note ul   { list-style: disc; }
+.ds-note ol   { list-style: decimal; }
+/* Гліф пливе ліворуч (§8.10.2) — без цього кліренсу наступний блок під
+   довгим гліфом злипається з ним. */
+.ds-note::after { content: ""; display: block; clear: both; }
+
+/* Окремий <pre> у прозі (210 у 57 файлах; 99 mermaid і 101 term__body — не
+   ці). §8.3 переводить його в .ds-code__pre, але .ds-code__pre оформлений
+   лише як дитина .ds-code. Обгортати 210 місць структурно — робота руками
+   (§13.5), тому компонент має тримати й «голий» варіант.
+   Специфічність (0,2,0) — б'є .prose-aia pre (0,1,1) у період співіснування. */
+.ds-prose > .ds-code__pre,
+.ds-prose > section > .ds-code__pre {
+  grid-column: wide;
+  margin: 0; border: var(--bw) solid var(--c-line);
+  background: var(--c-sunken); border-radius: var(--r-inner);
+  padding: var(--s-4);
+  white-space: pre-wrap;      /* промпт — текст, а не колонки: переноситься */
+  word-break: normal; overflow-wrap: anywhere;
+  overflow-x: auto;
+  font-family: var(--f-mono); font-size: var(--fs-code);
+  line-height: var(--lh-code); color: var(--c-text-2);
+  tab-size: 2;
+}
+/* Усередині .ds-code білий простір лишається `pre` (колонки CLI) — це вже
+   зроблено в _base §11; тут ми не перекриваємо нічого. */
+
+
+/* ============================================================================
+   Б2-21. ds-snav — сайдбар уроку (8 імен, яких у системі немає)
+   ----------------------------------------------------------------------------
+   Найдовший список — 23 пункти (курс «AI Термінал») + рядок уроків розкритого
+   модуля. Заміряно: при висоті вікна 640 такий список довший за екран, тому
+   sticky-колонка мусить скролитись усередині себе. Це хвіст П-01.
+   ========================================================================== */
+@media (min-width: 1024px) {
+  .ds-snav {
+    max-height: calc(100vh - var(--s-16));
+    overflow-y: auto;
+    /* Прокрутка сайдбара не «підхоплює» сторінку, коли список скінчився. */
+    overscroll-behavior-y: contain;
+    padding-right: var(--s-3);
+    border-right: var(--bw) solid var(--c-line);
+  }
+}
+/* Низьке вікно: шапка стає --s-12 (_base §7), сайдбар мусить піти за нею,
+   інакше зверху лишається порожня смуга у 16 px, а знизу зникає стільки ж. */
+@media (min-width: 1024px) and (max-height: 700px) {
+  .ds-snav { top: var(--s-12); max-height: calc(100vh - var(--s-12)); }
+}
+
+/* П-23. `_base` селектує [aria-current="true"], а js/module.js:165 ставить
+   aria-current="page" — єдине правильне значення для пункту навігації за
+   WAI-ARIA. Селектор просто не спрацьовує: поточний урок утрачає акцентний
+   кант і фон, і це виглядає як «система така». Правило `_base` не
+   видаляється (воно не наше) — воно просто ніколи не матчить. */
+.ds-snav__item[aria-current] {
+  border-left-color: var(--c-accent);
+  color: var(--c-text);
+  background: var(--c-accent-quiet);
+}
+
+.ds-snav__home {
+  display: inline-flex; align-items: center; gap: var(--s-2);
+  min-height: var(--hit-min); margin-bottom: var(--s-3);
+  color: var(--c-text-2); font-size: var(--fs-ui); text-decoration: none;
+  transition: color var(--dur-hover) var(--e-out);
+}
+.ds-snav__count {
+  margin: var(--s-2) 0 0;
+  font-family: var(--f-mono); font-size: var(--fs-eyebrow);
+  line-height: var(--lh-eyebrow); color: var(--c-text-3);
+  font-variant-numeric: tabular-nums;
+}
+.ds-snav__track {
+  margin: var(--s-6) 0 var(--s-2);
+  font-family: var(--f-mono); font-size: var(--fs-eyebrow);
+  line-height: var(--lh-eyebrow); letter-spacing: var(--tr-eyebrow);
+  color: var(--c-text-3);
+  /* БЕЗ uppercase — правило системи (_base §0, .ds-eyebrow). */
+}
+/* Номер модуля — власна моноколонка. Ширина фіксована, щоб 01…23 стояли
+   в одній вертикалі; tabular-nums, бо інакше «1» вужча за «8». */
+.ds-snav__no {
+  flex: none; min-width: 2.5ch;
+  font-family: var(--f-mono); font-size: var(--fs-eyebrow);
+  color: var(--c-text-3); font-variant-numeric: tabular-nums;
+}
+.ds-snav__t { min-width: 0; }
+.ds-snav__check { color: var(--c-ok-text); font-family: var(--f-mono); }
+/* «Скоро» / «замок» — стан кодується СЛОВОМ і пунктиром, не лише кольором. */
+.ds-snav__soon {
+  margin-left: auto; flex: none;
+  font-family: var(--f-mono); font-size: var(--fs-eyebrow);
+  letter-spacing: var(--tr-eyebrow); color: var(--c-text-3);
+}
+.ds-snav__item.is-soon {
+  color: var(--c-text-disabled);
+  border-left-style: dashed; border-left-color: var(--c-line-strong);
+  cursor: default;
+}
+/* Уроки поточного модуля — другий рівень списку. */
+.ds-snav__lessons {
+  display: grid; gap: var(--s-1);
+  margin: var(--s-1) 0 var(--s-3);
+  padding-left: var(--s-6);
+  border-left: var(--bw) solid var(--c-line);
+  margin-left: var(--s-3);
+}
+.ds-snav__lesson {
+  position: relative;
+  display: flex; align-items: center;
+  /* Мобільні виміри 010, висновок 6: тап-ціль пункту навігації в добірці —
+     46 px при кеглі 13 (react.dev), у нас 27,2. Ціль піднімає падінг,
+     кегль лишається (висновок 1: кегль тіла на мобілці не зменшує ніхто). */
+  min-height: calc(var(--hit-min) + var(--s-2));
+  padding: var(--s-1) var(--s-2);
+  border-radius: var(--r-inner);
+  color: var(--c-text-3); font-size: var(--fs-small);
+  line-height: var(--lh-small); text-decoration: none;
+  scroll-margin-top: calc(var(--s-16) + var(--s-4));
+  transition: color var(--dur-hover) var(--e-out);
+}
+.ds-snav__lesson.is-active { color: var(--c-accent); }
+/* Скрол-спай не кодується самим лише кольором: активний рядок ще й
+   перекриває акцентом рейку списку. */
+.ds-snav__lesson.is-active::before {
+  content: "";
+  position: absolute;
+  left: calc((var(--s-6) + var(--bw)) * -1); top: 0; bottom: 0;
+  width: var(--bw-strong); background: var(--c-accent);
+  border-radius: var(--r-pill);
+}
+.ds-snav__scrim {
+  position: fixed; inset: 0; z-index: calc(var(--z-drawer) - 1);
+  background: var(--c-overlay);
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--dur-state) var(--e-out);
+}
+.ds-snav__scrim.is-open { opacity: 1; pointer-events: auto; }
+/* Шторка ≤1024 (§6.4). Стан спокою — за екраном; is-open висуває. */
+.ds-snav--drawer {
+  width: min(var(--w-sidebar), 85vw);
+  transform: translateX(-100%);
+  transition: transform var(--dur-state) var(--e-out);
+  border-right: var(--bw) solid var(--c-line);
+  padding-bottom: max(var(--s-8), env(safe-area-inset-bottom));
+}
+.ds-snav--drawer.is-open { transform: none; }
+/* ⚠ `_base` оголошує `.ds-snav--drawer { position: fixed }` ПІСЛЯ
+   `@media (min-width:1024px) { .ds-snav { position: sticky } }`, а
+   специфічність в обох (0,1,0) — тобто на десктопі виграє fixed і
+   пристикованої колонки не було б узагалі. Повертаємо її явно. */
+@media (min-width: 1024px) {
+  .ds-snav--drawer {
+    position: sticky; inset: auto; top: var(--s-16);
+    transform: none; width: var(--w-sidebar);
+    background: transparent; padding: 0;
+    z-index: var(--z-sidebar);
+  }
+  .ds-snav__scrim { display: none; }
+}
+@media (min-width: 1024px) and (max-height: 700px) {
+  .ds-snav--drawer { top: var(--s-12); }
+}
+
+
+/* ============================================================================
+   Б2-22. ds-mnav — «попередній / наступний модуль»
+   У системі є один рядок (.ds-mnav = flex). Живих форм сім: три ліворуч
+   (на головну / попередній / попередній «скоро») і чотири праворуч
+   (наступний / «заверши цей» / «скоро» / сертифікат).
+   ========================================================================== */
+.ds-mnav { display: grid; gap: var(--s-4); }
+@media (min-width: 640px) { .ds-mnav { grid-template-columns: 1fr 1fr; } }
+.ds-mnav__item {
+  display: flex; flex-direction: column; justify-content: center; gap: var(--s-1);
+  min-height: calc(var(--s-20) + var(--s-1));
+  padding: var(--s-4) var(--s-5);
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-card);
+  background: var(--c-surface);
+  color: var(--c-text-2); text-decoration: none;
+  transition: border-color var(--dur-hover) var(--e-out), color var(--dur-hover) var(--e-out);
+}
+a.ds-mnav__item:hover { border-color: var(--c-accent-edge); }
+a.ds-mnav__item:hover .ds-mnav__label { color: var(--c-accent); }
+.ds-mnav__label {
+  font-family: var(--f-mono); font-size: var(--fs-eyebrow);
+  line-height: var(--lh-eyebrow); letter-spacing: var(--tr-eyebrow);
+  color: var(--c-text-3);
+}
+.ds-mnav__title { color: var(--c-text); font-weight: var(--w-medium); line-height: var(--lh-h4); }
+.ds-mnav--next  { text-align: right; align-items: flex-end; }
+/* «Скоро» / «спершу заверши» — пунктир і приглушений текст, а не сама лише
+   opacity: 0.55 (прод). opacity на всьому блоці валить контраст тексту
+   нижче порогу; тут приглушення робиться КОЛЬОРОМ РОЛІ й ФОРМОЮ канта. */
+.ds-mnav__item.is-soon {
+  border-style: dashed; border-color: var(--c-line-strong);
+  background: transparent; color: var(--c-text-3); cursor: default;
+}
+.ds-mnav__item.is-soon .ds-mnav__title { color: var(--c-text-2); font-weight: var(--w-regular); }
+/* Останній модуль курсу — єдиний акцентний вихід зі сторінки. */
+.ds-mnav__item--final { border-color: var(--c-accent-edge); background: var(--c-accent-quiet); }
+.ds-mnav__item--final .ds-mnav__label { color: var(--c-accent); }
+
+
+/* ============================================================================
+   Б2-23. ds-quiz — 57 сторінок, ~390 питань
+   У системі є .ds-quiz, __q, __opts, __opt, __explain. Живих імен більше.
+   ========================================================================== */
+/* `.ds-quiz` у _base §10 — картка на ОДНЕ питання (так вона й стоїть у
+   styleguide). В уроці всередині шість карток, в іспиті — 26, і зовнішня
+   рамка навколо двадцяти шести рамок читається як коробка в коробці:
+   один радіус і одна рамка на все підряд — найпомітніший шаблонний тік.
+   Контейнер стає потоком, кадр лишається на питанні. */
+.ds-quiz { border: 0; background: transparent; padding: 0; }
+
+.ds-quiz__status {
+  margin: 0 0 var(--s-3);
+  font-family: var(--f-mono); font-size: var(--fs-small);
+  color: var(--c-text-3);
+}
+.ds-quiz__num {
+  margin: 0 0 var(--s-2);
+  font-family: var(--f-mono); font-size: var(--fs-eyebrow);
+  line-height: var(--lh-eyebrow); letter-spacing: var(--tr-eyebrow);
+  color: var(--c-text-3); font-variant-numeric: tabular-nums;
+}
+/* Картка питання. .ds-quiz — контейнер усього квіза, це — одне питання. */
+.ds-quiz__card {
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-card);
+  background: var(--c-surface);
+  padding: var(--s-5);
+  margin-bottom: var(--s-4);
+}
+.ds-quiz__opt { overflow-wrap: anywhere; }
+/* Варіант, який уже не можна вибрати. Приглушуємо КОЛЬОРОМ РОЛІ, а не
+   opacity: 0.65 (прод) — opacity гасить і рамку правильної відповіді.
+   Правильний і хибний варіанти лишаються в повну силу. */
+.ds-quiz__card.is-answered .ds-quiz__opt[data-locked] {
+  cursor: default; color: var(--c-text-disabled); border-color: var(--c-line);
+}
+.ds-quiz__card.is-answered .ds-quiz__opt--ok,
+.ds-quiz__card.is-answered .ds-quiz__opt--bad { color: inherit; }
+.ds-quiz__card.is-answered .ds-quiz__opt--ok  { color: var(--c-ok-text);  border-color: var(--c-ok-edge);  background: var(--c-ok-quiet); }
+.ds-quiz__card.is-answered .ds-quiz__opt--bad { color: var(--c-err-text); border-color: var(--c-err-edge); background: var(--c-err-quiet); }
+/* Після відповіді підкладка «мій вибір» (--c-accent-quiet з _base, aria-pressed)
+   сперечається з підкладкою результату: акцент означає «обрано», а не «правильно».
+   Тому результат перебиває вибір — і колір, і кант, і гліф кажуть одне. */
+.ds-quiz__explain {
+  border-left: var(--bw-strong) solid var(--c-line-strong);
+  border-radius: 0 var(--r-inner) var(--r-inner) 0;
+  background: var(--c-bg);
+  padding: var(--s-3) var(--s-4);
+  margin-top: 0;            /* відступ дає .ds-quiz__reveal > div, див. нижче */
+}
+.ds-quiz__explain--ok  { border-left-color: var(--c-ok-edge); }
+.ds-quiz__explain--bad { border-left-color: var(--c-err-edge); border-left-style: dashed; }
+.ds-quiz__verdict { display: block; font-weight: var(--w-semi); margin-bottom: var(--s-1); }
+.ds-quiz__explain--ok  .ds-quiz__verdict { color: var(--c-ok-text); }
+.ds-quiz__explain--bad .ds-quiz__verdict { color: var(--c-err-text); }
+.ds-quiz__summary {
+  border: var(--bw) solid var(--c-accent-edge);
+  background: var(--c-accent-quiet);
+  border-radius: var(--r-card);
+  padding: var(--s-5);
+  margin-top: var(--s-4);
+  font-size: var(--fs-ui); line-height: var(--lh-body);
+}
+.ds-quiz__score {
+  margin: 0 0 var(--s-2);
+  font-family: var(--f-mono); font-weight: var(--w-semi);
+  color: var(--c-text); font-variant-numeric: tabular-nums;
+}
+/* M7 · пояснення зʼявляється розкриттям рядка сітки, а не анімацією height. */
+.ds-quiz__reveal {
+  display: grid; grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur-state) var(--e-out);
+}
+.ds-quiz__card.is-answered .ds-quiz__reveal { grid-template-rows: 1fr; }
+/* Обрізає СЕРЕДНІЙ шар без падінгів: падінги на елементі з height 0 усе
+   одно малюються, і під кожним питанням лишалася б порожня смуга. */
+.ds-quiz__reveal > div { overflow: hidden; min-height: 0; }
+.ds-quiz__explain { margin-top: var(--s-4); }
+
+
+/* ============================================================================
+   Б2-24. .term — три прогалини G4
+   Розмітка не міняється (Д6). Тут лише те, чого в _base §12 немає.
+   ========================================================================== */
+/* 17 блоків у проді. Стан помилки — кант, а не колір тексту: текст усередині
+   вже фарбує .term__err, і подвоєння сигналу було б шумом. */
+.term--err { border-color: var(--c-err-edge); }
+.term--err > .term__chrome { color: var(--c-err-text); }
+.term--err > .term__chrome .term__dots { background: var(--c-err-edge); }
+/* Маркери-колонки. Ширина береться з --term-mark-w (_base), колір — з ролі. */
+.term__mark--meta { color: var(--c-text-3); }
+.term__mark--tool { color: var(--c-accent); }
+.term__mark--pick { color: var(--c-accent); }
+/* Фікс Б-16 з 005, який 009 загубила: горизонтальна прокрутка термінала не
+   тягне за собою сторінку (і не вмикає «назад» жестом на iOS). Заміряно
+   агентом №2: у _base на всіх шести горизонтальних скролерах `auto`. */
+.term > .term__body,
+.ds-tbl__wrap,
+.ds-diag,
+.ds-code > .ds-code__pre,
+.ds-prose > .ds-code__pre,
+.ds-prose > section > .ds-code__pre { overscroll-behavior-x: contain; }
+/* Кнопка копіювання лишає своє ім'я (гак js/ui.js) і додає роль кнопки.
+   Клас .term__copy сам по собі більше нічого не малює. */
+.term__copy { flex: none; }
+
+
+/* ============================================================================
+   Б2-25. ds-tbl — виправлення заміряного дефекту
+   ----------------------------------------------------------------------------
+   `.ds-tbl thead th { position: sticky; top: 0 }` у _base §13 — мертвий код.
+   Скролпорт для sticky — сам .ds-tbl__wrap (бо overflow-x: auto робить
+   обчислений overflow-y теж auto), а його висота дорівнює висоті таблиці:
+   вертикально він не прокручується ніколи.
+   Переміряно на живому корпусі: 111 таблиць у modules/, медіана 5 рядків,
+   максимум 18, довших за 15 рядків — ОДНА. Тобто жодна таблиця уроку не має
+   висоти, на якій липка шапка мала б сенс.
+   Тому прибираємо sticky, а не додаємо max-height: max-height створив би
+   вкладену вертикальну прокрутку на 182 таблицях заради одного випадку.
+   ========================================================================== */
+.ds-tbl thead th { position: static; }
+/* `white-space: nowrap` на першій колонці (_base §13) на 320–390 px розпирає
+   майже кожну таблицю уроку: перша колонка там — це команда або ключ
+   налаштування. Скрол лишається всередині обгортки й сторінку не ламає,
+   але читати доводиться боком. На вузькому екрані даємо їй переноситись. */
+@media (max-width: 640px) {
+  .ds-tbl td:first-child { white-space: normal; }
+}
+
+
+/* ============================================================================
+   Б2-26. Дрібниці, які тримають урок на мобілці
+   ========================================================================== */
+/* Якір із сайдбара не заводить заголовок під липку шапку. astro і laravel
+   ставлять 128 px; у нас шапка --s-16, плюс повітря --s-4. */
+html { scroll-padding-top: calc(var(--s-16) + var(--s-4)); }
+@media (max-height: 700px) { html { scroll-padding-top: calc(var(--s-12) + var(--s-4)); } }
+
+/* 0 із 10 правил :hover у _base захищені `@media (hover: hover)`. На тачскріні
+   hover «залипає» після тапу до наступного тапу деінде. Повний фікс — обгорнути
+   правила в _base (робота валідатора, §16 критерій 21). Тут знімаємо тільки
+   ті поверхні, за які відповідає Б2, щоб три білдери не написали три різні
+   нейтралізатори. */
+@media (hover: none) {
+  .ds-snav__item:hover { background: transparent; color: var(--c-text-2); }
+  .ds-snav__item[aria-current]:hover { background: var(--c-accent-quiet); color: var(--c-text); }
+  .ds-quiz__opt:hover { border-color: var(--c-line-strong); color: var(--c-text-2); }
+  a.ds-mnav__item:hover { border-color: var(--c-line); }
+  a.ds-mnav__item:hover .ds-mnav__label { color: var(--c-text-3); }
+}
+
+/* ⚠ ДВА БУРГЕРИ, ОДИН КЛАС, ОДИН ПОРІГ. `_base` ховає `.ds-hdr__burger` від
+   640 px — це правильно для бургера МЕНЮ лендінга (§6.4: поріг ≤ --bp-sm).
+   Але бургер ЗМІСТУ уроку має інший поріг: шторка живе до 1024 (§6.4).
+   Із правилом `_base` у смузі 640–1023 px шторка ще існує, а тригера до неї
+   вже немає — зміст курсу стає недосяжним на 384 px ширини вікна, і жоден
+   скріншот на 390 чи 1440 цього не покаже.
+   Розрізняємо по adjacent-атрибуту, а не по новому класу: aria-controls уже
+   стоїть у розмітці §6.2 і в 57 файлах проду. */
+.ds-hdr__burger[aria-controls="moduleSidebar"] { display: inline-flex; }
+@media (min-width: 1024px) {
+  .ds-hdr__burger[aria-controls="moduleSidebar"] { display: none; }
+}
+
+/* ⚠ ВИПРАВЛЕННЯ `_base`, СТОСУЄТЬСЯ ВСІХ ТРЬОХ БІЛДЕРІВ. Атрибут `hidden`
+   програє будь-якій утиліті розкладки: у preflight Tailwind це
+   `[hidden] { display: none }` (0,1,0), а `.grid` / `.flex` — теж (0,1,0),
+   і виграє той, хто стоїть у каскаді пізніше. Наслідок побачено живцем:
+   екран-замок ховав статтю, а хвіст уроку (`#moduleNav.ds-mnav`,
+   `display: grid`) лишався на екрані під замком.
+   Подвоєний атрибут дає (0,2,0) без жодного !important. Стосується всіх
+   місць, де `hidden` стоїть на елементі з класом розкладки — а це
+   `#navProgress`, `#configError` і будь-який майбутній. */
+[hidden][hidden] { display: none; }
+
+/* ⚠ ВИПРАВЛЕННЯ `_base`, СТОСУЄТЬСЯ ВСІХ ТРЬОХ БІЛДЕРІВ — валідатору звести
+   в одне місце. `_base §1` фіксує `height: var(--btn-h)`, і будь-який
+   довгий український підпис вилазить за коробку кнопки. Заміряно на кадрі
+   «пройдений модуль»: напис «✓ Завершено · натисни, щоб скинути» — 33
+   символи, три рядки, з яких два стоять ПОЗА кнопкою.
+   Це не крайній випадок: український підпис на 10–15 % довший за
+   англійський, а §10 прямо вимагає «кнопку зі словом 24 символи».
+   Висота стає ПІДЛОГОЮ, а не стелею. Іконкова кнопка лишається квадратною. */
+.ds-btn { height: auto; min-height: var(--btn-h); padding-block: var(--s-2); }
+.ds-btn--icon { width: var(--btn-h); height: var(--btn-h); padding-block: 0; }
+
+/* Екран-замок (§10 «Заблокований модуль»). Нового КОМПОНЕНТА не заводимо:
+   роль повністю закриває .ds-empty з _base §18 — пунктирна рамка, центр,
+   рядок пояснення + дія. Потрібен лише модифікатор ширини, бо замок стоїть
+   замість статті й мусить тримати її колонку. Модифікатор наявного
+   компонента реєстр §7.0 не розширює. */
+.ds-empty--gate { max-width: var(--w-prose); }

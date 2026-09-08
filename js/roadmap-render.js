@@ -22,6 +22,25 @@
      5 · слухач на #contactTrigger прибраний — на сайті цю кнопку
          вже слухає js/contact.js, і два слухачі викликали б
          openModal() двічі на один клік.
+
+   010 (2026-09-07) · МІГРАЦІЯ НА ДИЗАЙН-СИСТЕМУ 009. Змінено рівно
+   два місця, обидва підписані на місці:
+     1 · getPropertyValue("--sk-rows") → "--rm-sk-rows" (рядок 199).
+         Токен переїхав із глобального :root файла css/custom.css
+         у css/roadmap.css і отримав префікс сторінки. Без заміни
+         parseInt дає NaN і скелетон мовчки малює 6 рядків фолбека —
+         тобто розсинхрон не видно ВЗАГАЛІ;
+     2 · перемикання data-course разом із data-brand за ?from=.
+   Це 37-й і 38-й токени, які читає JS роадмапа. --delay-skeleton
+   (рядок ~92) НЕ чіпався: імʼя вже збігається із системним.
+   ⚠ Перейменування йде ОДНИМ комітом із css/roadmap.css і
+   js/roadmap-motion.js — розсинхрону не видно на екрані (П-06).
+
+   ⚠ ДВІ ЛАТЕНТНІ ПАСТКИ ЦЬОГО ФАЙЛУ НЕ ЧІПАЛИСЬ (заборона брифа):
+     1 · згортання квартальних груп іде за індексом (gi >= 2) — при
+         появі третього кварталу згорнеться найсвіжіший, не найстаріший;
+     2 · гілка зі станом dropped сортує «Зроблено» у зворотному порядку.
+   Обидві не виявляються на поточних даних. НЕ «лагодити по дорозі».
    ============================================================ */
 (function () {
   "use strict";
@@ -196,7 +215,7 @@
     // 2) стрічка
     var wrap = h("div", "rm-sk", null);
     wrap.setAttribute("aria-hidden", "true");
-    var rows = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--sk-rows"), 10) || 6;
+    var rows = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--rm-sk-rows"), 10) || 6;
     for (var i = 0; i < rows; i++) {
       var r = h("div", "rm-sk__row");
       r.appendChild(h("div", "rm-sk__t"));
@@ -231,6 +250,14 @@
     document.querySelectorAll("[data-brand-back]").forEach(function (a) {
       a.setAttribute("href", isArchitect ? ROOT + "architect.html" : ROOT + "index.html");
     });
+
+    /* ⚠ ДОДАНО 010. §5.2 пакета: roadmap.html за замовчуванням стоїть на
+       data-course="academy", і акцент курсу перемикається ТУТ, разом із
+       брендом, тим самим механізмом ?from=. Без цього рядка людина, яка
+       прийшла з AI Architect, бачить бренд «AI Architect» і ШАФРАНОВИЙ
+       акцент Академії — тобто слот акценту не працює саме на єдиній
+       спільній сторінці сайту. */
+    document.documentElement.setAttribute("data-course", isArchitect ? "architect" : "academy");
 
     /* --- hero --- */
     el.heroEyebrow.appendChild(document.createTextNode(c.eyebrow));

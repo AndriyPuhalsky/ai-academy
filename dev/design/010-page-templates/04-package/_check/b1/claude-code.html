@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<!-- ============================================================================
+     010 · T1b — ЛЕНДІНГ ТЕРМІНАЛА · AI Термінал
+     ----------------------------------------------------------------------------
+     ⚠ Це ОКРЕМИЙ ТИП, а не варіація T1a (Д4). У нього власні 93 класи cc-*,
+     вісім власних секцій, вісь сторінки й GSAP. Спільними лишаються рівно
+     чотири речі: токени, компоненти, ХРОМ (§6, побайтово той самий) і
+     бюджет руху. Уніфікувати три лендінги в один скелет — це переписати
+     третій, тобто окрема задача (Д5).
+     ⚠ У МАКЕТІ data-config вказує на data/academy.json — копію реального
+     config.json без ключів supabase (публічний репозиторій). У коді сайту
+     значення лишається config.json, як і було.
+     ============================================================================ -->
+<html lang="uk" data-config="data/terminal.json" data-course="terminal" data-density="landing" data-lit>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Термінал — курс про Claude Code українською</title>
+  <meta name="description" content="Безкоштовний курс про Claude Code: від «ніколи не відкривав термінал» до впевненої щоденної роботи з агентом.">
+  <!-- Д16 · ЄДИНИЙ легальний хекс у HTML. Дорівнює --p-n-100; <meta> не читає var().
+       Міняєш тут — заміни в css/tokens.css біля --p-n-100 (там стоїть той самий коментар). -->
+  <meta name="theme-color" content="#161311">
+  <!-- у коді сайту тут <link rel="icon" href="assets/favicon.svg">; у макеті прибрано, щоб не давати 404 у консолі -->
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <!-- §4.5 · один <link> замість @import. Латиниця вантажиться СВІДОМО:
+       український апостроф ʼ (U+02BC) лежить у латинській підмножині
+       Google Fonts, а не в кириличній. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- §5.2 · порядок обовʼязковий: токени → компоненти → сторінковий файл,
+       і аж потім Tailwind CDN, щоб його утиліти перебивали компонент там,
+       де верстка справді хоче виняток.
+       ⚠ У КОДІ САЙТУ це css/tokens.css і css/components.css. Тут — пряме
+       посилання на незмінну базу 009, щоб макет і система не розʼїхались. -->
+  <link rel="stylesheet" href="../../files/css/tokens.css">
+  <link rel="stylesheet" href="../../files/css/components.css">
+  <link rel="stylesheet" href="../../files/css/claude-code.css"><!-- сторінковий файл: ТІЛЬКИ тут -->
+  <link rel="stylesheet" href="css/mockup-only.css"><!-- ⚠ тільки макет -->
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../../files/js/tw-theme.js"></script>
+</head>
+
+<body id="top">
+
+  <!-- ================= §6.1 · ЧОТИРИ СПІЛЬНІ БЛОКИ ================= -->
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <div id="announcement" hidden></div>
+
+  <!-- ================= §6.2 · ШАПКА · ПРОФІЛЬ H1 (лендінг) ================= -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+
+      <!-- 2. БРЕНД -->
+      <a class="ds-hdr__brand" href="claude-code.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIT</span>
+        <span data-site="name">AI Термінал</span>
+      </a>
+
+      <!-- 3. НАВІГАЦІЯ — тільки на лендінгах · §6.3 -->
+      <nav class="ds-nav" aria-label="Головна навігація">
+        <a class="ds-nav__link" href="#map">Програма</a>
+        <a class="ds-nav__link" href="#refs">Довідники</a>
+        <a class="ds-nav__link" href="#donate">Підтримка</a>
+
+        <div class="ds-nav__group">
+          <button id="coursesBtn" type="button" class="ds-nav__link ds-nav__trigger"
+                  aria-haspopup="true" aria-expanded="false" aria-controls="coursesMenu">
+            Курси
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg>
+          </button>
+          <div id="coursesMenu" class="ds-nav__menu" role="menu" aria-labelledby="coursesBtn">
+            <a class="ds-nav__link" role="menuitem" href="index.html">Базовий</a>
+            <a class="ds-nav__link" role="menuitem" href="architect.html">AI Architect</a>
+            <a class="ds-nav__link" role="menuitem" href="claude-code.html" aria-current="page">Claude Code CLI</a>
+          </div>
+        </div>
+
+        <a class="ds-nav__link" data-link="github" href="#">GitHub ↗</a>
+      </nav>
+
+      <span class="ds-hdr__spacer"></span>
+
+      <!-- 4. СЛОТ АВТОРИЗАЦІЇ (js/auth-ui.js). Ширина фіксована токеном → CLS = 0 -->
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+
+      <!-- 5. ПІЛЮЛЯ ПРОГРЕСУ (js/config.js) -->
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+
+      <!-- 6. БУРГЕР МЕНЮ — тільки на лендінгах -->
+      <button id="menuBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="mobileMenu">
+        <span class="sr-only">Меню</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- §6.4 · МОБІЛЬНЕ МЕНЮ ЛЕНДІНГА (≤640). Це НЕ шторка змісту уроку:
+       поріг 640, у потоці під шапкою, без підложки, без блокування скролу,
+       курси розгорнуті списком — дропдауна тут немає взагалі. -->
+  <div id="mobileMenu" class="ds-nav__drawer" data-open="false">
+    <nav aria-label="Мобільна навігація">
+      <a class="ds-nav__link" href="#map">Програма</a>
+      <a class="ds-nav__link" href="#refs">Довідники</a>
+      <a class="ds-nav__link" href="#donate">Підтримка</a>
+      <p class="ds-eyebrow">Курси</p>
+      <a class="ds-nav__link" href="index.html">Базовий</a>
+      <a class="ds-nav__link" href="architect.html">AI Architect</a>
+      <a class="ds-nav__link" href="claude-code.html" aria-current="page">Claude Code CLI</a>
+      <a class="ds-nav__link" data-link="github" href="#">GitHub ↗</a>
+    </nav>
+  </div>
+
+  <div class="ds-wrap ds-band">
+    <div id="configError" hidden class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">
+        ⚠ Не вдалося завантажити <code class="ds-code--inline">claude-code.config.json</code>. Відкрий сайт через
+        локальний сервер, наприклад: <code class="ds-code--inline">python -m http.server 8000</code> —
+        і зайди на <code class="ds-code--inline">localhost:8000</code>.
+      </p>
+    </div>
+  </div>
+
+  <!-- ================= КОНТЕНТ ================= -->
+  <main id="main" data-page-in>
+
+    <!-- ============================================================
+         ВІСЬ СТОРІНКИ. Одна пряма лінія від hero до вузла іспиту:
+         вона й тримає композицію, і є носієм M9 — ЄДИНОГО ScrollTrigger
+         на всю сторінку.
+         ============================================================ -->
+    <div class="cc-path">
+      <div class="cc-path__line" aria-hidden="true">
+        <i class="cc-path__rest"></i>
+        <i class="cc-path__lit"></i>
+      </div>
+
+      <!-- ---------------- 1 · HERO ---------------- -->
+      <section class="cc-hero cc-wrap" aria-labelledby="heroTitle">
+        <div class="cc-hero__grid">
+          <div class="cc-hero__head">
+            <div class="cc-grid">
+              <div class="cc-grid__rail"></div>
+              <div class="cc-grid__body">
+                <h1 class="cc-hero__title" id="heroTitle"></h1>
+              </div>
+            </div>
+          </div>
+
+          <div class="cc-hero__body">
+            <div class="cc-grid">
+              <div class="cc-grid__rail"></div>
+              <div class="cc-grid__body">
+                <p class="cc-hero__lead" id="heroLead"></p>
+                <div class="cc-hero__cta">
+                  <a class="cc-btn cc-btn--primary" id="ctaStart" href="#"></a>
+                  <a class="cc-btn cc-btn--ghost" id="ctaMap" href="#map"></a>
+                </div>
+                <p class="cc-hero__explain"><span id="heroExplainText"></span></p>
+                <p class="cc-hero__stats" id="heroStats"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Предмет на столі. Плита — ЄДИНИЙ обʼєм на сторінці (--c-desk). -->
+          <div class="cc-hero__object is-reserved">
+            <div class="cc-desk">
+              <figure class="term term--hero" id="heroTerm">
+                <figcaption class="term__chrome">
+                  <span class="term__dots" aria-hidden="true"></span>
+                  <span class="term__title" id="heroChrome"></span>
+                </figcaption>
+                <pre class="term__body" id="heroBody" tabindex="0" role="group" aria-labelledby="heroChrome"></pre>
+              </figure>
+              <div class="cc-desk__foot">
+                <span id="heroHint"></span>
+                <button type="button" id="heroReplay" class="cc-btn cc-btn--quiet">
+                  <span aria-hidden="true">↻</span><span id="heroReplayLabel"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------- 2 · ДЛЯ КОГО ---------------- -->
+      <section class="cc-section cc-wrap" aria-labelledby="audTitle">
+        <div class="cc-grid">
+          <div class="cc-grid__rail"></div>
+          <div class="cc-grid__body" data-reveal="">
+            <h2 class="cc-h2" id="audTitle"></h2>
+            <p class="cc-lead" id="audLead"></p>
+            <div class="cc-split mt-10">
+              <div>
+                <h3 class="cc-split__head" id="audForTitle"></h3>
+                <ul class="cc-list cc-list--for" id="audFor"></ul>
+              </div>
+              <div>
+                <h3 class="cc-split__head" id="audNotTitle"></h3>
+                <ul class="cc-list cc-list--not" id="audNot"></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------- 3 · ЧОГО НАВЧИШСЯ ---------------- -->
+      <section class="cc-section cc-wrap" aria-labelledby="outTitle">
+        <div class="cc-grid">
+          <div class="cc-grid__rail"></div>
+          <div class="cc-grid__body">
+            <h2 class="cc-h2" id="outTitle" data-reveal=""></h2>
+            <p class="cc-lead" id="outLead"></p>
+            <ul class="cc-out" id="outList" data-reveal-root></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------- 4 · КАРТА ПРОГРАМИ ---------------- -->
+      <section class="cc-section cc-wrap" id="map" aria-labelledby="mapTitle">
+        <div class="cc-grid">
+          <div class="cc-grid__rail"></div>
+          <div class="cc-grid__body" data-reveal="">
+            <h2 class="cc-h2" id="mapTitle"></h2>
+            <p class="cc-lead" id="mapLead"></p>
+          </div>
+        </div>
+        <ol class="cc-map__reserve" id="ccMap" data-reveal-root></ol>
+        <div class="cc-exam cc-grid" id="ccExam"></div>
+      </section>
+    </div><!-- /.cc-path -->
+
+    <!-- ---------------- 5 · ПОЛИЦЯ ДОВІДНИКІВ ---------------- -->
+    <section class="cc-section cc-wrap" id="refs" aria-labelledby="refTitle">
+      <div class="cc-grid">
+        <div class="cc-grid__rail"></div>
+        <div class="cc-grid__body">
+          <h2 class="cc-h2" id="refTitle" data-reveal=""></h2>
+          <p class="cc-lead" id="refLead"></p>
+          <div class="cc-shelf__line" aria-hidden="true"></div>
+          <ul class="cc-shelf__items" id="refList" data-reveal-root></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------- 6 · ЯК ВЛАШТОВАНИЙ УРОК ---------------- -->
+    <section class="cc-section cc-wrap" aria-labelledby="shapeTitle">
+      <div class="cc-grid">
+        <div class="cc-grid__rail"></div>
+        <div class="cc-grid__body" data-reveal="">
+          <h2 class="cc-h2" id="shapeTitle"></h2>
+          <p class="cc-lead" id="shapeLead"></p>
+          <ol class="cc-steps" id="shapeSteps"></ol>
+          <p class="cc-note" id="shapeNote"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------- 7 · СЕРТИФІКАТ ---------------- -->
+    <section class="cc-section cc-wrap" aria-labelledby="certTitle">
+      <div class="cc-grid">
+        <div class="cc-grid__rail"></div>
+        <div class="cc-grid__body">
+          <div class="cc-cert" data-reveal="">
+            <div>
+              <h2 class="cc-h2" id="certTitle"></h2>
+              <p class="cc-lead" id="certLead"></p>
+              <p class="cc-note" id="certNote"></p>
+            </div>
+            <div class="cc-paper">
+              <p class="cc-paper__kind" id="certKind"></p>
+              <p class="cc-paper__name" id="certName"></p>
+              <div class="cc-paper__rule" aria-hidden="true"></div>
+              <p class="cc-paper__course" id="certCourse"></p>
+              <p class="cc-paper__code" id="certCode"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------- 8 · ДОНАТИ ---------------- -->
+    <section class="cc-section cc-wrap" id="donate" aria-labelledby="donateTitle">
+      <div class="cc-grid">
+        <div class="cc-grid__rail"></div>
+        <div class="cc-grid__body">
+          <h2 class="cc-h2" id="donateTitle" data-reveal=""></h2>
+          <p class="cc-lead" id="donateLead"></p>
+          <ul class="cc-donate" id="donateGrid" data-reveal-root></ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= §6.6 · ФУТЕР · ПРОФІЛЬ F1 (повний) ================= -->
+  <footer class="ds-ftr">
+    <div class="ds-ftr__grid">
+      <div>
+        <p class="ds-h4" data-site="name">AI Термінал</p>
+        <p class="ds-small" data-site="disclaimer"></p>
+      </div>
+      <nav aria-label="Посилання проєкту">
+        <p class="ds-eyebrow">Проєкт</p>
+        <!-- ⚠ П-11 · у проді links.github і links.telegram — ПОРОЖНІ рядки в усіх
+             трьох конфігах, і js/config.js видаляє такі <li>. Верстка тримає
+             список від 2 до 5 рядків, а не рівно чотири. -->
+        <ul class="ds-ftr__list">
+          <li><a href="certificate.html">Мої сертифікати ↗</a></li>
+          <li><a data-link="github" href="#">GitHub ↗</a></li>
+          <li><a data-link="telegram" href="#">Telegram ↗</a></li>
+          <li><button type="button" id="contactTrigger" class="ds-btn ds-btn--quiet ds-btn--sm">Написати нам</button></li>
+        </ul>
+        <!-- §6.7 · .rm-entry стоїть ПІСЛЯ </ul>, усередині тієї ж <nav>.
+             Це не рядок списку: блок із лінією, що доростає. -->
+        <a class="rm-entry" href="roadmap.html">
+          <span class="rm-entry__label">План розвитку</span>
+          <span class="rm-entry__arrow" aria-hidden="true">→</span>
+          <span class="rm-entry__rule" aria-hidden="true"></span>
+        </a>
+      </nav>
+      <nav aria-label="Першоджерела">
+        <p class="ds-eyebrow">Першоджерела</p>
+        <ul class="ds-ftr__list">
+          <li><a data-link="officialDocs" href="#">Документація Claude ↗</a></li>
+          <li><a data-link="officialCourses" href="#">Офіційні курси Anthropic ↗</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="ds-ftr__bar">
+      <span id="footerMeta"></span>
+      <span>Зроблено спільнотою · <a href="#top">Нагору ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- §5.3 · js/motion.js — ПЕРШИЙ із наших скриптів на кожній сторінці:
+       усі решта в кінці свого render() викликають AIA.motion.bind(root). -->
+  <script src="../../files/js/motion.js"></script>
+  <script src="js/chrome.js"></script>
+
+  <!-- GSAP 3.13.0 — ті самі три файли, що в roadmap.html. Ліцензія перевірена
+       на gsap.com/licensing: усе GSAP, включно з колишніми «клубними»
+       плагінами, безкоштовне для комерційного використання (чинне з
+       30.04.2025; перевірено 2026-09-07). GSAP підключений РІВНО НА ДВОХ
+       сторінках сайту — на уроки він не додається. -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+
+  <!-- Порядок міняти не можна: cc-motion слухає подію, яку кидає cc-render. -->
+  <script src="js/cc-render.js"></script>
+  <script src="js/cc-motion.js"></script>
+  <script src="js/mockup.js"></script><!-- ⚠ тільки макет -->
+</body>
+</html>

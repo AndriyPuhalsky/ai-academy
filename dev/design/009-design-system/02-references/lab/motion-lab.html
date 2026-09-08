@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="uk"><head><meta charset="utf-8"><title>009 · Три виміри руху</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Onest:wght@400;500;600&family=Bona+Nova:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--n1:#141312;--n2:#1B1916;--n0:#0d0c0b;--n6:#3A342E;--n11:#B5B3AD;--n12:#F0EEE6;--acc:#ff801f;--ok:#3dd68c;--err:#ff9592}
+body{margin:0;background:var(--n1);color:var(--n12);font:15px/1.6 Onest,system-ui;padding:36px}
+h1{font-size:20px;margin:0 0 4px}.sub{color:#9A9184;font-size:13px;margin:0 0 26px;max-width:900px}
+.exp{background:var(--n2);border:1px solid var(--n6);border-radius:14px;padding:22px 24px;margin-bottom:20px}
+h2{font-size:16px;margin:0 0 4px}.hint{color:#9A9184;font-size:13px;margin:0 0 14px}
+.mono{font-family:'JetBrains Mono',monospace}
+.out{background:var(--n0);border:1px solid var(--n6);border-radius:10px;padding:12px 14px;font:13px/1.7 'JetBrains Mono',monospace;color:var(--n11);white-space:pre-wrap;min-height:26px}
+.win{color:var(--ok)}.lose{color:var(--err)}
+#typeA,#typeB{font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;color:var(--n11);background:var(--n0);border:1px solid var(--n6);border-radius:8px;padding:10px;height:104px;overflow:hidden;white-space:pre-wrap}
+#typeB span{display:inline-block;clip-path:inset(0 100% 0 0)}
+.count{font-size:34px;font-weight:600;display:inline-block}
+.tab{font-variant-numeric:tabular-nums}
+.row{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start}
+.col{flex:1 1 320px;min-width:300px}
+.item{height:26px;background:#2A2621;border-radius:6px;margin-bottom:6px;opacity:0;transform:translateY(12px);transition:opacity .48s cubic-bezier(.16,1,.3,1),transform .48s cubic-bezier(.16,1,.3,1)}
+.item.in{opacity:1;transform:none}
+</style></head><body>
+<h1>Три виміри руху, яких немає в жодній статті</h1>
+<p class="sub">Не «як виглядає в іншого», а скільки це коштує в кадрах і пікселях. Усе міряється тут, у браузері, і друкується числами. Метод узятий з добірки 005: власна лабораторія б’є будь-яку статтю.</p>
+
+<div class="exp"><h2>1 · Друк тексту: посимвольна вставка в DOM проти clip-path + steps()</h2>
+<p class="hint">Той самий рядок, та сама швидкість 32 симв/с. Рахуємо кадри довші за 32 мс (це те, що спека 009 називає «нуль кадрів &gt; 32 мс») і сумарний час скриптів.</p>
+<div class="row"><div class="col"><div class="mono" style="font-size:12px;color:#9A9184;margin-bottom:6px">A · textContent += ch</div><div id="typeA"></div></div>
+<div class="col"><div class="mono" style="font-size:12px;color:#9A9184;margin-bottom:6px">B · clip-path: inset(0 100% 0 0) → 0, steps(N)</div><div id="typeB"></div></div></div>
+<div class="out" id="outType" style="margin-top:14px">…</div></div>
+
+<div class="exp"><h2>2 · Лічильник: скільки пікселів «дихає» число без tabular-nums</h2>
+<p class="hint">00 000 → 12 345 за 900 мс, <b>однакова кількість знаків на всіх кадрах</b> — тож будь-яка зміна ширини це вже не приріст розрядів, а різна ширина цифр у гарнітурі.</p>
+<div class="row"><div class="col"><div class="mono" style="font-size:12px;color:#9A9184">без tabular-nums</div><div class="count" id="c1">0</div></div>
+<div class="col"><div class="mono" style="font-size:12px;color:#9A9184">font-variant-numeric: tabular-nums</div><div class="count tab" id="c2">0</div></div><div class="col"><div class="mono" style="font-size:12px;color:#9A9184">Bona Nova (старостильні цифри)</div><div class="count" id="c3" style="font-family:'Bona Nova',serif">0</div></div></div>
+<div class="out" id="outCount" style="margin-top:14px">…</div></div>
+
+<div class="exp"><h2>3 · Стагер: чому потрібен cap 8</h2>
+<p class="hint">30 карток, крок 60 мс, тривалість 480 мс. Ліворуч — без обмеження, праворуч — затримка перестає рости після восьмої. Міряємо реальний час до останнього transitionend.</p>
+<div class="row"><div class="col"><div class="mono" style="font-size:12px;color:#9A9184;margin-bottom:6px">без cap</div><div id="listA"></div></div>
+<div class="col"><div class="mono" style="font-size:12px;color:#9A9184;margin-bottom:6px">cap 8</div><div id="listB"></div></div></div>
+<div class="out" id="outStag" style="margin-top:14px">…</div></div>
+
+<script>
+const TXT='> claude --resume\n  └─ Знайдено 3 сеанси · обрано «AI Термінал»\n> поясни, що робить цей хук, і чому він падає на порожньому вводі\n  ⏺ Перевіряю .claude/settings.json…';
+const CPS=32, MS=1000/CPS;
+function frameWatcher(){const g={long:0,max:0,n:0};let prev=performance.now(),stop=false;
+ (function tick(t){if(stop)return;const d=t-prev;prev=t;g.n++;if(g.n>2){if(d>32)g.long++;if(d>g.max)g.max=d;}requestAnimationFrame(tick);})(performance.now());
+ return {g,stop:()=>{stop=true}};}
+async function expType(){
+ const a=document.getElementById('typeA'),b=document.getElementById('typeB'),out=document.getElementById('outType');
+ // A: посимвольно
+ let w=frameWatcher(); let script=0; a.textContent='';
+ await new Promise(res=>{let i=0;const id=setInterval(()=>{const t0=performance.now();a.textContent+=TXT[i];a.scrollTop=a.scrollHeight;script+=performance.now()-t0;i++;if(i>=TXT.length){clearInterval(id);res();}},MS);});
+ w.stop(); const A={...w.g,script:+script.toFixed(1),ops:TXT.length};
+ // B: clip-path
+ b.innerHTML=''; const sp=document.createElement('span'); sp.textContent=TXT; b.appendChild(sp);
+ w=frameWatcher(); const t0=performance.now();
+ const dur=TXT.length*MS;
+ sp.style.transition=`clip-path ${dur}ms steps(${TXT.length}, end)`;
+ await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+ sp.style.clipPath='inset(0 0 0 0)';
+ await new Promise(r=>setTimeout(r,dur+120));
+ w.stop(); const B={...w.g,script:+(performance.now()-t0-dur).toFixed(1),ops:1};
+ out.innerHTML=`A · посимвольно : <b>${A.ops}</b> записів у DOM · кадрів >32 мс: <b class="${A.long?'lose':'win'}">${A.long}</b> · найдовший кадр ${A.max.toFixed(1)} мс · головний потік ${A.script} мс\n`+
+  `B · clip-path    : <b>1</b> запис у DOM · кадрів >32 мс: <b class="${B.long?'lose':'win'}">${B.long}</b> · найдовший кадр ${B.max.toFixed(1)} мс · головний потік не задіяний\n`+
+  `Висновок: на швидкій машині fps однаковий. Ціна посимвольного шляху — ${A.ops}× записів у DOM, зірване виділення тексту на кожному символі й ${A.ops} перечитувань рядка скрінрідером.`;
+}
+async function expCount(){
+ const c1=document.getElementById('c1'),c2=document.getElementById('c2'),c3=document.getElementById('c3'),out=document.getElementById('outCount');
+ const D=900,TO=12345; let w1=[],w2=[],w3=[];
+ await new Promise(res=>{const s=performance.now();(function step(){const p=Math.min(1,(performance.now()-s)/D);const v=Math.round(TO*(1-Math.pow(1-p,3)));const str=String(v).padStart(5,'0').replace(/^(\d{2})(\d{3})$/,'$1 $2');
+  c1.textContent=str;c2.textContent=str;c3.textContent=str;
+  w1.push(c1.getBoundingClientRect().width);w2.push(c2.getBoundingClientRect().width);w3.push(c3.getBoundingClientRect().width);
+  if(p<1)requestAnimationFrame(step);else res();})();});
+ const j=a=>+(Math.max(...a)-Math.min(...a)).toFixed(2);
+ out.innerHTML=`Onest без tabular-nums : ширина ${Math.min(...w1).toFixed(1)} → ${Math.max(...w1).toFixed(1)} px, стрибок <b class="${j(w1)>0?'lose':'win'}">${j(w1)} px</b> за ${w1.length} кадрів\n`+
+  `Onest tabular-nums     : ширина ${Math.min(...w2).toFixed(1)} → ${Math.max(...w2).toFixed(1)} px, стрибок <b class="win">${j(w2)} px</b>\n`+
+  `Bona Nova старостильні : ширина ${Math.min(...w3).toFixed(1)} → ${Math.max(...w3).toFixed(1)} px, стрибок <b class="${j(w3)>0?'lose':'win'}">${j(w3)} px</b>\n`+
+  `Це і є причина правила «числа, що змінюються, — завжди tabular-nums»: інакше сусідній текст рухається разом із цифрою.`;
+}
+async function expStag(){
+ const A=document.getElementById('listA'),B=document.getElementById('listB'),out=document.getElementById('outStag');
+ const N=30,STEP=60,DUR=480,CAP=8;
+ const mk=(root,capped)=>{root.innerHTML='';const els=[];for(let i=0;i<N;i++){const d=document.createElement('div');d.className='item';
+  d.style.transitionDelay=((capped?Math.min(i,CAP):i)*STEP)+'ms';root.appendChild(d);els.push(d);}return els;};
+ const a=mk(A,false),b=mk(B,true);
+ const t0=performance.now();
+ const last=(els)=>new Promise(r=>{let n=0;els.forEach(e=>e.addEventListener('transitionend',()=>{if(++n===els.length)r(performance.now()-t0);},{once:true}));});
+ const pa=last(a),pb=last(b);
+ requestAnimationFrame(()=>{a.forEach(e=>e.classList.add('in'));b.forEach(e=>e.classList.add('in'));});
+ const [ta,tb]=await Promise.all([pa,pb]);
+ out.innerHTML=`без cap : останній елемент завершив рух на <b class="lose">${ta.toFixed(0)} мс</b> (теорія ${(N-1)*STEP+DUR} мс)\n`+
+  `cap ${CAP}   : останній завершив на <b class="win">${tb.toFixed(0)} мс</b> (теорія ${CAP*STEP+DUR} мс)\n`+
+  `Різниця ${(ta-tb).toFixed(0)} мс. При 30 картках нецапнутий стагер тримає користувача ${(ta/1000).toFixed(1)} с — це вже не «список читається», це очікування.`;
+}
+(async()=>{await expType();await expCount();await expStag();window.__done=true;})();
+</script></body></html>

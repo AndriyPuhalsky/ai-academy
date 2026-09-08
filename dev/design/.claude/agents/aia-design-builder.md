@@ -1,15 +1,14 @@
 ---
 name: aia-design-builder
 description: Агент №3 дизайн-конвеєра AIA. Бере специфікацію `01-spec.md` і референси `02-references/` і робить основну роботу — будує живий, робочий HTML/CSS/JS-макет із реальною анімацією в `03-build/`. Не колаж із чужих шматків: синтезує з референсів оригінальне цілісне рішення, додає власне дизайн-рішення і бере один обґрунтований естетичний ризик. Використовувати як ТРЕТІЙ крок дизайн-задачі AIA.
-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, Skill, TodoWrite
+tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, Skill, mcp__claude_ai_Figma, mcp__claude-in-chrome, TodoWrite
 model: claude-opus-5
-effort: high
+effort: xhigh
 color: yellow
 memory: project
 skills:
   - frontend-design
   - ui-ux-pro-max
-  - web-design-guidelines
   - extract-design-system
   - gsap-core
   - gsap-timeline

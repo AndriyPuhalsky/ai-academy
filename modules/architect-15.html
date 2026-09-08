@@ -1,104 +1,100 @@
 <!DOCTYPE html>
-<html lang="uk" class="scroll-smooth" data-config="../architect.config.json">
+<html lang="uk" data-config="../architect.config.json" data-course="architect" data-density="lesson" data-lit>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Модуль 15 · Агенти у бізнес-процесах — AI Architect</title>
   <meta name="description" content="Вбудовуємо агентів у реальну роботу: під'єднання до інструментів, MCP, проєктування, повний код тріажу, надійність, людина в контурі та масштабування." />
-  <meta name="theme-color" content="#141312" />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
 
   <script>document.documentElement.classList.add("js");</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег.
+       010 · етап 9: стара мова (окремий файл зі спадщиною 2023–2026)
+       видалена цілком, тому в каскаді лишились рівно ці файли. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ink: "#141312", surface: "#1E1B18", raised: "#272320",
-            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
-            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
-            sand: "#E8DCC3"
-          },
-          fontFamily: {
-            display: ["Literata", "Georgia", "serif"],
-            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
-            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
-          },
-          maxWidth: { content: "72rem" }
-        }
-      }
-    };
-  </script>
-
-  <link rel="stylesheet" href="../css/custom.css" />
+  <script src="../js/tw-theme.js"></script>
 </head>
 
-<body data-module="a15" class="bg-ink font-sans text-ivory antialiased">
+<body data-module="a15">
 
-  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
   <div id="ariaLive" class="sr-only" aria-live="polite"></div>
 
   <noscript>
-    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
-      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
     </div>
   </noscript>
 
-  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
-    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
-      <div class="flex items-center gap-3">
-        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
-                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
-          <span class="sr-only">Зміст курсу</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-            <path d="M3 6h18M3 12h18M3 18h18" />
-          </svg>
-        </button>
-        <a href="../index.html" class="flex items-center gap-2.5">
-          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIA</span>
-          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Architect</span>
-        </a>
-        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
-        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 15</span>
-      </div>
-      <div class="flex items-center gap-3">
-        <div id="aiaAuth" class="slot"></div>
-        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
-        <a href="../index.html" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">На головну</a>
-      </div>
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../index.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIA</span>
+        <span data-site="name">AI Architect</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Модуль 15</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../index.html">На головну</a>
     </div>
   </header>
 
-  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
-    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
-      ⚠ Не вдалося завантажити <code>architect.config.json</code>. Відкрий сайт через локальний сервер,
-      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">architect.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
     </div>
   </div>
 
-  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
 
-    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
       <div id="sidebarNav" class="lg:pt-10">
-        <p class="snav-count">Завантаження програми…</p>
+        <p class="ds-snav__count">Завантаження програми…</p>
       </div>
     </aside>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-3xl">
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
 
-        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза C · Агенти й команди агентів</p>
-        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Агенти у бізнес-процесах</h1>
-        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Агенти · 8 уроків · ≈ 95 хв</p>
-        <p class="mt-6 text-lg">
+        <p class="ds-eyebrow">Фаза C · Агенти й команди агентів</p>
+        <h1 class="ds-h1">Агенти у бізнес-процесах</h1>
+        <p class="ds-small ds-num">Агенти · 8 уроків · ≈ 95 хв</p>
+        <p class="ds-lead">
           Ось де навички перетворюються на реальну цінність. Агент стає корисним бізнесу, коли під'єднаний
           до <strong>справжніх інструментів і даних</strong> — пошти, таблиць, CRM. У цьому модулі ми
           навчимося це робити, зберемо <strong>повну робочу автоматизацію</strong> — тріаж звернень
@@ -108,8 +104,8 @@
         <hr />
 
         <!-- УРОК 15.1 -->
-        <section id="l1" data-lesson="15.1 Від демо до бізнесу" class="scroll-mt-24">
-          <h2><span class="lesson-no">15.1</span>Від демо до реального бізнесу</h2>
+        <section id="l1" data-lesson="15.1 Від демо до бізнесу">
+          <h2><span class="ds-prose__no">15.1</span>Від демо до реального бізнесу</h2>
           <p>
             Наш агент із Модуля 13 працював із вигаданими даними. У бізнесі цінність з'являється, коли агент
             торкається <em>реальних</em> процесів: читає справжні листи, пише в справжню таблицю, оновлює
@@ -123,7 +119,7 @@
             <li><strong>Звіти:</strong> регулярно збирати дані й складати зведення (як наш агент-аналітик).</li>
             <li><strong>Введення даних:</strong> переносити інформацію з документів у таблиці без ручної рутини.</li>
           </ul>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Головна думка фази.</strong> Бізнес платить не за «розумного бота», а за
             <em>зекономлений час і менше рутини</em>. Твоя цінність як інженера — побачити нудний
             повторюваний процес і доручити його агенту, під'єднавши до інструментів, якими бізнес уже
@@ -134,14 +130,14 @@
         <hr />
 
         <!-- УРОК 15.2 -->
-        <section id="l2" data-lesson="15.2 Під'єднання до інструментів" class="scroll-mt-24">
-          <h2><span class="lesson-no">15.2</span>Як агент під'єднується до реальних інструментів</h2>
+        <section id="l2" data-lesson="15.2 Під'єднання до інструментів">
+          <h2><span class="ds-prose__no">15.2</span>Як агент під'єднується до реальних інструментів</h2>
           <p>
             Ти вже вмієш головне — tool use (Модуль 10). Інструмент бізнес-агента влаштований так само, лише
             всередині функції замість прикладу стоїть <strong>реальний виклик</strong>: до API пошти, таблиць,
             CRM чи бази даних.
           </p>
-          <pre><code># Було (демо):
+          <pre class="ds-code__pre"><code># Було (демо):
 def get_new_messages():
     return ["приклад звернення 1", "приклад звернення 2"]
 
@@ -153,14 +149,14 @@ def get_new_messages():
             Тобто архітектура агента не змінюється — змінюється лише «начинка» інструментів. Сьогодні майже
             кожен популярний сервіс (пошта, таблиці, месенджери, CRM) має API, до якого можна під'єднатися.
           </p>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Корисно знати: MCP.</strong> Model Context Protocol (MCP) — відкритий стандарт, що
             дозволяє під'єднувати AI до зовнішніх інструментів і даних через готові «конектори», не пишучи
             кожну інтеграцію з нуля. Замість того щоб самому кодити доступ до кожного сервісу, ти береш
             готовий MCP-конектор. Це швидко стає індустріальним способом давати агентам «руки» до реальних
             систем — варто знати цей термін і дивитись, чи є готовий конектор під твою задачу.</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Безпека насамперед.</strong> Реальні інструменти діють у реальному світі: надсилають
             листи, змінюють дані, витрачають гроші. Давай агенту лише потрібні права (Модуль 12), зберігай
             ключі в <code>.env</code> (Модуль 7) і особливо обережно стався до дій, які щось <em>змінюють</em>
@@ -171,24 +167,24 @@ def get_new_messages():
         <hr />
 
         <!-- УРОК 15.3 -->
-        <section id="l3" data-lesson="15.3 Проєктуємо тріаж" class="scroll-mt-24">
-          <h2><span class="lesson-no">15.3</span>Проєктуємо автоматизацію тріажу</h2>
+        <section id="l3" data-lesson="15.3 Проєктуємо тріаж">
+          <h2><span class="ds-prose__no">15.3</span>Проєктуємо автоматизацію тріажу</h2>
           <p>
             Спроєктуємо реальну задачу: <em>автоматичний тріаж звернень клієнтів</em>. Уяви бізнес, куди
             щодня падають десятки повідомлень. Наш процес: взяти нові звернення → для кожного визначити тему
             й скласти чернетку відповіді → записати в журнал → <strong>передати людині на перевірку</strong>
             перед відправкою.
           </p>
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart LR
   IN["Вхідні звернення"] --> AG["Агент-тріаж:<br/>тема + чернетка"]
   AG --> LOG["Запис у журнал"]
   LOG --> REV["Перевірка людиною"]
   REV --> OUT["Відповідь надіслано"]
-  style OUT fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class OUT hl
             </pre>
-            <p class="diagram-caption">Тріаж: агент готує, людина схвалює, відповідь іде клієнту</p>
+            <p class="ds-diag__caption">Тріаж: агент готує, людина схвалює, відповідь іде клієнту</p>
           </div>
           <p>Які інструменти потрібні (думаємо інструментами, як у Модулі 13):</p>
           <ul>
@@ -196,7 +192,7 @@ flowchart LR
             <li><strong>класифікація + чернетка</strong> — це робить сама модель (Модуль 9), окремий інструмент не потрібен.</li>
             <li><strong>log_result</strong> — записати тему й чернетку в журнал для перевірки людиною.</li>
           </ul>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Свідоме рішення.</strong> Помітив, що тут не потрібен повноцінний агентний цикл? Задача
             лінійна: для кожного звернення — ті самі кроки. Це проста й надійна автоматизація (Модуль 12:
             «не ускладнюй»). Агентний цикл додавай лише там, де кроки наперед невідомі.</p>
@@ -206,14 +202,14 @@ flowchart LR
         <hr />
 
         <!-- УРОК 15.4 -->
-        <section id="l4" data-lesson="15.4 Будуємо тріаж (код)" class="scroll-mt-24">
-          <h2><span class="lesson-no">15.4</span>Будуємо тріаж: повний код</h2>
+        <section id="l4" data-lesson="15.4 Будуємо тріаж (код)">
+          <h2><span class="ds-prose__no">15.4</span>Будуємо тріаж: повний код</h2>
           <p>
             Ось <strong>увесь файл</strong> <code>triage.py</code> — копіюй і запускай. Він поєднує
             інструменти (з прикладними даними — реальні API підставиш потім), класифікацію з чернеткою
             (підхід Модуля 9) і головний процес:
           </p>
-          <pre><code>import os, json
+          <pre class="ds-code__pre"><code>import os, json
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
@@ -259,7 +255,7 @@ def run_triage():
     print(f"Готово. Оброблено звернень: {len(messages)}. Дивись triage_log.txt")
 
 run_triage()</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Розбір.</strong> <code>get_new_messages</code> і <code>log_result</code> — інструменти
             (зараз прикладні). <code>triage_one</code> — це видобувач із Модуля 9: повертає словник
             <code>{category, draft}</code> з префілом. <code>run_triage</code> пробігає всі звернення циклом
@@ -271,18 +267,18 @@ run_triage()</code></pre>
         <hr />
 
         <!-- УРОК 15.5 -->
-        <section id="l5" data-lesson="15.5 Запускаємо" class="scroll-mt-24">
-          <h2><span class="lesson-no">15.5</span>Запускаємо й дивимось результат</h2>
+        <section id="l5" data-lesson="15.5 Запускаємо">
+          <h2><span class="ds-prose__no">15.5</span>Запускаємо й дивимось результат</h2>
           <p>Запусти у терміналі:</p>
-          <pre><code>python triage.py        # або python3 triage.py на macOS / Linux</code></pre>
-          <div class="callout">
+          <pre class="ds-code__pre"><code>python triage.py        # або python3 triage.py на macOS / Linux</code></pre>
+          <div class="ds-note">
             <p><strong>Що ти маєш побачити</strong> у терміналі:</p>
             <p><code>[оплата] оброблено: Не можу оплатити, картка не проходить...</code><br/>
             <code>[інше] оброблено: Дякую, кур'єр приїхав вчасно, все чудово...</code><br/>
             <code>[доставка] оброблено: Де моя посилка? Замовлення №123...</code><br/>
             <code>Готово. Оброблено звернень: 3. Дивись triage_log.txt</code></p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>А головне — відкрий файл <code>triage_log.txt</code></strong>. Там будуть готові до
             перевірки записи, приблизно такі:</p>
             <p><code>[оплата]</code><br/>
@@ -291,7 +287,7 @@ run_triage()</code></pre>
             <p>Це вже не іграшка: за секунди агент розсортував звернення й підготував чернетки, які лишилось
             лише переглянути людині. На сотнях звернень це економить години щодня.</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Якщо помилка одразу.</strong> Найчастіше — не підвантажився ключ. Перевір
             <code>.env</code> у тій самій папці (Модуль 7) і встановлені бібліотеки
             (<code>pip install anthropic python-dotenv</code>).</p>
@@ -301,14 +297,14 @@ run_triage()</code></pre>
         <hr />
 
         <!-- УРОК 15.6 -->
-        <section id="l6" data-lesson="15.6 Надійність" class="scroll-mt-24">
-          <h2><span class="lesson-no">15.6</span>Робимо тріаж надійним</h2>
+        <section id="l6" data-lesson="15.6 Надійність">
+          <h2><span class="ds-prose__no">15.6</span>Робимо тріаж надійним</h2>
           <p>
             Наш перший варіант має слабке місце: якщо модель колись поверне криве JSON, <code>triage_one</code>
             впаде — і весь цикл зупиниться, не обробивши решту звернень. У реальній роботі це неприпустимо:
             одне погане звернення не повинно «класти» всю чергу. Додамо «запобіжник» (Модуль 9):
           </p>
-          <pre><code>def triage_safe(message):
+          <pre class="ds-code__pre"><code>def triage_safe(message):
     try:
         result = triage_one(message)
         if "category" not in result or "draft" not in result:
@@ -320,14 +316,14 @@ run_triage()</code></pre>
                 "draft": "(автоматична обробка не вдалася, перегляньте вручну)",
                 "error": str(e)}</code></pre>
           <p>І використовуємо його замість <code>triage_one</code> у головному процесі:</p>
-          <pre><code>def run_triage():
+          <pre class="ds-code__pre"><code>def run_triage():
     messages = get_new_messages()
     for msg in messages:
         result = triage_safe(msg)                      # &lt;-- безпечний варіант
         log_result(msg, result["category"], result["draft"])
         print(f"[{result['category']}] оброблено: {msg[:40]}...")
     print(f"Готово. Оброблено звернень: {len(messages)}.")</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Розбір.</strong> <code>try/except</code> ловить будь-яку помилку (криве JSON, відсутнє
             поле). Замість падіння ми повертаємо «безпечний» запис із позначкою
             <code>потребує-уваги</code> — таке звернення просто потрапить до людини. Перевірка
@@ -339,8 +335,8 @@ run_triage()</code></pre>
         <hr />
 
         <!-- УРОК 15.7 -->
-        <section id="l7" data-lesson="15.7 Людина в контурі" class="scroll-mt-24">
-          <h2><span class="lesson-no">15.7</span>Людина в контурі</h2>
+        <section id="l7" data-lesson="15.7 Людина в контурі">
+          <h2><span class="ds-prose__no">15.7</span>Людина в контурі</h2>
           <p>
             Помітив ключове рішення в нашому дизайні? Агент <strong>не надсилає</strong> відповіді сам — він
             готує чернетки, а відправляє їх людина після перевірки. Це навмисно й дуже важливо.
@@ -358,7 +354,7 @@ run_triage()</code></pre>
             <li><strong>Поступове зняття контролю.</strong> Коли впевнишся в якості (через evals, Модуль 19),
               частину рутинних дій можна довірити агенту повністю — але свідомо, а не наосліп.</li>
           </ul>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Практичний приклад межі.</strong> У нашому тріажі: класифікація й чернетка —
             автоматично (це лише підготовка). А ось крок «надіслати відповідь клієнту» ми навмисно не
             автоматизували — його робить оператор, переглянувши <code>triage_log.txt</code>. Це і є людина в
@@ -369,8 +365,8 @@ run_triage()</code></pre>
         <hr />
 
         <!-- УРОК 15.8 -->
-        <section id="l8" data-lesson="15.8 Реальні системи й масштаб" class="scroll-mt-24">
-          <h2><span class="lesson-no">15.8</span>Підключення реальних систем і масштаб</h2>
+        <section id="l8" data-lesson="15.8 Реальні системи й масштаб">
+          <h2><span class="ds-prose__no">15.8</span>Підключення реальних систем і масштаб</h2>
           <p>
             Наш тріаж готовий — лишилось «приземлити» його на справжній бізнес. Гарна новина: код майже не
             зміниться, бо ми правильно відокремили інструменти.
@@ -385,12 +381,12 @@ run_triage()</code></pre>
             <li><strong>Обсяг.</strong> На великих чергах слідкуй за вартістю (Модуль 8) і лімітами API
               (backoff при 429). Дешевша модель для простої класифікації економить помітно.</li>
           </ul>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Чому це працює так легко.</strong> Ми від початку відокремили <em>що робити</em>
             (логіка тріажу) від <em>звідки дані</em> (інструменти). Тому перехід від демо до бойового — це
             заміна двох функцій, а не переписування. Це і є хороша архітектура, якій ти вже навчився.</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Підсумок модуля й Фази C.</strong> Ти вмієш під'єднувати агентів до реальних
             інструментів (через API чи MCP), зібрав <em>повну надійну</em> бізнес-автоматизацію (тріаж із
             обробкою помилок), розумієш людину в контурі й знаєш, як перейти від демо до бойової системи. Це
@@ -402,7 +398,7 @@ run_triage()</code></pre>
         <hr />
 
         <!-- КВІЗ -->
-        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+        <section id="quiz" data-lesson="Квіз: перевір себе">
           <h2>Квіз: перевір себе</h2>
           <p>Сім питань без дедлайнів. Обирай відповідь — і одразу бачиш пояснення.</p>
           <div data-quiz="quizData"></div>
@@ -494,39 +490,41 @@ run_triage()</code></pre>
       }
       </script>
 
-      <div class="max-w-3xl">
-        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <div class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p id="completeTitle" class="font-medium text-ivory">Автоматизація працює?</p>
-            <p class="mt-1 text-sm text-muted">
+            <p id="completeTitle" class="ds-h4">Автоматизація працює?</p>
+            <p class="ds-small">
               Познач модуль завершеним — і відкриється Фаза D: зробимо твоє рішення живим продуктом.
             </p>
           </div>
           <button id="completeBtn" type="button"
-                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+                  class="ds-btn ds-btn--primary">
             Позначити завершеним
           </button>
         </div>
 
-        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
       </div>
 
     </main>
   </div>
 
-  <footer class="mt-16 border-t border-line/60">
-    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
-      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
-      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../index.html">На головну ↑</a></span>
     </div>
   </footer>
 
+  <script src="../js/motion.js"></script>
   <script src="../js/progress.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/config.js"></script>
   <script src="../js/module.js"></script>
   <script src="../js/quiz.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
   <script src="../js/mermaid-init.js"></script>
   <script src="../js/auth-ui.js"></script>
   <script type="module" src="../js/auth.js"></script>

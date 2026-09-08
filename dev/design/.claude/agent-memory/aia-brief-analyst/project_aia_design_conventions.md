@@ -25,6 +25,10 @@ file's own comment at ~1028 says so.
 GSAP too. Miss one token and both CSS and JS keep moving.
 **How to apply:** any spec that introduces motion must list its new tokens and make
 "each one present by name in the reduce block" a numbered acceptance criterion.
+**Оновлення 2026-09-07 (задача 009):** цей поіменний спосіб визнано боргом — список
+доріс до 57 рядків трьох поколінь. Спека 009 замінює його механізмом одних воріт
+`--motion`; див. [[reduced-motion-mechanism-measured]]. Поки 009 не в коді, у живому
+`css/custom.css` правило вище лишається чинним.
 
 **Specificity trap on module pages:** lesson content lives in
 `<article class="prose-aia max-w-3xl">`, and `.prose-aia pre` (specificity 0,1,1) sets

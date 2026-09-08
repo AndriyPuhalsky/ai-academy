@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<!-- ============================================================================
+     010 · Б2 · T2 УРОК — другий курс. AI Академія, модуль 05.
+     Тут живуть .ds-code (8 блоків), 10 окремих <pre> і ДВІ таблиці,
+     які в проді стоять БЕЗ обгортки скролу (Д18, дефект 005 D-01).
+     ============================================================================ -->
+<html lang="uk" data-config="../config.json" data-course="academy" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Модуль 5 · Практика промптингу — AI Академія</title>
+  <!-- Д16 · єдиний легальний хекс у HTML; дорівнює --p-n-100. Змінюєш тут —
+       заміни в tokens.css біля --p-n-100 (і навпаки). <meta> не читає var(). -->
+  <meta name="theme-color" content="#161311">
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Латиниця вантажиться СВІДОМО: український апостроф ʼ (U+02BC) лежить у
+       латинській підмножині Google Fonts, а не в кириличній. -->
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- У коді сайту це буде ../css/tokens.css і ../css/components.css -->
+  <link rel="stylesheet" href="../../files/css/tokens.css">
+  <link rel="stylesheet" href="../../files/css/components.css">
+  <link rel="stylesheet" href="chrome-stub.css"><!-- заглушка, власник Б1 -->
+  <link rel="stylesheet" href="demo.css"><!-- панель станів, у код не їде -->
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../../files/js/tw-theme.js"></script>
+</head>
+
+<body id="top" data-module="m05">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-note ds-note--warn" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">▲</span>
+      <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+    </div>
+  </noscript>
+
+  <div id="configError" hidden class="ds-note ds-note--err" role="alert">
+    <span class="ds-note__glyph" aria-hidden="true">✕</span>
+    <p class="ds-note__body">
+      ⚠ Не вдалося завантажити <code class="ds-code--inline">config.json</code>. Відкрий сайт через
+      локальний сервер, наприклад: <code class="ds-code--inline">python -m http.server 8000</code> —
+      і зайди на <code class="ds-code--inline">localhost:8000</code>.
+    </p>
+  </div>
+
+  <!-- ⚠ ХРОМ. Розмітка — §6.2, профіль H2 (урок / іспит), ДОСЛІВНО.
+       Канонічна версія й стилі .ds-hdr__mark / __crumb — у Б1. -->
+  <header class="ds-hdr">
+    <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+            aria-expanded="false" aria-controls="moduleSidebar">
+      <span class="sr-only">Зміст курсу</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+
+    <a class="ds-hdr__brand" href="#" data-demo-home>
+      <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIT</span>
+      <span data-site="name">AI Термінал</span>
+    </a>
+    <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+    <span class="ds-hdr__crumb">Модуль 05</span>
+
+    <span class="ds-hdr__spacer"></span>
+
+    <div id="aiaAuth" class="ds-hdr__slot">
+      <!-- слот авторизації (js/auth-ui.js). Тут — скелетон Б1, щоб було видно
+           резерв ширини: CLS має лишатись нулем у всіх трьох станах. -->
+      <span class="ds-skel ds-skel--guest" data-delayed aria-hidden="true"></span>
+    </div>
+
+    <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+
+    <a class="ds-btn ds-btn--quiet ds-btn--sm" href="#" data-demo-home>До програми</a>
+  </header>
+
+  <!-- Підложка мобільної шторки змісту (§6.4) -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ модуля -->
+        <p class="ds-eyebrow">Трек III · Розробка з Claude</p>
+        <h1 class="ds-h1">Claude API: перші кроки</h1>
+        <p class="ds-small ds-num">Середній · 6 уроків · ≈ 75 хв читання</p>
+        <p class="ds-lead">
+          Починається Трек III. Усе, що ти вмієш робити в чаті, тепер стане кодом:
+          промпти — шаблонами, відповіді — даними, параметри — ручками керування.
+          Модуль суто практичний: наприкінці в тебе буде скрипт, який спілкується
+          з Claude, тримає багатокрокову розмову, стрімить відповіді й аналізує
+          зображення. Основні приклади — Python, ключові — продубльовано TypeScript.
+        </p>
+
+        <hr />
+
+        <!-- УРОК 5.1 -->
+        <section id="l1" data-lesson="5.1 Ключ і перший запит">
+          <h2><span class="ds-prose__no">5.1</span>Старт: ключ, SDK, перший запит</h2>
+          <p>
+            Знадобляться три речі: акаунт на платформі Anthropic (Console), API-ключ,
+            створений там само, та офіційний SDK. Але перш ніж писати перший рядок коду —
+            розмова про безпеку, бо ключ — це водночас твої гроші і твій доступ.
+          </p>
+
+          <div class="ds-note">
+            <span class="ds-note__title">Правила поводження з ключем</span>
+            <p>
+              Зберігай у змінних середовища (<code>.env</code> у <code>.gitignore</code>),
+              ніколи не вшивай у код і не коміть у репозиторій. Ніколи не клади ключ
+              у фронтенд: усе, що бачить браузер, бачить і чужинець — браузерні застосунки
+              ходять до API лише через твій бекенд. Підозрюєш витік — негайно відклич
+              ключ у Console і створи новий.
+            </p>
+          </div>
+
+          <p>Встановлення SDK і ключ у середовищі:</p>
+          <div class="ds-code">
+            <div class="ds-code__head"><span>Термінал</span></div>
+            <pre class="ds-code__pre">pip install anthropic            # Python
+npm install @anthropic-ai/sdk    # TypeScript / Node.js
+
+export ANTHROPIC_API_KEY="sk-ant-..."   # Linux / macOS</pre>
+          </div>
+
+          <p>Перший запит — мінімум коду:</p>
+          <div class="ds-code">
+            <div class="ds-code__head"><span>Python</span></div>
+            <pre class="ds-code__pre">from anthropic import Anthropic
+
+client = Anthropic()  # ключ читається з ANTHROPIC_API_KEY
+
+message = client.messages.create(
+    model="claude-sonnet-5",  # актуальні назви моделей: docs.claude.com
+    max_tokens=1024,
+    messages=[
+        {"role": "user", "content": "Привіт! Поясни одним абзацом, що таке токен."}
+    ],
+)
+
+print(message.content[0].text)</pre>
+            <div class="ds-code__head"><span>TypeScript</span></div>
+            <pre class="ds-code__pre">import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic(); // ключ — зі змінної ANTHROPIC_API_KEY
+
+const message = await client.messages.create({
+  model: "claude-sonnet-5",
+  max_tokens: 1024,
+  messages: [
+    { role: "user", content: "Привіт! Поясни одним абзацом, що таке токен." },
+  ],
+});
+
+console.log(message.content[0].text);</pre>
+          </div>
+
+          <p>
+            Який рядок моделі писати? Правило з Модуля 1: найлегша модель, що стабільно
+            тягне задачу, — Haiku для масових простих запитів, Sonnet для повсякденної
+            роботи, Opus для найскладніших міркувань. Конкретні назви версій регулярно
+            оновлюються, тож винось модель у константу чи конфіг і звіряйся
+            з документацією.
+          </p>
+        </section>
+
+        <!-- УРОК 5.2 -->
+        <section id="l2" data-lesson="5.2 Анатомія Messages API">
+          <h2><span class="ds-prose__no">5.2</span>Messages API: анатомія запиту й відповіді</h2>
+          <p>
+            Уся робота з Claude крутиться навколо одного ендпойнта — Messages API.
+            Запит складається з чотирьох головних частин:
+          </p>
+          <ul>
+            <li><code>model</code> — яка модель відповідає;</li>
+            <li><code>max_tokens</code> — обов'язкова стеля довжини відповіді;</li>
+            <li><code>system</code> — системний промпт: роль і правила з Модуля 3;</li>
+            <li><code>messages</code> — масив реплік <code>user</code> та
+              <code>assistant</code>, що чергуються.
+            </li>
+          </ul>
+
+          <div class="ds-note">
+            <span class="ds-note__title">Класична помилка</span>
+            <p>
+              Системний промпт — це <strong>окремий параметр</strong> <code>system</code>
+              на верхньому рівні запиту, а не повідомлення з роллю «system» у масиві
+              <code>messages</code>. У масиві живуть лише <code>user</code>
+              та <code>assistant</code>.
+            </p>
+          </div>
+
+          <div class="ds-code">
+            <div class="ds-code__head"><span>Python · запит із системним промптом</span></div>
+            <pre class="ds-code__pre">message = client.messages.create(
+    model="claude-sonnet-5",
+    max_tokens=500,
+    system="Ти — лаконічний асистент кейтерингової компанії. "
+           "Відповідай українською, тепло і по суті.",
+    messages=[
+        {"role": "user",
+         "content": "Сформулюй ввічливу відмову: на цю дату ми вже заброньовані."}
+    ],
+)
+
+print(message.content[0].text)   # текст відповіді
+print(message.stop_reason)       # чому генерація зупинилась
+print(message.usage)             # input_tokens / output_tokens</pre>
+          </div>
+
+          <p>
+            У відповіді найважливіші три поля. <code>content</code> — масив блоків
+            (текст лежить у <code>content[0].text</code>; чому масив — стане ясно
+            в Модулі 6, коли з'являться блоки викликів інструментів).
+            <code>usage</code> — скільки токенів з'їли вхід і вихід: це твої гроші,
+            і згадай Модуль 1 — українська «коштує» більше токенів за англійську.
+            І <code>stop_reason</code> — чому модель зупинилась:
+          </p>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: ⚠ ПІДПИС ПИШЕТЬСЯ РУКАМИ">
+<table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>stop_reason</th>
+                <th>Що означає</th>
+                <th>Що робити</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>end_turn</td>
+                <td>Модель природно завершила думку</td>
+                <td>Нічого — нормальний випадок</td>
+              </tr>
+              <tr>
+                <td>max_tokens</td>
+                <td>Відповідь обірвано стелею довжини</td>
+                <td>Збільш max_tokens або попроси продовжити</td>
+              </tr>
+              <tr>
+                <td>stop_sequence</td>
+                <td>Зустрівся заданий тобою маркер зупинки</td>
+                <td>Очікувана поведінка — див. урок 5.3</td>
+              </tr>
+              <tr>
+                <td>tool_use</td>
+                <td>Модель хоче викликати інструмент</td>
+                <td>Тема Модуля 6</td>
+              </tr>
+            </tbody>
+          </table>
+</div>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart LR
+  CODE["Твій код"] --> REQ["POST /v1/messages: model, max_tokens, system, messages"]
+  REQ --> API["Claude API"]
+  API --> RES["JSON-відповідь: content, stop_reason, usage"]
+  RES --> CODE2["Твій код: парсинг і використання"]
+  class API hl
+            </pre>
+            <p class="ds-diag__caption">Один ендпойнт — увесь діалог: і чат, і інструменти, і vision</p>
+          </div>
+        </section>
+
+        <!-- УРОК 5.3 -->
+        <section id="l3" data-lesson="5.3 Параметри генерації">
+          <h2><span class="ds-prose__no">5.3</span>Параметри генерації</h2>
+          <p>
+            Три ручки, які варто знати з першого дня: <code>max_tokens</code>,
+            <code>temperature</code> і <code>stop_sequences</code>.
+          </p>
+          <p>
+            <strong><code>max_tokens</code></strong> — стеля, а не ціль: модель може
+            завершити раніше, але ніколи не перевищить ліміт. Якщо
+            <code>stop_reason</code> повернувся як <code>max_tokens</code> — відповідь
+            обірвано на півслові: збільшуй стелю або проси продовження.
+          </p>
+          <p>
+            <strong><code>temperature</code></strong> (від 0 до 1) — та сама «дрібка
+            керованої випадковості» з Модуля 1. Близько нуля вибір токенів максимально
+            передбачуваний — те, що треба для фактів, екстракції та JSON. Ближче до
+            одиниці — різноманітніше і живіше: брейншторм, креатив, варіанти.
+          </p>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: ⚠ ПІДПИС ПИШЕТЬСЯ РУКАМИ">
+<table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Задача</th>
+                <th>temperature</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Екстракція даних, JSON, класифікація</td>
+                <td>0 – 0.2</td>
+              </tr>
+              <tr>
+                <td>Робочі тексти, відповіді на основі документів</td>
+                <td>0.3 – 0.7</td>
+              </tr>
+              <tr>
+                <td>Брейншторм, креатив, генерація варіантів</td>
+                <td>0.8 – 1.0</td>
+              </tr>
+            </tbody>
+          </table>
+</div>
+          <p>
+            <strong><code>stop_sequences</code></strong> — список рядків, на яких
+            генерація жорстко зупиняється. Ідеальна пара до тегів із Модуля 4: задай
+            стоп-маркером закривний тег відповіді — і модель фізично не зможе
+            «договорити зайвого».
+          </p>
+
+          <div class="ds-code">
+            <div class="ds-code__head"><span>Python · температура і стоп-маркер</span></div>
+            <pre class="ds-code__pre">message = client.messages.create(
+    model="claude-sonnet-5",
+    max_tokens=400,
+    temperature=0,                    # фактична задача — мінімум випадковості
+    stop_sequences=["&lt;/answer&gt;"],   # крапка після закривного тега
+    messages=[
+        {"role": "user",
+         "content": "Дай відповідь у тегах: спершу міркування у &lt;thinking&gt;, "
+                    "потім висновок у &lt;answer&gt;. Питання: ..."}
+    ],
+)</pre>
+          </div>
+
+          <p>
+            Є й інші регулятори різноманіття — наприклад, <code>top_p</code>. Робоче
+            правило: обирай один основний регулятор (зазвичай temperature) і не крути
+            кілька одночасно без чіткої причини — інакше ефекти переплутаються
+            і налагодити поведінку буде важко.
+          </p>
+        </section>
+
+        <!-- УРОК 5.4 -->
+        <section id="l4" data-lesson="5.4 Багатокрокові розмови">
+          <h2><span class="ds-prose__no">5.4</span>Багатокрокові розмови</h2>
+          <p>
+            Перший сюрприз новачка: API нічого не пам'ятає. Кожен запит — з чистого
+            аркуша. «Пам'ять» розмови — це масив <code>messages</code>, який ти сам
+            надсилаєш щоразу повністю: усі попередні репліки користувача й асистента
+            плюс нову. Це прямий наслідок того, що ми розібрали в Модулях 1 і 3:
+            модель бачить лише контекст поточного запиту.
+          </p>
+
+          <div class="ds-code">
+            <div class="ds-code__head"><span>Python · мінімальний чат у терміналі</span></div>
+            <pre class="ds-code__pre">history = []
+
+while True:
+    user_text = input("Ти: ")
+    history.append({"role": "user", "content": user_text})
+
+    reply = client.messages.create(
+        model="claude-sonnet-5",
+        max_tokens=1024,
+        system="Ти — дружній помічник. Відповідай українською.",
+        messages=history,            # уся розмова — щоразу
+    )
+
+    answer = reply.content[0].text
+    history.append({"role": "assistant", "content": answer})
+    print("Claude:", answer)</pre>
+          </div>
+
+          <p>
+            Наслідок, про який варто думати одразу: історія росте, а з нею — вхідні
+            токени кожного запиту, тобто час і гроші. Базові стратегії: обрізати
+            найстаріші репліки, періодично замінювати їх стислим підсумком розмови,
+            а великі довідкові матеріали підвантажувати вибірково — до цього підходу
+            ми серйозно повернемося в Модулі 7.
+          </p>
+          <p>
+            І обіцяний у Модулі 3 трюк: <strong>префіл через API</strong> — це просто
+            повідомлення асистента, додане останнім:
+          </p>
+
+          <div class="ds-code">
+            <div class="ds-code__head"><span>Python · префіл відповіді</span></div>
+            <pre class="ds-code__pre">reply = client.messages.create(
+    model="claude-sonnet-5",
+    max_tokens=300,
+    temperature=0,
+    messages=[
+        {"role": "user",
+         "content": "Витягни з відгуку sentiment та issues у JSON."},
+        {"role": "assistant", "content": "{"},   # початок відповіді — наш
+    ],
+)
+
+raw_json = "{" + reply.content[0].text   # модель продовжує ПІСЛЯ префіла</pre>
+          </div>
+
+          <p>
+            Зверни увагу на останній рядок: відповідь містить лише продовження, тож
+            префікс приклеюєш сам перед парсингом. Дрібниця, яка ламає перший пайплайн
+            кожному другому розробнику.
+          </p>
+        </section>
+
+        <!-- УРОК 5.5 -->
+        <section id="l5" data-lesson="5.5 Streaming">
+          <h2><span class="ds-prose__no">5.5</span>Streaming: відповідь у реальному часі</h2>
+          <p>
+            Звичайний запит мовчить, доки модель не догенерує все, — на довгих
+            відповідях це десятки секунд порожнього екрана. Streaming віддає текст
+            у міру народження токенів: сумарний час майже той самий, але перші слова
+            з'являються за мить — і користувач бачить життя. Саме так працює чат
+            claude.ai, і саме цей ефект імітує заголовок головної сторінки нашого курсу.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart TD
+  Q["Запит до API"] --> A["Без streaming"]
+  Q --> B["Зі streaming"]
+  A --> A2["Тиша... потім уся відповідь одним шматком"]
+  B --> B2["Токени прилітають подіями в міру генерації"]
+  B2 --> B3["Текст друкується на очах — кращий UX"]
+  class B hl
+            </pre>
+            <p class="ds-diag__caption">Під капотом — server-sent events; SDK ховає всю механіку</p>
+          </div>
+
+          <div class="ds-code">
+            <div class="ds-code__head"><span>Python</span></div>
+            <pre class="ds-code__pre">with client.messages.stream(
+    model="claude-sonnet-5",
+    max_tokens=1024,
+    messages=[{"role": "user",
+               "content": "Розкажи коротку історію про каву в Чернівцях."}],
+) as stream:
+    for text in stream.text_stream:
+        print(text, end="", flush=True)</pre>
+            <div class="ds-code__head"><span>TypeScript</span></div>
+            <pre class="ds-code__pre">const stream = client.messages.stream({
+  model: "claude-sonnet-5",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: "Розкажи коротку історію про каву." }],
+});
+
+stream.on("text", (text) => process.stdout.write(text));
+
+const finalMessage = await stream.finalMessage(); // повна відповідь і usage</pre>
+          </div>
+
+          <p>
+            Коли streaming не потрібен: фонові пайплайни, де відповідь споживає код,
+            а не людина, — класифікація, екстракція, batch-обробка. Там простіше
+            дочекатися повного результату й розпарсити його одним шматком.
+          </p>
+        </section>
+
+        <!-- УРОК 5.6 -->
+        <section id="l6" data-lesson="5.6 Vision: зображення">
+          <h2><span class="ds-prose__no">5.6</span>Vision: робота із зображеннями</h2>
+          <p>
+            Claude бачить зображення: скріншоти інтерфейсів, фото документів, графіки,
+            меню, схеми. Технічно це той самий Messages API — просто <code>content</code>
+            повідомлення стає масивом блоків: спершу зображення, потім текстове питання.
+          </p>
+
+          <div class="ds-code">
+            <div class="ds-code__head"><span>Python · аналіз фото меню</span></div>
+            <pre class="ds-code__pre">import base64
+
+with open("menu.jpg", "rb") as f:
+    image_data = base64.standard_b64encode(f.read()).decode("utf-8")
+
+message = client.messages.create(
+    model="claude-sonnet-5",
+    max_tokens=1024,
+    messages=[{
+        "role": "user",
+        "content": [
+            {
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": "image/jpeg",
+                    "data": image_data,
+                },
+            },
+            {"type": "text",
+             "text": "Перелічи всі позиції меню з цінами у валідному JSON: "
+                     "масив об'єктів з полями name та price."},
+        ],
+    }],
+)
+
+print(message.content[0].text)</pre>
+          </div>
+
+          <ul>
+            <li><strong>Формати:</strong> JPEG, PNG, GIF, WebP; в одному повідомленні
+              може бути кілька зображень — зручно для порівнянь.</li>
+            <li><strong>Джерело-URL:</strong> якщо файл уже в інтернеті, замість base64
+              можна передати блок source із <code>type: "url"</code> і посиланням.</li>
+            <li><strong>Порядок:</strong> зображення перед питанням — модель спершу
+              «дивиться», потім читає задачу.</li>
+            <li><strong>Токени:</strong> зображення теж коштують токенів пропорційно
+              розміру — не годуй API фотографіями на 12 мегапікселів, якщо досить 1024px.</li>
+          </ul>
+
+          <div class="ds-note">
+            <span class="ds-note__title">Чесне застереження</span>
+            <p>
+              Vision — не ідеальний OCR: дрібний текст, рукопис і щільні таблиці можуть
+              розпізнаватися з помилками. Критичні цифри з фото документів перевіряй
+              руками — розпізнавання з Модуля 2 працює і тут.
+            </p>
+          </div>
+
+          <p>
+            Підіб'ємо: твій код тепер розмовляє з Claude, тримає контекст, стрімить
+            відповіді й бачить зображення. Наступний крок — найцікавіший у треку:
+            дати моделі руки. У Модулі 6 Claude почне викликати твої функції —
+            Tool Use.
+          </p>
+        </section>
+
+        <hr />
+
+        <div class="ds-note ds-note--accent">
+          <span class="ds-note__title">Підсумок модуля</span>
+          <ul>
+            <li>Ключ — секрет: змінні середовища і бекенд; ніколи у фронтенді чи репозиторії.</li>
+            <li>Messages API: model + max_tokens + messages; системний промпт — окреме поле system, а не роль.</li>
+            <li>temperature нижче для фактів і JSON, вище для ідей; stop_sequences ставлять жорстку крапку.</li>
+            <li>API stateless: історію надсилаєш сам — і платиш за неї вхідними токенами.</li>
+            <li>Префіл = останнє повідомлення assistant; не забудь приклеїти його до відповіді.</li>
+            <li>Streaming — для людей перед екраном; vision — блоки image + text, зображення перед питанням.</li>
+          </ul>
+        </div>
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Вісім питань по роботі з API. Обирай відповідь — і одразу отримуй пояснення.
+          </p>
+          <div class="ds-quiz" data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Де правильно зберігати API-ключ?",
+            "options": [
+              "У змінних середовища на бекенді, поза репозиторієм",
+              "У README проєкту, щоб ключ був під рукою в усієї команди",
+              "У назві гілки git, щоб не загубився",
+              "У коді фронтенду, щоб запити йшли до API напряму і швидше"
+            ],
+            "answer": 0,
+            "explain": "Усе, що потрапляє у фронтенд чи репозиторій, слід вважати публічним. Ключ живе у змінних середовища на сервері; браузерні застосунки ходять до API лише через твій бекенд."
+          },
+          {
+            "q": "Який параметр Messages API обов'язковий і задає стелю довжини відповіді?",
+            "options": [
+              "temperature",
+              "max_tokens",
+              "stop_sequences",
+              "system"
+            ],
+            "answer": 1,
+            "explain": "max_tokens — обов'язкова стеля: модель може завершити раніше, але не перевищить її. Якщо stop_reason повернувся як max_tokens — відповідь обірвано лімітом."
+          },
+          {
+            "q": "Як передати системний промпт у Messages API?",
+            "options": [
+              "У заголовку HTTP-запиту поруч із ключем",
+              "Повідомленням із роллю system у масиві messages",
+              "Окремим top-level параметром system",
+              "Першим повідомленням user великими літерами"
+            ],
+            "answer": 2,
+            "explain": "Системний промпт — окреме поле system на верхньому рівні запиту. У масиві messages чергуються лише ролі user та assistant."
+          },
+          {
+            "q": "Задача: витягнути поля з документів у JSON для автоматичного пайплайна. Яку temperature обрати?",
+            "options": [
+              "0.5 — золота середина для будь-якої задачі",
+              "temperature на формат відповіді не впливає взагалі",
+              "1.0 — нехай модель буде креативнішою",
+              "Близько 0 — мінімум випадковості"
+            ],
+            "answer": 3,
+            "explain": "Для екстракції, класифікації та JSON потрібна передбачуваність — temperature близько нуля. Високі значення лишай для брейншторму і креативу."
+          },
+          {
+            "q": "Чому другий запит до API «не пам'ятає» перший?",
+            "options": [
+              "API stateless: контекст розмови ти надсилаєш сам у масиві messages",
+              "Пам'ять розмови вмикається окремим платним тарифом",
+              "Історія розмови зберігається на сервері лише кілька хвилин",
+              "Це відома помилка SDK: її варто зарепортити в підтримку"
+            ],
+            "answer": 0,
+            "explain": "Кожен запит — з чистого аркуша. «Пам'ять» — це масив messages з усією історією, який твій код передає щоразу повністю; саме тому довгі розмови коштують дедалі більше вхідних токенів."
+          },
+          {
+            "q": "У відповіді stop_reason = «max_tokens». Що це означає?",
+            "options": [
+              "Модель природно завершила думку — генерацію не обривали",
+              "Відповідь обірвано стелею довжини — варто збільшити max_tokens",
+              "Спрацював заданий тобою стоп-маркер",
+              "Закінчилися кошти на акаунті, тому генерацію зупинено достроково"
+            ],
+            "answer": 1,
+            "explain": "max_tokens у stop_reason — сигнал, що модель зупинили на півслові. Збільш стелю або попроси продовжити; природне завершення позначається як end_turn."
+          },
+          {
+            "q": "Як зробити префіл відповіді через API?",
+            "options": [
+              "Префіл через API недоступний — він працює лише в чаті",
+              "Увімкнути параметр prefill=true і передати початок відповіді",
+              "Додати останнім у messages повідомлення assistant із початком відповіді",
+              "Написати початок відповіді в полі system, а не в масиві messages"
+            ],
+            "answer": 2,
+            "explain": "Префіл — це звичайне повідомлення з роллю assistant наприкінці масиву: модель продовжить рівно з цієї точки. Пам'ятай приклеїти префікс до відповіді перед парсингом."
+          },
+          {
+            "q": "Головна причина використовувати streaming?",
+            "options": [
+              "Streaming коштує дешевше — за токен беруть менше",
+              "Без streaming не працює системний промпт",
+              "Відповідь генерується приблизно вдвічі швидше, ніж без нього",
+              "Текст показується людині в міру генерації — кращий UX"
+            ],
+            "answer": 3,
+            "explain": "Сумарний час генерації майже той самий — виграш у сприйнятті: перші слова з'являються одразу. Для фонових пайплайнів, де відповідь читає код, streaming зазвичай зайвий."
+          }
+        ]
+      }
+      </script>
+
+      <!-- Хвіст уроку. Класів `ds-lesson*` НЕМА СВІДОМО: новий компонент
+           означав би новий префікс у реєстрі §7.0, а тут потрібна лише
+           розкладка — а вона від теми не залежить і лишається на Tailwind
+           (§2.3.2: 14 824 таких вживань не мігрують узагалі). -->
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення. У проді це три Tailwind-утиліти в рядку JS
+             (module.js:238, BTN_BASE) — рівно П-08. Тут два стани кнопки —
+             це два модифікатори компонента. -->
+        <div class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Модуль позаду?</p>
+            <p class="ds-small">Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.</p>
+          </div>
+          <button id="completeBtn" type="button" class="ds-btn ds-btn--primary">Позначити завершеним</button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js).
+             data-reveal лише тут: це ЄДИНІ вузли уроку, які народжуються
+             після асинхронного render() і стоять за згином. Секції прози
+             свідомо НЕ анімуються — див. REPORT, «Рух». -->
+        <nav id="moduleNav" class="ds-mnav" aria-label="Навігація між модулями" data-reveal-root></nav>
+      </div>
+    </main>
+  </div>
+
+  <footer class="ds-ftr">
+    <div class="ds-ftr__bar">
+      <p class="ds-small" data-site="disclaimer"></p>
+      <a href="#top">На головну ↑</a>
+    </div>
+  </footer>
+
+  <!-- §5.3 · motion.js ПЕРШИМ із наших скриптів: усі render() наприкінці
+       викликають AIA.motion.bind(root). GSAP на уроки не підключається. -->
+  <script src="../../files/js/motion.js"></script>
+  <script src="js/lesson.js"></script>
+  <!-- §5.3 · mermaid-theme.js ПІСЛЯ бібліотеки й ПЕРЕД init -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../../files/js/mermaid-theme.js"></script>
+  <script src="../../files/js/mermaid-init.js"></script>
+  <script src="js/demo.js"></script>
+</body>
+
+</html>

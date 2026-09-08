@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="uk"><head><meta charset="utf-8">
+<title>009 · Рендер-тест кирилиці та ваги мono</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700&family=Arsenal:wght@400;700&family=Bona+Nova:wght@400;700&family=Brygada+1918:wght@400;600&family=Golos+Text:wght@400;500;600&family=Onest:wght@400;500;600&family=Commissioner:wght@400;500;600&family=Manrope:wght@400;500;600&family=Wix+Madefor+Display:wght@400;700&family=Wix+Madefor+Text:wght@400;500&family=Prata&family=Yeseva+One&family=Forum&family=Oranienbaum&family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Spectral:wght@400;600&family=Piazzolla:wght@400;600&family=JetBrains+Mono:wght@400;500;700&family=Martian+Mono:wght@400;600&family=Geist+Mono:wght@400;500&family=Victor+Mono:wght@400;500&family=Fira+Code:wght@400;500&family=IBM+Plex+Mono:wght@400;500&family=Lilex:wght@400;500&family=Geist:wght@400;500;600&family=Fira+Sans:wght@400;500;600&family=Tektur:wght@400;700&family=Old+Standard+TT:wght@400;700&family=Alice&family=Podkova:wght@400;600&display=swap" rel="stylesheet">
+<style>
+ :root{--bg:#141312;--fg:#F0EEE6;--mut:#9A9184;--ok:#8FA66B;--bad:#E0938B;--line:#332E29}
+ *{box-sizing:border-box}
+ body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 ui-sans-serif,system-ui;padding:32px 40px}
+ h1{font-size:22px;margin:0 0 4px}
+ .sub{color:var(--mut);margin-bottom:28px}
+ table{border-collapse:collapse;width:100%;margin-bottom:40px}
+ th,td{border-bottom:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:middle}
+ th{color:var(--mut);font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+ .spec{font-size:30px;line-height:1.25;white-space:nowrap}
+ .name{white-space:nowrap;font-size:13px;color:var(--mut)}
+ .name b{display:block;color:var(--fg);font-size:15px}
+ .pass{color:var(--ok);font-weight:600}
+ .fail{color:var(--bad);font-weight:600}
+ .miss{font-size:12px;color:var(--bad)}
+ .mono-w{font-size:12px;color:var(--mut);white-space:nowrap}
+</style></head><body>
+<h1>Рендер-тест: чи справді намальована українська кирилиця</h1>
+<div class="sub">Метод: гліф растеризується в canvas 48px обраною гарнітурою і тим самим кодом — дефолтним фолбеком. Однакові пікселі = гарнітура гліфа НЕ має, браузер підставив інший шрифт. Контроль «A» доводить, що сама гарнітура завантажилась.</div>
+<table id="t"><thead><tr><th>Гарнітура</th><th>Ґґ Єє Іі Її ʼ ШЩЮЯ</th><th>Тест</th><th>Ширини (mono)</th></tr></thead><tbody></tbody></table>
+<script>
+const FAMS = [
+ ["Unbounded",700],["Arsenal",700],["Bona Nova",700],["Brygada 1918",600],["Golos Text",600],["Onest",600],
+ ["Commissioner",600],["Manrope",600],["Wix Madefor Display",700],["Wix Madefor Text",500],["Prata",400],
+ ["Yeseva One",400],["Forum",400],["Oranienbaum",400],["Playfair Display",700],["Cormorant Garamond",600],
+ ["Spectral",600],["Piazzolla",600],["Geist",500],["Fira Sans",600],["Tektur",700],["Old Standard TT",700],
+ ["Alice",400],["Podkova",600],
+ ["JetBrains Mono",500],["Martian Mono",500],["Geist Mono",500],["Victor Mono",500],["Fira Code",500],["IBM Plex Mono",500],["Lilex",500]
+];
+const MONO = new Set(["JetBrains Mono","Martian Mono","Geist Mono","Victor Mono","Fira Code","IBM Plex Mono","Lilex"]);
+const TEST = ["Ґ","ґ","Є","є","І","і","Ї","ї","ʼ","’","Ш","Щ","Ю","Я","б","д","и","₴"];
+function raster(ch, fam, w){
+ const c=document.createElement('canvas'); c.width=56;c.height=56;
+ const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,56,56);
+ x.fillStyle='#000'; x.font=(w||400)+' 42px '+(fam?('"'+fam+'"'):'"__none__"');
+ x.textBaseline='top'; x.fillText(ch,3,3);
+ return c.getContext('2d').getImageData(0,0,56,56).data.join(',');
+}
+const results={};
+document.fonts.ready.then(async ()=>{
+ const tb=document.querySelector('#t tbody');
+ // 1) намалювати зразки в DOM, щоб браузер реально підвантажив підмножини latin+cyrillic
+ for(const [fam,w] of FAMS){
+  const tr=document.createElement('tr'); tr.id='r-'+fam.replace(/\s/g,'_');
+  tr.innerHTML='<td class="name"><b>'+fam+'</b>вага '+w+'</td>'+
+   '<td class="spec" style="font-family:\''+fam+'\';font-weight:'+w+'">Ґґ Єє Іі Її ʼ ШЩЮЯ 0123 ₴</td>'+
+   '<td class="res">…</td><td class="mono-w">—</td>';
+  tb.appendChild(tr);
+ }
+ // 2) явно дочекатись кожної гарнітури для латиниці І кирилиці
+ for(const [fam,w] of FAMS){
+  try{ await document.fonts.load(w+' 42px "'+fam+'"','A'); }catch(e){}
+  try{ await document.fonts.load(w+' 42px "'+fam+'"','ҐєіЇʼШбди₴’'); }catch(e){}
+ }
+ await document.fonts.ready; await new Promise(r=>setTimeout(r,900));
+ // 3) тест
+ for(const [fam,w] of FAMS){
+  const ctrl = raster('A',fam,w)!==raster('A',null,w);
+  const missing=[];
+  for(const ch of TEST){ if(raster(ch,fam,w)===raster(ch,null,w)) missing.push(ch); }
+  let widths=null, monoOk=null;
+  if(MONO.has(fam)){
+   const c=document.createElement('canvas').getContext('2d');
+   c.font=w+' 40px "'+fam+'"';
+   const set={}; for(const ch of ['M','W','i','Ш','и','ʼ','0']) set[ch]=+c.measureText(ch).width.toFixed(2);
+   widths=set; const vals=Object.values(set);
+   monoOk = Math.max(...vals)-Math.min(...vals) < 0.05;
+  }
+  results[fam]={loaded:ctrl,missing,widths,monoOk};
+  const tr=document.getElementById('r-'+fam.replace(/\s/g,'_'));
+  tr.querySelector('.res').innerHTML=(!ctrl?'<span class="fail">НЕ ЗАВАНТАЖИЛАСЬ</span>':(missing.length?'<span class="fail">FAIL</span> <span class="miss">нема: '+missing.join(' ')+'</span>':'<span class="pass">PASS</span> усі 18'));
+  tr.querySelector('.mono-w').innerHTML=(widths? (monoOk?'<span class="pass">рівні</span> ':'<span class="fail">РІЗНІ</span> ')+Object.entries(widths).map(([k,v])=>k+':'+v).join('  ') : '—');
+ }
+ window.__results=results; window.__done=true;
+});
+</script></body></html>

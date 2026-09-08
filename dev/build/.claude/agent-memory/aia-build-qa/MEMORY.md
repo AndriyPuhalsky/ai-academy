@@ -1,6 +1,6 @@
 # Memory Index
 
-- [Ширини в'юпорта: 768 вікном, 390 тільки iframe](method_viewport_widths.md) — resize_window ПРАЦЮЄ (старий запис хибний), але дно 500 px; пастки iframe і scroll-smooth
+- [Ширини вʼюпорта: 768 вікном, 390 тільки iframe](method_viewport_widths.md) — ⚠ resize_window може мовчки не діяти (outerWidth=0); звіряти innerWidth
 - [Пробник контрасту й доступності](method_contrast_and_a11y_probe.md) — складати альфу й opacity предків, інакше хибні провали; ArrowRight, не Right
 - [Класи дефектів, що повторюються](project_recurring_defect_classes.md) — таблиці без обгортки на 390, стан появи поза DOM, напівпрозора шапка; і що тут платформне
 - [Як міряти CLS у цьому оточенні](method_cls_measurement.md) — layout-shift API мовчить у фоновому вікні; міряти геометрію пробниками ⚠️ пункт про resize_window застарів
@@ -10,3 +10,10 @@
 - [Межа: акаунт створює власник](feedback_account_creation_boundary.md) — дозвіл у task.md знімає питання про базу, але не про дію; що робити натомість
 - [Сертифікат: D-04/D-05/QR закриті](project_certificate_pdf_findings.md) — 27 МБ→0,42 МБ, 2 клікабельні області, QR читається; перевіряти сам файл, а не шаблон; імʼя брати з `profiles`, не з метаданих
 - [Клік по посиланню в PDF](method_pdf_link_click_testing.md) — стенд pdf.js з AnnotationLayer; переглядач Chrome завмирає; ⚠️ стенд працює лише в АКТИВНІЙ вкладці
+- [Масовий аудит діаграм Mermaid](method_mermaid_mass_audit.md) — iframe ПРИДАТНИЙ (старе «ламає» спростовано): about:blank-прогрів + правильне розкриття уроку
+- [Накладання діаграм = колізія id](project_mermaid_id_collision.md) — `mermaid-${Date.now()}` + неawait-нуті run(); доказ через заморожений Date.now; await — лише запас, не фікс
+- [Діаграми стискаються до нечитабельного](project_mermaid_shrink_to_fit.md) — ЗАКРИТО useMaxWidth:false; ціна «корінь за лівою межею» теж закрита (298ef1f), лишилось 6 зі 100 на 390 — вузол ширший за колонку
+- [Пастки схованого вікна](method_hidden_window_traps.md) — visibilityState завжди hidden: resize_window мертвий, setTimeout дроселиться, ResizeObserver не фіриться, стрілки не гортають
+- [Власний Chrome по CDP](method_cdp_own_chrome.md) — знімає ВСІ пастки схованого вікна одразу: справжній вʼюпорт, Tab, CLS, rAF, блокування мережі; ⛔ не два прогони паралельно
+- [CLS лендінга AI Термінала](project_cc_landing_cls.md) — резерв ЗАГОЛОВКА закрив головне (298ef1f); решта 0,11–0,18 — порожній .cc-hero__lead; показник бімодальний
+- [Перевіряти фікс = спростовувати його](method_source_of_truth_ab.md) — повна вибірка, реплікація обох логік, A/B причини, ламати заявлену межу; і відсікати власні помилки

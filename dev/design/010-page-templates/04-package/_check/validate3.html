@@ -1,0 +1,57 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><title>010 · перевірка 3</title>
+<style>body{font:13px/1.55 ui-monospace,monospace;background:#161311;color:#F0E9DF;margin:16px}
+pre{white-space:pre-wrap}iframe{position:fixed;left:-99999px;top:0;border:0}</style></head><body>
+<pre id="out">…</pre><script>
+const OUT=document.getElementById('out'),log=s=>{OUT.textContent+=s+"\n"};
+function load(src,w,h){return new Promise(res=>{const f=document.createElement('iframe');f.width=w;f.height=h||900;f.src=src;
+ f.onload=()=>setTimeout(()=>res(f),1400);document.body.appendChild(f)})}
+// властивості, які змушують браузер рахувати розкладку або перемальовувати велику площу
+const LAYOUT=/^(width|height|top|left|right|bottom|margin|padding|border-width|font-size|line-height|inset|flex|grid-template|gap|max-width|max-height|min-width|min-height)/;
+const SAFE=/^(transform|opacity|clip-path|color|background-color|border-color|fill|stroke|box-shadow|filter|backdrop-filter|visibility|outline|text-decoration|stroke-dashoffset|stroke-opacity|grid-template-rows|--)/;
+const PAGES=[["T1a index","b1/index.html"],["T1b claude-code","b1/claude-code.html"],
+ ["T2 урок","b2/t2-lesson.html"],["T3 іспит","b2/t3-exam.html"],["T4 довідник","b3/t4-reference.html"],
+ ["T5 роадмап","b3/t5-roadmap.html"],["T6 verify","b3/t6-verify.html"],["T7 сертифікат","b3/t7-certificate.html"]];
+(async()=>{
+ OUT.textContent='';
+ log('== 1 · ЩО САМЕ АНІМУЄТЬСЯ (статичний аудит; заміна заміру fps) =======');
+ log('   LAYOUT = властивість, що змушує рахувати розкладку кожен кадр\n');
+ for(const [n,src] of PAGES){
+   const f=await load(src,1280,900),d=f.contentDocument,w=f.contentWindow;
+   const props=new Set(),bad=new Set();
+   d.querySelectorAll('*').forEach(el=>{const cs=w.getComputedStyle(el);
+     (cs.transitionProperty||'').split(',').map(s=>s.trim()).forEach(p=>{
+       if(!p||p==='none'||p==='all')return;props.add(p);if(LAYOUT.test(p)&&!SAFE.test(p))bad.add(p+' @'+((el.className||el.tagName)+'').slice(0,24));});
+   });
+   // @keyframes у таблицях стилів
+   const kf=[];
+   const walk=rs=>{for(const r of rs){if(r.type===7){const s=new Set();for(const k of r.cssRules){for(let i=0;i<k.style.length;i++)s.add(k.style[i])}kf.push([r.name,[...s]])}
+     else if(r.type===4)walk(r.cssRules)}};
+   for(const sh of d.styleSheets){try{walk(sh.cssRules)}catch(e){}}
+   const kfBad=kf.filter(([,ps])=>ps.some(p=>LAYOUT.test(p)&&!SAFE.test(p)));
+   const st = w.ScrollTrigger? w.ScrollTrigger.getAll().length : (w.gsap?0:'нема GSAP');
+   let loops=0;d.querySelectorAll('*').forEach(el=>{const cs=w.getComputedStyle(el);
+     if(cs.animationName!=='none'&&cs.animationIterationCount==='infinite')loops++;});
+   log(`${n.padEnd(16)} transition-props ${String(props.size).padStart(2)}  LAYOUT-переходів ${bad.size?'✗ '+[...bad].slice(0,3).join('; '):'✓ 0'}`);
+   log(`${''.padEnd(16)} @keyframes ${String(kf.length).padStart(2)}  з LAYOUT ${kfBad.length?'✗ '+kfBad.map(x=>x[0]).join(','):'✓ 0'}  ScrollTrigger ${st}  безкінечних анімацій ${loops}`);
+   f.remove();
+ }
+ log('\n== 2 · ХРОМ: чи однаковий у трьох білдерів (критерій 27) ============');
+ const norm=h=>h.replace(/<!--[\s\S]*?-->/g,'').replace(/\s+/g,' ')
+   .replace(/ (data-id|id)="[^"]*"/g,'').replace(/>\s+</g,'><').trim();
+ const grab=async(src,sel)=>{const f=await load(src,1280,900);const el=f.contentDocument.querySelector(sel);
+   const h=el?norm(el.outerHTML):null;f.remove();return h};
+ for(const [sel,label] of [['.ds-hdr','шапка'],['.ds-ftr','футер'],['.ds-skip','skip-link']]){
+   const a=await grab('b1/index.html',sel), b=await grab('b2/t2-lesson.html',sel), c=await grab('b3/t4-reference.html',sel);
+   const same=(x,y)=>x&&y&&x===y;
+   log(`${label.padEnd(10)} Б1 ${a?a.length:'—'} симв · Б2 ${b?b.length:'—'} · Б3 ${c?c.length:'—'}   Б1=Б2 ${same(a,b)?'✓':'✗'}  Б1=Б3 ${same(a,c)?'✓':'✗'}`);
+   const tags=x=>x?(x.match(/class="[^"]*"/g)||[]).join(' ').match(/[a-z][a-z0-9_-]*(?:__|--)?[a-z0-9_-]*/gi)||[]:[];
+   const setOf=x=>new Set(tags(x));
+   if(a&&b&&!same(a,b)){const A=setOf(a),B=setOf(b);
+     const onlyA=[...A].filter(x=>!B.has(x)),onlyB=[...B].filter(x=>!A.has(x));
+     log('   лише в Б1: '+(onlyA.slice(0,8).join(' ')||'—')+'   лише в Б2: '+(onlyB.slice(0,8).join(' ')||'—'));}
+   if(a&&c&&!same(a,c)){const A=setOf(a),C=setOf(c);
+     const onlyA=[...A].filter(x=>!C.has(x)),onlyC=[...C].filter(x=>!A.has(x));
+     log('   лише в Б1: '+(onlyA.slice(0,8).join(' ')||'—')+'   лише в Б3: '+(onlyC.slice(0,8).join(' ')||'—'));}
+ }
+ log('\n== ГОТОВО ==');
+})();</script></body></html>

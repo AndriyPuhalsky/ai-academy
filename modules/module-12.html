@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk" class="scroll-smooth" data-config="../config.json">
+<html lang="uk" data-config="../config.json" data-course="academy" data-density="lesson" data-lit>
 
 <head>
   <meta charset="UTF-8" />
@@ -7,111 +7,101 @@
   <title>Модуль 12 · Реальні кейси та фінальний проєкт — AI Академія</title>
   <meta name="description"
     content="Чотири реальні кейси — підтримка клієнтів, аналіз документів, асистент розробника, генерація контенту — і фінальний челендж: спроєктуй власну ШІ-систему від промпта до evals." />
-  <meta name="theme-color" content="#141312" />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
 
   <script>document.documentElement.classList.add("js");</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
-    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег.
+       010 · етап 9: стара мова (окремий файл зі спадщиною 2023–2026)
+       видалена цілком, тому в каскаді лишились рівно ці файли. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ink: "#141312", surface: "#1E1B18", raised: "#272320",
-            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
-            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
-            sand: "#E8DCC3"
-          },
-          fontFamily: {
-            display: ["Literata", "Georgia", "serif"],
-            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
-            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
-          },
-          maxWidth: { content: "72rem" }
-        }
-      }
-    };
-  </script>
-
-  <link rel="stylesheet" href="../css/custom.css" />
+  <script src="../js/tw-theme.js"></script>
 </head>
 
-<body data-module="m12" class="bg-ink font-sans text-ivory antialiased">
+<body data-module="m12">
 
-  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
   <div id="ariaLive" class="sr-only" aria-live="polite"></div>
 
   <noscript>
-    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
-      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
     </div>
   </noscript>
 
   <!-- ШАПКА -->
-  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
-    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
-      <div class="flex items-center gap-3">
-        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
-          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
-          <span class="sr-only">Зміст курсу</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" aria-hidden="true">
-            <path d="M3 6h18M3 12h18M3 18h18" />
-          </svg>
-        </button>
-        <a href="../index.html" class="flex items-center gap-2.5">
-          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
-            data-site="shortName">AIA</span>
-          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Академія</span>
-        </a>
-        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
-        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 12</span>
-      </div>
-      <div class="flex items-center gap-3">
-        <div id="aiaAuth" class="slot"></div>
-        <span id="navProgress" hidden
-          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
-        <a href="../index.html#syllabus" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
-          програми</a>
-      </div>
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../index.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIA</span>
+        <span data-site="name">AI Академія</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Модуль 12</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../index.html#syllabus">До програми</a>
     </div>
   </header>
 
-  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
-    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
-      ⚠ Не вдалося завантажити <code>config.json</code>. Відкрий сайт через локальний сервер,
-      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
     </div>
   </div>
 
   <!-- Затемнення під мобільною шторкою сайдбара -->
-  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
 
     <!-- САЙДБАР: програма курсу + уроки модуля (рендериться js/module.js) -->
-    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
       <div id="sidebarNav" class="lg:pt-10">
-        <p class="snav-count">Завантаження програми…</p>
+        <p class="ds-snav__count">Завантаження програми…</p>
       </div>
     </aside>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-3xl">
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
 
         <!-- Вступ модуля -->
-        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Трек IV · Агенти та продакшн</p>
-        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Реальні кейси та фінальний проєкт
+        <p class="ds-eyebrow">Трек IV · Агенти та продакшн</p>
+        <h1 class="ds-h1">Реальні кейси та фінальний проєкт
         </h1>
-        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Просунутий · 5 уроків · ≈ 90 хв читання</p>
-        <p class="mt-6 text-lg">
+        <p class="ds-small ds-num">Просунутий · 5 уроків · ≈ 90 хв читання</p>
+        <p class="ds-lead">
           Фінал. Жодної нової теорії — лише збирання. Чотири реальні кейси: для кожного
           пройдемо шлях «задача → архітектура → підводні камені», явно називаючи, який
           модуль курсу працює в кожному вузлі. А наприкінці — твій власний проєкт:
@@ -122,8 +112,8 @@
         <hr />
 
         <!-- УРОК 12.1 -->
-        <section id="l1" data-lesson="12.1 Кейс: підтримка клієнтів" class="scroll-mt-24">
-          <h2><span class="lesson-no">12.1</span>Кейс 1 · Асистент підтримки клієнтів</h2>
+        <section id="l1" data-lesson="12.1 Кейс: підтримка клієнтів">
+          <h2><span class="ds-prose__no">12.1</span>Кейс 1 · Асистент підтримки клієнтів</h2>
           <p>
             <strong>Задача.</strong> Кейтерингова компанія (звісно 🙂) отримує десятки
             звернень на день: нові замовлення, зміни, скарги, питання про умови.
@@ -136,7 +126,7 @@
             форсованим інструментом із Модуля 6) спрямовує звернення в одну з гілок.
           </p>
 
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart TD
   IN["Звернення клієнта"] --> CLS["Класифікатор: few-shot + форсований інструмент"]
@@ -146,10 +136,10 @@ flowchart TD
   RAG --> OUT["Відповідь із посиланнями на джерела"]
   EXT --> OUT2["Підтвердження клієнту"]
   DRAFT --> HUM["Менеджер переглядає і затверджує"]
-  style CLS fill:#2A211C,stroke:#D97757,color:#F0EEE6
-  style HUM stroke:#E8DCC3
+  class CLS hl
+  class HUM hl
             </pre>
-            <p class="diagram-caption">Routing + три спеціалізовані гілки; скарги завжди проходять через людину</p>
+            <p class="ds-diag__caption">Routing + три спеціалізовані гілки; скарги завжди проходять через людину</p>
           </div>
 
           <ul>
@@ -183,8 +173,8 @@ flowchart TD
         </section>
 
         <!-- УРОК 12.2 -->
-        <section id="l2" data-lesson="12.2 Кейс: аналіз документів" class="scroll-mt-24">
-          <h2><span class="lesson-no">12.2</span>Кейс 2 · Аналіз документів</h2>
+        <section id="l2" data-lesson="12.2 Кейс: аналіз документів">
+          <h2><span class="ds-prose__no">12.2</span>Кейс 2 · Аналіз документів</h2>
           <p>
             <strong>Задача.</strong> Перед кожною подією компанія підписує договір
             оренди майданчика. Потрібно швидко витягати ключові умови — терміни,
@@ -197,7 +187,7 @@ flowchart TD
             між ними.
           </p>
 
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart LR
   PDF["Договір: PDF або фото"] --> S1["Крок 1: екстракція полів форсованим інструментом"]
@@ -205,10 +195,10 @@ flowchart LR
   G1 -->|"ні"| FLAG["Позначка: потребує людини"]
   G1 -->|"так"| S2["Крок 2: звірка з чеклістом ризиків — цитати перед висновком"]
   S2 --> S3["Крок 3: стислий висновок для менеджера"]
-  style S2 fill:#2A211C,stroke:#D97757,color:#F0EEE6
-  style FLAG stroke:#E8DCC3
+  class S2 hl
+  class FLAG hl
             </pre>
-            <p class="diagram-caption">Ланцюжок зі шлюзом: невпевненість зупиняє конвеєр, а не маскується</p>
+            <p class="ds-diag__caption">Ланцюжок зі шлюзом: невпевненість зупиняє конвеєр, а не маскується</p>
           </div>
 
           <ul>
@@ -244,8 +234,8 @@ flowchart LR
         </section>
 
         <!-- УРОК 12.3 -->
-        <section id="l3" data-lesson="12.3 Кейс: асистент розробника" class="scroll-mt-24">
-          <h2><span class="lesson-no">12.3</span>Кейс 3 · Асистент розробника</h2>
+        <section id="l3" data-lesson="12.3 Кейс: асистент розробника">
+          <h2><span class="ds-prose__no">12.3</span>Кейс 3 · Асистент розробника</h2>
           <p>
             <strong>Задача.</strong> Команда хоче внутрішнього помічника: відповідати
             на питання по кодовій базі й вікі, допомагати з рев'ю, генерувати тести,
@@ -288,8 +278,8 @@ flowchart LR
         </section>
 
         <!-- УРОК 12.4 -->
-        <section id="l4" data-lesson="12.4 Кейс: генерація контенту" class="scroll-mt-24">
-          <h2><span class="lesson-no">12.4</span>Кейс 4 · Генерація контенту</h2>
+        <section id="l4" data-lesson="12.4 Кейс: генерація контенту">
+          <h2><span class="ds-prose__no">12.4</span>Кейс 4 · Генерація контенту</h2>
           <p>
             <strong>Задача.</strong> Маркетинг кейтерингу: пости для соцмереж, описи
             меню, email-розсилки. Регулярно, у впізнаваному голосі бренду,
@@ -331,8 +321,8 @@ flowchart LR
         </section>
 
         <!-- УРОК 12.5 -->
-        <section id="l5" data-lesson="12.5 Фінальний проєкт" class="scroll-mt-24">
-          <h2><span class="lesson-no">12.5</span>Фінальний проєкт: спроєктуй власну систему</h2>
+        <section id="l5" data-lesson="12.5 Фінальний проєкт">
+          <h2><span class="ds-prose__no">12.5</span>Фінальний проєкт: спроєктуй власну систему</h2>
           <p>
             Тепер твоя черга. Обери задачу зі свого життя чи роботи — реальну,
             із живими користувачами або хоча б із собою в цій ролі — і спроєктуй
@@ -370,8 +360,8 @@ flowchart LR
             перший прогін eval-набору — найчесніший момент істини в усьому проєкті.
           </p>
 
-          <div class="callout callout-sand">
-            <span class="callout-title">Курс завершено 🎓</span>
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Курс завершено 🎓</span>
             <p>
               Ти пройшов шлях від «що таке токен» до проєктування систем із захистом
               і вимірюванням якості. Тепер у тебе є мова — терміни, якими говорить
@@ -388,8 +378,8 @@ flowchart LR
 
         <hr />
 
-        <div class="callout callout-sand">
-          <span class="callout-title">Підсумок модуля</span>
+        <div class="ds-note ds-note--accent">
+          <span class="ds-note__title">Підсумок модуля</span>
           <ul>
             <li>Підтримка клієнтів = routing + RAG + екстракція; скарги та компенсації — завжди через людину.</li>
             <li>Аналіз документів = ланцюжок зі шлюзами; кожен ризик — із дослівною цитатою, невпевненість зупиняє
@@ -403,7 +393,7 @@ flowchart LR
         </div>
 
         <!-- КВІЗ -->
-        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+        <section id="quiz" data-lesson="Квіз: перевір себе">
           <h2>Квіз: перевір себе</h2>
           <p>
             Фінальні вісім питань — синтез усього курсу. Обирай відповідь — і одразу
@@ -510,44 +500,46 @@ flowchart LR
       }
       </script>
 
-      <div class="max-w-3xl">
+      <div class="mt-12 grid gap-6 max-w-prose">
         <!-- Позначка завершення (js/module.js + js/progress.js) -->
         <div
-          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p id="completeTitle" class="font-medium text-ivory">Фінальний модуль позаду?</p>
-            <p class="mt-1 text-sm text-muted">
+            <p id="completeTitle" class="ds-h4">Фінальний модуль позаду?</p>
+            <p class="ds-small">
               Познач його завершеним — і прогрес-бар курсу на головній
               нарешті покаже стовідсотковий результат.
             </p>
           </div>
           <button id="completeBtn" type="button"
-            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            class="ds-btn ds-btn--primary">
             Позначити завершеним
           </button>
         </div>
 
         <!-- Попередній / наступний модуль (рендерить js/module.js) -->
-        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
       </div>
 
     </main>
   </div>
 
-  <footer class="mt-16 border-t border-line/60">
-    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
-      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
-      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../index.html">На головну ↑</a></span>
     </div>
   </footer>
 
   <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
   <script src="../js/progress.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/config.js"></script>
   <script src="../js/module.js"></script>
   <script src="../js/quiz.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
   <script src="../js/mermaid-init.js"></script>
   <script src="../js/auth-ui.js"></script>
   <script type="module" src="../js/auth.js"></script>

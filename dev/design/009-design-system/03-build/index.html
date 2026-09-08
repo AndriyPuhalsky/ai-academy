@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="uk" data-course="academy" data-motion="standard" data-density="landing" data-lit>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AIA Design System v1 — основи, компоненти, рух</title>
+<meta name="description" content="Дизайн-система AI Академія / AI Architect / AI Термінал: токени трьома шарами, система руху, бібліотека компонентів.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Латиниця вантажиться СВІДОМО, а не за звичкою: український апостроф ʼ (U+02BC)
+     лежить у ЛАТИНСЬКІЙ підмножині Google Fonts, а не в кириличній. Сторінка,
+     яка просить «тільки кирилицю», лишиться без апострофа. -->
+<link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="components.css">
+</head>
+<body>
+
+<a class="ds-skip" href="#main">Перейти до вмісту</a>
+
+<!-- ── ПАНЕЛЬ КЕРУВАННЯ ─────────────────────────────────────────────────── -->
+<div class="sg-bar" role="group" aria-label="Перемикачі системи">
+  <div class="sg-bar__g">
+    <span class="sg-bar__l">курс</span>
+    <button class="ds-btn ds-btn--sm ds-btn--secondary" data-set="course" data-v="academy" aria-pressed="true">Академія</button>
+    <button class="ds-btn ds-btn--sm ds-btn--ghost" data-set="course" data-v="architect" aria-pressed="false">Architect</button>
+    <button class="ds-btn ds-btn--sm ds-btn--ghost" data-set="course" data-v="terminal" aria-pressed="false">Термінал</button>
+  </div>
+  <div class="sg-bar__g">
+    <span class="sg-bar__l">рух</span>
+    <button class="ds-btn ds-btn--sm ds-btn--ghost" data-set="motion" data-v="calm" aria-pressed="false">calm</button>
+    <button class="ds-btn ds-btn--sm ds-btn--secondary" data-set="motion" data-v="standard" aria-pressed="true">standard</button>
+    <button class="ds-btn ds-btn--sm ds-btn--ghost" data-set="motion" data-v="bold" aria-pressed="false">bold</button>
+  </div>
+  <div class="sg-bar__g">
+    <span class="sg-bar__l">щільність</span>
+    <button class="ds-btn ds-btn--sm ds-btn--secondary" data-set="density" data-v="landing" aria-pressed="true">лендінг</button>
+    <button class="ds-btn ds-btn--sm ds-btn--ghost" data-set="density" data-v="lesson" aria-pressed="false">урок</button>
+  </div>
+  <div class="sg-bar__g">
+    <span class="sg-bar__l">reduce</span>
+    <button class="ds-btn ds-btn--sm ds-btn--ghost" id="rmToggle" aria-pressed="false">вимкнено</button>
+  </div>
+  <div class="sg-bar__g">
+    <span class="sg-bar__l">світло згори</span>
+    <button class="ds-btn ds-btn--sm ds-btn--secondary" id="litToggle" aria-pressed="true">увімкнено</button>
+  </div>
+</div>
+
+<main id="main" class="sg-shell" data-page-in>
+
+<!-- ── HERO ─────────────────────────────────────────────────────────────── -->
+<header class="sg-hero">
+  <p class="ds-eyebrow">aia · design system v1 · 009 · 2026-09-07</p>
+  <h1 class="sg-hero__title">Одна система, три курси</h1>
+  <p class="ds-lead sg-hero__lead">
+    AI Академія, AI Architect і AI Термінал діляться скелетом і різняться рівно пʼятьма
+    токенами акценту. Тема одна: темна. Це не галерея — це інструмент і доказ:
+    шість тестів унизу друкують PASS або FAIL на живих значеннях, а не на таблиці в документі.
+  </p>
+  <div class="sg-hero__meta">
+    <span class="ds-tag">токени: 3 шари</span>
+    <span class="ds-tag">компоненти: 24 префікси</span>
+    <span class="ds-tag">рух: 11 ефектів</span>
+    <span class="ds-tag">криві: 5</span>
+    <span class="ds-tag">тіні: 3</span>
+    <span class="ds-tag">reduce: 2 рядки</span>
+  </div>
+</header>
+
+<!-- ── ДРАБИНА ──────────────────────────────────────────────────────────── -->
+<section class="sg-sec sg-anchor" id="ladder">
+  <div class="sg-sec__meta">
+    <p class="ds-eyebrow">--p-n-*</p>
+    <p class="sg-mono">13 сходинок</p>
+    <p class="sg-sec__note">Контраст порахований у рантаймі з реальних <code class="ds-code--inline">getComputedStyle</code>, а не переписаний із таблиці.</p>
+  </div>
+  <div class="sg-sec__body">
+    <h2>Драбина</h2>
+    <p class="ds-lead">Реальний сайт має ≈17 сходинок сірого, названо три — саме тому кожна задача винаходила власний фон посеред файла. Тут у кожної сходинки є роль, і питання «якого кольору hover картки» більше не існує.</p>
+    <div class="sg-ladder" id="ladder-rows"></div>
+  </div>
+</section>
+
+<!-- ── АКЦЕНТИ Й СТАНИ ──────────────────────────────────────────────────── -->
+<section class="sg-sec sg-anchor" id="accents">
+  <div class="sg-sec__meta">
+    <p class="ds-eyebrow">accent · state</p>
+    <p class="sg-mono">3 + 4</p>
+    <p class="sg-sec__note">Акцент — матеріал. Стан — позначка. Тому стани світліші й тихіші, і жоден із них не дорівнює жодному акценту.</p>
+  </div>
+  <div class="sg-sec__body">
+    <h2>Акценти й стани</h2>
+    <p class="ds-lead">Перемкни курс у панелі згори — зміниться рівно колір. Геометрія, тривалості й криві не рухаються: жодна з чотирьох переглянутих чужих систем не міняє їх під бренд.</p>
+    <div class="sg-grid" id="accent-rows"></div>
+    <h3>Стани, які не є акцентом</h3>
+    <div class="sg-grid" id="state-rows"></div>
+    <div class="ds-note ds-note--warn">
+      <span class="ds-note__glyph" aria-hidden="true">▲</span>
+      <h4 class="ds-note__title">Найближче зіткнення тонів названо вголос</h4>
+      <p class="ds-note__body">Шафран Академії й <code class="ds-code--inline">warn</code> стоять за 21.6° один від одного — це найтісніше місце системи. Саме тому <code class="ds-code--inline">warn</code> скрізь має обовʼязковий гліф ▲ і пунктирний кант: стан ніколи не кодується лише кольором, і тут це не формальність, а несуча деталь.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── ТИПОГРАФІКА ──────────────────────────────────────────────────────── -->
+<section class="sg-sec sg-anchor" id="type">
+  <div class="sg-sec__meta">
+    <p class="ds-eyebrow">--f-* --fs-*</p>
+    <p class="sg-mono">3 ролі · 4 рівні</p>
+    <p class="sg-sec__note">Prata 19 КБ · Golos Text 117 КБ · JetBrains Mono 79 КБ. Разом 215 КБ на три ролі — при бюджеті 200 КБ на родину.</p>
+  </div>
+  <div class="sg-sec__body">
+    <h2>Типографіка</h2>
+    <p class="ds-lead">Дідона високого контрасту проти дуже спокійного тексту. Причина вимірна, не смакова: Prata дає найбільший контраст характеру між заголовком і текстом при 19 КБ на всю дисплейну роль, а JetBrains Mono має крок 0.60em — той самий, що в нинішнього IBM Plex Mono, тож 101 блок термінала й колонки маркерів 1ch/2ch не доведеться переміряти.</p>
+
+    <div class="ds-card">
+      <p class="ds-eyebrow">рендер-тест українських гліфів</p>
+      <p style="font-family:var(--f-display);font-size:var(--fs-h2);line-height:var(--lh-h2);letter-spacing:var(--tr-display)">Ґґ Єє Іі Її ʼ ШЩЮЯ 0123 ₴</p>
+      <p style="font-family:var(--f-sans);font-size:var(--fs-h3);line-height:var(--lh-h3)">Ґґ Єє Іі Її ʼ ШЩЮЯ 0123 ₴ — розблокування, перехоплювачі</p>
+      <p style="font-family:var(--f-mono);font-size:var(--fs-code);line-height:var(--lh-code)">Ґґ Єє Іі Її ʼ ШЩЮЯ 0123 ₴ &nbsp; claude --version</p>
+    </div>
+
+    <div class="sg-stack">
+      <h1 class="ds-h1">Що таке генеративний ШІ</h1>
+      <h2 class="ds-h2">AI Fluency: співпраця з ШІ</h2>
+      <h3 class="ds-h3">Основи промптингу</h3>
+      <h4 class="ds-h4">Врізка: відрізняється вагою, не кеглем</h4>
+      <p style="max-width:var(--w-narrow)">Безкоштовний курс про Claude Code: від «ніколи не відкривав термінал» до впевненої щоденної роботи з агентом. Колонка обмежена 672 px — це ≈68 символів у рядку. Наш нинішній <code class="ds-code--inline">--w-prose</code> 768 px дає ≈90, і це вже верхня межа комфорту.</p>
+      <p class="ds-small">Підпис, третинний текст, метадані · 7.59 на фоні</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── ШКАЛИ ────────────────────────────────────────────────────────────── -->
+<section class="sg-sec sg-anchor" id="scales">
+  <div class="sg-sec__meta">
+    <p class="ds-eyebrow">--s-* --r-* --z-* --bp-*</p>
+    <p class="sg-mono">4px · 5 радіусів · 10 шарів</p>
+    <p class="sg-sec__note">Радіусів рівно пʼять; 0.55rem із <code class="ds-code--inline">.quiz-restart</code> ретирується. Тіней рівно три.</p>
+  </div>
+  <div class="sg-sec__body">
+    <h2>Шкали</h2>
+    <div class="sg-group">
+      <p class="sg-group__h">спейсинг · --s-N = N × 4px</p>
+      <div class="sg-row" id="space-row"></div>
+    </div>
+    <div class="sg-group">
+      <p class="sg-group__h">радіуси</p>
+      <div class="sg-row" id="radius-row"></div>
+    </div>
+    <div class="sg-group">
+      <p class="sg-group__h">тіні — рівно три: те, що покинуло площину, і одна плита предмета</p>
+      <div class="sg-row">
+        <div class="ds-card" style="box-shadow:var(--sh-dialog);min-width:calc(var(--w-card)*0.5)"><p class="sg-mono">--sh-dialog</p><p class="ds-small">картка діалогу</p></div>
+        <div class="ds-card" style="box-shadow:var(--sh-sheet);min-width:calc(var(--w-card)*0.5)"><p class="sg-mono">--sh-sheet</p><p class="ds-small">мобільний аркуш</p></div>
+        <div class="ds-card ds-card--desk" style="min-width:calc(var(--w-card)*0.5)"><p class="sg-mono">--sh-desk</p><p class="ds-small">єдина плита предмета</p></div>
+      </div>
+    </div>
+    <div class="sg-group">
+      <p class="sg-group__h">шари · два ОКРЕМІ токени для сайдбара — наслідок дефекту 006 D-01</p>
+      <div class="sg-z" id="z-stack"></div>
+    </div>
+    <div class="sg-group">
+      <p class="sg-group__h">пороги · це константи-документація: @media НЕ читає var()</p>
+      <div class="sg-row" id="bp-row"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── КОМПОНЕНТИ: КНОПКА ───────────────────────────────────────────────── -->
+<section class="sg-sec sg-anchor" id="btn">
+  <div class="sg-sec__meta">
+    <p class="ds-eyebrow">ds-btn</p>
+    <p class="sg-mono">13 → 1</p>
+    <p class="sg-sec__note">Замінює 12 CSS-означень і сімʼю інлайн-утиліт: було 7 висот і 4 радіуси на одну сутність.</p>
+  </div>
+  <div class="sg-sec__body">
+    <h2>Кнопка</h2>
+    <p class="ds-lead">Пʼять ролей × три розміри × сім станів. Кнопка Google лишається поруч і недоторканою — чужий брендовий актив не входить у злиття й зберігає власні 4 px радіуса.</p>
+
+    <div class="sg-canvas sg-canvas--surface">
+      <span class="sg-canvas__tag">--c-surface · ролі × розміри</span>
+      <div class="sg-row">
+        <button class="ds-btn ds-btn--primary ds-btn--lg">Почати навчання</button>
+        <button class="ds-btn ds-btn--primary">Почати</button>
+        <button class="ds-btn ds-btn--primary ds-btn--sm">Далі</button>
+      </div>
+      <div class="sg-row">
+        <button class="ds-btn ds-btn--secondary ds-btn--lg">Переглянути програму</button>
+        <button class="ds-btn ds-btn--secondary">Програма</button>
+        <button class="ds-btn ds-btn--secondary ds-btn--sm">Копіювати</button>
+      </div>
+      <div class="sg-row">
+        <button class="ds-btn ds-btn--ghost">Довідник команд</button>
+        <button class="ds-btn ds-btn--quiet ds-btn--sm">Розгорнути вивід</button>
+        <button class="ds-btn ds-btn--danger ds-btn--sm">Скинути прогрес</button>
+      </div>
+      <div class="sg-row">
+        <button class="ds-btn ds-btn--primary" disabled>Заблоковано</button>
+        <button class="ds-btn ds-btn--secondary" data-loading="true"><span class="ds-btn__spin" aria-hidden="true"></span>Перевіряю…</button>
+        <button class="ds-btn ds-btn--secondary ds-btn--icon" aria-label="Закрити">✕</button>
+        <button class="ds-btn ds-btn--secondary ds-btn--sm ds-btn--icon" aria-label="Розгорнути">▾</button>
+      </div>
+      <div class="sg-row">
+        <button class="ds-btn ds-btn--primary">Розблокування перехоплювачів</button>
+        <span class="sg-mono">← 30 символів, один із них 20+</span>
+      </div>
+      <div class="sg-row">
+        <button class="gbtn" type="button">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Продовжити з Google
+        </button>
+        <span class="sg-mono">← чужий актив: 40px, радіус 4px, підпис Google</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ПОЛЕ, КАРТКА, БЕЙДЖ, ПРОГРЕС ─────────────────────────────────────── -->
+<section class="sg-sec sg-anchor" id="fields">
+  <div class="sg-sec__meta">
+    <p class="ds-eyebrow">ds-fld · ds-card · ds-badge · ds-pill</p>
+    <p class="sg-mono">усі стани поруч</p>
+    <p class="sg-sec__note">Не по кліку: стан, який видно лише після дії, перевіряють рідше — і саме там дрейф починається.</p>
+  </div>
+  <div class="sg-sec__body">
+    <h2>Поле, картка, бейдж</h2>
+    <div class="sg-grid">
+      <div class="ds-card sg-stack">
+        <div class="ds-fld">
+          <label class="ds-fld__label" for="f1">Ваше імʼя</label>
+          <input class="ds-fld__input" id="f1" placeholder="Наприклад, Олександра">
+          <p class="ds-fld__hint">Так вас буде названо в сертифікаті.</p>
+        </div>
+        <div class="ds-fld ds-fld--error">
+          <label class="ds-fld__label" for="f2">Електронна пошта</label>
+          <input class="ds-fld__input" id="f2" value="olena@" aria-invalid="true" aria-describedby="f2e">
+          <p class="ds-fld__error" id="f2e">Адреса неповна — бракує частини після знака @</p>
+        </div>
+        <div class="ds-fld">
+          <label class="ds-fld__label" for="f3">Повідомлення</label>
+          <textarea class="ds-fld__input" id="f3" maxlength="2000">Доброго дня! Хочу запитати про розблокування модулів у третьому курсі.</textarea>
+          <div class="ds-fld__row"><span class="ds-fld__hint">Відповідаємо протягом доби</span><span class="ds-fld__count">78 / 2000</span></div>
+        </div>
+        <div class="ds-fld">
+          <label class="ds-fld__label" for="f4">Код сертифіката (лише читання)</label>
+          <input class="ds-fld__input" id="f4" value="AIA-2026-000000" readonly>
+        </div>
+        <div class="ds-fld">
+          <label class="ds-fld__label" for="f5">Курс (заблоковано)</label>
+          <input class="ds-fld__input" id="f5" value="AI Термінал" disabled>
+        </div>
+      </div>
+
+      <div class="sg-stack">
+        <a class="ds-card" href="#fields">
+          <p class="ds-eyebrow">модуль 01</p>
+          <h3 class="ds-h3">Що таке генеративний ШІ</h3>
+          <p class="ds-small">Картка-посилання: hover міняє межу й поверхню, натискання — масштаб.</p>
+        </a>
+        <div class="ds-card" aria-disabled="true">
+          <h3 class="ds-h3">Агентні системи</h3>
+          <p class="ds-small">Заблокована картка: пунктир і тихіший текст — форма, не лише колір.</p>
+        </div>
+        <div class="ds-empty">
+          <p>Сертифікатів поки немає</p>
+          <button class="ds-btn ds-btn--secondary ds-btn--sm">Пройти перший модуль</button>
+        </div>
+        <div class="sg-row">
+          <span class="ds-badge ds-badge--ready" data-glyph="●">готово</span>
+          <span class="ds-badge ds-badge--done" data-glyph="✓">пройдено</span>
+          <span class="ds-badge ds-badge--soon" data-glyph="○">скоро</span>
+          <span class="ds-badge ds-badge--warn" data-glyph="▲">увага</span>
+          <span class="ds-badge ds-badge--err" data-glyph="✕">помилка</span>
+          <span class="ds-badge ds-badge--info" data-glyph="i">підказка</span>
+        </div>
+        <div class="sg-row">
+          <span class="ds-pill">12 / 23</span>
+          <span class="ds-pill ds-pill--unknown">— / 23</span>
+          <span class="ds-pill ds-pill--full">23 / 23</span>
+          <span class="ds-avatar">ОП</span>
+          <span class="ds-tag">Фаза 2</span>
+        </div>
+        <div class="ds-prog" style="--prog-v:.52" role="progressbar" aria-valuenow="52" aria-valuemin="0" aria-valuemax="100" aria-label="Прогрес курсу"><span class="ds-prog__bar"></span></div>
+        <div class="sg-row">
+          <span class="ds-skel ds-skel--avatar"></span>
+          <span class="ds-skel ds-skel--name"></span>
+          <span class="ds-skel ds-skel--guest"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ВРІЗКИ, КВІЗ, ТАБЛИЦЯ ────────────────────────────────────────────── -->
+<section class="sg-sec sg-anchor" id="content">
+  <div class="sg-sec__meta">
+    <p class="ds-eyebrow">ds-note · ds-quiz · ds-tbl · ds-code</p>
+    <p class="sg-mono">622 · 57 · 182 · 68</p>
+    <p class="sg-sec__note">Числа — реальні вживання в проді. Це те, що компонент реально скорочує.</p>
+  </div>
+  <div class="sg-sec__body">
+    <h2>Контент уроку</h2>
+
+    <div class="sg-stack">
+      <div class="ds-note">
+        <span class="ds-note__glyph" aria-hidden="true">·</span>
+        <h4 class="ds-note__title">Нейтральна врізка з дуже довгим українським заголовком, який свідомо переноситься у два рядки</h4>
+        <p class="ds-note__body">Лівий кант — це <code class="ds-code--inline">border-left</code> самого блока, а не псевдоелемент фіксованої висоти. Тому другий рядок заголовка його не ламає.</p>
+      </div>
+      <div class="ds-note ds-note--accent">
+        <span class="ds-note__glyph" aria-hidden="true">◆</span>
+        <h4 class="ds-note__title">Акцентна врізка</h4>
+        <p class="ds-note__body">Єдина врізка, яка бере колір курсу. Перемкни курс згори — зміниться тільки вона.</p>
+      </div>
+      <div class="ds-note ds-note--ok"><span class="ds-note__glyph" aria-hidden="true">✓</span><h4 class="ds-note__title">Готово</h4><p class="ds-note__body">Модуль зараховано, сертифікат стане доступним після іспиту.</p></div>
+      <div class="ds-note ds-note--warn"><span class="ds-note__glyph" aria-hidden="true">▲</span><h4 class="ds-note__title">Увага</h4><p class="ds-note__body">Пунктирний кант і гліф ▲ обовʼязкові: цей стан найближчий за тоном до акценту Академії.</p></div>
+      <div class="ds-note ds-note--err"><span class="ds-note__glyph" aria-hidden="true">✕</span><h4 class="ds-note__title">Помилка</h4><p class="ds-note__body">Колір помилки — не акцент. Це перевіряється окремим критерієм.</p></div>
+      <div class="ds-note ds-note--info"><span class="ds-note__glyph" aria-hidden="true">i</span><h4 class="ds-note__title">Підказка</h4><p class="ds-note__body">Команду можна скопіювати кнопкою в шапці блока.</p></div>
+    </div>
+
+    <div class="ds-quiz">
+      <p class="ds-quiz__q">Що станеться, якщо запустити <code class="ds-code--inline">claude --version</code> без встановленого агента?</p>
+      <ul class="ds-quiz__opts">
+        <li><button class="ds-quiz__opt" data-key="а" aria-pressed="false">Термінал відповість, що команду не знайдено</button></li>
+        <li><button class="ds-quiz__opt ds-quiz__opt--ok" data-key="б">Термінал відповість, що команду не знайдено, і запропонує спосіб установлення</button></li>
+        <li><button class="ds-quiz__opt ds-quiz__opt--bad" data-key="в">Агент установиться автоматично</button></li>
+        <li><button class="ds-quiz__opt" data-key="г" aria-pressed="true">Відкриється браузер</button></li>
+      </ul>
+      <p class="ds-quiz__explain">Правильна відповідь підсвічена суцільним кантом і гліфом ✓, неправильна — пунктиром і ✕. Колір тут другий шар інформації, а не єдиний.</p>
+    </div>
+
+    <div class="ds-tbl__wrap">
+      <table class="ds-tbl">
+        <thead><tr><th>Прапорець</th><th>Що робить</th><th>Коли доречно</th></tr></thead>
+        <tbody>
+          <tr><td>--print</td><td>Віддає відповідь у стандартний вивід і завершує сесію</td><td>Скрипти, конвеєри, разові запити без інтерактиву</td></tr>
+          <tr><td>--continue</td><td>Продовжує останню сесію в цій теці</td><td>Коли термінал закрився, а робота не закінчилась</td></tr>
+          <tr><td>--dangerously-skip-permissions</td><td>Знімає діалог дозволу на кожну дію — довгий нерозривний рядок, який у 005 давав горизонтальний скрол на пʼяти сторінках</td><td>Ізольоване середовище, і тільки там</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="ds-code">
+      <div class="ds-code__head"><span>bash</span><button class="ds-btn ds-btn--sm ds-btn--quiet">Копіювати</button></div>
+      <pre class="ds-code__pre">npm install -g @anthropic-ai/claude-code
+claude --version
+claude "поясни, що робить цей репозиторій"</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ── ТЕРМІНАЛ ─────────────────────────────────────────────────────────── -->
+<section class="sg-sec sg-anchor" id="term">
+  <div class="sg-sec__meta">
+    <p class="ds-eyebrow">.term</p>
+    <p class="sg-mono">101 блок · 767 рядків</p>
+    <p class="sg-sec__note">Єдиний компонент, який зберігає продові імена класів: розмітку 26 уроків чіпати не можна. Змінюються тільки токени.</p>
+  </div>
+  <div class="sg-sec__body">
+    <h2>Термінал</h2>
+    <p class="ds-lead">Вісім станів. Три правила непорушні: буфер копіювання байт у байт дорівнює видимому тексту, маркери — окремі елементи фіксованої колонки, друк — <code class="ds-code--inline">clip-path</code> плюс <code class="ds-code--inline">steps()</code> без жодної посимвольної вставки в DOM.</p>
+
+    <figure class="term term--desk" id="tm1">
+      <figcaption class="term__chrome">
+        <span class="term__dots" aria-hidden="true"></span>
+        <span class="term__title" id="tm1t">demo-repo — claude · промпт і крок інструмента</span>
+        <button class="ds-btn ds-btn--sm ds-btn--quiet" type="button">Копіювати</button>
+      </figcaption>
+      <pre class="term__body" tabindex="0" role="group" aria-labelledby="tm1t"><span class="term__line"><span class="term__mark" aria-hidden="true">❯</span> <span class="term__in">поясни, що робить цей репозиторій</span></span>
+<span class="term__line"></span>
+<span class="term__line"><span class="term__mark" aria-hidden="true">⏺</span> <span class="term__tool">Read</span>(readme.md)</span>
+<span class="term__line"><span class="term__mark--lg term__mark" aria-hidden="true">└─</span> <span class="term__meta">прочитано 42 рядки</span></span>
+<span class="term__line"></span>
+<span class="term__line">Це статичний освітній сайт українською: три курси, спільна автентифікація</span>
+<span class="term__line">й сертифікати. Збірки немає — те, що в репозиторії, і є тим, що деплоїться.</span></pre>
+      <div class="term__status">Сесія · <b>4 інструменти</b> · контекст 12 %</div>
+    </figure>
+
+    <figure class="term" id="tm2">
+      <figcaption class="term__chrome">
+        <span class="term__dots" aria-hidden="true"></span>
+        <span class="term__title" id="tm2t">диф · діалог дозволу · помилка</span>
+      </figcaption>
+      <pre class="term__body" tabindex="0" role="group" aria-labelledby="tm2t"><span class="term__line"><span class="term__mark" aria-hidden="true">⏺</span> <span class="term__tool">Edit</span>(css/custom.css)</span>
+<span class="term__line"><span class="term__add">+ .term__err { color: var(--c-err-text); }</span></span>
+<span class="term__line"><span class="term__del">- .term__err { color: #C97070; }</span></span>
+<span class="term__line"></span>
+<span class="term__line term__line--pick"><span class="term__mark" aria-hidden="true">❯</span> <span class="term__pick">Дозволити запис у css/custom.css?</span></span>
+<span class="term__line">  1. Так, один раз   2. Так, і надалі   3. Ні</span>
+<span class="term__line"></span>
+<span class="term__line"><span class="term__err">Error: EACCES: permission denied, open 'css/custom.css'</span></span>
+<span class="term__line"><span class="term__ok">✓ Виправлено після зміни прав доступу</span></span></pre>
+    </figure>
+
+    <figure class="term term--long" id="tm3">
+      <figcaption class="term__chrome">
+        <span class="term__dots" aria-hidden="true"></span>
+        <span class="term__title" id="tm3t">/-меню, статус-лайн і довгий вивід</span>
+      </figcaption>
+      <pre class="term__body" tabindex="0" role="group" aria-labelledby="tm3t"><span class="term__line"><span class="term__mark" aria-hidden="true">❯</span> <span class="term__in">/</span></span>
+<span class="term__line">  /clear      очистити контекст сесії</span>
+<span class="term__line">  /compact    стиснути історію, зберігши висновки</span>
+<span class="term__line">  /mcp        показати підключені сервери</span>
+<span class="term__line">  /doctor     перевірити встановлення</span>
+<span class="term__line">  /cost       показати витрати сесії</span>
+<span class="term__line"></span>
+<span class="term__line"><span class="term__meta">claude-opus · demo-repo · гілка dev · контекст 12 % · 4 інструменти</span></span></pre>
+      <div class="term__foot"><button class="ds-btn ds-btn--sm ds-btn--quiet" type="button" aria-expanded="false">Показати повністю</button></div>
+    </figure>
+  </div>
+</section>
+
+<!-- ── ШАПКА, САЙДБАР, ДІАЛОГ, TOAST ────────────────────────────────────── -->
+<section class="sg-sec sg-anchor" id="chrome">
+  <div class="sg-sec__meta">
+    <p class="ds-eyebrow">ds-hdr · ds-snav · ds-dlg · ds-toast</p>
+    <p class="sg-mono">66 · 57 · 4 · 74</p>
+    <p class="sg-sec__note">Діалог — один компонент на дві філософії: було дві ширини, два джерела тих самих 80 % і 8 px, і нуль руху в другій модалці.</p>
+  </div>
+  <div class="sg-sec__body">
+    <h2>Хром</h2>
+
+    <div class="ds-card" style="padding:0;overflow:hidden">
+      <div class="ds-hdr" style="position:static">
+        <button class="ds-btn ds-btn--sm ds-btn--ghost ds-btn--icon ds-hdr__burger" aria-label="Меню модулів" aria-expanded="false">≡</button>
+        <a class="ds-hdr__brand" href="#chrome">AI&nbsp;Термінал</a>
+        <nav class="ds-nav" aria-label="Головна навігація">
+          <a class="ds-nav__link" href="#chrome" aria-current="page">Курс</a>
+          <a class="ds-nav__link" href="#chrome">Довідники</a>
+          <a class="ds-nav__link" href="#chrome">Роадмап</a>
+        </nav>
+        <span class="ds-hdr__spacer"></span>
+        <span class="ds-pill">12 / 23</span>
+        <div class="ds-hdr__slot"><span class="ds-avatar">ОП</span></div>
+      </div>
+      <div class="ds-hdr" style="position:static;border-top:var(--bw) solid var(--c-line)">
+        <a class="ds-hdr__brand" href="#chrome">AI&nbsp;Термінал</a>
+        <span class="ds-hdr__spacer"></span>
+        <div class="ds-hdr__slot"><span class="ds-skel ds-skel--user"></span></div>
+      </div>
+      <div class="ds-hdr" style="position:static;border-top:var(--bw) solid var(--c-line)">
+        <a class="ds-hdr__brand" href="#chrome">AI&nbsp;Термінал</a>
+        <span class="ds-hdr__spacer"></span>
+        <div class="ds-hdr__slot"><button class="ds-btn ds-btn--sm ds-btn--secondary">Увійти</button></div>
+      </div>
+    </div>
+
+    <div class="sg-grid">
+      <nav class="ds-snav" aria-label="Модулі курсу">
+        <a class="ds-snav__item ds-snav__item--done" href="#chrome">01 · Термінал з нуля</a>
+        <a class="ds-snav__item ds-snav__item--done" href="#chrome">02 · Що таке Claude Code</a>
+        <a class="ds-snav__item" href="#chrome" aria-current="true">03 · Встановлення й перший вхід</a>
+        <a class="ds-snav__item" href="#chrome">04 · Перша розмова з агентом</a>
+        <span class="ds-snav__item ds-snav__item--locked" aria-disabled="true">05 · Розблокування перехоплювачів</span>
+      </nav>
+
+      <div class="sg-stack">
+        <button class="ds-btn ds-btn--primary" id="openDlg">Відкрити діалог</button>
+        <div class="ds-toast ds-toast--ok" data-glyph="✓" style="position:static">Прогрес збережено</div>
+        <div class="ds-toast ds-toast--err" data-glyph="✕" style="position:static">Не вдалося зберегти — спробуйте ще раз</div>
+        <div class="ds-toast ds-toast--info" data-glyph="i" style="position:static">Скопійовано в буфер обміну</div>
+        <div class="ds-mnav">
+          <a class="ds-btn ds-btn--ghost" href="#chrome">← Попередній модуль</a>
+          <a class="ds-btn ds-btn--secondary" href="#chrome">Наступний →</a>
+        </div>
+        <div class="ds-paper">
+          <p class="ds-eyebrow" style="color:var(--c-paper-quiet)">сертифікат · єдина світла поверхня в системі</p>
+          <p class="ds-paper__name">Олександра Петренко</p>
+          <div class="ds-paper__rule"></div>
+          <p class="ds-paper__quiet">AI Термінал · 23 модулі · код AIA-2026-000000</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="ds-dlg" id="dlg" hidden data-open="false" role="dialog" aria-modal="true" aria-labelledby="dlgT">
+  <div class="ds-dlg__scrim" data-close></div>
+  <div class="ds-dlg__card">
+    <h3 class="ds-h3" id="dlgT">Написати нам</h3>
+    <p class="ds-small" style="margin:var(--s-2) 0 var(--s-4)">Один компонент на всі чотири діалоги. На ≤640 стає аркушем — без смужки-«хапалки»: жесту перетягування немає, і обіцяти його не можна.</p>
+    <div class="ds-fld"><label class="ds-fld__label" for="dn">Імʼя</label><input class="ds-fld__input" id="dn"></div>
+    <div class="sg-row" style="margin-top:var(--s-5);justify-content:flex-end">
+      <button class="ds-btn ds-btn--ghost" data-close>Скасувати</button>
+      <button class="ds-btn ds-btn--primary" data-close>Надіслати</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── МАЙДАНЧИК РУХУ ───────────────────────────────────────────────────── -->
+<section class="sg-sec sg-anchor" id="motion">
+  <div class="sg-sec__meta">
+    <p class="ds-eyebrow">M1 – M10 · L1</p>
+    <p class="sg-mono">11 ефектів</p>
+    <p class="sg-sec__note">Кожен запускається кнопкою. Перемикачі згори діють одразу: <code class="ds-code--inline">--motion</code> — це єдині ворота на всю систему.</p>
+  </div>
+  <div class="sg-sec__body">
+    <h2>Рух</h2>
+    <p class="ds-lead">Тривалості мають призначення в назві, а не номер. Заборонено назавжди: анімувати <code class="ds-code--inline">width</code>, <code class="ds-code--inline">height</code>, <code class="ds-code--inline">top</code>, <code class="ds-code--inline">left</code>, <code class="ds-code--inline">margin</code>; <code class="ds-code--inline">background-position</code> для відблиску; паралакс на мобілці; будь-який рух без рядка в словнику.</p>
+
+    <div class="sg-grid sg-grid--tight" id="motion-cards"></div>
+
+    <div class="ds-card">
+      <p class="ds-eyebrow">M9 · один ScrollTrigger на сторінку</p>
+      <p class="ds-small" style="margin:var(--s-2) 0">На anthropic.com виміряно рівно два тригери на цілий лендінг; беремо жорсткіше. Поява карток — IntersectionObserver плюс CSS, інакше кількість тригерів росте лінійно з даними.</p>
+      <div class="ds-prog"><span class="ds-prog__bar" id="scrubBar" style="--prog-v:0"></span></div>
+    </div>
+
+    <div class="ds-card">
+      <p class="ds-eyebrow">M3 · стагер із cap 8</p>
+      <p class="ds-small" style="margin:var(--s-2) 0">Виміряно: 30 карток без cap — останній фінішує на 2249 мс, з cap 8 — на 982 мс. Ширший висновок добірки: стагер не є фірмовим прийомом преміального сайту — з пʼяти просканованих він є в нуля.</p>
+      <button class="ds-btn ds-btn--secondary ds-btn--sm" data-play="stagger">Програти ще раз</button>
+      <div class="sg-row" id="stag-host" data-reveal-root style="margin-top:var(--s-4)"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ТЕСТИ ────────────────────────────────────────────────────────────── -->
+<section class="sg-sec sg-anchor" id="tests">
+  <div class="sg-sec__meta">
+    <p class="ds-eyebrow">T1 – T6</p>
+    <p class="sg-mono">докази</p>
+    <p class="sg-sec__note">Обхід у браузері чесніший за читання CSS: у 001 і 005 таблиця контрасту в документі розходилася з тим, що реально малює браузер.</p>
+  </div>
+  <div class="sg-sec__body">
+    <h2>Тести</h2>
+    <button class="ds-btn ds-btn--secondary" onclick="AIA.tests.runAll()">Перезапустити всі</button>
+
+    <div class="sg-test" id="t1"><div class="sg-test__h"><b>T1</b> контраст усіх текстових вузлів <span data-verdict class="sg-verdict sg-verdict--wait">…</span></div><pre class="sg-test__out" data-out>виконується…</pre></div>
+    <div class="sg-test" id="t2"><div class="sg-test__h"><b>T2</b> копіювання термінала байт у байт <span data-verdict class="sg-verdict sg-verdict--wait">…</span></div><pre class="sg-test__out" data-out>виконується…</pre></div>
+    <div class="sg-test" id="t3"><div class="sg-test__h"><b>T3</b> стан після render() <span data-verdict class="sg-verdict sg-verdict--wait">…</span></div><pre class="sg-test__out" data-out>виконується…</pre></div>
+    <div class="sg-grid" id="t3-host" data-reveal-root></div>
+    <div class="sg-test" id="t4"><div class="sg-test__h"><b>T4</b> reduced-motion як механізм <span data-verdict class="sg-verdict sg-verdict--wait">…</span></div><pre class="sg-test__out" data-out>виконується…</pre></div>
+    <div class="sg-test" id="t5"><div class="sg-test__h"><b>T5</b> токени-порушники (CSSOM) <span data-verdict class="sg-verdict sg-verdict--wait">…</span></div><pre class="sg-test__out" data-out>виконується…</pre></div>
+    <div class="sg-test" id="t6"><div class="sg-test__h"><b>T6</b> горизонтальний скрол на семи ширинах <span data-verdict class="sg-verdict sg-verdict--wait">…</span></div><pre class="sg-test__out" data-out>виконується…</pre></div>
+    <div id="t6-host" style="position:relative;height:0;overflow:hidden"></div>
+  </div>
+</section>
+
+<!-- ── РЕЄСТР ───────────────────────────────────────────────────────────── -->
+<section class="sg-sec sg-anchor" id="registry">
+  <div class="sg-sec__meta">
+    <p class="ds-eyebrow">реєстр</p>
+    <p class="sg-mono">L2 · префікси · перейменування</p>
+    <p class="sg-sec__note">Тут, а не тільки в markdown: 010 не має шукати це в документах.</p>
+  </div>
+  <div class="sg-sec__body">
+    <h2>Реєстр і перейменування</h2>
+    <p class="ds-lead">Імʼя токена легальне тоді й лише тоді, коли воно є в реєстрі L2 або починається з префікса з реєстру компонентів чи сторінок. Перевірка — тест T5.</p>
+
+    <h3>Префікси компонентів</h3>
+    <div class="sg-row" id="prefix-row"></div>
+
+    <h3>Таблиця перейменувань</h3>
+    <div class="ds-tbl__wrap">
+      <table class="ds-tbl">
+        <thead><tr><th>Було</th><th>Де</th><th>Стає</th><th>Чому</th></tr></thead>
+        <tbody>
+          <tr><td>--rail-w 184px</td><td>custom.css:981 (003)</td><td>--rm-rail-w</td><td>обидва оголошення падали в один глобальний :root; вигравало друге за порядком підключення, а на 66 сторінках роздавався мертвий 184px</td></tr>
+          <tr><td>--rail-w 132px</td><td>claude-code.css:57 (005)</td><td>--cc-rail-w</td><td>префікс на позиції 1 робить колізію структурно неможливою</td></tr>
+          <tr><td>--node-r*</td><td>003 і 005</td><td>--rm-node-r* / --cc-node-r*</td><td>те саме</td></tr>
+          <tr><td>--e-breath</td><td>завела 003, споживає .term 005</td><td>промоція в L2</td><td>два незалежні споживачі роблять криву семантикою, а не приватним числом сторінки</td></tr>
+          <tr><td>--fs-body 14px</td><td>001, UI</td><td>--fs-ui</td><td>звільняє імʼя для тексту</td></tr>
+          <tr><td>.prose-aia 1.0625rem</td><td>уроки, без токена</td><td>--fs-body 17px</td><td>контент дістає імʼя «body»</td></tr>
+          <tr><td>104 токени 003</td><td>глобальний :root</td><td>--rm-*</td><td>роздавались 67 сторінкам, використовує одна</td></tr>
+          <tr><td>--dur-term-*, --speed-term-cps, --e-term</td><td>005</td><td>--term-dur-*, --term-speed-cps, --term-e-*</td><td>префікс переїжджає на позицію 1</td></tr>
+          <tr><td>.aia-submit[disabled] ×2</td><td>custom.css:1697 і :2079</td><td>одне правило</td><td>перше оголошення мертве й роздається 67 сторінкам</td></tr>
+          <tr><td>z-index: 50</td><td>custom.css:336 / :379</td><td>--z-sidebar 90 + --z-drawer 200</td><td>одне значення обслуговувало два взаємовиключні випадки — дефект 006 D-01</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Реєстр L2 · перевіряється в рантаймі</h3>
+    <div class="ds-tbl__wrap"><table class="ds-tbl" id="l2-table"><thead><tr><th>Токен</th><th>Обчислене значення</th><th>Група</th></tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+
+<footer class="ds-ftr">
+  <p>AIA Design System v1 · задача 009 · <a href="#main">до початку</a></p>
+  <p class="ds-small">Це макет дизайн-системи, а не сторінка сайту. Шаблони сторінок — задача 010.</p>
+</footer>
+
+</main>
+
+<div class="ds-live" id="ariaLive" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/CustomEase.min.js"></script>
+<script src="tokens-render.js"></script>
+<script src="motion.js"></script>
+<script src="mermaid-theme.js"></script>
+<script src="tests.js"></script>
+</body>
+</html>

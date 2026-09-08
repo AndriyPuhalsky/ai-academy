@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk" class="scroll-smooth" data-config="../claude-code.config.json">
+<html lang="uk" data-config="../claude-code.config.json" data-course="terminal" data-density="lesson" data-lit>
 
 <head>
   <meta charset="UTF-8" />
@@ -7,111 +7,101 @@
   <title>Модуль 15 · Субагенти, worktrees, паралельність — AI Термінал</title>
   <meta name="description"
     content="Коли варто віддати задачу окремому помічникові, а коли це зробить гірше: субагенти та їхні файли, форк розмови, ізольовані копії проєкту (worktrees), команди агентів, динамічні робочі процеси й повідомлення між сесіями." />
-  <meta name="theme-color" content="#141312" />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
 
   <script>document.documentElement.classList.add("js");</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
-    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег.
+       010 · етап 9: стара мова (окремий файл зі спадщиною 2023–2026)
+       видалена цілком, тому в каскаді лишились рівно ці файли. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ink: "#141312", surface: "#1E1B18", raised: "#272320",
-            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
-            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
-            sand: "#E8DCC3"
-          },
-          fontFamily: {
-            display: ["Literata", "Georgia", "serif"],
-            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
-            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
-          },
-          maxWidth: { content: "72rem" }
-        }
-      }
-    };
-  </script>
-
-  <link rel="stylesheet" href="../css/custom.css" />
+  <script src="../js/tw-theme.js"></script>
 </head>
 
-<body data-module="c15" class="bg-ink font-sans text-ivory antialiased">
+<body data-module="c15">
 
-  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
   <div id="ariaLive" class="sr-only" aria-live="polite"></div>
 
   <noscript>
-    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
-      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
     </div>
   </noscript>
 
   <!-- ШАПКА -->
-  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
-    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
-      <div class="flex items-center gap-3">
-        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
-          class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
-          <span class="sr-only">Зміст курсу</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" aria-hidden="true">
-            <path d="M3 6h18M3 12h18M3 18h18" />
-          </svg>
-        </button>
-        <a href="../claude-code.html" class="flex items-center gap-2.5">
-          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink"
-            data-site="shortName">AIT</span>
-          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Термінал</span>
-        </a>
-        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
-        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 15</span>
-      </div>
-      <div class="flex items-center gap-3">
-        <div id="aiaAuth" class="slot"></div>
-        <span id="navProgress" hidden
-          class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
-        <a href="../claude-code.html#map" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">До
-          програми</a>
-      </div>
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../claude-code.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIT</span>
+        <span data-site="name">AI Термінал</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Модуль 15</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../claude-code.html#map">До програми</a>
     </div>
   </header>
 
-  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
-    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
-      ⚠ Не вдалося завантажити <code>claude-code.config.json</code>. Відкрий сайт через локальний сервер,
-      наприклад: <code class="text-clay">python3 -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">claude-code.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
     </div>
   </div>
 
   <!-- Затемнення під мобільною шторкою сайдбара -->
-  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
 
     <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
-    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
       <div id="sidebarNav" class="lg:pt-10">
-        <p class="snav-count">Завантаження програми…</p>
+        <p class="ds-snav__count">Завантаження програми…</p>
       </div>
     </aside>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-3xl">
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
 
         <!-- Вступ модуля -->
-        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза 3 · Налаштування під себе</p>
-        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">Субагенти, worktrees,
+        <p class="ds-eyebrow">Фаза 3 · Налаштування під себе</p>
+        <h1 class="ds-h1">Субагенти, worktrees,
           паралельність</h1>
-        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Просунутий · 8 блоків · ≈ 50 хв читання</p>
-        <p class="mt-6 text-lg">
+        <p class="ds-small ds-num">Просунутий · 8 блоків · ≈ 50 хв читання</p>
+        <p class="ds-lead">
           Одна сесія Claude Code — це одна розмова з одним вікном контексту. Коли всередині неї
           трапляється велика побічна задача (перечитати сто файлів, прогнати тести, поритись у
           логах), її вивід осідає в тому самому вікні й витісняє те, заради чого ти сів працювати.
@@ -126,8 +116,8 @@
           перелік прапорців, а вміння відповісти собі на питання «чи вигідно тут ділити роботу».
         </p>
 
-        <div class="callout">
-          <span class="callout-title">Що в цьому модулі є, а чого немає</span>
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому модулі є, а чого немає</span>
           <p>
             <strong>Немає:</strong> навичок, слеш-команд і плагінів — це модуль 14. Немає
             перехоплювачів подій (hooks) — модуль 16. Немає запусків без діалогу
@@ -148,8 +138,8 @@
         <hr />
 
         <!-- БЛОК 1 -->
-        <section id="l1" data-lesson="1. Навіщо це" class="scroll-mt-24">
-          <h2><span class="lesson-no">1</span>Навіщо це</h2>
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
 
           <p>
             У модулі 6 було про вікно контексту: усе, що Claude пам'ятає в цю мить, — твої
@@ -245,8 +235,8 @@
             не переписували файли один одному.
           </p>
 
-          <div class="callout callout-sand">
-            <span class="callout-title">Головне речення модуля</span>
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Головне речення модуля</span>
             <p>
               Ділити роботу варто тоді, коли частини <strong>справді незалежні</strong>, а результат
               кожної вміщується в короткий підсумок. Якщо частини постійно зазирають одна в одну —
@@ -256,8 +246,8 @@
         </section>
 
         <!-- БЛОК 2 -->
-        <section id="l2" data-lesson="2. Як це виглядає на екрані" class="scroll-mt-24">
-          <h2><span class="lesson-no">2</span>Як це виглядає на екрані</h2>
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
 
           <p>
             Тут доведеться домовитись про чесність. Більша частина цієї теми живе всередині
@@ -288,7 +278,7 @@
               <span class="term__dots" aria-hidden="true"></span>
               <span class="term__title" id="p1t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04 · вивід
                 скорочено</span>
-              <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
             </figcaption>
             <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude agents --help</span></span>
 <span class="term__line">Usage: claude agents [options]</span>
@@ -348,7 +338,7 @@
             <figcaption class="term__chrome">
               <span class="term__dots" aria-hidden="true"></span>
               <span class="term__title" id="p2t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
-              <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
             </figcaption>
             <pre class="term__body" tabindex="0" role="group" aria-labelledby="p2t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude plugin validate .claude/agents</span></span>
 <span class="term__line">Validating components in: /private/tmp/agents-demo/.claude/agents</span>
@@ -409,8 +399,8 @@
         </section>
 
         <!-- БЛОК 3 -->
-        <section id="l3" data-lesson="3. Як це працює" class="scroll-mt-24">
-          <h2><span class="lesson-no">3</span>Як це працює</h2>
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
 
           <h3>Що субагент бачить на старті, а чого не бачить</h3>
 
@@ -418,7 +408,7 @@
             Це найважливіша схема модуля. Усе інше — деталі навколо неї.
           </p>
 
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart TD
   M["Головна розмова"] -->|"1. Claude пише опис задачі"| S["Субагент - чисте окреме вікно контексту"]
@@ -427,10 +417,10 @@ flowchart TD
   C["Повний текст навичок зі списку skills"] --> S
   X["Твоя історія розмови, прочитані файли, стиль виводу, авто-пам'ять"] -. "не передається" .-> S
   S -->|"2. повертає в розмову тільки текст підсумку"| M
-  style S fill:#2A211C,stroke:#D97757,color:#F0EEE6
-  style X stroke:#736A5E,color:#A8A095
+  class S hl
+  class X mute
             </pre>
-            <p class="diagram-caption">
+            <p class="ds-diag__caption">
               Що потрапляє в стартовий контекст субагента, а що лишається в головній розмові
             </p>
           </div>
@@ -476,8 +466,8 @@ flowchart TD
             підходить. За документацією на 2026-09-04 це:
           </p>
 
-          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Вбудовані помічники, яких ти не створював">
-          <table>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Вбудовані помічники, яких ти не створював">
+          <table class="ds-tbl">
               <thead>
                 <tr>
                   <th>Помічник</th>
@@ -537,7 +527,7 @@ flowchart TD
             промптом помічника. Ось повний робочий приклад:
           </p>
 
-          <pre><code>---
+          <pre class="ds-code__pre"><code>---
 name: log-digger
 description: Читає довгі логи й повертає лише рядки з помилками. Використовуй, коли треба переглянути великий файл логів.
 tools: Read, Grep, Glob
@@ -552,8 +542,8 @@ model: haiku
             <strong>17 полів</strong>; ось ті, що знадобляться першими:
           </p>
 
-          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Файл помічника: заголовок і тіло">
-          <table>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Файл помічника: заголовок і тіло">
+          <table class="ds-tbl">
               <thead>
                 <tr>
                   <th>Поле</th>
@@ -656,8 +646,8 @@ model: haiku
 
           <h3>Де лежать файли й хто виграє при збігу імен</h3>
 
-          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Таблиця: Де лежать файли й хто виграє при збігу імен">
-          <table>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Де лежать файли й хто виграє при збігу імен">
+          <table class="ds-tbl">
               <thead>
                 <tr>
                   <th>Місце</th>
@@ -748,8 +738,8 @@ model: haiku
             батьківського не читає. Форк форка неможливий.
           </p>
 
-          <div class="callout">
-            <span class="callout-title">Три схожі команди, які легко переплутати</span>
+          <div class="ds-note">
+            <span class="ds-note__title">Три схожі команди, які легко переплутати</span>
             <p>
               <code>/subtask</code> — форк-<em>субагент</em>: результат повертається в цю розмову.
               <code>/fork</code> — копіює всю сесію в <em>окрему фонову сесію</em>, що живе своїм
@@ -840,7 +830,7 @@ model: haiku
             працювати одночасно й не переписувати роботу одна одній.
           </p>
 
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart LR
   G[".git - спільна історія репозиторію"]
@@ -851,9 +841,9 @@ flowchart LR
   S2["Сесія 2"] --> W2
   W1 -. "запис у головну папку заблоковано" .-> R
   W2 -. "запис у головну папку заблоковано" .-> R
-  style G fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class G hl
             </pre>
-            <p class="diagram-caption">
+            <p class="ds-diag__caption">
               Дві ізольовані копії проєкту поруч із головною папкою, з однією спільною історією
             </p>
           </div>
@@ -927,8 +917,8 @@ flowchart LR
 
           <p>Ціна — головна причина не вмикати це «щоб подивитись»:</p>
 
-          <div class="callout callout-sand">
-            <span class="callout-title">Цитата, яку варто запам'ятати</span>
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Цитата, яку варто запам'ятати</span>
             <p>
               Документація про витрати каже дослівно: команди агентів споживають
               <strong>приблизно всемеро більше токенів</strong>, ніж звичайна сесія, коли
@@ -1022,7 +1012,7 @@ flowchart LR
 
           <h3>Підсумкова схема вибору</h3>
 
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart TD
   A{"Хто тримає план роботи?"}
@@ -1030,17 +1020,17 @@ flowchart TD
   A -->|"ти сам, кілька окремих сесій"| C["Панель агентів claude agents, кожна сесія у своєму worktree"]
   A -->|"Claude-керівник над кількома сесіями"| D["Команда агентів - експериментальна, вимкнена за замовчуванням"]
   A -->|"скрипт, а не судження Claude"| E["Динамічний робочий процес - десятки й сотні агентів"]
-  style A fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class A hl
             </pre>
-            <p class="diagram-caption">
+            <p class="ds-diag__caption">
               Питання, з якого варто починати вибір: хто саме вирішує, що робити наступним кроком
             </p>
           </div>
         </section>
 
         <!-- БЛОК 4 -->
-        <section id="l4" data-lesson="4. Зроби сам" class="scroll-mt-24">
-          <h2><span class="lesson-no">4</span>Зроби сам</h2>
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
 
           <p>
             Нижче — приблизно двадцять хвилин роботи. Ми зробимо власного помічника, зламаємо
@@ -1061,7 +1051,7 @@ flowchart TD
             тому шляхи у виводі в тебе будуть інші — це нормально.
           </p>
 
-          <pre><code>mkdir -p ~/agents-demo/.claude/agents
+          <pre class="ds-code__pre"><code>mkdir -p ~/agents-demo/.claude/agents
 cd ~/agents-demo</code></pre>
 
           <p>
@@ -1075,7 +1065,7 @@ cd ~/agents-demo</code></pre>
             редакторі й поклади туди рівно це:
           </p>
 
-          <pre><code>---
+          <pre class="ds-code__pre"><code>---
 name: log-digger
 description: Читає довгі логи й повертає лише рядки з помилками. Використовуй, коли треба переглянути великий файл логів.
 tools: Read, Grep, Glob
@@ -1096,7 +1086,7 @@ model: haiku
             Створи поруч файл <code>.claude/agents/no-name.md</code> з таким вмістом:
           </p>
 
-          <pre><code>---
+          <pre class="ds-code__pre"><code>---
 description: Опис є, імені немає.
 ---
 
@@ -1109,7 +1099,7 @@ description: Опис є, імені немає.
 
           <h3>Крок 4. Перевірити теку до сесії</h3>
 
-          <pre><code>claude plugin validate .claude/agents</code></pre>
+          <pre class="ds-code__pre"><code>claude plugin validate .claude/agents</code></pre>
 
           <p>
             Порівняй свій вивід із блоком 2. Ти маєш побачити, що про <code>no-name.md</code>
@@ -1138,7 +1128,7 @@ description: Опис є, імені немає.
             віддати його помічникові:
           </p>
 
-          <pre><code>Створи файл app.log на 300 рядків: більшість рядків INFO, десь із десяток ERROR.
+          <pre class="ds-code__pre"><code>Створи файл app.log на 300 рядків: більшість рядків INFO, десь із десяток ERROR.
 Потім візьми субагента log-digger і попроси його дістати з нього рядки з помилками.</code></pre>
 
           <p>
@@ -1162,7 +1152,7 @@ description: Опис є, імені немає.
             Зроби окремий тестовий репозиторій (не робочий!), зайди в нього й запусти:
           </p>
 
-          <pre><code>claude --worktree proba</code></pre>
+          <pre class="ds-code__pre"><code>claude --worktree proba</code></pre>
 
           <p>
             Claude Code створить копію в <code>.claude/worktrees/proba/</code> на новій гілці й
@@ -1171,8 +1161,8 @@ description: Опис є, імені немає.
             лишаться недоторканими; у цьому й уся ідея.
           </p>
 
-          <div class="callout">
-            <span class="callout-title">Чого в цих кроках свідомо немає</span>
+          <div class="ds-note">
+            <span class="ds-note__title">Чого в цих кроках свідомо немає</span>
             <p>
               Тут немає вмикання <em>команд агентів</em>. Це експериментальна функція, яка
               споживає приблизно всемеро більше токенів у режимі плану, і пробувати її «щоб
@@ -1183,8 +1173,8 @@ description: Опис є, імені немає.
         </section>
 
         <!-- БЛОК 5 -->
-        <section id="l5" data-lesson="5. Як перевірити, що вийшло" class="scroll-mt-24">
-          <h2><span class="lesson-no">5</span>Як перевірити, що вийшло</h2>
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
 
           <p>
             У цій темі багато речей, які «начебто працюють». Нижче — команди, які відповідають
@@ -1213,7 +1203,7 @@ description: Опис є, імені немає.
             <figcaption class="term__chrome">
               <span class="term__dots" aria-hidden="true"></span>
               <span class="term__title" id="p3t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
-              <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
             </figcaption>
             <pre class="term__body" tabindex="0" role="group" aria-labelledby="p3t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude agents --json --cwd /tmp</span></span>
 <span class="term__line">[]</span></pre>
@@ -1241,7 +1231,7 @@ description: Опис є, імені немає.
             <figcaption class="term__chrome">
               <span class="term__dots" aria-hidden="true"></span>
               <span class="term__title" id="p4t">macOS 26.5.2 · Claude Code 2.1.236 · знято 2026-09-04</span>
-              <button type="button" class="term__copy" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet" data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
             </figcaption>
             <pre class="term__body" tabindex="0" role="group" aria-labelledby="p4t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">strings "$(which claude)" | grep -c CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS</span></span>
 <span class="term__line">5</span>
@@ -1267,8 +1257,8 @@ description: Опис є, імені немає.
             описує завтрашню програму.
           </p>
 
-          <div class="callout">
-            <span class="callout-title">Чесна межа прийому</span>
+          <div class="ds-note">
+            <span class="ds-note__title">Чесна межа прийому</span>
             <p>
               Число більше нуля доводить, що <strong>рядок є у твоїй збірці</strong>. Воно
               <strong>не</strong> доводить, що функція доступна саме твоєму акаунту чи вмикається
@@ -1289,8 +1279,8 @@ description: Опис є, імені немає.
         </section>
 
         <!-- БЛОК 6 -->
-        <section id="l6" data-lesson="6. Типові граблі" class="scroll-mt-24">
-          <h2><span class="lesson-no">6</span>Типові граблі</h2>
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
 
           <h3>1. Помічника «немає», хоча файл на місці</h3>
 
@@ -1402,8 +1392,8 @@ description: Опис є, імені немає.
         </section>
 
         <!-- БЛОК 7 -->
-        <section id="l7" data-lesson="7. Часті питання" class="scroll-mt-24">
-          <h2><span class="lesson-no">7</span>Часті питання</h2>
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
 
           <h3>Мені взагалі потрібні субагенти, чи це для великих команд?</h3>
 
@@ -1486,8 +1476,8 @@ description: Опис є, імені немає.
         </section>
 
         <!-- БЛОК 8 -->
-        <section id="l8" data-lesson="8. Підсумок і наступний крок" class="scroll-mt-24">
-          <h2><span class="lesson-no">8</span>Підсумок і наступний крок</h2>
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
 
           <p>Сім речей, які варто винести з цього модуля:</p>
 
@@ -1532,7 +1522,7 @@ description: Опис є, імені немає.
         </section>
 
         <!-- КВІЗ -->
-        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+        <section id="quiz" data-lesson="Квіз: перевір себе">
           <h2>Квіз: перевір себе</h2>
           <p>
             Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять на
@@ -1617,59 +1607,46 @@ description: Опис є, імені немає.
       }
       </script>
 
-      <div class="max-w-3xl">
+      <div class="mt-12 grid gap-6 max-w-prose">
         <!-- Позначка завершення (js/module.js + js/progress.js) -->
         <div
-          class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p id="completeTitle" class="font-medium text-ivory">Модуль позаду?</p>
-            <p class="mt-1 text-sm text-muted">
+            <p id="completeTitle" class="ds-h4">Модуль позаду?</p>
+            <p class="ds-small">
               Познач його завершеним — позначка збережеться в цьому браузері
               й з'явиться на головній сторінці.
             </p>
           </div>
           <button id="completeBtn" type="button"
-            class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+            class="ds-btn ds-btn--primary">
             Позначити завершеним
           </button>
         </div>
 
         <!-- Попередній / наступний модуль (рендерить js/module.js) -->
-        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
       </div>
 
     </main>
   </div>
 
-  <footer class="mt-16 border-t border-line/60">
-    <!-- D-03: вхід у три довідники з будь-якого уроку. Підписи живуть у
-         claude-code.config.json → site.ref* і підставляються через data-site
-         (js/config.js, fillStatic); текст у розмітці — той самий рядок, як
-         запасний варіант, коли конфіг не приїхав. Той самий прийом, що вже
-         стоїть на data-site="name" і data-site="shortName" у шапці. -->
-    <nav aria-label="Довідники курсу"
-      class="mx-auto flex max-w-[88rem] flex-wrap items-center gap-x-6 gap-y-1 border-b border-line/60 px-5 py-4 sm:px-8">
-      <span class="font-mono text-xs uppercase tracking-[0.14em] text-faint" data-site="refsLabel">Довідники</span>
-      <a href="../claude-code-ref-commands.html"
-        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refCommands">Усі команди й клавіші</a>
-      <a href="../claude-code-ref-hooks.html"
-        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refHooks">Таблиця подій</a>
-      <a href="../claude-code-ref-settings.html"
-        class="inline-block py-1.5 text-sm text-muted transition hover:text-sand" data-site="refSettings">Ключі settings.json</a>
-    </nav>
-    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
-      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
-      <a href="../claude-code.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../claude-code.html">На головну ↑</a></span>
     </div>
   </footer>
 
   <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
   <script src="../js/progress.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/config.js"></script>
   <script src="../js/module.js"></script>
   <script src="../js/quiz.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
   <script src="../js/mermaid-init.js"></script>
   <script src="../js/auth-ui.js"></script>
   <script type="module" src="../js/auth.js"></script>

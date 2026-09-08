@@ -1,110 +1,106 @@
 <!DOCTYPE html>
-<html lang="uk" class="scroll-smooth" data-config="../architect.config.json">
+<html lang="uk" data-config="../architect.config.json" data-course="architect" data-density="lesson" data-lit>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Модуль 11 · RAG: знання з твоїх документів — AI Architect</title>
   <meta name="description" content="Як дати моделі знання з твоїх файлів: проблема й ідея RAG, ембедінги, чанкінг, пошук за схожістю, повна збірка бота-відповідача й якість." />
-  <meta name="theme-color" content="#141312" />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
 
   <script>document.documentElement.classList.add("js");</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег.
+       010 · етап 9: стара мова (окремий файл зі спадщиною 2023–2026)
+       видалена цілком, тому в каскаді лишились рівно ці файли. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ink: "#141312", surface: "#1E1B18", raised: "#272320",
-            line: "#3A342E", "line-strong": "#736A5E", ivory: "#F0EEE6", muted: "#A8A095",
-            faint: "#9A9184", clay: "#D97757", "clay-deep": "#C4674A",
-            sand: "#E8DCC3"
-          },
-          fontFamily: {
-            display: ["Literata", "Georgia", "serif"],
-            sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
-            mono: ["'IBM Plex Mono'", "ui-monospace", "SFMono-Regular", "monospace"]
-          },
-          maxWidth: { content: "72rem" }
-        }
-      }
-    };
-  </script>
-
-  <link rel="stylesheet" href="../css/custom.css" />
+  <script src="../js/tw-theme.js"></script>
 </head>
 
-<body data-module="a11" class="bg-ink font-sans text-ivory antialiased">
+<body data-module="a11">
 
-  <a href="#main" class="skip-link">Перейти до вмісту</a>
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
   <div id="ariaLive" class="sr-only" aria-live="polite"></div>
 
   <noscript>
-    <div class="border-b border-clay/40 bg-clay/10 px-5 py-3 text-center text-sm text-sand">
-      Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
     </div>
   </noscript>
 
-  <header class="sticky top-0 z-40 border-b border-line/70 bg-ink/85 backdrop-blur">
-    <div class="mx-auto flex h-16 max-w-[88rem] items-center justify-between gap-4 px-5 sm:px-8">
-      <div class="flex items-center gap-3">
-        <button id="sidebarBtn" type="button" aria-expanded="false" aria-controls="moduleSidebar"
-                class="grid h-9 w-9 place-items-center rounded-lg border border-line text-muted transition hover:text-ivory lg:hidden">
-          <span class="sr-only">Зміст курсу</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-            <path d="M3 6h18M3 12h18M3 18h18" />
-          </svg>
-        </button>
-        <a href="../index.html" class="flex items-center gap-2.5">
-          <span class="grid h-8 w-8 place-items-center rounded-lg bg-clay font-mono text-sm font-semibold text-ink" data-site="shortName">AIA</span>
-          <span class="hidden font-display text-lg sm:inline" data-site="name">AI Architect</span>
-        </a>
-        <span class="hidden text-faint md:inline" aria-hidden="true">/</span>
-        <span class="hidden font-mono text-sm text-muted md:inline">Модуль 11</span>
-      </div>
-      <div class="flex items-center gap-3">
-        <div id="aiaAuth" class="slot"></div>
-        <span id="navProgress" hidden class="rounded-full border border-line px-3 py-1 font-mono text-xs text-sand"></span>
-        <a href="../index.html" class="hidden text-sm text-muted transition hover:text-ivory sm:inline">На головну</a>
-      </div>
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../index.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIA</span>
+        <span data-site="name">AI Architect</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Модуль 11</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../index.html">На головну</a>
     </div>
   </header>
 
-  <div id="configError" hidden class="border-b border-clay/40 bg-clay/10">
-    <div class="mx-auto max-w-[88rem] px-5 py-3 font-mono text-sm text-sand sm:px-8">
-      ⚠ Не вдалося завантажити <code>architect.config.json</code>. Відкрий сайт через локальний сервер,
-      наприклад: <code class="text-clay">python -m http.server 8000</code> — і зайди на <code>localhost:8000</code>.
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">architect.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
     </div>
   </div>
 
-  <div id="sidebarOverlay" class="sidebar-overlay lg:hidden" aria-hidden="true"></div>
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
 
-  <div class="mx-auto max-w-[88rem] px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
 
-    <aside id="moduleSidebar" class="module-sidebar" aria-label="Зміст курсу">
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
       <div id="sidebarNav" class="lg:pt-10">
-        <p class="snav-count">Завантаження програми…</p>
+        <p class="ds-snav__count">Завантаження програми…</p>
       </div>
     </aside>
 
-    <main id="main" class="min-w-0 py-10 lg:py-12">
-      <article class="prose-aia max-w-3xl">
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
 
-        <p class="!mt-0 mb-4 font-mono text-xs uppercase tracking-[0.18em] text-clay">Фаза B · Будуємо з LLM</p>
-        <h1 class="!m-0 font-display text-3xl leading-tight text-ivory sm:text-5xl">RAG: знання з твоїх документів</h1>
-        <p class="mt-4 font-mono text-xs text-faint sm:text-sm">Практика · 6 уроків · ≈ 80 хв</p>
-        <p class="mt-6 text-lg">
+        <p class="ds-eyebrow">Фаза B · Будуємо з LLM</p>
+        <h1 class="ds-h1">RAG: знання з твоїх документів</h1>
+        <p class="ds-small ds-num">Практика · 6 уроків · ≈ 80 хв</p>
+        <p class="ds-lead">
           Це найважливіша тема фази — і трохи складніша, тому йтимемо повільно, з аналогіями й наскрізним
           прикладом. Не поспішай: дочитуй кожен урок до кінця, і наприкінці все складеться в одну ясну
           картину. Жодної магії — лише прості ідеї, складені в ланцюжок, який ти збереш у код.
         </p>
 
-        <div class="callout">
+        <div class="ds-note">
           <p><strong>Наскрізний приклад.</strong> Уяви, що робимо чат-бота підтримки для інтернет-магазину.
           У магазину є інструкції: умови повернення, доставка, гарантія. Завдання — щоб бот відповідав на
           питання клієнтів <em>на основі цих інструкцій</em>, а не вигадував. Цей приклад проведемо крізь
@@ -114,8 +110,8 @@
         <hr />
 
         <!-- УРОК 11.1 -->
-        <section id="l1" data-lesson="11.1 Проблема й ідея" class="scroll-mt-24">
-          <h2><span class="lesson-no">11.1</span>Проблема, яку розв'язує RAG</h2>
+        <section id="l1" data-lesson="11.1 Проблема й ідея">
+          <h2><span class="ds-prose__no">11.1</span>Проблема, яку розв'язує RAG</h2>
           <p>Claude дуже розумний, але є дві стіни, об які розбивається будь-який реальний продукт:</p>
           <ul>
             <li><strong>Модель не знає твоїх даних.</strong> Вона не читала інструкцій саме твого магазину,
@@ -131,7 +127,7 @@
             сторінок інструкцій. Ти просто <em>знайдеш потрібні 2 абзаци й покладеш йому на стіл</em>:
             «відповідай ось на основі цього». Саме це й робить RAG.
           </p>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Що означає абревіатура.</strong> RAG = Retrieval-Augmented Generation: «генерація,
             підсилена пошуком». Перед тим, як модель згенерує відповідь, ми спершу <strong>знаходимо</strong>
             релевантні шматки твоїх даних і <strong>додаємо</strong> їх у промпт. Решта модуля — як технічно
@@ -142,8 +138,8 @@
         <hr />
 
         <!-- УРОК 11.2 -->
-        <section id="l2" data-lesson="11.2 Велика картина" class="scroll-mt-24">
-          <h2><span class="lesson-no">11.2</span>Велика картина: дві фази</h2>
+        <section id="l2" data-lesson="11.2 Велика картина">
+          <h2><span class="ds-prose__no">11.2</span>Велика картина: дві фази</h2>
           <p>Втримай у голові загальну схему. RAG складається з двох фаз, і їх важливо не плутати:</p>
           <ul>
             <li><strong>Фаза 1 — Індексація</strong> (готуємо дані, <em>один раз</em> наперед): беремо
@@ -153,7 +149,7 @@
               питання на такий самий «відбиток», шукаємо найсхожіші шматки, кладемо їх у промпт — і модель
               відповідає.</li>
           </ul>
-          <div class="diagram">
+          <div class="ds-diag">
             <pre class="mermaid">
 flowchart TB
   subgraph IDX["Фаза 1 · Індексація (один раз)"]
@@ -169,9 +165,9 @@ flowchart TB
     P --> A["Відповідь"]
   end
   DB -.-> S
-  style A fill:#2A211C,stroke:#D97757,color:#F0EEE6
+  class A hl
             </pre>
-            <p class="diagram-caption">Дві фази RAG. Незнайомі слова («ембедінг», «векторна база») розберемо далі</p>
+            <p class="ds-diag__caption">Дві фази RAG. Незнайомі слова («ембедінг», «векторна база») розберемо далі</p>
           </div>
           <p>
             Якщо слова «ембедінг» і «векторна база» поки нічого не означають — нормально, саме їх ми
@@ -183,8 +179,8 @@ flowchart TB
         <hr />
 
         <!-- УРОК 11.3 -->
-        <section id="l3" data-lesson="11.3 Ембедінги" class="scroll-mt-24">
-          <h2><span class="lesson-no">11.3</span>Ембедінги: сенс, записаний числами</h2>
+        <section id="l3" data-lesson="11.3 Ембедінги">
+          <h2><span class="ds-prose__no">11.3</span>Ембедінги: сенс, записаний числами</h2>
           <p>
             Центральна ідея, на якій тримається все. Комп'ютер не розуміє слів — він розуміє числа.
             <strong>Ембедінг</strong> — це спосіб перетворити шматок тексту на список чисел (його ще звуть
@@ -196,7 +192,7 @@ flowchart TB
             рецепт борщу — на іншому кінці карти. Ембедінг — це і є координати точки. Близькі координати =
             схожий зміст.
           </p>
-          <pre><code># Спрощено, ембедінг тексту виглядає як довгий список чисел:
+          <pre class="ds-code__pre"><code># Спрощено, ембедінг тексту виглядає як довгий список чисел:
 "Повернення протягом 14 днів"  ->  [0.12, -0.83, 0.45, ... ]   # сотні чисел
 "Як повернути товар?"          ->  [0.14, -0.79, 0.48, ... ]   # дуже близько!
 "Рецепт борщу"                 ->  [-0.66, 0.20, -0.91, ... ]  # геть далеко</code></pre>
@@ -206,7 +202,7 @@ flowchart TB
             потрібне, навіть коли користувач формулює інакше, ніж написано в документі. Звичайний пошук «по
             словах» цього не вміє — ембедінги шукають <em>за змістом</em>.
           </p>
-          <pre><code># Самі числа рахує окрема модель-ембедер (не Claude напряму).
+          <pre class="ds-code__pre"><code># Самі числа рахує окрема модель-ембедер (не Claude напряму).
 # Для нас це просто функція «текст -> вектор». Умовно:
 def embed(text):
     # ...виклик моделі-ембедера, повертає список чисел...
@@ -214,7 +210,7 @@ def embed(text):
 
 # Точний виклик залежить від обраного провайдера ембедінгів —
 # дивись його документацію. Нам зараз важлива сама ІДЕЯ.</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Не лякайся «вектора».</strong> Вектор тут — просто список чисел (як
             <code>[0.12, -0.83, ...]</code>), пам'ятаєш списки з Модуля 6. Вищої математики від тебе не
             треба: модель-ембедер сама перетворює текст на числа, а ми лише порівнюємо, наскільки два такі
@@ -225,8 +221,8 @@ def embed(text):
         <hr />
 
         <!-- УРОК 11.4 -->
-        <section id="l4" data-lesson="11.4 Чанкінг" class="scroll-mt-24">
-          <h2><span class="lesson-no">11.4</span>Чанкінг: ріжемо документи на шматки</h2>
+        <section id="l4" data-lesson="11.4 Чанкінг">
+          <h2><span class="ds-prose__no">11.4</span>Чанкінг: ріжемо документи на шматки</h2>
           <p>
             Чому не зробити один ембедінг на весь документ? Бо «відбиток» вийде розмитим: документ про 10
             тем дасть один усереднений вектор, що не відповідає чітко жодному питанню. І в промпт ми потім
@@ -245,7 +241,7 @@ def embed(text):
               50 символів одного = початок наступного). Навіщо? Щоб думка, розрізана на межі шматків, не
               загубилася.</li>
           </ul>
-          <pre><code># Найпростіший чанкінг: ріжемо на шматки по size символів
+          <pre class="ds-code__pre"><code># Найпростіший чанкінг: ріжемо на шматки по size символів
 # з перекриттям overlap, щоб не «розрубати» думку на межі.
 def chunk_text(text, size=500, overlap=50):
     chunks = []
@@ -255,7 +251,7 @@ def chunk_text(text, size=500, overlap=50):
         chunks.append(text[start:end])   # шматок від start до end
         start = end - overlap            # наступний починаємо трохи раніше (перекриття)
     return chunks</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Розбір коду.</strong> <code>text[start:end]</code> — це «зріз» (slice): частина рядка
             від <code>start</code> до <code>end</code>. <code>while start &lt; len(text)</code> крутиться,
             поки не дійшли до кінця тексту. <code>start = end - overlap</code> — і є перекриття: наступний
@@ -267,8 +263,8 @@ def chunk_text(text, size=500, overlap=50):
         <hr />
 
         <!-- УРОК 11.5 -->
-        <section id="l5" data-lesson="11.5 Пошук за схожістю" class="scroll-mt-24">
-          <h2><span class="lesson-no">11.5</span>Пошук схожих: як знайти потрібні шматки</h2>
+        <section id="l5" data-lesson="11.5 Пошук за схожістю">
+          <h2><span class="ds-prose__no">11.5</span>Пошук схожих: як знайти потрібні шматки</h2>
           <p>
             Усі шматки перетворені на вектори. Прийшло питання — його теж ембедимо у вектор. Тепер задача:
             знайти серед усіх шматків ті, чий вектор <strong>найближчий</strong> до вектора питання.
@@ -281,13 +277,13 @@ def chunk_text(text, size=500, overlap=50):
             різні — несхожі (ближче до <strong>0</strong>). Косинусна схожість — просто число від -1 до 1,
             що каже, наскільки «в один бік» дивляться стрілки.
           </p>
-          <pre><code>def cosine_similarity(a, b):
+          <pre class="ds-code__pre"><code>def cosine_similarity(a, b):
     # a і b — вектори (списки чисел) однакової довжини
     dot = sum(x * y for x, y in zip(a, b))     # перемножуємо попарно й додаємо
     norm_a = sum(x * x for x in a) ** 0.5       # «довжина» стрілки a (** 0.5 = корінь)
     norm_b = sum(y * y for y in b) ** 0.5
     return dot / (norm_a * norm_b)              # підсумок: число від -1 до 1</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Розбір (по шматочках).</strong> <code>zip(a, b)</code> зчіплює два списки в пари.
             <code>x * y for ...</code> — компактний «генератор», що рахує щось для кожної пари.
             <code>** 0.5</code> — піднесення до степеня 0.5, тобто квадратний корінь. Тобі НЕ треба писати
@@ -307,14 +303,14 @@ def chunk_text(text, size=500, overlap=50):
         <hr />
 
         <!-- УРОК 11.6 -->
-        <section id="l6" data-lesson="11.6 Збираємо докупи + якість" class="scroll-mt-24">
-          <h2><span class="lesson-no">11.6</span>Збираємо RAG докупи (і про якість)</h2>
+        <section id="l6" data-lesson="11.6 Збираємо докупи + якість">
+          <h2><span class="ds-prose__no">11.6</span>Збираємо RAG докупи (і про якість)</h2>
           <p>
             Момент, заради якого був увесь модуль. Попроси Claude Code: «створи файл <code>rag.py</code>:
             проста база знань у пам'яті, пошук найсхожіших шматків і відповідь Claude лише на їх основі».
             З'єднаємо все в робочого бота підтримки — читай зверху вниз, кожен крок ти вже знаєш окремо:
           </p>
-          <pre><code>import os, json
+          <pre class="ds-code__pre"><code>import os, json
 from anthropic import Anthropic
 from dotenv import load_dotenv
 load_dotenv()
@@ -359,7 +355,7 @@ def answer(question):
 
 print(answer("Скільки днів дається на повернення?"))
 # -> "Повернення можливе протягом 14 днів з моменту отримання товару."</code></pre>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Розбір нових деталей.</strong> <code>"\n\n".join(chunks)</code> склеює список шматків
             в один текст, вставляючи між ними порожній рядок (<code>\n</code> — перенос). <code>f"...{question}..."</code>
             — f-рядок: усе у фігурних дужках підставляється всередину. А системний промпт «відповідай ЛИШЕ
@@ -376,13 +372,13 @@ print(answer("Скільки днів дається на повернення?"
             <li><strong>Потрібне було поза топ-3</strong> — допомагає <strong>реранкінг</strong>: спершу беремо більше кандидатів, потім окремо переупорядковуємо за релевантністю й лишаємо найкращі.</li>
             <li><strong>Модель усе одно вигадала</strong> — жорсткіший системний промпт + просити <strong>цитувати джерело</strong>.</li>
           </ul>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Як зрозуміти, що стало краще?</strong> Не «на око». Збираєш набір реальних питань із
             відомими правильними відповідями (міні-іспит для бота) і після кожної зміни перевіряєш, скільки
             відповідей правильні. Це <strong>оцінювання (evals)</strong> — окрема тема Модуля 19. Поки
             запам'ятай принцип: зміни треба <em>вимірювати</em>, а не відчувати.</p>
           </div>
-          <div class="callout">
+          <div class="ds-note">
             <p><strong>Підсумок модуля.</strong> RAG = знайти релевантні шматки твоїх даних і вкласти їх у
             промпт. Деталі: ембедінги перетворюють зміст на числа; чанкінг ріже документи; косинусна
             схожість знаходить найближче; векторна база робить це швидко; системний промпт тримає модель у
@@ -395,7 +391,7 @@ print(answer("Скільки днів дається на повернення?"
         <hr />
 
         <!-- КВІЗ -->
-        <section id="quiz" data-lesson="Квіз: перевір себе" class="scroll-mt-24">
+        <section id="quiz" data-lesson="Квіз: перевір себе">
           <h2>Квіз: перевір себе</h2>
           <p>Сім питань без дедлайнів. Обирай відповідь — і одразу бачиш пояснення.</p>
           <div data-quiz="quizData"></div>
@@ -487,39 +483,41 @@ print(answer("Скільки днів дається на повернення?"
       }
       </script>
 
-      <div class="max-w-3xl">
-        <div class="mt-12 rounded-xl border border-line bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <div class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p id="completeTitle" class="font-medium text-ivory">Бот відповідає по твоїх даних?</p>
-            <p class="mt-1 text-sm text-muted">
+            <p id="completeTitle" class="ds-h4">Бот відповідає по твоїх даних?</p>
+            <p class="ds-small">
               Познач модуль завершеним — і відкриється Фаза C: будуємо AI-агентів.
             </p>
           </div>
           <button id="completeBtn" type="button"
-                  class="mt-4 shrink-0 rounded-lg bg-clay px-5 py-2.5 font-medium text-ink transition hover:bg-clay-deep sm:mt-0">
+                  class="ds-btn ds-btn--primary">
             Позначити завершеним
           </button>
         </div>
 
-        <nav id="moduleNav" aria-label="Навігація між модулями" class="mt-6 grid gap-4 sm:grid-cols-2"></nav>
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
       </div>
 
     </main>
   </div>
 
-  <footer class="mt-16 border-t border-line/60">
-    <div class="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
-      <p class="max-w-2xl text-xs leading-relaxed text-muted" data-site="disclaimer"></p>
-      <a href="../index.html" class="font-mono text-xs text-faint transition hover:text-sand">На головну ↑</a>
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../index.html">На головну ↑</a></span>
     </div>
   </footer>
 
+  <script src="../js/motion.js"></script>
   <script src="../js/progress.js"></script>
   <script src="../js/ui.js"></script>
   <script src="../js/config.js"></script>
   <script src="../js/module.js"></script>
   <script src="../js/quiz.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
   <script src="../js/mermaid-init.js"></script>
   <script src="../js/auth-ui.js"></script>
   <script type="module" src="../js/auth.js"></script>
