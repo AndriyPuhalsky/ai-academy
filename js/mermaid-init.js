@@ -106,6 +106,49 @@
     }
   }
 
+  /* ⚠ 010 · КОЛО 2 · D-14. Коли діаграма ширша за контейнер, вона притискається
+     до ЛІВОГО краю (`margin-inline: auto` на переобмеженому боксі дає нуль), а
+     Mermaid ставить корінь графа ПОСЕРЕДИНІ. Тому перше, що бачив учень, —
+     середина схеми: на claude-code-23 два вузли з семи, на claude-code-10 —
+     чотири з тринадцяти; на мобільній ширині корінь був за межею у 6 із 8
+     заміряних діаграм. До 010 діаграма вміщалась цілком (хай і дрібно), тож
+     це регресія переходу на натуральний розмір.
+
+     Напрямок графа розрізняти НЕ треба — вистачає одного правила: показати
+     ВЕРХНІЙ вузол, а серед однаково верхніх — найлівіший. Що це дає:
+       flowchart TD/TB  → корінь один, стоїть по центру → прокрутка до центру;
+       flowchart LR/RL  → корінь угорі ліворуч          → прокрутка ≈ 0;
+       sequenceDiagram  → учасники в один ряд угорі, беремо найлівішого → 0.
+     Тобто там, де початок і так видно, прокрутки не відбувається взагалі.
+
+     Робимо РІВНО ОДИН раз — у мить, коли контейнер щойно став прокрутним, і
+     лише якщо його ще не гортали (scrollLeft === 0). Інакше resize вікна
+     скидав би позицію, яку обрав користувач.
+     Присвоєння scrollLeft миттєве: `scroll-behavior: smooth` у системі немає
+     (перевірено), тож руху на екрані не виникає — це важливо для «зменшити рух». */
+  function showRoot(box) {
+    if (box.scrollLeft) return;                     /* користувач уже гортав */
+    var svg = box.querySelector("svg");
+    if (!svg) return;
+    var nodes = svg.querySelectorAll("g.node, .actor");
+    if (!nodes.length) return;
+
+    var boxRect = box.getBoundingClientRect();
+    var top = null, best = null;
+    Array.prototype.forEach.call(nodes, function (n) {
+      var r = n.getBoundingClientRect();
+      if (!r.width && !r.height) return;            /* невидимі не рахуємо */
+      if (top === null || r.top < top - 1) { top = r.top; best = r; }
+      else if (r.top <= top + 1 && best && r.left < best.left) { best = r; }
+    });
+    if (!best) return;
+
+    var centerInContent = best.left + best.width / 2 - boxRect.left + box.scrollLeft;
+    var target = centerInContent - box.clientWidth / 2;
+    var max = box.scrollWidth - box.clientWidth;
+    box.scrollLeft = Math.max(0, Math.min(target, max));
+  }
+
   function syncScrollers() {
     var boxes = document.querySelectorAll(".ds-diag");
     Array.prototype.forEach.call(boxes, function (box, i) {
@@ -120,6 +163,7 @@
         box.setAttribute("tabindex", "0");
         box.setAttribute("role", "region");
         nameFor(box, i);
+        showRoot(box);            /* D-14: показати початок схеми, а не середину */
       } else {
         box.removeAttribute("data-scrollable");
         box.removeAttribute("tabindex");
@@ -236,6 +280,17 @@
           console.error("[AIA] mermaid:", e);
         }
         syncScrollers();   /* ширина відома одразу після відмальовки */
+        /* ⚠ D-14, друга половина. showRoot() усередині syncScrollers спрацьовує
+           лише в мить, коли контейнер ЩОЙНО став прокрутним, — а .ds-diag часто
+           прокрутний ще ДО рендера: невідмальований <pre> з довгими рядками
+           джерела сам ширший за колонку. Тоді перехід стану вже стався (на
+           тексті), showRoot відпрацював на порожньому боксі й вийшов, а після
+           появи <svg> стан не змінюється — і другу діаграму сторінки більше
+           ніхто не прокручував. Заміряно: #0 отримувала правильні 739/319/372,
+           #1 лишалась на 0 при потрібних 479/614/30. Тому після кожної
+           відмальовки додатково наводимо саме цей бокс. */
+        var justDrawn = nodes[i].closest && nodes[i].closest(".ds-diag");
+        if (justDrawn) showRoot(justDrawn);
       }
       watchWidth();
     })();
