@@ -64,3 +64,33 @@ Node 25 має вбудований `WebSocket`, Chrome уже стоїть, CDP
 `$(curl -s …)` у shell **зʼїдає кінцевий перенос рядка**, тому SHA-1 не збігається.
 Звіряти файли тільки через `curl -sL -o файл` + `shasum` (і `-L` обовʼязково: Workers
 віддає 307 на `.html`-форму, без `-L` хешується порожнє тіло).
+
+## Третя пастка методу (зловлена в колі 3, коштувала цілого прогону)
+
+`Page.addScriptToEvaluateOnNewDocument` виконується **до того, як існує
+`document.documentElement`**. Тому звичне
+`(document.head||document.documentElement).appendChild(style)` кидає
+`TypeError: Cannot read properties of null` — і найгірше не це, а те, що виняток
+потрапляє у **власний лічильник помилок консолі**. Перший прогін дав «58 сторінок
+із помилками консолі», хоча всі 58 помилок були мої, а сторінки чисті.
+
+```js
+(function add(){ var r = document.head || document.documentElement;
+  if (!r) { setTimeout(add, 0); return; }          // ← без цього падає
+  var s = document.createElement('style'); s.textContent = '…'; r.appendChild(s); })();
+```
+
+І окремо: у фільтрі помилок відсікати свої (`!/<anonymous>/.test(text)`), інакше
+власний стенд назавжди імітує дефект сторінки.
+
+## Що варто мірити саме тут, бо інакше воно бреше
+
+- **Прод проти дева — тільки через один і той самий хост.** `ai-academia.com.ua` і
+  `*.workers.dev` кешуються по-різному, і на CLS це видно. Брати
+  `ai-academy.andriy-puhalsky.workers.dev` як «прод».
+- **Повільна мережа як окремий режим:** `Network.emulateNetworkConditions`
+  (latency 150, down 180000) + `Emulation.setCPUThrottlingRate {rate:4}` гарантує,
+  що гідратація не встигне до першого кадру. Без цього швидка машина ховає CLS,
+  який реальний мобільний користувач бачить.
+- **`mobile:true` у `setDeviceMetricsOverride`** для ширин < 700 — інакше медіа-запити
+  й обробка `meta viewport` не ті, що на телефоні.

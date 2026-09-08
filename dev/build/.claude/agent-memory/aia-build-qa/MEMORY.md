@@ -12,7 +12,8 @@
 - [Клік по посиланню в PDF](method_pdf_link_click_testing.md) — стенд pdf.js з AnnotationLayer; переглядач Chrome завмирає; ⚠️ стенд працює лише в АКТИВНІЙ вкладці
 - [Масовий аудит діаграм Mermaid](method_mermaid_mass_audit.md) — iframe ПРИДАТНИЙ (старе «ламає» спростовано): about:blank-прогрів + правильне розкриття уроку
 - [Накладання діаграм = колізія id](project_mermaid_id_collision.md) — `mermaid-${Date.now()}` + неawait-нуті run(); доказ через заморожений Date.now; await — лише запас, не фікс
-- [Діаграми стискаються до нечитабельного](project_mermaid_shrink_to_fit.md) — ЗАКРИТО 2026-09-08 useMaxWidth:false; ціна — натуральна висота (2823 px) і корінь графа за лівою межею
+- [Діаграми стискаються до нечитабельного](project_mermaid_shrink_to_fit.md) — ЗАКРИТО useMaxWidth:false; ціна «корінь за лівою межею» теж закрита (298ef1f), лишилось 6 зі 100 на 390 — вузол ширший за колонку
 - [Пастки схованого вікна](method_hidden_window_traps.md) — visibilityState завжди hidden: resize_window мертвий, setTimeout дроселиться, ResizeObserver не фіриться, стрілки не гортають
 - [Власний Chrome по CDP](method_cdp_own_chrome.md) — знімає ВСІ пастки схованого вікна одразу: справжній вʼюпорт, Tab, CLS, rAF, блокування мережі; ⛔ не два прогони паралельно
-- [CLS лендінга AI Термінала](project_cc_landing_cls.md) — 0,32–0,78; винен порожній <h1 id=heroTitle>, а «правдивий» резерв плити CLS ПОГІРШИВ (зникла компенсація)
+- [CLS лендінга AI Термінала](project_cc_landing_cls.md) — резерв ЗАГОЛОВКА закрив головне (298ef1f); решта 0,11–0,18 — порожній .cc-hero__lead; показник бімодальний
+- [Перевіряти фікс = спростовувати його](method_source_of_truth_ab.md) — повна вибірка, реплікація обох логік, A/B причини, ламати заявлену межу; і відсікати власні помилки
