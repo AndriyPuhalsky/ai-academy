@@ -101,8 +101,48 @@
        Гілку вимкнення бере на себе саме цей рядок. */
     cps: function () {
       return M.on() ? num("--p-term-speed-cps", 0) : Infinity;
-    }
+    },
+
+    /* ⚠ 010 · КОЛО ФІКСІВ · D-11. Ворота для БЕЗКІНЕЧНИХ циклів.
+       Для CSS вони вже є й працюють: кожна `animation: … infinite` у системі
+       стоїть на `animation-play-state: var(--loop-state)`, і пресет
+       data-motion="calm" ставить цьому токену `paused`. Для GSAP такого
+       механізму не існувало взагалі: заміряно на /roadmap — під `calm`
+       `--loop-state` = paused, CSS-циклів зупинено всі, а таймлайн
+       gsap.timeline({repeat: -1}) лишався `paused() === false`, тобто пульс
+       кільця «В роботі» продовжував дихати саме там, де рух прибрали.
+       Тепер цикли GSAP читають ТОЙ САМИЙ токен, що й CSS.
+       ⚠ Це НЕ те саме, що M.on(): `calm` лишає --motion: 1 (одноразовий рух
+       грає, просто тихіше) і гасить лише цикли. Під prefers-reduced-motion і
+       html.rm обидва токени стають нулем/paused одночасно — тому поведінка
+       reduce не змінюється ні на йоту. */
+    loopOn: function () { return raw("--loop-state") !== "paused"; }
   };
+
+  /* Пресет можуть перемкнути за життя сторінки (перемикач у макеті, зміна
+     системної настройки). CSS реагує сам; JS — через цей канал.
+     Один спостерігач на документ, нуль роботи на кадр. */
+  var presetHooks = [];
+  M.onPreset = function (fn) {
+    presetHooks.push(fn);
+    return fn;
+  };
+  function firePreset() {
+    presetHooks.forEach(function (fn) { try { fn(); } catch (e) { /* хук не має валити рух */ } });
+  }
+  function watchPreset() {
+    if ("MutationObserver" in global) {
+      new MutationObserver(firePreset).observe(root, {
+        attributes: true,
+        attributeFilter: ["data-motion", "data-density", "class", "style"]
+      });
+    }
+    if (global.matchMedia) {
+      var mq = global.matchMedia("(prefers-reduced-motion: reduce)");
+      if (mq.addEventListener) mq.addEventListener("change", firePreset);
+      else if (mq.addListener) mq.addListener(firePreset);
+    }
+  }
 
   /* ==========================================================================
      1. M2 reveal + контракт «стан після render()»
@@ -311,6 +351,7 @@
   function init() {
     M.bind(document);
     watch();
+    watchPreset();
     /* ⚠ ДОПОВНЕННЯ АГЕНТА №4 (D-07, друга половина). Момент, коли вкладка
        стає видимою, — це рівно той момент, коли недоставлені IO-колбеки
        вже не прийдуть, а контент має бути на екрані. Один слухач на

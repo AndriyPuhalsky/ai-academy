@@ -121,6 +121,20 @@
      і parseFloat дає NaN (П-01). --motion зареєстрований у tokens.css. */
   function motionOn() { return num("--motion", 1) === 1; }
 
+  /* ⚠ ДОДАНО 010 · КОЛО ФІКСІВ · D-11. Окремі ворота для БЕЗКІНЕЧНИХ циклів.
+     `--motion` вимикає рух цілком (reduce, html.rm), `--loop-state` вимикає
+     ЛИШЕ цикли — і саме його ставить пресет data-motion="calm", який
+     --motion лишає одиницею. Для CSS цей токен уже працює скрізь
+     (animation-play-state), для GSAP його не читав ніхто: заміряно на цій
+     сторінці — під `calm` таймлайн пульсу лишався paused() === false.
+     Читаємо той самий токен, що й CSS; helper живе в AIA.motion, тут — лише
+     фолбек на випадок, якщо motion.js не піднявся. */
+  function loopOn() {
+    var M = window.AIA && window.AIA.motion;
+    if (M && M.loopOn) return M.loopOn();
+    return str("--loop-state") !== "paused";
+  }
+
   /* Стан без руху: уся інформація доступна, лінія підсвічена повністю
      (інакше «пройдений» відрізок читався б як дефект), лічильники одразу
      мають фінальні числа, кільце «В роботі» стоїть на своєму піку.
@@ -762,6 +776,18 @@ function buildLUT() {
          Порівняння шести конструкцій —
          dev/design/003-roadmap/04-variants/verdict.md. */
       var pulse = null;
+      var pulseRest = null;      /* стан спокою кільця, коли цикли вимкнені */
+      /* ⚠ D-11. Стан спокою тут НЕ «завмерти там, де застало» (так робить
+         CSS animation-play-state), а той самий, який сторінка вже показує
+         під prefers-reduced-motion: кільце стоїть на своєму піку — див.
+         staticState(). Інакше пресет `calm` лишав би кільце на випадковій
+         альфі десь між 0 і 0,55. */
+      function syncPulse() {
+        if (!pulse) return;
+        if (loopOn()) { pulse.play(); return; }
+        pulse.pause();
+        if (pulseRest) pulseRest();
+      }
       function bindPulse() {
         // Фазу зберігаємо: rebind трапляється на кожному render()
         // (resize, розгортання групи), і без цього кільце щоразу
@@ -781,9 +807,16 @@ function buildLUT() {
           .to(rings, { opacity: 0, duration: dur - durIn, ease: eEnv }, durIn)
           .to(rings, { scale: num("--rm-scale-pulse", 1.9), duration: dur, ease: eOut }, 0);
         if (phase) pulse.totalTime(phase);
+        pulseRest = function () { gsap.set(rings, { opacity: peak, scale: 1 }); };
+        syncPulse();     /* пресет міг стояти `calm` ще до першого bind() */
       }
       rebindPulse = bindPulse;
       bindPulse();
+
+      /* Пресет перемикають за життя сторінки — реагуємо тим самим каналом,
+         яким система роздає зміну атрибутів <html> (AIA.motion.onPreset). */
+      var M0 = window.AIA && window.AIA.motion;
+      if (M0 && M0.onPreset) M0.onPreset(syncPulse);
 
       return function () {
         // Прибираємо за собою: інакше слухачі накопичувались би при кожному
@@ -791,6 +824,7 @@ function buildLUT() {
         // системне налаштування руху, не перезавантажуючи сторінку).
         rebindPulse = null;
         if (pulse) pulse.kill();
+        pulse = null;              /* хук onPreset лишається жити — йому потрібен null */
         tl.kill();
       };
     });
