@@ -38,8 +38,20 @@ metadata:
 `gsap.matchMedia()`, інакше `html.rm` і `data-motion="calm"` його не вимикають.
 
 ⚠ **`data-motion="calm"` НЕ вимикає рух** — він лишає `--motion: 1` і лише зменшує
-`--motion-scale/travel/stagger` та ставить `--loop-state: paused`. `--loop-state` діє
-тільки на CSS `animation-play-state`; **GSAP-цикли його не читають** (на роадмапі
-перевірено: скелетонний shimmer стає, кільце «В роботі» продовжує пульсувати).
+`--motion-scale/travel/stagger` та ставить `--loop-state: paused`. Тобто `calm` гасить
+**лише безкінечні цикли**, а одноразовий рух грає далі — це два різні токени, не один.
+
+**ОНОВЛЕНО 2026-09-08 (коло фіксів 010, D-11): `--loop-state` тепер читає і GSAP.**
+Було: токен діяв тільки на CSS `animation-play-state`, і `gsap.timeline({repeat: -1})`
+під `calm` лишався `paused() === false` (на роадмапі: shimmer стає, кільце «В роботі»
+продовжує пульсувати). Стало: `AIA.motion.loopOn()` читає той самий токен, а
+`AIA.motion.onPreset(fn)` роздає зміну атрибутів `<html>` (один MutationObserver на
+`data-motion`, `data-density`, `class`, `style` + слухач `prefers-reduced-motion`).
+**Реактивність обовʼязкова:** жодна сторінка не має `data-motion` у розмітці — це
+рантайм-перемикач, і перевіряти його треба перемиканням уже після завантаження.
+**Стан спокою циклу задає власник циклу**, а не система: на роадмапі кільце ставиться
+на свій пік (як у `staticState()`), а не «завмирає де застало», бо друге дало б
+випадкову альфу. Новий безкінечний GSAP-цикл зобовʼязаний спитати `loopOn()` при
+створенні й підписатись на `onPreset`.
 
 Повʼязане: [[aia-css-components]] · [[aia-roadmap-tokens-010]]
