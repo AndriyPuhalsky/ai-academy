@@ -156,13 +156,41 @@
     });
   }
 
+  /* ⚠ 010 · КОЛО ФІКСІВ · D-16. Джерело діаграми читається з innerHTML,
+     а НЕ з textContent — і це не стиль, а виправлення видимого дефекту.
+
+     У розмітці уроків <br/> усередині підпису вузла записаний
+     НЕ екранованим:  A["1. Термінал<br/>навчитись відкривати"]
+     Браузер парсить його як СПРАВЖНІЙ елемент <br> усередині <pre>
+     (в architect-02 їх шість), а textContent теги викидає — тож Mermaid
+     отримував уже склеєний рядок «1. Терміналнавчитись відкривати»,
+     і два рядки підпису зливались в одне слово. Зачеплено 58 входжень
+     у 19 діаграмах, усі в AI Architect. У проді те саме — не регресія 010.
+
+     ⚠ Хибний слід, на який пішли три звіти поспіль: винними називали
+     securityLevel: "strict" і htmlLabels. Перевірено емпірично —
+     6 комбінацій (strict / antiscript / loose × htmlLabels true / false)
+     дають ДВА рядки в усіх шести, висота вузла 46–48 px проти 31.
+     Тобто Mermaid тут ні до чого: джерело псувалось ДО нього.
+
+     ⚠ Просто взяти innerHTML не можна: там сутності — `-->` приходить
+     як `--&gt;`, і Mermaid на такому джерелі падає з Parse error. Тому
+     реальні <br> спершу повертаємо в екрановану форму, а потім декодуємо
+     сутності через <textarea> (його .value робить це за нас) — на виході
+     текст із літеральним <br/>, який Mermaid розуміє. */
+  function sourceOf(node) {
+    var box = document.createElement("textarea");
+    box.innerHTML = node.innerHTML.replace(/<br\s*\/?>/gi, "&lt;br/&gt;");
+    return box.value.replace(/\s+$/, "");
+  }
+
   function run() {
     if (!global.mermaid || !global.AIA || !global.AIA.mermaidTheme) return;
     var defs = classDefs();
     var nodes = document.querySelectorAll("pre.mermaid:not([data-mermaid-ready])");
     if (!nodes.length) return;
     Array.prototype.forEach.call(nodes, function (n) {
-      var src = n.textContent.replace(/\s+$/, "");
+      var src = sourceOf(n);
       /* ⚠ 010 · Ф-Б. classDef розуміють ЛИШЕ flowchart/graph. sequenceDiagram
          на ньому падає з `Parse error … got 'INVALID'`, і в проді через це
          не малювались шість діаграм на п'яти сторінках AI Architect
