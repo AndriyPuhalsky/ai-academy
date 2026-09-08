@@ -54,7 +54,23 @@
       theme: "base",
       themeVariables: themeVariables(),
       /* Рух діаграм підпорядкований тим самим воротам, що й решта системи. */
-      flowchart: { curve: "basis", useMaxWidth: true },
+      /* ⚠ 010 · КОЛО ФІКСІВ · D-05. useMaxWidth: false — рішення власника
+         (варіанти «нижня межа масштабу» і «переверстати вісім найширших»
+         відхилені). Було true (і це ще й дефолт Mermaid): Mermaid ставив
+         SVG `width="100%"` + `style="max-width:<натуральна>px"`, тому широка
+         діаграма НЕ скролила, а пропорційно зменшувалась разом із текстом.
+         Заміряно на 100 діаграмах × 66 сторінок: на 320 px 83 зі 100 були
+         дрібніші за 50 %, найгірша (claude-code-23#0, viewBox 2596)
+         давала k = 0,095 — ефективний кегль 1,33 px. Скрол не спрацьовував
+         ЖОДНОГО разу: scrollWidth − clientWidth = 0 у 200 із 200 замірів.
+         З false Mermaid ставить width/height у натуральних px — підпис
+         завжди 14 px (--fs-ui), а горизонтальний скрол бере на себе
+         .ds-diag (overflow-x: auto, overscroll-behavior-x: contain).
+         Ключ живе ОКРЕМО для кожного типу діаграми: на сайті реально
+         вживаються flowchart-v2 (94) і sequence (6) — звірено за
+         aria-roledescription кожного намальованого SVG. */
+      flowchart: { curve: "basis", useMaxWidth: false },
+      sequence: { useMaxWidth: false },
       securityLevel: "strict"
     };
   }

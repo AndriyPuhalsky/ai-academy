@@ -70,6 +70,92 @@
     }
   }
 
+  /* ==========================================================================
+     010 · КОЛО ФІКСІВ · D-05, друга половина: ДОСТУПНІСТЬ СКРОЛ-КОНТЕЙНЕРА
+     --------------------------------------------------------------------------
+     З useMaxWidth: false широка діаграма більше не стискається — вона
+     прокручується. Область, яку можна прокрутити мишею, мусить прокручуватись
+     і з клавіатури (WCAG 2.1.1), тому .ds-diag зі скролом отримує рівно той
+     самий набір атрибутів, що вже стоїть на 111 обгортках таблиць:
+     tabindex="0" + role="region" + доступне імʼя.
+
+     Імʼя беремо з ВЛАСНОГО підпису діаграми (aria-labelledby на .ds-diag__caption),
+     а не вигадуємо текст: підпис має 100 зі 100 діаграм сайту (перевірено
+     розбором розмітки, не оцінкою). Гілка з aria-label лишається на випадок
+     нової діаграми без підпису; "Діаграма" — UI-рядок цього файлу, як і текст
+     фолбека вище, у config.json він не живе, бо не є контентом сторінки.
+
+     ⚠ ЧОМУ ЦЕ ПЕРЕРАХОВУЄТЬСЯ, А НЕ СТАВИТЬСЯ РАЗ. Ширина .ds-diag міняється
+     в чотирьох випадках, і в трьох із них діаграма вже намальована:
+     після рендера · після resize вікна · коли заблокований урок ПЕРЕСТАЄ бути
+     [hidden] (до того clientWidth = 0 і скролу «немає») · при поверненні на
+     вкладку. Зупинка Tab на контейнері, який більше не скролить, — такий самий
+     дефект, як її відсутність на тому, що скролить.
+     ========================================================================== */
+  var DIAG_NAME = "Діаграма";
+
+  function nameFor(box, i) {
+    var cap = box.querySelector(".ds-diag__caption");
+    if (cap) {
+      if (!cap.id) cap.id = "aia-diag-cap-" + i;
+      box.setAttribute("aria-labelledby", cap.id);
+      box.removeAttribute("aria-label");
+    } else {
+      box.setAttribute("aria-label", DIAG_NAME);
+      box.removeAttribute("aria-labelledby");
+    }
+  }
+
+  function syncScrollers() {
+    var boxes = document.querySelectorAll(".ds-diag");
+    Array.prototype.forEach.call(boxes, function (box, i) {
+      /* Нульова ширина = стан невідомий (елемент схований). Нічого не
+         вирішуємо: ані вішаємо, ані знімаємо. */
+      if (!box.clientWidth) return;
+      var scrolls = box.scrollWidth - box.clientWidth > 1;
+      var marked = box.hasAttribute("data-scrollable");
+      if (scrolls === marked) return;
+      if (scrolls) {
+        box.setAttribute("data-scrollable", "");
+        box.setAttribute("tabindex", "0");
+        box.setAttribute("role", "region");
+        nameFor(box, i);
+      } else {
+        box.removeAttribute("data-scrollable");
+        box.removeAttribute("tabindex");
+        box.removeAttribute("role");
+        box.removeAttribute("aria-label");
+        box.removeAttribute("aria-labelledby");
+      }
+    });
+  }
+
+  var syncPending = false;
+  function scheduleSync() {
+    if (syncPending) return;
+    syncPending = true;
+    setTimeout(function () { syncPending = false; syncScrollers(); }, 150);
+  }
+
+  var watched = false;
+  function watchWidth() {
+    if (watched) return;          /* run() публічний (AIA.mermaidRun) — слухачі один раз */
+    watched = true;
+    /* ResizeObserver ловить і resize вікна, і зняття [hidden] з уроку — але
+       він, як і rAF та IntersectionObserver, не доставляється у вкладці, яка
+       не рендериться (пастка, що в цьому проєкті стріляла вже чотири рази).
+       Тому поруч стоять два дешевих страхувальники: подія resize і момент,
+       коли вкладка стає видимою. */
+    if ("ResizeObserver" in global) {
+      var ro = new ResizeObserver(scheduleSync);
+      Array.prototype.forEach.call(document.querySelectorAll(".ds-diag"), function (b) { ro.observe(b); });
+    }
+    global.addEventListener("resize", scheduleSync, { passive: true });
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) scheduleSync();
+    });
+  }
+
   function run() {
     if (!global.mermaid || !global.AIA || !global.AIA.mermaidTheme) return;
     var defs = classDefs();
@@ -121,7 +207,9 @@
           fallback(nodes[i]);
           console.error("[AIA] mermaid:", e);
         }
+        syncScrollers();   /* ширина відома одразу після відмальовки */
       }
+      watchWidth();
     })();
   }
 
