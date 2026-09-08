@@ -279,8 +279,9 @@
     var data = NARROW.matches ? cfg.hero.sessionNarrow : cfg.hero.session;
     pre.innerHTML = sessionHTML(data);
     setText("#heroChrome", cfg.hero.chrome);
-    var obj = document.querySelector(".cc-hero__object");
-    if (obj) obj.classList.remove("is-reserved");
+    /* 010 · коло фіксів · D-06: клас is-reserved більше не існує — резерв
+       висоти живе на самому <pre> сесії через :empty і знімається тим, що
+       <pre> перестає бути порожнім рядком вище. */
     if (window.AIA && window.AIA.motion) window.AIA.motion.bind(document);
     document.dispatchEvent(new CustomEvent("cc:hero-rendered"));
   }

@@ -51,21 +51,34 @@
   --cc-hero-term: 620px;   /* ширина колонки предмета в hero */
 
   /* --- резерв висоти до приходу конфіга (CLS = 0) --- */
-  --cc-hero-reserve: 520px;
+  /* ⚠ 010 · КОЛО ФІКСІВ · D-06. --cc-hero-reserve (520 / 560 / 430 px на
+     ОБГОРТЦІ .cc-hero__object) прибраний. Він не тримав місце, а лишав діру:
+     заміряно фактичну висоту після гідратації на пʼятьох ширинах —
+     320: 481 · 390: 465 · 768: 475 · 1024: 481 · 1440: 475 px, тобто резерв
+     перевищував вміст на 79 / 95 / 85 / 39 / 45 px, і ця різниця схлопувалась
+     у мить рендера. Одним числом на брейкпоінт її не виправити: 320 і 390
+     лежать в одному діапазоні (≤640), а різняться на 16 px через перенос
+     рядка в .cc-desk__foot.
+     Тому резерв переїхав на єдину ДЕТЕРМІНОВАНУ частину — сам <pre> сесії:
+     white-space: pre, 14 рядків даних, кегль коду плаский (13,52 px),
+     тож висота однакова на всіх ширинах — заміряно 346,23 px на 320, 390,
+     768 і 1440. --cc-hero-lines — це кількість рядків у hero.session /
+     hero.sessionNarrow (claude-code.config.json, обидва по 14). */
+  --cc-hero-lines: 14;
   --cc-map-reserve:  640px;
 }
 
 /* Вісь лишається на всіх ширинах — стискається лише поле.
    Пороги — тільки з пʼяти дозволених (640 / 768 / 1024 / 1440 / 700). */
 @media (max-width: 768px) {
-  :root { --cc-rail-w: 60px; --cc-spine-x: 18px; --cc-hero-reserve: 560px; }
+  :root { --cc-rail-w: 60px; --cc-spine-x: 18px; }
 }
 @media (max-width: 640px) {
   :root { --cc-rail-w: 44px; --cc-spine-x: 14px; }
 }
 @media (min-width: 1440px) { :root { --cc-hero-term: 44rem; } }
 @media (max-height: 700px) {
-  :root { --cc-fs-h1: clamp(1.875rem, 1.2rem + 2.2vw, 2.75rem); --cc-hero-reserve: 430px; }
+  :root { --cc-fs-h1: clamp(1.875rem, 1.2rem + 2.2vw, 2.75rem); }
 }
 
 
@@ -133,11 +146,19 @@
 .cc-hero__cta { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-6); }
 .cc-hero__explain { margin: var(--s-5) 0 0; max-width: var(--w-narrow); font-family: var(--f-mono); font-size: var(--fs-small); line-height: var(--lh-body); color: var(--c-text-2); }
 .cc-hero__stats { margin: var(--s-6) 0 0; padding-top: var(--s-5); border-top: var(--bw) solid var(--c-line); font-family: var(--f-mono); font-size: var(--fs-small); color: var(--c-text-3); }
-/* Резерв висоти до приходу конфіга: CLS = 0 (форма 005). */
-/* Резерв висоти до приходу конфіга; клас знімає cc-render.js одразу після
-   рендера hero. ⚠ `:has(:empty)` тут НЕ годиться: усередині є завжди порожній
-   .term__dots, і селектор збігався б назавжди. */
-.cc-hero__object.is-reserved { min-height: var(--cc-hero-reserve); }
+/* Резерв висоти до приходу конфіга: CLS = 0 (форма 005).
+   ⚠ 010 · КОЛО ФІКСІВ · D-06. Резерв стоїть на самому <pre> сесії, а не на
+   обгортці (чому — див. коментар до --cc-hero-lines вище), і працює через
+   :empty, а не через клас: після гідратації правило перестає діяти взагалі,
+   тож помилка в резерві НЕ може лишити постійної діри під терміналом.
+   `:empty` тут коректний саме на <pre>: у розмітці він порожній буквально
+   (`…aria-labelledby="heroChrome"></pre>`), а .term__dots, через який
+   `:has(:empty)` не годився для обгортки, лежить в іншому вузлі.
+   Формула = падінги + N рядків × кегль коду × міжрядковий:
+   32 + 14 × 13,52 × 1,66 = 346,19 px проти заміряних 346,23. */
+.term--hero > .term__body:empty {
+  min-height: calc(var(--s-4) * 2 + var(--cc-hero-lines) * var(--lh-code) * var(--fs-code));
+}
 
 /* «Стіл» — ЄДИНА плита предмета на сторінку (роль --c-desk у системі 009).
    Полотно термінала (--c-sunken) темніше за плиту, і саме ця різниця робить
