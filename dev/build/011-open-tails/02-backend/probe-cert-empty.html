@@ -1,0 +1,48 @@
+<!doctype html>
+<!-- 011 · хвиля 2, проба бекендера до рішення №4.
+     Навіщо: renderEmpty() у js/certificate.js викликається лише для
+     ЗАЛОГІНЕНОГО користувача з нулем сертифікатів. Реєструвати акаунт і
+     писати в продову базу заборонено, тому Supabase тут ЗАГЛУШКА:
+     from().select().order() повертає {data: [], error: null} без жодного
+     запиту в мережу. Сторінка лежить у dev/ (не роздається з сайту,
+     .assetsignore) і служить лише для перевірки одного рядка — посилання
+     «До програми курсу →». Режими: ?m=none | ?m=terminal | ?m=xss. -->
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <title>Проба renderEmpty()</title>
+</head>
+<body>
+  <div id="certBody"></div>
+  <pre id="out" style="white-space:pre-wrap;font:12px monospace"></pre>
+  <script>
+    var m = new URLSearchParams(location.search).get("m") || "none";
+    if (m === "terminal") window.AIA_CERT = { program: "claude-code.html#map" };
+    if (m === "xss") window.AIA_CERT = { program: '" onmouseover="alert(1)' };
+    window.AIA_USER = { id: "probe-user" };
+    window.sb = {
+      from: function () {
+        return { select: function () {
+          return { order: function () { return Promise.resolve({ data: [], error: null }); } };
+        } };
+      }
+    };
+  </script>
+  <script src="/js/certificate.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.dispatchEvent(new Event("aia:auth"));
+      setTimeout(function () {
+        var a = document.querySelector("#certBody a");
+        document.getElementById("out").textContent =
+          "mode=" + m +
+          "\nAIA_CERT=" + JSON.stringify(window.AIA_CERT || null) +
+          "\nhref(attr)=" + (a ? a.getAttribute("href") : "НЕМАЄ ПОСИЛАННЯ") +
+          "\ntext=" + (a ? a.textContent : "") +
+          "\nattrs=" + (a ? Array.prototype.map.call(a.attributes, function (x) { return x.name; }).join(",") : "") +
+          "\nhtml=" + document.getElementById("certBody").innerHTML;
+      }, 50);
+    });
+  </script>
+</body>
+</html>
