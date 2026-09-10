@@ -103,7 +103,18 @@
       '<div class="ds-empty">' +
         '<p class="ds-h4">Сертифіката ще немає</p>' +
         '<p class="ds-small">Проходь модулі по черзі — щойно завершиш останній модуль курсу, сертифікат з\'явиться тут автоматично.</p>' +
-        '<a href="index.html#syllabus" class="ds-btn ds-btn--secondary">До програми курсу →</a>' +
+        /* 011 · рядок 18, четверте рішення власника. Бренд сторінки /certificate
+           визначає ТОЧКА ВХОДУ, і його кладе інлайн у certificate.html у
+           window.AIA_CERT (?from= → referrer → sessionStorage aia:certFrom).
+           Тут потрібне лише посилання на програму того курсу, звідки прийшла
+           людина: у цьому стані сертифікатів немає взагалі, тож питати «курс
+           сертифіката» нема в кого. ⚠ Це НЕ мапа BRANDS вище: там ключ —
+           courses.slug документа з бази (ai-essentials/ai-architect/claude-code),
+           тут — звідки прийшов відвідувач. Дві різні відповіді на два різні
+           питання. Без інлайну (старий кеш HTML, вимкнений JS у шапці) — фолбек
+           на Академію, як було до правки. */
+        '<a href="' + esc((window.AIA_CERT && window.AIA_CERT.program) || "index.html#syllabus") +
+        '" class="ds-btn ds-btn--secondary">До програми курсу →</a>' +
       '</div>';
   }
 
