@@ -33,19 +33,60 @@
 
   <header class="ds-hdr">
     <div class="ds-hdr__inner">
-      <a class="ds-hdr__brand" href="index.html">
-        <span class="ds-hdr__mark" aria-hidden="true">AIA</span>
-        <span>AI Академія</span>
+      <a class="ds-hdr__brand" id="certBrandLink" href="index.html">
+        <span class="ds-hdr__mark" id="certBrandMark" aria-hidden="true">AIA</span>
+        <span id="certBrandName">AI Академія</span>
       </a>
       <span class="ds-hdr__crumb" aria-hidden="true">/</span>
       <span class="ds-hdr__crumb">Мої сертифікати</span>
       <span class="ds-hdr__spacer"></span>
-      <a class="ds-nav__link" href="index.html#syllabus">Курс</a>
+      <a class="ds-nav__link" id="certCourseLink" href="index.html#syllabus">Курс</a>
       <a class="ds-nav__link" href="verify.html">Перевірка</a>
       <div id="aiaAuth" class="ds-hdr__slot"></div>
       <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
     </div>
   </header>
+
+  <!-- Бренд сторінки — за ТОЧКОЮ ВХОДУ, тим самим механізмом, що на /roadmap
+       (js/roadmap-render.js, таблиця COURSES). Сторінка одна на три курси й
+       показує список сертифікатів, тому «курс сертифіката» тут не визначений:
+       карток може бути кілька, а в станах «гість» і «ще немає» — жодної.
+       Скрипт стоїть ТУТ, бо перед js/certificate.js лежать три парсер-блокувальні
+       скрипти з CDN, і бренд, підмінений після них, був би видимим перемиганням. -->
+  <script>
+  (function () {
+    var MAP = {
+      academy:       { course: "academy",   mono: "AIA", name: "AI Академія",
+                       home: "index.html",       program: "index.html#syllabus" },
+      architect:     { course: "architect", mono: "AIA", name: "AI Architect",
+                       home: "architect.html",   program: "architect.html#syllabus" },
+      "claude-code": { course: "terminal",  mono: "AIT", name: "AI Термінал",
+                       home: "claude-code.html", program: "claude-code.html#map" }
+    };
+    var key = "";
+    try { key = new URLSearchParams(location.search).get("from") || ""; } catch (e) {}
+    if (!MAP[key] && document.referrer) {
+      // Порядок обовʼязковий: «claude-code» перевіряємо ПЕРШИМ, інакше урок
+      // /modules/claude-code-05 не мав би шансу — у ньому немає «architect»,
+      // але порядок лишається однаковим із roadmap-render.js.
+      if (/claude-code/i.test(document.referrer)) key = "claude-code";
+      else if (/architect/i.test(document.referrer)) key = "architect";
+    }
+    // Повернення з Google: redirectTo в js/auth.js стриже ?search, referrer —
+    // accounts.google.com. Памʼять вкладки — єдиний спосіб не втратити бренд.
+    if (!MAP[key]) { try { key = sessionStorage.getItem("aia:certFrom") || ""; } catch (e) {} }
+    var b = MAP[key] || MAP.academy;
+    if (MAP[key]) { try { sessionStorage.setItem("aia:certFrom", key); } catch (e) {} }
+    document.documentElement.setAttribute("data-course", b.course);
+    document.title = "Мій сертифікат — " + b.name;
+    var q = function (id) { return document.getElementById(id); };
+    if (q("certBrandMark")) q("certBrandMark").textContent = b.mono;
+    if (q("certBrandName")) q("certBrandName").textContent = b.name;
+    if (q("certBrandLink")) q("certBrandLink").setAttribute("href", b.home);
+    if (q("certCourseLink")) q("certCourseLink").setAttribute("href", b.program);
+    window.AIA_CERT = b;
+  })();
+  </script>
 
   <main id="main" class="mx-auto max-w-prose px-5 py-10 sm:px-8 sm:py-16" data-page-in>
     <p class="ds-eyebrow">Сертифікати</p>
