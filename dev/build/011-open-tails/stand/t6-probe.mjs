@@ -1,0 +1,15 @@
+import { browser, sleep, waitFor } from "./cdp.mjs";
+const BASE = "http://127.0.0.1:8311";
+const b = await browser();
+const P = await b.page();
+await P.viewport(1280, 900);
+await P.inject("window.__errs=[];window.addEventListener('error',function(e){window.__errs.push(String(e.message))});var _ce=console.error;console.error=function(){window.__errs.push([].map.call(arguments,String).join(' ').slice(0,200));_ce.apply(console,arguments)};");
+await P.goto(`${BASE}/dev/build/011-open-tails/_probe-broken-diagram.html`);
+await waitFor(P, "(function(){var p=document.querySelectorAll('pre.mermaid');return [].every.call(p,function(x){return x.hasAttribute('data-processed')||x.hasAttribute('data-mermaid-failed')});})()", 15000);
+await sleep(400);
+console.log(JSON.stringify(await P.eval(`(function(){ var r={ver: (function(){ var s=[].find.call(document.scripts,function(x){return /mermaid-init/.test(x.src)}); return s?s.src:null })(), hasRenderOne: !!(window.AIA && window.AIA.mermaidRun && String(window.AIA.mermaidRun).indexOf('renderOne')>-1), errs: window.__errs };
+  ['ok1','broken','ok2'].forEach(function(k){ var d=document.querySelector('[data-testid='+k+']'); var pre=d.querySelector('pre.mermaid');
+    r[k]={ svg: !!pre.querySelector('svg'), svgId: (pre.querySelector('svg')||{}).id, fallback: !!d.querySelector('.ds-diag__fallback'), fbText: (d.querySelector('.ds-diag__fallback')||{}).textContent||'', inner: pre.innerHTML.slice(0,90), failed: pre.hasAttribute('data-mermaid-failed'), processed: pre.hasAttribute('data-processed') }; });
+  r.stray = [].map.call(document.querySelectorAll('body > *'), function(e){return e.tagName+'#'+e.id}).slice(-4); return r; })()`), null, 1));
+await P.shot(process.env.S + "/shots/t6-broken-probe.png", true);
+await P.close(); b.close();
