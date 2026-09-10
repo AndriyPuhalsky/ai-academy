@@ -2514,3 +2514,86 @@ html { scrollbar-width: thin; scrollbar-color: var(--c-line) transparent; }
     linear-gradient(var(--c-text), var(--c-text)),
     linear-gradient(var(--c-text), var(--c-text));
 }
+
+
+/* ============================================================================
+   41.1 · 011 · РЯДОК 1 · ПОСТІЙНО ВИДИМА СМУГА ПРОКРУТКИ НА ТИХ САМИХ ШЕСТИ СКРОЛЕРАХ
+   ----------------------------------------------------------------------------
+   Гасіння краю (§41) показує «далі є ще» ТІЛЬКИ там, де в краю є вміст. Замір
+   2026-09-10 (50 прокручуваних блоків, 211 зрізів по 200 px): у 11,4 % зрізів
+   край порожній і гасити нічого. Ширша маска це не лікує — 40 → 80 px купує
+   1,8 п.п., тому --fade-w лишається var(--s-10).
+   Смуга закриває саме цей випадок і додає те, чого маска не вміє взагалі:
+   СКІЛЬКИ ще лишилось.
+
+   ⚠ ПАСТКА, ЧЕРЕЗ ЯКУ ЦЕ ПРАВИЛО МОЖЕ МОВЧКИ НЕ ПРАЦЮВАТИ.
+   §38.8 ставить html { scrollbar-width: thin; scrollbar-color: var(--c-line) … }.
+   `scrollbar-color` УСПАДКОВУЄТЬСЯ, а Chrome ≥ 121 ігнорує ::-webkit-scrollbar
+   на елементі, у якого задані стандартні властивості смуги. Тому першим рядком
+   іде scrollbar-color: auto — без нього ::-webkit-* не діють узагалі (заміряно
+   A/B: 0 px проти 12 px). Рядок html у §38.8 НЕ чіпати: він фарбує смугу
+   сторінки, і на Windows це видима річ.
+
+   Товщина 12 px = площа наведення; видимий повзунок 4 px — прозоре поле 4 px
+   робиться border + background-clip: padding-box. Колір --c-line-strong, бо це
+   роль «межа, що ідентифікує контрол»: 3,34–3,78 до трьох фонів під скролерами
+   (--c-surface / --c-bg / --c-sunken) проти 1,59–1,80 у --c-line, тобто SC 1.4.11.
+   Місце під смугу враховане з першої розкладки, тому CLS не додається (заміряно
+   на 6 сторінко-ширинах). Маска §41 смуги не торкається: жолоб лежить між рамкою
+   і padding-box, і шар L2 (exclude) лишає його непрозорим — перевірено дослідом
+   зі смугою згасання 300 px.
+   ========================================================================== */
+@supports selector(::-webkit-scrollbar) {
+  .ds-tbl__wrap,
+  .ds-diag > pre.mermaid,
+  .term > .term__body,
+  .ds-code > .ds-code__pre,
+  .ds-prose > .ds-code__pre,
+  .ds-prose > section > .ds-code__pre { scrollbar-color: auto; }
+
+  .ds-tbl__wrap::-webkit-scrollbar,
+  .ds-diag > pre.mermaid::-webkit-scrollbar,
+  .term > .term__body::-webkit-scrollbar,
+  .ds-code > .ds-code__pre::-webkit-scrollbar,
+  .ds-prose > .ds-code__pre::-webkit-scrollbar,
+  .ds-prose > section > .ds-code__pre::-webkit-scrollbar { width: var(--s-3); height: var(--s-3); }
+
+  .ds-tbl__wrap::-webkit-scrollbar-track,
+  .ds-diag > pre.mermaid::-webkit-scrollbar-track,
+  .term > .term__body::-webkit-scrollbar-track,
+  .ds-code > .ds-code__pre::-webkit-scrollbar-track,
+  .ds-prose > .ds-code__pre::-webkit-scrollbar-track,
+  .ds-prose > section > .ds-code__pre::-webkit-scrollbar-track { background: transparent; }
+
+  .ds-tbl__wrap::-webkit-scrollbar-thumb,
+  .ds-diag > pre.mermaid::-webkit-scrollbar-thumb,
+  .term > .term__body::-webkit-scrollbar-thumb,
+  .ds-code > .ds-code__pre::-webkit-scrollbar-thumb,
+  .ds-prose > .ds-code__pre::-webkit-scrollbar-thumb,
+  .ds-prose > section > .ds-code__pre::-webkit-scrollbar-thumb {
+    background: var(--c-line-strong);
+    background-clip: padding-box;          /* видимий повзунок = 12 − 2×4 = 4 px */
+    border: var(--s-1) solid transparent;
+    border-radius: var(--r-pill);
+  }
+
+  /* Кут між горизонтальною й вертикальною смугою — лише в .ds-tbl__wrap--tall
+     (дві таблиці в claude-code-ref-settings.html). Без цього рядка Chrome малює
+     там світлий системний квадрат. */
+  .ds-tbl__wrap::-webkit-scrollbar-corner { background: transparent; }
+}
+
+/* Firefox ::-webkit-* не знає; там смуга робиться стандартними властивостями.
+   Гілки взаємовиключні, тож у Chrome цей блок не застосовується й конфлікту з
+   scrollbar-color: auto вище немає. */
+@supports not selector(::-webkit-scrollbar) {
+  .ds-tbl__wrap,
+  .ds-diag > pre.mermaid,
+  .term > .term__body,
+  .ds-code > .ds-code__pre,
+  .ds-prose > .ds-code__pre,
+  .ds-prose > section > .ds-code__pre {
+    scrollbar-width: thin;
+    scrollbar-color: var(--c-line-strong) transparent;
+  }
+}
