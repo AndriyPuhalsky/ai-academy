@@ -125,10 +125,12 @@ async function boot() {
   const u = ui();
   if (u) u.init({ handlers: handlers, certUrl: CERT_URL });
 
-  await buildModuleMap();
-
   // 4. Сесія. САМЕ ТУТ supabase-js обмінює ?code= на сесію (PKCE).
-  await refreshSession();
+  //    011 · рядок 8: мапа модулів і сесія незалежні (мапу читає лише запис
+  //    прогресу, тобто клік, який завжди пізніший), тому тягнемо їх паралельно —
+  //    aia:auth і hydrate() приходять на один мережевий крок раніше, і гейт
+  //    заблокованого уроку для залогіненого стає швидше.
+  await Promise.all([buildModuleMap(), refreshSession()]);
 
   // 4b. Був ?code=, а сесії після обміну так і немає — вхід провалився мовчки.
   //     ЧОМУ НЕ ЧЕРЕЗ ПОМИЛКУ getSession(): supabase-js ковтає помилку обміну

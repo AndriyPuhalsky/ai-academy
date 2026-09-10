@@ -726,6 +726,20 @@ html.ds-lock { overflow: hidden; }
 .ds-tbl thead th { background: var(--c-raised); color: var(--c-text); font-weight: var(--w-semi); }
 .ds-tbl tbody tr:last-child td { border-bottom: 0; }
 .ds-tbl td:first-child { color: var(--c-text); font-family: var(--f-mono); font-size: var(--fs-small); white-space: nowrap; }
+/* ⚠ 011 · рядок 13a. `nowrap` лишається усталеним — це правило системи 009 для
+   команд і ключів, і воно ж тримає короткі підписи першої колонки в один рядок.
+   Знімати його для всіх було ПЕРЕВІРЕНО й відкинуто 2026-09-10: авто-розкладка
+   таблиці тоді віддає ширину прозовим колонкам, і в 80 зі 179 таблиць підписи
+   першої колонки, які досі стояли в один рядок, переносяться на 2–5 (заміряно
+   чесним підрахунком рядків через Range на 1280 і 768). Це регресія вигляду
+   там, де нічого не боліло.
+   Коли ж у першій колонці речення або довга команда з аргументами, колонка
+   розпирається, а решта стискається до одного символа (7 таблиць повністю,
+   ще ~12 помірно, замір 2026-09-09/10). Для них — модифікатор .ds-tbl--wrap:
+   перша колонка переноситься між словами, усередині токена — лише коли інакше
+   ніяк (overflow-wrap: anywhere з базового правила). Ставиться руками; критерій
+   — друга колонка ≤ 34 % ширини таблиці при першій ≥ 45 % на 1280. */
+.ds-tbl--wrap td:first-child { white-space: normal; }
 .ds-tbl__empty { padding: var(--s-8); text-align: center; color: var(--c-text-3); }
 
 
@@ -733,7 +747,14 @@ html.ds-lock { overflow: hidden; }
    14. ds-diag — 248 обгорток діаграм. Тема Mermaid будується з токенів
    (mermaid-theme.js), а не з 13 власних хексів.
    ========================================================================== */
-.ds-diag { border: var(--bw) solid var(--c-line); border-radius: var(--r-inner); background: var(--c-surface); padding: var(--s-4); overflow-x: auto; min-width: 0; }
+.ds-diag { border: var(--bw) solid var(--c-line); border-radius: var(--r-inner); background: var(--c-surface); padding: var(--s-4); min-width: 0; }
+/* ⚠ 011 · рядок 1. Прокручується тепер САМ <pre> із діаграмою, а не картка .ds-diag.
+   Три наслідки, усі корисні: підпис під схемою більше не їде вбік разом зі схемою;
+   маска-підказка про скрол (секція 41) фарбує лише схему, а не рамку й тло картки;
+   картка лишається звичайним блоком — рамка, кільце фокуса й радіус не масковані.
+   Атрибути доступності скролера (tabindex / role / aria-labelledby) тепер ставить
+   js/mermaid-init.js на <pre>, бо стрілки прокручують саме сфокусований елемент. */
+.ds-diag > pre.mermaid { overflow-x: auto; overscroll-behavior-x: contain; }
 .ds-diag__caption { margin-top: var(--s-2); font-size: var(--fs-small); color: var(--c-text-3); }
 .ds-diag__fallback { display: flex; align-items: center; gap: var(--s-2); color: var(--c-warn-text); font-size: var(--fs-ui); }
 .ds-diag__fallback::before { content: "▲"; font-family: var(--f-mono); }
@@ -1278,10 +1299,29 @@ html { scroll-padding-top: calc(var(--s-16) + var(--s-4)); }
    розгорнутим списком без дропдауна. */
 .ds-nav__drawer {
   display: none;
-  position: relative;
+  /* 011 · рядок 7 (QA 010, коло 2). Було position: relative — панель у потоці
+     ОДРАЗУ ПІД липкою шапкою, тобто на початку документа. Заміряно 2026-09-10
+     на 390: сторінка прокручена на 900 px, тап по бургеру → панель зʼявляється
+     на 1181 px ВИЩЕ за вʼюпорт (Chrome ще й підсуває scrollY якорінням), а на
+     екрані не змінюється нічого, крім стану кнопки. Sticky з тим самим top, що
+     й у шапки, тримає панель під нею на будь-якій прокрутці; у стані спокою
+     (scrollY = 0) вигляд і потік ті самі, що й були — панель так само
+     відсуває hero вниз. Стеля висоти — щоб на низькому екрані (телефон боком)
+     нижні пункти не опинялись за краєм: панель прокручується в собі. Замок
+     скролу сторінки на час відкриття вішає js/ui.js тим самим лічильником,
+     що й обидві модалки та шторка уроку. */
+  position: sticky;
+  top: var(--s-16);
   z-index: var(--z-header);
+  max-height: calc(100vh - var(--s-16));
+  max-height: calc(100dvh - var(--s-16));
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border-bottom: var(--bw) solid var(--c-line);
   background: var(--c-bg);
+}
+@media (max-height: 700px) {
+  .ds-nav__drawer { top: var(--s-12); max-height: calc(100vh - var(--s-12)); max-height: calc(100dvh - var(--s-12)); }
 }
 .ds-nav__drawer > nav {
   max-width: var(--w-content);
@@ -1624,6 +1664,26 @@ html { scroll-padding-top: calc(var(--s-16) + var(--s-4)); }
   .ds-snav { top: var(--s-12); max-height: calc(100vh - var(--s-12)); }
 }
 
+/* 011 · рядок 8, шосте рішення власника. Резерв висоти сайдбара, поки на
+   сторінці стоїть РАННІЙ замок гостя (js/module.js, earlyGuestGate).
+   Навіщо: замок ставиться синхронно під час розбору, а сайдбар заповнюється
+   лише на aia:config-ready. На ≥1024 він стоїть у потоці (grid поряд із #main),
+   тож рядок сітки ріс із 272 до 836 px, а футер — з 336 на 900: CLS 0,082 на
+   1280×900 (stand/t10.out.json, джерело зсуву — FOOTER.ds-ftr--short).
+   Чому саме стеля: min-height ДОРІВНЮЄ max-height двома правилами вище, тож
+   заповнений сайдбар не виходить за резерв — зсуву ні вниз, ні вгору бути не
+   може. Резерв не знімається: для гостя замок лишається й після конфіга.
+   Тільки для раннього замка: у залогіненого замок і сайдбар зʼявляються в
+   одному кадрі, і безумовний резерв завів би йому НОВИЙ зсув футера вниз.
+   ⚠ Значення тримати ТОЧНО таким, як max-height вище — та сама одиниця vh
+   (не dvh) і той самий токен. Розійдуться — зсув повернеться мовчки. */
+@media (min-width: 1024px) {
+  html[data-aia-gate="early"] .ds-snav { min-height: calc(100vh - var(--s-16)); }
+}
+@media (min-width: 1024px) and (max-height: 700px) {
+  html[data-aia-gate="early"] .ds-snav { min-height: calc(100vh - var(--s-12)); }
+}
+
 /* П-23. `_base` селектує [aria-current="true"], а js/module.js:165 ставить
    aria-current="page" — єдине правильне значення для пункту навігації за
    WAI-ARIA. Селектор просто не спрацьовує: поточний урок утрачає акцентний
@@ -1881,7 +1941,7 @@ html { scroll-padding-top: calc(var(--s-16) + var(--s-4)); }
    агентом №2: у _base на всіх шести горизонтальних скролерах `auto`. */
 .term > .term__body,
 .ds-tbl__wrap,
-.ds-diag,
+.ds-diag > pre.mermaid,
 .ds-code > .ds-code__pre,
 .ds-prose > .ds-code__pre,
 .ds-prose > section > .ds-code__pre { overscroll-behavior-x: contain; }
@@ -2352,6 +2412,21 @@ html { scrollbar-width: thin; scrollbar-color: var(--c-line) transparent; }
    inline, а inline-бокс авто-марджинами не центрується взагалі. */
 .ds-diag > pre.mermaid { margin: 0; }
 .ds-diag > pre.mermaid > svg { display: block; margin-inline: auto; }
+/* 011 · рядок 6 (D-19). Смуга завширшки з правий падінг: SVG уже ширший за
+   контент-бокс, але ще не за падінг-бокс — бокс переобмежений, авто-марджини
+   стають нулем, і діаграма стоїть ліворуч без жодного скролу (architect-03#0
+   @768: 685 у 670; claude-code-08#0 @1440: 749 у 734, зсув 15 px). Розширюємо
+   <pre> на обидва падінги: центр рахується від падінг-бокса, смуга зникає, а
+   вужчі діаграми центруються там само, де й були (падінги симетричні).
+   Щойно контейнер справді прокручується (data-scrollable ставить
+   js/mermaid-init.js), відступи повертаються — початок схеми стоїть на падінгу,
+   а не впритул до рамки. Стани не осцилюють: у смузі 670–702 бокс непрокрутний
+   в обох варіантах, ширший за 702 — прокрутний в обох. */
+.ds-diag > pre.mermaid { margin-inline: calc(var(--s-4) * -1); }
+.ds-diag > pre.mermaid[data-scrollable] { margin-inline: 0; }
+/* Відмова рендеру (011, рядок 4): під фолбеком лишається текст діаграми —
+   читається як текст, а не як нескінченний рядок джерела. */
+.ds-diag > pre.mermaid[data-mermaid-failed] { margin-inline: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--c-text-2); font-size: var(--fs-code); line-height: var(--lh-code); }
 
 /* Скрол-контейнер, у який можна зайти з клавіатури (WCAG 2.1.1), отримує
    ту саму пару станів, що й будь-який інший фокусований елемент системи.
@@ -2402,4 +2477,175 @@ html { scrollbar-width: thin; scrollbar-color: var(--c-line) transparent; }
 .ds-pill { min-width: calc((var(--navprog-ch, 7) - 1) * 1ch + var(--s-2) + var(--s-3) * 2 + var(--bw) * 2); }
 @media (max-width: 640px) {
   .ds-pill { min-width: calc(var(--navprog-short-ch, 5) * 1ch + var(--s-3) * 2 + var(--bw) * 2); }
+}
+
+
+/* ============================================================================
+   41. 011 · РЯДОК 1 · ПІДКАЗКА ПРО ГОРИЗОНТАЛЬНИЙ СКРОЛ — ОДИН ПАТЕРН НА ШІСТЬ СКРОЛЕРІВ
+   ----------------------------------------------------------------------------
+   У системі 009 не було жодного натяку, що діаграму, таблицю чи термінал можна
+   потягнути вбік (QA 010, D-23: на 1440 скролять 59 діаграм зі 100, на 390 — 99).
+   Рішення власника 2026-09-08 — робити без макета, одним патерном, на токенах.
+
+   ПАТЕРН: край, за яким є ще вміст, ПЛАВНО ГАСНЕ (fade). Це не тінь і не гліф —
+   вміст сам «розчиняється» в краю, і око читає це як «далі є ще». Робить це
+   mask-image на самому скролері, тому фарбується лише ВМІСТ (текст, клітинки,
+   схема), а не рамка чи тло: рамка й кільце фокуса лишаються цілими через
+   тришарову маску (див. нижче). Кольорів тут немає взагалі — маска безбарвна,
+   ширина згасання — токен простору.
+
+   СТАН веде js/ui.js (initScrollFades): data-scroll-fade="right" | "left" | "both"
+   виставляється зі scroll + ResizeObserver і знімається, коли прокручувати нікуди.
+   Без JS маски немає — сторінка виглядає як досі (прогресивне поліпшення).
+
+   ТРИ ШАРИ МАСКИ (порядок: верхній перший; кожен композитується з тим, що під ним):
+     L1  градієнт у padding-box — власне згасання;
+     L2  суцільний у padding-box, exclude (XOR) із L3 → лишається «кільце»:
+         рамка + жолоб смуги прокрутки + усе поза боксом — непрозорі;
+     L3  суцільний, no-clip + repeat — покриває все, включно з кільцем фокуса
+         ПОЗА border-box (інакше маска його зрізала б, WCAG 2.4.7).
+   Смуга прокрутки лежить між рамкою і padding-box, тому в градієнт не потрапляє
+   (класична смуга Windows не «розмазується»). Підтримка: mask-composite без
+   префікса — Chrome 120, Safari 15.4, Firefox 53; старіший Chrome відкидає
+   лише mask-composite → шари складаються як add → усе непрозоре → просто без
+   підказки, без шкоди.
+   ========================================================================== */
+[data-scroll-fade] {
+  --fade-w: var(--s-10);
+  mask-image:
+    linear-gradient(to right, transparent, var(--c-text) var(--fade-w), var(--c-text) calc(100% - var(--fade-w)), transparent),
+    linear-gradient(var(--c-text), var(--c-text)),
+    linear-gradient(var(--c-text), var(--c-text));
+  mask-clip: padding-box, padding-box, no-clip;
+  mask-origin: padding-box, padding-box, border-box;
+  mask-repeat: no-repeat, no-repeat, repeat;
+  mask-size: 100% 100%, 100% 100%, auto;
+  mask-composite: add, exclude, add;
+}
+[data-scroll-fade="right"] {
+  mask-image:
+    linear-gradient(to right, var(--c-text) calc(100% - var(--fade-w)), transparent),
+    linear-gradient(var(--c-text), var(--c-text)),
+    linear-gradient(var(--c-text), var(--c-text));
+}
+[data-scroll-fade="left"] {
+  mask-image:
+    linear-gradient(to right, transparent, var(--c-text) var(--fade-w)),
+    linear-gradient(var(--c-text), var(--c-text)),
+    linear-gradient(var(--c-text), var(--c-text));
+}
+/* 011 · QA хвилі 2, D-01. У .ds-tbl__wrap--tall є ВЕРТИКАЛЬНА смуга (§41.1, 12 px),
+   і її жолоб Chrome кладе всередину padding-box — тобто в зону градієнта L1, який
+   гасив повзунок до нуля (A/B 390 і 1024: з маскою повзунка не видно, без маски —
+   видно). Тут згасання зсувається на ширину жолоба ліворуч, а останні var(--s-3)
+   лишаються непрозорими жорстким стопом. Лише для --tall: у решти скролерів
+   вертикальної смуги немає, і їхній край гасне як досі. */
+.ds-tbl__wrap--tall[data-scroll-fade] {
+  mask-image:
+    linear-gradient(to right,
+      transparent, var(--c-text) var(--fade-w),
+      var(--c-text) calc(100% - var(--fade-w) - var(--s-3)),
+      transparent calc(100% - var(--s-3)), var(--c-text) calc(100% - var(--s-3))),
+    linear-gradient(var(--c-text), var(--c-text)),
+    linear-gradient(var(--c-text), var(--c-text));
+}
+.ds-tbl__wrap--tall[data-scroll-fade="right"] {
+  mask-image:
+    linear-gradient(to right,
+      var(--c-text) calc(100% - var(--fade-w) - var(--s-3)),
+      transparent calc(100% - var(--s-3)), var(--c-text) calc(100% - var(--s-3))),
+    linear-gradient(var(--c-text), var(--c-text)),
+    linear-gradient(var(--c-text), var(--c-text));
+}
+/* QA коло 2, D-02: без цього правила селектор --tall[data-scroll-fade] (вага 0,2,0)
+   перебивав базове ="left" і гасив правий край там, де вмісту вже немає. У стані
+   left правий край непрозорий, жолоб і так видно — повторюємо базову маску. */
+.ds-tbl__wrap--tall[data-scroll-fade="left"] {
+  mask-image:
+    linear-gradient(to right, transparent, var(--c-text) var(--fade-w)),
+    linear-gradient(var(--c-text), var(--c-text)),
+    linear-gradient(var(--c-text), var(--c-text));
+}
+
+
+/* ============================================================================
+   41.1 · 011 · РЯДОК 1 · ПОСТІЙНО ВИДИМА СМУГА ПРОКРУТКИ НА ТИХ САМИХ ШЕСТИ СКРОЛЕРАХ
+   ----------------------------------------------------------------------------
+   Гасіння краю (§41) показує «далі є ще» ТІЛЬКИ там, де в краю є вміст. Замір
+   2026-09-10 (50 прокручуваних блоків, 211 зрізів по 200 px): у 11,4 % зрізів
+   край порожній і гасити нічого. Ширша маска це не лікує — 40 → 80 px купує
+   1,8 п.п., тому --fade-w лишається var(--s-10).
+   Смуга закриває саме цей випадок і додає те, чого маска не вміє взагалі:
+   СКІЛЬКИ ще лишилось.
+
+   ⚠ ПАСТКА, ЧЕРЕЗ ЯКУ ЦЕ ПРАВИЛО МОЖЕ МОВЧКИ НЕ ПРАЦЮВАТИ.
+   §38.8 ставить html { scrollbar-width: thin; scrollbar-color: var(--c-line) … }.
+   `scrollbar-color` УСПАДКОВУЄТЬСЯ, а Chrome ≥ 121 ігнорує ::-webkit-scrollbar
+   на елементі, у якого задані стандартні властивості смуги. Тому першим рядком
+   іде scrollbar-color: auto — без нього ::-webkit-* не діють узагалі (заміряно
+   A/B: 0 px проти 12 px). Рядок html у §38.8 НЕ чіпати: він фарбує смугу
+   сторінки, і на Windows це видима річ.
+
+   Товщина 12 px = площа наведення; видимий повзунок 4 px — прозоре поле 4 px
+   робиться border + background-clip: padding-box. Колір --c-line-strong, бо це
+   роль «межа, що ідентифікує контрол»: 3,34–3,78 до трьох фонів під скролерами
+   (--c-surface / --c-bg / --c-sunken) проти 1,59–1,80 у --c-line, тобто SC 1.4.11.
+   Місце під смугу враховане з першої розкладки, тому CLS не додається (заміряно
+   на 6 сторінко-ширинах). Маска §41 смуги не торкається: жолоб лежить між рамкою
+   і padding-box, і шар L2 (exclude) лишає його непрозорим — перевірено дослідом
+   зі смугою згасання 300 px.
+   ========================================================================== */
+@supports selector(::-webkit-scrollbar) {
+  .ds-tbl__wrap,
+  .ds-diag > pre.mermaid,
+  .term > .term__body,
+  .ds-code > .ds-code__pre,
+  .ds-prose > .ds-code__pre,
+  .ds-prose > section > .ds-code__pre { scrollbar-color: auto; }
+
+  .ds-tbl__wrap::-webkit-scrollbar,
+  .ds-diag > pre.mermaid::-webkit-scrollbar,
+  .term > .term__body::-webkit-scrollbar,
+  .ds-code > .ds-code__pre::-webkit-scrollbar,
+  .ds-prose > .ds-code__pre::-webkit-scrollbar,
+  .ds-prose > section > .ds-code__pre::-webkit-scrollbar { width: var(--s-3); height: var(--s-3); }
+
+  .ds-tbl__wrap::-webkit-scrollbar-track,
+  .ds-diag > pre.mermaid::-webkit-scrollbar-track,
+  .term > .term__body::-webkit-scrollbar-track,
+  .ds-code > .ds-code__pre::-webkit-scrollbar-track,
+  .ds-prose > .ds-code__pre::-webkit-scrollbar-track,
+  .ds-prose > section > .ds-code__pre::-webkit-scrollbar-track { background: transparent; }
+
+  .ds-tbl__wrap::-webkit-scrollbar-thumb,
+  .ds-diag > pre.mermaid::-webkit-scrollbar-thumb,
+  .term > .term__body::-webkit-scrollbar-thumb,
+  .ds-code > .ds-code__pre::-webkit-scrollbar-thumb,
+  .ds-prose > .ds-code__pre::-webkit-scrollbar-thumb,
+  .ds-prose > section > .ds-code__pre::-webkit-scrollbar-thumb {
+    background: var(--c-line-strong);
+    background-clip: padding-box;          /* видимий повзунок = 12 − 2×4 = 4 px */
+    border: var(--s-1) solid transparent;
+    border-radius: var(--r-pill);
+  }
+
+  /* Кут між горизонтальною й вертикальною смугою — лише в .ds-tbl__wrap--tall
+     (дві таблиці в claude-code-ref-settings.html). Без цього рядка Chrome малює
+     там світлий системний квадрат. */
+  .ds-tbl__wrap::-webkit-scrollbar-corner { background: transparent; }
+}
+
+/* Firefox ::-webkit-* не знає; там смуга робиться стандартними властивостями.
+   Гілки взаємовиключні, тож у Chrome цей блок не застосовується й конфлікту з
+   scrollbar-color: auto вище немає. */
+@supports not selector(::-webkit-scrollbar) {
+  .ds-tbl__wrap,
+  .ds-diag > pre.mermaid,
+  .term > .term__body,
+  .ds-code > .ds-code__pre,
+  .ds-prose > .ds-code__pre,
+  .ds-prose > section > .ds-code__pre {
+    scrollbar-width: thin;
+    scrollbar-color: var(--c-line-strong) transparent;
+  }
 }

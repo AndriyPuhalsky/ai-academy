@@ -7,3 +7,5 @@
 - [Перевірка: браузер і чим його заміняли](feedback_verification_without_browser.md) — iframe, cache-buster, CDP 45 с через window.__last; у фоновій вкладці переходи й rAF не йдуть; scroll-smooth ламає scrollTo; A/B у CSSOM + elementFromPoint
 - [Латентні пастки, які лишаються в коді свідомо](project_aia_known_latent_traps.md) — дві в js/roadmap-render.js; документуємо, не виправляємо; QA попереджена
 - [Діаграми Mermaid (010, коло фіксів)](project_aia_diagrams_mermaid.md) — useMaxWidth:false + скрол + margin-inline:auto; `<br/>` мертвий через securityLevel:strict; iframe ≥1024 ламає рендер
+- [Пастки заміру в браузері](reference_browser_measure_traps.md) — вʼюпорт вкладки ≠ resize_window; урок гостя дає нульові ширини; атрибут після програмного скролу відстає
+- [Звіт і коміти](feedback_report_and_commits.md) — report .md ПИСАТИ файлом (вимога власника 2026-09-10) + дублювати текстом; `-m`/`-F` перед `--`; дві правки одного файла = два послідовні коміти

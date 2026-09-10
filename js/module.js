@@ -387,13 +387,43 @@
       });
     } else {
       if (gate) gate.remove();
+      /* 011 · рядок 8. Замок пішов (гість увійшов і модуль виявився
+         відкритим) — резерв більше не потрібен. removeAttribute ідемпотентний,
+         тому виклик на кожному applyGate() нічого не коштує. */
+      document.documentElement.removeAttribute("data-aia-gate");
       Array.prototype.forEach.call(main.children, function (ch) { ch.hidden = false; });
     }
   }
 
+  /* 011 · рядок 8. Чи це напевно гість: сесії немає ні в памʼяті, ні в сховищі
+     (supabase-js тримає її під ключем `sb-<ref>-auth-token` — та сама ознака,
+     на яку спираються js/auth-ui.js і js/claude-code-render.js). Повернення з
+     OAuth (?code= / #access_token=) — виняток: людина залогінена, а сесії в
+     сховищі ще немає до обміну коду; там чекаємо hydrate(), як і раніше. */
+  function guestForSure() {
+    if (window.AIA_USER) return false;
+    try {
+      if (/[?&#](code|access_token|refresh_token)=/.test(location.search + location.hash)) return false;
+      for (var i = 0; i < localStorage.length; i++) {
+        if (/^sb-.*-auth-token$/.test(localStorage.key(i))) return false;
+      }
+    } catch (e) { return false; }   /* сховище недоступне → поводимось як раніше */
+    return true;
+  }
+
   function applyGate(cfg) {
-    // Не блокуємо, доки прогрес не підвантажено з сервера (щоб не блимало)
-    if (!currentId || !window.AIAProgress || !window.AIAProgress.isHydrated || !window.AIAProgress.isHydrated()) return;
+    if (!currentId || !window.AIAProgress) return;
+    /* Не блокуємо, доки прогрес не підвантажено з сервера (щоб не блимало) —
+       для того, хто МОЖЕ бути залогінений. Для гостя рішення відоме синхронно:
+       на сервері прогресу немає, unlockedSet рахується з порожнього кеша, і
+       результат після hydrate([]) буде той самий. Чекати CDN supabase-js +
+       запит modules + getSession (≈1,4–4 с) означало показати весь урок, а потім
+       сховати його: футер стрибав у вʼюпорт (CLS 0,19–0,25 на 390, QA 010 коло 2).
+       Тепер замок для гостя стає вже на aia:config-ready. Діаграми Mermaid при
+       цьому малюються у схованих <pre> без шкоди — render() міряє мітки в
+       тимчасовому контейнері в <body> (js/mermaid-init.js, рядок 4). */
+    var hydrated = !!(window.AIAProgress.isHydrated && window.AIAProgress.isHydrated());
+    if (!hydrated && !guestForSure()) return;
     var unlocked = unlockedCodes(cfg.modules || []);
     setMainLocked(!unlocked.has(currentId), cfg);
   }
@@ -450,6 +480,37 @@
   }
 
   /* ---------- Старт ---------- */
+
+  /* 011 · рядок 8, друга половина. Замок для гостя ставиться СИНХРОННО, ще під
+     час розбору сторінки — до першого малювання, а не на aia:config-ready.
+     Причина: aia:config-ready чекає DOMContentLoaded, а той — на mermaid.min.js
+     із CDN (класичний <script> у кінці body блокує розбір): заміряно 1,2–1,5 с на
+     холодному кеші. Стільки гість бачив увесь урок, перш ніж його ховав замок.
+     Для гостя (guestForSure) на сервері прогресу немає, тож розблокований лише
+     перший модуль; номер модуля читаємо з коду в <body data-module> — усі 57 кодів
+     проєкту мають форму <префікс><дві цифри> (m01, a22, c23), а код глобально
+     унікальний (несуча конструкція, див. кореневий CLAUDE.md). Незнайома форма
+     коду → нічого не робимо, чекаємо конфіг. Помилка тут самовиправна: applyGate
+     на aia:config-ready перерахує стан за справжнім списком модулів. */
+  function numberFromCode(code) {
+    var m = /^[a-z]+0*(\d+)$/i.exec(code || "");
+    return m ? parseInt(m[1], 10) : NaN;
+  }
+  function earlyGuestGate() {
+    if (!currentId || !guestForSure()) return;
+    var n = numberFromCode(currentId);
+    if (!(n > 1)) return;
+    setMainLocked(true, { modules: [] });
+    /* 011 · рядок 8, шосте рішення. Вмикає резерв висоти сайдбара
+       (css/components.css §28) на час РАННЬОГО замка: сайдбар ще порожній і
+       доросте до стелі лише на aia:config-ready, а на ≥1024 він у потоці —
+       без резерву рядок сітки стрибає з 272 на 836, футер із 336 на 900.
+       Атрибут ставиться ТІЛЬКИ тут: у залогіненого замок і сайдбар
+       зʼявляються в одному кадрі, резерв йому не потрібен і шкідливий.
+       ⚠ Це НЕ data-aia-lock: інший атрибут, єдиний власник — цей файл. */
+    document.documentElement.setAttribute("data-aia-gate", "early");
+  }
+  earlyGuestGate();
 
   document.addEventListener("DOMContentLoaded", function () {
     initDrawer();
