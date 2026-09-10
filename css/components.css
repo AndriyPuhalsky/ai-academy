@@ -725,7 +725,22 @@ html.ds-lock { overflow: hidden; }
    скролпортом — .ds-tbl__wrap--tall у дельті 010 нижче. */
 .ds-tbl thead th { background: var(--c-raised); color: var(--c-text); font-weight: var(--w-semi); }
 .ds-tbl tbody tr:last-child td { border-bottom: 0; }
-.ds-tbl td:first-child { color: var(--c-text); font-family: var(--f-mono); font-size: var(--fs-small); white-space: nowrap; }
+.ds-tbl td:first-child { color: var(--c-text); font-family: var(--f-mono); font-size: var(--fs-small); }
+/* ⚠ 011 · рядок 13a. Було `white-space: nowrap` на ВСІЙ першій клітинці — правило
+   задумане для команд і ключів налаштувань, але коли в першій колонці стоїть
+   речення, вона розпирається, а решта стискається до одного символа в рядок
+   (заміряно 2026-09-09/10 на всіх 179 таблицях сайту, 1280 px: 7 таблиць
+   зламані повністю — перша колонка 673–1020 px, друга 35–38 px). Тепер
+   нерозривним лишається лише ідентифікатор у <code> (команда, прапорець, ключ —
+   він не має ламатись на дефісі), а текст навколо нього переноситься як текст.
+   Клітинки з одним <code> (72 таблиці) рендеряться піксель у піксель як раніше.
+   Довга КОМАНДА з аргументами в одному <code> (три довідникові таблиці) — це
+   вже не ідентифікатор: для неї модифікатор .ds-tbl--wrap нижче. */
+.ds-tbl td:first-child code { white-space: nowrap; }
+/* Перша колонка переноситься цілком, і <code> теж (між словами; усередині
+   токена — лише коли інакше ніяк, overflow-wrap: anywhere з базового правила).
+   Ставиться руками на таблиці, де перша колонка — довга команда з аргументами. */
+.ds-tbl--wrap td:first-child code { white-space: normal; }
 .ds-tbl__empty { padding: var(--s-8); text-align: center; color: var(--c-text-3); }
 
 
@@ -733,7 +748,14 @@ html.ds-lock { overflow: hidden; }
    14. ds-diag — 248 обгорток діаграм. Тема Mermaid будується з токенів
    (mermaid-theme.js), а не з 13 власних хексів.
    ========================================================================== */
-.ds-diag { border: var(--bw) solid var(--c-line); border-radius: var(--r-inner); background: var(--c-surface); padding: var(--s-4); overflow-x: auto; min-width: 0; }
+.ds-diag { border: var(--bw) solid var(--c-line); border-radius: var(--r-inner); background: var(--c-surface); padding: var(--s-4); min-width: 0; }
+/* ⚠ 011 · рядок 1. Прокручується тепер САМ <pre> із діаграмою, а не картка .ds-diag.
+   Три наслідки, усі корисні: підпис під схемою більше не їде вбік разом зі схемою;
+   маска-підказка про скрол (секція 41) фарбує лише схему, а не рамку й тло картки;
+   картка лишається звичайним блоком — рамка, кільце фокуса й радіус не масковані.
+   Атрибути доступності скролера (tabindex / role / aria-labelledby) тепер ставить
+   js/mermaid-init.js на <pre>, бо стрілки прокручують саме сфокусований елемент. */
+.ds-diag > pre.mermaid { overflow-x: auto; overscroll-behavior-x: contain; }
 .ds-diag__caption { margin-top: var(--s-2); font-size: var(--fs-small); color: var(--c-text-3); }
 .ds-diag__fallback { display: flex; align-items: center; gap: var(--s-2); color: var(--c-warn-text); font-size: var(--fs-ui); }
 .ds-diag__fallback::before { content: "▲"; font-family: var(--f-mono); }
@@ -1278,10 +1300,29 @@ html { scroll-padding-top: calc(var(--s-16) + var(--s-4)); }
    розгорнутим списком без дропдауна. */
 .ds-nav__drawer {
   display: none;
-  position: relative;
+  /* 011 · рядок 7 (QA 010, коло 2). Було position: relative — панель у потоці
+     ОДРАЗУ ПІД липкою шапкою, тобто на початку документа. Заміряно 2026-09-10
+     на 390: сторінка прокручена на 900 px, тап по бургеру → панель зʼявляється
+     на 1181 px ВИЩЕ за вʼюпорт (Chrome ще й підсуває scrollY якорінням), а на
+     екрані не змінюється нічого, крім стану кнопки. Sticky з тим самим top, що
+     й у шапки, тримає панель під нею на будь-якій прокрутці; у стані спокою
+     (scrollY = 0) вигляд і потік ті самі, що й були — панель так само
+     відсуває hero вниз. Стеля висоти — щоб на низькому екрані (телефон боком)
+     нижні пункти не опинялись за краєм: панель прокручується в собі. Замок
+     скролу сторінки на час відкриття вішає js/ui.js тим самим лічильником,
+     що й обидві модалки та шторка уроку. */
+  position: sticky;
+  top: var(--s-16);
   z-index: var(--z-header);
+  max-height: calc(100vh - var(--s-16));
+  max-height: calc(100dvh - var(--s-16));
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border-bottom: var(--bw) solid var(--c-line);
   background: var(--c-bg);
+}
+@media (max-height: 700px) {
+  .ds-nav__drawer { top: var(--s-12); max-height: calc(100vh - var(--s-12)); max-height: calc(100dvh - var(--s-12)); }
 }
 .ds-nav__drawer > nav {
   max-width: var(--w-content);
@@ -1881,7 +1922,7 @@ html { scroll-padding-top: calc(var(--s-16) + var(--s-4)); }
    агентом №2: у _base на всіх шести горизонтальних скролерах `auto`. */
 .term > .term__body,
 .ds-tbl__wrap,
-.ds-diag,
+.ds-diag > pre.mermaid,
 .ds-code > .ds-code__pre,
 .ds-prose > .ds-code__pre,
 .ds-prose > section > .ds-code__pre { overscroll-behavior-x: contain; }
@@ -1923,7 +1964,9 @@ html { scroll-padding-top: calc(var(--s-16) + var(--s-4)); }
    налаштування. Скрол лишається всередині обгортки й сторінку не ламає,
    але читати доводиться боком. На вузькому екрані даємо їй переноситись. */
 @media (max-width: 640px) {
-  .ds-tbl td:first-child { white-space: normal; }
+  /* 011 · рядок 13a: nowrap тепер лише на <code> у першій клітинці (секція 13),
+     на вузькому екрані знімаємо і його — як і було для всієї клітинки. */
+  .ds-tbl td:first-child code { white-space: normal; }
 }
 
 
@@ -2352,6 +2395,21 @@ html { scrollbar-width: thin; scrollbar-color: var(--c-line) transparent; }
    inline, а inline-бокс авто-марджинами не центрується взагалі. */
 .ds-diag > pre.mermaid { margin: 0; }
 .ds-diag > pre.mermaid > svg { display: block; margin-inline: auto; }
+/* 011 · рядок 6 (D-19). Смуга завширшки з правий падінг: SVG уже ширший за
+   контент-бокс, але ще не за падінг-бокс — бокс переобмежений, авто-марджини
+   стають нулем, і діаграма стоїть ліворуч без жодного скролу (architect-03#0
+   @768: 685 у 670; claude-code-08#0 @1440: 749 у 734, зсув 15 px). Розширюємо
+   <pre> на обидва падінги: центр рахується від падінг-бокса, смуга зникає, а
+   вужчі діаграми центруються там само, де й були (падінги симетричні).
+   Щойно контейнер справді прокручується (data-scrollable ставить
+   js/mermaid-init.js), відступи повертаються — початок схеми стоїть на падінгу,
+   а не впритул до рамки. Стани не осцилюють: у смузі 670–702 бокс непрокрутний
+   в обох варіантах, ширший за 702 — прокрутний в обох. */
+.ds-diag > pre.mermaid { margin-inline: calc(var(--s-4) * -1); }
+.ds-diag > pre.mermaid[data-scrollable] { margin-inline: 0; }
+/* Відмова рендеру (011, рядок 4): під фолбеком лишається текст діаграми —
+   читається як текст, а не як нескінченний рядок джерела. */
+.ds-diag > pre.mermaid[data-mermaid-failed] { margin-inline: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--c-text-2); font-size: var(--fs-code); line-height: var(--lh-code); }
 
 /* Скрол-контейнер, у який можна зайти з клавіатури (WCAG 2.1.1), отримує
    ту саму пару станів, що й будь-який інший фокусований елемент системи.
@@ -2402,4 +2460,60 @@ html { scrollbar-width: thin; scrollbar-color: var(--c-line) transparent; }
 .ds-pill { min-width: calc((var(--navprog-ch, 7) - 1) * 1ch + var(--s-2) + var(--s-3) * 2 + var(--bw) * 2); }
 @media (max-width: 640px) {
   .ds-pill { min-width: calc(var(--navprog-short-ch, 5) * 1ch + var(--s-3) * 2 + var(--bw) * 2); }
+}
+
+
+/* ============================================================================
+   41. 011 · РЯДОК 1 · ПІДКАЗКА ПРО ГОРИЗОНТАЛЬНИЙ СКРОЛ — ОДИН ПАТЕРН НА ШІСТЬ СКРОЛЕРІВ
+   ----------------------------------------------------------------------------
+   У системі 009 не було жодного натяку, що діаграму, таблицю чи термінал можна
+   потягнути вбік (QA 010, D-23: на 1440 скролять 59 діаграм зі 100, на 390 — 99).
+   Рішення власника 2026-09-08 — робити без макета, одним патерном, на токенах.
+
+   ПАТЕРН: край, за яким є ще вміст, ПЛАВНО ГАСНЕ (fade). Це не тінь і не гліф —
+   вміст сам «розчиняється» в краю, і око читає це як «далі є ще». Робить це
+   mask-image на самому скролері, тому фарбується лише ВМІСТ (текст, клітинки,
+   схема), а не рамка чи тло: рамка й кільце фокуса лишаються цілими через
+   тришарову маску (див. нижче). Кольорів тут немає взагалі — маска безбарвна,
+   ширина згасання — токен простору.
+
+   СТАН веде js/ui.js (initScrollFades): data-scroll-fade="right" | "left" | "both"
+   виставляється зі scroll + ResizeObserver і знімається, коли прокручувати нікуди.
+   Без JS маски немає — сторінка виглядає як досі (прогресивне поліпшення).
+
+   ТРИ ШАРИ МАСКИ (порядок: верхній перший; кожен композитується з тим, що під ним):
+     L1  градієнт у padding-box — власне згасання;
+     L2  суцільний у padding-box, exclude (XOR) із L3 → лишається «кільце»:
+         рамка + жолоб смуги прокрутки + усе поза боксом — непрозорі;
+     L3  суцільний, no-clip + repeat — покриває все, включно з кільцем фокуса
+         ПОЗА border-box (інакше маска його зрізала б, WCAG 2.4.7).
+   Смуга прокрутки лежить між рамкою і padding-box, тому в градієнт не потрапляє
+   (класична смуга Windows не «розмазується»). Підтримка: mask-composite без
+   префікса — Chrome 120, Safari 15.4, Firefox 53; старіший Chrome відкидає
+   лише mask-composite → шари складаються як add → усе непрозоре → просто без
+   підказки, без шкоди.
+   ========================================================================== */
+[data-scroll-fade] {
+  --fade-w: var(--s-10);
+  mask-image:
+    linear-gradient(to right, transparent, var(--c-text) var(--fade-w), var(--c-text) calc(100% - var(--fade-w)), transparent),
+    linear-gradient(var(--c-text), var(--c-text)),
+    linear-gradient(var(--c-text), var(--c-text));
+  mask-clip: padding-box, padding-box, no-clip;
+  mask-origin: padding-box, padding-box, border-box;
+  mask-repeat: no-repeat, no-repeat, repeat;
+  mask-size: 100% 100%, 100% 100%, auto;
+  mask-composite: add, exclude, add;
+}
+[data-scroll-fade="right"] {
+  mask-image:
+    linear-gradient(to right, var(--c-text) calc(100% - var(--fade-w)), transparent),
+    linear-gradient(var(--c-text), var(--c-text)),
+    linear-gradient(var(--c-text), var(--c-text));
+}
+[data-scroll-fade="left"] {
+  mask-image:
+    linear-gradient(to right, transparent, var(--c-text) var(--fade-w)),
+    linear-gradient(var(--c-text), var(--c-text)),
+    linear-gradient(var(--c-text), var(--c-text));
 }

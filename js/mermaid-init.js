@@ -65,7 +65,11 @@
     if (box && !box.querySelector(".ds-diag__fallback")) {
       var p = document.createElement("p");
       p.className = "ds-diag__fallback";
-      p.textContent = "Діаграму не вдалося намалювати — нижче її текстовий опис.";
+      /* 011 · рядок 5 (D-18). Було «нижче її текстовий опис» — але Mermaid уже
+         підмінював вміст <pre> картинкою «Syntax error». Тепер джерело не
+         чіпається, поки SVG не готовий (див. renderOne), тож під написом
+         справді лишається текст діаграми — і напис каже саме це. */
+      p.textContent = "Діаграму не вдалося намалювати — нижче її текстовий запис (назви кроків і звʼязки між ними).";
       box.insertBefore(p, box.firstChild);
     }
   }
@@ -94,8 +98,12 @@
      ========================================================================== */
   var DIAG_NAME = "Діаграма";
 
+  /* 011 · рядок 1. Скролером став сам <pre class="mermaid"> (css/components.css,
+     §14): підпис не їде разом зі схемою, а маска-підказка про скрол фарбує
+     лише схему. Тому всі атрибути скролера — на <pre>; підпис шукаємо в картці. */
   function nameFor(box, i) {
-    var cap = box.querySelector(".ds-diag__caption");
+    var card = box.closest(".ds-diag") || box;
+    var cap = card.querySelector(".ds-diag__caption");
     if (cap) {
       if (!cap.id) cap.id = "aia-diag-cap-" + i;
       box.setAttribute("aria-labelledby", cap.id);
@@ -145,12 +153,21 @@
 
     var centerInContent = best.left + best.width / 2 - boxRect.left + box.scrollLeft;
     var target = centerInContent - box.clientWidth / 2;
+    /* 011 · рядок 10b (D-26). Корінь, ширший за вікно контейнера (на 390 px —
+       6 діаграм зі 100, вузли 357–538 px при вікні 348), по центру вилазить за
+       ОБИДВА краї, і початок його підпису лишається зліва за кадром: замість
+       «Схема інструментів MCP…» читалось «…ена інструментів MCP». Ціль не має
+       заходити правіше за лівий край вузла (мінус падінг контейнера): широкий
+       корінь читається з першої літери, вузький — як і був, по центру. */
+    var leftInContent = best.left - boxRect.left + box.scrollLeft;
+    var pad = parseFloat(getComputedStyle(box).paddingLeft) || 0;
+    target = Math.min(target, leftInContent - pad);
     var max = box.scrollWidth - box.clientWidth;
     box.scrollLeft = Math.max(0, Math.min(target, max));
   }
 
   function syncScrollers() {
-    var boxes = document.querySelectorAll(".ds-diag");
+    var boxes = document.querySelectorAll(".ds-diag > pre.mermaid");
     Array.prototype.forEach.call(boxes, function (box, i) {
       /* Нульова ширина = стан невідомий (елемент схований). Нічого не
          вирішуємо: ані вішаємо, ані знімаємо. */
@@ -192,7 +209,7 @@
        коли вкладка стає видимою. */
     if ("ResizeObserver" in global) {
       var ro = new ResizeObserver(scheduleSync);
-      Array.prototype.forEach.call(document.querySelectorAll(".ds-diag"), function (b) { ro.observe(b); });
+      Array.prototype.forEach.call(document.querySelectorAll(".ds-diag > pre.mermaid"), function (b) { ro.observe(b); });
     }
     global.addEventListener("resize", scheduleSync, { passive: true });
     document.addEventListener("visibilitychange", function () {
@@ -228,11 +245,63 @@
     return box.value.replace(/\s+$/, "");
   }
 
+  /* ==========================================================================
+     011 · РЯДОК 4 (D-17): render() ЗАМІСТЬ run({nodes}) — перевірка за фактом
+     --------------------------------------------------------------------------
+     Було: mermaid.run({ nodes: [n] }). Mermaid сам переписує <pre>: спершу ставить
+     data-processed, потім міряє й підставляє SVG. Два наслідки, обидва спіймані
+     QA 010: (1) коли результат приходить без <svg> (детерміновано — перша
+     навігація щойно створеного iframe; у Chrome 0 на ~290 завантажень), виняток
+     не кинуто, catch мовчить, і замість схеми учень бачить сирий CSS на 30 074 px
+     прокрутки; (2) на синтаксичній помилці джерело в <pre> уже замінене картинкою
+     «Syntax error», і фолбек обіцяє опис, якого немає.
+
+     Стало: mermaid.render(id, src) з ВЛАСНИМ лічильником id — генератор
+     `mermaid-${Date.now()}` з роздільністю 1 мс (причина D-01) більше не задіяний
+     взагалі. Результат перевіряється за фактом (є <svg>? це не картинка помилки?)
+     і лише тоді підставляється; до того <pre> стоїть незайманим, тож на будь-якій
+     відмові під фолбеком лишається текст самої діаграми. Тимчасовий контейнер
+     render() Mermaid створює в <body>, а не в <pre>, — замір міток не залежить
+     від того, чи <pre> схований (гейт уроку тепер стає раніше за рендер, див.
+     js/module.js, рядок 8).
+     ⛔ Виклики лишаються ПОСЛІДОВНИМИ (за id вони більше не бʼються, але Mermaid
+     тримає один глобальний стан парсера; повузловий fallback теж цього потребує).
+     ========================================================================== */
+  var seq = 0;
+
+  /* На відмові Mermaid лишає в <body> свій тимчасовий контейнер d<id> з картинкою
+     «Syntax error» (заміряно на пробі: div 109 px заввишки в самому низу сторінки).
+     Прибираємо його самі — разом із можливим <svg id> поза <pre>. */
+  function sweep(id) {
+    var tmp = document.getElementById("d" + id);
+    if (tmp && tmp.parentNode) tmp.parentNode.removeChild(tmp);
+    var stray = document.getElementById(id);
+    if (stray && !stray.closest("pre.mermaid") && stray.parentNode) stray.parentNode.removeChild(stray);
+  }
+
+  function renderOne(n, src) {
+    var id = "aia-mmd-" + (++seq);
+    return mermaid.render(id, src).catch(function (e) { sweep(id); throw e; }).then(function (res) {
+      var code = res && res.svg;
+      if (!code || code.indexOf("<svg") === -1) throw new Error("render() віддав результат без <svg>");
+      n.innerHTML = code;
+      var svg = n.querySelector("svg");
+      if (!svg) throw new Error("після вставки <svg> не зʼявився");
+      if (svg.getAttribute("aria-roledescription") === "error") throw new Error("Mermaid віддав картинку помилки");
+      /* Той самий маркер, що ставить mermaid.run(): на нього чекають QA-стенди
+         й валідатори (`pre.mermaid:not([data-processed])`). Ставиться ПІСЛЯ
+         перевірки — тобто тепер він справді означає «намальовано». */
+      n.setAttribute("data-processed", "true");
+      if (typeof res.bindFunctions === "function") res.bindFunctions(n);
+    });
+  }
+
   function run() {
     if (!global.mermaid || !global.AIA || !global.AIA.mermaidTheme) return;
     var defs = classDefs();
     var nodes = document.querySelectorAll("pre.mermaid:not([data-mermaid-ready])");
     if (!nodes.length) return;
+    var sources = [];
     Array.prototype.forEach.call(nodes, function (n) {
       var src = sourceOf(n);
       /* ⚠ 010 · Ф-Б. classDef розуміють ЛИШЕ flowchart/graph. sequenceDiagram
@@ -242,7 +311,7 @@
          Порядок усередині діаграми значення не має — Mermaid збирає граф
          цілком перед відмальовкою. */
       if (/^\s*(flowchart|graph)\b/.test(src)) src += "\n" + defs + "\n";
-      n.textContent = src;
+      sources.push(src);
       n.setAttribute("data-mermaid-ready", "1");
     });
     mermaid.initialize(global.AIA.mermaidTheme.config());
@@ -250,33 +319,13 @@
        .catch() немає способу дізнатись, ЯКА діаграма впала, тому одне падіння
        вішало напис «не вдалося намалювати» на всі здорові діаграми сторінки
        (заміряно на architect-08: 2 падіння → 3 написи при 3 діаграмах). */
-    /* ⚠⚠ 010 · D-01. Виклики ПОСЛІДОВНІ, а не паралельні — і це не стиль, а
-       виправлення критичного дефекту, який внесла попередня редакція цього
-       блока (коміт 8535f0e).
-
-       Механізм: id елемента Mermaid будує як `mermaid-${Date.now()}` (у 10.9.1
-       генератор створюється НА КОЖЕН виклик run(), а deterministicIds у нас не
-       заданий). Роздільна здатність — 1 мілісекунда. Паралельний forEach без
-       await доводив сусідні виклики до цього рядка з різницею 1–2 мс
-       (заміряно), тож id збігались, і Mermaid домальовував другий граф у вже
-       наявний <svg>. Наслідок на екрані: ДВІ-ТРИ ДІАГРАМИ ОДНА ПОВЕРХ ОДНОЇ,
-       вузли налазять один на одного. Стріляло імовірнісно — саме тому
-       локальна перевірка після 8535f0e його не спіймала, а власник побачив.
-       Зачеплено було 79 зі 100 діаграм (37 сторінок із двома й більше).
-
-       Послідовний прохід дає між id 86–131 мс замість 1–2 — запас у 50–100
-       разів, і при цьому ЗБЕРІГАЄ повузловий fallback, заради якого зміну
-       й робили.
-
-       ⛔ Не «оптимізувати» назад і не «спрощувати» через deterministicIds:
-       true — при повузлових викликах воно дає всім діаграмам id `mermaid-0`,
-       тобто зливає їх ЗАВЖДИ, а не іноді. Перевірено на живій сторінці. */
     (async function () {
       for (var i = 0; i < nodes.length; i++) {
         try {
-          await mermaid.run({ nodes: [nodes[i]] });
+          await renderOne(nodes[i], sources[i]);
         } catch (e) {
           fallback(nodes[i]);
+          nodes[i].setAttribute("data-mermaid-failed", "");
           console.error("[AIA] mermaid:", e);
         }
         syncScrollers();   /* ширина відома одразу після відмальовки */
@@ -289,8 +338,7 @@
            ніхто не прокручував. Заміряно: #0 отримувала правильні 739/319/372,
            #1 лишалась на 0 при потрібних 479/614/30. Тому після кожної
            відмальовки додатково наводимо саме цей бокс. */
-        var justDrawn = nodes[i].closest && nodes[i].closest(".ds-diag");
-        if (justDrawn) showRoot(justDrawn);
+        if (nodes[i].closest && nodes[i].closest(".ds-diag")) showRoot(nodes[i]);
       }
       watchWidth();
     })();
@@ -305,6 +353,14 @@
     else run();
   }
 
+  /* 011. Mermaid сам вішає на `load` власний run() з усталеним startOnLoad: true.
+     Наш run() чекає document.fonts.ready — і якщо шрифти доїдуть ПІЗНІШЕ за load,
+     Mermaid встиг би намалювати всі діаграми усталеною темою й позначити їх
+     data-processed. Вимикаємо автозапуск одразу, а повний конфіг теми initialize()
+     дістає, як і раніше, у run() (повторний initialize() заміняє конфіг цілком). */
+  if (global.mermaid && typeof global.mermaid.initialize === "function") {
+    try { global.mermaid.initialize({ startOnLoad: false }); } catch (e) { /* тема прийде в run() */ }
+  }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
   else start();
   global.AIA = global.AIA || {};

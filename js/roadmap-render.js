@@ -235,29 +235,32 @@
     var heroSk = document.querySelector(".rm-sk--hero");
     if (heroSk) heroSk.remove();
 
-    /* --- шапка: куди повертатись --- */
+    /* --- шапка: куди повертатись ---
+       011 · рядок 14 (D-24). Код знав рівно дві гілки — academy і architect, — а
+       claude-code.config.json із 005 веде сюди як ?from=claude-code, тож людина з
+       AI Термінала бачила бренд, посилання й ШАФРАНОВИЙ акцент Академії.
+       Три курси — одна таблиця: ключ = значення ?from= (або підрядок referrer),
+       далі бренд футера, лендінг для «← До …» і noscript-посилання, і слот акценту
+       data-course (css/tokens.css, секція 7 — той самий механізм, що на всіх
+       66 сторінках). Невідомий ?from= → Академія, як і було.
+       Бренд у футері спільної сторінки колись казав «AI Академія» всім — це
+       виправив агент №4 у 003; акцент за ?from= додала 010 (§5.2 пакета). */
+    var COURSES = {
+      academy:       { course: "academy",   brand: "AI Академія",  home: "index.html",       back: c.backAcademy },
+      architect:     { course: "architect", brand: "AI Architect", home: "architect.html",   back: c.backArchitect },
+      "claude-code": { course: "terminal",  brand: "AI Термінал",  home: "claude-code.html", back: c.backTerminal || "До AI Терміналу" }
+    };
     var from = Q.get("from");
-    if (!from && document.referrer && /architect/i.test(document.referrer)) from = "architect";
-    var isArchitect = from === "architect";
-    el.backLabel.textContent = isArchitect ? c.backArchitect : c.backAcademy;
-    el.backLink.setAttribute("href", isArchitect ? ROOT + "architect.html" : ROOT + "index.html");
-    // ВИПРАВЛЕНО агентом №4: сторінка спільна, футер був один і завжди казав
-    // «AI Академія» — навіть людині, яка прийшла з AI Architect. На спільній
-    // сторінці це читається як «мене занесло не туди».
-    document.querySelectorAll("[data-brand]").forEach(function (n) {
-      n.textContent = isArchitect ? "AI Architect" : "AI Академія";
-    });
-    document.querySelectorAll("[data-brand-back]").forEach(function (a) {
-      a.setAttribute("href", isArchitect ? ROOT + "architect.html" : ROOT + "index.html");
-    });
-
-    /* ⚠ ДОДАНО 010. §5.2 пакета: roadmap.html за замовчуванням стоїть на
-       data-course="academy", і акцент курсу перемикається ТУТ, разом із
-       брендом, тим самим механізмом ?from=. Без цього рядка людина, яка
-       прийшла з AI Architect, бачить бренд «AI Architect» і ШАФРАНОВИЙ
-       акцент Академії — тобто слот акценту не працює саме на єдиній
-       спільній сторінці сайту. */
-    document.documentElement.setAttribute("data-course", isArchitect ? "architect" : "academy");
+    if (!from && document.referrer) {
+      if (/claude-code/i.test(document.referrer)) from = "claude-code";
+      else if (/architect/i.test(document.referrer)) from = "architect";
+    }
+    var cur = COURSES[from] || COURSES.academy;
+    el.backLabel.textContent = cur.back;
+    el.backLink.setAttribute("href", ROOT + cur.home);
+    document.querySelectorAll("[data-brand]").forEach(function (n) { n.textContent = cur.brand; });
+    document.querySelectorAll("[data-brand-back]").forEach(function (a) { a.setAttribute("href", ROOT + cur.home); });
+    document.documentElement.setAttribute("data-course", cur.course);
 
     /* --- hero --- */
     el.heroEyebrow.appendChild(document.createTextNode(c.eyebrow));

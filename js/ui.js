@@ -77,15 +77,71 @@
      data-open, бо вигляд дає .ds-nav__drawer[data-open="true"], а клас
      `hidden` після зняття інлайнової теми більше не є контрактом. */
 
+  /* 011 · рядок 7. Замок скролу сторінки на час відкритого меню — той самий
+     спільний лічильник, що в js/module.js (шторка змісту), js/contact.js
+     (модалка «Написати нам») і js/auth-ui.js (діалоги входу).
+     ⚠ КЛАС `ds-lock` ЖИВЕ ТЕПЕР У ЧОТИРЬОХ ФАЙЛАХ І МІНЯЄТЬСЯ ЛИШЕ РАЗОМ.
+     Лічильник — data-aia-lock на <html>; --ds-lock-sbw компенсує смугу
+     прокрутки (правило-споживач — css/components.css, 38.7). */
+  function lockScroll(on) {
+    var root = document.documentElement;
+    var n = (parseInt(root.getAttribute("data-aia-lock"), 10) || 0) + (on ? 1 : -1);
+    if (n > 0) {
+      root.setAttribute("data-aia-lock", String(n));
+      if (n > 1) return;
+      var sbw = global.innerWidth - root.clientWidth;
+      root.style.setProperty("--ds-lock-sbw", (sbw > 0 ? sbw : 0) + "px");
+      root.classList.add("ds-lock");
+      return;
+    }
+    root.removeAttribute("data-aia-lock");
+    root.classList.remove("ds-lock");
+    root.style.removeProperty("--ds-lock-sbw");
+  }
+
   function initMenu() {
     var btn = document.getElementById("menuBtn");
     var panel = document.getElementById("mobileMenu");
     if (!btn || !panel) return;
 
     function isOpen() { return panel.getAttribute("data-open") === "true"; }
+    /* 011 · рядок 7. Панель тепер sticky під шапкою (css/components.css, C5),
+       тому відкривається там, де людина є, а не на початку документа; поки
+       вона відкрита, сторінка під нею не прокручується — як під модалками і
+       шторкою уроку (QA 010, коло 2: «фон під відкритим меню прокручується»).
+       Замок вішається лише на зміну стану: повторний set(false) (Escape після
+       переходу за поріг 640) не має знімати чужий замок. */
+    /* Панель стоїть у потоці на ПОЧАТКУ документа. Відкрита на прокрученій
+       сторінці, вона додає свою висоту вгорі — і вміст під вʼюпортом зсунувся б
+       на цю висоту. Chrome компенсує це якорінням прокрутки, але не завжди:
+       заміряно 2026-09-10 — на claude-code.html якоріння спрацювало і на
+       відкриття, і на закриття, на index.html на закриття — ні (стрибок на
+       402 px). Тому компенсацію робимо самі й детерміновано: на час
+       перемикання вимикаємо якоріння (overflow-anchor на <html>), примусово
+       рахуємо розкладку і зсуваємо scrollY на висоту панелі; на закриття
+       повертаємо збережену позицію. У стані спокою (scrollY = 0) ні відкриття,
+       ні закриття прокрутку не чіпають — усе як було. */
+    var openedAt = 0;
     function set(open) {
+      var was = isOpen();
+      if (open === was) {
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
+        return;
+      }
+      var root = document.documentElement;
+      var y = global.scrollY || 0;
+      root.style.overflowAnchor = "none";
       panel.setAttribute("data-open", open ? "true" : "false");
       btn.setAttribute("aria-expanded", open ? "true" : "false");
+      var h = panel.offsetHeight;                /* примусова розкладка без якоріння */
+      if (open) {
+        openedAt = y;
+        if (y > 0 && h > 0) global.scrollTo(0, y + h);
+      } else if (y > 0) {
+        global.scrollTo(0, Math.max(0, openedAt));
+      }
+      root.style.overflowAnchor = "";
+      lockScroll(open);
     }
 
     btn.addEventListener("click", function () { set(!isOpen()); });
@@ -260,6 +316,60 @@
     });
   }
 
+  /* ---------- 5. Підказка про горизонтальний скрол (011, рядок 1) ----------
+     Шість скролерів системи (перелік — css/components.css, §31 і §41): стан
+     «є вміст праворуч / ліворуч» стає атрибутом data-scroll-fade, а вигляд
+     (згасання краю маскою) живе в CSS. Тут — лише геометрія: scrollLeft проти
+     scrollWidth − clientWidth, перерахунок на scroll (passive), на зміну розміру
+     самого скролера (ResizeObserver: рендер Mermaid, підвантаження шрифту,
+     зняття [hidden] з уроку) і два дешеві страхувальники — resize вікна й
+     повернення на вкладку (RO у невидимій вкладці не доставляється, пастка
+     проєкту). Нульова ширина = стан невідомий, атрибут не чіпаємо. */
+  var FADE_SCROLLERS = ".ds-tbl__wrap, .ds-diag > pre.mermaid, .term > .term__body, " +
+    ".ds-code > .ds-code__pre, .ds-prose > .ds-code__pre, .ds-prose > section > .ds-code__pre";
+
+  function fadeState(el) {
+    if (!el.clientWidth) return null;
+    var max = el.scrollWidth - el.clientWidth;
+    if (max <= 1) return "";
+    var x = el.scrollLeft;
+    var left = x > 1, right = x < max - 1;
+    return left && right ? "both" : left ? "left" : right ? "right" : "";
+  }
+  function syncFade(el) {
+    var st = fadeState(el);
+    if (st === null) return;
+    if (st) { if (el.getAttribute("data-scroll-fade") !== st) el.setAttribute("data-scroll-fade", st); }
+    else if (el.hasAttribute("data-scroll-fade")) el.removeAttribute("data-scroll-fade");
+  }
+  var fadeBound = typeof WeakSet === "function" ? new WeakSet() : null;
+  function bindFades(scope) {
+    var list = (scope || document).querySelectorAll(FADE_SCROLLERS);
+    Array.prototype.forEach.call(list, function (el) {
+      if (fadeBound) { if (fadeBound.has(el)) { syncFade(el); return; } fadeBound.add(el); }
+      else if (el.hasAttribute("data-fade-bound")) { syncFade(el); return; }
+      else el.setAttribute("data-fade-bound", "");
+      el.addEventListener("scroll", function () { syncFade(el); }, { passive: true });
+      if ("ResizeObserver" in global) new ResizeObserver(function () { syncFade(el); }).observe(el);
+      syncFade(el);
+    });
+  }
+  var fadeTimer = null;
+  function scheduleFades() {
+    clearTimeout(fadeTimer);
+    fadeTimer = setTimeout(function () { bindFades(document); }, 150);
+  }
+  function initScrollFades() {
+    bindFades(document);
+    global.addEventListener("resize", scheduleFades, { passive: true });
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) scheduleFades(); });
+    /* Термінал hero лендінга й будь-який скролер, що народжується після fetch
+       конфіга, ловить страхувальник: RO на самому <pre> уже стоїть (елемент
+       статичний, змінюється лише вміст), а нові вузли підбирає повторний bind. */
+    document.addEventListener("cc:rendered", scheduleFades);
+    document.addEventListener("aia:config-ready", scheduleFades);
+  }
+
   /* ---------- Старт ---------- */
 
   function init() {
@@ -267,6 +377,7 @@
     initCourses();
     initCopyButtons();
     typeHero();
+    initScrollFades();
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
@@ -274,6 +385,7 @@
 
   AIA.chrome = AIA.chrome || {};
   AIA.chrome.initDropdown = initDropdown;
+  AIA.chrome.bindScrollFades = bindFades;
 })(window);
 
 

@@ -189,6 +189,82 @@
   .cc-hero__title:empty { min-height: calc(3 * var(--cc-lh-h1) * 1em); }
 }
 
+/* ============================================================================
+   011 · рядки 9 і 10a (D-21 залишок, D-25) · РЕЗЕРВ РЕШТИ HERO ДО ПРИХОДУ КОНФІГА
+   ----------------------------------------------------------------------------
+   Після резерву заголовка CLS лендінга лишався 0,12–0,22 на 768/1024/1440: лід
+   (0 → 287 px на 1024), кнопки (48 → 108), пояснення (0 → 159) і статистика
+   (0 → 80) — усі порожні в розмітці й росли в мить гідратації.
+
+   ЧОМУ НЕ ОДНЕ ЧИСЛО НА БРЕЙКПОІНТ. Висота ліда — це кількість рядків, а вона
+   залежить від ширини ТЕКСТОВОЇ КОЛОНКИ (тіло hero мінус рейка й проміжок), яка
+   між брейкпоінтами міняється немонотонно: 1036 px → 228 (10 рядків),
+   1148 → 276 (8), 1452 → 228 (10). Суцільний резерв на ширину вʼюпорта ловив би
+   діру замість зсуву. Тому резерв читає ширину самої колонки — контейнерний
+   запит на .cc-grid__body усередині .cc-hero__body (inline-size; для треку
+   minmax(0, 1fr) внутрішній розмір і так не враховується, розкладка не
+   змінюється).
+
+   ПОРОГИ — ЗНЯТІ, НЕ ВИВЕДЕНІ. Заміряно 2026-09-10 у власному Chrome по CDP на
+   115 ширинах вʼюпорта від 320 до 1920 (крок 10/16 px) після гідратації: для
+   кожної ширини колонки — кількість рядків ліда, пояснення, статистики й рядків
+   кнопок. Поріг стоїть посередині між сусідніми замірами. Розбиття на три
+   медіа-діапазони потрібне, бо кегль ліда — clamp(16 → 18 px): та сама колонка
+   260 px дає 8 рядків при 16 px (360 vw) і 9 при 18 px (1132 vw).
+   На спільних точках (640 і 1024) обидві сусідні мапи дають те саме число —
+   тому пороги @media лишаються з дозволених пʼяти.
+
+   ⚠ Резерв = знімок ТЕКСТУ hero з claude-code.config.json. Зміна ліда,
+   пояснення, статистики чи підписів кнопок зсуває пороги: перезняти сітку
+   (dev/build/011-open-tails/measure-hero.md) і поправити числа тут. Ціна
+   помилки — один рядок (≈ 26–29 px) замість 288.
+
+   `lh` — власний міжрядковий елемента; `:empty` / `:has(> :empty)` — резерв зникає
+   в мить гідратації сам, тож помилка не може лишити постійної діри.
+   ========================================================================== */
+.cc-hero__body > .cc-grid > .cc-grid__body { container-type: inline-size; container-name: cc-hero-text; }
+.cc-hero__head > .cc-grid > .cc-grid__body { container-type: inline-size; container-name: cc-hero-head; }
+
+/* --- заголовок: 2 / 3 / 4 рядки за шириною ЙОГО колонки (доповнення до правила
+   вище: між 350 і 590 px три рядки, 320–340 — чотири, від 600 — два). --- */
+@media (max-width: 640px) {
+  @container cc-hero-head (min-width: 495px) { .cc-hero__title:empty { min-height: calc(2 * var(--cc-lh-h1) * 1em); } }
+  @container cc-hero-head (max-width: 245px) { .cc-hero__title:empty { min-height: calc(4 * var(--cc-lh-h1) * 1em); } }
+}
+
+/* --- усталене: широка колонка (641–1023 px: лід 4 рядки, кнопки в один ряд) --- */
+.cc-hero__lead:empty                 { min-height: 4lh; }
+.cc-hero__cta:has(> a:empty)         { min-height: var(--ctl-h-lg); }
+.cc-hero__explain:has(> span:empty)  { min-height: 3lh; }
+.cc-hero__stats:empty                { min-height: calc(1lh + var(--s-5) + var(--bw)); }
+@container cc-hero-text (max-width: 500px) { .cc-hero__cta:has(> a:empty)        { min-height: calc(2 * var(--ctl-h-lg) + var(--s-3)); } }
+@container cc-hero-text (min-width: 636px) { .cc-hero__explain:has(> span:empty) { min-height: 2lh; } }
+@container cc-hero-text (max-width: 580px) { .cc-hero__stats:empty               { min-height: calc(2lh + var(--s-5) + var(--bw)); } }
+
+/* --- телефон (≤ 640): кегль ліда 16–16,8 px --- */
+@media (max-width: 640px) {
+  @container cc-hero-text (max-width: 455px) { .cc-hero__lead:empty { min-height: 5lh; } }
+  @container cc-hero-text (max-width: 365px) { .cc-hero__lead:empty { min-height: 6lh; } }
+  @container cc-hero-text (max-width: 325px) { .cc-hero__lead:empty { min-height: 7lh; } }
+  @container cc-hero-text (max-width: 265px) { .cc-hero__lead:empty { min-height: 8lh; } }
+  @container cc-hero-text (max-width: 235px) { .cc-hero__lead:empty { min-height: 9lh; } }
+  @container cc-hero-text (max-width: 425px) { .cc-hero__explain:has(> span:empty) { min-height: 4lh; } }
+  @container cc-hero-text (max-width: 315px) { .cc-hero__explain:has(> span:empty) { min-height: 5lh; } }
+  @container cc-hero-text (max-width: 285px) { .cc-hero__explain:has(> span:empty) { min-height: 6lh; } }
+  @container cc-hero-text (max-width: 245px) { .cc-hero__explain:has(> span:empty) { min-height: 7lh; } }
+  @container cc-hero-text (max-width: 315px) { .cc-hero__stats:empty { min-height: calc(3lh + var(--s-5) + var(--bw)); } }
+}
+
+/* --- дві колонки (≥ 1024): кегль ліда 18 px, колонка 228–280 px --- */
+@media (min-width: 1024px) {
+  .cc-hero__lead:empty                { min-height: 8lh; }
+  .cc-hero__explain:has(> span:empty) { min-height: 6lh; }
+  .cc-hero__stats:empty               { min-height: calc(3lh + var(--s-5) + var(--bw)); }
+  .cc-hero__cta:has(> a:empty)        { min-height: calc(2 * var(--ctl-h-lg) + var(--s-3)); }
+  @container cc-hero-text (max-width: 268px) { .cc-hero__lead:empty { min-height: 9lh; } }
+  @container cc-hero-text (max-width: 252px) { .cc-hero__lead:empty { min-height: 10lh; } .cc-hero__explain:has(> span:empty) { min-height: 7lh; } }
+}
+
 /* «Стіл» — ЄДИНА плита предмета на сторінку (роль --c-desk у системі 009).
    Полотно термінала (--c-sunken) темніше за плиту, і саме ця різниця робить
    термінал предметом, а не дірою. */
