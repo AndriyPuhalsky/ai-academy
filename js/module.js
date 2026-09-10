@@ -387,6 +387,10 @@
       });
     } else {
       if (gate) gate.remove();
+      /* 011 · рядок 8. Замок пішов (гість увійшов і модуль виявився
+         відкритим) — резерв більше не потрібен. removeAttribute ідемпотентний,
+         тому виклик на кожному applyGate() нічого не коштує. */
+      document.documentElement.removeAttribute("data-aia-gate");
       Array.prototype.forEach.call(main.children, function (ch) { ch.hidden = false; });
     }
   }
@@ -497,6 +501,14 @@
     var n = numberFromCode(currentId);
     if (!(n > 1)) return;
     setMainLocked(true, { modules: [] });
+    /* 011 · рядок 8, шосте рішення. Вмикає резерв висоти сайдбара
+       (css/components.css §28) на час РАННЬОГО замка: сайдбар ще порожній і
+       доросте до стелі лише на aia:config-ready, а на ≥1024 він у потоці —
+       без резерву рядок сітки стрибає з 272 на 836, футер із 336 на 900.
+       Атрибут ставиться ТІЛЬКИ тут: у залогіненого замок і сайдбар
+       зʼявляються в одному кадрі, резерв йому не потрібен і шкідливий.
+       ⚠ Це НЕ data-aia-lock: інший атрибут, єдиний власник — цей файл. */
+    document.documentElement.setAttribute("data-aia-gate", "early");
   }
   earlyGuestGate();
 
