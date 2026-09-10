@@ -42,17 +42,26 @@
   var BRANDS = {
     "ai-essentials": {
       brand: "AI Академія", brandCaps: "AI АКАДЕМІЯ", mono: "AIA",
-      home: "index.html", program: "index.html#syllabus"
+      home: "index.html", program: "index.html#syllabus",
+      accent: "#BF8A3A", accentDeep: "#966400"   /* шафран · --p-accent-academy-500 / -edge */
     },
     "ai-architect": {
       brand: "AI Architect", brandCaps: "AI ARCHITECT", mono: "AIA",
-      home: "architect.html", program: "architect.html#syllabus"
+      home: "architect.html", program: "architect.html#syllabus",
+      accent: "#1FA68E", accentDeep: "#007D67"   /* патина · --p-accent-architect-500 / -edge */
     },
     "claude-code": {
       brand: "AI Термінал", brandCaps: "AI ТЕРМІНАЛ", mono: "AIT",
-      home: "claude-code.html", program: "claude-code.html#map"
+      home: "claude-code.html", program: "claude-code.html#map",
+      accent: "#7692DC", accentDeep: "#536CB3"   /* лазур · --p-accent-terminal-500 / -edge */
     }
   };
+  /* Акцент PDF — рішення власника 2026-09-10 (011, рядок 11): аркуш бере колір
+     СВОГО курсу, а не одну теракоту на всіх. Значення — літерали з css/tokens.css
+     (500 і edge), бо аркуш малюється офскрин і токени курсу через data-course
+     на нього не діють; при зміні токена правити тут. Контраст на папері #F9F3E7:
+     edge 4,56–4,61 (AA для дрібного тексту, було 3,90 у теракоти), білий на edge
+     5,0–5,1 (монограма медальйона; на 500 було б 3,0), 500 — лише лінії й рамки. */
   var BRAND_FALLBACK = BRANDS["ai-essentials"];
 
   // Попереджаємо про кожен невідомий слаг один раз на завантаження сторінки:
@@ -230,20 +239,10 @@
      див. коментар у css/tokens.css), тобто дрібний текст додатка стане
      контрастнішим. Це не побічний ефект, а сенс міграції.
 
-     ⚠ Чого НЕ читається: акцент. У системі 009 --c-accent залежить від курсу
-     (шафран / патина / лазур), а аркуш сертифіката теракотовий для всіх трьох
-     курсів — так його затвердили в 005. Питання «чи має PDF узяти акцент
-     курсу» винесене у звіт власнику: це видима зміна документа, якої в
-     пакеті 010 немає, тому мовчки її робити не можна.
-
-     ⚠ Розсинхрон #BD5F40 (тут) проти #C4674A (стара мова) закритий САМИМ
-     ЕТАПОМ 9: той файл видалений, і другої копії теракоти в проєкті
-     не лишилось узагалі. Значення тут — те, що реально друкувалось;
-     заміна на #C4674A знизила б контраст дрібного тексту на папері з 3.90 до
-     3.53 (обидва нижчі за AA 4.5 — це теж рядок для власника у звіті). */
+     ⚠ Акценту тут більше немає: з 2026-09-10 він у BRANDS (accent / accentDeep),
+     бо залежить від курсу. До того аркуш був теракотовим (#D97757 / #BD5F40) для
+     всіх трьох курсів — так затвердили в 005; власник змінив це в 011 (рядок 11). */
   var PDF = {
-    accent:     "#D97757",   /* теракота: рамка, медальйон, лінійка, смуги балів */
-    accentDeep: "#BD5F40",   /* та сама теракота темніша: капслок і назва курсу */
     stripe:     "#F2EBDB",   /* зебра рядків додатка; тон між фоном і хайрлайном */
     white:      "#FFFFFF",   /* монограма на заливці медальйона */
     gold: {                  /* золота медаль-водяний знак: декор, не палітра */
@@ -274,7 +273,7 @@
 
   // Спільна «оболонка» аркуша A4 (альбомна): кремовий фон, подвійна рамка,
   // кутові акценти. Усередині — центрований контент.
-  function pageShell(contentHtml) {
+  function pageShell(contentHtml, b) {
     var P = paper();
     var node = document.createElement("div");
     node.style.cssText = [
@@ -284,7 +283,7 @@
     ].join(";");
 
     var corner = function (pos) {
-      var base = "position:absolute;width:26px;height:26px;border-color:" + PDF.accent + ";border-style:solid;border-width:0;";
+      var base = "position:absolute;width:26px;height:26px;border-color:" + b.accent + ";border-style:solid;border-width:0;";
       var m = {
         tl: "top:14px;left:14px;border-top-width:2px;border-left-width:2px;",
         tr: "top:14px;right:14px;border-top-width:2px;border-right-width:2px;",
@@ -295,7 +294,7 @@
     };
 
     node.innerHTML =
-      '<div style="position:relative;height:100%;box-sizing:border-box;border:1.5px solid ' + PDF.accent + ';overflow:hidden">' +
+      '<div style="position:relative;height:100%;box-sizing:border-box;border:1.5px solid ' + b.accent + ';overflow:hidden">' +
         '<div style="position:absolute;inset:6px;border:1px solid ' + P.rule + ';pointer-events:none"></div>' +
         corner("tl") + corner("tr") + corner("bl") + corner("br") +
         medalWatermark() +
@@ -310,8 +309,8 @@
     var P = paper();
     return (
       '<div style="display:flex;flex-direction:column;align-items:center">' +
-        '<div style="width:76px;height:76px;border-radius:50%;border:2px solid ' + PDF.accent + ';display:flex;align-items:center;justify-content:center">' +
-          '<div style="width:56px;height:56px;border-radius:50%;background:' + PDF.accent + ';display:flex;align-items:center;justify-content:center;font-family:\'IBM Plex Mono\',monospace;font-weight:600;font-size:18px;color:' + PDF.white + ';letter-spacing:.05em">' + esc(b.mono) + '</div>' +
+        '<div style="width:76px;height:76px;border-radius:50%;border:2px solid ' + b.accent + ';display:flex;align-items:center;justify-content:center">' +
+          '<div style="width:56px;height:56px;border-radius:50%;background:' + b.accentDeep + ';display:flex;align-items:center;justify-content:center;font-family:\'IBM Plex Mono\',monospace;font-weight:600;font-size:18px;color:' + PDF.white + ';letter-spacing:.05em">' + esc(b.mono) + '</div>' +
         '</div>' +
         '<p style="margin:9px 0 0;font-family:\'IBM Plex Mono\',monospace;letter-spacing:.34em;font-size:11px;color:' + P.quiet + '">' + esc(b.brandCaps) + '</p>' +
       '</div>'
@@ -346,12 +345,12 @@
     return pageShell(
       medallion(b) +
       '<h1 style="margin:22px 0 0;font-family:Literata,Georgia,serif;font-size:54px;font-weight:700;letter-spacing:.01em;line-height:1.18">Сертифікат</h1>' +
-      '<p style="margin:16px 0 0;font-family:\'IBM Plex Mono\',monospace;letter-spacing:.26em;font-size:12px;color:' + PDF.accentDeep + '">ПРО УСПІШНЕ ПРОХОДЖЕННЯ КУРСУ</p>' +
+      '<p style="margin:16px 0 0;font-family:\'IBM Plex Mono\',monospace;letter-spacing:.26em;font-size:12px;color:' + b.accentDeep + '">ПРО УСПІШНЕ ПРОХОДЖЕННЯ КУРСУ</p>' +
       '<p style="margin:38px 0 0;font-family:Literata,Georgia,serif;font-style:italic;font-size:19px;color:' + P.quiet + '">цей сертифікат вручається</p>' +
       '<p style="margin:14px 0 0;font-family:Literata,Georgia,serif;font-size:44px;font-weight:600;color:' + P.text + ';line-height:1.22">' + esc(cert.full_name || "Студент") + '</p>' +
-      '<div style="width:280px;height:1px;background:' + PDF.accent + ';margin:18px 0 0"></div>' +
+      '<div style="width:280px;height:1px;background:' + b.accent + ';margin:18px 0 0"></div>' +
       '<p style="margin:22px 0 0;font-size:16px;color:' + P.quiet + '">за успішне завершення курсу</p>' +
-      '<p style="margin:8px 0 0;font-family:Literata,Georgia,serif;font-size:30px;font-weight:600;color:' + PDF.accentDeep + '">«' + esc(course) + '»</p>' +
+      '<p style="margin:8px 0 0;font-family:Literata,Georgia,serif;font-size:30px;font-weight:600;color:' + b.accentDeep + '">«' + esc(course) + '»</p>' +
       '<div style="margin-top:auto;width:100%">' +
         '<div style="display:flex;align-items:flex-end;justify-content:space-between">' +
           '<div style="text-align:left">' +
@@ -369,7 +368,8 @@
           '</div>' +
         '</div>' +
         '<p data-verify-link style="margin:16px 0 0;text-align:center;font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:' + P.quiet + ';word-break:break-all">Перевірити справжність: ' + esc(vurl) + '</p>' +
-      '</div>'
+      '</div>',
+      b
     );
   }
 
@@ -431,9 +431,9 @@
       var bg = gi % 2 ? PDF.stripe : "transparent";
       return (
         '<div style="display:flex;align-items:center;gap:9px;padding:4px 9px;background:' + bg + ';border-radius:5px">' +
-          '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:' + PDF.accentDeep + ';width:20px;flex-shrink:0">' + num + '</span>' +
+          '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:' + b.accentDeep + ';width:20px;flex-shrink:0">' + num + '</span>' +
           '<span style="flex:1;font-size:12px;color:' + P.text + ';text-align:left;line-height:1.25">' + esc(r.title) + '</span>' +
-          '<span style="width:64px;height:6px;background:' + P.rule + ';border-radius:4px;overflow:hidden;flex-shrink:0"><span style="display:block;height:100%;width:' + pct + '%;background:' + PDF.accent + '"></span></span>' +
+          '<span style="width:64px;height:6px;background:' + P.rule + ';border-radius:4px;overflow:hidden;flex-shrink:0"><span style="display:block;height:100%;width:' + pct + '%;background:' + b.accent + '"></span></span>' +
           '<span style="width:36px;text-align:right;font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:' + P.text + ';flex-shrink:0">' + label + '</span>' +
         '</div>'
       );
@@ -448,14 +448,15 @@
       '</div>';
 
     return pageShell(
-      '<p style="margin:0;font-family:\'IBM Plex Mono\',monospace;letter-spacing:.3em;font-size:11px;color:' + PDF.accentDeep + '">' + esc(b.brandCaps) + ' · ДОДАТОК</p>' +
+      '<p style="margin:0;font-family:\'IBM Plex Mono\',monospace;letter-spacing:.3em;font-size:11px;color:' + b.accentDeep + '">' + esc(b.brandCaps) + ' · ДОДАТОК</p>' +
       '<h1 style="margin:10px 0 0;font-family:Literata,Georgia,serif;font-size:34px;font-weight:700;line-height:1.1">Результати проходження</h1>' +
       '<p style="margin:6px 0 0;font-size:15px;color:' + P.quiet + '">' + esc(cert.full_name || "Студент") + ' · «' + esc(course) + '»</p>' +
       '<div style="width:100%;margin-top:18px">' + rowsHtml + '</div>' +
       '<div style="margin-top:auto;width:100%;display:flex;justify-content:space-between;align-items:center;padding-top:14px;border-top:1px solid ' + P.rule + '">' +
         '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:' + P.quiet + '">Код: ' + esc(cert.public_code) + '</span>' +
-        '<span style="font-size:16px;font-weight:500;color:' + P.text + '">Середній результат: <span style="color:' + PDF.accentDeep + '">' + avg + '%</span></span>' +
-      '</div>'
+        '<span style="font-size:16px;font-weight:500;color:' + P.text + '">Середній результат: <span style="color:' + b.accentDeep + '">' + avg + '%</span></span>' +
+      '</div>',
+      b
     );
   }
 
