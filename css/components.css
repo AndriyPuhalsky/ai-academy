@@ -2534,6 +2534,29 @@ html { scrollbar-width: thin; scrollbar-color: var(--c-line) transparent; }
     linear-gradient(var(--c-text), var(--c-text)),
     linear-gradient(var(--c-text), var(--c-text));
 }
+/* 011 · QA хвилі 2, D-01. У .ds-tbl__wrap--tall є ВЕРТИКАЛЬНА смуга (§41.1, 12 px),
+   і її жолоб Chrome кладе всередину padding-box — тобто в зону градієнта L1, який
+   гасив повзунок до нуля (A/B 390 і 1024: з маскою повзунка не видно, без маски —
+   видно). Тут згасання зсувається на ширину жолоба ліворуч, а останні var(--s-3)
+   лишаються непрозорими жорстким стопом. Лише для --tall: у решти скролерів
+   вертикальної смуги немає, і їхній край гасне як досі. */
+.ds-tbl__wrap--tall[data-scroll-fade] {
+  mask-image:
+    linear-gradient(to right,
+      transparent, var(--c-text) var(--fade-w),
+      var(--c-text) calc(100% - var(--fade-w) - var(--s-3)),
+      transparent calc(100% - var(--s-3)), var(--c-text) calc(100% - var(--s-3))),
+    linear-gradient(var(--c-text), var(--c-text)),
+    linear-gradient(var(--c-text), var(--c-text));
+}
+.ds-tbl__wrap--tall[data-scroll-fade="right"] {
+  mask-image:
+    linear-gradient(to right,
+      var(--c-text) calc(100% - var(--fade-w) - var(--s-3)),
+      transparent calc(100% - var(--s-3)), var(--c-text) calc(100% - var(--s-3))),
+    linear-gradient(var(--c-text), var(--c-text)),
+    linear-gradient(var(--c-text), var(--c-text));
+}
 
 
 /* ============================================================================
