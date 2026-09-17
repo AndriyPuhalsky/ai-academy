@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 9 · Team-managed vs company-managed — Jira з нуля</title>
+  <meta name="description"
+    content="Два способи зберігати налаштування спейсу: всередині самого спейсу чи спільними схемами на весь сайт. Як дізнатись тип свого спейсу, що обрати команді до десяти людей і чому однаковий напис Done у двох спейсах — два різні статуси." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+</head>
+
+<body data-module="j09">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 09</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 3 · Під себе</p>
+        <h1 class="ds-h1">Team-managed vs company-managed</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 22 хв читання</p>
+        <p class="ds-lead">
+          Досі кожен спейс у цьому курсі поводився так, ніби він сам собі господар: свої
+          статуси, свої поля, свої вигляди. Це не випадковість і не збіг. Це <em>тип
+          спейсу</em> — рішення, яке приймається один раз, у момент створення, і далі
+          визначає, де живуть його налаштування і хто має право їх міняти.
+        </p>
+        <p>
+          Урок стоїть саме тут не випадково. Наступні два — про те, як правити робочий
+          процес (урок 10) і поля (урок 11), а вказівка «зайди в налаштування спейсу»
+          означає різні екрани для двох типів. Не знаючи типу свого спейсу, ти шукатимеш
+          на екрані те, чого там немає.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> редагування статусів і переходів — це урок 10; полів
+            і типів роботи — урок 11; запрошення людей і налаштувань усього сайту —
+            урок 20. Немає й чисел безкоштовного плану: вони зібрані в довіднику 3, разом
+            із датою перевірки.
+          </p>
+          <p>
+            <strong>Є:</strong> два способи зберігати конфігурацію спейсу і два способи
+            дізнатись, який із них у тебе; ролі <code>Administrator</code>,
+            <code>Member</code>, <code>Viewer</code> і що вони означають на безкоштовному
+            плані; чому однаковий напис <code>Done</code> у двох спейсах — це два різні
+            статуси; і що робити, якщо тип виявився не той.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            У «Кориці» два спейси живуть поруч і виглядають по-різному. Ліна веде найм
+            у спейсі <code>HR</code>, і в неї на дошці п'ять колонок: <code>New</code>,
+            <code>Screening</code>, <code>Interview</code>, <code>Offer</code>,
+            <code>Hired</code>. Марта веде маркетинг у спейсі <code>MARK</code>, і в неї
+            три: <code>To Do</code>, <code>In Progress</code>, <code>Done</code>. Той
+            самий сайт, та сама Jira, той самий безкоштовний план — а набори статусів
+            різні.
+          </p>
+
+          <p>
+            Коли Оксана вперше це побачила, вона шукала спільну сторінку, на якій усе це
+            задається разом: мусить же десь бути місце, де перелічені всі статуси фірми.
+            Такого місця в її Jira немає — і це не вада. Це наслідок вибору, який кожна
+            з них зробила в майстрі створення спейсу, скоріш за все не помітивши цього.
+          </p>
+
+          <h3>Два способи зберігати налаштування</h3>
+
+          <p>
+            Довідка Atlassian формулює вихідне правило одним реченням: «Spaces in Jira can
+            be created as either team-managed or company-managed. The core functionality of
+            these are the same, but there are key differences you should know» — спейси
+            створюються або як <strong>team-managed</strong> (керовані командою), або як
+            <strong>company-managed</strong> (керовані компанією); працюють вони по суті
+            однаково, але є важливі відмінності.
+          </p>
+
+          <p>
+            Відмінність рівно одна, і вона не в тому, що спейс уміє, а в тому, <em>де
+            лежать його налаштування</em>:
+          </p>
+
+          <ul>
+            <li><strong>Team-managed</strong> — налаштування лежать усередині самого
+              спейсу. Статуси, поля, типи роботи, доступ — усе це частина цього спейсу
+              й нікого більше не стосується. Довідка: такі спейси «set up and maintained
+              by anyone on the team» — їх налаштовує будь-хто з команди, і адміністратор
+              Jira для цього не потрібен.</li>
+            <li><strong>Company-managed</strong> — налаштування лежать на рівні всього
+              сайту, у спільних наборах, і спейс до них лише <em>підключений</em>. Такі
+              спейси «set up and maintained by Jira admins» — їх налаштовує адміністратор
+              Jira, і «when a Jira admin changes a scheme or screen, every company-managed
+              space that uses that configuration changes accordingly»: коли він змінює
+              спільний набір, змінюються одразу всі спейси, що ним користуються.</li>
+          </ul>
+
+          <p>
+            Слово <code>scheme</code> (схема) з останньої цитати — головне слово
+            company-managed світу. Схема — це названий набір налаштувань, який лежить
+            окремо від спейсів і до якого спейси підключаються. Схема робочих процесів,
+            схема полів, схема дозволів, схема сповіщень. Одна схема — багато спейсів;
+            правка в схемі доїжджає до кожного з них.
+          </p>
+
+          <h3>Чому в «Кориці» статуси різні</h3>
+
+          <p>
+            Відповідь на питання Оксани звучить так: спейси <code>HR</code> і
+            <code>MARK</code> — team-managed, тому спільного місця для їхніх статусів
+            немає за визначенням.
+            Ліна додала собі <code>Interview</code>, і цей статус існує тільки в
+            <code>HR</code>. Марта про нього не дізнається, і в маркетингу він нічого
+            не зачепить.
+          </p>
+
+          <p>
+            Для команди до десяти людей це майже завжди те, що треба: кожен відділ
+            рухається своїм темпом, і ніхто нікого не блокує. Зворотний бік той самий:
+            спільної конфігурації не буде. Якщо колись знадобиться, щоб у всіх відділів були
+            <em>однакові</em> статуси, налаштовані один раз, — це вже друга модель,
+            і вона починається з платного плану. Про це — у блоці 3.
+          </p>
+
+          <h3>Дві назви, які вже мінялись</h3>
+
+          <p>
+            Ці два слова — не перші в своїй ролі. Довідка Atlassian сама це зазначає:
+            «company-managed and team-managed (formerly known as classic and next-gen)» —
+            раніше ті самі дві речі називались <code>classic</code> і
+            <code>next-gen</code>. Сліди старих назв лишились в адресах: сторінка довідки
+            про дозволи в team-managed спейсі й досі відкривається за адресою, у якій
+            стоїть <code>next-gen-permissions</code>.
+          </p>
+
+          <p>
+            Це та сама історія, що зі словами <code>project</code> і <code>issue</code>
+            з уроку 4: у продукті напис уже новий, в адресах і статтях подекуди старий.
+            Тому в пошуку варто пробувати обидва слова — і не дивуватись, коли стаття
+            називається «next-gen», а показує саме те, що ти бачиш на екрані.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Тип спейсу видно у двох місцях. Перше — список усіх спейсів сайту, той самий,
+            що й в уроці 3. Там є колонка <code>Type</code>, і вона каже
+            і про тип, і ще про одну річ.
+          </p>
+
+<figure class="win" data-state="list" id="w1">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w1t">Jira Cloud · список спейсів Spaces · звірено 2026-09-17</span>
+    <span class="win__addr" aria-hidden="true">…/jira/projects</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w1t">
+    <ul class="win__rail" aria-label="Бічна панель Jira">
+      <li class="win__rail-item">For you</li>
+      <li class="win__rail-item win__rail-item--active">Spaces</li>
+      <li class="win__rail-item">Filters</li>
+      <li class="win__rail-item">Dashboards</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Spaces · 5 spaces found</span>
+        <span class="win__btn win__btn--primary">Create space</span>
+        <span class="win__tabs"><span>Templates</span><span>Search spaces</span></span>
+      </div>
+      <table class="win__table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Key <b class="win__mark" aria-hidden="true">②</b></th>
+            <th>Type <b class="win__mark" aria-hidden="true">①</b></th>
+            <th>Lead <b class="win__mark" aria-hidden="true">③</b></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Мої справи</td><td><span class="win__key">MY</span></td><td>Team-managed business</td><td>Оксана Коваль</td></tr>
+          <tr><td>Маркетинг</td><td><span class="win__key">MARK</span></td><td>Team-managed business</td><td>Марта Лисенко</td></tr>
+          <tr><td>Друга точка</td><td><span class="win__key">REM</span></td><td>Team-managed business</td><td>Тарас Мельник</td></tr>
+          <tr><td>Найм</td><td><span class="win__key">HR</span></td><td>Team-managed business</td><td>Ліна Шевчук</td></tr>
+          <tr><td>Сайт</td><td><span class="win__key">WEB</span></td><td>Team-managed software</td><td>Денис Романюк</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «список спейсів Spaces»">
+  <li><code>Type</code> — тип спейсу і родина шаблону, двома словами</li>
+  <li><code>Key</code> — код спейсу, з нього починається ключ кожної роботи</li>
+  <li><code>Lead</code> — власник спейсу, не «начальник» і не єдиний адмін</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Колонки, кнопки й формат значення в колонці <code>Type</code> — з живого екрана
+            Jira Cloud Free, знятого 17 вересня 2026 року. Рядки таблиці — спейси нашої
+            «Кориці»; частину з них ти створиш у наступних уроках. Шостий спейс фірми,
+            бухгалтерський <code>FIN</code>, з'явиться в уроці 18: він з іншого продукту,
+            і в цьому списку виглядатиме інакше.
+          </p>
+
+          <h3>Значення в колонці Type складається з двох частин</h3>
+
+          <p>
+            <code>Team-managed business</code> — це два різні факти в одному рядку, і їх
+            легко сплутати:
+          </p>
+
+          <ul>
+            <li><strong>Перше слово — хто керує налаштуваннями:</strong>
+              <code>Team-managed</code> або <code>Company-managed</code>. Це і є тема
+              цього уроку.</li>
+            <li><strong>Друге слово — родина шаблону, з якого спейс народився:</strong>
+              <code>business</code> (ділові справи), <code>software</code> (розробка),
+              <code>service management</code> (заявки). Родина визначає набір виглядів
+              і можливостей: у спейсі для розробки є свої інструменти планування,
+              у службовому — черги заявок і портал для тих, хто їх подає.</li>
+          </ul>
+
+          <p>
+            Ці дві частини майже незалежні: ділова справа може бути і team-managed, і
+            company-managed. У майстрі створення спейсу довідка описує крок дослівно:
+            «Select either Company-managed or Team-managed» — вибери одне з двох, після
+            того як обрав шаблон.
+          </p>
+
+          <h3>Другий спосіб: меню біля назви спейсу</h3>
+
+          <p>
+            Заходити в список спейсів щоразу незручно, тому є коротший шлях, прямо з
+            того спейсу, у якому ти стоїш. Довідка описує його так: «select More actions
+            (•••) next to the space's name in the header. Or, next to your space's name
+            in the sidebar, select More actions (•••), then at the bottom of that menu
+            that opens, you'll be able to view whether your space is: Team-managed /
+            Company-managed».
+          </p>
+
+          <p>
+            Тобто: три крапки поруч із назвою спейсу — у заголовку сторінки або в бічній
+            панелі, — і в самому низу меню, що відкриється, написано тип. Це той самий
+            факт, що в колонці <code>Type</code>, тільки на відстані одного кліку.
+          </p>
+
+          <h3>Налаштування team-managed спейсу: один список розділів</h3>
+
+          <p>
+            Головну практичну різницю видно в налаштуваннях спейсу. Ось як вони виглядають
+            у team-managed спейсі — тому, який ти створиш у блоці 4.
+          </p>
+
+<figure class="win" data-state="settings" id="w2">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w2t">Jira Cloud · Space settings team-managed спейсу · звірено 2026-09-17</span>
+    <span class="win__addr" aria-hidden="true">…/jira/…/REM/settings/details</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w2t">
+    <ul class="win__rail win__rail--settings" aria-label="Space settings">
+      <li class="win__rail-item win__rail-item--active">Details <b class="win__mark" aria-hidden="true">①</b></li>
+      <li class="win__rail-item">Access <b class="win__mark" aria-hidden="true">③</b></li>
+      <li class="win__rail-item">Notifications</li>
+      <li class="win__rail-item">Automation</li>
+      <li class="win__rail-item">Fields</li>
+      <li class="win__rail-item">Work types <b class="win__mark" aria-hidden="true">②</b></li>
+      <li class="win__rail-item">Features</li>
+      <li class="win__rail-item">Custom filters</li>
+      <li class="win__rail-item">Apps</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__page">
+        <h4>Details</h4>
+        <dl class="win__fields">
+          <dt>Name</dt><dd>Друга точка</dd>
+          <dt>Space key</dt><dd><span class="win__key">REM</span></dd>
+          <dt>Category</dt><dd class="win__placeholder">Choose a category</dd>
+          <dt>Space owner</dt><dd>Тарас Мельник</dd>
+          <dt>Default assignee</dt><dd>Unassigned</dd>
+        </dl>
+        <p class="win__btn">Save</p>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «налаштування team-managed спейсу»">
+  <li>Увесь цей список — налаштування одного спейсу, і більше нічиї</li>
+  <li><code>Work types</code> — типи роботи спейсу, а в них статуси й поля</li>
+  <li><code>Access</code> — хто має доступ до спейсу і з якою роллю</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Список розділів і поля сторінки <code>Details</code> — зі знімка живого
+            team-managed спейсу від 17 вересня 2026 року; назва, ключ і власник —
+            з історії «Кориці». Набір розділів залежить від родини шаблону: у діловому
+            спейсі частина пунктів, потрібних розробці, не з'являється.
+          </p>
+
+          <h3>Налаштування company-managed спейсу: перелік схем</h3>
+
+          <p>
+            У company-managed спейсі той самий екран влаштований інакше: замість розділів
+            «що в цьому спейсі» там перелік схем, до яких спейс підключений. Живого знімка
+            такого спейсу в курсі поки немає, тому вікно нижче зібране з довідки Atlassian
+            — це видно в його заголовку.
+          </p>
+
+<figure class="win" data-state="settings" id="w3">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w3t">Jira Cloud · Space settings company-managed спейсу · за документацією, 2026-09-18</span>
+    <span class="win__addr" aria-hidden="true">…/jira/…/settings/workflows</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w3t">
+    <ul class="win__rail win__rail--settings" aria-label="Space settings">
+      <li class="win__rail-item">Details</li>
+      <li class="win__rail-item">Work types</li>
+      <li class="win__rail-item win__rail-item--active">Workflows</li>
+      <li class="win__rail-item">Screens</li>
+      <li class="win__rail-item">Fields</li>
+      <li class="win__rail-item">Roles</li>
+      <li class="win__rail-item">Versions</li>
+      <li class="win__rail-item">Components</li>
+      <li class="win__rail-item">Permissions <b class="win__mark" aria-hidden="true">②</b></li>
+      <li class="win__rail-item">Notifications</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__page">
+        <h4>Workflows</h4>
+        <dl class="win__fields">
+          <dt>Workflow Scheme <b class="win__mark" aria-hidden="true">①</b></dt>
+          <dd>determines which workflows apply to work types in this space</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «налаштування company-managed спейсу»">
+  <li>Схема робочих процесів — спільна: її можуть ділити інші спейси</li>
+  <li><code>Permissions</code> — схема дозволів, її задає адміністратор Jira</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Перелік розділів і опис схеми робочих процесів — з довідки Atlassian
+            «Configure a space», прочитаної 18 вересня 2026 року; живого екрана
+            company-managed спейсу в курсі поки немає, тому порядок пунктів на екрані
+            може відрізнятись. Дві речі тут важливі й без знімка: слово
+            <code>Scheme</code> у назвах і те, що жодну з цих схем не редагують
+            «усередині спейсу».
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <p>
+            Якщо звести обидві моделі до картинки, різниця стає одним реченням: у першій
+            конфігурація висить на спейсі, у другій — на сайті, а спейси до неї
+            підключаються.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart TB
+  TM["Team-managed — конфігурація в спейсі"] --> M["Спейс MARK"]
+  TM --> H["Спейс HR"]
+  M --> M1["Свої статуси, поля, типи роботи"]
+  H --> H1["Свої статуси, поля, типи роботи"]
+  CM["Company-managed — конфігурація на сайті"] --> S["Схеми — робочі процеси, поля, екрани, дозволи"]
+  S --> P1["Спейс відділу А"]
+  S --> P2["Спейс відділу Б"]
+  S --> P3["Спейс відділу В"]
+            </pre>
+            <p class="ds-diag__caption">Дві моделі: у першій кожен спейс сам по собі, у другій три спейси живуть з одного набору схем.</p>
+          </div>
+
+          <h3>«Свої» означає справді свої</h3>
+
+          <p>
+            У team-managed спейсі слово «свої» варто розуміти буквально. Довідка про типи
+            роботи каже прямо: «Jira bounds any custom fields you add to the space. You
+            can't share them with other spaces on your Jira site» — будь-яке поле,
+            створене в цьому спейсі, належить цьому спейсу, і поділитись ним з іншими
+            спейсами сайту не вийде.
+          </p>
+
+          <p>
+            Те саме стосується статусів. І звідси — найдорожче непорозуміння цього уроку.
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__title">Однаковий напис ≠ той самий статус</span>
+            <p>
+              Статус <code>Done</code> у спейсі <code>MARK</code> і статус
+              <code>Done</code> у спейсі <code>HR</code> — це два різні статуси, які
+              випадково однаково називаються. Jira не вважає їх одним і тим самим,
+              бо кожен із них народився всередині свого спейсу.
+            </p>
+          </div>
+
+          <p>
+            Найпростіший доказ дає сама Jira: коли роботи переносять із одного спейсу
+            в інший, на одному з кроків з'являється екран, який довідка називає «Map
+            Status for Target Space» — зіставлення статусів. Тобто Jira питає, у який
+            саме статус нового спейсу має перетворитись кожен статус старого. Якби
+            <code>Done</code> був один на весь сайт, питати було б нічого.
+          </p>
+
+          <h3>Наслідок для пошуку: категорія замість назви</h3>
+
+          <p>
+            Урок 7, про пошук запитами мовою JQL, уже показував пастку: запит
+            <code>status = Done</code> знаходить рівно ті роботи, у яких статус
+            називається саме так. Тепер видно, чому це не дрібниця: варто вийти за
+            межі одного спейсу — і назв стає стільки, скільки спейсів.
+          </p>
+
+          <p>
+            Рятує <strong>категорія статусу</strong>: кожен статус, хоч би як він
+            називався, належить до однієї з трьох категорій — <code>To Do</code>,
+            <code>In Progress</code>, <code>Done</code>. Категорії однакові для всього
+            сайту, і саме їх шукає поле <code>statusCategory</code>. Довідка формулює це
+            так: «you can use the statusCategory field (a work item is resolved when
+            statusCategory = Done)».
+          </p>
+
+          <figure class="term term--cmd" id="t1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="t1t">JQL · усе завершене в усіх спейсах, як би там не назвали статус</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="t1t"><span class="term__line"><span class="term__in">statusCategory = Done</span></span></pre>
+          </figure>
+
+          <p class="ds-diag__caption" data-align="start">
+            Ім'я поля й пояснення — з довідки Atlassian про поля JQL, прочитаної 18 вересня
+            2026 року. Сам запит підставляється в рядок пошуку в режимі JQL — той самий,
+            що в уроці 7.
+          </p>
+
+          <h3>Що дає спільна конфігурація — і чому її немає на Free</h3>
+
+          <p>
+            Company-managed спейси мають одну властивість, якої в team-managed немає
+            за задумом: кілька спейсів можуть користуватись однією конфігурацією. Довідка
+            перелічує, що саме при цьому стає спільним:
+          </p>
+
+          <ul>
+            <li>типи роботи (<code>work types</code>);</li>
+            <li>робочі процеси (<code>workflows</code>);</li>
+            <li>екрани (<code>screens</code>) — набори полів, які показують при створенні
+              й редагуванні роботи;</li>
+            <li>поля (<code>fields</code>);</li>
+            <li>дозволи (<code>permissions</code>);</li>
+            <li>сповіщення (<code>notifications</code>).</li>
+          </ul>
+
+          <p>
+            І там же — речення, яке закриває питання для цього курсу: «Only Jira admins
+            can create spaces with a shared configuration. This setting isn't available on
+            the Free plan». Створювати спейси зі спільною конфігурацією може лише
+            адміністратор Jira, і на безкоштовному плані це налаштування недоступне.
+          </p>
+
+          <p>
+            У таблиці планів поруч стоять ще два рядки — <code>Space roles</code> і
+            <code>Advanced permissions</code>. У колонці Free обидва порожні, а з
+            наступного плану позначені галочкою. Разом це означає одну річ: усе, заради
+            чого беруть company-managed, на безкоштовному плані вимкнене. Тому відповідь
+            на питання «що обрати?» для команди до десяти людей звучить коротко:
+            <strong>team-managed</strong>.
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: чим відрізняються два типи спейсів">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Ознака</th><th>Team-managed</th><th>Company-managed</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Налаштовує</td>
+                  <td>адмін самого спейсу, тобто будь-хто з команди, кому дали цю роль</td>
+                  <td>адміністратор Jira: «set up and maintained by Jira admins»</td>
+                </tr>
+                <tr>
+                  <td>Конфігурація</td>
+                  <td>усередині спейсу; статуси й поля належать лише йому</td>
+                  <td>у схемах на рівні сайту; спейс до схеми підключений</td>
+                </tr>
+                <tr>
+                  <td>Доступ</td>
+                  <td>рівень доступу спейсу плюс ролі в ньому</td>
+                  <td>схема дозволів, спільна з іншими спейсами</td>
+                </tr>
+                <tr>
+                  <td>Спільність</td>
+                  <td>нічим не ділиться з іншими спейсами</td>
+                  <td>одна правка в схемі змінює всі спейси, що її ділять</td>
+                </tr>
+                <tr>
+                  <td>На Free</td>
+                  <td>працює так, як задумано</td>
+                  <td>спільної конфігурації немає, ролі й дозволи не редагуються</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Ролі всередині team-managed спейсу</h3>
+
+          <p>
+            У team-managed спейсі доступ складається з двох речей, і довідка перелічує їх
+            саме так: «Two main settings determine a person's permissions in your
+            team-managed space: the space's access level. Their role in the space.» —
+            рівень доступу спейсу і роль людини в ньому.
+          </p>
+
+          <p>
+            <strong>Рівнів доступу три.</strong> <code>Open</code> — будь-хто на твоєму
+            сайті бачить, створює й редагує роботи в цьому спейсі. <code>Limited</code> —
+            бачить і коментує, але не редагує й не створює. <code>Private</code> — спейс
+            бачать лише адміністратори Jira й ті, кого до нього додали. Рівень доступу роздає
+            роль: у відкритому спейсі кожен залогінений отримує <code>Member</code>,
+            в обмеженому — <code>Viewer</code>.
+          </p>
+
+          <p>
+            <strong>Ролей теж три</strong>, і довідка описує їх коротко:
+          </p>
+
+          <ul>
+            <li><code>Administrator</code> — «admins can do most things, like update
+              settings and add other admins to the space»: міняє налаштування спейсу,
+              додає інших адмінів, керує типами роботи й правилами на дошці.</li>
+            <li><code>Member</code> — «members are a part of the team»: створює роботи,
+              редагує їх, коментує, пересуває між статусами.</li>
+            <li><code>Viewer</code> — «viewers can search through and view work items in
+              your space»: шукає й читає.</li>
+          </ul>
+
+          <p>
+            На безкоштовному плані ці три слова є на екрані, але нічого не вирішують.
+            Довідка каже це двома різними реченнями. Перше: «You can't edit space
+            permissions or roles on the Free plan for Jira» — ролі й дозволи спейсу на
+            Free не редагуються. Друге, ще прямолінійніше: «If your site has always been
+            on a Free plan, everyone with access to Jira is an admin for all Jira spaces» —
+            якщо сайт від початку на безкоштовному плані, кожен, хто має доступ до Jira,
+            є адміністратором усіх спейсів.
+          </p>
+
+          <p>
+            Практичний висновок для «Кориці»: поставити Богдану роль <code>Viewer</code>,
+            щоб він лише читав, на безкоштовному плані не спрацює. Доступ у такій команді
+            тримається на домовленості, а не на налаштуванні, — і про це треба знати
+            <em>до</em> того, як покладатись на роль.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            На цей момент у твоєму сайті живуть два спейси: <code>MY</code> з уроку 3 і
+            <code>MARK</code> з уроку 6. Зараз ти дізнаєшся їхній тип і додаси третій —
+            спейс ремонту другої точки, з якого почнеться урок 11.
+          </p>
+
+          <h3>Крок 1. Подивитись тип двох наявних спейсів</h3>
+
+          <p>
+            У бічній панелі натисни <code>Spaces</code>, а далі — пункт, що показує всі
+            спейси списком. У таблиці знайди колонку <code>Type</code>. Навпроти
+            <code>MY</code> і <code>MARK</code> має стояти значення, що починається зі
+            слова <code>Team-managed</code>.
+          </p>
+
+          <p>
+            Другий шлях, той самий результат: відкрий <code>MARK</code>, наведись на його
+            назву в бічній панелі, натисни три крапки (<code>•••</code>) і подивись у
+            самий низ меню — тип написаний там.
+          </p>
+
+          <h3>Крок 2. Створити спейс «Друга точка»</h3>
+
+          <p>
+            Наведись на <code>Spaces</code> в бічній панелі й натисни
+            <code>Create space</code>. Далі за документацією Atlassian:
+          </p>
+
+          <ul>
+            <li>у галереї шаблонів вибери категорію ділових спейсів
+              (<code>Work management</code>);</li>
+            <li>знайди шаблон для керування проєктом — той, що дає три кроки роботи:
+              <code>To Do</code>, <code>In Progress</code>, <code>Done</code>, — і натисни
+              <code>Use template</code>;</li>
+            <li>дай спейсу назву <strong>Друга точка</strong>;</li>
+            <li>на кроці вибору типу постав <code>Team-managed</code>;</li>
+            <li>натисни <code>Create</code>.</li>
+          </ul>
+
+          <p>
+            Ключ Jira згенерує сама. Якщо вона запропонувала не <code>REM</code>, це не
+            біда: у курсі ключ цього спейсу — <code>REM</code>, і змінити його можна
+            пізніше в <code>Space settings</code> → <code>Details</code>. Порядок кроків
+            у майстрі час від часу міняється, тож орієнтуйся не на номер кроку, а на
+            назви: шаблон, назва, тип, <code>Create</code>.
+          </p>
+
+          <h3>Крок 3. Відкрити налаштування нового спейсу</h3>
+
+          <p>
+            Біля назви <code>Друга точка</code> в бічній панелі натисни три крапки
+            (<code>•••</code>) і вибери <code>Space settings</code>. Порівняй список
+            розділів ліворуч із другим вікном блоку 2: там мають бути <code>Details</code>,
+            <code>Access</code>, <code>Fields</code>, <code>Work types</code>,
+            <code>Features</code>. Це і є «конфігурація всередині спейсу» — та сама, про
+            яку йшлось у блоці 1.
+          </p>
+
+          <h3>Крок 4. Подивитись, хто має доступ і з якою роллю</h3>
+
+          <p>
+            У тій самій рейці вибери <code>Access</code>. Ти побачиш таблицю людей із
+            колонкою <code>Role</code> — у ній навпроти тебе стоятиме
+            <code>Administrator</code>. Поруч із кнопкою <code>Add people</code> буде
+            видно поточний рівень доступу спейсу.
+          </p>
+
+          <p>
+            Нічого не міняй. Мета кроку — побачити своїми очима, де ці налаштування
+            живуть, і запам'ятати, що на безкоштовному плані вони декоративні.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Три ознаки, кожна з яких перевіряється за кілька секунд.
+          </p>
+
+          <ul>
+            <li><strong>У списку спейсів три рядки.</strong> <code>MY</code>,
+              <code>MARK</code> і новий <code>REM</code> — у вікні блоку 2 їх п'ять, бо
+              там «Кориця» показана вже з тими спейсами, які з'являться в наступних
+              уроках. У колонці <code>Type</code> у всіх трьох перше слово —
+              <code>Team-managed</code>. Якщо в новому спейсі стоїть
+              <code>Company-managed</code>, тип обрано не той: виправити не вийде,
+              спейс доведеться створити заново (чому — у блоці 6).</li>
+            <li><strong>У налаштуваннях «Другої точки» є пункт <code>Work types</code>.</strong>
+              Його наявність — найшвидша ознака team-managed спейсу: саме там живуть типи
+              роботи, статуси й поля, які в company-managed світі лежали б у схемах.</li>
+            <li><strong>На сторінці <code>Access</code> навпроти твого імені —
+              <code>Administrator</code>.</strong> Якщо спробувати змінити роль і Jira
+              запропонує перейти на платний план — це і є межа безкоштовного плану,
+              побачена власними очима.</li>
+          </ul>
+
+          <p>
+            І одна перевірка на розуміння, без екрана. Відкрий дошку <code>MARK</code>,
+            потім дошку <code>REM</code> і подивись на колонки: обидві починаються з
+            <code>To Do</code>. Це два різні статуси з однаковим написом — перевірити це
+            можна буде в уроці 10, коли перейменуєш один з них і побачиш, що другий
+            не змінився.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3>Однаковий напис сприймають як той самий статус</h3>
+
+          <p>
+            Це найчастіша помилка після цього уроку, і коштує вона найбільше — бо ламає
+            не екран, а звіти. Людина зберігає фільтр <code>status = Done</code>, ставить
+            його на дашборд і кілька тижнів дивиться на неповне число, не помічаючи цього:
+            у двох спейсах статус називається так само, а в третьому його перейменували
+            на <code>Готово</code> або <code>Closed</code>.
+          </p>
+
+          <p>
+            Лікується одним словом: між спейсами шукати за <code>statusCategory</code>,
+            а не за <code>status</code>. Назва належить спейсу; категорія — усьому сайту.
+          </p>
+
+          <h3>Чекають, що тип спейсу перемкнеться</h3>
+
+          <p>
+            Логічне очікування: якщо є два типи, має бути перемикач. Його немає, і довідка
+            Atlassian каже це прямим текстом: «There isn't a native Jira feature for
+            directly converting a team-managed space to a company-managed space» — рідної
+            функції, яка перетворює team-managed спейс на company-managed, у Jira немає.
+          </p>
+
+          <p>
+            Плутанини додає те, що сторінка довідки про це називається «Convert a space
+            to a different template or type» — слово «convert» у назві є, перемикача
+            немає. Усередині описана зовсім інша процедура:
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart LR
+  A["Старий спейс"] --> B["Створити новий спейс потрібного типу"]
+  B --> C["Знайти роботи старого спейсу"]
+  C --> D["Bulk change work items"]
+  D --> E["Move work items"]
+  E --> F["Зіставити статуси старого й нового спейсу"]
+  F --> G["Роботи в новому спейсі, ключі оновлені"]
+            </pre>
+            <p class="ds-diag__caption">Зміна типу насправді — переїзд: новий спейс, масове переміщення робіт, зіставлення статусів.</p>
+          </div>
+
+          <p>
+            За переїзд платять даними. Довідка попереджає, що частина інформації при
+            ньому губиться: власні поля доведеться створити заново («these must be
+            recreated in your new team-managed space»), оцінки обсягу роботи, якщо їх
+            ставили, зникають, історія звітів не переноситься. Ключі робіт Jira оновить
+            сама, а старі посилання перенаправить — «any existing links to old work item
+            keys will be automatically redirected».
+          </p>
+
+          <p>
+            Висновок практичний: тип спейсу — рішення, яке варто зробити свідомо в перші
+            хвилини, а не «розберемось потім».
+          </p>
+
+          <h3>Покладаються на роль Viewer як на захист</h3>
+
+          <p>
+            Ролі в team-managed спейсі виглядають як інструмент розмежування доступу, і на
+            платних планах вони ним і є. На сайті, який від початку безкоштовний, ролі —
+            напис без наслідків: кожен, хто має доступ до Jira, є адміністратором усіх
+            спейсів. Якщо доступ до чогось справді має бути обмежений, безкоштовний план
+            тут не помічник — це прямий привід дивитись у бік платного (урок 2).
+          </p>
+
+          <h3>Беруть company-managed «щоб було серйозніше»</h3>
+
+          <p>
+            Спокуса зрозуміла: слово «company» звучить надійніше за «team». Але на
+            безкоштовному плані такий вибір дає лише складніші налаштування без жодної
+            з переваг: спільну конфігурацію вмикати нічим, схеми дозволів редагувати не
+            можна. А переграти рішення пізніше — це переїзд з попереднього пункту.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Хто взагалі має право створювати спейси?</h3>
+
+          <p>
+            Team-managed спейс може створити будь-хто: «any user can create their own
+            team-managed space unless a Jira admin changes this in global permissions» —
+            якщо адміністратор Jira не забрав цю можливість у глобальних налаштуваннях.
+            Company-managed створює адміністратор Jira. На сайті, що завжди був
+            безкоштовним, адміністратори — усі, тому обмеження нікого не стосується.
+          </p>
+
+          <h3>Чи можна знайти роботи за типом спейсу?</h3>
+
+          <p>
+            У JQL є поле <code>spaceType</code>, і воно розрізняє родину шаблону, а не
+            спосіб керування: <code>business</code>, <code>software</code>,
+            <code>service_desk</code>. Тобто «знайди все в ділових спейсах» — можна;
+            «знайди все в team-managed спейсах» цим полем — ні.
+          </p>
+
+          <h3>А службовий спейс для заявок — якого він типу?</h3>
+
+          <p>
+            Jira Service Management має обидва типи так само, як Jira. Спейс
+            <code>FIN</code> для бухгалтерії «Кориці» з'явиться в уроці 18, і там же
+            буде видно, як його тип підписаний у списку спейсів. Логіка та сама:
+            налаштування або всередині спейсу, або в спільних схемах сайту.
+          </p>
+
+          <h3>Ми перейдемо на платний план — що зміниться в цьому уроці?</h3>
+
+          <p>
+            З наступного після безкоштовного плану в таблиці планів з'являються два
+            рядки, яких на Free немає: <code>Space roles</code> і <code>Advanced
+            permissions</code>. Разом вони означають, що ролі перестають бути написом:
+            <code>Viewer</code> справді бачить лише те, що йому дозволено. Тоді ж набуває
+            сенсу й company-managed: спільну конфігурацію можна ввімкнути й налаштувати
+            статуси один раз на всі відділи.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Цей урок не додав тобі жодної нової кнопки — він пояснив, чому кнопки стоять
+            там, де стоять. Далі це знання працюватиме мовчки: кожна інструкція наступних
+            уроків починається зі слів «Space settings → …», і тепер видно, чому цей
+            шлях узагалі існує.
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li><strong>Тип спейсу — це про місце зберігання налаштувань.</strong>
+                Team-managed тримає їх усередині спейсу, company-managed — у спільних
+                схемах на рівні сайту.</li>
+              <li><strong>Тип видно у двох місцях:</strong> колонка <code>Type</code>
+                у списку спейсів і низ меню <code>•••</code> біля назви спейсу.</li>
+              <li><strong>Значення в колонці <code>Type</code> — два факти:</strong>
+                спосіб керування (<code>Team-managed</code> / <code>Company-managed</code>)
+                і родина шаблону (<code>business</code>, <code>software</code>,
+                <code>service management</code>).</li>
+              <li><strong>Команді до десяти людей підходить team-managed</strong> —
+                усе, заради чого беруть company-managed, на безкоштовному плані вимкнене.</li>
+              <li><strong>Статуси й поля належать спейсу.</strong> Однаковий напис у двох
+                спейсах — два різні статуси; між спейсами шукати за
+                <code>statusCategory</code>.</li>
+              <li><strong>Тип не перемикається.</strong> «Змінити тип» означає створити
+                новий спейс і перенести туди роботи, втративши частину даних.</li>
+              <li><strong>Ролі <code>Administrator</code> / <code>Member</code> /
+                <code>Viewer</code> на безкоштовному плані нічого не обмежують:</strong>
+                на такому сайті всі — адміністратори всіх спейсів.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Далі — <strong>урок 10 «Workflow»</strong>. Він відкриває саме той розділ, що
+            щойно знайшовся в рейці налаштувань: <code>Work types</code> і редактор
+            робочого процесу за ним. Там ти збудуєш для спейсу найму власний процес із
+            п'яти кроків — <code>New</code>, <code>Screening</code>, <code>Interview</code>,
+            <code>Offer</code>, <code>Hired</code> — і побачиш, чому колонка на дошці
+            й статус — не одне й те саме.
+          </p>
+          <p>
+            До того часу корисна дрібниця: створи в новому спейсі <code>REM</code> одну
+            роботу з назвою «Електрика: погодити кошторис». Вона знадобиться в уроці 11,
+            коли дійде до ієрархії й полів.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять на
+            назви: до кожної відповіді одразу з'являється пояснення, чому решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Оксана відкрила список спейсів і бачить у колонці Type значення «Team-managed business» у чотирьох рядках із п'яти. Що це означає на практиці?",
+            "options": [
+              "Налаштування кожного з цих спейсів живуть усередині нього самого, і змінити їх може адмін цього ж спейсу",
+              "Ці спейси створила команда, а не Оксана, тому вона в них нічого не змінить без запиту до колег",
+              "Усі чотири спейси користуються однією спільною конфігурацією: статуси й поля в них однакові за визначенням",
+              "Це тимчасовий стан спейсу до того, як адміністратор Jira підключить його до схем сайту й підпише як company-managed"
+            ],
+            "answer": 0,
+            "explain": "Team-managed означає рівно одне: конфігурація зберігається в самому спейсі. Довідка Atlassian описує такі спейси як «set up and maintained by anyone on the team» — їх налаштовує команда, без адміністратора Jira. Хто саме створив спейс, у колонці Type не написано — для цього є колонка Lead. Спільної конфігурації тут якраз і немає: це властивість company-managed спейсів. І тимчасовим цей стан не буває — тип задається в момент створення й далі не перемикається."
+          },
+          {
+            "q": "У спейсі HR є статус Interview, у спейсі MARK його немає. Ліна хоче, щоб він з'явився і в Марти теж. Що вона має зробити?",
+            "options": [
+              "Написати в підтримку Atlassian: додавання статусу на весь сайт робиться на їхньому боці",
+              "Створити такий самий статус окремо в спейсі MARK: обидва спейси team-managed, спільного набору статусів у них немає",
+              "Нічого: статус Interview автоматично стане доступним у MARK протягом доби після створення",
+              "Відкрити налаштування сайту й додати статус у глобальний список статусів, звідки його підхоплять усі спейси"
+            ],
+            "answer": 1,
+            "explain": "У team-managed спейсі статуси належать спейсу — так само, як поля: довідка каже про них «Jira bounds any custom fields you add to the space. You can't share them with other spaces on your Jira site». Спільного набору статусів для таких спейсів не існує, тому статус доводиться створювати в кожному окремо. Глобальний список статусів — це світ company-managed спейсів і схем, і навіть там його редагує адміністратор Jira, а не автор спейсу. Підтримка Atlassian до налаштувань спейсу стосунку не має."
+          },
+          {
+            "q": "Тарас створив спейс REM як team-managed, а через місяць вирішив, що йому потрібен company-managed. Що йому доведеться зробити?",
+            "options": [
+              "Відкрити Space settings → Details і перемкнути тип у випадайці; роботи лишаться на місці",
+              "Попросити адміністратора Jira натиснути Convert на сторінці спейсу — у безкоштовному плані ця дія доступна",
+              "Створити новий спейс потрібного типу й перенести туди роботи масовою операцією, зіставивши статуси",
+              "Видалити спейс і відновити його з кошика, вибравши інший тип у діалозі відновлення"
+            ],
+            "answer": 2,
+            "explain": "Довідка Atlassian формулює це прямо: «There isn't a native Jira feature for directly converting a team-managed space to a company-managed space». Перемикача типу немає ні в налаштуваннях спейсу, ні в адмінці. Замість нього описана процедура переїзду: створити новий спейс потрібного типу, знайти роботи старого й перенести їх масовою зміною, зіставивши статуси старого спейсу зі статусами нового. Частина даних при цьому губиться — власні поля й оцінки доведеться відновлювати руками. Кошик зберігає спейс таким, яким він був, і типу при відновленні не питає."
+          },
+          {
+            "q": "Оксана дала пекарю Богдану роль Viewer у спейсі REM, щоб він бачив ремонт, але нічого не міняв. Сайт «Кориці» від початку на безкоштовному плані. Що вийде?",
+            "options": [
+              "Богдан узагалі втратить доступ до спейсу: роль Viewer на безкоштовному плані працює як заборона входу",
+              "Роль збережеться й запрацює, але лише через добу — після того, як Jira перерахує права на сайті",
+              "Jira не дасть зберегти роль і запропонує платний план, бо на Free сторінка Access відкривається лише для читання",
+              "Роль з'явиться в таблиці, але нічого не обмежить: на такому сайті кожен є адміністратором усіх спейсів"
+            ],
+            "answer": 3,
+            "explain": "Тут збігаються два факти з довідки. Перший: «You can't edit space permissions or roles on the Free plan for Jira» — ролі й дозволи спейсу на безкоштовному плані не редагуються. Другий, ще прямолінійніший: «If your site has always been on a Free plan, everyone with access to Jira is an admin for all Jira spaces». Тобто напис у таблиці нічого не змінює, а доступу Богдан не втрачає. Затримки в добу тут теж немає: справа не в перерахунку прав, а в тому, що на цьому плані розмежування доступу вимкнене цілком."
+          },
+          {
+            "q": "Марта зберегла фільтр status = Done і поставила його на дашборд команди. За два тижні число в гаджеті виявилось меншим за реальну кількість завершених робіт. Найімовірніша причина?",
+            "options": [
+              "Гаджет показує лише роботи поточного тижня, а решта завершених з нього випадає за розкладом",
+              "В одному зі спейсів завершальний статус названо інакше, а status шукає точну назву, не категорію",
+              "Фільтр приватний, тому частина робіт у ньому не враховується, поки його не поширити на команду",
+              "Роботи із закритих спейсів не потрапляють у результати фільтра, навіть якщо їхній статус справді Done"
+            ],
+            "answer": 1,
+            "explain": "Статуси в team-managed спейсі належать спейсу, тому в кожному з них завершальний статус може називатись по-своєму: Done, Готово, Closed. Поле status шукає точну назву й знаходить лише тих, у кого вона збіглася. Рятує категорія статусу: кожен статус належить до однієї з трьох категорій на весь сайт, і довідка пропонує саме її — «you can use the statusCategory field (a work item is resolved when statusCategory = Done)». Поширення фільтра впливає на те, хто його бачить, а не на те, що він знаходить, і жодного тижневого обмеження в гаджеті на фільтрі немає."
+          },
+          {
+            "q": "Ліна прочитала, що company-managed спейси дозволяють налаштувати статуси один раз на всі відділи, і хоче так зробити в «Кориці» на безкоштовному плані. Що вона побачить?",
+            "options": [
+              "Спільна конфігурація вмикається, але діє лише в межах трьох спейсів на безкоштовному плані",
+              "Jira створить схеми автоматично з першого company-managed спейсу й застосує їх до решти спейсів сайту",
+              "Спільної конфігурації вона не отримає: це налаштування на безкоштовному плані недоступне",
+              "Налаштування з'явиться після того, як вона призначить себе адміністратором Jira в налаштуваннях сайту"
+            ],
+            "answer": 2,
+            "explain": "Довідка Atlassian каже про це одним реченням: «Only Jira admins can create spaces with a shared configuration. This setting isn't available on the Free plan». Тобто саме той механізм, заради якого беруть company-managed, на безкоштовному плані вимкнено — жодного часткового режиму на кілька спейсів немає. Призначати себе адміністратором теж не треба й не допоможе: на сайті, що завжди був безкоштовним, адміністраторами є всі, і це нічого не додає. Автоматичного застосування схем до сусідніх спейсів Jira не робить ніколи: спейс підключають до схеми свідомо."
+          }
+        ]
+      }
+      </script>
+
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Урок позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний урок (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між уроками" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
