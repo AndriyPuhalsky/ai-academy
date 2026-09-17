@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 6 · Вигляди — Jira з нуля</title>
+  <meta name="description"
+    content="Одна база робіт спейсу і п'ять способів на неї дивитись: дошка, список, календар, таймлайн і Summary. Коли який вигляд брати, як додати той, якого немає, і чому твоє групування колега не бачить." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+</head>
+
+<body data-module="j06">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 06</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 2 · Щоденна робота</p>
+        <h1 class="ds-h1">Вигляди</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 22 хв читання</p>
+        <p class="ds-lead">
+          Найпоширеніша помилка перших тижнів у Jira коштує тижнів роботи: людина заводить
+          другий спейс, «щоб був календар», третій — «щоб був список», і за місяць у неї
+          три місця з тими самими справами, які розходяться між собою. Насправді спейс
+          один, справи в ньому одні, а дошка, список, календар і таймлайн — це різні
+          окуляри на ту саму купу робіт.
+        </p>
+        <p>
+          Цей урок показує п'ять окулярів: коли брати кожен, як дістати той, якого немає
+          в рядку виглядів, і чому налаштування, які ти зробиш у своєму вигляді, колега
+          в себе не побачить.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> пошуку й мови запитів JQL — урок 7; дашбордів і
+            гаджетів — урок 8; беклогу, спринтів і лімітів на колонку — урок 13; своїх
+            статусів — урок 10; своїх полів — урок 11.
+          </p>
+          <p>
+            <strong>Є:</strong> рядок виглядів спейсу й кнопка <code
+            class="ds-code--inline">+</code>; дошка з доріжками; список зі своїми
+            колонками; календар; таймлайн; Summary як готове зведення; і чим набір
+            виглядів business-спейсу відрізняється від software.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            У маркетологині «Кориці» Марти в спейсі <code>MARK</code> лежить сім робіт:
+            пости, розсилка, флаєри, акція, відповіді на відгуки. За один робочий день
+            вона ставить собі різні питання — і кожне зручно читається з іншого екрана.
+          </p>
+
+          <ul>
+            <li><strong>«Що зараз у роботі, а що ще не почато?»</strong> — питання про
+              етапи. Відповідає дошка: три колонки, картки в них.</li>
+            <li><strong>«Покажи все підряд, з виконавцями й дедлайнами в одному рядку»</strong>
+              — питання про перелік. Відповідає список.</li>
+            <li><strong>«Що горить цього тижня?»</strong> — питання про дати. Відповідає
+              календар.</li>
+            <li><strong>«Коли починається й закінчується акція?»</strong> — питання про
+              відрізки часу. Відповідає таймлайн.</li>
+            <li><strong>«Як узагалі справи в маркетингу?»</strong> — питання про зведення.
+              Відповідає Summary.</li>
+          </ul>
+
+          <p>
+            Спокуса для новачка тут одна: завести під кожне питання своє місце. Jira
+            влаштована навпаки. Довідка Atlassian описує спейс так: «A space groups work
+            items together and provides views like boards, backlogs, and timelines to
+            visualize and track progress» — спейс збирає роботи докупи й дає до них
+            <em>вигляди</em>: дошки, беклоги, таймлайни. Тобто база одна, а виглядів
+            (англійською <strong>views</strong>) багато.
+          </p>
+
+          <h3>Вигляд не є копією даних</h3>
+
+          <p>
+            Це не термінологічна тонкість, а те, від чого залежать твої дії. Якщо вигляд —
+            це окуляри, то зміна в одному вигляді миттєво видна в усіх інших: перетягнув
+            картку на дошці — у списку в неї змінився статус; поставив дату в календарі —
+            вона з'явилась у колонці <code>Due date</code> списку. І навпаки: те, що вигляд
+            чогось не показує, не означає, що роботи немає.
+          </p>
+
+          <p>
+            Довідка дає цьому прямий доказ. Дошку можна налаштувати так, щоб зроблені
+            картки зникали з неї через 7, 14, 30 або 60 днів (за замовчуванням вони
+            лишаються назавжди). І там же написано, що з ними стається: «Work items will
+            still appear in the list, timeline, and calendar views, even if they've been
+            hidden from the board» — роботи й далі видно в списку, на таймлайні та в
+            календарі, навіть якщо їх сховано з дошки. Сховати на дошці не означає
+            видалити: це налаштування окулярів, а не самої роботи.
+          </p>
+
+          <p>
+            Звідси практичне правило всього уроку: <strong>коли щось «зникло», спершу
+            перевір вигляд, а не шукай втрачену роботу</strong>. У блоці 6 зібрані п'ять
+            найчастіших випадків, коли зникнення виявляється налаштуванням.
+          </p>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Вигляди живуть у горизонтальному рядку під назвою спейсу — довідка називає його
+            <strong>space navigation</strong>, навігація спейсу. На навчальному сайті
+            2026-09-17 у спейсі для розробки цей рядок був такий: <code>Summary</code> ·
+            <code>List</code> · <code>Board</code> · <code>Docs</code> ·
+            <code>Development</code> і кнопка <code>+</code>. Набір залежить від типу
+            спейсу й від того, що в нього додали, — про це в кінці блоку.
+          </p>
+
+          <h3>Дошка: колонки — етапи, доріжки — групи</h3>
+
+          <p>
+            Дошку ти вже бачив(ла) в уроці 1: колонка — це статус, картка — робота. Тут
+            додається друга вісь. Кнопка <code>Group</code> розкладає ту саму дошку на
+            <strong>доріжки (swimlanes)</strong> — горизонтальні смуги. Довідка описує
+            доріжку буквально: «A swimlane is a horizontal categorization of work items» —
+            горизонтальна категоризація робіт. Марта групує дошку за виконавцем і бачить
+            навантаження кожного окремим рядком.
+          </p>
+
+<figure class="win" data-state="board" id="w1">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w1t">Jira Cloud · дошка спейсу Маркетинг, згрупована за виконавцем · за документацією, 2026-09-17</span>
+    <span class="win__addr" aria-hidden="true">…/jira/…/MARK/board</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w1t">
+    <ul class="win__rail" aria-label="Бічна панель Jira">
+      <li class="win__rail-item">For you</li>
+      <li class="win__rail-item win__rail-item--active">Spaces</li>
+      <li class="win__rail-item">Filters</li>
+      <li class="win__rail-item">Dashboards</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Spaces / Маркетинг</span>
+        <span class="win__tabs"><span>Summary</span><span>List</span><span class="win__tab--active">Board</span><span>Calendar</span><span>Timeline</span><span>+</span></span>
+        <span class="win__btn">Filter <b class="win__mark" aria-hidden="true">②</b></span>
+        <span class="win__btn">Group <b class="win__mark" aria-hidden="true">①</b></span>
+      </div>
+      <ul class="win__lanes">
+        <li class="win__lane">
+          <h4 class="win__lane-title">Марта Лисенко <b class="win__mark" aria-hidden="true">③</b></h4>
+          <ul class="win__cols">
+            <li class="win__col" data-cat="todo">
+              <h4 class="win__col-title">To Do <span class="win__count">1</span></h4>
+              <ul class="win__cards">
+                <li class="win__card">
+                  <span class="win__card-title">Флаєри для другої точки</span>
+                  <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">MARK-6</span> <span class="win__due">Sep 25</span> <span class="win__who" title="Марта Лисенко">МЛ</span></span>
+                </li>
+              </ul>
+            </li>
+            <li class="win__col" data-cat="progress">
+              <h4 class="win__col-title">In Progress <span class="win__count">1</span></h4>
+              <ul class="win__cards">
+                <li class="win__card">
+                  <span class="win__card-title">Пост про новий круасан</span>
+                  <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">MARK-1</span> <span class="win__due">Sep 24</span> <span class="win__who" title="Марта Лисенко">МЛ</span></span>
+                </li>
+              </ul>
+            </li>
+            <li class="win__col" data-cat="done">
+              <h4 class="win__col-title">Done <span class="win__count">1</span></h4>
+              <ul class="win__cards">
+                <li class="win__card">
+                  <span class="win__card-title">Розсилка «Осіннє меню»</span>
+                  <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">MARK-4</span> <span class="win__due">Sep 19</span> <span class="win__who" title="Марта Лисенко">МЛ</span></span>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li class="win__lane">
+          <h4 class="win__lane-title">Соломія Бойко</h4>
+          <ul class="win__cols">
+            <li class="win__col" data-cat="todo">
+              <h4 class="win__col-title">To Do <span class="win__count">1</span></h4>
+              <ul class="win__cards">
+                <li class="win__card">
+                  <span class="win__card-title">Відповісти на відгуки за тиждень</span>
+                  <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">MARK-7</span> <span class="win__due">Sep 26</span> <span class="win__who" title="Соломія Бойко">СБ</span></span>
+                </li>
+              </ul>
+            </li>
+            <li class="win__col" data-cat="progress">
+              <h4 class="win__col-title">In Progress <span class="win__count">0</span></h4>
+            </li>
+            <li class="win__col" data-cat="done">
+              <h4 class="win__col-title">Done <span class="win__count">0</span></h4>
+            </li>
+          </ul>
+        </li>
+        <li class="win__lane">
+          <h4 class="win__lane-title">Unassigned</h4>
+          <ul class="win__cols">
+            <li class="win__col" data-cat="todo">
+              <h4 class="win__col-title">To Do <span class="win__count">1</span></h4>
+              <ul class="win__cards">
+                <li class="win__card">
+                  <span class="win__card-title">Оновити Google-профіль: години роботи</span>
+                  <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">MARK-5</span> <span class="win__due">Sep 30</span> <span class="win__who" title="Без виконавця">—</span></span>
+                </li>
+              </ul>
+            </li>
+            <li class="win__col" data-cat="progress">
+              <h4 class="win__col-title">In Progress <span class="win__count">0</span></h4>
+            </li>
+            <li class="win__col" data-cat="done">
+              <h4 class="win__col-title">Done <span class="win__count">0</span></h4>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «дошка спейсу Маркетинг з доріжками»">
+  <li><code>Group</code> — за яким полем розкласти дошку на доріжки</li>
+  <li><code>Filter</code> — звузити те, що показано, не чіпаючи самих робіт</li>
+  <li>Доріжка — горизонтальна смуга; тут одна смуга = один виконавець</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Панель дошки, склад картки й назви кнопок — зі знімка дошки Jira Cloud Free
+            від 2026-09-17; той знімок зроблено в спейсі для розробки й без групування.
+            Тут дошку згруповано за виконавцем: розкладку на доріжки в навчальному сайті
+            не знімали, вона зібрана з довідки — тому в заголовку вікна стоїть
+            «за документацією».
+          </p>
+
+          <p>
+            Три речі, які варто прочитати з цього екрана. Перша: колонки лишились
+            статусами — доріжки додались <em>поперек</em> них, а не замість них. Друга:
+            роботи без значення не зникають — <code>MARK-5</code> без виконавця поїхала
+            в окрему смугу, а не випала з дошки. Третя: і <code>Group</code>, і
+            <code>Filter</code> — це налаштування <em>твого</em> вигляду. Довідка каже
+            про це прямо: «view settings are applied per user — any changes you make will
+            apply to your board and backlog, and not anyone else's» — налаштування вигляду
+            діють на тебе, не на інших.
+          </p>
+
+          <div class="ds-note">
+            <span class="ds-note__title">Дві речі, які роблять різне</span>
+            <p>
+              <strong>Filter</strong> ховає частину карток із твого екрана: «показати лише
+              роботи Марти». Робота нікуди не дівається — вона лише не намальована зараз.
+              <strong>Group</strong> нічого не ховає — він перекладає ті самі картки в
+              смуги за обраним полем. На дошці business-спейсу групувати можна за статусом,
+              пріоритетом, виконавцем або категорією, і лише за чимось одним за раз.
+            </p>
+          </div>
+
+          <h3>Список: ті самі роботи рядками</h3>
+
+          <p>
+            Список — це та сама база робіт, розкладена таблицею. Довідка описує його
+            коротко: «Jira's list sorts all your space's work into a single list that can
+            be quickly scanned and sorted by field» — усі роботи спейсу одним списком, який
+            швидко переглядають і сортують за полем. Колонки ти добираєш собі сам(а)
+            кнопкою <code>Configure columns</code>.
+          </p>
+
+<figure class="win" data-state="list" id="w2">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w2t">Jira Cloud · вигляд List спейсу Маркетинг · звірено 2026-09-17</span>
+    <span class="win__addr" aria-hidden="true">…/jira/…/MARK/list?jql=…</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w2t">
+    <ul class="win__rail" aria-label="Бічна панель Jira">
+      <li class="win__rail-item">For you</li>
+      <li class="win__rail-item win__rail-item--active">Spaces</li>
+      <li class="win__rail-item">Filters</li>
+      <li class="win__rail-item">Dashboards</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Spaces / Маркетинг / List</span>
+        <span class="win__btn">Filter</span>
+        <span class="win__btn">Group</span>
+        <span class="win__btn">Configure columns <b class="win__mark" aria-hidden="true">①</b></span>
+      </div>
+      <p class="win__query"><code>project = MARK ORDER BY due ASC</code> <b class="win__mark" aria-hidden="true">③</b></p>
+      <table class="win__table">
+        <thead>
+          <tr><th>Work</th><th>Assignee</th><th>Priority</th><th>Status</th><th>Due date <b class="win__mark" aria-hidden="true">②</b></th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="win__key">MARK-4</span> Розсилка «Осіннє меню»</td><td>МЛ</td><td>Medium</td><td data-cat="done">Done</td><td>Sep 19, 2026</td></tr>
+          <tr><td><span class="win__key">MARK-1</span> Пост про новий круасан</td><td>МЛ</td><td>Medium</td><td data-cat="progress">In Progress</td><td>Sep 24, 2026</td></tr>
+          <tr><td><span class="win__key">MARK-6</span> Флаєри для другої точки</td><td>МЛ</td><td>High</td><td data-cat="todo">To Do</td><td>Sep 25, 2026</td></tr>
+          <tr><td><span class="win__key">MARK-7</span> Відповісти на відгуки за тиждень</td><td>СБ</td><td>Medium</td><td data-cat="todo">To Do</td><td>Sep 26, 2026</td></tr>
+          <tr><td><span class="win__key">MARK-5</span> Оновити Google-профіль: години роботи</td><td>Unassigned</td><td>Low</td><td data-cat="todo">To Do</td><td>Sep 30, 2026</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «вигляд List спейсу Маркетинг»">
+  <li><code>Configure columns</code> — які поля показувати колонками</li>
+  <li>Заголовок колонки — сортування за цим полем</li>
+  <li>Запит, за яким побудовано список; він же стоїть в адресі сторінки</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Назви колонок, кнопка <code>Configure columns</code> і запит в адресі — зі
+            знімка вигляду List від 2026-09-17 (спейс для розробки; у business-спейсі той
+            самий вигляд, але рядок виглядів спейсу коротший). Рядки — зі сюжету курсу.
+          </p>
+
+          <p>
+            Три деталі списку, які економлять час. <strong>Колонки — твої.</strong>
+            Довідка: «The columns you choose to display in your list is only visible to
+            you» — набір колонок бачиш лише ти. Три поля прибрати не вийде: «you'll always
+            see the type, key, and summary fields» — тип, ключ і назва стоять завжди.
+            <strong>Сортування — по кліку в заголовку</strong> (наприклад,
+            <code>Sort A to Z</code> для назви). І <strong>редагувати можна прямо в
+            рядку</strong>, не відкриваючи картку.
+          </p>
+
+          <p>
+            Третя мітка на вікні — рядок запиту. Список побудований не «всім підряд», а
+            запитом мовою, яку в Jira звуть <strong>JQL</strong>: у нашому прикладі
+            «роботи спейсу <code>MARK</code>, спочатку найближчий дедлайн». Цей запит видно
+            в адресі сторінки списку, а довідка згадує в списку окрему вкладку JQL
+            («open the JQL tab for the List view»). Сам JQL — тема уроку 7; тут важливо
+            лише те, що список і пошук говорять однією мовою. Зверни увагу на слово
+            <code>project</code>: у запитах і адресах досі живе колишня назва спейсу — це
+            нормально й пояснюється один раз в уроці 7.
+          </p>
+
+          <h3>Summary: зведення, яке нічого не просить налаштувати</h3>
+
+          <p>
+            П'ятий вигляд не показує окремих робіт — він показує картину. Довідка:
+            «The summary view helps you monitor the progress of your space by giving you a
+            high-level overview of your team's work» — зведення високого рівня по спейсу.
+            Його не треба збирати: розділи там сталі.
+          </p>
+
+<figure class="win" data-state="list" id="w3">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w3t">Jira Cloud · вигляд Summary спейсу Маркетинг · звірено 2026-09-17</span>
+    <span class="win__addr" aria-hidden="true">…/jira/…/MARK/summary</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w3t">
+    <ul class="win__rail" aria-label="Бічна панель Jira">
+      <li class="win__rail-item">For you</li>
+      <li class="win__rail-item win__rail-item--active">Spaces</li>
+      <li class="win__rail-item">Filters</li>
+      <li class="win__rail-item">Dashboards</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Spaces / Маркетинг / Summary</span>
+        <span class="win__btn">Filter</span>
+      </div>
+      <div class="win__page">
+        <h4>Summary</h4>
+        <ul class="win__stats">
+          <li>1 completed <span class="win__placeholder">in the last 7 days</span> <b class="win__mark" aria-hidden="true">①</b></li>
+          <li>4 updated <span class="win__placeholder">in the last 7 days</span></li>
+          <li>3 created <span class="win__placeholder">in the last 7 days</span></li>
+          <li>2 due soon <span class="win__placeholder">in the next 7 days</span></li>
+        </ul>
+        <h4>Status overview <b class="win__mark" aria-hidden="true">②</b></h4>
+        <table class="win__table">
+          <thead><tr><th>Status</th><th>Work items</th></tr></thead>
+          <tbody>
+            <tr><td data-cat="todo">To Do</td><td>3</td></tr>
+            <tr><td data-cat="progress">In Progress</td><td>1</td></tr>
+            <tr><td data-cat="done">Done</td><td>1</td></tr>
+          </tbody>
+        </table>
+        <h4>Types of work <b class="win__mark" aria-hidden="true">③</b></h4>
+        <table class="win__table">
+          <thead><tr><th>Type</th><th>Distribution</th></tr></thead>
+          <tbody>
+            <tr><td>Task</td><td>80%</td></tr>
+            <tr><td>Epic</td><td>20%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «вигляд Summary спейсу Маркетинг»">
+  <li>Плитки рахують останні сім днів, а «due soon» — наступні сім</li>
+  <li><code>Status overview</code> — скільки робіт у кожному статусі</li>
+  <li><code>Types of work</code> — розклад робіт за типом</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Назви плиток і розділів — зі знімка вигляду Summary від 2026-09-17; числа
+            й типи робіт — зі сюжету курсу. На справжньому екрані під показаними
+            розділами є ще <code>Recent activity</code> (стрічка змін),
+            <code>Priority breakdown</code> (розклад за пріоритетом) і
+            <code>Team workload</code> (навантаження людей).
+          </p>
+
+          <p>
+            Одна тонкість, яка інакше здається помилкою: у розділі <code>Status
+            overview</code> в категорії <code>Done</code> показують лише те, що закрили
+            нещодавно — довідка каже «Only items that have been completed in the last two
+            weeks will appear in Done». Тобто мале число в <code>Done</code> означає
+            «мало закрили останнім часом», а не «мало зроблено за все життя спейсу».
+          </p>
+
+          <h3>Календар і таймлайн — словами</h3>
+
+          <p>
+            Ці два вигляди на навчальному сайті не знімали, тому вікон для них у курсі
+            немає ⚠ — нижче тільки те, що каже довідка.
+          </p>
+
+          <p>
+            <strong>Календар</strong> — це місяць (або тиждень) із картками на днях.
+            Довідка: «Each space has a calendar that allows your team to see when work
+            items are due and get a quick glance at what's coming up» — календар спейсу
+            показує, коли роботи мають бути готові. Головне про нього: у календар
+            потрапляє <em>лише те, у чого є дата</em>. Роботи без дедлайну складені в
+            бічну шухляду <code>Unscheduled work</code>, і призначають їм дату
+            перетягуванням: «Schedule a work item by dragging it onto the calendar to the
+            date that it's due». Перетягнув картку на інший день — змінився дедлайн самої
+            роботи, окремого збереження немає.
+          </p>
+
+          <p>
+            <strong>Таймлайн</strong> — це смуги на шкалі часу (такий графік називають
+            діаграмою Ґанта): у кожної роботи є початок і кінець, і видно, що з чим
+            перетинається. Довідка: «The schedule bars on the timeline represent the start
+            date and due date of each work item in your space» — смуга малюється від дати
+            початку до дедлайну. Для великих справ це найкорисніший вигляд: якщо в акції
+            <code>MARK-2</code> є вкладені роботи, таймлайн підтягує її межі з них —
+            «The parent start date is the earliest start date of its child items. The
+            parent end date is the latest due date of its child items».
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__title">Межа безкоштовного плану на таймлайні</span>
+            <p>
+              Таймлайн спейсу на безкоштовному плані є, і в таблиці планів Atlassian він
+              позначений словом <code class="ds-code--inline">Basic</code> — базовий.
+              Базовий означає «в межах одного спейсу»: «A timeline can only show work
+              items from one space. Planning across multiple spaces is only possible in
+              your plan, which is included with Jira Cloud Premium and Enterprise».
+              Тобто зібрати одну шкалу часу по всій фірмі одразу безкоштовний план не
+              дасть — доведеться дивитись спейси по черзі.
+            </p>
+          </div>
+
+          <h3>Рядок виглядів: чому в тебе інший</h3>
+
+          <p>
+            Набір виглядів у спейсі не однаковий у всіх, і на це є дві причини.
+          </p>
+
+          <p>
+            <strong>Причина перша — тип спейсу.</strong> Довідка ділить їх так: «Software
+            spaces: Designed for development teams… Business spaces: Designed for
+            non-technical teams (HR, marketing, finance, etc.)». І далі: «software spaces
+            come with features like a board and backlog» — саме software-спейс приходить
+            із дошкою й беклогом, а вмикають беклог і спринти в team-managed
+            <em>software</em>-спейсі. Спейси «Кориці» — business, тож беклогу й спринтів
+            у їхньому рядку виглядів немає, а ядро (Summary, List, Board, Calendar,
+            Timeline) є. Що таке беклог і спринт і кому вони потрібні — урок 13.
+          </p>
+
+          <p>
+            <strong>Причина друга — що в цей спейс додали.</strong> Вигляд може бути
+            вимкнений у налаштуваннях спейсу або не доданий у рядок навігації. Кнопка
+            <code>+</code> у кінці рядка називається <code>Add to navigation</code>. На
+            навчальному сайті 2026-09-17 під нею був такий список (перші позиції за
+            абеткою): <code>Archived work items</code> · <code>Backlog</code> ·
+            <code>Calendar</code> · <code>Capacity</code> · <code>Code</code> ·
+            <code>Deployments</code> · <code>Forms</code> · <code>Goals</code> ·
+            <code>List</code> — у кожного пункту свій опис і своя кнопка
+            <code>Add to navigation</code>.
+          </p>
+
+          <p>
+            Другий шлях до того самого — <code>Space settings</code> →
+            <code>Features</code>: там вигляди вмикають і вимикають перемикачами. Різниця
+            в правах: додавати вкладки й перемикати фічі може лише адміністратор спейсу
+            («Only space admins can enable and disable features in a space»). На
+            безкоштовному плані це не перешкода — там кожен учасник є адміністратором
+            (урок 2), — але на робочому сайті з платним планом кнопки може не бути.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <p>
+            Механіка виглядів проста, і її варто мати в голові одним малюнком: посередині
+            купа робіт спейсу, а вигляди — це п'ять способів її намалювати.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart TB
+  W["Роботи спейсу MARK: MARK-1 … MARK-7"]
+  W -->|"етап"| B["Board"]
+  W -->|"перелік"| L["List"]
+  W -->|"дати"| C["Calendar"]
+  W -->|"відрізки часу"| T["Timeline"]
+  W -->|"зведення"| S["Summary"]
+            </pre>
+            <p class="ds-diag__caption">
+              База одна, окулярів п'ять. Зміна, зроблена в будь-якому вигляді, змінює саму
+              роботу — і її одразу видно в решті
+            </p>
+          </div>
+
+          <h3>Кожен вигляд читає своє поле</h3>
+
+          <p>
+            Різниця між виглядами — у тому, яке поле роботи вони беруть за головне. Це
+            пояснює майже всі «а чому тут порожньо».
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: що кожен вигляд бере з роботи і на яке питання відповідає">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Вигляд</th><th>Головне поле роботи</th><th>Питання, на яке відповідає</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Board</td>
+                  <td>Статус</td>
+                  <td>Що зараз на якому етапі й у кого застрягло</td>
+                </tr>
+                <tr>
+                  <td>List</td>
+                  <td>Будь-які поля колонками</td>
+                  <td>Покажи все підряд, щоб порівняти рядки між собою</td>
+                </tr>
+                <tr>
+                  <td>Calendar</td>
+                  <td>Дедлайн (Due date)</td>
+                  <td>Що треба здати цього тижня й чи не зійшлось усе в один день</td>
+                </tr>
+                <tr>
+                  <td>Timeline</td>
+                  <td>Дата початку й дедлайн</td>
+                  <td>Скільки триває велика справа й що з чим перетинається</td>
+                </tr>
+                <tr>
+                  <td>Summary</td>
+                  <td>Нічого окремого: рахує всі</td>
+                  <td>Як загалом справи в цьому спейсі</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            Звідси й головний висновок: <strong>порожній вигляд — це майже завжди порожнє
+            поле</strong>. Календар без дедлайнів порожній не тому, що зламався, а тому, що
+            дат немає; таймлайн без дат початку малює крапки замість смуг. І навпаки:
+            заповнюючи дедлайн у картці, ти наповнюєш календар, навіть якщо календар при
+            цьому не відкривав(ла).
+          </p>
+
+          <h3>Три рівні, на яких налаштовується вигляд</h3>
+
+          <p>
+            Коли в тебе й у колеги той самий спейс виглядає по-різному, причина лежить на
+            одному з трьох рівнів — і вони дуже різні за наслідками.
+          </p>
+
+          <ul>
+            <li><strong>Рівень спейсу (діє на всіх).</strong> Чи є вигляд у рядку взагалі:
+              <code>Space settings</code> → <code>Features</code> і кнопка
+              <code>+</code> → <code>Add to navigation</code>. Це може лише адміністратор
+              спейсу, і це бачать усі.</li>
+            <li><strong>Рівень людини (діє лише на тебе).</strong> Фільтр, групування, набір
+              і порядок колонок у списку, показ полів на картках. Довідка: «any changes you
+              make will apply to your board and backlog, and not anyone else's».</li>
+            <li><strong>Рівень роботи (діє на всіх і скрізь).</strong> Статус, виконавець,
+              дедлайн, пріоритет. Це вже не окуляри, а самі дані: перетягнув картку в
+              календарі — змінив дедлайн роботи для всієї команди.</li>
+          </ul>
+
+          <p>
+            Одне уточнення про середній рівень. Адміністратор спейсу може зберегти свою
+            розкладку дошки як стартову для команди — кнопка <code>Save or reset view
+            settings</code>; довідка каже, що збережені налаштування «will be visible for
+            everyone in the space». Це не скасовує особистих: кожен може перекласти дошку
+            під себе, а потім повернутись до збереженої кнопкою скидання.
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            До цього уроку в тебе був один спейс — особистий, із п'ятьма справами з уроку 5.
+            Зараз з'явиться другий: робочий, на якому вигляди видно значно краще, бо в ньому
+            є і різні виконавці, і різні дати. У «Кориці» це маркетинг Марти.
+          </p>
+
+          <h3>Крок 1. Створити другий спейс</h3>
+
+          <p>
+            У бічній панелі наведи курсор на <code>Spaces</code> і натисни
+            <code>Create space</code> (у довідці цей шлях описаний дослівно: «Hover over
+            Spaces in the side navigation, then select Create space»). Відкриється галерея
+            заготовок. Обери категорію <code>Work management</code> — це спейси для
+            нетехнічних команд — і в ній заготовку під просування: кампанії, пости,
+            контент-план. Назв заготовок курс навмисно не заучує: їх перейменовують, тому
+            читай опис під назвою, а не саму назву.
+          </p>
+
+          <p>
+            Далі: <code>Use template</code> → назва спейсу <strong>Маркетинг</strong> →
+            тип <code>Team-managed</code> → <code>Create</code>. Ключ Jira згенерує сама
+            («Jira will generate a space key when you create the space»). Якщо хочеш саме
+            <code>MARK</code>, як у курсі, зміни його потім у <code>Space settings</code>
+            → <code>Details</code>.
+          </p>
+
+          <h3>Крок 2. Покласти в спейс роботу, на якій буде що дивитись</h3>
+
+          <p>
+            Створи п'ять карток (кнопкою <code>+ Create</code>, як в уроці 5). Важливо
+            зробити їх різними — інакше вигляди нічим не відрізнятимуться:
+          </p>
+
+          <ul>
+            <li>усім п'яти постав <strong>різні дедлайни</strong> протягом найближчих двох
+              тижнів — це наповнить календар;</li>
+            <li>одну лиши <strong>без виконавця</strong> — вона знадобиться в кроці 4;</li>
+            <li>одну переведи в <code>In Progress</code>, одну — в <code>Done</code>,
+              решту лиши в <code>To Do</code>: так дошка й Summary покажуть різні числа.</li>
+          </ul>
+
+          <h3>Крок 3. Додати вигляди, яких немає</h3>
+
+          <p>
+            Подивись на рядок виглядів свого нового спейсу. Якщо <code>Calendar</code> або
+            <code>Timeline</code> там уже є — нічого робити не треба, переходь до кроку 4.
+            Якщо якогось немає: кнопка <code>+</code> у кінці рядка →
+            знайди потрібний пункт у списку → <code>Add to navigation</code>. Вкладка
+            з'явиться в рядку одразу.
+          </p>
+
+          <h3>Крок 4. Погратись із дошкою</h3>
+
+          <p>
+            Відкрий <code>Board</code> і натисни <code>Group</code> → <code>Assignee</code>.
+            Дошка розкладеться на доріжки. Знайди очима ту роботу, яку ти лишив(ла) без
+            виконавця: вона в окремій смузі — це і є відповідь на питання «куди дінуться
+            картки без значення». Потім натисни <code>Group</code> →
+            <code>Clear</code> (або <code>Clear selection</code>), щоб повернути звичайний
+            вигляд.
+          </p>
+
+          <h3>Крок 5. Зібрати свій список</h3>
+
+          <p>
+            Перейди в <code>List</code>. Натисни <code>Configure columns</code> і додай
+            колонку <code>Labels</code> (мітки) або <code>Due date</code>, якщо її ще
+            немає. Клікни в заголовок колонки з датою й обери сортування — список
+            перебудується від найближчого дедлайну. Зверни увагу на адресу сторінки: у ній
+            видно запит, яким побудований список.
+          </p>
+
+          <h3>Крок 6. Поставити дату мишею</h3>
+
+          <p>
+            Відкрий <code>Calendar</code>. Створи ще одну картку без дедлайну — вона піде
+            в шухляду <code>Unscheduled work</code> праворуч. Перетягни її звідти на
+            потрібний день. Відкрий цю роботу й переконайся, що в полі <code>Due
+            date</code> стоїть саме той день: календар не «позначив» картку, він змінив
+            її поле.
+          </p>
+
+          <h3>Крок 7. Знайти одну роботу в трьох виглядах</h3>
+
+          <p>
+            Візьми будь-яку картку — наприклад, ту, у якої найближчий дедлайн, — і знайди
+            її по черзі на дошці, у списку й у календарі. Ключ (<code>MARK-5</code> і
+            подібні) в усіх трьох буде той самий. Це остання й найважливіша вправа уроку:
+            вона руками показує те, з чого урок починався.
+          </p>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Шість ознак на екрані. Кожна має дати «так» — тоді вигляди в тебе працюють,
+            а не лише відкриваються.
+          </p>
+
+          <ul>
+            <li>У рядку виглядів спейсу є <strong>і <code>Calendar</code>, і
+              <code>Timeline</code></strong>.</li>
+            <li>Та сама робота з тим самим ключем видна <strong>у трьох виглядах</strong>:
+              на дошці, у списку й у календарі.</li>
+            <li>На дошці після <code>Group</code> → <code>Assignee</code> з'явились
+              <strong>доріжки</strong>, і робота без виконавця лежить в окремій смузі,
+              а не зникла.</li>
+            <li>У списку є <strong>колонка, якої там не було</strong> на початку, і список
+              сортується кліком у заголовку.</li>
+            <li>Картка, яку ти перетягнув(ла) в календарі, має в полі <code>Due date</code>
+              <strong>саме той день</strong>, на який ти її поклав(ла).</li>
+            <li>У <code>Summary</code> плитки показують <strong>ненульові числа</strong>,
+              а <code>Status overview</code> — три різні статуси.</li>
+          </ul>
+
+          <p>
+            Якщо календар порожній, а дедлайни ти ставив(ла) — відкрий шухляду
+            <code>Unscheduled work</code>: усе, що лежить у ній, дати не має, і це
+            найшвидший спосіб побачити, які саме картки лишились без дедлайну. Якщо доріжок
+            після групування немає — перевір, чи у робіт узагалі заповнений виконавець:
+            коли значення в усіх одне, смуга буде одна, і це виглядає як «не спрацювало».
+          </p>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3>«У мене немає такого вигляду, як на картинці»</h3>
+
+          <p>
+            Найчастіше питання новачка — і майже ніколи це не поламана Jira. Вигляд або не
+            доданий у навігацію цього спейсу, або вимкнений у його налаштуваннях. Довідка
+            прямо описує обидва випадки: «If the board view doesn't appear, your admin may
+            have removed it from the navigation of the business space» і, про таймлайн,
+            «If you don't see a timeline in your space, your administrator needs to enable
+            it». Лікування — кнопка <code>+</code> → <code>Add to navigation</code> або
+            <code>Space settings</code> → <code>Features</code>.
+          </p>
+
+          <p>
+            Окремий випадок — беклог і спринти: їх немає не тому, що щось вимкнули, а тому
+            що це фічі software-спейсу. Якщо тобі справді потрібні спринти, це урок 13, і
+            там же пояснено, чому нетехнічній команді вони зазвичай не потрібні.
+          </p>
+
+          <h3>«Календар порожній, хоча робіт повно»</h3>
+
+          <p>
+            Календар малює лише те, у чого є дата. Довідка: «Work items without due dates
+            aren't visible on the calendar and need to be scheduled from the Unscheduled
+            work drawer» — роботи без дедлайну в календарі не видно, їх ставлять на дати
+            з бічної шухляди. Тобто порожній календар означає порожнє поле
+            <code>Due date</code>, а не порожній спейс.
+          </p>
+
+          <p>
+            Тут же одна розбіжність у самій довідці, про яку варто знати, бо вона економить
+            півгодини гадання: сторінка про призначення календаря каже, що вигляд показує
+            роботи, «scheduled using the Start date and Due date fields», а сторінка про
+            те, як ним користуватись, говорить лише про дедлайн. Обидві сходяться в
+            головному: без дати робота в календарі не з'явиться. Якщо картка не
+            намалювалась, заповни обидва поля — це працює в будь-якому разі.
+          </p>
+
+          <h3>«Я зробив(ла) собі зручно, а в колеги все по-старому»</h3>
+
+          <p>
+            Фільтр, групування й колонки — особисті. Довідка про список каже: «The columns
+            you choose to display in your list is only visible to you». Тому фраза «подивись,
+            я вже все налаштував» у переписці не працює: колега відкриє свій варіант вигляду.
+            Якщо треба показати саме зріз, а не налаштування, — це вже збережений фільтр
+            (урок 7) або дашборд (урок 8).
+          </p>
+
+          <p>
+            І друга половина тих самих граблів: набір колонок не переживає перезавантаження
+            сторінки. Дослівно: «If you add, remove, or rearrange the columns in the list
+            view, these changes aren't saved if you refresh, your cache expires, or you open
+            the same space in an incognito or private window». Тобто складати список під
+            щотижневу нараду наново щоразу — нормально; розраховувати, що він збережеться
+            назавжди, — ні.
+          </p>
+
+          <h3>«З дошки пропали картки»</h3>
+
+          <p>
+            Три причини, у порядку ймовірності. Перша: лишився ввімкненим
+            <code>Filter</code> — наприклад, фільтр за виконавцем, поставлений учора.
+            Друга: у налаштуваннях дошки ввімкнене приховування зробленого через тиждень
+            або місяць; роботи на місці, і в списку та календарі вони видні. Третя:
+            дошку згруповано за полем, яке в цих карток порожнє, і вони поїхали в останню
+            смугу, у самий низ екрана. Перевірка, яка розрізняє всі три за десять секунд, —
+            відкрити <code>List</code>: якщо робота там є, з нею все гаразд.
+          </p>
+
+          <h3>«Заведу окремий спейс, щоб мати календар»</h3>
+
+          <p>
+            Найдорожча помилка цього уроку, бо помітна не одразу. Другий спейс — це другий
+            набір робіт, другий набір статусів і подвійне ведення: те, що ти закрив(ла) в
+            одному, у другому лишиться відкритим назавжди. Календар, таймлайн, список і
+            Summary — це вкладки того самого спейсу, і додаються вони двома кліками.
+            Другий спейс потрібен тоді, коли інша <em>робота</em> й інші люди (маркетинг і
+            ремонт), а не коли інший спосіб дивитись.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Чи можна мати дві дошки в одному спейсі?</h3>
+          <p>
+            Так. Довідка описує це для business-спейсів: адміністратор спейсу створює
+            додаткову дошку через <code>+</code> → <code>Board</code> →
+            <code>Add to navigation</code>, дає їй назву й обмежує її фільтром — наприклад,
+            за типом роботи. Це корисно, коли в одному спейсі живуть різні процеси:
+            окрема дошка на кожен. Кількість таких дошок у спейсі обмежена — точне число,
+            як і решта чисел, у довіднику «Карта інтерфейсу, глосарій і ліміти Free».
+          </p>
+
+          <h3>Чи побачить колега моє групування й мої колонки?</h3>
+          <p>
+            Ні. Це особисті налаштування вигляду. Виняток один: адміністратор спейсу може
+            зберегти розкладку дошки як типову для всіх кнопкою <code>Save or reset view
+            settings</code> — тоді нові люди побачать саме її, але кожен усе одно зможе
+            перекласти дошку під себе.
+          </p>
+
+          <h3>Що таке <code>Docs</code> і <code>Development</code> у рядку виглядів?</h3>
+          <p>
+            Це два вигляди, яких у нашому сюжеті не буде. <code>Docs</code> — сторінки
+            документації для спейсу; без підключеного Confluence ця вкладка показує
+            пропозицію його підключити (перевірено на навчальному сайті 2026-09-17), і
+            розмова про це — урок 16. <code>Development</code> — зв'язок із кодом
+            (гілки, збірки, розгортання); для маркетингу, бухгалтерії чи ремонту він
+            порожній за визначенням.
+          </p>
+
+          <h3>Чим Summary відрізняється від дашборда?</h3>
+          <p>
+            Summary — готове зведення по <em>одному</em> спейсу, з наперед заданими
+            розділами: налаштовувати нічого не треба, але й змінити склад не вийде.
+            Дашборд збирають руками з гаджетів, кожен гаджет живиться збереженим запитом,
+            і довідка підкреслює, що дашбордів можна мати кілька й зводити в них
+            роботу з різних спейсів («You can create multiple dashboards from different
+            spaces»). Практично: Summary — «як справи тут», дашборд — «як справи загалом».
+            Дашборди — урок 8.
+          </p>
+
+          <h3>Чи є вигляд, у якому видно роботи з кількох спейсів одразу?</h3>
+          <p>
+            Вигляди спейсу — ні, вони завжди про свій спейс. Для погляду поверх спейсів у
+            Jira є інші інструменти: пошук зі збереженим фільтром (урок 7) і дашборд
+            (урок 8) — обидва працюють на безкоштовному плані. Окремий продукт для
+            планування кількох команд на одній шкалі часу входить у платні плани, як
+            сказано вище про таймлайн.
+          </p>
+
+          <h3>Вигляд «зник» після того, як я його прибрав(ла) з навігації. Дані цілі?</h3>
+          <p>
+            Так. Прибрати вкладку — це прибрати спосіб дивитись, а не роботи. Найкраща
+            ілюстрація тут — беклог: довідка каже, що коли його вимикають, «all work items
+            are moved to your board and placed in the appropriate column based on their
+            current status» — усі роботи повертаються на дошку у свої колонки за статусом.
+          </p>
+
+          <h3>Я переставив(ла) картки на дошці місцями. Це теж бачу лише я?</h3>
+          <p>
+            Ні, і це виняток, який варто запам'ятати. Порядок карток у колонці —
+            не налаштування вигляду, а властивість самої роботи (у Jira її звуть рангом).
+            Довідка: «Moving an item up or down will change its rank across all views (not
+            just on the board)» — пересування картки вгору чи вниз змінює її порядок в
+            усіх виглядах, не лише на дошці. Тобто сортування колонки в списку особисте,
+            а перетягування картки на дошці — спільне.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Якщо після цього уроку ти ловиш себе на думці «зараз перемкну вигляд» замість
+            «треба десь це ще записати» — урок зробив свою роботу.
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li>Спейс тримає одну базу робіт; дошка, список, календар, таймлайн і
+                Summary — різні окуляри на неї, а не окремі копії.</li>
+              <li>Вигляди живуть у рядку під назвою спейсу; кнопка <code>+</code> —
+                <code>Add to navigation</code>, другий шлях — <code>Space settings</code>
+                → <code>Features</code>, і обидва доступні адміністратору спейсу.</li>
+              <li>Дошка: колонки — статуси, <code>Group</code> додає доріжки поперек них,
+                <code>Filter</code> ховає зайве з екрана. Роботи без значення йдуть в
+                окрему смугу, а не зникають.</li>
+              <li>Список: <code>Configure columns</code> добирає поля (тип, ключ і назва
+                стоять завжди), заголовок сортує, а запит списку видно в адресі — це та
+                сама мова, що й у пошуку.</li>
+              <li>Календар показує лише роботи з датою; решта лежить у шухляді
+                <code>Unscheduled work</code>, і перетягування з неї ставить дедлайн.</li>
+              <li>Таймлайн малює смугу від дати початку до дедлайну й підтягує межі
+                великої справи з її вкладених робіт; на безкоштовному плані він
+                базовий — у межах одного спейсу.</li>
+              <li>Summary — готове зведення по спейсу: плитки за сім днів, статуси, типи
+                робіт, навантаження. У <code>Done</code> там видно лише нещодавно
+                закрите.</li>
+              <li>Фільтр, групування й колонки бачиш лише ти; статус, виконавець і дата —
+                це самі дані, вони змінюються для всіх.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Далі — <strong>урок 7 «Пошук і JQL»</strong>. Вигляди відповідають на питання
+            про <em>один</em> спейс і показують те, що в ньому лежить. Пошук відповідає на
+            питання через увесь сайт: «мої прострочені», «без виконавця», «усе, що
+            змінилось за тиждень». Там ти зустрінеш той самий запит, який щойно бачив(ла)
+            в адресі списку, — і навчишся писати його сам(а) та зберігати як фільтр.
+          </p>
+          <p>
+            До наступного уроку лишається одна дія: подивись у списку свого нового спейсу
+            на адресу сторінки й перечитай запит у ній. В уроці 7 він розбирається
+            по словах.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять на
+            назви: до кожної відповіді одразу з'являється пояснення, чому решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Марта увімкнула на дошці приховування зробленого через два тижні. Через місяць старі картки з колонки Done зникли з дошки. Що сталося з тими роботами?",
+            "options": [
+              "Їх видалено назавжди: приховування на дошці стирає роботу зі спейсу разом з історією й коментарями",
+              "Вони лишились у спейсі — список, календар і таймлайн показують їх далі; з дошки прибрано лише картку",
+              "Вони переїхали в окремий спейс-архів, який Jira створює для кожної команди автоматично при першому приховуванні",
+              "Вони втратили статус Done і повернулись у To Do, тому їх і немає в останній колонці дошки"
+            ],
+            "answer": 1,
+            "explain": "Приховування зробленого — налаштування дошки, а не дія над роботою. Довідка каже прямо: роботи й далі видно в списку, на таймлайні та в календарі, навіть якщо їх сховано з дошки. Видалення, переїзд у інший спейс і зміна статусу тут ні до чого — жодна з цих дій не відбувається сама."
+          },
+          {
+            "q": "Марта згрупувала дошку за виконавцем і написала Соломії: «тепер твої картки окремою смугою». Соломія відкрила ту саму дошку — жодних смуг немає. Чому?",
+            "options": [
+              "Групування — особисте налаштування вигляду: воно діє для тієї людини, яка його ввімкнула, а не для всіх",
+              "Доріжки на дошці показують лише адміністраторам сайту, а решта команди бачить звичайні колонки статусів",
+              "Групування працює тільки у вигляді List, а на дошці Jira його ігнорує й завжди показує колонки за статусом",
+              "Поки в роботах Соломії не заповнене поле виконавця, Jira ховає всі доріжки дошки до першого призначення"
+            ],
+            "answer": 0,
+            "explain": "Довідка формулює це однозначно: налаштування вигляду діють на твою дошку, не на чужу. Групувати можна будь-кому з доступом до спейсу, і на дошці це працює так само, як у списку. Щоб показати колезі саме зріз роботи, потрібен збережений фільтр або дашборд, а не групування."
+          },
+          {
+            "q": "Тарас додав у свій спейс вигляд Calendar. Календар відкрився порожнім, хоча в спейсі десяток робіт і половина з них у роботі. Найімовірніша причина?",
+            "options": [
+              "Календар спейсу показує лише ті роботи, які призначені особисто тобі, а чужі ховає до окремого перемикача",
+              "Календар треба додатково ввімкнути в особистих налаштуваннях акаунта, інакше він відкривається без даних",
+              "Календар показує лише роботи, створені цього місяця: усе давніше він переносить в архів автоматично",
+              "У робіт не заповнений дедлайн: без дати робота в календар не потрапляє й лежить у шухляді Unscheduled work"
+            ],
+            "answer": 3,
+            "explain": "Кожен вигляд читає своє поле, і для календаря це дата. Довідка: роботи без дедлайну в календарі не видно, їх ставлять на дати з шухляди Unscheduled work. Календар не фільтрує за автором, не архівує старе й не вмикається в налаштуваннях акаунта — він лише малює те, у чого є дата."
+          },
+          {
+            "q": "У вигляді List Марта помітила в адресі сторінки рядок «project = MARK ORDER BY due ASC». Що це означає для неї?",
+            "options": [
+              "Це службовий слід браузера: список завжди показує всі роботи спейсу в одному й тому самому незмінному порядку",
+              "Список побудований запитом тією самою мовою, якою в Jira шукають роботи вручну, — і цей запит можна змінити",
+              "Це налаштування, яке адміністратор задав для всього спейсу; змінити порядок рядків у списку не вийде",
+              "Це означає, що список показує лише роботи, створені тобою: слово project у запиті позначає автора роботи"
+            ],
+            "answer": 1,
+            "explain": "Список — це результат запиту мовою JQL, і той самий запит видно в адресі сторінки та у вкладці JQL списку. Порядок рядків задає частина ORDER BY, і його міняє будь-хто з доступом. Слово project — колишня назва спейсу, яка лишилась у запитах і адресах; до автора роботи воно стосунку не має."
+          },
+          {
+            "q": "Оксана хоче раз на тиждень бачити картину по спейсу ремонту: скільки закрито, що в яких статусах, хто чим завантажений. Налаштовувати нічого не хоче. Що їй відкрити?",
+            "options": [
+              "Дашборд: його збирають із гаджетів на збережених запитах, тому спершу доведеться створити самі запити",
+              "Календар спейсу: він показує ті самі числа за тиждень, тільки розкладені по днях місяця замість статусів",
+              "Вигляд Summary цього спейсу: розділи там сталі, збирати нічого не треба — числа рахуються самі",
+              "Окремий спейс «Звіти», у який наприкінці кожного тижня копіюють картки з решти спейсів фірми"
+            ],
+            "answer": 2,
+            "explain": "Summary — готове зведення по одному спейсу: плитки за сім днів, розклад за статусами, типами робіт і людьми. Дашборд дає ширшу картину, але його треба зібрати з гаджетів на збережених запитах. Календар відповідає на питання про дати, а копіювання карток у «спейс для звітів» створює другий набір даних, який одразу починає розходитись."
+          },
+          {
+            "q": "Ліна відкрила спейс колеги й не знайшла там вигляду Timeline, хоча у своєму спейсі вона ним користується щодня. Що це найімовірніше означає?",
+            "options": [
+              "Таймлайн з'являється в спейсі лише тоді, коли в ньому накопичиться достатня кількість робіт із датами",
+              "Таймлайн доступний тільки тій людині, яка створила спейс; решті команди Jira показує його як порожню вкладку",
+              "Таймлайн на безкоштовному плані вимикається сам через тиждень після створення спейсу й потребує платного плану",
+              "Вигляд не доданий у навігацію цього спейсу або вимкнений у його налаштуваннях — це рішення адміністратора спейсу"
+            ],
+            "answer": 3,
+            "explain": "Склад рядка виглядів — властивість спейсу: вкладки додають кнопкою Add to navigation і вмикають у налаштуваннях спейсу, і робить це адміністратор спейсу. Довідка так і пише: якщо таймлайну не видно, адміністратор має його ввімкнути. Від кількості робіт, від авторства спейсу й від віку сайту набір виглядів не залежить."
+          }
+        ]
+      }
+      </script>
+
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Урок позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
