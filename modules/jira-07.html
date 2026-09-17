@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 7 · Пошук і JQL — Jira з нуля</title>
+  <meta name="description"
+    content="Як знайти будь-яку роботу одним запитом: швидкий пошук, режими Basic і JQL, граматика «поле — оператор — значення», функції часу, статус проти категорії статусу, збережені фільтри, підписка листом і масова зміна знайденого." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+</head>
+
+<body data-module="j07">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 07</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 2 · Щоденна робота</p>
+        <h1 class="ds-h1">Пошук і JQL</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 24 хв читання</p>
+        <p class="ds-lead">
+          Дошка показує один відділ і один зріз роботи. На питання «що саме в мене
+          горить цього тижня в усіх відділах одразу» дошка не відповідає — на нього
+          відповідає пошук. Цей урок учить ставити такі питання словами, які Jira
+          розуміє, і зберігати вдале питання, щоб не набирати його щоразу заново.
+        </p>
+        <p>
+          Мова, якою ці питання ставлять, називається <strong>JQL</strong> — Jira Query
+          Language, мова запитів Jira. Вона схожа на англійське речення з трьох слів
+          і вчиться за один вечір: усе, що в ній є, — поля, кілька операторів і кілька
+          функцій. Урок 1 назвав її одним рядком; тут ми її розбираємо.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> дашбордів і гаджетів — це урок 8, і він стоїть
+            одразу після цього невипадково: гаджет читає збережений фільтр, тож
+            спершу треба навчитись його робити. Немає й JQL усередині автоматизації
+            (урок 15) та вичерпних таблиць усіх полів, операторів і функцій — вони
+            в довіднику «JQL: поля, оператори, функції», куди повертаються, а не який
+            читають підряд.
+          </p>
+          <p>
+            <strong>Є:</strong> три способи шукати й чим вони різняться; граматика
+            запиту; чому <code class="ds-code--inline">status</code> підводить, а
+            <code class="ds-code--inline">statusCategory</code> — ні; збережений фільтр,
+            доступ до нього й лист за розкладом; масова зміна всього знайденого одразу;
+            і шість помилок, на яких спотикаються всі.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            У «Кориці» вже два робочі простори: особистий <strong>«Мої справи»</strong>
+            власниці Оксани й <strong>«Маркетинг»</strong> маркетологині Марти. Далі в
+            курсі з'являться ще чотири — ремонт другої точки, найм, бухгалтерія, сайт.
+            Кожен зі своєю дошкою, своїм списком, своїм календарем.
+          </p>
+
+          <p>
+            І тут виникає питання, на яке жоден із цих виглядів не відповідає. Оксана
+            в понеділок уранці хоче знати одне: <em>що прострочено в усій фірмі</em>.
+            Не в маркетингу, не в ремонті — скрізь. Щоб відповісти дошкою, довелось би
+            відкрити дошку кожного відділу й у кожній подивитись дати очима.
+          </p>
+
+          <h3>Вигляд показує, запит питає</h3>
+
+          <p>
+            Різниця між виглядом з уроку 6 і пошуком — така сама, як між полицею й
+            питанням до бібліотекаря. Вигляд показує заздалегідь відомий набір: усі
+            роботи цього спейсу, розкладені так чи інакше. Запит формулює умову —
+            і Jira сама збирає під неї роботи звідусіль, де в тебе є доступ.
+          </p>
+
+          <p>
+            Умову пишуть короткою формулою: <strong>поле — оператор — значення</strong>.
+            «Виконавець — дорівнює — я». «Дедлайн — менший за — сьогодні». Кілька таких
+            умов зшивають словом <code>AND</code> («і») або <code>OR</code> («або») —
+            і виходить питання будь-якої точності.
+          </p>
+
+          <p>
+            Вдале питання не варто набирати двічі. Збережений запит у Jira називається
+            <strong>фільтром</strong>. Фільтр — не папка й не копія робіт: це збережений
+            текст запиту під назвою. Кожного разу, коли ти його відкриваєш, Jira виконує
+            запит заново, тож фільтр «Прострочені» завжди показує те, що прострочено
+            <em>зараз</em>, а не те, що було прострочено в день, коли ти його зберіг.
+          </p>
+
+          <p>
+            З фільтра починаються ще три речі, які будуть далі в курсі: лист із
+            результатами за розкладом (кінець цього уроку), гаджет на спільному екрані
+            команди — <strong>дашборді</strong> (урок 8) і умова всередині правила
+            автоматизації (урок 15). Тому цей урок — не про пошук заради пошуку.
+            Він про цеглину, на якій стоїть половина решти курсу.
+          </p>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            У пошук ведуть троє дверей, і вони дають різний результат.
+          </p>
+
+          <ul>
+            <li><strong>Поле <code>Search</code> у верхній панелі</strong> — швидкий
+              пошук. Клавіша <code>/</code> ставить курсор у нього з будь-якої сторінки.
+              Ще до того, як ти щось набрав, воно показує те, з чим ти працював недавно:
+              роботи, спейси, дошки, черги, фільтри. Довідка описує, за чим воно шукає:
+              «Quick search scours for keywords, which are often first found in the
+              Summary, Description or any text field of a work item» — тобто за словами
+              з назви, опису й текстових полів.</li>
+            <li><strong>Пункт <code>Filters</code> у бічній панелі</strong> — звідси
+              відкривають і збережені фільтри, і повний пошук.</li>
+            <li><strong>Сторінка всіх робіт</strong>. З першого й другого входу до неї
+              ведуть однакові пункти: <code>View all work items</code> (у швидкому
+              пошуку його ж дає клавіша Enter) або <code>Search work items</code>.
+              Сама сторінка на екрані називається <code>All work</code>.</li>
+          </ul>
+
+          <p>
+            Ось як виглядає третє — місце, де живе весь цей урок.
+          </p>
+
+          <figure class="win" data-state="list" id="w1">
+            <figcaption class="win__chrome">
+              <span class="win__dots" aria-hidden="true"></span>
+              <span class="win__title" id="w1t">Jira Cloud · All work у режимі JQL · звірено 2026-09-17</span>
+              <span class="win__addr" aria-hidden="true">…/jira/issues/?jql=project%20%3D%20MARK%20AND%20…</span>
+            </figcaption>
+            <div class="win__body" role="group" aria-labelledby="w1t">
+              <ul class="win__rail" aria-label="Бічна панель Jira">
+                <li class="win__rail-item">For you</li>
+                <li class="win__rail-item">Spaces</li>
+                <li class="win__rail-item">Filters</li>
+                <li class="win__rail-item">Dashboards</li>
+              </ul>
+              <div class="win__main">
+                <div class="win__bar">
+                  <span class="win__crumb">All work</span>
+                  <span class="win__tabs"><span>Basic</span><span class="win__tab--active">JQL <b class="win__mark" aria-hidden="true">①</b></span></span>
+                  <span class="win__btn">Save filter <b class="win__mark" aria-hidden="true">③</b></span>
+                </div>
+                <div class="win__page">
+                  <p class="win__query"><code>project = MARK AND statusCategory != Done ORDER BY due ASC</code> <b class="win__mark" aria-hidden="true">②</b></p>
+                  <p class="win__actions"><span class="win__btn">Syntax help</span> <span class="win__btn win__btn--primary">Search</span> <span class="win__btn">Clear filters</span> <span class="win__btn">Share</span> <span class="win__btn">Export</span></p>
+                  <table class="win__table">
+                    <thead>
+                      <tr><th>Work</th><th>Assignee</th><th>Status <b class="win__mark" aria-hidden="true">④</b></th><th>Due date</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td><span class="win__key">MARK-1</span> Пост про новий круасан</td><td>МЛ</td><td data-cat="progress">In Progress</td><td>Sep 24, 2026</td></tr>
+                      <tr><td><span class="win__key">MARK-6</span> Флаєри для другої точки</td><td>МЛ</td><td data-cat="todo">To Do</td><td>Sep 25, 2026</td></tr>
+                      <tr><td><span class="win__key">MARK-7</span> Відповісти на відгуки за тиждень</td><td>СБ</td><td data-cat="todo">To Do</td><td>Sep 26, 2026</td></tr>
+                    </tbody>
+                  </table>
+                  <p class="win__placeholder">3 of 3 · Refresh</p>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <ol class="win__legend" aria-label="Пояснення до вікна «All work у режимі JQL»">
+            <li><code>Basic</code> і <code>JQL</code> — два режими того самого пошуку</li>
+            <li>Рядок запиту; він же лежить в адресі сторінки</li>
+            <li><code>Save filter</code> — зберегти цей запит під назвою</li>
+            <li>Жодного <code>Done</code> — саме це й просив запит</li>
+          </ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Структура екрана — зі знімка Jira Cloud Free від 2026-09-17; назви робіт
+            і людей — з наскрізної історії курсу. Написи англійські, бо українського
+            інтерфейсу Jira не має.
+          </p>
+
+          <h3>Два режими одного пошуку</h3>
+
+          <p>
+            Перемикач <code>Basic</code> / <code>JQL</code> — найважливіша деталь цього
+            екрана. <strong>Basic</strong> — це той самий пошук, зібраний зі списків:
+            обираєш спейс, статус, виконавця, за потреби тиснеш <code>More filters</code>
+            і додаєш ще поля. Нічого вчити не треба, і для половини щоденних питань
+            цього досить.
+          </p>
+
+          <p>
+            <strong>JQL</strong> — той самий пошук, набраний текстом. Він уміє те, чого
+            списки не вміють: заперечення, «або», порожні значення, порівняння дат
+            і сортування. Перемикач працює в обидва боки, але не завжди: складний запит
+            назад у Basic може не поміститись — про це в блоці 6.
+          </p>
+
+          <p>
+            Поле запиту підказує на ходу — показує варіанти полів і значень, поки ти
+            набираєш. Підказка не повна: довідка попереджає, що в неї потрапляють лише
+            перші збіги за абеткою. Немає потрібного в списку — допиши руками.
+          </p>
+
+          <h3>Запит живе в адресі сторінки</h3>
+
+          <p>
+            Подивись на адресний рядок вікна вище: після <code>?jql=</code> стоїть той
+            самий запит, тільки зі службовими символами замість пробілів і знака
+            рівності. Наслідок практичний: щоб передати колезі результат пошуку, досить
+            скопіювати адресу з браузера. Той самий запит лежить в адресі й тоді, коли
+            ти дивишся вигляд <code>List</code> усередині спейсу з уроку 6 — список
+            і пошук у Jira це один механізм із різними дверима.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <p>
+            Запит JQL складається з однакових ланок. Довідка Atlassian формулює це так:
+            «A simple query in JQL (also known as a "clause") consists of a field,
+            followed by an operator, followed by one or more values or functions» —
+            проста умова це поле, за ним оператор, за ним одне або кілька значень
+            чи функцій.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart LR
+  A["Поле: assignee"] --> B["Оператор: ="]
+  B --> C["Значення: currentUser()"]
+  C --> D["AND"]
+  D --> E["Поле: statusCategory"]
+  E --> F["Оператор: !="]
+  F --> G["Значення: Done"]
+  G --> H["ORDER BY due ASC"]
+            </pre>
+            <p class="ds-diag__caption">
+              Одна умова — три ланки. Кілька умов зшиває AND або OR, а сортування
+              завжди стоїть останнім
+            </p>
+          </div>
+
+          <h3>Перший запит: мої незавершені роботи</h3>
+
+          <p>
+            Ось найкорисніший запит у курсі. Його варто зберегти першим.
+          </p>
+
+          <figure class="term term--cmd" id="p1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p1t">усе, що призначено мені й ще не зроблено</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__in">assignee = currentUser() AND statusCategory != Done</span></span></pre>
+          </figure>
+
+          <p>
+            Читається зліва направо: виконавець дорівнює тому, хто зараз дивиться на
+            екран, <em>і</em> категорія статусу не «зроблено».
+            <code>currentUser()</code> — це функція: слово з дужками, яке Jira замінює
+            на значення сама. Довідка описує її як «searches based on the currently
+            logged-in user» і одразу попереджає: «This function can only be used by
+            logged-in users», тож у фільтрі для сторонніх людей вона не спрацює.
+            Головна її користь у тому, що той самий фільтр кожному показує <em>його</em>
+            роботи — не треба робити по фільтру на людину.
+          </p>
+
+          <h3>Оператори: сім рядків, які закривають майже все</h3>
+
+          <p>
+            Оператор — те, що стоїть між полем і значенням. Ось ті, що потрібні
+            щодня; повний перелік — у довіднику «JQL: поля, оператори, функції».
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: сім найуживаніших операторів JQL">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Оператор</th><th>Що означає</th><th>Приклад</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>=</code></td><td>точний збіг значення</td><td><code>priority = High</code></td></tr>
+                <tr><td><code>!=</code></td><td>будь-яке значення, крім цього</td><td><code>assignee != currentUser()</code></td></tr>
+                <tr><td><code>~</code></td><td>містить текст (лише для текстових полів)</td><td><code>summary ~ "круасан"</code></td></tr>
+                <tr><td><code>&gt;</code> <code>&lt;</code></td><td>пізніше / раніше — для дат і чисел</td><td><code>due &lt; now()</code></td></tr>
+                <tr><td><code>IN</code></td><td>одне зі списку значень у дужках</td><td><code>project IN (MARK, REM)</code></td></tr>
+                <tr><td><code>IS EMPTY</code></td><td>поле порожнє</td><td><code>assignee IS EMPTY</code></td></tr>
+                <tr><td><code>WAS</code></td><td>колись мало таке значення</td><td><code>status WAS "In Progress"</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            <strong>Знак рівності не працює з текстом.</strong> Довідка каже прямо:
+            «cannot be used with text fields; see the CONTAINS operator instead».
+            Назва роботи, опис і коментарі — текстові поля, тож їх шукають хвилею
+            <code>~</code>. Вона шукає не буквальний збіг, а слово та його прості
+            форми.
+          </p>
+
+          <figure class="term term--cmd" id="p2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p2t">усі роботи, у назві яких є слово «круасан»</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p2t"><span class="term__line"><span class="term__in">summary ~ "круасан"</span></span></pre>
+          </figure>
+
+          <h3>Мітка: своє слово на роботі</h3>
+
+          <p>
+            Мітка (label) зі словника уроку 4 — це вільне слово, яке вішають на
+            роботу, щоб потім зібрати купку робіт із різних спейсів. У «Кориці» роботи, що впираються в дозволи
+            й погодження, позначені міткою <code>дозволи</code> — так Тарас за секунду
+            бачить усе, що залежить не від нього.
+          </p>
+
+          <figure class="term term--cmd" id="p3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p3t">усе, що позначене міткою «дозволи»</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p3t"><span class="term__line"><span class="term__in">labels = "дозволи"</span></span></pre>
+          </figure>
+
+          <p>
+            Одне правило про мітки варто знати заздалегідь, бо воно економить годину:
+            <strong>у мітці не може бути пробілу</strong>. Довідка радить обхід:
+            «Since labels cannot contain spaces, use hyphens or underscores for
+            multi-word labels» — два слова з'єднують дефісом або підкресленням:
+            <code>друга-точка</code>.
+          </p>
+
+          <h3>Час: функції замість календаря</h3>
+
+          <p>
+            Дати в запиті майже ніколи не пишуть числом. Замість «до 26 вересня» пишуть
+            «до кінця тижня» — і запит лишається правильним наступного тижня теж.
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: функції часу й відносні дати в JQL">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Запис</th><th>Що означає</th><th>Про що пам'ятати</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>now()</code></td><td>цей момент</td><td>саме з нею роблять «прострочені»</td></tr>
+                <tr><td><code>startOfDay()</code></td><td>сьогодні о нулі годин</td><td>«створено сьогодні» — це <code>created &gt; startOfDay()</code></td></tr>
+                <tr><td><code>startOfWeek()</code></td><td>початок цього тижня</td><td>за замовчуванням тиждень починається в неділю</td></tr>
+                <tr><td><code>endOfWeek()</code></td><td>кінець цього тижня</td><td>за замовчуванням останній день — субота</td></tr>
+                <tr><td><code>startOfMonth()</code></td><td>перше число цього місяця</td><td>зручно для «що я завів за місяць»</td></tr>
+                <tr><td><code>"-7d"</code></td><td>сім днів тому</td><td>у лапках; <code>w</code> — тижні, <code>d</code> — дні, <code>h</code> — години</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            Дві дрібниці з довідки, які рятують нерви. Перша: у функцій тижня свої
+            замовчування — «by default, the first day is Sunday» для
+            <code>startOfWeek()</code> і «this function considers Saturday to be the
+            last day of the week» для <code>endOfWeek()</code>. Якщо в тебе тиждень
+            починається в понеділок, це зсуває результат на день, і лікується
+            приростом: <code>startOfWeek("+1d")</code>.
+          </p>
+
+          <p>
+            Друга: відносна дата <strong>береться в лапки</strong>. Довідка повторює це
+            в кожному полі-даті: «Be sure to use quote-marks (")». Без лапок Jira
+            зрозуміє число інакше, і результат буде дивний, але без помилки.
+          </p>
+
+          <figure class="term term--cmd" id="p4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p4t">що я сам завів від початку місяця</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p4t"><span class="term__line"><span class="term__in">reporter = currentUser() AND created &gt;= startOfMonth()</span></span></pre>
+          </figure>
+
+          <p>
+            <code>reporter</code> — це автор роботи, той, хто її завів. Разом із
+            <code>assignee</code> (виконавцем) вони дають дві різні відповіді на схоже
+            питання: «що я маю зробити» і «що я комусь доручив».
+          </p>
+
+          <h3>Сортування стоїть останнім — завжди</h3>
+
+          <p>
+            <code>ORDER BY</code> — не умова, а вказівка, у якому порядку показати
+            знайдене. <code>ASC</code> означає «за зростанням» (найближчий дедлайн
+            угорі), <code>DESC</code> — «за спаданням» (найсвіжіше вгорі). Правило про
+            місце в рядку довідка формулює жорстко: «This requirement needs to be placed
+            at the end of the JQL query, otherwise the JQL will be invalid» — поставиш
+            усередину, і запит стане недійсним.
+          </p>
+
+          <figure class="term term--cmd" id="p5">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p5t">що рухалось у маркетингу й ремонті за тиждень</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p5t"><span class="term__line"><span class="term__in">project IN (MARK, REM) AND updated &gt;= "-7d" ORDER BY updated DESC</span></span></pre>
+          </figure>
+
+          <p>
+            Тут же видно <code>IN</code>: замість
+            <code>project = MARK OR project = REM</code> пишуть список у дужках.
+            Коротше, і — важлива дрібниця з довідки — такий запит переводиться назад
+            у режим Basic, а варіант з <code>OR</code> не переводиться.
+          </p>
+
+          <h3>Чому в запиті «project», а на екрані «space»</h3>
+
+          <p>
+            Слово, яке збиває всіх. В інтерфейсі робочий простір називається
+            <strong>space</strong>, а в запиті поле досі зветься
+            <code>project</code>. Це не помилка й не застаріла стаття: Atlassian
+            перейменувала поняття в інтерфейсі раніше, ніж у мові запитів, і сама
+            повісила попередження на самій сторінці про JQL:
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__title">Попередження Atlassian на сторінці «JQL operators»</span>
+            <p>
+              «We're updating terminology in Jira, moving from "issue" to "work item",
+              and "project" to "space". As we roll out these changes, some JQL entries
+              using the new terms may not work yet. If you come across this, try using
+              the old term instead. There are no changes to existing JQL queries.»
+            </p>
+            <p>
+              Переклад: терміни змінюються, частина записів із <em>новими</em> словами
+              може ще не працювати, і якщо натрапиш на таке — спробуй старе слово.
+              Наявні запити не ламаються.
+            </p>
+          </div>
+
+          <p>
+            Практичний висновок для курсу: у всіх запитах тут стоїть
+            <code>project</code>, і саме він працював на живому екрані
+            2026-09-17. Приклади в довідці вже написані через
+            <code>space</code> — обидва слова ти зустрінеш, і тепер знаєш чому.
+            Те саме стосується адрес сторінок: у них лишились
+            <code>/projects/</code> і <code>/issues/</code>.
+          </p>
+
+          <h3>Статус проти категорії статусу</h3>
+
+          <p>
+            Це найважливіші п'ять хвилин уроку. У кожної роботи є <strong>статус</strong> —
+            назва етапу: <code>To Do</code>, <code>In Progress</code>, <code>Done</code>.
+            Назву цю задає шаблон, з якого народився спейс, і її можна переписати
+            (урок 10). Тобто <code>status</code> — це <em>рядок тексту</em>, і він у
+            кожного спейсу може бути свій: у найму «Кориці» етапи називатимуться
+            <code>Screening</code>, <code>Interview</code>, <code>Offer</code>.
+          </p>
+
+          <p>
+            Але під кожним статусом стоїть ще одна річ — <strong>категорія статусу</strong>.
+            Їх рівно три на всю Jira, вони не перейменовуються й не додаються:
+            «зробити», «у роботі», «зроблено». Саме категорія, а не назва етапу,
+            вирішує, чи вважається робота завершеною. У запиті вона зветься
+            <code>statusCategory</code> і приймає
+            значення <code>"To Do"</code>, <code>"In Progress"</code>, <code>Done</code>.
+          </p>
+
+          <p>
+            Звідси правило, яке варто взяти назавжди: <strong>питай категорію, а не
+            назву</strong>. <code>statusCategory != Done</code> означає «ще не
+            завершено» в будь-якому спейсі з будь-якими назвами етапів —
+            і в маркетингу, і в наймі, і в чужій команді. Довідка користується тим
+            самим прийомом: «you can use the statusCategory field (a work item is
+            resolved when statusCategory = Done)».
+          </p>
+
+          <h3>Від запиту до фільтра</h3>
+
+          <p>
+            Коли запит дає те, що треба, його зберігають кнопкою <code>Save filter</code>
+            над результатами. Довідка описує кроки так: «Define and run your search.
+            Select Save as above the search results. Enter a name for the new filter and
+            select Submit» — тобто Jira питає рівно одне, <strong>назву</strong>.
+            Решта — опис, доступ, підписка — живе в деталях фільтра, які відкриває
+            кнопка <code>Details</code> поруч із його назвою.
+          </p>
+
+          <p>
+            Дрібниця, яку варто помітити: на живому екрані 2026-09-17 кнопка над
+            результатами називається <code>Save filter</code>, а довідка в тому самому
+            місці пише <code>Save as</code>. Інтерфейс перемалювали швидше, ніж статтю.
+            Це звичайна для Jira ситуація, і саме тому в курсі поруч із кожним екраном
+            стоїть дата: сперечається не текст із текстом, а екран зі статтею.
+          </p>
+
+          <figure class="win" data-state="form" id="w3">
+            <figcaption class="win__chrome">
+              <span class="win__dots" aria-hidden="true"></span>
+              <span class="win__title" id="w3t">Jira Cloud · деталі збереженого фільтра · за документацією, 2026-09-18</span>
+            </figcaption>
+            <div class="win__body" role="group" aria-labelledby="w3t">
+              <div class="win__dialog" role="presentation">
+                <h4 class="win__dialog-title">Details</h4>
+                <dl class="win__fields">
+                  <dt>Name <b class="win__mark" aria-hidden="true">①</b></dt><dd>Мої на цьому тижні</dd>
+                  <dt>Description</dt><dd class="win__placeholder">Що саме показує цей фільтр</dd>
+                  <dt>Viewers <b class="win__mark" aria-hidden="true">②</b></dt><dd>Private</dd>
+                  <dt>Editors</dt><dd>Private</dd>
+                  <dt>Subscriptions <b class="win__mark" aria-hidden="true">③</b></dt><dd>New subscriptions</dd>
+                </dl>
+                <p class="win__actions"><span class="win__btn">Edit permissions</span> <span class="win__btn win__btn--primary">Save</span></p>
+              </div>
+            </div>
+          </figure>
+          <ol class="win__legend" aria-label="Пояснення до вікна «деталі збереженого фільтра»">
+            <li><code>Name</code> — назва, під якою фільтр видно в панелі</li>
+            <li><code>Viewers</code> — хто бачить фільтр; <code>Private</code> = лише ти</li>
+            <li><code>New subscriptions</code> — лист із результатами за розкладом</li>
+          </ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Вікно зібране за документацією Atlassian: ні діалог збереження, ні деталі
+            фільтра на навчальному сайті курсу не знімались. Склад полів — з розділу
+            «Manage filters»
+            («You can update the name, description, permissions (viewers and editors)…»),
+            значення <code>Private</code> — з тамтешньої таблиці доступів.
+          </p>
+
+          <p>
+            Два наслідки, які треба знати одразу. Перший: <strong>новий фільтр
+            приватний</strong>. Довідка: «If the filter is private, only the owner and
+            Jira admin can view and modify it». Другий: він одразу потрапляє в обране —
+            «By default, when you create a filter, it'll be starred», — тому з'являється
+            в бічній панелі під пунктом <code>Filters</code>. Повний список усіх
+            фільтрів відкриває <code>View all filters</code>.
+          </p>
+
+          <h3>Доступ: кому відкрити фільтр</h3>
+
+          <p>
+            Доступ задають у деталях фільтра кнопкою <code>Edit permissions</code>,
+            і окремо для тих, хто <em>дивиться</em> (<code>Viewers</code>), і для тих,
+            хто <em>може міняти</em> (<code>Editors</code>). Варіанти довідка зводить
+            у таблицю:
+          </p>
+
+          <ul>
+            <li><code>Private</code> — «can only be viewed or edited by the owner and
+              Jira admins»: лише власник і адміністратор Jira.</li>
+            <li><code>Users</code> / <code>Group</code> / <code>Space</code> /
+              <code>Roles</code> — конкретна людина, група, спейс або роль у ньому.</li>
+            <li><code>My organization</code> — «shared with all users on the Jira
+              instance»: усі, хто заходить на цей сайт під своїм акаунтом.</li>
+          </ul>
+
+          <p>
+            Публічний доступ — для людей без акаунта — окрема історія: адміністратор
+            сайту вимикає його за замовчуванням, і для роботи команди він не потрібен.
+          </p>
+
+          <h3>Підписка: лист замість звички</h3>
+
+          <p>
+            Підписка на фільтр — це лист із результатами за розкладом. Довідка визначає
+            її так: «Subscribing to a filter provides you with a periodic notification
+            for all work items returned by the search» — і одразу відділяє від
+            спостереження за роботою: якщо треба знати про зміни в одній конкретній
+            картці, підписка тут ні до чого, для цього є <code>Watch</code>.
+          </p>
+
+          <p>
+            Порядок: відкрити фільтр → <code>Details</code> →
+            <code>New subscriptions</code> → обрати розклад і кому надсилати →
+            <code>Subscribe</code>. Розклад можна взяти зі списку готових або задати
+            точніше. У лист потрапляють не всі результати, а лише перша їх частина —
+            точне число з датою перевірки шукай у довіднику «Карта інтерфейсу, глосарій
+            і ліміти Free».
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__title">Пастка, яка виглядає як баг</span>
+            <p>
+              Якщо у фільтрі є <code>currentUser()</code>, кожен отримувач листа
+              побачить <em>свої</em> роботи, а не твої. Довідка каже це прямо:
+              «if the filter uses the currentUser() function, the search results will be
+              evaluated with the recipient as the current user». Для фільтра «мої справи»
+              це чудово. Для листа «ось що прострочено в Оксани» — ні: там замість
+              функції має стояти ім'я.
+            </p>
+          </div>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart LR
+  Q["Запит у полі JQL"] --> R["Результати на екрані"]
+  R --> S["Save filter: збережений запит"]
+  S --> P["Доступ: хто його бачить"]
+  S --> M["Підписка: лист за розкладом"]
+  S --> G["Гаджет на дашборді — урок 8"]
+            </pre>
+            <p class="ds-diag__caption">
+              Один запит — чотири способи ним скористатись. Три останні ростуть
+              зі збереженого фільтра, а не з разового пошуку
+            </p>
+          </div>
+
+          <h3>Масова зміна: одна дія на всі знайдені роботи</h3>
+
+          <p>
+            Пошук потрібен не лише щоб дивитись. Знайдене можна змінити одним заходом:
+            у результатах <code>More actions</code> (<code>•••</code>) →
+            <code>Bulk Change all …</code>. Далі Jira проводить кроками: позначити
+            роботи → обрати дію → задати значення → підтвердити.
+          </p>
+
+          <p>
+            Дій п'ять: перевести статус, відредагувати поля, видалити, перенести в
+            інший спейс, почати або припинити спостереження. Кількість робіт в одній
+            масовій зміні обмежена — число з датою перевірки в довіднику «Карта
+            інтерфейсу, глосарій і ліміти Free».
+          </p>
+
+          <p>
+            Одна галочка в майстрі варта окремої згадки:
+            <code>Send mail for this update</code>. Довідка пояснює, навіщо її знімати:
+            «This avoids notification overload for everyone working on the work items
+            being edited» — інакше зміна двадцяти робіт розсилає двадцять листів усім,
+            хто на них підписаний.
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            Після уроку 6 у тебе є спейс «Мої справи» з кількома картками й дедлайнами
+            та спейс маркетингу з дошкою, списком і календарем. Зараз ми зробимо з них
+            три збережені питання. Шлях скрізь названо словами — кнопки перемальовують
+            частіше, ніж змінюються поняття.
+          </p>
+
+          <ol>
+            <li><strong>Відкрий пошук.</strong> Натисни клавішу <code>/</code>, потім
+              Enter — або в бічній панелі обери <code>Filters</code>, а в ньому пункт,
+              що відкриває всі роботи. Ти маєш опинитись на сторінці
+              <code>All work</code>.</li>
+            <li><strong>Перемкнись у JQL.</strong> Якщо на екрані списки з полями,
+              натисни <code>JQL</code> поруч зі значком пошуку. Поле запиту стане
+              одним текстовим рядком.</li>
+            <li><strong>Перший фільтр: «Мої на цьому тижні».</strong> Встав запит нижче
+              й натисни <code>Search</code>.</li>
+          </ol>
+
+          <figure class="term term--cmd" id="p6">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p6t">фільтр 1 · мої незавершені з дедлайном до кінця тижня</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p6t"><span class="term__line"><span class="term__in">assignee = currentUser() AND due &lt;= endOfWeek() AND statusCategory != Done</span></span></pre>
+          </figure>
+
+          <ol start="4">
+            <li><strong>Збережи.</strong> Натисни <code>Save filter</code> над
+              результатами, назви фільтр <em>Мої на цьому тижні</em> й підтвердь.</li>
+            <li><strong>Другий фільтр: «Прострочені (усі спейси)».</strong> Очисти
+              запит, встав наступний, виконай і збережи під цією назвою. Зверни увагу:
+              у ньому немає жодного <code>project</code> — тому він дивиться скрізь,
+              де в тебе є доступ.</li>
+          </ol>
+
+          <figure class="term term--cmd" id="p7">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p7t">фільтр 2 · дедлайн у минулому, робота не завершена</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p7t"><span class="term__line"><span class="term__in">due &lt; now() AND statusCategory != Done ORDER BY due ASC</span></span></pre>
+          </figure>
+
+          <ol start="6">
+            <li><strong>Третій фільтр: «Без виконавця».</strong> Той самий порядок.
+              Цей запит показує роботи, за які ніхто не відповідає — у маленькій команді
+              це найчастіша причина, чому справа стоїть.</li>
+          </ol>
+
+          <figure class="term term--cmd" id="p8">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p8t">фільтр 3 · маркетинг без призначеного виконавця</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p8t"><span class="term__line"><span class="term__in">assignee IS EMPTY AND project = MARK</span></span></pre>
+          </figure>
+
+          <ol start="7">
+            <li><strong>Підпишись на «Прострочені».</strong> Відкрий цей фільтр,
+              натисни <code>Details</code> поруч із назвою, далі
+              <code>New subscriptions</code>; постав розклад на ранок понеділка,
+              отримувачем залиш себе й підтвердь.</li>
+            <li><strong>Поділись «Без виконавця».</strong> У деталях того самого
+              фільтра натисни <code>Edit permissions</code> і додай у
+              <code>Viewers</code> варіант <code>My organization</code> — тепер його
+              бачать усі колеги, які заходять на твій сайт. Збережи.</li>
+          </ol>
+
+          <p>
+            Якщо в спейсі маркетингу ще немає роботи без виконавця або роботи з
+            простроченим дедлайном — зроби по одній навмисно. Порожній результат нічого
+            не перевіряє.
+          </p>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Чотири ознаки на екрані. Кожна відповідає «так» або «ні», гадати не треба.
+          </p>
+
+          <ul>
+            <li><strong>Три рядки в списку фільтрів.</strong> Бічна панель →
+              <code>Filters</code> → <code>View all filters</code>: там мають бути
+              «Мої на цьому тижні», «Прострочені (усі спейси)» і «Без виконавця»,
+              і в колонці власника — твоє ім'я.</li>
+            <li><strong>«Прострочені» показують лише прострочене.</strong> Відкрий
+              фільтр і подивись на колонку дедлайну: кожна дата має бути в минулому,
+              а статус — не з категорії «зроблено». Якщо в списку є завтрашня дата —
+              у запиті замість <code>now()</code> щось інше.</li>
+            <li><strong>«Без виконавця» має порожню колонку.</strong> У колонці
+              <code>Assignee</code> скрізь має стояти <code>Unassigned</code>. Жодного
+              імені.</li>
+            <li><strong>Доступ і підписка видно в деталях.</strong> У фільтра
+              «Без виконавця» в <code>Viewers</code> стоїть <code>My organization</code>,
+              а не <code>Private</code>; у «Прострочених» у деталях є один запис
+              підписки з розкладом. Остаточна перевірка підписки — лист у понеділок
+              уранці.</li>
+          </ul>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3>Запит нічого не знаходить, хоча роботи є</h3>
+
+          <p>
+            Класика: людина питає про етап на ім'я — <code>status = Done</code> або
+            <code>status != Done</code>, — тисне пошук і отримує не порожній список,
+            а червону рамку з помилкою.
+          </p>
+
+          <figure class="win" data-state="list" id="w2">
+            <figcaption class="win__chrome">
+              <span class="win__dots" aria-hidden="true"></span>
+              <span class="win__title" id="w2t">Jira Cloud · All work: помилка в запиті · звірено 2026-09-17</span>
+              <span class="win__addr" aria-hidden="true">…/jira/issues/?jql=status%20!%3D%20Done…</span>
+            </figcaption>
+            <div class="win__body" role="group" aria-labelledby="w2t">
+              <ul class="win__rail" aria-label="Бічна панель Jira">
+                <li class="win__rail-item">For you</li>
+                <li class="win__rail-item">Spaces</li>
+                <li class="win__rail-item">Filters</li>
+                <li class="win__rail-item">Dashboards</li>
+              </ul>
+              <div class="win__main">
+                <div class="win__bar">
+                  <span class="win__crumb">All work</span>
+                  <span class="win__tabs"><span>Basic</span><span class="win__tab--active">JQL</span></span>
+                  <span class="win__btn">Save filter</span>
+                </div>
+                <div class="win__page">
+                  <p class="win__query"><code>status != Done ORDER BY created DESC</code></p>
+                  <p class="win__error">JQL error: The value 'Done' does not exist for the field 'status'. <b class="win__mark" aria-hidden="true">①</b></p>
+                  <p class="win__btn">Fix error <b class="win__mark" aria-hidden="true">②</b></p>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <ol class="win__legend" aria-label="Пояснення до вікна «помилка в запиті»">
+            <li>Значення <code>Done</code> у полі <code>status</code> не знайдено</li>
+            <li><code>Fix error</code> — спроба виправити запит</li>
+          </ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Знімок з навчального сайту курсу від 2026-09-17, не з сайту «Кориці»:
+            там спейс створювали, коли мова акаунта була не англійська, тож статуси
+            народились іншою мовою, і значення <code>Done</code> у полі
+            <code>status</code> не існує взагалі. З рядка запиту прибрано назву
+            того спейсу; текст помилки й кнопка — дослівно з екрана.
+          </p>
+
+          <p>
+            Причину урок 3 вже називав: <strong>назви статусів народжуються мовою
+            акаунта на момент створення спейсу</strong>. Створив спейс, коли в профілі
+            стояла українська, — етапи назвуться українською, а інтерфейс лишиться
+            англійським. На навчальному сайті курсу видно саме це: написи скрізь
+            англійські, а статуси — ні, і назад вони самі не перейменувались.
+          </p>
+
+          <p>
+            Ліки — у блоці 3: питай категорію, а не назву. <code>statusCategory !=
+            Done</code> працює в будь-якому спейсі з будь-якими назвами етапів. Саме
+            тому всі запити в цьому уроці написані так.
+          </p>
+
+          <p>
+            Кнопка <code>Fix error</code> поруч із помилкою пропонує виправлення.
+            Довідка описує два шляхи: виправити руками «by identifying and correcting
+            issues like missing fields, incorrect operators, or typos» або прийняти
+            згенеровану підказку. Другий шлях робить Rovo — AI-шар Atlassian, і та сама
+            сторінка одразу уточнює: «Rovo is available and automatically enabled for
+            all apps on Standard, Premium, and Enterprise plans». Тобто на безкоштовному
+            плані розраховувати на розумну підказку не варто; що саме показує кнопка на
+            Free, у курсі не перевірялось.
+          </p>
+
+          <h3>Знак рівності, лапки й місце сортування</h3>
+
+          <ul>
+            <li><strong><code>=</code> замість <code>~</code> у тексті.</strong>
+              <code>summary = "круасан"</code> не спрацює: знак рівності з текстовими
+              полями не працює взагалі. Текст шукають хвилею.</li>
+            <li><strong>Пропущені лапки.</strong> Значення з пробілом або зі
+              спецсимволом береться в лапки: <code>status = "In Progress"</code>,
+              <code>reporter = "Марта Лисенко"</code>. Відносні дати теж:
+              <code>updated &gt;= "-7d"</code>.</li>
+            <li><strong><code>ORDER BY</code> усередині рядка.</strong> Сортування
+              стоїть останнім, інакше запит недійсний. Якщо після нього треба ще одну
+              умову — вона має переїхати вперед.</li>
+            <li><strong><code>!=</code> і порожнє поле.</strong> «Не дорівнює» не
+              показує роботи без значення. Хочеш бачити й такі — дописуй
+              <code>OR поле IS EMPTY</code>.</li>
+          </ul>
+
+          <h3>Запит не повертається в режим Basic</h3>
+
+          <p>
+            Перемикач інколи відмовляється перевести складний запит назад у списки.
+            Це не поломка: довідка перелічує випадки прямо — запит не переведеться,
+            якщо в ньому є <code>OR</code> (варіант із <code>IN</code> переведеться),
+            <code>NOT</code>, <code>EMPTY</code> або порівняння
+            <code>!=</code>, <code>IS</code>, <code>&gt;</code>, <code>&lt;</code>.
+            Правило згори: «if the query cannot be created in the basic search form,
+            then it will not be able to be translated from advanced search to basic
+            search».
+          </p>
+
+          <p>
+            Практичний висновок один: почав складний запит у JQL — лишайся в JQL.
+            Перемикання туди-сюди на середині роботи стирає частину умов.
+          </p>
+
+          <h3>Фільтр приватний, поки ти його не поділив</h3>
+
+          <p>
+            Найчастіша скарга після цього уроку звучить так: «я зробив фільтр,
+            а в колеги на екрані порожньо». Новий фільтр належить тобі й бачиш його
+            тільки ти. Поки в <code>Viewers</code> стоїть <code>Private</code>,
+            ні колега, ні гаджет на спільному дашборді (урок 8) нічого не покажуть.
+          </p>
+
+          <p>
+            Друга частина тієї ж пастки — <code>currentUser()</code> у спільному
+            фільтрі. Поділившись фільтром «мої незавершені», ти даєш колегам не свій
+            список, а по списку кожному. Для «моїх справ» це саме те, що треба;
+            для «ось що горить у Марти» — ні, там має стояти ім'я.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Обов'язково вчити JQL, чи можна без нього?</h3>
+          <p>
+            Можна без нього. Режим <code>Basic</code> робить те саме списками полів,
+            а швидкий пошук у верхній панелі знаходить роботу за словом з назви.
+            JQL потрібен тоді, коли питання містить «крім», «або», «порожнє»,
+            «раніше ніж» чи сортування — списки цього не вміють. І ще в одному
+            місці: гаджети дашборда й правила автоматизації живляться саме
+            збереженими запитами.
+          </p>
+
+          <h3>Чи побачу я роботи, до яких у мене немає доступу?</h3>
+          <p>
+            Ні. Довідка формулює межу так: «Any user can search for work items,
+            although they will only see results from projects where they can view
+            issues» — у результати потрапляє лише те, що тобі й так видно.
+            На безкоштовному плані це майже не відчувається, бо там усі учасники
+            бачать усі робочі простори (урок 2), але правило діє завжди.
+          </p>
+
+          <h3>Чи можна шукати короткими командами, без повного запиту?</h3>
+          <p>
+            Частково. У швидкому пошуку є короткі команди —
+            <code>my</code> (призначене мені), <code>overdue</code> (прострочене),
+            <code>r:me</code> (заведене мною), <code>due:1w</code> (дедлайн упродовж
+            тижня). Але їх треба ввімкнути: довідка каже «By default, smart queries
+            will be turned off», а вмикач лежить в особистих налаштуваннях у розділі
+            <code>Jira labs</code>. Для щоденних питань це приємна дрібниця,
+            для фільтрів і дашбордів — усе одно потрібен JQL.
+          </p>
+
+          <h3>Як передати знайдене колезі?</h3>
+          <p>
+            Двома способами. Кнопка <code>Share</code> над результатами надсилає лист
+            із посиланням і твоєю приміткою. Кнопка <code>Export</code> вивантажує
+            знайдене файлом — наприклад, таблицею для Excel; скільки рядків влазить
+            в один вивантажений файл, дивись у довіднику «Карта інтерфейсу, глосарій
+            і ліміти Free». Посилання відкриється лише в того, хто має доступ до
+            самих робіт.
+          </p>
+
+          <h3>Фільтр — це знімок чи живе питання?</h3>
+          <p>
+            Живе питання. Фільтр зберігає текст запиту, а не список робіт, тож
+            відкриваючи його завтра, ти бачиш стан на завтра. Саме тому «Прострочені»
+            не треба переробляти: список сам порідшає, коли роботи закриють.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Якщо в тебе в бічній панелі з'явилось три збережені питання й ти можеш
+            пояснити колезі, чому <code>statusCategory</code> надійніший за
+            <code>status</code>, — урок зробив своє. Далі цей набір фільтрів
+            перетвориться на один екран, на який дивиться вся команда.
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li>Вигляд показує заздалегідь відомий набір робіт, запит формулює умову
+                і збирає роботи звідусіль, де в тебе є доступ.</li>
+              <li>Одна умова — це поле, оператор і значення. Кілька умов зшиває
+                <code>AND</code> або <code>OR</code>, дужки задають порядок, а
+                <code>ORDER BY</code> завжди стоїть останнім.</li>
+              <li>Текст шукають хвилею <code>~</code>, а не знаком рівності. Значення
+                з пробілами й відносні дати беруть у лапки. <code>!=</code> не показує
+                робіт з порожнім полем.</li>
+              <li>Дати задають функціями — <code>now()</code>,
+                <code>endOfWeek()</code>, <code>startOfMonth()</code> — і запит
+                лишається правильним наступного тижня.</li>
+              <li>Назва статусу залежить від спейсу й мови акаунта на момент його
+                створення. Категорія статусу одна на всю Jira, тому
+                <code>statusCategory != Done</code> працює скрізь.</li>
+              <li>У мові запитів досі живуть старі слова: спейс у JQL зветься
+                <code>project</code>. Atlassian сама попереджає, що нові слова можуть
+                ще не працювати.</li>
+              <li>Збережений запит називається фільтром. Він приватний за
+                замовчуванням; доступ і підписку на лист задають у його деталях.</li>
+              <li><code>currentUser()</code> у спільному фільтрі показує кожному його
+                власні роботи — і в листі підписки теж.</li>
+              <li>Зі сторінки результатів роблять масову зміну всіх знайдених робіт
+                одразу; галочка про листи в майстрі рятує колег від розсилки.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Далі — <strong>урок 8 «Дашборди і гаджети»</strong>: як зібрати зі
+            збережених фільтрів один екран, на який команда дивиться щоранку.
+            Три фільтри з цього уроку стануть трьома гаджетами, і там же з'ясується,
+            чому гаджет на приватному фільтрі показує колезі порожнечу.
+          </p>
+          <p>
+            До наступного уроку варто зробити одне: пожити тиждень із фільтром
+            «Прострочені» й подивитись, чи він порожніє. Якщо ні — справа не в Jira,
+            а в домовленостях команди, і це теж корисно знати.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять на
+            назви: до кожної відповіді одразу з'являється пояснення, чому решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Марта хоче побачити всі роботи маркетингу, які ще не зроблено, і щоб найближчий дедлайн був угорі списку. Який рядок Jira прийме як запит?",
+            "options": [
+              "MARK: не Done, за дедлайном від найближчого",
+              "project = MARK AND statusCategory != Done ORDER BY due ASC",
+              "ORDER BY due ASC AND project = MARK AND statusCategory != Done",
+              "знайди в маркетингу незавершене, спершу те, що горить"
+            ],
+            "answer": 1,
+            "explain": "Запит складається з ланок «поле — оператор — значення», з'єднаних словом AND, а вказівка про порядок стоїть у самому кінці: довідка Atlassian каже, що ORDER BY має бути в кінці запиту, інакше запит недійсний. Звичайними реченнями Jira запити не приймає — для тих, хто не хоче писати текст, є режим Basic зі списками полів."
+          },
+          {
+            "q": "Ліна перевела кандидатку в останню колонку своєї дошки, а запит status = Done у пошуку повертає червону рамку з повідомленням, що такого значення немає. Що сталося?",
+            "options": [
+              "Пошук оновлюється раз на добу, тож щойно змінена робота потрапить у результати лише завтра",
+              "Поле status у Jira Cloud скасували, і замість нього тепер треба питати поле resolution",
+              "Назва статусу — рядок тексту, і в цьому спейсі вона інша; питай категорію statusCategory",
+              "Поле status працює тільки разом із назвою спейсу, тому запит без умови project завжди дає нуль"
+            ],
+            "answer": 2,
+            "explain": "Назви статусів приходять із шаблону спейсу й залежать від мови акаунта на момент його створення, тож рядка «Done» у конкретному спейсі може не існувати взагалі. Категорій статусу на всю Jira рівно три, вони не перейменовуються, тому statusCategory != Done або statusCategory = Done працює в будь-якому спейсі. Затримки в добу в пошуку немає, поле status нікуди не зникло, і умова про спейс для нього не обов'язкова."
+          },
+          {
+            "q": "Оксана зберегла фільтр assignee = currentUser() AND statusCategory != Done, відкрила його всій фірмі й підписала на нього Тараса. Що прийде Тарасу листом?",
+            "options": [
+              "Незавершені роботи самого Тараса: функція підставляє того, хто отримує результат",
+              "Порожній лист, бо функція currentUser() у підписках на фільтр не працює зовсім",
+              "Незавершені роботи Оксани, бо саме вона власниця фільтра й авторка запиту",
+              "Усі незавершені роботи всіх людей фірми, бо фільтр відкрито для всієї організації"
+            ],
+            "answer": 0,
+            "explain": "Довідка Atlassian попереджає про це окремо: результати підписки рахуються для кожного отримувача, і якщо у фільтрі стоїть currentUser(), то поточним користувачем вважається саме отримувач листа. Для фільтра «мої справи» це зручно — один фільтр на всю команду. Якщо ж потрібен чужий список, у запиті має стояти ім'я людини, а не функція."
+          },
+          {
+            "q": "Марта зберегла фільтр і надіслала колезі посилання на нього. Колега відкриває і бачить, що доступу немає. Найімовірніша причина?",
+            "options": [
+              "Посилання на фільтр діє одну годину, після чого Jira його анулює з міркувань безпеки",
+              "Фільтри взагалі не відкриваються за посиланням — їх запускають лише з бічної панелі",
+              "Новий фільтр за замовчуванням приватний, і доступ до нього відкривають у його деталях",
+              "Колега працює в іншому спейсі, а фільтр завжди прив'язаний до того спейсу, де його створили"
+            ],
+            "answer": 2,
+            "explain": "Збережений фільтр належить тому, хто його створив, і поки в переліку тих, хто бачить фільтр, стоїть Private, його видно лише власнику й адміністратору Jira. Доступ відкривають у деталях фільтра — конкретним людям, групі, спейсу або всім, хто заходить на сайт під своїм акаунтом. Посилання не протухає, фільтр не прив'язаний до одного спейсу, і за посиланням він відкривається нормально."
+          },
+          {
+            "q": "Ігор хоче, щоб спільний екран команди показував ті самі числа, що й фільтр, який він щойно склав. З чого починати?",
+            "options": [
+              "Скопіювати текст запиту й надіслати кожному в чат, щоб кожен зберіг собі свою копію фільтра",
+              "Перенести всі роботи фірми в один спейс, бо збережений фільтр працює в межах одного спейсу",
+              "Нічого не робити: гаджет читає запит напряму, доступ до фільтра ролі не грає",
+              "Відкрити доступ до фільтра потрібним людям — і лише після цього ставити на нього гаджет"
+            ],
+            "answer": 3,
+            "explain": "Гаджет на дашборді живиться саме збереженим фільтром, тож людина, яка фільтра не бачить, побачить порожній гаджет. Тому послідовність така: зберегти запит, відкрити до нього доступ, і тільки потім класти гаджет на спільний екран. Копії в кожного розійдуться за тиждень, а обмеження «фільтр живе в одному спейсі» не існує: запит без умови project дивиться в усі доступні спейси."
+          },
+          {
+            "q": "Тарас хоче щопонеділка вранці отримувати список прострочених робіт, не відкриваючи Jira. Що йому потрібно зробити?",
+            "options": [
+              "Позначити фільтр зіркою: зіркові фільтри Jira надсилає поштою щоранку автоматично",
+              "Створити підписку на збережений фільтр і задати в ній розклад і отримувача",
+              "Увімкнути спостереження за кожною простроченою роботою окремо",
+              "Скласти правило автоматизації, бо надсилати листи за розкладом уміє лише автоматизація"
+            ],
+            "answer": 1,
+            "explain": "Підписка на фільтр — це і є періодичний лист з усіма роботами, які повертає запит; розклад задають у деталях фільтра. Зірка лише піднімає фільтр у бічну панель і листів не шле. Спостереження сповіщає про зміни в одній конкретній роботі, а не надсилає список. Автоматизація теж уміє слати листи за розкладом (уроки 14 і 15), але для готового фільтра це зайва робота."
+          }
+        ]
+      }
+      </script>
+
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Модуль позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
