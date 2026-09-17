@@ -59,3 +59,19 @@
 - **j03 → усі:** три слаги доксів дали 404 за день (`keyboard-shortcuts`, `get-started-with-jira`, індекс `jira-software-cloud/docs/`) — шукати через WebSearch з `allowed_domains: support.atlassian.com`.
 - **докси проти доксів:** `manage-your-jira-personal-settings` не згадує Theme і Jira homepage, хоча на екрані вони є — показано з вікна, датовано.
 - **для кореневої сесії (дознімати):** business-спейс (рядок виглядів, шлях в адресі, «Business space» на плитці), ліва бічна панель, галерея шаблонів у діалозі Create space, таблиця планів очима (рядок JSM Free).
+
+## Від кореневої сесії (2026-09-17, вечір — дозняті екрани 22–24)
+
+- **усі → j03, j05, j09, j12:** у UI 2026 шаблон особистих/командних задач називається **Task tracking** («Organize and
+  track team or personal tasks»); докси кажуть «task management template» · `screens/23` · рішення про статуси `MY`
+  (програма, розділ 3) звірити з фактичним шаблоном після створення спейсу; назви шаблонів — лише довідник 3.
+- **усі → j09, довідник 3:** категорія **Work management** — 30 business-шаблонів без бейджів Premium/Try (Project
+  management, Task tracking, Recruitment tracking, Budget planning, Event planning …); **Service management** — 16,
+  з них Premium: Advanced IT service management, IT Operations; **Custom templates — Enterprise** · `screens/23`.
+- **усі → j18, j19, довідник 3:** JSM Free очима і `curl`: multi-channel ✓, workflows + SLA ✓, custom reports ✓,
+  automation 1 250 steps per subscription, global and multi-space automation 100 executions per month; прочерк —
+  work-level security, audit logs, sandboxes, release tracks, multiple help centers, data pinning, uptime SLA; Assets і
+  virtual service agent — Premium+ · `screens/24`, `facts-free-plan.md` №3 → ✅ · числа — лише довідник 3.
+- **усі → j03, довідник 3:** бічна панель — 13 пунктів (For you · Recent · Starred · Apps · Plans · Spaces · Filters ·
+  Dashboards · Assets ↗ · Teams ↗ · Goals ↗ · Projects ↗ · Customize sidebar), крок 32 px, ширина 320 px; чотири нижні
+  ведуть **за межі Jira** (Atlassian Home), і **Projects ≠ spaces** — пастка для новачка · `screens/22`.
