@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 10 · Workflow — Jira з нуля</title>
+  <meta name="description"
+    content="Робочий процес спейсу в Jira Cloud: статуси й три категорії, переходи і перехід «з будь-якого», редактор workflow у team-managed спейсі, правила переходу — і чому колонка на дошці не те саме, що статус." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+</head>
+
+<body data-module="j10">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 10</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 3 · Під себе</p>
+        <h1 class="ds-h1">Workflow</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 24 хв читання</p>
+        <p class="ds-lead">
+          Три колонки <code>To Do</code>, <code>In Progress</code>, <code>Done</code>
+          описують майже будь-яку роботу — поки в роботи немає власного порядку. Найм,
+          погодження кошторису, ремонт, замовлення з сайту йдуть через кроки, які в ці
+          три слова не вміщаються. Цей урок про те, як переписати кроки під себе — і не
+          зламати при цьому дошку, звіти й пошук.
+        </p>
+        <p>
+          Англійське слово <strong>workflow</strong> українською передають як «робочий
+          процес». У Jira це не метафора, а конкретна річ із двох частин: перелік станів,
+          у яких робота може бути, і перелік дозволених кроків між ними. Документація
+          Atlassian формулює так: «Two concepts define a workflow in team-managed spaces:
+          <strong>Statuses</strong> – the steps in your team's working process that
+          describe the state of a task. <strong>Transitions</strong> – how a piece of work
+          can move between statuses» — статуси описують стан справи, переходи описують
+          рух між станами.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> полів картки й того, як вони розкладені на екрані —
+            це урок 11. Немає автоматизації, яка спрацьовує сама, без людини, — уроки 14
+            і 15. Немає пошуку за статусом мовою запитів — урок 7.
+          </p>
+          <p>
+            <strong>Є:</strong> статус і категорія статусу; переходи, зокрема перехід
+            «з будь-якого»; редактор процесу в спейсі, яким керує команда; правила
+            переходу; чому колонка на дошці і статус — не одне й те саме; і власний
+            процес найму в спейсі «Найм».
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            У «Кориці» відкривається друга точка, і Ліна Шевчук шукає туди бариста.
+            Резюме приходять, співбесіди призначаються, комусь відмовили, комусь зробили
+            пропозицію. Оксана питає: «На якому етапі Олена?» Ліна дивиться на свою дошку
+            й бачить три колонки: <code>To Do</code>, <code>In Progress</code>,
+            <code>Done</code>. Олена — в середній. Це правда, і це не відповідь.
+          </p>
+
+          <p>
+            Процес найму насправді має кілька кроків: подивитись резюме, поговорити,
+            зробити пропозицію, вивести на роботу — або відмовити. Кроки існують у голові
+            в Ліни, але не існують в Jira. Тому щоразу, коли комусь треба знати стан
+            справ, доводиться питати голосом — тобто робити рівно те, від чого Jira мала
+            позбавити.
+          </p>
+
+          <h3>Що таке статус і чому він не косметика</h3>
+
+          <p>
+            <strong>Статус</strong> — це відповідь на питання «де зараз ця робота».
+            Документація описує його роль так: «Statuses help people understand the state
+            of a piece of work. They appear in many views across your Jira site» — статус
+            видно не лише на картці, а в усіх виглядах сайту.
+          </p>
+
+          <p>
+            Звідси й головне: статус — не підпис, а дані. За ним Jira будує колонки на
+            дошці, рахує звіти, показує зведення спейсу і знаходить роботу пошуком. Тому
+            питання «як назвати етап» насправді є питанням «як ми рахуватимемо роботу».
+            Урок 9 уже показав, що конфігурація спейсу, яким керує команда
+            (<strong>team-managed</strong>), живе всередині самого спейсу — значить,
+            статуси в «Наймі» можна зробити свої, нічого не ламаючи в інших відділах.
+          </p>
+
+          <h3>Другий бік: процес не лише показує, а й тримає</h3>
+
+          <p>
+            Набір станів — половина справи. Друга половина — <strong>переходи</strong>:
+            які рухи між станами взагалі дозволені. Якщо між станом «резюме прийшло» і станом «зробили
+            пропозицію» переходу немає, картку не можна перетягнути з першої
+            колонки одразу в четверту: Jira не дасть. Так процес перестає бути
+            домовленістю й стає правилом, яке діє й тоді, коли всі поспішають.
+          </p>
+
+          <p>
+            До переходу можна додати <strong>правило</strong> — умову або дію: хто саме
+            має право робити цей крок, що перевірити перед кроком, що зробити після.
+            Документація каже коротко: «Rules automate repetitive actions when people move
+            work between statuses» — правила роблять за людину те, що вона робила б руками
+            щоразу. Наприклад: як тільки картка потрапляє на співбесіду, виконавцем
+            автоматично стає Ліна.
+          </p>
+
+          <p>
+            Чого робочий процес не робить: він не думає за команду. Atlassian у власній
+            же інструкції радить починати з малого — «every status and transition adds
+            more complexity for the team working in the workflow. If you want to move
+            fast, keep your process lean»: кожен зайвий стан і крок додає складності тим,
+            хто в цьому працює.
+          </p>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Перше, що зупиняє новачка: у спейсі, яким керує команда, немає окремого
+            розділу з назвою «Workflows». Процес живе <em>всередині типу роботи</em> —
+            тобто всередині <code>Task</code>, <code>Subtask</code> або <code>Epic</code>.
+            Логіка така: у різних типів роботи процеси можуть бути різні, тому й
+            редагують їх окремо.
+          </p>
+
+          <h3>Де живе редактор процесу</h3>
+
+<figure class="win" data-state="settings" id="w1">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w1t">Jira Cloud · Space settings → Work types → Task · звірено 2026-09-17</span>
+    <span class="win__addr" aria-hidden="true">…/jira/…/HR/settings/issuetypes</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w1t">
+    <ul class="win__rail win__rail--settings" aria-label="Space settings">
+      <li class="win__rail-item">Details</li>
+      <li class="win__rail-item">Access</li>
+      <li class="win__rail-item">Notifications</li>
+      <li class="win__rail-item">Automation</li>
+      <li class="win__rail-item">Fields</li>
+      <li class="win__rail-item win__rail-item--active">Work types <b class="win__mark" aria-hidden="true">①</b></li>
+      <li class="win__rail-item">Features</li>
+      <li class="win__rail-item">Custom filters</li>
+      <li class="win__rail-item">Apps</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__page">
+        <h4>Task</h4>
+        <span class="win__tabs"><span class="win__tab--active">Task</span><span>Subtask</span><span>Epic</span></span>
+        <p class="win__btn">Edit workflow <b class="win__mark" aria-hidden="true">②</b></p>
+        <dl class="win__fields">
+          <dt>Description fields</dt><dd>Summary (Required) · Description</dd>
+          <dt>Context fields <b class="win__mark" aria-hidden="true">③</b></dt><dd>Status · Assignee · Parent · Priority · Labels · Due date · Team · Start date</dd>
+          <dt>Hide when empty</dt><dd>Reporter</dd>
+        </dl>
+        <p class="win__actions"><span>Discard</span> <span class="win__btn win__btn--primary">Save changes</span></p>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «Space settings → Work types»">
+<li><code>Work types</code> — розділ із типами роботи спейсу</li>
+<li><code>Edit workflow</code> — вхід у редактор процесу</li>
+<li><code>Context fields</code> — поля картки, тема уроку 11</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Написи й склад розділів зняті з живого сайту Jira Cloud Free 17 вересня 2026
+            року; назва спейсу — з історії про «Корицю». Знімок зроблено у спейсі для
+            розробки, тому набір полів у твоєму спейсі може відрізнятись — шлях до кнопки
+            той самий.
+          </p>
+
+          <p>
+            Шлях словами, як він описаний у документації: біля назви спейсу в бічній
+            панелі натисни <code>More actions (•••)</code> → <code>Space settings</code> →
+            <code>Work types</code> → обери тип роботи → <code>Edit workflow</code>.
+            Для бізнес-спейсу — того, який ми робимо для найму, — довідка називає рівно ті
+            самі кроки: «Navigate to <strong>Work types</strong>. Select <strong>Edit
+            workflow</strong> at the top-right of the screen. You can edit the workflow
+            for each work type within your business space».
+          </p>
+
+          <p>
+            Право на це має адміністратор спейсу: «Only space admins (in team-managed
+            spaces) can edit space workflows». На сайті, який від початку живе на
+            безкоштовному плані, адміністратори — усі (урок 9), тож кнопка буде на місці.
+          </p>
+
+          <h3>Що всередині редактора</h3>
+
+          <p>
+            Редактор відкривається на весь екран. Угорі — панель із кнопками
+            <code>Add status</code>, <code>Add Transition</code>, <code>Add Rule</code>,
+            праворуч — <code>Update workflow</code> і <code>Close</code>. Кнопка
+            <code>Update workflow</code> неактивна, поки ти нічого не змінив.
+          </p>
+
+          <p>
+            Саме полотно має два режими — перемикач <code>Diagram</code> /
+            <code>Text</code>. У режимі схеми статуси — це прямокутники, переходи —
+            стрілки; знизу праворуч є мінімапа й масштаб, а прапорець
+            <code>Show transition labels</code> вмикає підписи на стрілках. Режим
+            <code>Text</code> показує те саме списком: «In text mode, you can see workflow
+            statuses and their related transitions, then select a status or transition to
+            edit its details in the sidebar». Нижче — саме він, бо текстом процес видно
+            цілком, без прокручування схеми.
+          </p>
+
+<figure class="win" data-state="list" id="w2">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w2t">Jira Cloud · редактор workflow спейсу Найм, режим Text · за документацією, 2026-09-18</span>
+    <span class="win__addr" aria-hidden="true">…/jira/…/HR/settings/issuetypes/…/workflow</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w2t">
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Workflow for Task / Найм</span>
+        <span class="win__tabs"><span>Diagram</span><span class="win__tab--active">Text</span></span>
+        <span class="win__btn win__btn--primary">Update workflow</span>
+      </div>
+      <div class="win__page">
+        <h4>Statuses</h4>
+        <table class="win__table">
+          <thead>
+            <tr><th>Status</th><th>Category <b class="win__mark" aria-hidden="true">①</b></th></tr>
+          </thead>
+          <tbody>
+            <tr><td>New</td><td data-cat="todo">To Do</td></tr>
+            <tr><td>Screening</td><td data-cat="progress">In Progress</td></tr>
+            <tr><td>Interview</td><td data-cat="progress">In Progress</td></tr>
+            <tr><td>Offer</td><td data-cat="progress">In Progress</td></tr>
+            <tr><td>Hired</td><td data-cat="done">Done</td></tr>
+            <tr><td>Rejected</td><td data-cat="done">Done</td></tr>
+          </tbody>
+        </table>
+        <h4>Transitions</h4>
+        <table class="win__table">
+          <thead>
+            <tr><th>From</th><th>To</th><th>Name</th><th>Rules</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Any status <b class="win__mark" aria-hidden="true">②</b></td><td>Screening</td><td>Start screening</td><td>—</td></tr>
+            <tr><td>Any status</td><td>Interview</td><td>Invite to interview</td><td>Assign a work item to someone <b class="win__mark" aria-hidden="true">③</b></td></tr>
+            <tr><td>Interview</td><td>Offer</td><td>Make an offer</td><td>—</td></tr>
+            <tr><td>Offer</td><td>Hired</td><td>Accepted</td><td>—</td></tr>
+            <tr><td>Any status</td><td>Rejected</td><td>Reject</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «редактор workflow, режим Text»">
+<li><code>Category</code> — одна з трьох; свою вигадати не можна</li>
+<li><code>Any status</code> — перехід з будь-якого статусу</li>
+<li>Правило переходу: сюди підвішують дію або умову</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Шапку редактора, перемикач <code>Diagram</code> / <code>Text</code> і назви
+            кнопок знято з живого редактора Jira Cloud Free 17 вересня 2026 року.
+            Розкладку самого режиму <code>Text</code> документація описує словами, знімка
+            в нас немає — тому вікно позначене «за документацією»: назви колонок тут
+            умовні, а склад даних — той, що редактор показує.
+          </p>
+
+          <p>
+            Одна дрібниця, яка добре показує, навіщо в цьому курсі біля кожного вікна
+            стоїть дата. У документації кнопки називаються <code>Transition</code> і
+            <code>Rule</code>, а на екрані 17 вересня 2026 року вони підписані
+            <code>Add Transition</code> і <code>Add Rule</code>. Розбіжність невелика, але
+            вона нормальна: інтерфейс міняють частіше, ніж переписують довідку. Тому
+            орієнтуйся на сенс кнопки, а не на буквальний напис зі статті.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <p>
+            Ось процес найму «Кориці», зібраний із п'яти кроків Ліни. Прямокутник — статус,
+            стрілка — перехід, підпис на стрілці — назва переходу. Саме так, коробками
+            й стрілками, Atlassian радить малювати процес на папері, перш ніж вводити
+            його в Jira.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+stateDiagram-v2
+  [*] --> New
+  New --> Screening: Start screening
+  Screening --> Interview: Invite to interview
+  Screening --> Rejected: Reject
+  Interview --> Offer: Make an offer
+  Interview --> Rejected: Reject
+  Offer --> Hired: Accepted
+  Offer --> Rejected: Declined
+  Hired --> [*]
+  Rejected --> [*]
+  note right of New : категорія To Do
+  note right of Offer : категорія In Progress
+  note right of Hired : категорія Done
+            </pre>
+            <p class="ds-diag__caption">
+              Процес найму: шість статусів і переходи між ними. Дві кінцеві точки —
+              «вийшов на роботу» і «відмова» — обидві в категорії Done
+            </p>
+          </div>
+
+          <h3>Три категорії, і свою не вигадати</h3>
+
+          <p>
+            Кожен статус — навіть той, який ти щойно вигадав, — обов'язково належить до
+            однієї з трьох <strong>категорій</strong>. Документація не лишає простору для
+            варіантів: «All statuses, even custom statuses you create yourself, must
+            belong to one of three status categories – To do, In progress, or Done. These
+            categories are represented by the colors grey, blue, and green respectively,
+            so you'll always see statuses shown in one of these colors (this can't be
+            customized)». Сірий, синій, зелений — і змінити це не можна.
+          </p>
+
+          <p>
+            Категорія — це те, за чим Jira розуміє «ще не почали», «у роботі», «готово».
+            Там само сказано, навіщо: «Status categories impact how work items are
+            visualized in lists, reports, and boards». Тобто категорія керує кольором на
+            дошці, зведенням спейсу і звітами. Назва статусу — для людей, категорія —
+            для Jira.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart LR
+  A["Ти назвав статус Offer"] --> B["Обрав категорію In Progress"]
+  B --> C["Колір і місце на дошці"]
+  B --> D["Звіти й зведення спейсу"]
+  B --> E["Пошук за категорією"]
+            </pre>
+            <p class="ds-diag__caption">
+              Назву статусу читають люди, категорію читає Jira — і саме на ній тримаються
+              звіти
+            </p>
+          </div>
+
+          <p>
+            Практичний наслідок для «Кориці»: статуси <code>Hired</code> і
+            <code>Rejected</code> звучать по-різному, і для людини це різні кінцівки. Але
+            для Jira обидва мають категорію <code>Done</code> — робота завершена, хай і
+            з різним результатом. Якщо помилитись і лишити <code>Rejected</code> у
+            категорії <code>In Progress</code>, то всі відмовлені кандидати назавжди
+            лишаться «в роботі»: у звітах, у зведенні спейсу й у пошуку.
+          </p>
+
+          <h3>Чотири слова, які плутають найчастіше</h3>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: статус, категорія, перехід і колонка">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Слово</th><th>Що це</th><th>Де його задають</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Статус</td>
+                  <td>Де зараз конкретна робота: <code>Interview</code>, <code>Offer</code></td>
+                  <td>Редактор процесу; назву вигадуєш ти</td>
+                </tr>
+                <tr>
+                  <td>Категорія</td>
+                  <td>Одна з трьох: To Do, In Progress, Done. Керує звітами й кольором</td>
+                  <td>Обирається, коли створюєш статус; можна змінити потім</td>
+                </tr>
+                <tr>
+                  <td>Перехід</td>
+                  <td>Дозволений крок з одного статусу в інший, зі своєю назвою</td>
+                  <td>Редактор процесу</td>
+                </tr>
+                <tr>
+                  <td>Колонка</td>
+                  <td>Смуга на дошці. Може відповідати одному статусу — а може кільком</td>
+                  <td>Налаштування дошки</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Перехід — це вулиця з одностороннім рухом</h3>
+
+          <p>
+            Головна пастка новачка: перехід працює лише в один бік. Довідка каже прямо:
+            «A transition is a one-way link, so if a work item needs to move back and
+            forth between two statuses, two transitions need to be created». Якщо ти
+            зробив крок <code>Interview</code> → <code>Offer</code>, то повернути картку
+            назад не вийде, доки не з'явиться окремий крок <code>Offer</code> →
+            <code>Interview</code>.
+          </p>
+
+          <p>
+            Щоб не описувати руками кожну пару, є <strong>перехід «з будь-якого»</strong>:
+            «Global transitions allow any status in a workflow to transition to a
+            particular status». У редакторі він підписаний <code>Any status</code> і
+            малюється бульбашкою над статусом. Новий статус отримує його автоматично:
+            «New statuses will have a transition that allows work items in Any status to
+            move to it. It's usually a good idea to keep this transition so people can
+            freely move their work. But if you have strict compliance guidelines, you
+            might want to remove these transitions».
+          </p>
+
+          <p>
+            Тобто за замовчуванням Jira лишає руки розв'язаними: тягни картку куди
+            завгодно. Обмеження ти вводиш свідомо — і рівно там, де порядок кроків
+            справді важливий. У найму таке місце одне: пропозицію роблять після розмови,
+            а не замість неї.
+          </p>
+
+          <h3>Правила переходу: три типи, і момент має значення</h3>
+
+          <p>
+            Правило підвішується не до статусу, а до <em>переходу</em>. Типів рівно три,
+            і вони відрізняються моментом, коли спрацьовують: «Restrict transition, which
+            happens <em>before</em> someone tries to transition a work item. Validate
+            details, which happens <em>when</em> someone tries to transition a work item.
+            Perform actions, which happens <em>after</em> someone transitions the work
+            item».
+          </p>
+
+          <ul>
+            <li><strong>Обмеження (Restrict transition).</strong> Ховає крок від тих, кому
+              він не належить: «people won't see the transition on a work item unless its
+              criteria is met». Людина навіть не побачить, що такий рух існує.</li>
+            <li><strong>Перевірка (Validate details).</strong> Крок видно, але завершити
+              його без потрібних даних не вийде: «People will be able to see and select
+              the transition, but won't be able to finish moving the work item if the
+              details aren't met».</li>
+            <li><strong>Дія (Perform actions).</strong> Спрацьовує після кроку й нічого не
+              забороняє: призначити виконавця, оновити поле, скопіювати значення з батька.</li>
+          </ul>
+
+          <p>
+            Серед готових правил team-managed спейсу є, зокрема: <code>Assign a work item
+            to someone</code> (призначити виконавця), <code>Update a work item field</code>
+            (оновити поле), <code>Restrict who can move a work item</code> (обмежити, хто
+            рухає), <code>Restrict to when a work item has been through a status</code>
+            (пропустити лише те, що пройшло певний етап), <code>Validate that people have
+            a specific permission</code> (перевірити дозвіл). Повний перелік із прикладами
+            — у документації Atlassian і в довіднику 2 цього курсу.
+          </p>
+
+          <h3>Один процес на кілька типів роботи</h3>
+
+          <p>
+            Останнє, що варто розуміти наперед: процес прив'язаний не до спейсу, а до
+            <strong>типів роботи</strong>. У редакторі це видно при збереженні: «In the
+            workflow editor, it's possible to create a workflow that applies to a single
+            work type or a combination of work types». Коли ти тиснеш
+            <code>Update workflow</code>, Jira питає, до яких типів застосувати зміни —
+            лише до <code>Task</code>, чи ще й до <code>Subtask</code> і <code>Epic</code>.
+          </p>
+
+          <p>
+            Звідси випливає річ, яка пізніше дивує: у підзадач і епіків може лишитись
+            старий процес із трьома статусами, навіть коли в задач їх уже шість.
+            Ліміти на кількість статусів і переходів у Jira є, але команда до десяти
+            людей у них не впирається; точні числа — у довіднику 3.
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            Зробимо спейс найму з процесом із діаграми вище. Після уроку 9 у тебе вже є
+            <code>MY</code>, <code>MARK</code> і <code>REM</code>; додамо четвертий. Якщо
+            найм тобі не близький — бери свою сферу: погодження рахунків, приймання
+            замовлень, перевірка текстів. Кроки будуть інші, дії — ті самі.
+          </p>
+
+          <h3>Крок 1. Створити спейс «Найм»</h3>
+
+          <p>
+            У бічній панелі наведи курсор на <code>Spaces</code> і натисни
+            <code>Create space</code>. У галереї обери простий бізнес-шаблон для обліку
+            задач (шаблон для найму, якщо він є у твоєму списку, теж підійде — статуси ми
+            все одно перепишемо). Назва — «Найм», ключ — <code>HR</code>. Тип спейсу —
+            той, яким керує команда.
+          </p>
+
+          <h3>Крок 2. Відкрити редактор процесу</h3>
+
+          <p>
+            Біля назви спейсу в бічній панелі натисни <code>More actions (•••)</code> →
+            <code>Space settings</code> → <code>Work types</code>. У списку типів обери
+            <code>Task</code> і натисни <code>Edit workflow</code> угорі праворуч.
+            Відкриється полотно з трьома статусами, які дав шаблон.
+          </p>
+
+          <h3>Крок 3. Перейменувати те, що вже є</h3>
+
+          <p>
+            Клацни по статусу на схемі — праворуч відкриється панель деталей, у ній
+            редагуються назва й категорія. Перейменуй <code>To Do</code> на
+            <code>New</code>, <code>In Progress</code> на <code>Screening</code>,
+            <code>Done</code> на <code>Hired</code>. Категорії не чіпай: вони вже
+            правильні.
+          </p>
+
+          <p>
+            Якщо Jira покаже попередження <code>This status is shared across multiple
+            workflows</code> — значить, цей статус використовують ще й інші типи роботи
+            твого спейсу. Можна перейменувати всюди (тоді Jira «also updates their names
+            and categories in all your space's workflows that use the status») або лише
+            тут — для цього є кнопка <code>Change status for these work items only</code>,
+            після якої Jira робить окрему копію статусу для цього процесу.
+          </p>
+
+          <h3>Крок 4. Додати три нові статуси</h3>
+
+          <p>
+            У панелі зверху обери категорію для нового статусу, введи назву й натисни
+            <code>Add</code>. Тобі потрібні три: <code>Interview</code> у категорії
+            <code>In Progress</code>, <code>Offer</code> у категорії
+            <code>In Progress</code> і <code>Rejected</code> у категорії
+            <code>Done</code>. Зверни увагу, що <code>Rejected</code> — саме
+            <code>Done</code>: для Jira відмова теж означає, що робота з кандидатом
+            завершена.
+          </p>
+
+          <h3>Крок 5. Прокласти переходи</h3>
+
+          <p>
+            Над кожним статусом у редакторі висить бульбашка <code>Any</code> — перехід
+            «з будь-якого». Її мають і статуси з шаблону, і щойно створені. Для найму
+            залиш її на <code>Screening</code>, <code>Interview</code> і
+            <code>Rejected</code> (повернутись до розмови чи відмовити можна на
+            будь-якому етапі), а на <code>Offer</code> прибери:
+            клацни по цьому переходу й вибери <code>Delete transition</code> у нижній
+            частині панелі деталей.
+          </p>
+
+          <p>
+            Тепер додай потрібні кроки. У панелі зверху натисни
+            <code>Add Transition</code>, у полі <code>From status</code> обери
+            <code>Interview</code>, у полі <code>To status</code> — <code>Offer</code>,
+            дай назву <code>Make an offer</code> і натисни <code>Create</code>. Так само
+            зроби <code>Offer</code> → <code>Hired</code> з назвою <code>Accepted</code>.
+          </p>
+
+          <p>
+            Порівняй зі схемою з блоку 3: там стрілок вісім, а руками ти проклав
+            дві. Решту рухів закриває перехід «з будь-якого» — і це нормальний
+            спосіб тримати процес читабельним: окремими стрілками описують те,
+            що справді має йти по порядку.
+          </p>
+
+          <h3>Крок 6. Підвісити правило</h3>
+
+          <p>
+            У панелі зверху натисни <code>Add Rule</code>, обери
+            <code>Assign a work item to someone</code>. У полі
+            <code>For transition</code> вкажи перехід <code>Any status</code> →
+            <code>Interview</code>, у полі
+            <code>Assign to</code> — себе (у сюжеті це Ліна). Натисни <code>Add</code>.
+            Тепер щойно картка потрапляє на співбесіду, виконавець проставляється сам.
+          </p>
+
+          <h3>Крок 7. Зберегти</h3>
+
+          <p>
+            Зміни не діють, доки їх не збережено: «Changes you make to your workflow
+            aren't applied until you save and exit the workflow editor». Натисни
+            <code>Update workflow</code>, у випадному списку лиши лише тип
+            <code>Task</code> і підтверди збереження. Підзадачі й епіки лишаться зі своїм
+            старим процесом — це навмисно, і в блоці 6 буде видно, чому про це варто
+            пам'ятати.
+          </p>
+
+          <h3>Крок 8. Провести живу картку</h3>
+
+          <p>
+            Створи в «Наймі» роботу <code>HR-2</code> «Співбесіда: бариста (кандидатка
+            Олена)» і проведи її процесом: <code>New</code> → <code>Screening</code> →
+            <code>Interview</code> → <code>Offer</code>. Рухати можна двома способами:
+            перетягнути картку між колонками дошки або відкрити картку й змінити статус
+            у випадному списку вгорі праворуч.
+          </p>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Головна перевірка процесу — дошка. Вона малює колонки з тих самих статусів,
+            тож якщо ти все зробив правильно, замість трьох звичних колонок побачиш шість
+            своїх.
+          </p>
+
+<figure class="win" data-state="board" id="w3">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w3t">Jira Cloud · дошка спейсу Найм · звірено 2026-09-17</span>
+    <span class="win__addr" aria-hidden="true">…/jira/…/HR/board</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w3t">
+    <ul class="win__rail" aria-label="Бічна панель Jira">
+      <li class="win__rail-item">For you</li>
+      <li class="win__rail-item win__rail-item--active">Spaces</li>
+      <li class="win__rail-item">Filters</li>
+      <li class="win__rail-item">Dashboards</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Spaces / Найм</span>
+        <span class="win__tabs"><span>Summary</span><span>List</span><span class="win__tab--active">Board</span></span>
+        <span class="win__btn win__btn--primary">+ Create</span>
+      </div>
+      <ul class="win__cols">
+        <li class="win__col" data-cat="todo">
+          <h4 class="win__col-title">New <span class="win__count">1</span></h4>
+          <ul class="win__cards">
+            <li class="win__card">
+              <span class="win__card-title">Оффер: бариста</span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">HR-3</span> <span class="win__who" title="Ліна Шевчук">ЛШ</span></span>
+            </li>
+          </ul>
+        </li>
+        <li class="win__col" data-cat="progress">
+          <h4 class="win__col-title">Screening <span class="win__count">0</span></h4>
+        </li>
+        <li class="win__col" data-cat="progress">
+          <h4 class="win__col-title">Interview <span class="win__count">0</span></h4>
+        </li>
+        <li class="win__col" data-cat="progress">
+          <h4 class="win__col-title">Offer <span class="win__count">1</span> <b class="win__mark" aria-hidden="true">①</b></h4>
+          <ul class="win__cards">
+            <li class="win__card">
+              <span class="win__card-title">Співбесіда: бариста (кандидатка Олена) <b class="win__mark" aria-hidden="true">②</b></span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">HR-2</span> <span class="win__due">Sep 25</span> <span class="win__who" title="Ліна Шевчук">ЛШ</span></span>
+            </li>
+          </ul>
+        </li>
+        <li class="win__col" data-cat="done">
+          <h4 class="win__col-title">Hired <span class="win__count">0</span></h4>
+        </li>
+        <li class="win__col" data-cat="done">
+          <h4 class="win__col-title">Rejected <span class="win__count">0</span> <b class="win__mark" aria-hidden="true">③</b></h4>
+        </li>
+      </ul>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «дошка спейсу Найм»">
+<li>Колонка <code>Offer</code> — той самий статус із редактора</li>
+<li>Картка не змінює назви, коли рухається процесом</li>
+<li><code>Rejected</code> — теж категорія Done, як і <code>Hired</code></li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Будову дошки знято з живого сайту Jira Cloud Free 17 вересня 2026 року;
+            колонки, картки й імена — з процесу найму «Кориці». Рядок виглядів
+            (<code>Summary</code>, <code>List</code>, <code>Board</code>) знято у спейсі
+            для розробки; у бізнес-спейсі набір виглядів може бути іншим.
+          </p>
+
+          <p>Чотири ознаки, що процес живий:</p>
+
+          <ul>
+            <li><strong>Колонок шість, і в тому порядку, який ти задав.</strong> Дошка
+              показує статус картки тією колонкою, у якій картка лежить — за умови, що
+              дошка згрупована за статусом (це стан за замовчуванням).</li>
+            <li><strong>У картки є список кроків.</strong> Відкрий <code>HR-2</code>:
+              угорі праворуч є випадний список статусу, і в ньому — лише ті кроки, які
+              дозволені з поточного місця, а не всі шість статусів підряд.</li>
+            <li><strong>Заборонений рух не проходить.</strong> Спробуй перетягнути картку
+              з <code>New</code> одразу в <code>Offer</code>. Якщо ти прибрав туди перехід
+              <code>Any</code> і не проклав інший, Jira цей рух не виконає — і це та сама
+              перевірка, заради якої все робилось.</li>
+            <li><strong>Правило спрацювало.</strong> Переведи картку в
+              <code>Interview</code> і подивись на поле виконавця: воно заповнилось саме.</li>
+          </ul>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__body">
+              Якщо нових колонок на дошці немає, статус існує, але не прив'язаний до
+              жодної колонки. Відкрий на дошці <code class="ds-code--inline">More actions
+              (•••)</code> → <code class="ds-code--inline">Configure columns</code> і
+              перетягни статус із панелі прихованих у потрібну колонку. У спейсах для
+              розробки це поведінка за замовчуванням: «By default, new statuses aren't
+              assigned to a column, and are therefore not visible on the board».
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3>Видалити статус, у якому лежать роботи</h3>
+
+          <p>
+            Jira не дасть загубити картки, але й не зробить вибір за тебе: «Jira warns you
+            about any work items that are in statuses you're deleting and asks you to
+            change their status to a valid one». Тобто при збереженні з'явиться вікно, де
+            для кожного зайвого статусу треба вказати новий.
+          </p>
+
+          <p>
+            Дві деталі, які кусаються потім. Перша: разом зі статусом зникають усі його
+            переходи — «Deleting a status also deletes any transitions – and their rules! –
+            associated with the status». Друга: примусове перенесення карток проходить
+            повз правила — «prompted changes like these won't execute any rules». Тобто
+            правило «при переході в Interview призначити Ліну» на таких картках не
+            спрацює, і вони лишаться без виконавця.
+          </p>
+
+          <h3>«Done» — це категорія, а не слово</h3>
+
+          <p>
+            Найдорожча помилка в цьому уроці робиться за одну секунду: створити статус
+            <code>Hired</code> і лишити йому категорію <code>In Progress</code>. На екрані
+            все виглядає добре — колонка на місці, картки в ній. Але для Jira ці люди
+            досі в роботі: зведення спейсу показує незавершене, звіти рахують неправильно,
+            пошук за завершеним їх не знаходить.
+          </p>
+
+          <p>
+            Плутанину додає ще одне поле — <strong>Resolution</strong>, «результат». У
+            спейсах, якими керує команда, воно не заповнюється й не редагується взагалі:
+            «When using a Team Managed project, you don't have the option to manually set
+            or view the Resolution field on those project types». У списку робіт колонка
+            <code>Resolution</code> при цьому є, і в ній стоїть <code>Unresolved</code> —
+            навіть у картки зі статусом категорії <code>Done</code>. Це не помилка й не
+            твоя вина: ознакою завершеності тут служить саме категорія. Довідка формулює
+            це прямо: «a work item is resolved when statusCategory = Done».
+          </p>
+
+          <h3>«Any» скрізь — це відсутність процесу</h3>
+
+          <p>
+            Перехід «з будь-якого» зручний: картку можна кинути в будь-яку колонку. Але
+            якщо він стоїть на всіх статусах, процесу немає — є шість колонок, між якими
+            дозволено все. Сенс з'являється тоді, коли хоча б в одному місці рух обмежено.
+          </p>
+
+          <p>
+            Протилежна крайність так само болюча, і документація попереджає про неї двічі:
+            «Take care when creating transitions that don't start from Any status. These
+            transitions may cause unintended behavior when people move cards across your
+            board» і «If you limit how people can move work items across the board – for
+            example, by removing Any status transitions, your team may encounter errors
+            when they move cards across your board». Прибирай <code>Any</code> точково —
+            там, де порядок кроків справді важливий.
+          </p>
+
+          <h3>Перейменування статусу чіпає більше, ніж здається</h3>
+
+          <p>
+            Статус у спейсі спільний для типів роботи, тому перейменування розходиться
+            далі, ніж один процес: «Statuses can be shared between work types. If you
+            change the name or category of these shared statuses, Jira also updates their
+            names and categories in all your space's workflows that use the status».
+          </p>
+
+          <p>
+            І друга частина: на назвах тримаються звіти — «Reports are based on status
+            names, so renaming statuses can also impact how reports are displayed» — а
+            також збережені пошуки. Довідка про збережені фільтри описує механізм так:
+            «Most often this will involve the JQL referring to a resource … by name. Then
+            if the resource's name is changed the JQL breaks». Тому перейменовуй свідомо,
+            а команду попереджай: «If you do rename a status, make sure to inform your
+            team so they know what to expect».
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Чи можна перейменувати колонку, не чіпаючи статус?</h3>
+
+          <p>
+            У бізнес-спейсі колонки керуються процесом: «Columns on the board are
+            controlled by your space's workflow, so updates made to your board's columns
+            will be reflected in your workflow». Тобто перейменувати колонку окремо не
+            вийде — зміниться й статус. У спейсах для розробки колонка й статус можуть
+            розійтись: «when you assign multiple statuses to a single column or give a
+            column and its assigned status unique names, the column and status/es become
+            separate elements». Ось чому колонка й статус — не синоніми, хоч на початку
+            й виглядають як одне.
+          </p>
+
+          <h3>Навіщо тоді кілька статусів в одній колонці?</h3>
+
+          <p>
+            Щоб дошка лишалась компактною — три-чотири смуги, — а процес при цьому був
+            детальнішим.
+            Наприклад, колонка <code>In Progress</code> може містити статуси
+            <code>In Progress</code>, <code>In Review</code> і <code>On Hold</code>: на
+            дошці це одна смуга, а у звітах і пошуку — три різні стани.
+          </p>
+
+          <h3>Хто має право змінювати процес?</h3>
+
+          <p>
+            Адміністратор спейсу. На сайті, який від початку живе на безкоштовному плані,
+            це кожен, хто має доступ до Jira (урок 9, повністю — урок 20). У більших
+            фірмах на платних планах роль справді обмежує, і там редактор може бути
+            недоступний.
+          </p>
+
+          <h3>Що це за кнопка <code>Add agent</code> у редакторі?</h3>
+
+          <p>
+            Це пропозиція докупити: кнопки, пов'язані з AI-шаром Atlassian (<code>Ask
+            AI</code>, <code>Improve</code>, <code>Add agent</code>), видно й на
+            безкоштовному плані, але працюють вони на платних. У цьому курсі ми їх
+            не використовуємо.
+          </p>
+
+          <h3>Статус <code>Done</code> у двох спейсах — це один статус?</h3>
+
+          <p>
+            Ні. У спейсах, якими керує команда, статуси свої в кожному спейсі, і однакова
+            назва не робить їх одним і тим самим. Тому шукати роботу «завершену всюди»
+            за назвою статусу ненадійно — надійно за категорією. Як це записується мовою
+            запитів, покаже урок 7.
+          </p>
+
+          <h3>Чи можна вимагати заповнене поле перед переходом?</h3>
+
+          <p>
+            Так — це правило типу «перевірка», яке спрацьовує в момент переходу й не дає
+            його завершити, поки дані не на місці. Але спершу поле має існувати, а це
+            тема наступного уроку. Там же буде про те, чому кожне нове обов'язкове поле
+            зменшує кількість охочих створювати картки.
+          </p>
+
+          <h3>Я наплутав у редакторі. Як відкотити?</h3>
+
+          <p>
+            Поки ти не натиснув <code>Update workflow</code>, змін не існує — «Changes you
+            make to your workflow aren't applied until you save and exit the workflow
+            editor», тож можна відмовитись від них і вийти. Усередині редактора працює
+            звичне скасування останньої дії клавішами <code>Ctrl</code>+<code>Z</code>
+            (на Mac — <code>Cmd</code>+<code>Z</code>); довідка радить його саме на
+            випадок випадково видаленого статусу.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Якщо в тебе є спейс, де колонки називаються словами твоєї роботи, а не
+            словами Jira, — урок зробив своє. Це перший момент курсу, коли інструмент
+            підлаштовується під тебе, а не навпаки.
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li>Робочий процес — це дві речі: статуси (де може бути робота) і переходи
+                (як вона рухається). Усе інше в редакторі — надбудова над ними.</li>
+              <li>Кожен статус належить до однієї з трьох категорій — To Do, In Progress,
+                Done. Свою категорію вигадати не можна, а кольори сірий, синій і зелений
+                не міняються.</li>
+              <li>Назву статусу читають люди, категорію читає Jira: на ній тримаються
+                звіти, зведення спейсу й пошук за завершеним.</li>
+              <li>Перехід односторонній. Щоб картка ходила туди й назад, потрібні два
+                переходи; перехід <code>Any</code> дозволяє прийти в статус звідусіль.</li>
+              <li>Правила підвішуються до переходу, а не до статусу, і бувають трьох
+                типів: сховати крок, перевірити дані, зробити дію після кроку.</li>
+              <li>Редактор процесу в спейсі, яким керує команда, живе в
+                <code>Space settings</code> → <code>Work types</code> → тип роботи →
+                <code>Edit workflow</code>, а зміни діють лише після
+                <code>Update workflow</code>.</li>
+              <li>Колонка на дошці і статус — різні речі: колонка може містити кілька
+                статусів, а статус без колонки на дошці не видно.</li>
+              <li>У спейсах, якими керує команда, поле <code>Resolution</code> лишається
+                порожнім; завершеність визначає категорія <code>Done</code>.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Далі — <strong>урок 11 «Поля, екрани, типи роботи»</strong>. Цей урок навчив
+            рухати роботу, наступний — описувати її: свої типи роботи, вбудовані й власні
+            поля, розкладка картки і правило «менше полів — краще». Там же зберемо
+            ієрархію ремонту другої точки: епік, задачі, підзадачі.
+          </p>
+          <p>
+            Одна дія до наступного уроку: проведи процесом ще одну картку — від
+            <code>New</code> до <code>Rejected</code>. Кінцівка «відмова» використовується
+            рідше, тому саме в ній найчастіше й знаходиться забутий перехід.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять
+            на назви: до кожної відповіді одразу з'являється пояснення, чому решта
+            варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Ліна створила в спейсі «Найм» статус Hired, а категорію йому лишила In Progress — і не помітила цього. Що станеться далі?",
+            "options": [
+              "Колонка на дошці буде синьою замість зеленої, але на дані це ніяк не вплине",
+              "Jira не дасть зберегти такий процес: вона вимагає, щоб останній статус у ланцюжку був у категорії Done",
+              "Найняті кандидати рахуватимуться незавершеними у зведенні спейсу, у звітах і в пошуку за завершеним",
+              "Статус перейменується на In Progress автоматично: назва має збігатися з назвою категорії"
+            ],
+            "answer": 2,
+            "explain": "Категорія — це те, за чим Jira розуміє «зроблено»: документація прямо каже, що категорії впливають на показ роботи в списках, звітах і на дошках. Колір при цьому теж зміниться, але це наслідок, а не суть. Зберегти процес зі статусом у категорії In Progress Jira дозволяє, і сам статус вона не перейменовує."
+          },
+          {
+            "q": "Тарас додав у спейс «Друга точка» новий статус Waiting for contractor. Переходів він не малював, але картку з будь-якої колонки вже перетягує туди вільно. Чому так?",
+            "options": [
+              "Новий статус за замовчуванням отримує перехід «з будь-якого», і його лишають, поки рух не треба обмежувати",
+              "У спейсах, якими керує команда, переходи не діють: процес там лише показовий, а обмеження працюють на платних планах",
+              "Перетягування картки на дошці обходить процес, а обмеження діють усередині відкритої картки",
+              "Jira дозволяє один вільний рух для кожної картки, а далі вимагає прокладеного переходу"
+            ],
+            "answer": 0,
+            "explain": "Документація описує це так: новий статус отримує перехід, який дозволяє роботам у будь-якому статусі перейти в нього, і зазвичай його варто лишити, щоб команда рухала роботу вільно. Обмеження вводять свідомо, прибираючи такий перехід. Переходи діють на будь-якому плані й однаково для дошки та для картки."
+          },
+          {
+            "q": "Ліна хоче змінити набір статусів у своєму спейсі, відкриває налаштування спейсу і не бачить там розділу Workflows. Що робити?",
+            "options": [
+              "Просити адміністратора сайту створити схему процесів: у спейсі такого розділу не буває",
+              "Відкрити Space settings, далі Work types, обрати тип роботи і натиснути Edit workflow",
+              "Створити спейс заново з іншого шаблону: набір статусів задається один раз, при створенні",
+              "Пошукати в особистих налаштуваннях акаунта, у тому ж розділі, де живуть мова й тема"
+            ],
+            "answer": 1,
+            "explain": "У спейсі, яким керує команда, процес належить типу роботи, а не спейсу цілком, тому й редактор відкривається через Work types і кнопку Edit workflow. Довідка називає той самий шлях і для бізнес-спейсу. Схеми процесів на рівні сайту — це інший тип спейсу, а особисті налаштування до процесу стосунку не мають."
+          },
+          {
+            "q": "Ігор хоче, щоб рахунок не можна було перевести в Paid без номера платіжки. Оксана хоче, щоб після переходу в Paid виконавцем ставав бухгалтер. Як це співвідноситься?",
+            "options": [
+              "Обидва завдання закриває один тип правила — обмеження, бо в обох випадках ідеться про заборону",
+              "Це різні типи правил: перевірка даних у момент переходу і дія після того, як перехід відбувся",
+              "Ні те, ні те правилами не робиться: обидва завдання вирішує окремий платний застосунок",
+              "Обидва завдання виконує сам статус — умови й дії задаються в його панелі деталей"
+            ],
+            "answer": 1,
+            "explain": "Правила переходу бувають трьох типів і відрізняються моментом: обмеження ховає крок ще до спроби, перевірка спрацьовує в момент переходу і не дає його завершити, дія виконується після переходу. Вимога заповненого поля — перевірка, автоматичний виконавець — дія. Обидва правила підвішуються до переходу, а не до статусу."
+          },
+          {
+            "q": "Ліна переписала процес для типу Task: шість статусів, свої переходи. Наступного дня вона відкриває підзадачу й бачить у ній старі три статуси. Що сталося?",
+            "options": [
+              "Підзадачі не мають власних статусів: вони успадковують статус батьківської картки",
+              "Процес зберігся з помилкою — Jira завжди застосовує зміни до всіх типів роботи одразу",
+              "При збереженні процес застосовується лише до обраних типів роботи, і Subtask серед них не був",
+              "Статуси підзадач оновлюються із затримкою: після збереження процесу треба зачекати кілька хвилин"
+            ],
+            "answer": 2,
+            "explain": "Процес прив'язаний до типів роботи: у редакторі можна зробити його для одного типу або для комбінації, і при збереженні Jira питає, до яких саме типів застосувати зміни. Підзадачі мають власні статуси й власний процес, тож їхній набір лишається старим, поки його не змінити окремо."
+          },
+          {
+            "q": "Ліна перейменувала статус Screening на Resume review, бо колезі так зрозуміліше. Що варто перевірити після цього?",
+            "options": [
+              "Нічого: Jira сама оновлює всі місця, де статус згадується, включно зі збереженими пошуками",
+              "Лише колір колонки на дошці — в інших місцях назва статусу не використовується",
+              "Чи не зник статус із процесу: перейменування створює новий статус і видаляє старий",
+              "Збережені пошуки й звіти, де статус названий словом, — і попередити про зміну команду"
+            ],
+            "answer": 3,
+            "explain": "Довідка попереджає одразу про кілька наслідків: звіти будуються на назвах статусів, збережений запит із назвою ресурсу ламається, коли назву змінили, а сам статус спільний для типів роботи, тож нова назва розійдеться по всіх процесах спейсу, які його використовують. Окремо радять попередити команду, щоб люди зрозуміли, що змінилось."
+          }
+        ]
+      }
+      </script>
+
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Урок позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
