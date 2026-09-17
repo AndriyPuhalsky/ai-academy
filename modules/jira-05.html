@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 5 · Створити й вести роботу — Jira з нуля</title>
+  <meta name="description"
+    content="Повне коло однієї роботи в Jira: діалог створення, добра назва, опис із чекбоксами, призначення, коментарі та @-згадки, вкладення, підзадачі, зв'язки, зміна статусу, копія й переїзд роботи — і сповіщення, які за всім цим ходять." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+</head>
+
+<body data-module="j05">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 05</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 2 · Щоденна робота</p>
+        <h1 class="ds-h1">Створити й вести роботу</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 25 хв читання</p>
+        <p class="ds-lead">
+          Створити картку в Jira — справа однієї хвилини, і саме тому її мало хто
+          вважає навичкою. Складне починається наступного дня: хто цю справу робить,
+          що з неї вже зроблено, де домовились про зміну, чому про неї ніхто не
+          дізнався. Цей урок проходить повне коло однієї роботи — від кнопки
+          <code>+ Create</code> до статусу <code>Done</code>, з описом, підзадачами,
+          коментарями й листами, які за всім цим ходять.
+        </p>
+        <p>
+          Це перший урок курсу, де ти справді щось створюєш у своєму спейсі. Аркуш
+          із п'ятьма справами, який ти склав або склала в уроці 1, тут стає п'ятьма
+          картками — і починає жити.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> пошуку роботи запитом — це урок 7; інших виглядів
+            тієї самої роботи (список, календар, таймлайн) — урок 6; власних полів,
+            типів роботи й статусів — уроки 10 і 11; пошти й чатів як окремих каналів —
+            урок 16.
+          </p>
+          <p>
+            <strong>Є:</strong> діалог створення й що в ньому обов'язкове; правило доброї
+            назви; опис із чекбоксами (квадратиками, які клацаються); призначення виконавця; коментарі та @-згадки;
+            вкладення; підзадачі й зв'язки між роботами; зміна статусу двома способами;
+            копія роботи й переїзд в інший спейс; сповіщення — кому що приходить і як
+            вимкнути зайве; і межа між <code>Done</code> та <code>Delete</code>.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            В уроці 1 ти виписав або виписала п'ять справ, які за останній місяць
+            губились. У того аркуша є одна вада, і вона не в акуратності почерку:
+            аркуш не змінюється сам. Щоб дізнатись, що з рядком «погодити кошторис»,
+            треба когось спитати. Щоб показати, що справа зроблена, треба її
+            закреслити — і про це ніхто, крім тебе, не дізнається.
+          </p>
+
+          <p>
+            Робота в Jira відрізняється від рядка в списку рівно чотирма діями, які
+            повторюються щодня:
+          </p>
+
+          <ul>
+            <li><strong>створити</strong> — дати справі постійне місце й ім'я;</li>
+            <li><strong>призначити</strong> — назвати одну людину, яка це робить;</li>
+            <li><strong>сказати щось у контексті</strong> — коментар лишається біля
+              справи, а не в чаті, де він потоне;</li>
+            <li><strong>перевести на наступний етап</strong> — і це побачать усі, кого
+              справа стосується, без окремого повідомлення.</li>
+          </ul>
+
+          <p>
+            Оксана, власниця «Кориці», в уроці 3 створила собі спейс
+            <strong>«Мої справи»</strong> з ключем <code>MY</code>. Три з п'яти рядків
+            її аркуша стосуються тільки її: замовити борошно, оплатити оренду,
+            подзвонити постачальнику кави. Вони й стануть її першими картками. Дві
+            інші справи — про ремонт і про відгуки — робить не вона, тож їм місце
+            в спейсах відповідних відділів; до цього дійдемо в уроках 6 і 9.
+          </p>
+
+          <h3>Чому сповіщення саме в цьому уроці</h3>
+
+          <p>
+            Листи від Jira — перше, що людина відчуває фізично, щойно почала вести
+            роботу разом з іншими. Через день після старту команда ділиться на дві
+            частини: одні скаржаться, що «Jira завалила пошту», інші — що «мені ніхто
+            нічого не сказав». Обидві скарги мають одну причину: ніхто не подивився,
+            за що саме Jira надсилає лист і кому.
+          </p>
+
+          <p>
+            Тому сповіщення розібрані тут, поруч із діями, які їх спричиняють, а не
+            в окремому уроці наприкінці курсу. В уроці 16 ми повернемось до них лише
+            в контексті пошти й чатів (Slack, Microsoft Teams).
+          </p>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Два екрани, які в Jira бачать частіше за всі інші: діалог, у якому робота
+            народжується, і сама картка, у якій вона живе. Далі — схематичні вікна:
+            не скріншоти, а структура екрана словами, з датою, коли цей екран бачили.
+          </p>
+
+          <p>
+            Приклади в цьому блоці — зі спейсу маркетингу «Кориці» (<code>MARK</code>),
+            бо там уже є про що говорити: виконавці, коментарі, підзадачі. Свої власні
+            руки ти прикладеш у блоці 4, у своєму спейсі <code>MY</code>, і дії там
+            будуть ті самі.
+          </p>
+
+          <h3>Діалог створення: мале вікно з великими наслідками</h3>
+
+          <p>
+            Кнопка <code>+ Create</code> живе у верхній панелі й видима з будь-якої
+            сторінки Jira. Довідка описує це так: «Select Create (+) in the navigation
+            bar at the top of the screen, and a compact dialog opens where you can
+            capture the work and fill in a few key fields» — відкривається компактний
+            діалог, у якому можна вхопити роботу й заповнити кілька ключових полів.
+          </p>
+
+<figure class="win" data-state="form" id="w1">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w1t">Jira Cloud · діалог Create, компактна форма · звірено 2026-09-17</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w1t">
+    <div class="win__dialog" role="presentation">
+      <h4 class="win__dialog-title"><span class="win__chip">MARK</span> <span class="win__chip">Task</span> <b class="win__mark" aria-hidden="true">①</b></h4>
+      <dl class="win__fields">
+        <dt>Summary <b class="win__mark" aria-hidden="true">②</b></dt><dd>Пост про новий круасан</dd>
+        <dt>Description</dt><dd class="win__placeholder">Add a description or type / for actions and Rovo</dd>
+      </dl>
+      <p class="win__chips"><span class="win__chip">Automatic</span><span class="win__chip">Parent</span><span class="win__chip">Medium</span><span class="win__chip">Labels</span><span class="win__chip">Due date</span> <b class="win__mark" aria-hidden="true">③</b></p>
+      <p class="win__actions"><span>Create another <b class="win__mark" aria-hidden="true">④</b></span> <span class="win__btn win__btn--primary">Create</span></p>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «діалог Create, компактна форма»">
+<li>Спейс і тип роботи — куди й що створюється</li>
+<li><code>Summary</code> — назва, яку побачать на картці</li>
+<li>Чіпи — поля, доступні без розгортання форми</li>
+<li><code>Create another</code> — діалог лишиться відкритим</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Склад полів і написи — зі знімка Jira Cloud Free від 2026-09-17 (спейс
+            <code>KAN</code> навчального сайту; назви замінені на сюжетні). Праворуч
+            угорі діалогу — три іконки без підписів: відкрити збоку, розгорнути в повну
+            форму, закрити. У сірій підказці всередині поля опису згадана Rovo — це AI-помічник Atlassian;
+            на безкоштовному плані він недоступний, згадка в тексті поля лишається.
+          </p>
+
+          <p>
+            Читається діалог так. Угорі — два чіпи: <strong>спейс</strong>, у якому
+            з'явиться робота, і <strong>тип роботи</strong> (тут <code>Task</code>,
+            звичайна задача). Обидва — випадайки: якщо діалог відкрито зі сторінки
+            чужого спейсу, зміни перший чіп, інакше робота поїде не туди. Далі —
+            <code>Summary</code>, назва. Потім опис. Під ним — ряд <strong>чіпів</strong>
+            (так називають невеликі кнопки-пігулки з написом): виконавець
+            (<code>Automatic</code>), батьківська робота, пріоритет, мітки, дедлайн.
+          </p>
+
+          <p>
+            Унизу — чекбокс <code>Create another</code> і синя кнопка <code>Create</code>.
+            Чекбокс означає: після створення діалог лишиться відкритим із тим самим
+            спейсом і типом, щоб набити кілька робіт підряд. Якщо полів у компактній
+            формі мало, її розгортають у повну — тоді видно всі поля спейсу. Довідка
+            додає корисну деталь: повна форма відкривається сама, коли в спейсі
+            налаштовано більше трьох обов'язкових полів.
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <span class="ds-note__title">Поле назви перейменовують саме зараз</span>
+            <p>
+              На екрані 17 вересня 2026 року поле називається <code
+              class="ds-code--inline">Summary</code>. А довідка Atlassian того ж дня
+              описує його вже інакше: «Title — Type a title for the work item. This
+              field was previously labelled Summary» — поле <code
+              class="ds-code--inline">Title</code>, колишня назва <code
+              class="ds-code--inline">Summary</code>. І одразу заспокоює: «JQL queries,
+              API calls, and automations that reference summary still work as before» —
+              запити й автоматизації, що звертаються до <code
+              class="ds-code--inline">summary</code>, працюють, як працювали.
+            </p>
+            <p>
+              Угорі тієї сторінки висить банер: «We're rolling out some changes to the
+              work item as an open beta… the new experience might not be enabled on
+              your site» — зміни розкочують хвилями, і на твоєму сайті нового вигляду
+              може ще не бути. Тобто побачити ти можеш будь-яку з двох назв, і обидві
+              правильні. Це типова ситуація для Jira, і саме тому в кожному вікні цього
+              курсу стоїть дата.
+            </p>
+          </div>
+
+          <h3>Добра назва: дієслово, предмет, уточнення</h3>
+
+          <p>
+            Назва — єдине, що видно на дошці, у списку, у листі й у сповіщенні.
+            Усе інше треба відкривати. Тому вона коштує тридцяти секунд уваги,
+            і правило тут одне: <strong>дієслово + що + уточнення</strong>.
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: як переписати назву роботи">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Було</th><th>Стало</th><th>Що змінилось</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Борошно</td>
+                  <td>Замовити борошно на тиждень</td>
+                  <td>З'явилась дія й обсяг: видно, коли справу вважати зробленою</td>
+                </tr>
+                <tr>
+                  <td>Сайт</td>
+                  <td>Оновити ціни на сайті до п'ятниці</td>
+                  <td>Тема перетворилась на дію з межею в часі</td>
+                </tr>
+                <tr>
+                  <td>Постачальник</td>
+                  <td>Домовитись із постачальником кави про знижку</td>
+                  <td>Видно, чого саме хочемо: інакше «зроблено» не настане ніколи</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            Перевірка, яка ловить майже всі погані назви: чи може чужа людина сказати
+            «так» або «ні» на питання «це вже зроблено?», прочитавши лише назву. Рядок
+            «Борошно» такої відповіді не дає ніколи, тому й висить місяцями.
+          </p>
+
+          <p>
+            Правило має виняток, і він видний у самій «Кориці»: картка Марти зветься
+            «Пост про новий круасан» — без дієслова. Так можна, коли назва вже називає
+            результат, який треба здати. А от рядок «Інстаграм» результату не називає,
+            і тому він вічний.
+          </p>
+
+          <p>
+            Зворотний перегин теж буває: назва на два рядки, у якій умістили постачальника,
+            суму, телефон і причину. Назва має бути впізнаваною, а не вичерпною — деталі
+            живуть в описі, і про нього далі.
+          </p>
+
+          <h3>Картка зсередини: три колонки змісту</h3>
+
+          <p>
+            Створена робота відкривається окремою сторінкою (або бічною панеллю поруч
+            зі списком). Нижче — картка Марти <code>MARK-1</code> через тиждень після
+            створення: з описом, підзадачею, коментарями й вкладенням.
+          </p>
+
+<figure class="win" data-state="item" id="w2">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w2t">Jira Cloud · картка MARK-1 «Пост про новий круасан» · звірено 2026-09-17</span>
+    <span class="win__addr" aria-hidden="true">…/browse/MARK-1</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w2t">
+    <ul class="win__rail" aria-label="Бічна панель Jira">
+      <li class="win__rail-item">For you</li>
+      <li class="win__rail-item win__rail-item--active">Spaces</li>
+      <li class="win__rail-item">Filters</li>
+      <li class="win__rail-item">Dashboards</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Spaces / Маркетинг / MARK-1</span>
+        <span class="win__btn">Share</span>
+      </div>
+      <div class="win__item">
+        <h4 class="win__item-title">Пост про новий круасан</h4>
+        <p class="win__status" data-cat="progress">In Progress ▾ <b class="win__mark" aria-hidden="true">④</b></p>
+        <dl class="win__fields">
+          <dt>Assignee</dt><dd>Марта Лисенко</dd>
+          <dt>Parent</dt><dd>Add parent</dd>
+          <dt>Priority</dt><dd>Medium</dd>
+          <dt>Labels</dt><dd>інстаграм</dd>
+          <dt>Due date</dt><dd>Sep 24, 2026</dd>
+          <dt>Reporter</dt><dd>Оксана Коваль</dd>
+        </dl>
+        <div class="win__desc"><h5>Description</h5>
+          <ul class="win__checks">
+            <li data-done>Зібрати три фото з минулого тижня <b class="win__mark" aria-hidden="true">①</b></li>
+            <li>Написати текст поста</li>
+            <li>Погодити текст з Оксаною</li>
+          </ul>
+        </div>
+        <div class="win__sub"><h5>Subtasks</h5>
+          <ul><li><span class="win__key">MARK-3</span> Знімок вітрини для Instagram · СБ · To Do <b class="win__mark" aria-hidden="true">②</b></li></ul>
+        </div>
+        <div class="win__comments"><h5>Activity · Comments</h5>
+          <ul>
+            <li><span class="win__who" title="Соломія Бойко">СБ</span> Знімок готовий, поклала у вкладення.</li>
+            <li><span class="win__who" title="Марта Лисенко">МЛ</span> @Соломія, дякую. Лишилось погодити текст з Оксаною. <b class="win__mark" aria-hidden="true">③</b></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «картка MARK-1»">
+<li>Чекбокси в описі — кроки всередині однієї роботи</li>
+<li>Підзадача — окрема робота зі своїм ключем і виконавцем</li>
+<li>@-згадка — названій людині піде сповіщення</li>
+<li>Кнопка статусу — перехід на наступний етап</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Склад секцій картки — зі знімка Jira Cloud Free від 2026-09-17 (картка
+            <code>KAN-2</code> навчального сайту). Праворуч угорі, поруч із
+            <code>Share</code>, живуть іконки без підписів: замок (обмежити доступ),
+            око з лічильником спостерігачів і <code>···</code> (<code>Actions</code>) —
+            у схемі вони не показані. Секція <code>Attachments</code> на реальному екрані
+            йде під описом; тут її не видно, бо вкладення згадане в коментарі.
+          </p>
+
+          <p>
+            Ліва частина картки — <strong>зміст роботи</strong>: опис, підзадачі, зв'язки
+            з іншими роботами, стрічка <code>Activity</code>. У стрічці чотири вкладки:
+            <code>All</code>, <code>Comments</code> (коментарі), <code>History</code>
+            (хто що змінив) і <code>Work log</code> (облік часу). Права частина —
+            <strong>поля</strong>: виконавець, батьківська робота, пріоритет, мітки,
+            дедлайн, автор. Повний розбір полів — в уроці 4; тут вони потрібні як місця,
+            куди ти клацаєш щодня.
+          </p>
+
+          <p>
+            Дві дрібниці, які економлять час і яких не видно, поки не покажуть. Коли
+            робота ще нічия, під полем <code>Assignee</code> стоїть слово
+            <code>Unassigned</code> і поруч — посилання <code>Assign to me</code>:
+            призначити роботу собі одним кліком. А під полем коментаря Jira сама пише
+            підказку «Pro tip: press M to comment»: клавіша <code>M</code> ставить
+            курсор одразу в поле коментаря. Так само працює <code>W</code> —
+            підписатись на роботу або відписатись від неї.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <p>
+            Робота проходить одне й те саме коло: її створили, комусь віддали, посунули
+            по етапах, обговорили, закрили. На кожному кроці Jira вирішує, кому про це
+            повідомити — і саме цим вона відрізняється від таблиці, у якій зміну треба
+            переказувати вручну.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart LR
+  A["Створено"] -->|"автор, спостерігачі"| B["Призначено"]
+  B -->|"виконавець, одразу"| C["У роботі"]
+  C -->|"зміни, групою"| D["Коментар з @"]
+  D -->|"згаданий, одразу"| E["Done"]
+            </pre>
+            <p class="ds-diag__caption">
+              Коло життя однієї роботи; підпис на стрілці — кому Jira надішле лист
+              на цьому кроці
+            </p>
+          </div>
+
+          <h3>Перехід статусу: два способи, один результат</h3>
+
+          <p>
+            Перевести роботу на наступний етап можна з самої картки — кнопкою статусу
+            вгорі (на вікні вище це <code>In Progress ▾</code>) — або перетягуванням
+            на дошці. Довідка описує другий спосіб буквально: «transition a work item
+            by dragging and dropping the work item from one column to another».
+            Для ділових спейсів (business) формулювання ще простіше: «As you start new
+            tasks or finish something, move it along your workflow from one status to
+            the next. Select a work item, then drag and drop as it progresses».
+          </p>
+
+<figure class="win" data-state="board" id="w3">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w3t">Jira Cloud · дошка спейсу Маркетинг після переходу · звірено 2026-09-17</span>
+    <span class="win__addr" aria-hidden="true">…/jira/…/MARK/board</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w3t">
+    <ul class="win__rail" aria-label="Бічна панель Jira">
+      <li class="win__rail-item">For you</li>
+      <li class="win__rail-item win__rail-item--active">Spaces</li>
+      <li class="win__rail-item">Filters</li>
+      <li class="win__rail-item">Dashboards</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Spaces / Маркетинг</span>
+        <span class="win__tabs"><span>Summary</span><span>List</span><span class="win__tab--active">Board</span></span>
+        <span class="win__btn win__btn--primary">+ Create <b class="win__mark" aria-hidden="true">②</b></span>
+      </div>
+      <ul class="win__cols">
+        <li class="win__col" data-cat="todo">
+          <h4 class="win__col-title">To Do <span class="win__count">2</span></h4>
+          <ul class="win__cards">
+            <li class="win__card">
+              <span class="win__card-title">Флаєри для другої точки</span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">MARK-6</span> <span class="win__due">Sep 25</span> <span class="win__who" title="Марта Лисенко">МЛ</span></span>
+            </li>
+            <li class="win__card">
+              <span class="win__card-title">Відповісти на відгуки за тиждень</span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">MARK-7</span> <span class="win__due">Sep 26</span> <span class="win__who" title="Соломія Бойко">СБ</span></span>
+            </li>
+          </ul>
+        </li>
+        <li class="win__col" data-cat="progress">
+          <h4 class="win__col-title">In Progress <span class="win__count">1</span> <b class="win__mark" aria-hidden="true">①</b></h4>
+          <ul class="win__cards">
+            <li class="win__card">
+              <span class="win__card-title">Пост про новий круасан</span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">MARK-1</span> <span class="win__due">Sep 24</span> <span class="win__who" title="Марта Лисенко">МЛ</span></span>
+            </li>
+          </ul>
+        </li>
+        <li class="win__col" data-cat="done">
+          <h4 class="win__col-title">Done <span class="win__count">1</span></h4>
+          <ul class="win__cards">
+            <li class="win__card">
+              <span class="win__card-title">Розсилка «Осіннє меню»</span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">MARK-4</span> <span class="win__due">Sep 19</span> <span class="win__who" title="Марта Лисенко">МЛ</span></span>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «дошка спейсу Маркетинг після переходу»">
+<li>Картку перетягнули сюди — це і є зміна статусу</li>
+<li><code>+ Create</code> — нова робота з будь-якого екрана</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Структура дошки — зі знімка Jira Cloud Free від 2026-09-17; назви карток
+            і людей — з наскрізної історії курсу. Картка <code>MARK-1</code> щойно
+            переїхала з <code>To Do</code>: лічильники колонок змінились, ключ картки —
+            ні. У твоєму спейсі <code>MY</code> колонок може бути дві
+            (<code>To Do</code> і <code>Done</code>) — набір статусів приходить із
+            заготовки, з якої спейс створено, і це нормально.
+          </p>
+
+          <p>
+            Ключове тут те, що перехід <strong>нічого не переписує в самій роботі</strong>:
+            ключ, назва, опис і коментарі лишаються ті самі, змінюється одне поле —
+            статус. І саме зміна цього поля робить роботу видимою для інших: колега
+            бачить нову колонку, не питаючи.
+          </p>
+
+          <h3>Хто отримує листа</h3>
+
+          <p>
+            За замовчуванням спейс, керований командою (team-managed — такі всі спейси
+            «Кориці»; про типи спейсів окремо йдеться в уроці 9), надсилає листи трьом
+            ролям. Довідка: «By default, team-managed
+            spaces send notifications about work item events to the work item's watchers,
+            assignees, and reporters» — спостерігачам, виконавцям і авторам.
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: подія на роботі й кому про неї приходить лист">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Подія</th><th>Кому приходить</th><th>Коли</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Призначення</td>
+                  <td>Новому виконавцю</td>
+                  <td>Одразу, окремим листом</td>
+                </tr>
+                <tr>
+                  <td>@-згадка</td>
+                  <td>Тому, кого назвали</td>
+                  <td>Одразу, окремим листом</td>
+                </tr>
+                <tr>
+                  <td>Коментар</td>
+                  <td>Спостерігачам, виконавцю, автору</td>
+                  <td>Зведеним листом</td>
+                </tr>
+                <tr>
+                  <td>Зміна поля</td>
+                  <td>Спостерігачам, виконавцю, автору</td>
+                  <td>Зведеним листом</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            Сповіщення бувають двох видів, і плутати їх не варто: <strong>у самому
+            продукті</strong> (дзвіночок у верхній панелі Jira) і <strong>на пошту</strong>.
+            В особистих налаштуваннях вони стоять двома колонками — <code>In product</code>
+            і <code>Email</code>, — і кожен рядок вмикається в кожній колонці окремо.
+            На екрані навчального сайту 17 вересня 2026 року серед рядків були
+            «You're assigned to a work item» і «You're mentioned on a work item» у групі
+            сповіщень про всі роботи та «Changes to work items» і «Changes to comments
+            on work items» — у групі про роботи, яких ти стосуєшся.
+          </p>
+
+          <p>
+            «Зведеним листом» — не фігура мови, а описаний у довідці механізм: «Instead
+            of sending one email per change, Jira will consolidate individual updates
+            into a single summary email. To make sure relevant updates are batched
+            together, notifications could be delayed by up to 10 minutes» — дрібні зміни
+            склеюються в один лист, і заради цього лист може затриматись до десяти
+            хвилин. Далі там же: «Important notifications will come through immediately,
+            like mentions… and newly assigned work items» — згадки й нове призначення
+            йдуть одразу.
+          </p>
+
+          <p>
+            <strong>Спостерігач</strong> (watcher) — це той, хто підписався на роботу.
+            Довідка формулює прямо: «Watching means you receive notifications when things
+            happen on a work item». Стати спостерігачем можна вручну (око вгорі картки
+            або клавіша <code>W</code>), а можна автоматично: в особистих налаштуваннях
+            є перемикач <code>Watch your work items</code> — «With this enabled, you
+            become a watcher of any work item that you create or comment on» — ти
+            підписуєшся на все, що створив або прокоментував. На екрані навчального сайту
+            17 вересня 2026 року цей рядок мав підпис <code>Watch work items
+            automatically</code>.
+          </p>
+
+          <p>
+            І одна межа, про яку варто знати заздалегідь: твої особисті налаштування
+            працюють як фільтр <em>поверх</em> того, що налаштував адміністратор.
+            Довідка: «All your notification settings (default or custom) act like a filter
+            on top of the notification settings configured by your admin. If your admin
+            has turned off a particular notification, you may not receive it even if
+            you've chosen to receive that kind of notification». Тобто галочка в себе
+            може лише <strong>прибрати</strong> лист, а не додати той, що вимкнений для
+            всього спейсу. Кількість листів на добу на безкоштовному плані теж обмежена —
+            число з датою перевірки шукай у довіднику «Карта інтерфейсу, глосарій
+            і ліміти Free».
+          </p>
+
+          <h3>Три способи розділити роботу — і чим вони різняться</h3>
+
+          <p>
+            Коли справа виявляється більшою, ніж здавалась, у Jira є три різні
+            інструменти. Плутанина між ними — найчастіша причина того, що дошка показує
+            неправду.
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: три способи розділити роботу в Jira">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Спосіб</th><th>Що це насправді</th><th>Коли брати</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Чекбокс в описі</td>
+                  <td>Рядок усередині тексту опису. Не має ані виконавця, ані статусу,
+                    ані ключа; на дошці його не видно</td>
+                  <td>Дрібні кроки, які робить одна людина за один раз</td>
+                </tr>
+                <tr>
+                  <td>Підзадача</td>
+                  <td>Окрема робота зі своїм ключем, виконавцем, статусом і дедлайном,
+                    прив'язана до батьківської</td>
+                  <td>Шматок робить інша людина або він має власний строк</td>
+                </tr>
+                <tr>
+                  <td>Зв'язок</td>
+                  <td>Дві самостійні роботи, позначені відношенням: <code>blocks</code>,
+                    <code>is blocked by</code>, <code>relates to</code></td>
+                  <td>Роботи різні, але одна заважає або стосується іншої</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            Опис — не порожнє поле для тексту. Редактор Jira тримає заголовки, списки,
+            таблиці, картинки й фрагменти коду, а набирати їх можна знаками: довідник
+            розмітки називає <code>##</code> для заголовка, <code>*</code> для
+            маркованого списку, <code>1.</code> для нумерованого. Ті самі знаки працюють
+            і в коментарі.
+          </p>
+
+          <p>
+            Чекбокси в описі Atlassian називає <strong>action items</strong>, і ставляться
+            вони набором символів: у довіднику з розмітки сказано «<code>[]</code> Action
+            item (press the Space key after [], use tab to indent…)» — набираєш дві
+            квадратні дужки, натискаєш пробіл, отримуєш квадратик, який клацається.
+            Той самий прийом працює і в коментарях.
+          </p>
+
+          <p>
+            Зв'язок додають з кнопки під назвою роботи: <code>Add</code> →
+            <code>Linked work item</code>, далі відношення й пошук другої роботи.
+            Довідка попереджає про те, чого від зв'язку чекати не варто: «Linking work
+            items doesn't change the work items in any other way» — зв'язок нічого не
+            змінює в самих роботах, він лише показує залежність очам людини.
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            Відкрий свій спейс <code>MY</code> — той, що ти створив або створила в уроці 3.
+            Дістань аркуш із п'ятьма справами з уроку 1. Далі — сім кроків; на все разом
+            іде хвилин п'ятнадцять.
+          </p>
+
+          <ol>
+            <li>
+              <strong>Створи п'ять карток.</strong> Натисни <code>+ Create</code> у
+              верхній панелі. Перевір перший чіп — там має стояти <code>MY</code>.
+              У поле <code>Summary</code> (або <code>Title</code> — назва поля залежить
+              від того, чи доїхало оновлення до твого сайту) впиши першу справу
+              <strong>дієсловом</strong>: «Замовити борошно на тиждень», не «Борошно».
+              Постав <code>Due date</code>. Увімкни <code>Create another</code> і
+              набий решту чотири підряд.
+            </li>
+            <li>
+              <strong>Додай опис із чекбоксами.</strong> Відкрий картку, у якої є кілька
+              кроків. Клацни в поле <code>Description</code>, набери <code>[]</code>,
+              натисни пробіл — з'явиться квадратик. Впиши крок, натисни Enter і повтори
+              ще двічі. Один із трьох одразу познач як зроблений.
+            </li>
+            <li>
+              <strong>Признач одну картку собі.</strong> На картці знайди поле
+              <code>Assignee</code> і натисни <code>Assign to me</code>.
+            </li>
+            <li>
+              <strong>Додай підзадачу.</strong> Відкрий іншу картку й під її назвою
+              натисни кнопку <code>Add</code> (плюс). У меню вибери пункт про дочірню
+              роботу: на екрані він підписаний <code>Add subtask</code>, у довідці для
+              спейсів, керованих командою, — <code>Child work item</code>. Впиши назву
+              й натисни <code>Create</code>. Зверни увагу: у підзадачі з'явився
+              <strong>власний ключ</strong>, на кшталт <code>MY-6</code>.
+            </li>
+            <li>
+              <strong>Напиши коментар.</strong> На будь-якій картці натисни клавішу
+              <code>M</code> і напиши одне речення — наприклад, чому справа досі не
+              зрушила. Це вправа на звичку: усе, що написав(ла) би в чаті, пиши тут.
+            </li>
+            <li>
+              <strong>Переведи одну картку в <code>Done</code> перетягуванням.</strong>
+              У спейсі відкрий вигляд <code>Board</code>, візьми картку мишею й перенеси
+              в останню колонку. Якщо колонок у тебе дві (<code>To Do</code> і
+              <code>Done</code>) — так і має бути: набір статусів дала заготовка спейсу.
+              Проміжний етап <code>In Progress</code> ти побачиш на дошці маркетингу
+              в уроці 6.
+            </li>
+            <li>
+              <strong>Подивись, що Jira надіслала.</strong> Відкрий поштову скриньку.
+              Листи від Jira приходять з адреси виду
+              <code>jira@твій-сайт.atlassian.net</code>. Якщо листів немає — це не
+              поломка: про власні зміни Jira може й не писати, див. блок 7.
+            </li>
+          </ol>
+
+          <p>
+            Ось як ці кроки виглядають у Оксани. П'ять карток у <code>MY</code>:
+            «Замовити борошно на тиждень» (щопонеділка), «Оплатити оренду до 5-го»,
+            «Подзвонити постачальнику кави про знижку», «Оновити меню на дошці біля
+            входу», «Переглянути прострочені справи». У другої — опис із трьома
+            чекбоксами: звірити суму з договором, оплатити, зберегти квитанцію.
+            Третя призначена на себе. У четвертої — підзадача «Надрукувати новий
+            цінник». П'яту Оксана перетягнула в <code>Done</code> ще до кінця вправи,
+            бо вона займає дві хвилини.
+          </p>
+
+          <div class="ds-note">
+            <span class="ds-note__title">Чому саме свої справи, а не вигадані</span>
+            <p>
+              Спокуса набити «Тест 1», «Тест 2» і піти далі велика, але тоді вправа
+              нічого не покаже. Головне, що ти маєш відчути в цьому уроці, — наскільки
+              незручно формулювати справу так, щоб її зрозуміла інша людина. На
+              вигаданих справах ця незручність не виникає.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            П'ять ознак на екрані. Усі п'ять перевіряються за хвилину й не потребують
+            нічиєї допомоги.
+          </p>
+
+          <ul>
+            <li>
+              <strong>У спейсі <code>MY</code> п'ять або більше робіт</strong>, і в
+              кожної видно дедлайн. Найшвидше це видно на вигляді <code>Board</code>:
+              лічильник біля назви колонки показує, скільки там карток.
+            </li>
+            <li>
+              <strong><code>For you</code> → вкладка <code>Assigned to me</code> показує
+              твою картку.</strong> Довідка описує цю вкладку так: «Shows work items
+              assigned to you that aren't done yet» — показує призначені тобі роботи,
+              які ще не завершені. Картка, яку ти призначив(ла) собі, а потім перетягнув(ла)
+              в <code>Done</code>, з цієї вкладки зникне — і це правильна поведінка,
+              а не втрата.
+            </li>
+            <li>
+              <strong>Одна картка стоїть у колонці <code>Done</code></strong>, і
+              лічильник тієї колонки дорівнює одиниці.
+            </li>
+            <li>
+              <strong>У підзадачі власний ключ.</strong> Відкрий батьківську картку:
+              у секції <code>Subtasks</code> має бути рядок із ключем виду
+              <code>MY-6</code>, а не сам лише текст.
+            </li>
+            <li>
+              <strong>На картці зі зміненим статусом є слід в історії.</strong> Прогорни
+              картку до секції <code>Activity</code> й перемкнись на вкладку
+              <code>History</code>: там рядком записано, хто й коли змінив статус.
+              Це той самий журнал, який відповідає на питання «а хто це посунув».
+            </li>
+          </ul>
+
+          <p>
+            Якщо якийсь із п'яти пунктів не сходиться — найімовірніша причина не в Jira.
+            Картка, створена не в тому спейсі, лежить у чужому місці (перший чіп у
+            діалозі), а підзадача, набрана чекбоксом в описі, ключа не отримає ніколи,
+            бо вона не робота, а рядок тексту.
+          </p>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3>«Delete» замість «Done»</h3>
+
+          <p>
+            Найдорожча помилка цього уроку, бо вона незворотна. У меню
+            <code>···</code> на картці поруч із корисними пунктами є
+            <code>Delete</code>. Людина, яка звикла до списку справ, читає його як
+            «прибрати з очей» — а він означає інше.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart TB
+  W["Робота MY-2"] --> A["Done — статус"]
+  W --> B["Delete — видалення"]
+  W --> C["Move — інший спейс"]
+  W --> D["Clone — копія"]
+  A --> A1["Лишається в спейсі й в історії"]
+  B --> B1["Зникає без вороття"]
+  C --> C1["Новий ключ, старе посилання працює"]
+  D --> D1["Нова робота з префіксом Clone"]
+            </pre>
+            <p class="ds-diag__caption">
+              Чотири дії, які виглядають схоже в меню, і чотири різні наслідки
+            </p>
+          </div>
+
+          <p>
+            Довідка Atlassian формулює це без пом'якшень: «When a Jira work item is
+            deleted, it is removed from the database and can no longer be accessed or
+            viewed. Atlassian backups cannot be used to restore work items» — видалена
+            робота прибирається з бази, її більше не відкрити, і резервні копії
+            Atlassian її не повернуть. Там же — порада, яку варто прийняти як правило
+            команди: «prefer a Closed/Canceled status over deletion» — краще фінальний
+            статус, ніж видалення.
+          </p>
+
+          <p>
+            Дві обставини роблять цю пастку гострішою саме на безкоштовному плані.
+            Перша: там кожен учасник — адміністратор усіх спейсів (урок 2), тобто
+            видалити чужу роботу може будь-хто. Друга: архівації робіт на цьому плані
+            немає, тож єдиний правильний спосіб прибрати справу з очей — довести її
+            до кінцевого статусу.
+          </p>
+
+          <h3>Форма, яку ніхто не хоче заповнювати</h3>
+
+          <p>
+            Другий за частотою спосіб убити інструмент — зробити створення роботи
+            дорогим. Це трапляється, коли хтось із добрих намірів робить обов'язковими
+            вісім полів: замовник, бюджет, категорія, канал, очікуваний результат…
+            Наслідок передбачуваний: колеги повертаються в чат, бо там нічого
+            заповнювати не треба.
+          </p>
+
+          <p>
+            Jira підказує, де межа: компактна форма показує назву, опис і до трьох
+            обов'язкових полів, а коли їх більше, повна форма відкривається сама. Тобто
+            три обов'язкові поля — це стеля, після якої кожне створення стає окремою
+            процедурою. На старті тримай обов'язковим лише <code>Summary</code>, а
+            <code>Due date</code> і виконавця став звичкою, а не примусом.
+          </p>
+
+          <h3>Нічия справа: <code>Unassigned</code> і <code>Automatic</code></h3>
+
+          <p>
+            Робота без виконавця не рухається — не тому, що Jira її ховає, а тому, що
+            людина не відчуває її своєю. Тут є окрема пастка: чіп виконавця в діалозі
+            створення за замовчуванням має значення <code>Automatic</code>, і це слово
+            звучить так, ніби система когось підбере.
+          </p>
+
+          <p>
+            Насправді «автоматично» означає «за налаштуванням спейсу». Довідка: якщо
+            на роботі немає компонентів зі своїм виконавцем, «the work item will be
+            assigned to the space's Default assignee» — роботу отримає виконавець за
+            замовчуванням, заданий у налаштуваннях спейсу. У свіжому спейсі там зазвичай
+            не стоїть ніхто, і на знімку навчального сайту від 17 вересня 2026 року
+            щойно створена робота мала <code>Assignee: Unassigned</code>. Отже,
+            <code>Automatic</code> — це не «хтось», а «за правилом, якого ще ніхто
+            не налаштував».
+          </p>
+
+          <h3>Коментар замість зміни статусу</h3>
+
+          <p>
+            Живий діалог у картці — добре, але він не рухає дошку. Класична сцена:
+            у коментарях написано «я вже все зробила, чекаю на текст від Оксани»,
+            а картка третій день висить у <code>To Do</code>. Керівник дивиться на
+            дошку й бачить простій, якого немає.
+          </p>
+
+          <p>
+            Правило, яке знімає цю проблему: <strong>коментар пояснює, статус
+            повідомляє</strong>. Кожна фраза «вже роблю», «віддав», «чекаю» має мати
+            пару в полі статусу. Якщо потрібного етапу серед статусів немає — це сигнал,
+            що спейсу потрібен свій робочий процес; цим займається урок 10.
+          </p>
+
+          <h3>Потоп сповіщень — і тиша після нього</h3>
+
+          <p>
+            Типова траєкторія новачка: перший тиждень Jira шле листи про кожну зміну,
+            людина втомлюється й вимикає все підряд, а через місяць пропускає
+            призначення на себе. Вимикати варто прицільно.
+          </p>
+
+          <p>
+            Шлях: шестірня у верхній панелі → <code>Personal Jira settings</code> →
+            <code>Notification settings</code>. Там окремими галочками стоять листи про
+            те, що <strong>ти виконавець</strong>, <strong>ти автор</strong>, <strong>тебе
+            згадали</strong>, <strong>ти стежиш за роботою</strong> і <strong>ти сам щось
+            змінив</strong>. Розумний мінімум — лишити призначення й згадки, прибрати
+            зміни, зроблені тобою ж. Там само є окремий розділ для налаштування
+            сповіщень по конкретних спейсах — коли спейсів стане багато, шумний можна
+            приглушити, не чіпаючи решти.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Натиснув <code>Create</code> — і не бачу картки. Де вона?</h3>
+          <p>
+            Три ймовірні пояснення, усі нешкідливі. Перше: у діалозі стояла галочка
+            <code>Create another</code>, і він лишився відкритим для наступної роботи —
+            створена картка вже існує, він її не скасував. Друге: ти клацнув(ла) повз діалог,
+            і той згорнувся вниз екрана, щоб не втратити чернетку — довідка описує це як
+            «it minimizes into a dock at the bottom of your screen rather than closing».
+            Третє й найчастіше: у першому чіпі стояв не той спейс, тож робота лежить
+            у сусідньому. Шукати її тоді зручніше пошуком, а це вже урок 7.
+          </p>
+
+          <h3>Чи можна призначити роботу двом людям?</h3>
+          <p>
+            Ні. Виконавець у роботи один — це не обмеження плану, а задум: коли
+            відповідальних двоє, відповідального немає жодного. Якщо шматок роботи
+            робить інша людина, зроби підзадачу й признач її на неї. Якщо колезі треба
+            лише знати про хід справи — згадай його в коментарі через <code>@</code>
+            або додай спостерігачем. Різниця між виконавцем, автором і спостерігачем
+            розібрана в уроці 4.
+          </p>
+
+          <h3>Як прикріпити файл?</h3>
+          <p>
+            Перетягнути його мишею прямо на відкриту картку — довідка описує саме цей
+            шлях: «Open a work item. Drag and drop your file onto the work item».
+            Той самий файл можна вкинути в поле коментаря. Місце на диску, яке дає
+            безкоштовний план, обмежене — точне число з датою перевірки лежить
+            у довіднику «Карта інтерфейсу, глосарій і ліміти Free».
+          </p>
+
+          <h3>Чи прийде лист про мої власні зміни?</h3>
+          <p>
+            Залежить від галочки. В особистих налаштуваннях сповіщень є окремий рядок
+            про листи тоді, коли зміни зробив ти сам — «You make changes to work items».
+            Вимкнена вона чи ні, залежить від налаштувань сайту, тому найчесніша
+            відповідь на «чому мені не прийшов лист» звучить так: спершу подивись у цей
+            рядок, а вже потім шукай поломку. Це, до речі, причина, чому вправу цього
+            уроку не можна перевіряти лише поштою: твоя скринька може мовчати за
+            налаштуванням.
+          </p>
+
+          <h3>Створив роботу не в тому спейсі — переносити чи створювати заново?</h3>
+          <p>
+            Переносити. У меню <code>···</code> на картці є <code>Move</code> — переїзд
+            в інший спейс разом з описом, коментарями й історією. Одне міняється
+            неминуче: ключ. Довідка формулює це так: «While moving an issue from one
+            project to another the issue key gets changed» — робота дістане номер нового
+            спейсу. Старе посилання при цьому, за довідкою Atlassian, і далі відкриває
+            ту саму роботу: «Jira reserves all previous historical keys».
+          </p>
+          <p>
+            Поруч у тому ж меню живе <code>Clone</code> — копія роботи всередині того
+            самого спейсу, зручна для справ, які повторюються. Дві деталі, про які варто
+            знати заздалегідь: частина вмісту (вкладення, підзадачі, зв'язки, коментарі)
+            копіюється лише тоді, коли ти поставиш відповідні галочки, а до назви копії
+            Jira сама додає слово <code>Clone</code>.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Якщо в твоєму <code>MY</code> лежать п'ять справ із дедлайнами, одна з них
+            уже в <code>Done</code>, а ти знаєш, за що саме Jira надсилає листи, —
+            урок зробив свою роботу. Далі дошка починає працювати на тебе, а не навпаки.
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li>Кнопка <code>+ Create</code> є на кожній сторінці; у діалозі
+                найважливіший не текст назви, а перший чіп — спейс, у який поїде робота.</li>
+              <li>Компактна форма показує назву, опис і до трьох обов'язкових полів;
+                решта — за розгортанням у повну форму. Більше трьох обов'язкових полів
+                у спейсі — і повна форма відкривається сама.</li>
+              <li>Добра назва починається з дієслова й описує дію: «Замовити борошно
+                на тиждень», а не «Борошно».</li>
+              <li>Три різні речі: чекбокс в описі (рядок тексту), підзадача (окрема
+                робота зі своїм ключем і виконавцем) і зв'язок (відношення між двома
+                самостійними роботами).</li>
+              <li>Статус змінюють кнопкою на картці або перетягуванням на дошці;
+                ключ роботи від цього не змінюється.</li>
+              <li>Листи за замовчуванням ідуть спостерігачам, виконавцю й автору;
+                згадка й нове призначення приходять одразу, дрібні зміни склеюються
+                в один зведений лист.</li>
+              <li>Особисті налаштування сповіщень працюють як фільтр поверх
+                налаштувань адміністратора: прибрати лист вони можуть, додати
+                вимкнений — ні.</li>
+              <li><code>Done</code> — це статус, робота лишається в спейсі й в історії.
+                <code>Delete</code> прибирає її з бази без вороття: резервні копії
+                Atlassian окрему роботу не повертають.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Далі — <strong>урок 6 «Вигляди»</strong>. Ті самі роботи, що ти щойно
+            створив(ла), можна дивитись не лише дошкою: списком із колонками, календарем
+            за дедлайнами, таймлайном і зведенням. Це не копії й не експорт — це та
+            сама база робіт, показана по-різному; і саме там стане зрозуміло, навіщо
+            в цьому уроці були потрібні дедлайни.
+          </p>
+          <p>
+            До наступного уроку варто зробити одну річ: прожити з цими п'ятьма картками
+            хоча б день і чесно поміняти статуси ввечері. Дошка, яку не оновлюють,
+            бреше переконливіше за будь-яку таблицю.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять на
+            назви: до кожної відповіді одразу з'являється пояснення, чому решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Марта написала в коментарі до картки: «@Соломія, знімок потрібен до завтра». Що саме зробила @-згадка?",
+            "options": [
+              "Призначила Соломію виконавицею картки, і тепер картка показується в її списку «Assigned to me»",
+              "Надіслала Соломії сповіщення про цей коментар, не змінивши при цьому жодного поля картки",
+              "Створила для Соломії окрему підзадачу з текстом коментаря й терміном «до завтра»",
+              "Перевела картку в наступний статус, бо згадка людини вважається передачею роботи далі"
+            ],
+            "answer": 1,
+            "explain": "Згадка через @ — це спосіб покликати людину в контекст: довідка Atlassian каже, що названа людина отримає сповіщення про коментар і зможе одразу перейти до роботи. Поля картки при цьому лишаються незмінними: виконавця міняють у полі Assignee, підзадачу створюють окремою дією, статус — кнопкою або перетягуванням."
+          },
+          {
+            "q": "Соломія закрила замовлення, яке більше не потрібне, і хоче прибрати картку з очей. Вона відкрила меню ··· і вагається між Done і Delete. Що правильно порадити?",
+            "options": [
+              "Delete: видалена робота потрапляє в кошик спейсу, звідки її можна дістати протягом найближчого місяця",
+              "Delete: на безкоштовному плані це єдиний спосіб, бо статус Done там недоступний",
+              "Будь-що з двох: Jira трактує Done і Delete однаково, різниця лише у вигляді дошки",
+              "Done або інший кінцевий статус: видалена робота зникає з бази, і резервні копії її не повертають"
+            ],
+            "answer": 3,
+            "explain": "Довідка Atlassian формулює прямо: видалена робота прибирається з бази, її більше не відкрити, а резервні копії Atlassian окрему роботу не відновлюють. Там же радять надавати перевагу кінцевому статусу перед видаленням. Кошика для робіт у Jira немає, а статус Done доступний на будь-якому плані."
+          },
+          {
+            "q": "Ігор розбив підготовку звіту на кроки. Один із кроків робить не він, а Ліна, і в нього свій термін. Що тут доречно — чекбокс в описі чи підзадача?",
+            "options": [
+              "Підзадача: у неї є власний ключ, виконавець і статус, тож роботу Ліни видно окремо",
+              "Чекбокс в описі, бо чекбокси можна призначати на людину так само, як окремі роботи",
+              "Чекбокс в описі: він дешевший, а виконавця для нього вкажуть у тексті рядка поруч",
+              "Ані те, ані інше: для кроків усередині роботи в Jira використовують окремі коментарі"
+            ],
+            "answer": 0,
+            "explain": "Чекбокс (action item) — це рядок усередині тексту опису: у нього немає ані виконавця, ані статусу, ані ключа, і на дошці його не видно. Щойно шматок роботи має власного відповідального або власний строк, потрібна підзадача — окрема робота, прив'язана до батьківської. Коментарі для цього не призначені: вони пояснюють, а не показують стан."
+          },
+          {
+            "q": "Тарас створив роботу в особистому спейсі, хоча вона стосується ремонту, і переніс її через Move у спейс «Друга точка». Що станеться з посиланням, яке він учора надіслав Оксані?",
+            "options": [
+              "Посилання перестане працювати, бо роботи зі старим ключем у Jira більше не існує",
+              "Посилання відкриє порожню сторінку з пропозицією створити нову роботу з таким ключем",
+              "Посилання далі відкриє ту саму роботу, хоча ключ у неї після переїзду в новий спейс інший",
+              "Нічого не станеться: ключ роботи не залежить від спейсу й після переїзду лишається тим самим"
+            ],
+            "answer": 2,
+            "explain": "При переїзді в інший спейс ключ роботи змінюється — він складається з ключа спейсу й номера. Але, за довідкою Atlassian, Jira зберігає всі попередні ключі як історичні, тож старе посилання далі веде до тієї самої роботи. Саме тому перенос кращий за «видалити й створити заново»: разом із роботою переїжджають опис, коментарі й історія."
+          },
+          {
+            "q": "Ліна призначила картку на Дениса й одразу питає, чи він про це дізнається. Що відповідає дійсності для спейсу, керованого командою?",
+            "options": [
+              "Денис отримає сповіщення про призначення одразу, окремим листом, без чийогось нагадування",
+              "Денис дізнається лише тоді, коли сам відкриє Jira: листів про призначення вона не надсилає",
+              "Сповіщення піде всім учасникам спейсу, бо на безкоштовному плані адресні листи недоступні",
+              "Денис отримає лист лише в разі, якщо Ліна окремо додасть його спостерігачем цієї роботи"
+            ],
+            "answer": 0,
+            "explain": "За замовчуванням спейси, керовані командою, надсилають листи спостерігачам, виконавцям і авторам. Нове призначення довідка окремо відносить до важливих сповіщень, які приходять одразу, а не в складі зведеного листа. Спостерігачем Денис після цього стає не обов'язково — це окрема роль, і додавати його вручну не потрібно."
+          },
+          {
+            "q": "Перший тиждень у Jira Богдана завалило листами про кожну дрібну зміну. Він хоче прибрати зайве, але не пропустити роботу, призначену йому. Куди йому йти й що там робити?",
+            "options": [
+              "Написати адміністратору сайту: на безкоштовному плані окрема людина своїх сповіщень не змінює",
+              "Вимкнути листи в поштовому клієнті правилом — інших способів зменшити потік Jira не дає",
+              "Особисті налаштування сповіщень: прибрати галочки про зміни й лишити призначення та згадки",
+              "Відписатись від усіх робіт кнопкою в листі, а потім підписатись назад на ті, що цікавлять"
+            ],
+            "answer": 2,
+            "explain": "Шлях такий: шестірня у верхній панелі, далі Personal Jira settings і Notification settings. Там окремі галочки для листів про те, що ти виконавець, автор, спостерігач, згаданий або сам зробив зміну. Важлива межа: особисті налаштування працюють як фільтр поверх налаштувань адміністратора — прибрати лист вони можуть, а додати вимкнений адміністратором — ні."
+          }
+        ]
+      }
+      </script>
+
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Урок позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
