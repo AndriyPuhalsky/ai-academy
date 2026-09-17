@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 4 · Словник Jira — Jira з нуля</title>
+  <meta name="description"
+    content="Як називається кожен елемент картки й дошки: space, work item, work type, ключ REM-2, статус і категорія статусу, виконавець і автор, мітки, дедлайн, батьківська робота та ієрархія Epic — Task — Subtask." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+</head>
+
+<body data-module="j04">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 04</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 1 · Що це і навіщо</p>
+        <h1 class="ds-h1">Словник Jira</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 22 хв читання</p>
+        <p class="ds-lead">
+          Усі наступні вісімнадцять уроків спираються на слова, які вводить цей. Поки
+          робота називається «оця штука з підписом», її не знайдеш у довідці, не поясниш
+          колезі й не опишеш запитом: довідка Atlassian англійська, а половину слів у ній
+          за останні два роки перейменували. Цей урок дає кожному елементу картки правильне
+          ім'я і показує пальцем, де воно на екрані.
+        </p>
+        <p>
+          Урок читається один раз, а потім до нього повертаються, як до словника. Єдина дія
+          в ньому — відкрити одну картку у своєму спейсі й знайти на ній вісім підписів.
+          Нічого не ламається й нічого не налаштовується.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> як створювати й вести роботу — урок 5; як дивитись ту
+            саму роботу дошкою, списком і календарем — урок 6; як шукати запитом — урок 7;
+            як додавати свої статуси — урок 10; як додавати свої поля — урок 11. Тут ми
+            лише називаємо те, що вже є.
+          </p>
+          <p>
+            <strong>Є:</strong> ім'я кожного поля картки; чим статус відрізняється від
+            категорії статусу; чим автор відрізняється від виконавця; з чого складається
+            ключ <code class="ds-code--inline">REM-2</code> і коли він усе-таки міняється;
+            що таке типи роботи Epic, Task, Subtask і як вони вкладаються одне в одне;
+            навіщо мітки й чому компонентів у тебе немає.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            У «Кориці» почався ремонт другої точки. Веде його Тарас Мельник — менеджер,
+            який до цього дня не відкривав Jira жодного разу. Оксана
+            створила для ремонту окремий куточок і завела туди першу справу: погодити
+            кошторис на електрику. Тарас відкриває її й бачить екран, на якому близько
+            дюжини англійських підписів: <code>Assignee</code>, <code>Reporter</code>,
+            <code>Parent</code>, <code>Priority</code>, <code>Labels</code>,
+            <code>Due date</code>. Він розуміє, що робити, але не знає, як це все
+            називається — і тому не може ні знайти пораду, ні спитати колегу словами,
+            які той зрозуміє.
+          </p>
+
+          <p>
+            Саме цю прогалину закриває урок. Три причини, чому словник іде окремо й одразу
+            після реєстрації:
+          </p>
+
+          <ul>
+            <li><strong>Довідка англійська.</strong> Українського інтерфейсу Jira не має,
+              і документації українською теж. Знаючи, що поле зветься
+              <code>Assignee</code>, ти знайдеш відповідь за тридцять секунд. Не знаючи —
+              не знайдеш узагалі.</li>
+            <li><strong>Пошук працює по назвах полів.</strong> З уроку 7 запити виглядатимуть
+              так: «покажи роботи, де <code>assignee</code> — це я, а <code>due</code>
+              в минулому». Помилка в слові — порожній результат.</li>
+            <li><strong>Команда має говорити однаково.</strong> Коли одна людина каже
+              «замовник», друга «постановник», а третя «хто завів» — і всі троє мають на
+              увазі поле <code>Reporter</code> — розмова коштує вдесятеро довше.</li>
+          </ul>
+
+          <h3>Три поверхи, на яких усе тримається</h3>
+
+          <p>
+            Перш ніж називати поля, варто побачити, де вони лежать. У Jira рівно три
+            поверхи, і кожен наступний живе всередині попереднього:
+          </p>
+
+          <ul>
+            <li><strong>Сайт</strong> — твоя копія Jira за адресою
+              <code>назва.atlassian.net</code>. Один на фірму; його ти створив(ла) в уроці 3.</li>
+            <li><strong>Спейс</strong> — контейнер для роботи одного напряму: маркетинг,
+              ремонт, найм. У «Кориці» їх буде шість, по одному на відділ.</li>
+            <li><strong>Робота</strong> — одна справа з полями. Це та сама картка, яку ти
+              бачив(ла) на дошці в уроці 1.</li>
+          </ul>
+
+          <p>
+            Офіційні назви двох нижніх поверхів ти вже зустрічав(ла) в уроці 1:
+            <strong>space (project)</strong> — спейс, і <strong>work item (issue)</strong> —
+            робота, елемент роботи. Цей урок бере їх як данність і йде далі — усередину
+            роботи, до полів.
+          </p>
+
+          <div class="ds-note">
+            <span class="ds-note__title">Чому в курсі два слова на кожне поняття</span>
+            <p>
+              Atlassian за останні роки перейменувала майже все: <code
+              class="ds-code--inline">issue</code> стало <code
+              class="ds-code--inline">work item</code>, <code
+              class="ds-code--inline">project</code> — <code
+              class="ds-code--inline">space</code>, <code
+              class="ds-code--inline">issue type</code> — <code
+              class="ds-code--inline">work type</code>. Перейменували написи на кнопках,
+              але <strong>не</strong> адреси сторінок, не імена полів у пошуку й не
+              документацію повністю. Тому в курсі кожне поняття перший раз подається
+              парою — «поточне (колишнє)», — а далі вживається поточне. Коли натрапиш
+              у мережі на туторіал зі словом <code class="ds-code--inline">issue</code> —
+              це не інша Jira, це та сама, описана два роки тому.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Одна й та сама робота показується в Jira трьома різними способами: як розгорнута
+            картка, як прямокутник на дошці й як рядок таблиці. Поля скрізь ті самі — інша
+            лише кількість того, що влізло. Нижче три схематичні вікна саме в такому порядку:
+            спершу все, потім найкоротше, потім середнє.
+          </p>
+
+          <h3>Картка роботи: тут видно все</h3>
+
+          <p>
+            Це та сама справа Тараса. Відкривається вона з дошки, зі списку або з пошуку —
+            і скрізь виглядає однаково. Мітки ① — ⑧ у вікні відповідають пунктам списку
+            під ним.
+          </p>
+
+<figure class="win" data-state="item" id="w1">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w1t">Jira Cloud · картка REM-2 «Електрика: погодити кошторис» · звірено 2026-09-17</span>
+    <span class="win__addr" aria-hidden="true">…/browse/REM-2</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w1t">
+    <ul class="win__rail" aria-label="Бічна панель Jira">
+      <li class="win__rail-item">For you</li>
+      <li class="win__rail-item win__rail-item--active">Spaces</li>
+      <li class="win__rail-item">Filters</li>
+      <li class="win__rail-item">Dashboards</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__item">
+        <p class="win__crumb">Spaces / Друга точка / <span class="win__key">REM-1</span> / <span class="win__key">REM-2</span> <b class="win__mark" aria-hidden="true">①</b></p>
+        <h4 class="win__item-title">Електрика: погодити кошторис <b class="win__mark" aria-hidden="true">②</b></h4>
+        <p class="win__status" data-cat="progress">In Progress ▾ <b class="win__mark" aria-hidden="true">③</b></p>
+        <dl class="win__fields">
+          <dt>Assignee</dt><dd>Тарас Мельник <b class="win__mark" aria-hidden="true">④</b></dd>
+          <dt>Reporter</dt><dd>Оксана Коваль <b class="win__mark" aria-hidden="true">⑤</b></dd>
+          <dt>Parent</dt><dd><span class="win__key">REM-1</span> Ремонт другої точки <b class="win__mark" aria-hidden="true">⑥</b></dd>
+          <dt>Priority</dt><dd>High</dd>
+          <dt>Labels</dt><dd>електрика <b class="win__mark" aria-hidden="true">⑦</b></dd>
+          <dt>Due date</dt><dd>Oct 3, 2026 <b class="win__mark" aria-hidden="true">⑧</b></dd>
+          <dt>Start date</dt><dd>Sep 29, 2026</dd>
+        </dl>
+        <div class="win__desc">
+          <h5>Description</h5>
+          <p>Два кошториси від різних електриків, порівняти ціну за точку й терміни виходу бригади.</p>
+        </div>
+        <div class="win__sub">
+          <h5>Subtasks</h5>
+          <ul><li><span class="win__key">REM-3</span> Електрика: розводка під кавомашину</li></ul>
+        </div>
+        <div class="win__sub">
+          <h5>Linked work items</h5>
+          <ul><li>is blocked by <span class="win__key">REM-5</span> Дозвіл від пожежників</li></ul>
+        </div>
+        <div class="win__comments">
+          <h5>Activity · Comments</h5>
+          <ul><li><span class="win__who" title="Тарас Мельник">ТМ</span> Кошторис №2 дешевший на 12 %, беремо його. @Оксана</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Мітки на картці роботи REM-2">
+<li><code>REM-2</code> — ключ роботи: код спейсу плюс номер</li>
+<li><code>Summary</code> — назва роботи одним рядком</li>
+<li><code>Status</code> — етап, на якому робота зараз</li>
+<li><code>Assignee</code> — виконавець, одна людина</li>
+<li><code>Reporter</code> — хто завів цю роботу</li>
+<li><code>Parent</code> — більша робота, частиною якої є ця</li>
+<li><code>Labels</code> — вільні слова для групування</li>
+<li><code>Due date</code> — дата, до якої треба встигнути</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Структура екрана — зі знімка Jira Cloud Free від 17 вересня 2026 року; назви
+            справ, людей і спейсу — з наскрізної історії курсу. На живому екрані є ще
+            кнопка «поділитись», значок ока з числом спостерігачів і три крапки додаткових
+            дій — вони без текстових підписів, тому в схему не потрапили.
+          </p>
+
+          <p>
+            Заголовок <code>Summary</code> має дві особливості, про які варто знати наперед.
+            Перша: у документації Atlassian це поле вже зветься <code>Title</code> —
+            довідка прямо каже, що «це поле раніше називалось Summary», і додає, що запити,
+            виклики API й автоматизація, які посилаються на <code>summary</code>, працюють
+            як раніше. Зміна їде хвилями, тож у тебе на екрані може бути будь-яке з двох
+            слів. Друга: назва редагується на місці — клацаєш по ній і пишеш.
+          </p>
+
+          <p>
+            Під полями видно три секції, у яких живе решта роботи:
+            <code>Description</code> — опис справи довільної довжини;
+            <code>Subtasks</code> — дрібніші шматки цієї ж роботи;
+            <code>Linked work items</code> — зв'язки з іншими роботами (тут
+            <code>is blocked by</code>, тобто «тримається через»);
+            <code>Activity</code> з вкладкою <code>Comments</code> — листування по цій
+            справі. Кожну з них розберемо нижче.
+          </p>
+
+          <h3>Картка на дошці: той самий набір, стиснутий до чотирьох підписів</h3>
+
+          <p>
+            На дошці для картки є смужка завширшки в колонку, тому Jira показує тільки те,
+            що видно здалеку. Подивись, як ті самі поля з вікна вище виглядають тут.
+          </p>
+
+<figure class="win" data-state="board" id="w2">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w2t">Jira Cloud · дошка спейсу Друга точка · звірено 2026-09-17</span>
+    <span class="win__addr" aria-hidden="true">…/jira/…/REM/board</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w2t">
+    <ul class="win__rail" aria-label="Бічна панель Jira">
+      <li class="win__rail-item">For you</li>
+      <li class="win__rail-item win__rail-item--active">Spaces</li>
+      <li class="win__rail-item">Filters</li>
+      <li class="win__rail-item">Dashboards</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Spaces / Друга точка</span>
+        <span class="win__tabs"><span>Summary</span><span>List</span><span class="win__tab--active">Board</span></span>
+        <span class="win__btn win__btn--primary">+ Create</span>
+      </div>
+      <ul class="win__cols">
+        <li class="win__col" data-cat="todo">
+          <h4 class="win__col-title">To Do <span class="win__count">2</span></h4>
+          <ul class="win__cards">
+            <li class="win__card">
+              <span class="win__card-title">Дозвіл від пожежників</span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">REM-5</span> <span class="win__due">Sep 30</span> <span class="win__who" title="Тарас Мельник">ТМ</span></span>
+            </li>
+            <li class="win__card">
+              <span class="win__card-title">Меблі: доставка й монтаж</span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">REM-6</span> <span class="win__due">Oct 10</span> <span class="win__who" title="Тарас Мельник">ТМ</span></span>
+            </li>
+          </ul>
+        </li>
+        <li class="win__col" data-cat="progress">
+          <h4 class="win__col-title">In Progress <span class="win__count">1</span></h4>
+          <ul class="win__cards">
+            <li class="win__card">
+              <span class="win__card-title">Електрика: погодити кошторис <b class="win__mark" aria-hidden="true">①</b></span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑ <b class="win__mark" aria-hidden="true">②</b></span> <span class="win__key">REM-2 <b class="win__mark" aria-hidden="true">③</b></span> <span class="win__due">Oct 3</span> <span class="win__who" title="Тарас Мельник">ТМ <b class="win__mark" aria-hidden="true">④</b></span></span>
+            </li>
+          </ul>
+        </li>
+        <li class="win__col" data-cat="done">
+          <h4 class="win__col-title">Done <span class="win__count">1</span></h4>
+          <ul class="win__cards">
+            <li class="win__card">
+              <span class="win__card-title">Вивіска: замовити макет</span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">REM-4</span> <span class="win__due">Sep 22</span> <span class="win__who" title="Тарас Мельник">ТМ</span></span>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Мітки на картці дошки спейсу Друга точка">
+<li>Назва картки — те саме поле <code>Summary</code></li>
+<li>Гліф типу роботи: галочка означає <code>Task</code></li>
+<li>Ключ <code>REM-2</code> — постійна адреса справи</li>
+<li>Ініціали виконавця — поле <code>Assignee</code></li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Будова дошки й картки — зі знімка Jira Cloud Free від 17 вересня 2026 року;
+            справи, ключі та ініціали — з історії «Кориці». Дата на картці — те саме поле
+            <code>Due date</code>, що й у вікні вище, лише записане коротше. Знімок
+            зроблено в спейсі для розробки, тому рядок вкладок над дошкою в тебе може
+            бути іншим — з чого він складається, розбирає урок 6.
+          </p>
+
+          <p>
+            Порівняй два вікна. На дошці зникли <code>Reporter</code>,
+            <code>Parent</code>, <code>Priority</code>, <code>Labels</code>, опис,
+            підзадачі й коментарі — але <strong>не з роботи, а з екрана</strong>. Поля
+            нікуди не діваються: вони лишаються в картці, їх видно в пошуку, за ними
+            працює автоматизація. Дошка — це вигляд, а не сховище; про це буде урок 6.
+          </p>
+
+          <h3>Список: одна колонка — одне поле</h3>
+
+          <p>
+            Третій спосіб побачити ту саму роботу — таблиця. Тут стає видно те, заради чого
+            цей урок і потрібен: <strong>кожна колонка списку є полем картки</strong>, і
+            називається вона точно так само.
+          </p>
+
+<figure class="win" data-state="list" id="w3">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w3t">Jira Cloud · вигляд List спейсу Друга точка · звірено 2026-09-17</span>
+    <span class="win__addr" aria-hidden="true">…/jira/…/REM/list</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w3t">
+    <ul class="win__rail" aria-label="Бічна панель Jira">
+      <li class="win__rail-item">For you</li>
+      <li class="win__rail-item win__rail-item--active">Spaces</li>
+      <li class="win__rail-item">Filters</li>
+      <li class="win__rail-item">Dashboards</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Spaces / Друга точка</span>
+        <span class="win__tabs"><span>Summary</span><span class="win__tab--active">List</span><span>Board</span></span>
+        <span class="win__btn">Configure columns</span>
+      </div>
+      <table class="win__table">
+        <thead>
+          <tr>
+            <th>Work <b class="win__mark" aria-hidden="true">①</b></th>
+            <th>Assignee</th>
+            <th>Reporter</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Due date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="win__key">REM-2</span> Електрика: погодити кошторис</td>
+            <td>Тарас Мельник</td>
+            <td>Оксана Коваль</td>
+            <td>High</td>
+            <td data-cat="progress">In Progress</td>
+            <td>Oct 3, 2026</td>
+          </tr>
+          <tr>
+            <td><span class="win__key">REM-3</span> Електрика: розводка під кавомашину</td>
+            <td>Тарас Мельник</td>
+            <td>Тарас Мельник</td>
+            <td>Medium</td>
+            <td data-cat="todo">To Do</td>
+            <td>Oct 8, 2026</td>
+          </tr>
+          <tr>
+            <td><span class="win__key">REM-5</span> Дозвіл від пожежників</td>
+            <td>Тарас Мельник</td>
+            <td>Оксана Коваль</td>
+            <td>Highest</td>
+            <td data-cat="todo">To Do</td>
+            <td>Sep 30, 2026</td>
+          </tr>
+          <tr>
+            <td><span class="win__key">REM-4</span> Вивіска: замовити макет</td>
+            <td>Тарас Мельник</td>
+            <td>Оксана Коваль</td>
+            <td>Medium</td>
+            <td data-cat="done">Done</td>
+            <td>Sep 22, 2026</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Мітки у вигляді List спейсу Друга точка">
+<li>Заголовок колонки — назва поля картки</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Набір і назви колонок — зі знімка вигляду <code>List</code> у Jira Cloud Free
+            від 17 вересня 2026 року (на живому екрані є ще <code>Resolution</code>,
+            <code>Created</code> і <code>Updated</code>); рядки — з історії «Кориці».
+          </p>
+
+          <p>
+            Другий рядок таблиці — це підзадача <code>REM-3</code>. Вона стоїть у списку
+            поруч із «дорослими» роботами, бо підзадача теж є роботою з повним набором
+            полів: у неї свій ключ, свій виконавець, свій статус і свій дедлайн. Різниця
+            лише в тому, що в неї є батько.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <p>
+            Тепер по порядку: спершу вертикаль «сайт — спейс — робота — поля», потім типи
+            роботи та їхня ієрархія, потім найплутаніша пара курсу — статус і категорія
+            статусу, і наостанок таблиця всіх полів із першого вікна.
+          </p>
+
+          <h3>Вертикаль: де закінчується контейнер і починається робота</h3>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart TB
+  S["Сайт фірми"] --> P["Спейс REM «Друга точка»"]
+  P --> W["Робота REM-2"]
+  W --> F1["Summary: що зробити"]
+  W --> F2["Assignee: хто робить"]
+  W --> F3["Status: на якому етапі"]
+  W --> F4["Due date: до коли"]
+            </pre>
+            <p class="ds-diag__caption">
+              Кожна ланка живе всередині попередньої, а поля — це те, що відрізняє одну
+              роботу від іншої
+            </p>
+          </div>
+
+          <p>
+            Документація описує роботу так: «Work items are the building blocks of Jira» —
+            роботи є цеглинами, з яких складено Jira; і докладніше: «A work item represents
+            an action that has to be done» — робота позначає дію, яку треба виконати.
+            Дія може бути якою завгодно: полагодити, погодити, зателефонувати, найняти.
+          </p>
+
+          <p>
+            <strong>Ключ</strong> — те, що робить роботу знаходжуваною. Довідка називає
+            ключі «unique identifiers for every piece of work you track with Jira» —
+            унікальні позначки кожного шматка роботи — і перелічує, де вони трапляються:
+            на самій роботі, у результатах пошуку, на картках дошки, у посиланнях між
+            справами й в адресі сторінки. Складається ключ із двох частин: <strong>код
+            спейсу</strong> (<code>REM</code>) і <strong>порядковий номер</strong>
+            (<code>2</code>). Номер Jira видає сама, по порядку створення робіт у цьому
+            спейсі.
+          </p>
+
+          <p>
+            Код спейсу Jira пропонує сама, коли спейс створюють, і адміністратор може його
+            змінити — про це була таблиця в уроці 3. Тоді ключі всіх робіт спейсу зміняться
+            разом із ним; старі посилання при цьому не ламаються, бо Jira запам'ятовує
+            попередні коди: «Links containing the old space key will continue to work» —
+            посилання зі старим кодом працюватимуть далі. Тому точніше казати не «ключ
+            вічний», а так: <strong>ключ не змінюється від перейменування роботи, зміни
+            статусу чи пересування по дошці</strong> — а змінюється лише разом із кодом
+            усього спейсу.
+          </p>
+
+          <h3>Типи роботи: Epic, Task, Subtask</h3>
+
+          <p>
+            <strong>Work type (issue type)</strong> — тип роботи — відповідає на питання
+            «якого роду ця справа». Довідка: «Work types distinguish different types of
+            work in unique ways» — типи розрізняють різні види роботи; вони допомагають
+            знаходити, сортувати й рахувати схожі справи окремо від решти.
+          </p>
+
+          <p>
+            Набір типів приходить зі шаблону, з якого народився спейс, і в бізнесових
+            спейсах «Кориці» він короткий:
+          </p>
+
+          <ul>
+            <li><strong><code>Task</code> — задача.</strong> Звичайна одиниця роботи,
+              більшість карток будуть саме такими. У налаштуваннях спейсу цей тип підписаний так:
+              «Tasks track small, distinct pieces of work» — задачі тримають невеликі
+              окремі шматки роботи.</li>
+            <li><strong><code>Epic</code> — епік.</strong> Велика справа, зібрана з
+              менших: «track larger sections of work composed of smaller tasks, bugs and
+              user stories». У «Кориці» епік — це «Ремонт другої точки», а задачі всередині
+              нього — електрика, вивіска, меблі, дозволи.</li>
+            <li><strong><code>Subtask</code> — підзадача.</strong> Шматок однієї конкретної
+              задачі: «Subtasks let you break down a bug, task, or story into smaller
+              discreet tasks». Погодити кошторис — задача; розвести проводку під кавомашину
+              — підзадача цієї задачі.</li>
+          </ul>
+
+          <p>
+            У спейсах для розробки до них додаються ще два типи: <code>Story</code> —
+            вимога, описана словами користувача, і <code>Bug</code> — поламане («track
+            problems with their software»). Команді не з ІТ вони не потрібні; у «Кориці»
+            вони з'являться один раз, у спейсі сайту, в уроці 13.
+          </p>
+
+          <h3>Ієрархія: хто чий батько</h3>
+
+          <p>
+            Типи не рівні між собою — вони стоять поверхами. Документація описує три рівні
+            прямо: «a level for larger pieces of work (level 1, by default called Epic),
+            a level for standard work items (level 0, called Story), and a level for
+            smaller pieces of work (level -1, called Subtask)» — верхній поверх для
+            великого, середній для звичайного, нижній для дрібного.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart TB
+  E["Epic REM-1: Ремонт другої точки"] --> T1["Task REM-2: Погодити кошторис"]
+  E --> T2["Task REM-4: Замовити макет вивіски"]
+  T1 --> S1["Subtask REM-3: Розводка під кавомашину"]
+            </pre>
+            <p class="ds-diag__caption">
+              Три рівні ієрархії на прикладі ремонту: епік, задачі в ньому, підзадача
+              всередині однієї із задач
+            </p>
+          </div>
+
+          <p>
+            Зв'язок «хто чий батько» тримає поле <strong><code>Parent</code></strong>.
+            Воно стоїть у самій роботі й показує ту, що поверхом вище: у
+            <code>REM-2</code> батьком стоїть <code>REM-1</code>, у
+            <code>REM-3</code> — <code>REM-2</code>. У пошуку це поле так і зветься:
+            «Search for all child work items of a parent work item» — знайти всіх дітей
+            однієї батьківської роботи.
+          </p>
+
+          <p>
+            Одне обмеження варто знати одразу, бо воно спантеличує: <strong>підзадачу не
+            можна підвісити прямо під епік</strong>. Довідка для спейсів, якими керує сама
+            команда, каже: «You can create subtasks under any standard work items, like
+            stories, bugs, or tasks» — підзадачі створюються під звичайними роботами — і
+            додає, що на відміну від спейсів зі спільними налаштуваннями, «subtasks can't
+            be nested directly beneath work items at the Epic level». Тобто між епіком і
+            підзадачею завжди мусить стояти задача.
+          </p>
+
+          <h3>Статус і категорія статусу — не одне й те саме</h3>
+
+          <p>
+            <strong>Статус</strong> — це крок робочого процесу. Довідка формулює так:
+            «Statuses are the steps of a team's workflow» і наводить приклад
+            ланцюжка: <code>Backlog</code> → <code>Triage</code> → <code>To Do</code>
+            → <code>In progress</code> → <code>QA</code> → <code>Done</code>. Статусів у
+            спейсі може бути багато, і називаються вони як завгодно: у найму «Кориці» буде
+            свій набір зі словами <code>Screening</code> і <code>Offer</code> (урок 10).
+          </p>
+
+          <p>
+            <strong>Категорія статусу</strong> — це полиця, на яку Jira кладе статус,
+            і полиць рівно три. Довідка: «All statuses, even custom statuses you create
+            yourself, must belong to one of three status categories — To do, In progress,
+            or Done» — кожен статус, навіть придуманий тобою, належить до однієї з трьох
+            категорій. І далі: «These categories are represented by the colors grey, blue,
+            and green respectively, so you'll always see statuses shown in one of these
+            colors (this can't be customized)» — сірий, синій і зелений, і цього не
+            перефарбувати.
+          </p>
+
+          <p>
+            Ось чому ця пара важлива. Кілька статусів із набору, який Atlassian дає
+            «з коробки», лежать не там, де підказує чуття:
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: статус, його категорія і опис з довідки">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Статус</th><th>Категорія</th><th>Опис із довідки Atlassian, переказаний українською</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>To Do</code></td>
+                  <td>To do</td>
+                  <td>Заведено й чекає, поки команда візьметься</td>
+                </tr>
+                <tr>
+                  <td><code>Draft</code></td>
+                  <td>In progress</td>
+                  <td>Вважається в роботі, у стадії чернетки</td>
+                </tr>
+                <tr>
+                  <td><code>In Progress</code></td>
+                  <td>In progress</td>
+                  <td>Зараз активно робиться виконавцем</td>
+                </tr>
+                <tr>
+                  <td><code>Approved</code></td>
+                  <td>Done</td>
+                  <td>Погоджено рецензентом і вважається зробленим</td>
+                </tr>
+                <tr>
+                  <td><code>Rejected</code></td>
+                  <td>Done</td>
+                  <td>Відхилено рецензентом і вважається зробленим</td>
+                </tr>
+                <tr>
+                  <td><code>Cancelled</code></td>
+                  <td>Done</td>
+                  <td>Роботу зупинено, вважається зробленим</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            <code>Rejected</code> і <code>Cancelled</code> лежать у категорії
+            <code>Done</code> — не тому, що робота вдалася, а тому, що вона
+            <em>завершена</em>. Категорія відповідає на питання «чи ще рухається», а не
+            «чи вийшло». Саме тому в уроці 7 запити будуватимуться на категорії, а не на
+            назві статусу: назва — це рядок тексту, який у кожному спейсі свій, а категорій
+            завжди три.
+          </p>
+
+          <h3>Усі поля першого вікна в одній таблиці</h3>
+
+          <p>
+            Ця таблиця — та, до якої повертатимешся. Перший стовпчик — те, що написано на
+            екрані; другий — що воно означає; третій — дрібниця, яка економить час.
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: поля роботи, їхнє значення і дрібниці">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Поле</th><th>Що це</th><th>Що варто знати</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>Summary</code></td>
+                  <td>Назва роботи одним рядком</td>
+                  <td>У новому діалозі створення Atlassian зве це поле <code>Title</code>; у пошуку воно лишається <code>summary</code></td>
+                </tr>
+                <tr>
+                  <td><code>Description</code></td>
+                  <td>Опис: деталі, списки, посилання, зображення</td>
+                  <td>Тримає списки, таблиці й вставлені зображення; чеклист в описі — урок 5</td>
+                </tr>
+                <tr>
+                  <td><code>Status</code></td>
+                  <td>Крок робочого процесу, на якому робота зараз</td>
+                  <td>Назва статусу — свій рядок у кожному спейсі; категорій завжди три</td>
+                </tr>
+                <tr>
+                  <td><code>Assignee</code></td>
+                  <td>Виконавець: людина, яка робить</td>
+                  <td>Рівно одна; значення <code>Automatic</code> бере людину з налаштувань спейсу</td>
+                </tr>
+                <tr>
+                  <td><code>Reporter</code></td>
+                  <td>Автор: той, хто завів роботу</td>
+                  <td>Довідка: «may be the same as the creator, but can be distinct» — автор і той, хто створив, можуть різнитись</td>
+                </tr>
+                <tr>
+                  <td><code>Priority</code></td>
+                  <td>Відносна важливість</td>
+                  <td>П'ять рівнів: <code>Highest</code>, <code>High</code>, <code>Medium</code>, <code>Low</code>, <code>Lowest</code></td>
+                </tr>
+                <tr>
+                  <td><code>Labels</code></td>
+                  <td>Вільні слова-позначки для групування</td>
+                  <td>Пробіли заборонені: пишуть через дефіс або підкреслення</td>
+                </tr>
+                <tr>
+                  <td><code>Due date</code></td>
+                  <td>Дата, до якої робота має бути зроблена</td>
+                  <td>Тільки дата, без часу доби; звідси календар в уроці 6</td>
+                </tr>
+                <tr>
+                  <td><code>Start date</code></td>
+                  <td>Дата, з якої робота починається</td>
+                  <td>Стоїть у тій самій панелі, що й <code>Due date</code>; за замовчуванням порожнє</td>
+                </tr>
+                <tr>
+                  <td><code>Parent</code></td>
+                  <td>Робота поверхом вище: епік для задачі, задача для підзадачі</td>
+                  <td>У старих фільтрах те саме звалось <code>Epic Link</code>; нові пишуть <code>parent</code></td>
+                </tr>
+                <tr>
+                  <td><code>Subtasks</code></td>
+                  <td>Дрібніші шматки цієї ж роботи</td>
+                  <td>Кожна підзадача має власний ключ, статус і виконавця</td>
+                </tr>
+                <tr>
+                  <td><code>Linked work items</code></td>
+                  <td>Зв'язки з іншими роботами</td>
+                  <td>Типів багато; найуживаніші — <code>blocks</code>, <code>is blocked by</code>, <code>relates to</code></td>
+                </tr>
+                <tr>
+                  <td><code>Attachments</code></td>
+                  <td>Прикріплені файли: фото, рахунок, макет</td>
+                  <td>Файл перетягують мишею прямо на відкриту картку</td>
+                </tr>
+                <tr>
+                  <td><code>Watchers</code></td>
+                  <td>Спостерігачі: кому приходять сповіщення про зміни</td>
+                  <td>Клавіша <code>W</code> вмикає й вимикає спостереження за роботою</td>
+                </tr>
+                <tr>
+                  <td><code>Comments</code></td>
+                  <td>Листування по цій конкретній справі</td>
+                  <td>Клавіша <code>M</code> відкриває поле коментаря; <code>@</code> кличе людину</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            Три останні рядки варті окремого речення, бо саме вони перетворюють картку з
+            анкети на робоче місце. <strong>Спостерігач</strong> (<code>watcher</code>) —
+            це людина, яка не робить роботу, але хоче знати про зміни: «Watching means you
+            receive notifications when things happen on a work item» — спостереження
+            означає, що ти отримуєш сповіщення, коли з роботою щось відбувається.
+            <strong>Згадка</strong> — символ <code>@</code> та ім'я в коментарі: «The
+            person you mention will be notified about your comment» — згадана людина
+            отримає сповіщення й зможе одразу перейти до справи. Хто саме які листи
+            отримує і як їх приборкати — урок 5.
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            Словник запам'ятовується не з таблиці, а з пальця на екрані. Уся вправа — одна
+            картка у твоєму власному спейсі <code>MY</code> «Мої справи», який ти
+            створив(ла) в уроці 3. Часу — хвилин десять.
+          </p>
+
+          <h3>Крок 1. Відкрити або створити роботу</h3>
+          <p>
+            У бічній панелі ліворуч натисни <code>Spaces</code>, далі — свій спейс «Мої
+            справи». Якщо наприкінці уроку 3 ти завів(ла) роботу «Замовити борошно на
+            тиждень», вона вже там. Якщо ні — натисни синю кнопку <code>+ Create</code>
+            у верхній панелі: у шапці діалогу переконайся, що вибрано спейс
+            <code>MY</code> і тип <code>Task</code>, у полі <code>Summary</code> (або
+            <code>Title</code>) напиши «Замовити борошно на тиждень» і натисни
+            <code>Create</code>.
+          </p>
+
+          <h3>Крок 2. Відкрити картку повністю</h3>
+          <p>
+            Клацни по назві роботи. Відкриється та сама будова, що у вікні з блоку 2.
+            Подивись на адресу браузера: у ній з'явився шматок <code>/browse/MY-1</code>.
+            Те, що стоїть до дефіса, — код твого спейсу; цифра після дефіса — порядковий
+            номер роботи.
+          </p>
+
+          <h3>Крок 3. Знайти вісім підписів</h3>
+          <p>
+            Не поспішаючи знайди на екрані по черзі: ключ, <code>Summary</code>, кнопку
+            статусу, <code>Assignee</code>, <code>Reporter</code>, <code>Parent</code>,
+            <code>Labels</code>, <code>Due date</code>. Якщо якогось поля на картці немає —
+            це не поломка: набір полів залежить від типу роботи в конкретному спейсі, і
+            частина полів ховається, поки порожня. Як додати поле, буде в уроці 11.
+          </p>
+
+          <h3>Крок 4. Призначити роботу собі й поставити дедлайн</h3>
+          <p>
+            Біля поля <code>Assignee</code> є посилання <code>Assign to me</code> —
+            натисни його. Потім клацни по <code>Due date</code> й обери будь-яку дату
+            цього тижня. Тепер у роботи є і виконавець, і термін — дві речі, без яких
+            вона лишається побажанням.
+          </p>
+
+          <h3>Крок 5. Додати мітку й зняти її</h3>
+          <p>
+            Клацни по полю <code>Labels</code>, набери слово <code>тест</code> і натисни
+            <code>Enter</code>. Мітка завжди одне слово: довідка каже, що пробілів
+            у мітках не буває, тому два слова зв'язують дефісом або підкресленням —
+            <code>друга-точка</code>. Далі зніми мітку <code>тест</code>
+            хрестиком біля неї: поле знову порожнє. Ця пара дій показує головне про мітки —
+            їх заводить будь-хто, будь-коли, без жодних налаштувань.
+          </p>
+
+          <h3>Крок 6. Стати спостерігачем і перестати ним бути</h3>
+          <p>
+            Не виходячи з картки, натисни на клавіатурі <code>W</code>. Значок ока вгорі
+            праворуч покаже, що спостерігач з'явився; ще одне натискання <code>W</code>
+            прибирає тебе зі списку. Так само працює <code>M</code> — воно одразу ставить
+            курсор у поле коментаря.
+          </p>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Перевірка цього уроку не в кнопках, а в словах. Пройди чотири пункти —
+            і вважай урок закритим.
+          </p>
+
+          <ul>
+            <li><strong>Ти показуєш пальцем чотири речі на своїй картці</strong> й називаєш
+              їх правильними словами: ключ, статус, автора (<code>Reporter</code>) і
+              виконавця (<code>Assignee</code>). Без підглядання в цей урок.</li>
+            <li><strong>В адресі браузера видно ключ</strong> виду <code>MY-1</code>,
+              і ти можеш пояснити, звідки взялася кожна його частина.</li>
+            <li><strong>Поле <code>Labels</code> порожнє</strong> — мітку <code>тест</code>
+              додано й знято, і ти знаєш, чому в мітці не буває пробілів.</li>
+            <li><strong>На домашній сторінці <code>For you</code></strong> твоя робота
+              тепер видна у вкладці <code>Assigned to me</code> — саме тому, що в кроці 4
+              ти став(ла) її виконавцем.</li>
+          </ul>
+
+          <p>
+            І остання, найчесніша перевірка: прочитай уголос речення «в цієї роботи
+            категорія статусу <code>Done</code>, хоча статус зветься <code>Rejected</code>»
+            — і поясни сам(а) собі, чому тут немає суперечності. Якщо пояснення виходить,
+            найскладніше місце уроку засвоєно.
+          </p>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3>Плутати статус із категорією статусу</h3>
+          <p>
+            Найдорожча помилка курсу, і вона виявляється не одразу, а через два тижні —
+            коли пошук чи автоматизація мовчки нічого не знаходять. Статусів у спейсі може
+            бути хоч двадцять, і називаються вони так, як домовилась команда. Категорій
+            завжди три, вони незмінні й саме на них тримаються кольори, звіти й запити.
+            Правило на все життя: <strong>про людину говори статусом, про машину —
+            категорією</strong>.
+          </p>
+
+          <h3>Вважати автора виконавцем</h3>
+          <p>
+            <code>Reporter</code> — це той, хто справу завів; <code>Assignee</code> — той,
+            хто її робить. Вони збігаються, поки ти працюєш сам(а), і розходяться з першим
+            же колегою. Класична сцена: Оксана завела «Дозвіл від пожежників», Тарас його
+            добуває; питати «чому в тебе досі не зроблено» треба в Тараса, а «навіщо це
+            взагалі» — в Оксани. Порожній <code>Assignee</code> означає буквально «справа
+            нічия» — таку роботу не зробить ніхто.
+          </p>
+
+          <h3>Приймати мітку за теку</h3>
+          <p>
+            Мітка не є контейнером: робота не «лежить» у мітці, мітка лише приклеєна до
+            роботи, і міток може бути кілька на одній справі. Три наслідки, яких не
+            чекають. Перший: мітку не можна перейменувати — довідка Atlassian каже прямо,
+            що «you can't directly edit labels in Jira Cloud», тобто стару знімають, нову
+            додають. Другий: мітка живе, поки стоїть хоч на одній роботі, — «if a label
+            exists on only one work item and is removed from that item, the label is
+            deleted». Третій: у колег нова мітка з'являється в підказках не одразу — довідка
+            попереджає про помітну затримку. Звідси проста домовленість:
+            вигадувати мітки гуртом, а не кожному свої.
+          </p>
+
+          <h3>Вважати епік папкою</h3>
+          <p>
+            Епік виглядає як тека зі справами, але є такою ж роботою, як інші: у нього є
+            свій ключ, свій статус, свій виконавець і свій дедлайн. Звідси два висновки.
+            Епік можна закрити, і він не закриє задачі всередині себе — зв'язок «батько —
+            дитина» не переносить статуси. І підзадачу не вийде підвісити прямо під епік:
+            між ними завжди стоїть задача. Якщо хочеться «папку для файлів» — це не епік,
+            це вкладення в роботі або сторінка в Confluence.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Чому в адресі сторінки й у пошуку досі <code>issue</code> і <code>project</code>?</h3>
+          <p>
+            Бо перейменували написи, а не механіку. Адреса відкритої роботи має вигляд
+            <code>/browse/MY-1</code>, адреса пошуку містить <code>/jira/issues/</code>,
+            а запити пишуться словами <code>project</code> та <code>issuetype</code>.
+            Atlassian визнає це в самому продукті: у системних налаштуваннях висить
+            попередження «As we roll out 'work' as the new term for items tracked in Jira,
+            you may still see 'issue' in some areas» — поки нове слово розкочують, старе
+            подекуди лишається. Практичний висновок: <strong>бачиш старе слово — не
+            лякайся, це те саме</strong>. Далі в курсі старі слова коментуватись не
+            будуть — вони з'являться там, де мусять: у запитах (урок 7) і в автоматизації
+            (урок 14).
+          </p>
+
+          <h3>Чи можна призначити роботу двом людям одразу?</h3>
+          <p>
+            Ні. <code>Assignee</code> — це одна людина, і це навмисно: коли відповідальних
+            двоє, відповідального немає. Якщо справу справді роблять удвох, є два чесні
+            шляхи: розбити її на підзадачі й призначити кожну своєму виконавцю, або додати
+            другу людину в спостерігачі чи згадати її в коментарі. Значення
+            <code>Automatic</code> у цьому полі означає «віддати тому, кого призначено за
+            замовчуванням у налаштуваннях спейсу».
+          </p>
+
+          <h3>Що таке <code>Components</code> і чому я цього поля не бачу?</h3>
+          <p>
+            Компоненти — ще один спосіб групувати роботи всередині спейсу, схожий на мітки,
+            але керований адміністратором: у компонента є власник, і на нього можна
+            автоматично призначати роботи. У твоїх спейсах цього поля немає, і це не
+            поломка: довідка каже, що «Jira components are only available in
+            company-managed spaces» — компоненти живуть лише в спейсах зі спільними
+            налаштуваннями. Чим ті спейси відрізняються від твоїх, розбирає урок 9. Для
+            команди до десяти людей мітки закривають ту саму потребу.
+          </p>
+
+          <h3>Що означає колонка <code>Resolution</code> у списку?</h3>
+          <p>
+            Це поле «чим саме скінчилось»: <code>Done</code> — зробили,
+            <code>Won't do</code> — вирішили не робити, <code>Duplicate</code> — це та сама
+            справа, що вже є. Заповнюється воно зазвичай само, коли робота переходить у
+            завершальний статус. Ознака, за якою його видно неозброєним оком: «once a work
+            item is resolved… references to that work item show the key in strikethrough
+            text» — ключ завершеної роботи в посиланнях перекреслений.
+          </p>
+
+          <h3><code>Done</code> — це те саме, що видалити?</h3>
+          <p>
+            Ні, і різниця принципова. <code>Done</code> — це статус: робота лишається в
+            спейсі, її видно в пошуку, у звітах і в історії, у неї лишається автор, дата й
+            коментарі. Видалення прибирає роботу назовсім і не скасовується. Тому картка,
+            яка стала непотрібною, має піти в статус із категорією <code>Done</code>, а не
+            в кошик. Як це робиться руками — урок 5.
+          </p>
+
+          <h3>На моїй картці немає половини полів із таблиці. Це нормально?</h3>
+          <p>
+            Так. Набір полів задає тип роботи в конкретному спейсі, і різні шаблони дають
+            різні набори; крім того, Jira ховає частину полів, поки вони порожні. Поля
+            додаються й прибираються в налаштуваннях спейсу — цьому присвячений урок 11.
+            Корисне правило звідти, яке варто почути заздалегідь: менше полів — більше
+            заповнених карток.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Цей урок нічого не змінив у твоєму сайті, крім однієї мітки, яку ти зняв(ла).
+            Зате з цього місця довідка Atlassian, будь-який туторіал і будь-яка розмова з
+            колегою стають зрозумілими: ти знаєш, як називається те, на що дивишся.
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li><strong>Три поверхи:</strong> сайт → спейс (space, колишній project) →
+                робота (work item, колишній issue) → поля.</li>
+              <li><strong>Ключ</strong> <code>REM-2</code> — це код спейсу плюс номер.
+                Він не змінюється від перейменування роботи чи руху по дошці; змінюється
+                лише разом із кодом усього спейсу, і старі посилання при цьому працюють.</li>
+              <li><strong>Тип роботи</strong> (work type, колишній issue type) відповідає
+                на питання «якого роду ця справа»: <code>Epic</code>, <code>Task</code>,
+                <code>Subtask</code>, а в спейсах розробки ще <code>Story</code> і
+                <code>Bug</code>.</li>
+              <li><strong>Ієрархія — три рівні:</strong> епік, звичайна робота,
+                підзадача. Зв'язок тримає поле <code>Parent</code>; підзадача не чіпляється
+                прямо до епіка.</li>
+              <li><strong>Статус — крок процесу, категорія статусу — одна з трьох полиць</strong>
+                (<code>To do</code>, <code>In progress</code>, <code>Done</code>).
+                <code>Rejected</code> і <code>Cancelled</code> лежать у категорії
+                <code>Done</code>, бо категорія каже «не рухається», а не «вийшло».</li>
+              <li><strong><code>Assignee</code> — один виконавець, <code>Reporter</code> —
+                автор.</strong> Порожній виконавець означає «справа нічия».</li>
+              <li><strong>Мітки</strong> заводить будь-хто без налаштувань, вони без
+                пробілів і не перейменовуються; <strong>компоненти</strong> живуть лише
+                в спейсах зі спільними налаштуваннями, тому в твоїх їх немає.</li>
+              <li><strong>Спостерігач бачить зміни, згадка через <code>@</code> кличе
+                людину</strong> — обидва механізми надсилають сповіщення.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Далі — <strong>урок 5 «Створити й вести роботу»</strong>. У ньому словник
+            перетворюється на дію: п'ять справ із твого аркуша в уроці 1 стають картками
+            з дедлайнами, одна отримує опис із чеклистом, одна — підзадачу, одна доїжджає
+            до <code>Done</code>. Там же розберемось, які листи за все це прилітають на
+            пошту й як вимкнути зайві, поки вони не набридли.
+          </p>
+          <p>
+            До того часу корисно тримати цей урок під рукою: таблиця полів із блоку 3 —
+            саме та сторінка, яку варто відкрити у другій вкладці, коли вперше
+            заповнюватимеш картку сам(а).
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять на
+            назви: до кожної відповіді одразу з'являється пояснення, чому решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Тарас бачить на картці напис REM-2 і питає, звідки взялися ці символи. Яке пояснення правильне?",
+            "options": [
+              "REM — це скорочення від імені виконавця роботи, а число 2 показує, скільки днів лишилось до дедлайну цієї справи",
+              "REM — назва колонки, у якій зараз лежить картка, а число 2 — її місце в цій колонці, якщо рахувати згори вниз",
+              "REM — це код спейсу, у якому живе робота, а 2 — її порядковий номер; разом вони дають постійну адресу справи",
+              "REM — назва типу роботи в скороченому вигляді, а 2 — рівень пріоритету, де одиниця означає найвищий рівень"
+            ],
+            "answer": 2,
+            "explain": "Ключ складається з двох частин: коду спейсу й порядкового номера роботи. Довідка Atlassian називає ключі унікальними позначками кожного шматка роботи — їх видно на картках дошки, у результатах пошуку, у посиланнях і в адресі сторінки. Колонка, тип роботи й пріоритет у ключі ніяк не відображаються, а термін живе в окремому полі Due date."
+          },
+          {
+            "q": "Ліна завела у своєму спейсі шість статусів: New, Screening, Interview, Offer, Hired, Rejected. Вона каже колезі: «отже, і кольорів на дошці буде шість». Що тут не так?",
+            "options": [
+              "Кольорів буде три: кожен статус належить до однієї з трьох категорій, і колір дає саме категорія, а не її назва",
+              "Кольорів буде шість, але лише на дошці; у списку й у звітах усі статуси показуються тим самим сірим кольором",
+              "Кольорів буде два, бо Jira фарбує тільки перший і останній статуси процесу, а всі проміжні лишає без кольору",
+              "Кольори обирає той, хто створює статус, тому їх буде стільки, скільки різних відтінків Ліна вибрала при створенні"
+            ],
+            "answer": 0,
+            "explain": "Статусів у спейсі може бути скільки завгодно, але кожен належить до однієї з трьох категорій — To do, In progress або Done. Довідка Atlassian каже, що категорії показуються сірим, синім і зеленим і що змінити це не можна. Тому шість статусів Ліни дадуть три кольори; Rejected при цьому потрапить у категорію Done, бо робота більше не рухається."
+          },
+          {
+            "q": "Оксана завела роботу «Дозвіл від пожежників» і доручила її Тарасу. Хто з них у якому полі опиниться?",
+            "options": [
+              "Обоє будуть у полі Assignee: Jira дозволяє двох виконавців, якщо один із них завів роботу",
+              "Оксана — Assignee, бо вона власниця фірми; Тарас — Reporter, бо саме він доповідатиме про результат",
+              "Оксана — Watcher, а Тарас — Reporter: поле Assignee заповнюється тільки тоді, коли роботу вже закрито",
+              "Оксана — Reporter, бо вона завела цю роботу, а Тарас — Assignee, бо саме він виконує її руками"
+            ],
+            "answer": 3,
+            "explain": "Reporter — це той, хто завів роботу, Assignee — той, хто її виконує. Це різні поля, і заповнюють їх різні люди. Виконавець у роботи рівно один, а спостерігачі живуть в окремому полі й на відповідальність не впливають."
+          },
+          {
+            "q": "Богдан не бере участі в ремонті, але хоче знати, коли робота REM-2 зрушить з місця. Він не автор цієї роботи й не її виконавець. Що йому зробити?",
+            "options": [
+              "Поставити себе другим виконавцем у полі Assignee — тоді сповіщення приходитимуть обом одразу",
+              "Стати спостерігачем цієї роботи: сповіщення про зміни надходитимуть, а виконавцем він не стане",
+              "Змінити пріоритет роботи на Highest: роботи з найвищим пріоритетом розсилають сповіщення всій команді",
+              "Додати до роботи мітку зі своїм іменем — Jira надсилає листи всім, чиє ім'я є серед міток цієї роботи"
+            ],
+            "answer": 1,
+            "explain": "Спостереження означає, що людина отримує сповіщення, коли з роботою щось відбувається; довідка Atlassian описує це саме так. Виконавцем спостерігач не стає. Поле Assignee тримає одну людину, а пріоритет і мітки нікому листів не надсилають."
+          },
+          {
+            "q": "Марта прочитала в довідці про компоненти й хоче згрупувати ними свої роботи, але поля Components у її спейсі немає. Що відбувається?",
+            "options": [
+              "Поле зникає, поки в спейсі мало робіт: воно з'явиться саме, коли карток стане достатньо для групування",
+              "Поле сховане, бо порожнє: щоб воно проявилось, треба спершу створити хоч одну роботу з пріоритетом High",
+              "Компоненти є лише в спейсах зі спільними налаштуваннями; у спейсі Марти ту саму задачу закривають мітки",
+              "Компоненти доступні тільки адміністраторам сайту, а Марта адміністратор лише свого спейсу, тому й не бачить"
+            ],
+            "answer": 2,
+            "explain": "Довідка Atlassian каже прямо: компоненти доступні лише в спейсах зі спільними налаштуваннями (company-managed). У спейсах, які команда налаштовує сама, цього поля немає, і кількість робіт, пріоритет чи роль людини тут ні до чого. Для групування там служать мітки."
+          },
+          {
+            "q": "Тарас хоче, щоб підзадача «Розводка під кавомашину» висіла прямо під епіком «Ремонт другої точки», але Jira так не дає. Чому?",
+            "options": [
+              "Між епіком і підзадачею завжди стоїть звичайна робота: підзадача чіпляється до задачі, не до епіка",
+              "Тому що цей епік уже має інші підзадачі, а більше однієї підзадачі на епік Jira тримати не дозволяє",
+              "Тому що підзадача й епік лежать у різних спейсах, а поле Parent працює лише в межах одного спейсу",
+              "Тому що в Тараса роль виконавця, а змінювати поле Parent може тільки той, хто створив цей епік"
+            ],
+            "answer": 0,
+            "explain": "Ієрархія має три рівні: епік, звичайна робота, підзадача. Довідка для спейсів, якими керує сама команда, каже, що підзадачі створюються під звичайними роботами й не вкладаються прямо під роботи рівня епіка. Причина саме в будові ієрархії, а не в кількості підзадач, не в спейсі й не в ролі людини."
+          }
+        ]
+      }
+      </script>
+
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Урок позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
