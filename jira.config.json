@@ -1,0 +1,217 @@
+{
+  "_": "012 · jira.config.json — увесь текст лендінга «Jira з нуля» і карта програми четвертого курсу. Форма даних така сама, як у claude-code.config.json: tracks[] і modules[] окремо, модуль посилається на фазу полем `track`; лічильник модулів у фазі — ПОХІДНИЙ, поля `count` немає навмисно. Ключі `references` і `author` адитивні — js/config.js про них не знає. Читатиме цей файл js/jira-render.js (з'явиться після дизайну). Джерело текстів — dev/build/012-jira/00-research/program.md, розділ 12. Написано 2026-09-17 ДО дизайну: hero.board — кандидат форми даних анімації, дизайн може її змінити.",
+  "site": {
+    "name": "Jira з нуля",
+    "shortName": "AIJ",
+    "tagline": "Курс про Jira Cloud українською — для тих, хто не з ІТ",
+    "description": "Безкоштовний курс про Jira Cloud на безкоштовному плані: від «Jira — це щось для програмістів» до власного сайту, порталу заявок і автоматизації для команди до десяти людей.",
+    "version": "0.1.0",
+    "updated": "2026-09-17",
+    "home": "jira.html",
+    "trackWord": "Фаза ",
+    "disclaimer": "Незалежний освітній матеріал. Не створений, не спонсорований і не схвалений Atlassian. Jira, Atlassian, Confluence — торгові марки Atlassian Pty Ltd.",
+    "statsNote": "22 уроки та іспит · 5 фаз · безкоштовно, без реклами й без продажу курсів",
+    "refsLabel": "Довідники",
+    "refJql": "JQL: поля, оператори, функції",
+    "refAutomation": "Автоматизація: тригери, дії, smart values",
+    "refMap": "Карта інтерфейсу, глосарій і ліміти Free"
+  },
+  "announcement": {
+    "enabled": false,
+    "text": "",
+    "note": "Вимкнено свідомо: банер їсть 44px висоти першого екрана, а бюджет hero на в'юпорті 653px не має запасу (§8.4 спеки 005)."
+  },
+  "links": {
+    "github": "",
+    "telegram": "",
+    "officialDocs": "https://support.atlassian.com/jira-software-cloud/",
+    "officialCourses": "https://community.atlassian.com/learning",
+    "plans": "https://support.atlassian.com/jira-cloud-administration/docs/explore-jira-cloud-plans/",
+    "freePlan": "https://support.atlassian.com/jira-cloud-administration/docs/what-is-the-free-jira-cloud-plan/",
+    "trademark": "https://www.atlassian.com/legal/trademark"
+  },
+  "nav": [
+    { "label": "Програма", "href": "#map" },
+    { "label": "Довідники", "href": "#refs" },
+    { "label": "Автор", "href": "#author" }
+  ],
+  "hero": {
+    "title": [
+      "Jira — не для айтішників.",
+      "Вона для порядку."
+    ],
+    "lead": "Jira Cloud на безкоштовному плані — це дошка з картками, яка не губить справи: хто робить, до коли, на якому етапі. Починаємо з того, чи вистачить безкоштовного плану твоїй команді, і доходимо до порталу заявок і автоматизації.",
+    "cta": { "label": "Почати з першого уроку", "href": "modules/jira-01.html" },
+    "ctaSecondary": { "label": "Спершу подивитись програму", "href": "#map" },
+    "explain": "Це схема, а не скріншот. Картка проходить шлях від «To Do» до «Done», а наприкінці автоматизація сама призначає виконавця сусідній картці. Так виглядає робота в Jira — без жодного слова про програмування.",
+    "chrome": "Jira Cloud · дошка спейсу «Мої справи» · звірено 2026-09-17",
+    "replay": "показати ще раз",
+    "hint": "текст у вікні можна виділити й скопіювати",
+    "board": {
+      "_note": "Кандидат форми даних для анімованого вікна hero (бриф, поле 7). Дизайн фіксує остаточну форму; сценарій: картка з'являється в To Do → In Progress (з'являються ініціали) → Done (галочка) → «удар» автоматизації: друга картка сама отримує виконавця. Уся сесія ≤ 6 с; prefers-reduced-motion — одразу фінальний кадр.",
+      "rail": ["For you", "Spaces", "Filters", "Dashboards"],
+      "space": "Мої справи",
+      "columns": [
+        { "id": "todo", "label": "To Do", "cat": "todo" },
+        { "id": "progress", "label": "In Progress", "cat": "progress" },
+        { "id": "done", "label": "Done", "cat": "done" }
+      ],
+      "cards": [
+        { "key": "MY-1", "title": "Замовити борошно на тиждень", "who": "", "due": "Sep 24" },
+        { "key": "MARK-1", "title": "Пост про новий круасан", "who": "", "due": "Sep 26" },
+        { "key": "REM-2", "title": "Електрика: погодити кошторис", "who": "ТМ", "due": "Oct 3" }
+      ],
+      "session": [
+        { "t": "appear", "card": "MY-1", "col": "todo" },
+        { "t": "move", "card": "MY-1", "col": "progress", "who": "ОК" },
+        { "t": "move", "card": "MY-1", "col": "done", "check": true },
+        { "t": "gap" },
+        { "t": "auto", "card": "MARK-1", "who": "МЛ", "label": "flow: work item created → assign to Марта" }
+      ]
+    }
+  },
+  "audience": {
+    "title": "Для кого це — і для кого ні",
+    "lead": "Курс тільки про Jira Cloud на безкоштовному плані. Платні можливості називаємо чесно, але не вчимо — інакше вийшло б поверхово про все.",
+    "forTitle": "Цей курс для тебе, якщо",
+    "for": [
+      "Ти ведеш справи команди в чатах, таблицях і на стікерах — і щось постійно губиться",
+      "Ти чув, що Jira — «складна штука для айтішників», і хочеш перевірити це сам",
+      "У тебе до десяти людей — або ти один — і платити за інструмент не хочеться",
+      "Тобі потрібно, щоб колеги подавали заявки (рахунки, довідки, закупівлі) в одне місце, а не в особисті",
+      "Ти готовий один раз розібратись, як воно влаштоване, замість тикати навмання"
+    ],
+    "notTitle": "Цей курс не для тебе, якщо",
+    "not": [
+      "Тобі потрібні схеми дозволів, журнал аудиту чи портфельне планування — це платні плани, курс їх не вчить",
+      "Ти шукаєш курс про Scrum для dev-команди — тут Scrum лише оглядово",
+      "Тобі потрібна Jira Data Center або Server — курс лише про Cloud",
+      "Ти чекаєш, що Jira сама наведе лад — вона лише тримає те, що ти в неї поклав"
+    ]
+  },
+  "outcomes": {
+    "title": "Що ти вмітимеш наприкінці",
+    "lead": "Не список тем, а перелік дій, які ти зможеш зробити сам — і перевірити, що вийшло.",
+    "items": [
+      { "text": "Завести сайт і спейс для своєї команди за вечір", "hint": "І назвати сайт так, щоб не пошкодувати: на безкоштовному плані назву потім не змінити." },
+      { "text": "Вести роботу картками: створювати, призначати, коментувати, закривати", "hint": "І бачити ту саму роботу як дошку, список, календар і таймлайн — без дублювання." },
+      { "text": "Знаходити будь-що одним запитом", "hint": "Мовою запитів JQL: «мої прострочені», «без виконавця», «за тиждень» — і зберігати як фільтр." },
+      { "text": "Налаштувати спейс під свою сферу", "hint": "Свої статуси, свої поля, свої типи роботи — і знати, коли «менше полів» краще." },
+      { "text": "Доручити рутину автоматизації", "hint": "Нагадування, авто-призначення, «усі підзадачі готові → задача готова» — без програмування." },
+      { "text": "Приймати заявки від колег через портал", "hint": "Бухгалтерія, HR чи господарка отримують заявки в чергу з термінами, а не в особисті повідомлення." }
+    ]
+  },
+  "map": {
+    "title": "Шлях: 22 уроки, п'ять фаз, один іспит",
+    "lead": "На початку тебе ведуть за руку: що це, чи справді безкоштовно, як зареєструватись, як називається кожна кнопка. Далі — щоденна робота, налаштування під себе, автоматизація і портал заявок. У кінці — наскрізний проєкт для своєї фірми і місток до Claude.",
+    "startLabel": "почати звідси",
+    "moduleWord": ["урок", "уроки", "уроків"]
+  },
+  "tracks": [
+    { "id": "phase1", "order": 1, "title": "Що це і навіщо", "subtitle": "Jira для не-ІТ, безкоштовний план, перший сайт, словник" },
+    { "id": "phase2", "order": 2, "title": "Щоденна робота", "subtitle": "Картки, вигляди, пошук JQL, дашборди" },
+    { "id": "phase3", "order": 3, "title": "Під себе", "subtitle": "Типи спейсів, workflow, поля, шаблони, Kanban і Scrum" },
+    { "id": "phase4", "order": 4, "title": "Автоматизація та інтеграції", "subtitle": "Flows, smart values, пошта й чати, Marketplace" },
+    { "id": "phase5", "order": 5, "title": "Service desk і адміністрування", "subtitle": "Портал заявок, люди й доступ, наскрізний проєкт, Jira + Claude" }
+  ],
+  "modules": [
+    { "id": "j01", "number": 1, "track": "phase1", "slug": "modules/jira-01.html", "title": "Jira не лише для ІТ", "status": "draft", "durationMin": null },
+    { "id": "j02", "number": 2, "track": "phase1", "slug": "modules/jira-02.html", "title": "Безкоштовний план чесно", "status": "draft", "durationMin": null },
+    { "id": "j03", "number": 3, "track": "phase1", "slug": "modules/jira-03.html", "title": "Реєстрація і перше вікно", "status": "draft", "durationMin": null },
+    { "id": "j04", "number": 4, "track": "phase1", "slug": "modules/jira-04.html", "title": "Словник Jira", "status": "draft", "durationMin": null },
+    { "id": "j05", "number": 5, "track": "phase2", "slug": "modules/jira-05.html", "title": "Створити й вести роботу", "status": "draft", "durationMin": null },
+    { "id": "j06", "number": 6, "track": "phase2", "slug": "modules/jira-06.html", "title": "Вигляди", "status": "draft", "durationMin": null },
+    { "id": "j07", "number": 7, "track": "phase2", "slug": "modules/jira-07.html", "title": "Пошук і JQL", "status": "draft", "durationMin": null },
+    { "id": "j08", "number": 8, "track": "phase2", "slug": "modules/jira-08.html", "title": "Дашборди і гаджети", "status": "draft", "durationMin": null },
+    { "id": "j09", "number": 9, "track": "phase3", "slug": "modules/jira-09.html", "title": "Team-managed vs company-managed", "status": "draft", "durationMin": null },
+    { "id": "j10", "number": 10, "track": "phase3", "slug": "modules/jira-10.html", "title": "Workflow", "status": "draft", "durationMin": null },
+    { "id": "j11", "number": 11, "track": "phase3", "slug": "modules/jira-11.html", "title": "Поля, екрани, типи роботи", "status": "draft", "durationMin": null },
+    { "id": "j12", "number": 12, "track": "phase3", "slug": "modules/jira-12.html", "title": "Практикум: шаблони під сферу", "status": "draft", "durationMin": null },
+    { "id": "j13", "number": 13, "track": "phase3", "slug": "modules/jira-13.html", "title": "Scrum і Kanban — і коли вони не потрібні", "status": "draft", "durationMin": null },
+    { "id": "j14", "number": 14, "track": "phase4", "slug": "modules/jira-14.html", "title": "Автоматизація: перші flows", "status": "draft", "durationMin": null },
+    { "id": "j15", "number": 15, "track": "phase4", "slug": "modules/jira-15.html", "title": "Автоматизація глибше", "status": "draft", "durationMin": null },
+    { "id": "j16", "number": 16, "track": "phase4", "slug": "modules/jira-16.html", "title": "Пошта, чати, Confluence — оглядово", "status": "draft", "durationMin": null },
+    { "id": "j17", "number": 17, "track": "phase4", "slug": "modules/jira-17.html", "title": "Marketplace обережно", "status": "draft", "durationMin": null },
+    { "id": "j18", "number": 18, "track": "phase5", "slug": "modules/jira-18.html", "title": "Jira Service Management", "status": "draft", "durationMin": null },
+    { "id": "j19", "number": 19, "track": "phase5", "slug": "modules/jira-19.html", "title": "Практикум: заявки до бухгалтерії", "status": "draft", "durationMin": null },
+    { "id": "j20", "number": 20, "track": "phase5", "slug": "modules/jira-20.html", "title": "Люди і доступ", "status": "draft", "durationMin": null },
+    { "id": "j21", "number": 21, "track": "phase5", "slug": "modules/jira-21.html", "title": "Наскрізний проєкт", "status": "draft", "durationMin": null },
+    { "id": "j22", "number": 22, "track": "phase5", "slug": "modules/jira-22.html", "title": "Jira + Claude Code через MCP", "status": "draft", "durationMin": null },
+    {
+      "id": "j23", "number": 23, "track": null, "kind": "exam", "slug": "modules/jira-23.html", "title": "Фінальний іспит", "status": "draft", "durationMin": null,
+      "text": "26 питань по всьому курсу. Прохідний бал вищий, ніж в уроках, нового матеріалу немає — тільки те, що ти вже проходив.",
+      "meta": "після успішного складання — сертифікат з унікальним кодом"
+    }
+  ],
+  "references": {
+    "title": "Полиця біля столу",
+    "lead": "Три сторінки, які не треба проходити. У них немає ні тестів, ні прогресу, і вони не входять у сертифікат — до них повертаються, коли треба щось швидко знайти. Третя старіє найшвидше, тому в ній стоїть дата перевірки.",
+    "items": [
+      { "id": "ref-jql", "slug": "jira-ref-jql.html", "title": "JQL: поля, оператори, функції", "subtitle": "Мова запитів Jira цілком: усі поля, оператори, функції, відносні дати і двадцять готових запитів для команди" },
+      { "id": "ref-automation", "slug": "jira-ref-automation.html", "title": "Автоматизація: тригери, дії, smart values", "subtitle": "Тригери, умови, дії й гілки в одній таблиці, розумні значення й вісім готових flows" },
+      { "id": "ref-map", "slug": "jira-ref-map.html", "title": "Карта інтерфейсу, глосарій і ліміти Free", "subtitle": "Де що лежить на екрані, англійські терміни українською і всі ліміти безкоштовного плану з датою перевірки" }
+    ]
+  },
+  "lessonShape": {
+    "title": "Кожен урок влаштований однаково",
+    "lead": "Вісім блоків у тому самому порядку. Через два уроки ти знаєш, де що шукати, і перестаєш витрачати увагу на структуру.",
+    "note": "У кожному уроці 1–5 схематичних вікон Jira — рівно таких, як у прикладі вгорі. Це не скріншоти: Jira змінює вигляд тричі на рік, а схема лишається чесною.",
+    "steps": [
+      { "name": "Навіщо це", "desc": "Яку задачу закриває те, що зараз вивчаємо — на прикладі однієї кав'ярні." },
+      { "name": "Як це виглядає на екрані", "desc": "Схематичне вікно Jira з мітками, а не скріншот." },
+      { "name": "Як це працює", "desc": "Схема: що з чим пов'язано і в якому порядку." },
+      { "name": "Зроби сам", "desc": "Покрокова дія у своєму сайті, шлях словами." },
+      { "name": "Як перевірити, що вийшло", "desc": "Ознака на екрані, яка каже «так» або «ні» замість здогадок." },
+      { "name": "Типові граблі", "desc": "Те, на чому спотикаються всі, — заздалегідь." },
+      { "name": "Часті питання", "desc": "Короткі відповіді на те, що виникає саме тут." },
+      { "name": "Підсумок і наступний крок", "desc": "Що ти тепер умієш і куди йти далі." }
+    ]
+  },
+  "author": {
+    "_note": "Секція «курс від Atlassian Community Champion» — нова, аналогів на сайті немає (бриф, поле 2). Посилання й текст дасть власник; поки що заглушки, НЕ публікувати як є.",
+    "eyebrow": "Хто веде",
+    "title": "Курс від Atlassian Community Champion",
+    "text": "",
+    "link": { "label": "Профіль у спільноті Atlassian", "href": "" }
+  },
+  "certificate": {
+    "title": "У кінці є доказ",
+    "lead": "Після фінального іспиту ти отримуєш сертифікат з унікальним кодом. Код можна перевірити на сайті — сторінка перевірки публічна, тож посилання можна показати будь-кому.",
+    "note": "Ім'я в сертифікат береться з профілю на момент видачі. Заповни його до іспиту.",
+    "paper": {
+      "kind": "Сертифікат про завершення",
+      "name": "Ім'я з профілю",
+      "course": "Jira з нуля · курс про Jira Cloud",
+      "code": "код перевірки: AIA-XXXX-XXXX"
+    }
+  },
+  "donations": {
+    "enabled": true,
+    "title": "Курс безкоштовний і залишиться таким",
+    "lead": "Без реклами, без платних тарифів і без продажу «просунутої версії». Якщо хочеться підтримати — ось три способи; якщо ні — просто вчись, це теж підтримка.",
+    "methods": [
+      { "type": "link", "label": "Банка monobank", "value": "https://send.monobank.ua/jar/fWkbTgxLq", "note": "Найзручніше з України" },
+      { "type": "copy", "label": "ФОП Пухальський А.С.", "value": "IBAN: UA123220010000026000370035379", "note": "Банківський переказ" },
+      { "type": "copy", "label": "Tether (USDT)", "value": "TGQe2kJ23oLZFvnUWshRoYCiMSjnPkYnQR", "note": "Мережа: TRC-20 (Tron)" }
+    ]
+  },
+  "footer": {
+    "project": "Проєкт",
+    "sources": "Першоджерела",
+    "links": [
+      { "label": "Мої сертифікати", "href": "certificate.html?from=jira" },
+      { "label": "AI Академія — базовий курс", "href": "index.html" },
+      { "label": "AI Architect — поглиблений курс", "href": "architect.html" },
+      { "label": "AI Термінал — курс про Claude Code", "href": "claude-code.html" },
+      { "label": "План розвитку", "href": "roadmap.html?from=jira" }
+    ],
+    "contact": "Написати нам",
+    "sourceLinks": [
+      { "label": "Документація Jira Cloud", "key": "officialDocs" },
+      { "label": "Порівняння планів Jira", "key": "plans" },
+      { "label": "Atlassian Learning", "key": "officialCourses" }
+    ],
+    "made": "Зроблено спільнотою",
+    "top": "Нагору"
+  }
+}
