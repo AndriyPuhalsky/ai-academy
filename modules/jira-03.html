@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 3 · Реєстрація і перше вікно — Jira з нуля</title>
+  <meta name="description"
+    content="Як завести Atlassian account, створити власний сайт Jira з назвою, яку на безкоштовному плані потім не змінити, зробити перший спейс із шаблону і розібратись, що де лежить на екрані: верхня панель, бічна панель, домашня For you, список Spaces та особисті налаштування." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+</head>
+
+<body data-module="j03">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 03</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 1 · Що це і навіщо</p>
+        <h1 class="ds-h1">Реєстрація і перше вікно</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 25 хв читання</p>
+        <p class="ds-lead">
+          Досі Jira була чужим інструментом на чужих екранах. Цей урок робить її твоєю:
+          після нього в тебе є власна адреса в інтернеті, перший спейс і розуміння,
+          що де лежить на екрані.
+        </p>
+        <p>
+          Реєстрація в Jira займає кілька хвилин, і саме в ці кілька хвилин приймається
+          одне рішення, яке на безкоштовному плані не переграти — назва сайту. Тому урок
+          починається не з кнопки «Зареєструватись», а з того, що ти взагалі створюєш.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> словника Jira — що таке статус, пріоритет, виконавець,
+            епік, з чого складається ключ <code class="ds-code--inline">MY-1</code>. Це урок 4,
+            і він увесь про слова. Немає й запрошення колег у подробицях — це урок 20.
+          </p>
+          <p>
+            <strong>Є:</strong> акаунт, сайт і його назва назавжди, перший спейс із шаблону,
+            карта екрана (верхня панель, бічна панель, домашня <code class="ds-code--inline">For you</code>,
+            список <code class="ds-code--inline">Spaces</code>), особисті налаштування —
+            тема, домашня сторінка, мова — і чотири пастки, на яких спотикаються всі.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            Оксана Коваль тримає кав'ярню-пекарню «Кориця». Вісім людей, дві точки, друга
+            в ремонті. Справи живуть у трьох місцях одночасно: нотатки в телефоні, голосові
+            в робочому чаті й таблиця, яку ніхто не відкриває. Оксана вирішила спробувати
+            Jira — і перше, у що вона впирається, це не складність програми, а незрозуміле
+            слово «сайт».
+          </p>
+
+          <h3>Що саме ти створюєш</h3>
+
+          <p>
+            У Jira немає одного-єдиного акаунта на все. Реєстрація створює три речі одна за одною, і плутати
+            їх не варто — далі в курсі вони згадуються постійно:
+          </p>
+
+          <ul>
+            <li>
+              <strong>Atlassian account</strong> — твій вхід. Одна адреса пошти й один пароль на
+              всі продукти компанії Atlassian, яка робить Jira. Акаунт живе окремо від будь-якої
+              команди: якщо завтра ти підеш в іншу фірму, акаунт лишиться твоїм.
+            </li>
+            <li>
+              <strong>Сайт</strong> (site) — окрема копія Jira, яка належить твоїй команді, зі
+              своєю адресою в інтернеті виду <code>назва.atlassian.net</code>. Документація
+              Atlassian формулює це так: коли ти реєструєшся, тебе «просять ввести назву для
+              свого сайту, яка стає піддоменом в адресі цього застосунку». Усередині сайту живуть
+              усі твої дані.
+            </li>
+            <li>
+              <strong>Спейс</strong> (space; до 2025 року це саме поняття називалось <em>project</em>,
+              «проєкт», — і в адресах та запитах старе слово досі живе) — контейнер для роботи
+              одного відділу, напряму чи однієї великої справи. У «Кориці» спейсів буде шість:
+              маркетинг, ремонт другої точки, найм, сайт, бухгалтерія й особисті справи
+              самої Оксани.
+            </li>
+          </ul>
+
+          <p>
+            Усередині спейсу лежать <strong>роботи</strong> — окремі картки на кшталт «Замовити
+            борошно на тиждень». Англійською це <em>work item</em> (до 2025 року — <em>issue</em>);
+            у курсі ми кажемо «робота» або «картка». Що в цій картці є і як вона влаштована —
+            повністю в уроці 4.
+          </p>
+
+          <h3>Навіщо це знати наперед</h3>
+
+          <p>
+            Бо на безкоштовному плані сайт один, і його назва задається один раз. Документація
+            Atlassian формулює це без пом'якшень: «Якщо <em>всі</em> ваші застосунки Jira Cloud
+            на безкоштовному плані, ви не можете змінити адресу свого сайту після того, як його
+            створено». Назва, обрана за десять секунд роздумів, лишиться з командою надовго.
+          </p>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Перший екран після входу називається <code>For you</code> — «для тебе». Це домашня
+            сторінка Jira: не список усіх справ фірми, а те, що стосується особисто тебе.
+            Нижче — схема цього екрана. Це не знімок екрана: Jira перемальовує інтерфейс
+            кілька разів на рік, тому в курсі показана структура з дослівними англійськими
+            написами, а не картинка, яка застаріє.
+          </p>
+
+          <figure class="win" data-state="list" id="w1">
+            <figcaption class="win__chrome">
+              <span class="win__dots" aria-hidden="true"></span>
+              <span class="win__title" id="w1t">Jira Cloud · домашня сторінка For you після входу · звірено 2026-09-17</span>
+              <span class="win__addr" aria-hidden="true">…/jira/for-you</span>
+            </figcaption>
+            <div class="win__body" role="group" aria-labelledby="w1t">
+              <ul class="win__rail" aria-label="Бічна панель Jira">
+                <li class="win__rail-item win__rail-item--active">For you</li>
+                <li class="win__rail-item">Spaces</li>
+                <li class="win__rail-item">Filters</li>
+                <li class="win__rail-item">Dashboards</li>
+              </ul>
+              <div class="win__main">
+                <div class="win__bar">
+                  <span class="win__crumb">Search <b class="win__mark" aria-hidden="true">①</b></span>
+                  <span class="win__btn win__btn--primary">+ Create <b class="win__mark" aria-hidden="true">②</b></span>
+                  <span class="win__tabs"><span>See plans</span></span>
+                </div>
+                <div class="win__page">
+                  <h4>Welcome Оксана. It's Thursday, Sep 17.</h4>
+                  <p class="win__placeholder">Let's find your work in Jira</p>
+                  <ul class="win__tiles">
+                    <li class="win__tile">Мої справи · Business space <b class="win__mark" aria-hidden="true">③</b></li>
+                    <li class="win__tile">View all spaces</li>
+                  </ul>
+                  <h4>For you</h4>
+                  <span class="win__tabs"><span class="win__tab--active">Recommended</span><span>Assigned to me <b class="win__mark" aria-hidden="true">④</b></span><span>Starred</span><span>Worked on</span><span>Viewed</span></span>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <ol class="win__legend" aria-label="Пояснення до вікна «домашня сторінка For you»">
+            <li><code>Search</code> — пошук по всьому сайту: роботи, спейси, дашборди. Клавіша <code>/</code> ставить курсор сюди з будь-якого екрана.</li>
+            <li><code>+ Create</code> — створити нову роботу. Ця синя кнопка є на кожному екрані Jira, тому шукати «куди натиснути» не доведеться ніколи.</li>
+            <li>Плитка твого спейсу. Поки він один — «Мої справи»; підпис поруч каже тип спейсу, до якого повернемось в уроці 9.</li>
+            <li>Вкладка <code>Assigned to me</code> — роботи, призначені особисто тобі. Поруч <code>Starred</code> (позначене зіркою), <code>Worked on</code> і <code>Viewed</code> (нещодавнє).</li>
+          </ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Написи взяті дослівно з живого екрана Jira Cloud Free 17 вересня 2026 року; ім'я
+            користувача замінене на Оксану з нашої історії, назва спейсу — теж наша. Праворуч
+            від <code>See plans</code> на живому екрані стоять чотири іконки без підписів —
+            дзвіночок, знак питання, шестірня й аватар; у схемі їх немає, бо схема показує те,
+            що на екрані має текст. Що вони роблять — у таблиці нижче.
+          </p>
+
+          <h3>Верхня панель: дев'ять елементів на всі 22 уроки</h3>
+
+          <p>
+            Верхня панель однакова на кожній сторінці Jira. Якщо запам'ятати її один раз,
+            половина питань «а де це?» відпадає.
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: елементи верхньої панелі Jira">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Елемент</th>
+                <th>Що робить</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Сітка 3×3</td>
+                <td>Перемикач продуктів Atlassian (<em>app switcher</em>): звідси переходять у Confluence чи Jira Service Management, якщо вони підключені до сайту.</td>
+              </tr>
+              <tr>
+                <td><code>Jira</code></td>
+                <td>Логотип. Клік по ньому завжди повертає на домашню сторінку Jira.</td>
+              </tr>
+              <tr>
+                <td><code>Search</code></td>
+                <td>Пошук по всьому сайту. Натиснути <code>Enter</code> у порожньому полі — перейти до розширеного пошуку, з якого починається урок 7.</td>
+              </tr>
+              <tr>
+                <td><code>+ Create</code></td>
+                <td>Створити роботу. Єдина синя кнопка панелі, і це не випадковість — це найчастіша дія в Jira.</td>
+              </tr>
+              <tr>
+                <td><code>See plans</code></td>
+                <td>Порівняння тарифів Atlassian. Це пропозиція перейти на платний план, а не функція Jira: на безкоштовному сайті вона стоїть у панелі постійно.</td>
+              </tr>
+              <tr>
+                <td>Дзвіночок</td>
+                <td>Сповіщення: тебе призначили виконавцем, згадали в коментарі, змінили роботу, за якою ти стежиш.</td>
+              </tr>
+              <tr>
+                <td>Знак питання</td>
+                <td>Довідка. Тут же лежить список гарячих клавіш — про нього в блоці 7.</td>
+              </tr>
+              <tr>
+                <td>Шестірня</td>
+                <td>Налаштування. Особисті (тема, мова, сповіщення) і, якщо ти адміністратор, налаштування всього сайту.</td>
+              </tr>
+              <tr>
+                <td>Аватар</td>
+                <td>Твій профіль і вихід з акаунта. Звідси ж шлях до налаштувань самого Atlassian account — зокрема до мови.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <h3>Бічна панель і список спейсів</h3>
+
+          <p>
+            Ліворуч — бічна панель. Документація Atlassian описує її склад так: «Spaces, Filters,
+            Dashboards та інше», причому «позначені зіркою елементи з'являються вгорі кожного
+            меню, а за ними — нещодавно відвідані». Тобто зірка — це не прикраса, а спосіб
+            підняти потрібний спейс на перше місце.
+          </p>
+
+          <p>
+            Пункт <code>Spaces</code> відкриває список усіх спейсів сайту. Поки він один, сторінка
+            виглядає порожньою — і саме тому її варто подивитись зараз: пізніше, коли спейсів
+            стане шість, ти вже знатимеш, які колонки в цій таблиці що означають.
+          </p>
+
+          <figure class="win" data-state="list" id="w2">
+            <figcaption class="win__chrome">
+              <span class="win__dots" aria-hidden="true"></span>
+              <span class="win__title" id="w2t">Jira Cloud · список спейсів Spaces · звірено 2026-09-17</span>
+              <span class="win__addr" aria-hidden="true">…/jira/projects</span>
+            </figcaption>
+            <div class="win__body" role="group" aria-labelledby="w2t">
+              <ul class="win__rail" aria-label="Бічна панель Jira">
+                <li class="win__rail-item">For you</li>
+                <li class="win__rail-item win__rail-item--active">Spaces</li>
+                <li class="win__rail-item">Filters</li>
+                <li class="win__rail-item">Dashboards</li>
+              </ul>
+              <div class="win__main">
+                <div class="win__bar">
+                  <span class="win__crumb">Spaces · 1 space found</span>
+                  <span class="win__btn win__btn--primary">Create space <b class="win__mark" aria-hidden="true">①</b></span>
+                  <span class="win__tabs"><span>Templates</span><span>Search spaces</span></span>
+                </div>
+                <table class="win__table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Key <b class="win__mark" aria-hidden="true">②</b></th>
+                      <th>Type <b class="win__mark" aria-hidden="true">③</b></th>
+                      <th>Lead</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Мої справи</td>
+                      <td><span class="win__key">MY</span></td>
+                      <td>Team-managed business</td>
+                      <td>Оксана Коваль</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </figure>
+          <ol class="win__legend" aria-label="Пояснення до вікна «список спейсів Spaces»">
+            <li><code>Create space</code> — створити новий спейс; кнопка <code>Templates</code> поруч відкриває ту саму галерею заготовок окремо.</li>
+            <li><code>Key</code> — короткий код спейсу великими латинськими літерами. З нього починається ключ кожної роботи: <code>MY-1</code>, <code>MY-2</code>. Jira пропонує код сама, але його можна змінити.</li>
+            <li><code>Type</code> — тип спейсу з двох частин: хто керує налаштуваннями (урок 9) і з якої родини шаблон — business, software чи service management.</li>
+          </ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Колонки й підписи — з живого екрана 17 вересня 2026 року; рядок таблиці наш, з історії
+            «Кориці». На екрані є ще колонка зі зіркою на початку рядка й колонка
+            <code>Space URL</code> у кінці — у схемі лишились чотири головні.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <p>
+            Усе, що ти зараз створиш, вибудовується в один ланцюжок. Кожна ланка вкладена
+            в попередню, і це пояснює, чому речі лежать саме там, де лежать.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart LR
+  A["Atlassian account — твій вхід"] --> B["Сайт korycia.atlassian.net"]
+  B --> C["Спейс MY «Мої справи»"]
+  C --> D["Робота MY-1 «Замовити борошно»"]
+  B --> E["Спейс MARK «Маркетинг»"]
+  E --> F["Робота MARK-1 «Пост про круасан»"]
+            </pre>
+            <p class="ds-diag__caption">
+              Акаунт → сайт → спейс → робота. Сайт один, спейсів усередині скільки треба
+            </p>
+          </div>
+
+          <p>
+            З цього ланцюжка випливають три речі, які варто знати до реєстрації.
+          </p>
+
+          <h3>Акаунт і сайт — різні речі</h3>
+
+          <p>
+            Ти можеш мати один Atlassian account і доступ до кількох сайтів: свого, робочого
+            й того, куди тебе колись запросив знайомий. Вхід усюди той самий, дані — різні.
+            Тому фраза «я зайшов у Jira» неповна: питання завжди в тому, у який сайт.
+          </p>
+
+          <h3>Спейс народжується з шаблону</h3>
+
+          <p>
+            Коли ти створюєш спейс, Jira питає не «як назвати», а «що ти робиш». Вибір
+            відбувається в <strong>бібліотеці шаблонів</strong>: документація описує її як
+            місце, «де можна переглянути різні шаблони по всіх продуктах Jira Cloud, якими
+            ти володієш». Шаблон — це заготовка: він відразу задає типи роботи, статуси й
+            вигляди нового спейсу.
+          </p>
+
+          <p>
+            Різниця між шаблонами відчутна з першого дня. Шаблон для простого обліку задач
+            (у документації — <em>task management template</em>) створює процес із двох кроків:
+            <code>To Do</code> і <code>Done</code>. Шаблон для ведення проєктів
+            (<em>project management template</em>) — із трьох: <code>To do</code>,
+            <code>In Progress</code>, <code>Done</code>. Для особистих справ вистачає першого;
+            для ремонту другої точки знадобиться другий.
+          </p>
+
+          <p>
+            Назви шаблонів у галереї Atlassian час від часу змінює, тому в цьому курсі шаблони
+            описуються тим, що вони дають, а не рядком з екрана. Орієнтуйся на опис під назвою
+            шаблону, а не на саму назву.
+          </p>
+
+          <h3>Що потім змінюється, а що ні</h3>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: що можна змінити після створення, а що ні">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Що</th>
+                <th>Чи змінюється потім</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Назва сайту</td>
+                <td><strong>На безкоштовному плані — ні.</strong> Документація: «не можна змінити адресу свого сайту після того, як його створено». На платних планах адресу міняють в Atlassian Administration, але й там «не можна оновлювати адресу застосунку більш ніж тричі».</td>
+              </tr>
+              <tr>
+                <td>Назва спейсу</td>
+                <td>Так, будь-коли: <code>Space settings</code> → <code>Details</code>.</td>
+              </tr>
+              <tr>
+                <td>Ключ спейсу</td>
+                <td>Так, там само. Код має бути щонайменше з двох символів, починатись з великої літери й складатись лише з великих літер і цифр. Документація попереджає: «оновлений ключ може з'явитись на дошці протягом десяти хвилин».</td>
+              </tr>
+              <tr>
+                <td>Мова акаунта</td>
+                <td>Так, будь-коли. Але назви статусів у вже створених спейсах від цього не перекладаються — див. блок 6.</td>
+              </tr>
+              <tr>
+                <td>Тема</td>
+                <td>Так, будь-коли, і це особисте налаштування: колеги бачать свою тему, не твою.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            Далі — шість кроків у браузері. Нічого платити не доведеться: картку на
+            безкоштовному плані не питають. Порядок кроків має значення — третій крок
+            стоїть перед четвертим не випадково.
+          </p>
+
+          <h3>Крок 1. Створити Atlassian account</h3>
+
+          <p>
+            Документація каже коротко: «Щоб створити Atlassian account самостійно, перейди на
+            <code>https://id.atlassian.com/</code> і пройди процес». Потрібна адреса пошти.
+            Пароль придумувати не обов'язково: документація описує вхід через сторонній
+            акаунт — Google, Apple, Microsoft чи Slack — на сторінці
+            <code>id.atlassian.com/login</code>. Такий вхід прив'язується до того самого
+            Atlassian account.
+          </p>
+
+          <p>
+            Після цього прийде лист із підтвердженням адреси. Якщо його немає протягом кількох
+            хвилин, документація прямо радить «перевірити папку зі спамом на лист від
+            <code>noreply@mailer.atlassian.com</code> або
+            <code>noreply@mail.notifications.atlassian.com</code>».
+          </p>
+
+          <h3>Крок 2. Створити сайт і назвати його</h3>
+
+          <p>
+            Реєстрація в Jira одразу пропонує ввести назву сайту. Те, що ти напишеш, стане
+            адресою: написав <code>korycia</code> — отримав <code>korycia.atlassian.net</code>.
+            Правило назви на всі випадки:
+          </p>
+
+          <ul>
+            <li><strong>Коротко й латиницею.</strong> Кирилиця в адресі не працює: «Кориця» доведеться записати як <code>korycia</code> або <code>korytsia</code>.</li>
+            <li><strong>Без року й без слова «тест».</strong> <code>korycia-2026</code> стане незручним у січні, а <code>test-jira</code> — уже наступного тижня.</li>
+            <li><strong>Назва фірми, а не твоє ім'я.</strong> Сайт переживе і твою посаду, і твій телефон.</li>
+            <li><strong>Без зайвих слів.</strong> <code>korycia</code> читається й диктується телефоном; <code>korycia-cafe-bakery-kyiv</code> — ні.</li>
+          </ul>
+
+          <p>
+            Оксана обирає <code>korycia</code>. Далі майстер запитує, який продукт додати, —
+            вибір тут Jira. Цей майстер у курсі описаний словами, а не схемою: його вигляд
+            Atlassian змінює частіше за все інше, а суть лишається та сама — назва, продукт,
+            кнопка «далі».
+          </p>
+
+          <h3>Крок 3. Поставити мову акаунта English — до створення спейсів</h3>
+
+          <p>
+            Цей крок виглядає дивним, і саме тому він тут. Мова акаунта в момент створення
+            спейсу визначає, якою мовою народяться назви статусів усередині цього спейсу.
+            Докладно — у блоці 6; зараз важливо зробити це <em>до</em> кроку 4.
+          </p>
+
+          <p>
+            Шлях із документації Atlassian дослівно: аватар → <code>Profile</code> →
+            <code>Manage your account</code> → <code>Account preferences</code> → з випадайки
+            <code>Language</code> вибрати мову. Постав <code>English</code>.
+          </p>
+
+          <h3>Крок 4. Створити перший спейс</h3>
+
+          <p>
+            У бічній панелі поруч зі <code>Spaces</code> натисни <code>Create space</code>.
+            Далі, за документацією: вибери категорію або продукт у бібліотеці шаблонів, знайди
+            потрібний шаблон і натисни <code>Use template</code>; вибери
+            <code>Team-managed</code>; введи назву спейсу — код Jira згенерує сама, і його
+            можна змінити; натисни <code>Create</code>.
+          </p>
+
+          <p>
+            Для першого спейсу візьми заготовку для простого обліку задач у категорії
+            ділових спейсів (business). Назва — <strong>Мої справи</strong>, код —
+            <strong><code>MY</code></strong>. Це буде твій особистий спейс: у ньому нічого
+            не страшно зіпсувати, і саме на ньому тренуються уроки 4 і 5.
+          </p>
+
+          <h3>Крок 5. Перемкнути тему</h3>
+
+          <p>
+            Шестірня у верхній панелі → <code>Personal Jira settings</code> →
+            <code>General settings</code>. У полі <code>Theme</code> три варіанти:
+            <code>Light</code>, <code>Dark</code> і <code>Match browser</code> — останній
+            означає «як у браузері». Перемкни й подивись, як змінився екран: це найдешевший
+            спосіб переконатись, що ти справді знайшов особисті налаштування.
+          </p>
+
+          <figure class="win" data-state="settings" id="w3">
+            <figcaption class="win__chrome">
+              <span class="win__dots" aria-hidden="true"></span>
+              <span class="win__title" id="w3t">Jira Cloud · Personal Jira settings → General settings · звірено 2026-09-17</span>
+              <span class="win__addr" aria-hidden="true">…/jira/settings/personal/general</span>
+            </figcaption>
+            <div class="win__body" role="group" aria-labelledby="w3t">
+              <ul class="win__rail win__rail--settings" aria-label="Personal Jira settings">
+                <li class="win__rail-item win__rail-item--active">General settings</li>
+                <li class="win__rail-item">Notification settings</li>
+              </ul>
+              <div class="win__main">
+                <div class="win__page">
+                  <h4>General settings</h4>
+                  <dl class="win__fields">
+                    <dt>Your timezone</dt><dd>Europe/Kiev</dd>
+                    <dt>Language <b class="win__mark" aria-hidden="true">①</b></dt><dd>українська (Україна)</dd>
+                    <dt>Watch work items automatically</dt><dd>Use global settings</dd>
+                    <dt>Jira homepage <b class="win__mark" aria-hidden="true">②</b></dt><dd>For you</dd>
+                    <dt>Theme <b class="win__mark" aria-hidden="true">③</b></dt><dd>Light · Dark · Match browser</dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <ol class="win__legend" aria-label="Пояснення до вікна «Personal Jira settings»">
+            <li><code>Language</code> — мова акаунта. На цьому екрані тут стоїть «українська (Україна)», а весь інтерфейс навколо англійський: це і є доказ, що української Jira не існує.</li>
+            <li><code>Jira homepage</code> — яка сторінка відкривається при вході. За замовчуванням <code>For you</code>; коли спейсів стане багато, сюди можна поставити улюблену дошку.</li>
+            <li><code>Theme</code> — світла, темна або «як у браузері». Налаштування особисте: колеги своїх тем не міняють.</li>
+          </ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Поля й значення зняті з живого екрана Jira Cloud Free 17 вересня 2026 року. Ця сама
+            сторінка знадобиться в уроці 5 — сповіщення живуть у сусідньому розділі
+            <code>Notification settings</code>.
+          </p>
+
+          <h3>Крок 6. Позначити спейс зіркою</h3>
+
+          <p>
+            Відкрий <code>Spaces</code>, наведись на рядок «Мої справи» й натисни зірку на
+            початку рядка. Позначені зіркою спейси, за документацією, «з'являються вгорі
+            кожного меню». Поки спейс один, різниці не видно — але звичка ставити зірку
+            зекономить час уже на шостому спейсі.
+          </p>
+
+          <div class="ds-note">
+            <span class="ds-note__title">Колег поки не запрошуємо</span>
+            <p>
+              На домашній сторінці є картка <code class="ds-code--inline">Invite your team</code>
+              з кнопкою <code class="ds-code--inline">Invite</code>. Натискати її зараз не треба:
+              люди, ролі й доступи — це урок 20, і там пояснюється, чому на безкоштовному плані
+              кожен запрошений отримує більше прав, ніж очікуєш.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Чотири ознаки на екрані. Якщо всі чотири на місці — урок зроблено, і можна
+            йти далі без сумнівів.
+          </p>
+
+          <ul>
+            <li>
+              <strong>Адреса в браузері містить твою назву.</strong> У рядку зверху має бути
+              щось на кшталт <code>korycia.atlassian.net/jira/for-you</code>. Якщо там чужа
+              назва — ти зайшов у чужий сайт, куди тебе колись запросили.
+            </li>
+            <li>
+              <strong>На <code>For you</code> є плитка твого спейсу.</strong> Блок
+              <code>Find a space</code> показує «Мої справи». Якщо плитки немає — спейс не
+              створився; повернись до кроку 4.
+            </li>
+            <li>
+              <strong><code>Spaces</code> показує тип спейсу.</strong> У рядку таблиці має бути
+              заповнена колонка <code>Type</code> і код <code>MY</code> у колонці
+              <code>Key</code>.
+            </li>
+            <li>
+              <strong>Статуси всередині спейсу англійські.</strong> Відкрий спейс: колонки на
+              дошці мають називатись <code>To Do</code> і <code>Done</code> (або
+              <code>To Do</code>, <code>In Progress</code>, <code>Done</code> — залежно від
+              шаблону). Якщо вони українські чи російські — це та сама пастка
+              з блоку 6, і лагодити її доведеться там.
+            </li>
+          </ul>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Одна перевірка, яку варто зробити раз і назавжди</span>
+            <p>
+              Збережи адресу свого сайту в закладки браузера одразу після створення. Jira не
+              надсилає її окремим листом, і за тиждень «а яка в мене була назва» стає справжнім
+              питанням — особливо якщо акаунт заведений через Google і листа з паролем немає.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3>Назва сайту з помилкою — це назавжди</h3>
+
+          <p>
+            Найдорожча помилка уроку — і робиться вона за десять секунд неуважності. На
+            безкоштовному плані адреса сайту не змінюється взагалі; другий сайт теж не врятує —
+            цей план дає один сайт (решта меж — у довіднику «Карта інтерфейсу, глосарій
+            і ліміти Free»).
+          </p>
+
+          <p>
+            Що робити, якщо помилка вже сталась: жити з нею, поки не знадобиться платний план.
+            Адресу бачиш ти й твої колеги — у листах і в посиланнях; на роботу самої Jira вона
+            не впливає. Неприємно, але не смертельно — хоча й не хочеться диктувати клієнтові
+            <code>test-jira-2.atlassian.net</code>.
+          </p>
+
+          <h3>Мова акаунта в момент створення спейсу визначає назви статусів</h3>
+
+          <p>
+            Ця пастка знайдена не в документації, а на живому сайті 17 вересня 2026 року, і вона
+            дорога. Шаблон створює статуси мовою, яка стоїть у твоєму акаунті <em>цієї миті</em>.
+            На тестовому сайті курсу акаунт був російським — і статуси народились
+            «К выполнению», «В работе», «Готово», при повністю англійському інтерфейсі навколо.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart LR
+  A["Мова акаунта в момент створення спейсу"] --> B["Такою мовою народжуються назви статусів"]
+  B --> C["Запит status = Done не знаходить нічого"]
+  B --> D["Приклади з курсу не збігаються з твоїм екраном"]
+            </pre>
+            <p class="ds-diag__caption">
+              Мова акаунта відповідає не лише за інтерфейс: вона потрапляє всередину спейсу
+            </p>
+          </div>
+
+          <p>
+            Наслідок болючий. Пошук у Jira працює мовою запитів JQL (урок 7), і запит
+            <code>status = Done</code> у такому спейсі не знаходить нічого: статус там
+            називається інакше. Автоматизація (уроки 14–15) із тієї ж причини мовчить.
+            Зміна мови акаунта пізніше вже <strong>не перейменовує</strong> статуси, створені
+            раніше: їх доведеться або перейменувати в налаштуваннях спейсу (це урок 10), або
+            створити спейс заново.
+          </p>
+
+          <p>
+            Рецепт один: постав <code>English</code> у мові акаунта <em>до</em> створення
+            першого спейсу. Це крок 3 блоку 4, і він стоїть там саме через цю пастку.
+          </p>
+
+          <h3>Лист із підтвердженням у спамі</h3>
+
+          <p>
+            Реєстрація вимагає підтвердити адресу пошти, і лист від автоматичної адреси
+            Atlassian регулярно осідає в спамі — документація сама про це попереджає й називає
+            обидва відправники: <code>noreply@mailer.atlassian.com</code> і
+            <code>noreply@mail.notifications.atlassian.com</code>. Якщо через п'ять хвилин листа
+            немає — шукай у спамі за словом <code>Atlassian</code>, а не реєструйся вдруге.
+          </p>
+
+          <h3>Безкоштовний сайт вимикають за неактивність</h3>
+
+          <p>
+            Пряма цитата з документації: «Atlassian залишає за собою право деактивувати
+            безкоштовні сайти Jira Cloud через неактивність». За описом на тій самій сторінці,
+            активністю рахується звичайна робота — відкрити дашборд, подивитись звіт,
+            переглянути роботу, зайти в налаштування; адміністратор сайту перед деактивацією
+            отримує листи-попередження.
+          </p>
+
+          <p>
+            Практичний висновок для того, хто проходить курс повільно: заходь на свій сайт хоча б
+            раз на кілька тижнів і не ігноруй листи від Atlassian із темою про неактивність.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Чи є Jira українською?</h3>
+          <p>
+            Ні. Українська є в списку мов Atlassian account, але діє вона не всюди: за офіційною
+            таблицею мов, українська підтримується для Compass, Atlassian Home і центру допомоги
+            (Help Center / Customer Portal), а для Jira, Jira Service Management, Jira Product
+            Discovery й Confluence — ні. Перевірено й очима: на тестовому сайті курсу в акаунті
+            стоїть «українська (Україна)», а весь інтерфейс Jira англійський. Тому в цьому курсі
+            всі написи в схемах — англійські, а пояснення до них — українські. Приємний виняток:
+            портал заявок, який бачать <em>клієнти</em>, українською бути може — це урок 18.
+          </p>
+
+          <h3>Чи є застосунок на телефон?</h3>
+          <p>
+            Так. Документація називає його «Jira for mobile» і каже, що він «працює з усіма
+            інсталяціями Jira»; окремі версії є для пристроїв Apple і для Android. У застосунку,
+            цитуючи документацію, можна «створювати роботи, призначати виконавців, перевіряти
+            задачі, коментувати й багато іншого» — тобто щоденна робота з картками. Курс
+            проходять з комп'ютера: налаштування, шаблони й автоматизація зручніші на великому
+            екрані, а телефон лишається для «записати справу дорогою».
+          </p>
+
+          <h3>Які є гарячі клавіші?</h3>
+          <p>
+            Повний список Jira показує сама: «вибери <code>Help</code>, потім
+            <code>Keyboard shortcuts</code>» або «натисни <code>?</code> на клавіатурі з
+            будь-якої сторінки». Найкорисніші три з документації: <code>c</code> — створити
+            роботу, <code>/</code> — поставити курсор у пошук, <code>.</code> — швидкі дії для
+            переходу на потрібний екран. Є ще палітра команд: на Mac <code>command</code> +
+            <code>K</code>, на Windows <code>Ctrl</code> + <code>K</code> — вона «дозволяє
+            знаходити роботу, виконувати дії над нею й переходити в ключові місця Jira».
+            Якщо клавіші заважають, їх вимикають у тому ж діалозі перемикачем
+            <code>Keyboard shortcuts are enabled</code>.
+          </p>
+
+          <h3>Що це за кнопки Ask AI, Improve і See plans?</h3>
+          <p>
+            Це пропозиції платних можливостей, а не функції безкоштовного плану. Кнопки видно
+            на екранах Free — і саме тому вони плутають: виглядають як частина продукту.
+            <code>See plans</code> веде на порівняння тарифів; <code>Ask AI</code>,
+            <code>Improve</code> й <code>Add agent</code> стосуються AI-шару Atlassian під назвою
+            Rovo, кредити якого входять лише в платні підписки. Натиснувши, ти нічого не зламаєш
+            і нічого не спишеш — побачиш екран із пропозицією перейти на платний план.
+          </p>
+
+          <h3>Можна створити другий сайт, щоб виправити назву?</h3>
+          <p>
+            На безкоштовному плані — ні: він дає один сайт. Реєстрація на іншу адресу пошти
+            створює, за документацією, новий акаунт разом із новою організацією й новим
+            сайтом — але тоді в тебе два входи, дві адреси й перенесення даних руками.
+            Простіше прийняти назву й іти далі.
+          </p>
+
+          <h3>Чи можна перейменувати спейс і його код?</h3>
+          <p>
+            Так — на відміну від назви сайту. Шлях: <code>Space settings</code> →
+            <code>Details</code>. Код має бути щонайменше з двох символів, починатись з великої
+            літери й складатись лише з великих латинських літер і цифр; документація попереджає,
+            що «оновлений ключ може з'явитись на дошці протягом десяти хвилин». Ключі вже
+            створених робіт при цьому змінюються разом із кодом.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Якщо ти зараз дивишся на власну адресу <code>щось.atlassian.net</code>, бачиш на
+            домашній сторінці плитку свого спейсу й знаєш, де шукати кнопку створення, —
+            технічна частина курсу для тебе почалась. Далі буде легше: жодне наступне рішення
+            курсу не є настільки остаточним, як назва сайту.
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li><strong>Три речі, не одна:</strong> Atlassian account — твій вхід, сайт —
+                копія Jira за адресою <code>назва.atlassian.net</code>, спейс — контейнер
+                для роботи одного напряму.</li>
+              <li><strong>Назва сайту на безкоштовному плані не змінюється.</strong> Коротко,
+                латиницею, без року й без слова «тест».</li>
+              <li><strong>Мову акаунта ставлять English до створення першого спейсу</strong> —
+                інакше назви статусів народяться чужою мовою й зламають пошук і автоматизацію.</li>
+              <li><strong>Спейс створюється з шаблону</strong>, і шаблон одразу задає типи
+                роботи, статуси й вигляди. Змінити назву й код спейсу потім можна.</li>
+              <li><strong>Верхня панель однакова скрізь:</strong> <code>Search</code>,
+                <code>+ Create</code>, дзвіночок, знак питання, шестірня, аватар. Бічна —
+                <code>For you</code>, <code>Spaces</code>, <code>Filters</code>,
+                <code>Dashboards</code>.</li>
+              <li><strong>Інтерфейс Jira англійський</strong>, і це не через твої налаштування:
+                української локалізації Jira не існує.</li>
+              <li><strong>Кнопки з AI і <code>See plans</code> — пропозиції платних планів</strong>,
+                а не функції безкоштовного.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Далі — <strong>урок 4 «Словник Jira»</strong>. Він відповідає на питання, які цей
+            урок свідомо обійшов: що таке статус і чим він відрізняється від категорії статусу,
+            хто такі виконавець і автор, з чого складається ключ <code>MY-1</code>, що таке
+            епік і підзадача. Після нього ти зможеш назвати правильним словом кожен елемент
+            на екрані — а це саме те, чого бракує, коли шукаєш відповідь у документації.
+          </p>
+          <p>
+            До того часу корисна дрібниця: створи у своєму спейсі <code>MY</code> одну роботу
+            з назвою «Замовити борошно на тиждень». Вона знадобиться на першій же сторінці
+            наступного уроку.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять на
+            назви: до кожної відповіді одразу з'являється пояснення, чому решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Оксана назвала сайт korycia-2026 і за місяць зрозуміла, що рік у назві заважає. Усі продукти сайту на безкоштовному плані. Що вона може зробити?",
+            "options": [
+              "Змінити адресу в Atlassian Administration: кнопка Update URL є на всіх планах без винятку, включно з безкоштовним",
+              "Перейменувати організацію — адреса сайту зміниться слідом",
+              "Нічого: поки всі продукти сайту на безкоштовному плані, адресу після створення не змінюють",
+              "Створити другий безкоштовний сайт із правильною назвою й перенести туди спейси разом з усіма картками"
+            ],
+            "answer": 2,
+            "explain": "Документація Atlassian формулює це прямо: якщо всі застосунки Jira Cloud на безкоштовному плані, адресу сайту після створення змінити не можна. Кнопка Update URL справді існує, але живе на платних планах і навіть там обмежена трьома змінами. Назва організації й адреса сайту — різні поля: перша міняється, друга ні. Другий безкоштовний сайт теж не вихід — на цьому плані сайт один. Саме тому назву обирають до реєстрації, а не під час неї."
+          },
+          {
+            "q": "Оксана стоїть на домашній сторінці For you і хоче створити нову справу. Де кнопка?",
+            "options": [
+              "Синя кнопка + Create у верхній панелі — вона на кожному екрані Jira",
+              "Тільки всередині спейсу: на For you створити роботу не можна, спершу треба відкрити потрібний спейс",
+              "У бічній панелі під списком Spaces",
+              "Через шестірню: Settings → Create, бо створення роботи належить до налаштувань"
+            ],
+            "answer": 0,
+            "explain": "Верхня панель однакова на кожній сторінці Jira, і кнопка створення в ній єдина синя — це найчастіша дія в продукті, тому її винесли туди, де вона видно завжди. Заходити в спейс не потрібно: спейс вибирається вже всередині форми створення. Шестірня відкриває налаштування — особисті або сайту, — а не створення роботи. Та сама дія є з клавіатури: клавіша c відкриває форму створення з будь-якого екрана."
+          },
+          {
+            "q": "Колега питає, що таке сторінка For you в Jira. Яка відповідь точна?",
+            "options": [
+              "Це стрічка новин Atlassian: анонси продуктів і поради з блогу компанії",
+              "Це список усіх робіт сайту — геть усе, що будь-хто створив у будь-якому спейсі, від найстарішої картки до найновішої",
+              "Це налаштування профілю: мова, тема й адреса пошти в одному місці",
+              "Це домашня сторінка з тим, що стосується тебе: рекомендоване, призначене тобі, позначене зіркою й нещодавнє"
+            ],
+            "answer": 3,
+            "explain": "Документація описує For you як місце, де можна «продовжити роботу й знайти те, з чим ти взаємодіяв», і перелічує вкладки: Recommended, Assigned to me, Starred, Worked on, Viewed. Це сторінка про тебе, а не про весь сайт: усі роботи шукають через пошук і фільтри (урок 7). Налаштування профілю живуть під шестірнею, у розділі Personal Jira settings. Яка сторінка відкривається при вході, задає поле Jira homepage — і For you там стоїть за замовчуванням."
+          },
+          {
+            "q": "Оксана хоче темну тему, бо працює ввечері. Куди їй іти?",
+            "options": [
+              "У налаштування браузера: власного перемикача теми Jira не має й бере її з системи",
+              "Шестірня у верхній панелі → Personal Jira settings → General settings → поле Theme",
+              "Space settings спейсу: тема задається окремо для кожного спейсу",
+              "В Atlassian Administration → Products: тему сайту перемикає лише адміністратор організації"
+            ],
+            "answer": 1,
+            "explain": "Тема — особисте налаштування, тому воно лежить у розділі Personal Jira settings разом із мовою, часовим поясом і домашньою сторінкою. Варіантів три: Light, Dark і Match browser — останній якраз і означає «брати з браузера», тобто власний перемикач у Jira є, а системний лишається опцією. Спейс до теми стосунку не має: колеги в тому самому спейсі бачать кожен свою. Адміністратор організації теж нічого тут не вирішує — це вибір кожної людини."
+          },
+          {
+            "q": "Оксана поставила в Atlassian account українську мову, вийшла й зайшла знову, а Jira лишилась англійською. Що відбувається?",
+            "options": [
+              "Української локалізації Jira немає: мова акаунта діє на інші продукти Atlassian, а інтерфейс Jira лишається англійським",
+              "Мова застосовується лише після повного виходу з усіх пристроїв",
+              "Мову інтерфейсу вмикає адміністратор сайту окремо для кожного спейсу в Space settings",
+              "Це збій кеша браузера: після очищення кеша й перезавантаження сторінки інтерфейс стане українським протягом наступної доби"
+            ],
+            "answer": 0,
+            "explain": "За офіційною таблицею мов Atlassian українська підтримується для Compass, Atlassian Home і центру допомоги, але не для Jira, Jira Service Management, Jira Product Discovery й Confluence. Це перевірено й на живому сайті: акаунт українською, інтерфейс англійською. Ні вихід з акаунта, ні очищення кеша тут ні до чого — перекладу для Jira не існує. Налаштування мови інтерфейсу на рівні спейсу в Jira немає взагалі. Одна річ, на яку мова акаунта таки впливає, — назви статусів у момент створення спейсу."
+          },
+          {
+            "q": "У верхній панелі поруч із кнопкою створення є кнопка See plans. Що вона робить?",
+            "options": [
+              "Відкриває список планів роботи команди на найближчий тиждень — вигляд, схожий на календар, але з людьми",
+              "Показує плани спейсу: етапи, дедлайни й відповідальних за кожен етап",
+              "Вмикає Rovo — помічника Atlassian, який пише опис роботи за тебе",
+              "Веде на порівняння тарифів Atlassian: це пропозиція перейти на платний план, а не функція Jira"
+            ],
+            "answer": 3,
+            "explain": "Слово plans тут означає тарифні плани, а не плани роботи. На безкоштовному сайті вона стоїть у верхній панелі постійно — це пропозиція апгрейду, вбудована прямо в інтерфейс. Планування роботи в Jira робиться зовсім іншими інструментами: вигляди Calendar і Timeline (урок 6), фільтри (урок 7), дашборди (урок 8). Rovo — це AI-шар Atlassian, і на безкоштовному плані його кнопки теж лише пропонують платну підписку."
+          }
+        ]
+      }
+      </script>
+
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Урок позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний урок (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між уроками" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>

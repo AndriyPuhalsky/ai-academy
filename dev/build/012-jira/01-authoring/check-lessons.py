@@ -120,8 +120,11 @@ def check(path):
                 errs.append(f"вікно {i}: .win__mark без aria-hidden")
                 break
         # легенда — одразу після </figure>
-        tail = src[src.index(fig) + len(fig): src.index(fig) + len(fig) + 400]
-        legend = re.match(r'\s*<ol class="win__legend"[^>]*>(.*?)</ol>', tail, re.S)
+        # Легенда мусить іти ОДРАЗУ за </figure> (пробіли/коментар дозволені), але сама
+        # може бути довгою: до 2026-09-17 вікно пошуку було 400 символів і давало хибне
+        # «пунктів легенди 0» на довгих легендах (знайшов автор j01).
+        tail = src[src.index(fig) + len(fig): src.index(fig) + len(fig) + 8000]
+        legend = re.match(r'\s*(?:<!--.*?-->\s*)?<ol class="win__legend"[^>]*>(.*?)</ol>', tail, re.S)
         n_leg = len(re.findall(r"<li\b", legend.group(1))) if legend else 0
         if n_marks and n_leg != n_marks:
             errs.append(f"вікно {i}: міток {n_marks}, пунктів легенди {n_leg} — мають збігатись")
