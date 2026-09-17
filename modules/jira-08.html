@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 8 · Дашборди і гаджети — Jira з нуля</title>
+  <meta name="description"
+    content="Дашборд у Jira — одна сторінка, на якій кілька збережених фільтрів показані поруч: що горить, що нічиє, хто чим зайнятий. Як зібрати такий дашборд, які гаджети для цього є і як дати до нього доступ команді." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+</head>
+
+<body data-module="j08">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 08</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 2 · Щоденна робота</p>
+        <h1 class="ds-h1">Дашборди і гаджети</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 22 хв читання</p>
+        <p class="ds-lead">
+          Збережений фільтр з уроку 7 відповідає на одне питання й показує відповідь
+          списком. Коли питань стає три-чотири, відкривати їх по черзі щоранку —
+          робота сама по собі. Дашборд прибирає цю роботу: це одна сторінка, на якій
+          кілька відповідей стоять поруч, оновлюються самі й видні не лише тобі.
+        </p>
+        <p>
+          Цей урок збирає перший дашборд «Кориці» — «Кориця — тиждень» — з трьох
+          фільтрів, які ти вже зберіг(ла), і розбирає головне непорозуміння новачка:
+          гаджет нічого не рахує сам, він показує готове.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> мови запитів <code class="ds-code--inline">JQL</code> і
+            збереження фільтрів — це урок 7, і цей урок на нього спирається. Немає звітів
+            для команд розробки (burndown, velocity) — про них оглядово в уроці 13.
+            Немає точних чисел безкоштовного плану: вони живуть у довіднику
+            «Карта інтерфейсу, глосарій і ліміти Free».
+          </p>
+          <p>
+            <strong>Є:</strong> що таке дашборд і гаджет; шість вбудованих гаджетів і
+            коли який брати; як створити дашборд і дати до нього доступ команді; чому
+            гаджет буває порожнім у колеги, хоч у тебе повний; і чим дашборд
+            відрізняється від вигляду <code class="ds-code--inline">Summary</code>, який
+            ти бачив(ла) в уроці 6.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            Після уроку 7 в Оксани, власниці «Кориці», є три збережені фільтри:
+            «Мої на цьому тижні», «Прострочені (усі спейси)» і «Без виконавця».
+            Кожен відповідає на одне питання. Щоб отримати картину тижня, Оксана
+            щопонеділка відкриває їх по черзі, запам'ятовує числа й складає
+            результат у голові.
+          </p>
+
+          <p>
+            Незручностей тут дві, і друга серйозніша за першу.
+          </p>
+
+          <ul>
+            <li><strong>Три сторінки замість однієї.</strong> Ритуал, який займає
+              п'ять хвилин щопонеділка, за місяць перетворюється на ритуал, який
+              роблять раз на місяць.</li>
+            <li><strong>Це бачить лише Оксана.</strong> Марта не знає, що в маркетингу
+              висить прострочений флаєр; Тарас не бачить, що дві роботи по ремонту
+              досі нічиї. Щоб показати їм це, Оксана пише в чат — і фірма повертається
+              туди, з чого курс починався в уроці 1.</li>
+          </ul>
+
+          <h3>Що таке дашборд</h3>
+
+          <p>
+            <strong>Дашборд</strong> (dashboard) — окрема сторінка твого сайту Jira,
+            на якій кілька відповідей стоять поруч. Довідка Atlassian описує його одним
+            реченням: «Your dashboard is the main display you see when you log in to
+            Jira» — головний екран, який ти бачиш, коли заходиш у Jira. Слово прижилось
+            і українською; у курсі ми кажемо «дашборд», бо саме так підписаний пункт
+            <code>Dashboards</code> у бічній панелі.
+          </p>
+
+          <p>
+            Дашбордів може бути кілька: один особистий, другий для команди, третій —
+            для однієї великої справи. Вони не прив'язані до спейсу: одна сторінка
+            може показувати роботи з маркетингу, ремонту й бухгалтерії водночас.
+            Саме цим дашборд відрізняється від усього, що було в курсі досі — дошка,
+            список, календар показують один спейс, дашборд збирає їх разом.
+          </p>
+
+          <h3>Що таке гаджет</h3>
+
+          <p>
+            Сама сторінка порожня. Наповнюють її <strong>гаджети</strong> (gadgets) —
+            невеликі блоки, у кожного свій зміст: таблиця робіт, кругова діаграма,
+            стрічка останніх змін. Довідка: «Gadgets display summaries of Jira space
+            and work item data on the dashboard» — гаджети показують на дашборді
+            зведення про спейс і роботи.
+          </p>
+
+          <p>
+            Одну річ варто засвоїти до всіх кнопок, бо на ній спотикаються майже всі:
+            <strong>гаджет нічого не рахує сам</strong>. Він бере готове — збережений
+            фільтр або цілий спейс — і показує це в іншій формі: таблицею, часткою,
+            стовпчиком. Тому урок 7 стоїть перед цим. Дашборд без збережених фільтрів —
+            порожня коробка з гарними рамками.
+          </p>
+
+          <div class="ds-note">
+            <span class="ds-note__title">Дашборд — вітрина, а не робоче місце</span>
+            <p>
+              На дашборді нічого не редагують: статус не переведеш, коментар не
+              напишеш, дедлайн не зміниш. Гаджет — вікно в дані, які вже є. Щоб
+              щось змінити, треба піти в саму роботу — на дошку, у список або
+              в картку. Тому дашборд не замінює дошку: він показує зріз по всій
+              фірмі, а працюють на дошці.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Нижче два вікна: сам дашборд «Кориця — тиждень» і сторінка, де живуть
+            усі дашборди сайту. Як завжди в курсі, це не скріншоти, а структура
+            екрана словами, і в заголовку кожного вікна стоїть, звідки взяті написи.
+          </p>
+
+          <h3>Дашборд: три питання на одній сторінці</h3>
+
+          <p>
+            Оксана поставила на сторінку три гаджети — по одному на кожен свій фільтр.
+            Дивись спершу на другий рядок кожного блоку: він каже, звідки гаджет бере
+            дані.
+          </p>
+
+<figure class="win" data-state="board" id="w1">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w1t">Jira Cloud · дашборд «Кориця — тиждень» · за документацією, 2026-09-18</span>
+    <span class="win__addr" aria-hidden="true">…/jira/dashboards/…</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w1t">
+    <ul class="win__rail" aria-label="Бічна панель Jira">
+      <li class="win__rail-item">For you</li>
+      <li class="win__rail-item">Spaces</li>
+      <li class="win__rail-item">Filters</li>
+      <li class="win__rail-item win__rail-item--active">Dashboards</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Dashboards / Кориця — тиждень</span>
+        <span class="win__btn">Edit <b class="win__mark" aria-hidden="true">③</b></span>
+        <span class="win__btn win__btn--primary">Add gadget</span>
+      </div>
+      <ul class="win__gadgets">
+        <li class="win__gadget">
+          <h4>Filter Results <b class="win__mark" aria-hidden="true">①</b></h4>
+          <p class="win__query">Filter: Прострочені (усі спейси) <b class="win__mark" aria-hidden="true">②</b></p>
+          <table class="win__table">
+            <thead>
+              <tr><th>Key</th><th>Summary</th><th>Assignee</th><th>Due date</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><span class="win__key">MARK-6</span></td><td>Флаєри для другої точки</td><td>МЛ</td><td>Sep 12, 2026</td></tr>
+              <tr><td><span class="win__key">REM-5</span></td><td>Дозвіл від пожежників</td><td>ТМ</td><td>Sep 15, 2026</td></tr>
+              <tr><td><span class="win__key">MY-2</span></td><td>Оплатити оренду до 5-го</td><td>ОК</td><td>Sep 5, 2026</td></tr>
+            </tbody>
+          </table>
+        </li>
+        <li class="win__gadget">
+          <h4>Pie Chart</h4>
+          <p class="win__query">Filter: Без виконавця · Priority</p>
+          <ul class="win__stats">
+            <li>High 2</li>
+            <li>Medium 3</li>
+            <li>Low 1</li>
+          </ul>
+        </li>
+        <li class="win__gadget">
+          <h4>Two Dimensional Filter Statistics</h4>
+          <p class="win__query">Filter: Прострочені (усі спейси) · Assignee × Status</p>
+          <table class="win__table">
+            <thead>
+              <tr><th>Assignee</th><th data-cat="todo">To Do</th><th data-cat="progress">In Progress</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Марта Лисенко</td><td>1</td><td>0</td></tr>
+              <tr><td>Тарас Мельник</td><td>0</td><td>1</td></tr>
+              <tr><td>Оксана Коваль</td><td>1</td><td>0</td></tr>
+            </tbody>
+          </table>
+        </li>
+      </ul>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «дашборд Кориця — тиждень»">
+  <li>Гаджет — один блок дашборда з однією відповіддю</li>
+  <li><code>Filter</code> — звідки гаджет бере дані</li>
+  <li><code>Edit</code> — режим правки; у ньому з'являється <code>Add gadget</code></li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Вікно зібране за документацією Atlassian: на навчальному сайті курсу
+            дашборд із гаджетами ще не збирали, там була лише порожня сторінка
+            <code>Default dashboard</code>. Назви гаджетів — зі списку вбудованих
+            гаджетів у довідці (там до кожної назви додано слово
+            <code>Gadget</code>). Рядок <code>Filter</code> під заголовком —
+            схематична підказка, звідки гаджет читає дані; на живому екрані це
+            видно в налаштуваннях самого гаджета.
+          </p>
+
+          <p>
+            Читається вікно так. Ліворуч — та сама бічна панель, що й на всіх
+            попередніх екранах; тепер підсвічений пункт <code>Dashboards</code>.
+            Угорі — де ти зараз і дві кнопки: <code>Edit</code> переводить сторінку
+            в режим правки, <code>Add gadget</code> додає новий блок. Якщо кнопки
+            <code>Add gadget</code> не видно, вона з'являється після
+            <code>Edit</code>. Далі — самі гаджети, викладені в колонки.
+          </p>
+
+          <p>
+            Три гаджети відповідають на три різні питання, і жоден із них не
+            повторює інший:
+          </p>
+
+          <ul>
+            <li><strong>Filter Results</strong> — «що саме горить»: список робіт
+              з фільтра «Прострочені» таблицею, з ключем, назвою, виконавцем
+              і дедлайном.</li>
+            <li><strong>Pie Chart</strong> — «наскільки це серйозно»: роботи без
+              виконавця, поділені за пріоритетом. Видно, що дві з них високого
+              пріоритету — з них і треба починати понеділок.</li>
+            <li><strong>Two Dimensional Filter Statistics</strong> — «у кого саме»:
+              таблиця, де рядки — виконавці, а колонки — статуси. Одне число в
+              клітинці = скільки прострочених робіт у цієї людини в цьому статусі.</li>
+          </ul>
+
+          <p>
+            Зверни увагу на збіг чисел: у першому гаджеті три рядки, і в третьому
+            сума всіх клітинок теж три. Так і має бути — обидва читають той самий
+            фільтр, лише показують його по-різному. Цей збіг стане твоєю перевіркою
+            в блоці 5.
+          </p>
+
+          <h3>Сторінка Dashboards: список усіх дашбордів сайту</h3>
+
+          <p>
+            Дашборди не губляться в спейсах — у них своя сторінка, і потрапляють на
+            неї з бічної панелі: пункт <code>Dashboards</code>, далі
+            <code>View all dashboards</code>.
+          </p>
+
+<figure class="win" data-state="list" id="w2">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w2t">Jira Cloud · сторінка Dashboards · звірено 2026-09-17</span>
+    <span class="win__addr" aria-hidden="true">…/jira/dashboards</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w2t">
+    <ul class="win__rail" aria-label="Бічна панель Jira">
+      <li class="win__rail-item">For you</li>
+      <li class="win__rail-item">Spaces</li>
+      <li class="win__rail-item">Filters</li>
+      <li class="win__rail-item win__rail-item--active">Dashboards</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Dashboards</span>
+        <span class="win__btn win__btn--primary">Create dashboard <b class="win__mark" aria-hidden="true">①</b></span>
+        <span class="win__tabs"><span>Owner</span><span>Space</span><span>Group</span></span>
+      </div>
+      <table class="win__table">
+        <thead>
+          <tr><th>Name</th><th>Owner</th><th>Viewers <b class="win__mark" aria-hidden="true">②</b></th><th>Editors</th><th>Starred by</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Кориця — тиждень</td><td>Оксана Коваль</td><td>My organization</td><td>Оксана Коваль</td><td>3 people</td></tr>
+          <tr><td>Default dashboard</td><td></td><td>My organization</td><td>Private</td><td>0 people</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «сторінка Dashboards»">
+  <li><code>Create dashboard</code> — створити нову сторінку для гаджетів</li>
+  <li><code>Viewers</code> — хто бачить дашборд, <code>Editors</code> — хто його править</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Заголовок, кнопка, три фільтри списку й назви п'яти колонок — зі знімка
+            Jira Cloud Free від 2026-09-17; на навчальному сайті в таблиці був рівно
+            один рядок, <code>Default dashboard</code>, з порожньою колонкою
+            <code>Owner</code> (у нього немає власника-людини). Рядок
+            «Кориця — тиждень» доданий з історії курсу.
+          </p>
+
+          <p>
+            Ця таблиця відповідає на питання, яке виникає пізніше за всі інші:
+            «чому колега не бачить того, що бачу я». Колонка <code>Viewers</code>
+            каже, хто може відкрити дашборд, <code>Editors</code> — хто може
+            додавати й прибирати гаджети. Значення <code>Private</code> означає
+            «лише власник». Рядок <code>Default dashboard</code> є на кожному
+            сайті — це сторінка, яку бачать усі, хто не завів собі власної.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <p>
+            Дашборд влаштований як ланцюжок, і кожна ланка в ньому вже знайома.
+            Запит мовою <code>JQL</code> ти писав(ла) в уроці 7; збережений фільтр —
+            це той самий запит під назвою. Гаджет читає фільтр. Дашборд тримає
+            гаджети. Хто побачить сторінку — вирішує поле <code>Viewers</code>.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart LR
+  Q["Запит JQL"] --> F["Збережений фільтр"]
+  F --> G["Гаджет"]
+  S["Цілий спейс"] --> G
+  G --> D["Дашборд"]
+  D --> V["Viewers: хто це бачить"]
+            </pre>
+            <p class="ds-diag__caption">
+              Ланцюг даних. Гаджет нічого не рахує сам: він показує готовий фільтр
+              або цілий спейс, а доступ до результату відкриває поле Viewers
+            </p>
+          </div>
+
+          <h3>Шість гаджетів, яких вистачає маленькій команді</h3>
+
+          <p>
+            Список вбудованих гаджетів у довідці Atlassian довгий — там і графіки
+            для спринтів, і мітки, і швидкі посилання, і календар. Команді до десяти
+            людей з усього цього щодня потрібні шість.
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: шість вбудованих гаджетів Jira">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Гаджет</th><th>Що показує</th><th>Що йому потрібно</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Filter Results</td>
+                  <td>Список робіт таблицею — те саме, що видно на сторінці фільтра</td>
+                  <td>Збережений фільтр</td>
+                </tr>
+                <tr>
+                  <td>Pie Chart</td>
+                  <td>Частки за одним полем: за статусом, пріоритетом, виконавцем</td>
+                  <td>Фільтр або цілий спейс</td>
+                </tr>
+                <tr>
+                  <td>Two Dimensional Filter Statistics</td>
+                  <td>Таблицю «поле на поле»: рядки — одне поле, колонки — друге</td>
+                  <td>Збережений фільтр</td>
+                </tr>
+                <tr>
+                  <td>Created vs Resolved</td>
+                  <td>Скільки робіт з'явилось і скільки закрито за проміжок часу</td>
+                  <td>Джерело робіт і період</td>
+                </tr>
+                <tr>
+                  <td>Assigned to Me</td>
+                  <td>Відкриті роботи того, хто дивиться на дашборд, з усіх спейсів</td>
+                  <td>Нічого</td>
+                </tr>
+                <tr>
+                  <td>Activity Stream</td>
+                  <td>Стрічку останніх змін: хто що створив, змінив, прокоментував</td>
+                  <td>Нічого</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            Довідка описує ці гаджети короткими рядками, і в них видно різницю.
+            Filter Results — «displays the results when you filter work items»,
+            результати фільтра. Pie Chart — «displays work items from a space or
+            work item filter, grouped by a statistic type», тобто цей гаджет уміє
+            читати не лише фільтр, а й цілий спейс, і групує за будь-яким полем:
+            «Status, Priority, Assignee, etc». Two Dimensional Filter Statistics —
+            «displays tabular data based on a filter». Created vs Resolved —
+            «a difference chart of the work items created vs resolved over a given
+            period»: графік різниці між тим, що з'явилось, і тим, що закрили.
+          </p>
+
+          <p>
+            Два останні гаджети в таблиці — особливі, і на них варто спинитись.
+            Assigned to Me довідка описує так: «displays all open work items in all
+            spaces assigned to the user who views the dashboard» — роботи того,
+            <em>хто дивиться</em>. Тобто один і той самий гаджет на спільному
+            дашборді показує Марті її роботи, а Тарасу — його. Це дає корисну річ:
+            командний дашборд, у якого є персональний куточок, і кожному не треба
+            заводити свій.
+          </p>
+
+          <h3>Pie Chart чи Two Dimensional: коли який</h3>
+
+          <p>
+            Ці два гаджети плутають найчастіше, бо обидва «рахують роботи за полем».
+            Різниця в кількості полів. <strong>Pie Chart бере одне поле</strong> й
+            відповідає на питання «яка частка»: скільки прострочених робіт високого
+            пріоритету, скільки низького. <strong>Two Dimensional бере два поля</strong>
+            й відповідає на питання «на перетині»: скільки прострочених робіт у Марти
+            саме в статусі <code>In Progress</code>.
+          </p>
+
+          <p>
+            Практичне правило: якщо питання звучить «скільки чого» — це Pie Chart.
+            Якщо звучить «у кого скільки чого» або «в якому спейсі скільки чого» —
+            це Two Dimensional.
+          </p>
+
+          <h3>Хто бачить дашборд</h3>
+
+          <p>
+            У дашборда є власник (той, хто його створив) і два списки доступу:
+            <code>Viewers</code> — хто може відкрити, <code>Editors</code> — хто може
+            додавати й прибирати гаджети. У кожен список можна покласти окрему людину,
+            групу, спейс — або всіх, хто заходить на твій сайт.
+          </p>
+
+          <p>
+            Останній варіант у довідці Atlassian названий «Any logged-in user — any
+            user who is logged in to your Jira Cloud site», а на екрані сторінки
+            <code>Dashboards</code> у колонці <code>Viewers</code> він підписаний
+            <code>My organization</code>. Ідеться про одне й те саме: люди, які
+            входять на твій сайт. Для команди до десяти людей це і є робочий вибір:
+            окремі списки для груп і ролей потрібні там, де людей десятки.
+          </p>
+
+          <div class="ds-note">
+            <span class="ds-note__title">Варіант «показати стороннім» на Free недоступний</span>
+            <p>
+              У списку доступу є ще <code class="ds-code--inline">Public</code> — показати
+              дашборд людям, які в Jira не входять узагалі. Тут він не знадобиться:
+              довідка Atlassian каже прямо — «Free Jira sites can't be opened to the
+              public». На безкоштовному сайті такого доступу немає, і перемикач
+              <code class="ds-code--inline">Public sharing</code> у налаштуваннях сайту
+              стоїть вимкненим (звірено на навчальному сайті курсу 2026-09-17).
+            </p>
+          </div>
+
+          <p>
+            Доступ до дашборда й доступ до фільтра — <strong>дві різні речі</strong>.
+            Можна поділитись сторінкою й лишити приватним фільтр, на якому стоїть
+            гаджет; тоді колега відкриє дашборд і побачить порожнє місце замість
+            даних. Це найчастіша скарга на дашборди взагалі, і в блоці 6 розібрано,
+            що з нею робити.
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            Зберемо дашборд «Кориця — тиждень» на трьох фільтрах з уроку 7. Якщо
+            фільтрів ще немає — повернись на урок назад: без них гаджетам нічого
+            показувати.
+          </p>
+
+          <h3>Крок 1: створити сторінку</h3>
+
+          <p>
+            У бічній панелі наведи на пункт <code>Dashboards</code> — праворуч
+            з'явиться кнопка <code>Create dashboard</code>. Довідка описує той самий
+            шлях словами: «select Dashboards from your sidebar. Select Create
+            dashboard». Відкриється короткий діалог.
+          </p>
+
+<figure class="win" data-state="form" id="w3">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w3t">Jira Cloud · діалог Create dashboard · за документацією, 2026-09-18</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w3t">
+    <div class="win__dialog" role="presentation">
+      <h4 class="win__dialog-title">Create dashboard</h4>
+      <dl class="win__fields">
+        <dt>Name <b class="win__mark" aria-hidden="true">①</b></dt><dd>Кориця — тиждень</dd>
+        <dt>Description</dt><dd>Що горить цього тижня: прострочене, нічиє, моє</dd>
+        <dt>Viewers <b class="win__mark" aria-hidden="true">②</b></dt><dd>My organization</dd>
+        <dt>Editors</dt><dd>Private</dd>
+      </dl>
+      <p class="win__actions"><span class="win__btn win__btn--primary">Save <b class="win__mark" aria-hidden="true">③</b></span></p>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «діалог Create dashboard»">
+  <li><code>Name</code> — назва, яку команда побачить у списку</li>
+  <li><code>Viewers</code> — хто зможе відкрити сторінку</li>
+  <li><code>Save</code> — створити; гаджети додають уже всередині</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Вікно зібране за документацією Atlassian: діалог на навчальному сайті
+            курсу не відкривався. Назви полів <code>Name</code>,
+            <code>Description</code>, <code>Viewers</code> і <code>Editors</code> —
+            з довідки й зі знімка сторінки <code>Dashboards</code> від 2026-09-17,
+            де це назви колонок. Порядок полів у діалозі може бути іншим.
+          </p>
+
+          <p>
+            Назву дай таку, щоб через місяць було зрозуміло, коли цю сторінку
+            відкривають: «Кориця — тиждень» краще за «Дашборд 1». Опис теж не
+            зайвий — довідка радить його прямо: «give your dashboard a name and
+            description so your team knows when to use it».
+          </p>
+
+          <h3>Крок 2: поставити три гаджети</h3>
+
+          <p>
+            Відкрий створену сторінку, натисни <code>Edit</code>, потім
+            <code>Add gadget</code>. Відкриється майстер зі списком; знайди потрібний
+            гаджет і натисни <code>Add</code> поруч із ним. Список довгий — за описом
+            у довідці, у майстрі є пошук, категорії ліворуч і окрема кнопка, яка
+            завантажує всі гаджети одразу.
+          </p>
+
+          <ol>
+            <li><strong>Filter Results</strong> на фільтр «Прострочені (усі спейси)» —
+              список того, що горить.</li>
+            <li><strong>Pie Chart</strong> на фільтр «Без виконавця», групування за
+              полем пріоритету — щоб було видно, з чого починати.</li>
+            <li><strong>Two Dimensional Filter Statistics</strong> на той самий фільтр
+              «Прострочені (усі спейси)», одне поле — виконавець, друге — статус.</li>
+          </ol>
+
+          <p>
+            Новий гаджет з'являється вгорі лівої колонки — далі його перетягують туди,
+            де він потрібен. Кількість колонок міняє кнопка <code>Change layout</code>
+            у режимі правки: для трьох гаджетів зручні дві колонки, для одного —
+            одна.
+          </p>
+
+          <h3>Крок 3: відкрити доступ</h3>
+
+          <p>
+            Дашборд без доступу лишається твоєю особистою сторінкою. Відкрий
+            <code>More actions</code> (три крапки) → <code>Rename or share</code>
+            і поклади в <code>Viewers</code> усіх, хто входить на сайт
+            (<code>My organization</code>). У <code>Editors</code> лиши поки себе:
+            інакше гаджети почнуть з'являтись і зникати без попередження.
+          </p>
+
+          <p>
+            Одразу після цього перевір самі фільтри. Довідка про збережені пошуки
+            каже: «if the filter is private, only the owner and Jira admin can view
+            and modify it». Приватний фільтр під спільним дашбордом — і є та пастка,
+            через яку колега бачить порожнє місце. Відкрий сторінку
+            <code>Filters</code> і дай тим трьом фільтрам такий самий доступ, як і
+            дашборду.
+          </p>
+
+          <h3>Крок 4: закріпити</h3>
+
+          <p>
+            Познач дашборд зіркою (<code>Add to starred</code>) — після цього він
+            з'являється вгорі списку під пунктом <code>Dashboards</code> у бічній
+            панелі, і відкривати його можна за два кліки. Скажи колегам, щоб зробили
+            те саме: спільна сторінка працює лише тоді, коли в неї заходять.
+          </p>
+
+          <div class="ds-note">
+            <span class="ds-note__title">Дві дрібниці, які можуть спинити</span>
+            <p>
+              <strong>Права.</strong> Сторінка довідки про гаджети починається з
+              рядка «Make sure you're logged in as an admin». На сайті, який від
+              початку був безкоштовним, це не мало б стати перешкодою — як там
+              влаштовані права, розказано в уроці 2. Якщо кнопки
+              <code class="ds-code--inline">Add gadget</code> немає, спитай того,
+              хто заводив сайт.
+            </p>
+            <p>
+              <strong>Стартова сторінка.</strong> В особистих налаштуваннях є поле
+              <code class="ds-code--inline">Jira homepage</code> — воно вирішує, що
+              відкривається при вході (урок 3). Чи можна поставити туди свій дашборд,
+              на навчальному сайті курсу не перевіряли, і в довідці цього поля немає
+              взагалі. Зірка працює напевно, тому кроком уроку лишається вона.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Дашборд легко зібрати так, що він виглядає правильно й показує неправду.
+            Тому перевірка тут не «сторінка відкрилась», а звірка чисел.
+          </p>
+
+          <ul>
+            <li>У бічній панелі під пунктом <code>Dashboards</code> з'явилась
+              «Кориця — тиждень» — виходить, зірка стоїть.</li>
+            <li>На сторінці <code>Dashboards</code> у рядку твого дашборда в колонці
+              <code>Viewers</code> стоїть <strong>не</strong> <code>Private</code>.</li>
+            <li><strong>Головна звірка.</strong> Відкрий фільтр «Прострочені (усі
+              спейси)» на сторінці <code>Filters</code> і порахуй рядки. Тепер відкрий
+              дашборд: у гаджеті Filter Results рядків має бути рівно стільки ж.
+              Розійшлось — гаджет читає інший фільтр.</li>
+            <li>Сума всіх чисел у Two Dimensional дорівнює кількості рядків у
+              Filter Results: обидва гаджети читають той самий фільтр.</li>
+            <li>Кругова діаграма не порожня. Порожня — у роботах фільтра немає
+              значення того поля, за яким ти групуєш.</li>
+            <li>Останнє й найважливіше: попроси колегу відкрити посилання на дашборд.
+              Він має побачити ті самі три гаджети — а не порожні рамки й не напис
+              про брак доступу.</li>
+          </ul>
+
+          <p>
+            Якщо колега бачить сторінку, але один гаджет на ній порожній — справа
+            майже завжди у фільтрі, а не в дашборді. Наступний блок починається
+            саме з цього.
+          </p>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3>Гаджет порожній у колеги, хоч у тебе повний</h3>
+
+          <p>
+            Найчастіша скарга на дашборди, і причина майже завжди одна: поділились
+            сторінкою, але не поділились фільтром. Дашборд і фільтр мають окремі
+            списки доступу. Довідка описує наслідок прямо: «any gadgets on the shared
+            dashboard that users don't have permission to see won't be shown to them» —
+            гаджети, на дані яких у людини немає прав, їй не покажуть. Замість даних
+            буває й напис: «We can't display the gadget. You may not have permission
+            to see the data or the gadget is no longer supported».
+          </p>
+
+          <p>
+            Лікується це в одному місці: сторінка <code>Filters</code> → потрібний
+            фільтр → доступ такий самий, як у дашборда. Правило, яке варто взяти
+            за звичку: <strong>поділився дашбордом — поділись і фільтрами, на яких
+            він стоїть</strong>. Яким буде доступ у нового фільтра чи дашборда за
+            замовчуванням, вирішує налаштування сайту, тому вгадувати не варто —
+            подивись колонку <code>Viewers</code> одразу після створення.
+          </p>
+
+          <p>
+            Друга причина порожнього гаджета — не права, а дані. Довідка попереджає
+            про це на прикладі кругової діаграми навантаження: вона «relies on fields
+            such as Original estimate, Time spent, and Current estimate», і якщо в
+            роботах цих полів немає, показувати нічого. Те саме буде, якщо групувати
+            за полем, якого в цих роботах не заповнювали.
+          </p>
+
+          <h3>Два гаджети про одне й те саме</h3>
+
+          <p>
+            Класичний випадок: поруч стоять Pie Chart за статусом і Two Dimensional
+            «статус на статус». Другий у такому вигляді не додає нічого — та сама
+            інформація, тільки квадратна. Two Dimensional має сенс тоді, коли поля
+            <em>різні</em>: виконавець на статус, спейс на пріоритет, тип роботи на
+            виконавця. Перед тим як ставити другий гаджет, сформулюй питання вголос:
+            якщо воно повторює питання першого гаджета, другий не потрібен.
+          </p>
+
+          <h3>Дашборд, на який ніхто не дивиться</h3>
+
+          <p>
+            Спокуса поставити десять гаджетів з'являється в перший же вечір: усе
+            цікаве, усе видно. За тиждень сторінку перестають відкривати, бо з неї
+            не зрозуміло, що робити. Робоче правило — <strong>один гаджет = одне
+            питання, і всі гаджети мають уміщатись в один екран без прокрутки</strong>.
+            Три-чотири блоки для команди на вісім людей — межа. Якщо дуже хочеться
+            більше, краще другий дашборд з іншою назвою й іншим приводом відкривати.
+          </p>
+
+          <p>
+            Ознака хорошого дашборда проста: людина дивиться на нього п'ять секунд
+            і знає, за що братись. Ознака поганого — на нього дивляться й кажуть
+            «цікаво».
+          </p>
+
+          <h3>«Дам посилання підряднику, хай сам дивиться»</h3>
+
+          <p>
+            Не вийде, і це не налаштування, а межа плану: «Free Jira sites can't be
+            opened to the public». Людина без входу в твій Jira дашборда не побачить.
+            Варіантів два: додати підрядника як користувача сайту (місць
+            <strong>десять</strong>, урок 20) — або показати екран самому. Третій
+            варіант, портал заявок для тих, хто в Jira не працює, — це вже
+            Jira Service Management, урок 18.
+          </p>
+
+          <p>
+            І окремо: публічний доступ, якби він був, означає буквально публічний.
+            Довідка попереджає: «if you share a dashboard publicly, it will be visible
+            and searchable on the internet» — сторінку побачить і знайде пошуковик.
+            Для внутрішніх справ фірми це не те, чого хочуть.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Чим дашборд відрізняється від вигляду Summary?</h3>
+          <p>
+            <code>Summary</code> з уроку 6 — готовий екран одного спейсу: плитки
+            «створено / оновлено / завершено за сім днів», розподіл за статусами,
+            за пріоритетами, за виконавцями. Його не треба налаштовувати, і його не
+            можна змінити. Дашборд — навпаки: порожня сторінка, яку складаєш під себе,
+            зате вона збирає <em>кілька</em> спейсів і твої власні фільтри. Правило
+            вибору: доки питання про один спейс — вистачить <code>Summary</code>;
+            щойно питання про фірму — потрібен дашборд.
+          </p>
+
+          <h3>Що таке Default dashboard і чи можна його зіпсувати?</h3>
+          <p>
+            Це сторінка, яку бачать усі, хто не завів собі власної; вона є на кожному
+            сайті й не видаляється. Правити її може адміністратор сайту, і правки
+            бачать усі: довідка попереджає, що «all changes made to the default
+            dashboard will also change the dashboards of all users currently using
+            the default dashboard». Тому тренуватись краще на своєму дашборді, а
+            <code>Default dashboard</code> чіпати тоді, коли команда домовилась,
+            що там має бути.
+          </p>
+
+          <h3>Чи можна повісити дашборд на екран у підсобці?</h3>
+          <p>
+            Так, для цього є окремий режим — <strong>wallboard</strong>. Довідка
+            описує його так: «a wallboard is full-screen display of a dashboard. It
+            hides any navigation menus and rotates through the gadgets of the
+            dashboard. This simplified view makes it ideal for presenting on TV
+            monitors». Вмикається з самого дашборда: <code>More actions</code> →
+            <code>View as wallboard</code>. Для кав'ярні з екраном на кухні —
+            робочий варіант.
+          </p>
+
+          <h3>Що буде, якщо видалити дашборд?</h3>
+          <p>
+            Він потрапляє в кошик: у довідці дія називається
+            <code>Move to trash</code>. Звідти дашборд можна повернути, але зробити
+            це має адміністратор Jira, і не будь-коли — строк зберігання обмежений.
+            Точні числа — у довіднику «Карта інтерфейсу, глосарій і ліміти Free».
+            Практичний висновок: видаляти чужі дашборди без розмови не варто, бо
+            відновлення потребує іншої людини.
+          </p>
+
+          <h3>Чи потрібні особливі права, щоб зробити дашборд?</h3>
+          <p>
+            Довідка каже, що створити може будь-хто: «any Jira user can create a
+            dashboard». Але сторінка про гаджети починається з рядка «make sure
+            you're logged in as an admin» — тобто самі формулювання Atlassian тут
+            розходяться. На безкоштовному сайті це розходження на практиці не заважає
+            (як влаштовані права на Free — урок 2), а на платному, якщо кнопки
+            <code>Add gadget</code> немає, питання вирішує адміністратор сайту.
+          </p>
+
+          <h3>Дашборд оновлюється сам?</h3>
+          <p>
+            Так: гаджет читає дані заново, а не тримає знімок. Довідка про додавання
+            гаджетів згадує й налаштування частоти: «you can configure each gadget to
+            customize the data displayed and how often it refreshes». Тобто раз
+            налаштований гаджет далі показує поточний стан справ; окремо натискати
+            «оновити» не треба.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Дашборд — перший екран курсу, який показує не спейс, а фірму. Якщо в тебе
+            є одна сторінка, з якої за п'ять секунд видно, що горить і що нічиє, і її
+            бачать колеги — фаза «щоденна робота» закрита.
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li>Дашборд — окрема сторінка сайту з гаджетами; вона не прив'язана
+                до спейсу й може збирати роботи з усіх спейсів одразу.</li>
+              <li>Гаджет нічого не рахує сам: він читає готовий збережений фільтр
+                або цілий спейс і показує це таблицею, часткою чи графіком.
+                Тому фільтри з уроку 7 — обов'язкова умова, а не підготовка.</li>
+              <li>Filter Results — список; Pie Chart — частки за одним полем;
+                Two Dimensional Filter Statistics — таблиця «поле на поле»;
+                Created vs Resolved — з'явилось проти закрито за період.</li>
+              <li>Assigned to Me показує роботи того, хто дивиться, тож на спільному
+                дашборді кожен бачить у ньому себе.</li>
+              <li>Доступ дашборда й доступ фільтра — різні речі. Поділився сторінкою —
+                поділись і фільтрами, інакше в колеги гаджет буде порожній.</li>
+              <li><code>Viewers</code> — хто бачить, <code>Editors</code> — хто править.
+                Варіант «усі на сайті» підписаний <code>My organization</code>, і для
+                команди до десяти людей його вистачає.</li>
+              <li>Показати дашборд людині без входу в Jira на безкоштовному плані
+                не можна: «Free Jira sites can't be opened to the public».</li>
+              <li>Три-чотири гаджети, кожен на своє питання, — межа, після якої на
+                сторінку перестають дивитись.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Фаза 2 закінчилась: ти вмієш вести роботу, дивитись на неї п'ятьма
+            способами, знаходити запитом і зводити на одну сторінку. Далі —
+            <strong>урок 9 «Team-managed vs company-managed»</strong>, і він
+            відповідає на питання, яке вже мало б з'явитись: чому «Done» у двох
+            спейсах — це два різні статуси, і де взагалі живуть налаштування спейсу.
+            Без цієї відповіді наступні уроки про workflow і поля перетворяться
+            на загадку.
+          </p>
+          <p>
+            До наступного уроку одна дія: відкрий свій дашборд у понеділок уранці
+            й подивись, чи допоміг він тобі вирішити, з чого починати. Якщо ні —
+            питання в гаджетах поставлені не ті, і їх варто переписати зараз, поки
+            гаджетів три.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять на
+            назви: до кожної відповіді одразу з'являється пояснення, чому решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Оксана додала на дашборд гаджет Filter Results, відкрила його налаштування — а список фільтрів там порожній, вибрати нічого. Чому?",
+            "options": [
+              "Гаджет Filter Results працює лише у спейсах для команд розробки, а спейси «Кориці» зроблені для звичайних відділів",
+              "Дашборд ще не поширений на колег",
+              "Вона ще не зберегла жодного пошуку як фільтр, а цей гаджет уміє читати лише збережений фільтр",
+              "На безкоштовному плані гаджети читають дані лише зі спейсу, і список фільтрів у них завжди порожній"
+            ],
+            "answer": 2,
+            "explain": "Гаджет нічого не рахує сам — він показує готове. Filter Results, за описом у довідці, показує результати фільтра, тож поки жодного пошуку не збережено як фільтр, вибирати справді нема з чого. Тип спейсу й план тут ні до чого: дашборди й гаджети працюють і на безкоштовному сайті, а поширення дашборда впливає на те, хто його побачить, а не на те, що в ньому можна налаштувати."
+          },
+          {
+            "q": "Оксана поділилась дашбордом з усіма на сайті. Марта відкриває його й бачить два гаджети з даними, а третій порожній. Що сталось найімовірніше?",
+            "options": [
+              "Фільтр, на якому стоїть третій гаджет, лишився приватним — доступ дашборда й доступ фільтра задають окремо",
+              "Марта відкрила дашборд з телефона, а на телефоні показується не більше двох гаджетів",
+              "Третій гаджет ще не встиг оновитись: після поширення дашборда Jira перераховує його дані протягом доби, і до того часу він порожній",
+              "Оксана поставила гаджет у праву колонку, а права колонка видима лише власнику сторінки"
+            ],
+            "answer": 0,
+            "explain": "Дашборд і фільтр мають окремі списки доступу. Довідка описує наслідок прямо: гаджети, на дані яких у людини немає прав, їй не покажуть, а приватний фільтр видно лише власнику й адміністратору Jira. Лікується це на сторінці Filters: фільтру дають той самий доступ, що й дашборду. Розкладка по колонках і пристрій, з якого дивляться, на права не впливають."
+          },
+          {
+            "q": "Тарас хоче бачити, скільки прострочених робіт у кожного з трьох підрядників і на якому вони етапі. Який гаджет відповідає саме на це питання?",
+            "options": [
+              "Pie Chart на фільтр прострочених, згрупований за виконавцем",
+              "Activity Stream: він показує останні зміни по всіх роботах фірми одразу",
+              "Assigned to Me: цей гаджет показує роботи, призначені кожному з людей команди",
+              "Two Dimensional Filter Statistics: рядки — виконавець, колонки — статус"
+            ],
+            "answer": 3,
+            "explain": "Питання «у кого скільки і на якому етапі» містить два поля — виконавця й статус, тому потрібен гаджет, який будує таблицю на перетині двох полів. Кругова діаграма бере лише одне поле й відповіла б на питання «у кого скільки», без етапів. Assigned to Me показує роботи того, хто дивиться на дашборд, а не всіх людей команди; Activity Stream — стрічку змін, а не підрахунок."
+          },
+          {
+            "q": "Оксана хоче зрозуміти, чи встигає фірма закривати справи так само швидко, як вони з'являються. Що покаже їй гаджет Created vs Resolved?",
+            "options": [
+              "Список робіт, які створила особисто Оксана, і поруч — список тих, які вона закрила",
+              "Скільки робіт з'явилось і скільки закрито за проміжок часу — і різницю між цими числами",
+              "Скільки днів у середньому кожна робота провела в кожному статусі, від створення до переходу в Done",
+              "Роботи, у яких немає виконавця, поділені за пріоритетом: високий, середній, низький"
+            ],
+            "answer": 1,
+            "explain": "Довідка описує цей гаджет як графік різниці між створеними й закритими роботами за заданий період — саме те питання, яке цікавить Оксану. Час у статусах рахують інші гаджети; роботи без виконавця за пріоритетом — це кругова діаграма на відповідному фільтрі; а «що створила особисто я» — це фільтр за автором, а не цей гаджет."
+          },
+          {
+            "q": "Марта питає, як дізнатись, хто саме бачить дашборд «Кориця — тиждень». Куди їй дивитись?",
+            "options": [
+              "У Space settings того спейсу, з якого взято найбільше робіт для гаджетів цього дашборда",
+              "У полі Editors: воно перелічує всіх, кому сторінка відкривається на перегляд",
+              "Ніде: дашборд бачать усі на сайті",
+              "На сторінці Dashboards, у колонці Viewers навпроти назви дашборда"
+            ],
+            "answer": 3,
+            "explain": "Список дашбордів сайту показує для кожного рядка власника, Viewers, Editors і скільки людей позначили його зіркою. Viewers — це ті, хто може відкрити сторінку, Editors — ті, хто може додавати й прибирати гаджети, тому поле Editors відповідає на інше питання. Дашборд не належить спейсу, тож у налаштуваннях спейсу його доступу немає, а значення Private показує, що видно його лише власнику."
+          },
+          {
+            "q": "Ліна хоче один екран, на якому видно роботи з найму, ремонту й маркетингу разом. Чому вигляд Summary для цього не підійде?",
+            "options": [
+              "Summary показує один спейс і не налаштовується, а зібрати кілька спейсів разом уміє дашборд",
+              "Summary доступний лише на платних планах, тому на безкоштовному сайті його немає взагалі",
+              "Summary показує лише роботи, призначені тому, хто дивиться, а Ліні потрібні чужі",
+              "Summary оновлюється раз на тиждень, тому картина в ньому завжди застаріла щонайменше на сім днів"
+            ],
+            "answer": 0,
+            "explain": "Summary — готовий екран одного спейсу: його не треба налаштовувати, але й змінити не можна, і чужих спейсів він не бачить. Дашборд працює навпаки: порожня сторінка, яку складають самі, зате вона збирає роботи з будь-яких спейсів через фільтри. Summary є й на безкоштовному плані, показує роботи всіх людей спейсу й відображає поточний стан, а не тижневої давнини."
+          }
+        ]
+      }
+      </script>
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Урок позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
