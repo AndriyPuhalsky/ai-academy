@@ -126,6 +126,11 @@ def check(path):
         tail = src[src.index(fig) + len(fig): src.index(fig) + len(fig) + 8000]
         legend = re.match(r'\s*(?:<!--.*?-->\s*)?<ol class="win__legend"[^>]*>(.*?)</ol>', tail, re.S)
         n_leg = len(re.findall(r"<li\b", legend.group(1))) if legend else 0
+        if legend:
+            for li in re.findall(r"<li\b[^>]*>(.*?)</li>", legend.group(1), re.S):
+                L = len(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", li)).strip())
+                if L > 90:
+                    warns.append(f"вікно {i}: пункт легенди {L} знаків — контракт §4.1: ≤ ~80, підпис, не речення")
         if n_marks and n_leg != n_marks:
             errs.append(f"вікно {i}: міток {n_marks}, пунктів легенди {n_leg} — мають збігатись")
         if not n_marks and legend:
