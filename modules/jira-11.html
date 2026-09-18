@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 11 · Поля, екрани, типи роботи — Jira з нуля</title>
+  <meta name="description"
+    content="Типи роботи спейсу і власний тип, вбудовані й кастомні поля, розкладка картки (Description fields, Context fields, Hide when empty), обов'язкові поля, ієрархія Epic — Task — Subtask і правило «менше полів — більше заповнених карток»." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+</head>
+
+<body data-module="j11">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 11</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 3 · Під себе</p>
+        <h1 class="ds-h1">Поля, екрани, типи роботи</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 25 хв читання</p>
+        <p class="ds-lead">
+          Попередній урок навчив рухати роботу: статуси, переходи, власний процес.
+          Цей — описувати її. Бо картка з назвою «Співбесіда: бариста» і більше нічим
+          не дає відповіді на питання, які виникають наступного дня: яка саме вакансія,
+          звідки прийшов кандидат, коли зустріч і скільки він просить.
+        </p>
+        <p>
+          Усі ці відповіді можна написати в коментарі — і вони там помруть. Коментар
+          Jira не вміє ні порахувати, ні відсортувати, ні винести колонкою в список.
+          <strong>Поле</strong> вміє: це підписана комірка, про яку Jira знає, якого вона
+          типу і що в ній лежить. Урок про те, як додати свої комірки — і де вчасно
+          зупинитись, бо анкета з п'ятнадцяти обов'язкових рядків зупиняє роботу
+          надійніше за будь-який безлад.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> статусів і переходів — це урок 10. Немає пошуку за
+            полями мовою запитів: тут лише два коротких приклади, повністю — урок 7.
+            Немає збирання цілого спейсу під свою сферу — урок 12. Немає прав на те, хто
+            які поля бачить: на безкоштовному плані вони не налаштовуються (урок 9,
+            повністю — урок 20).
+          </p>
+          <p>
+            <strong>Є:</strong> типи роботи спейсу і як додати свій; вбудовані поля та
+            власні; з яких типів поле буває; де поле розкладається на картці
+            (<code>Description fields</code>, <code>Context fields</code>,
+            <code>Hide when empty</code>); обов'язковість і її ціна; поле спейсу проти
+            глобального; три поверхи ієрархії та поле <code>Parent</code> на прикладі
+            ремонту другої точки.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            У Ліни в спейсі «Найм» після минулого уроку живе процес із шести кроків, і
+            картки кандидатів ним рухаються. За тиждень таких карток дванадцять, і
+            з'являються питання, на які дошка не відповідає: скільки людей ми дивимось
+            на вакансію бариста, а скільки — на пекаря; кого з них привів рекомендаційний
+            лист, а кого оголошення; у кого співбесіда цієї середи.
+          </p>
+
+          <p>
+            Відповіді існують — вони в головах і в коментарях. Проблема не в тому, що їх
+            немає, а в тому, що вони <em>не в тому місці</em>. Jira читає коментар як
+            суцільний текст: за ним не побудуєш ні списку, ні лічильника, ні нагадування.
+            Щоб дані стали робочими, їх треба класти в підписані комірки — поля.
+          </p>
+
+          <h3>Що таке поле, якщо сказати коротко</h3>
+
+          <p>
+            <strong>Поле</strong> (field) — це один підписаний рядок у картці: назва
+            («Посада»), тип («список варіантів») і значення («Бариста»). Тип — головне:
+            саме він каже Jira, як поле показувати, як за ним сортувати й що в ньому
+            можна шукати. Поле дати малює календарик і розуміє «наступного тижня», поле
+            числа вміє підсумовувати, поле людей пропонує список колег.
+          </p>
+
+          <p>
+            Вбудовані поля ти вже бачив у четвертому уроці: <code>Summary</code>,
+            <code>Assignee</code>, <code>Priority</code>, <code>Labels</code>,
+            <code>Due date</code>, <code>Parent</code>. Вони приходять разом зі спейсом.
+            Цей урок — про решту: як додати ті комірки, яких твоїй роботі бракує, і як
+            прибрати з очей ті, яких вона ніколи не заповнює.
+          </p>
+
+          <h3>Звідки в назві уроку слово «екрани»</h3>
+
+          <p>
+            <strong>Екран</strong> (screen) у Jira — це не монітор, а офіційна назва
+            набору полів, які показують на формі. Документація описує їх так: «Screens
+            allow you to choose which fields are displayed on work items at different
+            stages of your workflow» — екрани дають вибрати, які поля видно на роботі на
+            різних етапах процесу.
+          </p>
+
+          <p>
+            Тонкість, через яку люди марно шукають цей розділ у себе:
+            <strong>у спейсах, якими керує команда, окремих екранів немає</strong> — їхню
+            роботу виконує розкладка полів усередині типу роботи. Довідка каже це прямо:
+            «Team-managed fields can't be added to a screen». Справжні
+            <code>Screens</code> живуть у спейсах зі спільною конфігурацією (урок 9), і
+            команді до десяти людей не потрібні.
+          </p>
+
+          <h3>Дві крайності, між якими цей урок</h3>
+
+          <ul>
+            <li><strong>Порожня картка.</strong> Є назва й виконавець, решта — у
+              коментарях і в пам'яті. Працює, поки карток десять і всі свої.</li>
+            <li><strong>Анкета.</strong> Дванадцять полів, вісім із них обов'язкові.
+              Людина відкриває форму створення, бачить стіну і вирішує написати в чат.
+              Так інструмент тихо помирає: карток немає — отже, і порядку немає.</li>
+          </ul>
+
+          <p>
+            Правило, до якого зводиться цей урок: <strong>поле заводять тоді, коли за ним
+            збираються шукати, рахувати або нагадувати</strong>. Якщо відповідь «щоб
+            було записано, і все» — місце цій інформації в описі роботи, а не в окремій
+            комірці.
+          </p>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Поля спейсу, яким керує команда, живуть там само, де в минулому уроці жив
+            процес — усередині типу роботи. Шлях із документації той самий, що ти вже
+            проходив: «Next to your space's name in the sidebar, select More actions
+            (•••), then Space settings, then Work types. Select the work type you want
+            to add the field to» — біля назви спейсу в бічній панелі натисни
+            <code>More actions (•••)</code> → <code>Space settings</code> →
+            <code>Work types</code> і обери тип роботи.
+          </p>
+
+          <p>
+            Минулого разу на цій сторінці нас цікавила одна кнопка — <code>Edit
+            workflow</code>. Тепер цікаве все, що під нею.
+          </p>
+
+<figure class="win" data-state="settings" id="w1">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w1t">Jira Cloud · Space settings → Work types → Task у спейсі Найм · звірено 2026-09-17</span>
+    <span class="win__addr" aria-hidden="true">…/jira/…/HR/settings/issuetypes</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w1t">
+    <ul class="win__rail win__rail--settings" aria-label="Space settings">
+      <li class="win__rail-item">Details</li>
+      <li class="win__rail-item">Access</li>
+      <li class="win__rail-item">Notifications</li>
+      <li class="win__rail-item">Automation</li>
+      <li class="win__rail-item">Fields</li>
+      <li class="win__rail-item win__rail-item--active">Work types</li>
+      <li class="win__rail-item">Features</li>
+      <li class="win__rail-item">Custom filters</li>
+      <li class="win__rail-item">Apps</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__page">
+        <h4>Task</h4>
+        <p class="win__btn">Edit workflow</p>
+        <dl class="win__fields">
+          <dt>Description fields</dt><dd>Summary (Required) · Description</dd>
+          <dt>Context fields <b class="win__mark" aria-hidden="true">①</b></dt><dd>Status · Assignee · Посада (Required) · Дата співбесіди · Parent · Priority · Labels · Due date · Team · Start date</dd>
+          <dt>Hide when empty <b class="win__mark" aria-hidden="true">②</b></dt><dd>Джерело · Reporter</dd>
+        </dl>
+        <p class="win__actions"><span>Discard</span> <span class="win__btn win__btn--primary">Save changes <b class="win__mark" aria-hidden="true">④</b></span></p>
+      </div>
+      <div class="win__page">
+        <h4>Fields</h4>
+        <p class="win__placeholder">Search fields in this space</p>
+        <dl class="win__fields">
+          <dt>Other fields</dt><dd>Agent Sessions</dd>
+          <dt>System fields</dt><dd>Environment · Original estimate · Time tracking</dd>
+        </dl>
+        <p class="win__btn">Create a field <b class="win__mark" aria-hidden="true">③</b></p>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «Space settings → Work types → Task»">
+<li><code>Context fields</code> — поля правої колонки картки</li>
+<li><code>Hide when empty</code> — межа: нижче ховається, поки порожнє</li>
+<li><code>Create a field</code> — створити своє поле цього спейсу</li>
+<li><code>Save changes</code> — без цього розкладка не зміниться</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Склад розділів, назви секцій і праву панель <code>Fields</code> знято з
+            живого сайту Jira Cloud Free 17 вересня 2026 року; назви <code>Посада</code>,
+            <code>Дата співбесіди</code> й <code>Джерело</code> — з історії про «Корицю»,
+            їх ти створиш у блоці 4. Знімок зроблено у спейсі для розробки, тому склад
+            системних полів у твоєму спейсі може бути коротшим. Ліворуч на цій сторінці
+            Jira показує ще й перелік типів роботи спейсу («From the sidebar, select the
+            work type you want to edit») — у знімку ця колонка не потрапила в кадр, тому
+            у вікні її немає.
+          </p>
+
+          <h3>Три секції, з яких складається картка</h3>
+
+          <p>
+            Головне, що робить ця сторінка, — розкладає поля по місцях. Секцій рівно три,
+            і документація описує кожну одним реченням.
+          </p>
+
+          <ul>
+            <li><strong><code>Description fields</code> — середина картки.</strong>
+              «Fields you add to Description fields in your space's settings appear in the
+              main content area of your work items» — те, заради чого картку відкривають:
+              назва й опис.</li>
+            <li><strong><code>Context fields</code> — права колонка.</strong> «Fields you
+              add to Context fields … appear on the right side of your work items» — усе,
+              за чим сортують, фільтрують і звітують: виконавець, дати, пріоритет, твої
+              власні поля.</li>
+            <li><strong><code>Hide when empty</code> — межа, а не секція.</strong> Поля,
+              перетягнуті під цю лінію, з'являються на картці лише тоді, коли в них щось
+              є: «they appear on your work items when someone completes the field. If the
+              field is empty, it's hidden». Щоб дістатись до прихованих, на картці є
+              посилання «Show X more fields».</li>
+          </ul>
+
+          <p>
+            Ця межа — найдешевший спосіб тримати картку короткою й не втратити рідкісне
+            поле. Реквізити підрядника потрібні в одній задачі з двадцяти: під лінією
+            вони не заважають у решті дев'ятнадцяти й самі спливають у двадцятій.
+          </p>
+
+          <p>
+            На екрані 17 вересня 2026 року лінія підписана <code>Hide when empty</code>,
+            а стаття довідки того ж дня зве її «the Hide fields below dotted line» — це
+            те саме місце під двома назвами. Орієнтуйся на сенс, а не на буквальний напис
+            зі статті.
+          </p>
+
+          <h3>Друге місце, де живуть поля: список спейсу</h3>
+
+          <p>
+            Сторінка типу роботи показує, <em>де поле стоїть</em>. Повний перелік полів
+            спейсу — окремий розділ <code>Fields</code> у тому самому
+            <code>Space settings</code>: таблиця <code>Name</code> ·
+            <code>Field type</code> · <code>Description</code> · <code>Field ID</code> ·
+            <code>Actions</code>, де поле можна перейменувати, дописати йому варіанти або
+            прибрати зі спейсу.
+          </p>
+
+          <p>
+            Угорі цієї сторінки є кнопка <code>Add field</code> із підписом «Add a global
+            field to the table below to use it on work items in this space» — додати
+            <strong>глобальне</strong> поле, тобто створене адміністратором для всього
+            сайту. Різниця між «своїм» і «глобальним» полем важлива, і до неї ми
+            повернемось у блоці 3.
+          </p>
+
+          <h3>Діалог, у якому народжується поле</h3>
+
+          <p>
+            Кнопка <code>Create a field</code> у правій панелі відкриває невелику форму.
+            У ній три речі: тип поля, назва й — для полів із варіантами — самі варіанти.
+          </p>
+
+<figure class="win" data-state="form" id="w2">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w2t">Jira Cloud · створення поля в спейсі Найм · за документацією, 2026-09-18</span>
+    <span class="win__addr" aria-hidden="true">…/jira/…/HR/settings/issuetypes</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w2t">
+    <div class="win__main">
+      <div class="win__dialog" role="presentation">
+        <h4 class="win__dialog-title">Create a field</h4>
+        <p class="win__chips"><span class="win__chip">Short text</span><span class="win__chip">Paragraph</span><span class="win__chip">Number</span><span class="win__chip">Date</span><span class="win__chip">Time stamp</span><span class="win__chip">Dropdown <b class="win__mark" aria-hidden="true">①</b></span><span class="win__chip">Checkbox</span><span class="win__chip">Label</span><span class="win__chip">People</span><span class="win__chip">Formula</span></p>
+        <dl class="win__fields">
+          <dt>Name</dt><dd>Посада</dd>
+          <dt>Description</dt><dd class="win__placeholder">Optional</dd>
+          <dt>Options <b class="win__mark" aria-hidden="true">②</b></dt><dd>Бариста · Пекар · Кур'єр · Адміністратор</dd>
+        </dl>
+        <p class="win__actions"><span class="win__btn win__btn--primary">Create</span></p>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «створення поля»">
+<li>Тип поля обирають один раз і назавжди</li>
+<li>Варіанти списку — лише в полів <code>Dropdown</code> і <code>Checkbox</code></li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Цього діалогу ніхто з нас не бачив живцем, тому вікно позначене «за
+            документацією»: перелік типів поля взято зі статті «Available custom fields
+            for team-managed spaces», прочитаної 18 вересня 2026 року, назва кнопки
+            <code>Create a field</code> — із живого екрана 17 вересня. Розташування полів
+            у самому діалозі може бути іншим; набір того, що він питає, — той.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <h3>Поле створене — це ще не «поле видно»</h3>
+
+          <p>
+            Найчастіша розгубленість новачка в цьому уроці виглядає так: поле створив,
+            кнопку натиснув, картку відкрив — поля немає. Причина в тому, що дій дві, а
+            здається, що одна. Спершу поле <em>з'являється у спейсі</em>, потім його
+            <em>кладуть у розкладку конкретного типу роботи</em>. Без другого кроку воно
+            існує в списку <code>Fields</code>, але на жодній картці не показується.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart TB
+  A["Create a field: тип, назва, варіанти"] --> B["Поле є у спейсі: розділ Fields"]
+  B --> C["Перетягнути в розкладку типу роботи"]
+  B --> X["Не перетягнули: на картці нічого"]
+  C --> D["Видно на картці"]
+  C --> E["Пропонується у формі створення"]
+  C --> F["Колонка в списку і пошук за полем"]
+            </pre>
+            <p class="ds-diag__caption">
+              Два кроки замість одного: поле спершу народжується у спейсі й лише потім
+              потрапляє в конкретний тип роботи
+            </p>
+          </div>
+
+          <p>
+            Шляхів додати поле в тип два: перетягнути його з правої панелі («Drag the
+            field from the toolbar into the list of fields») або зайти з відкритої картки
+            — «From the Details section, select Edit fields, then Create fields». Другий
+            зручніший у щоденній роботі, але веде на ту саму сторінку налаштувань.
+          </p>
+
+          <p>
+            Поля в розкладці переставляють тим самим перетягуванням, а прибирають,
+            відтягуючи назад у панель: «To remove a field, drag the field back into the
+            fields toolbar». Прибрати поле з типу — не те саме, що видалити його зі
+            спейсу: воно лишається в списку й може повернутись.
+          </p>
+
+          <h3>Типи роботи: звідки береться набір</h3>
+
+          <p>
+            Набір типів роботи спейс отримує від шаблону, з якого народився, і він
+            коротший, ніж багато хто очікує. Для шаблону керування проєктом — того
+            самого, з якого в уроці 9 з'явилась «Друга точка», — довідка називає склад
+            прямо: «Work types: Task and subtask». Тобто <strong>епіка там за
+            замовчуванням немає</strong>, і «великої справи, що збирає менші» теж.
+          </p>
+
+          <p>
+            Додають типи на тій самій сторінці <code>Work types</code> кнопкою
+            <code>+ Add work type</code>. Далі — дві дороги. Перша: взяти
+            <strong>запропонований</strong> тип зі списку Jira (серед них і той, що
+            позначає велику справу, — за замовчуванням він зветься <code>Epic</code>).
+            Друга: <code>Create work type</code> — власний тип, якому ти даєш назву, опис
+            і значок.
+          </p>
+
+          <p>
+            Власний тип у бізнесовому спейсі — річ нормальна, а не екзотика. Довідка про
+            бізнесові спейси наводить приклад відділу маркетингу з типами
+            <code>Task</code>, <code>Asset</code> («for keeping an inventory of creative
+            assets») і <code>Website</code>, і додає: «You can create your own work types
+            to suit your team's processes». У «Кориці» таким міг би стати тип
+            <code>Кандидат</code> у спейсі найму.
+          </p>
+
+          <p>
+            Два обмеження, які варто знати до того, як почнеш вигадувати назви.
+          </p>
+
+          <ul>
+            <li><strong>Свій тип — завжди «звичайний».</strong> «Currently, you can only
+              create custom "standard" work types. You can't create custom "parent" or
+              "subtask" work types» — власний тип стає на середній поверх, поруч із
+              задачею. Зробити свій «епік» або свою «підзадачу» не вийде.</li>
+            <li><strong>Не називай свій тип словом <code>Epic</code> чи
+              <code>Subtask</code>.</strong> Довідка просить використовувати саме
+              запропоновані типи й «avoid creating your own custom work type called
+              "Epic"»: на них зав'язані таймлайн, звіти й смуги на дошці. Однаковий напис
+              не дасть однакової поведінки.</li>
+          </ul>
+
+          <p>
+            Видалити тип теж можна, і роботи при цьому не загубляться: Jira попередить і
+            попросить перевести картки в інший тип — «You'll have to change their type to
+            something that you actually use in the space».
+          </p>
+
+          <h3>Три поверхи ієрархії й поле <code>Parent</code></h3>
+
+          <p>
+            Типи роботи не рівні між собою — вони стоять поверхами, і поверхів за
+            замовчуванням три. Довідка називає їх так: «a level for larger pieces of work
+            (level 1, by default called Epic), a level for standard work items (level 0,
+            called Story), and a level for smaller pieces of work (level -1, called
+            Subtask)» — верхній для великого, середній для звичайного, нижній для
+            дрібного.
+          </p>
+
+          <p>
+            В уроці 4 ти вже бачив це дерево з боку словника. Тут воно потрібне з іншого
+            боку — як те, що ти зараз збереш руками в спейсі «Друга точка».
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart TB
+  E["Поверх 1 · Epic REM-1 Ремонт другої точки"] --> T1["Поверх 0 · Task REM-2 Електрика: погодити кошторис"]
+  E --> T2["Поверх 0 · Task REM-4 Вивіска: замовити макет"]
+  E --> T3["Поверх 0 · Task REM-6 Меблі: доставка й монтаж"]
+  T1 --> S1["Поверх -1 · Subtask REM-3 Розводка під кавомашину"]
+            </pre>
+            <p class="ds-diag__caption">
+              Стрілка вниз — це поле <code>Parent</code>, заповнене в нижній роботі:
+              зв'язок завжди зберігається в дитини, а не в батька
+            </p>
+          </div>
+
+          <p>
+            Практичний бік цієї схеми — одне поле. <code>Parent</code> стоїть у самій
+            роботі й показує ту, що поверхом вище: щоб зібрати дерево, достатньо в кожній
+            задачі вказати батька. У формі створення це поле теж доступне — його додають
+            через <code>Configure Fields</code>.
+          </p>
+
+          <p>
+            Нижній поверх заводиться з відкритої картки: «Select Add or create related
+            work … If you're in a team-managed space, select <code>Add a child work
+            item</code>». У таких спейсах підзадачу довідка зве <strong>дитиною</strong>
+            (child work item) — це те саме, що <code>Subtask</code> деінде.
+          </p>
+
+          <p>
+            Додати власні поверхи можна лише на платних планах («This is only available
+            as part of Jira Cloud Premium and Enterprise»), і шукати це в налаштуваннях
+            свого спейсу нема сенсу. Попередження звідти варте того, щоб його прочитали й
+            ті, хто ніколи не платитиме: «Changing your work type hierarchy will break
+            existing parent and child relationships between your work items».
+          </p>
+
+          <h3>З чого поле буває: типи</h3>
+
+          <p>
+            Тип поля вибирають один раз, і саме він вирішує, що з полем можна робити далі.
+            Ось повний перелік для спейсу, яким керує команда, — станом на 18 вересня
+            2026 року. У другій колонці — що поле збирає, у третій — коли його брати.
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: типи полів у спейсі, яким керує команда">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Тип поля</th><th>Що збирає</th><th>Коли брати</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>Short text</code></td>
+                  <td>Один рядок звичайного тексту</td>
+                  <td>Номер договору, прізвище підрядника — коли варіантів не перелічити</td>
+                </tr>
+                <tr>
+                  <td><code>Paragraph</code></td>
+                  <td>Довгий текст із форматуванням, посиланнями, згадками</td>
+                  <td>Коли потрібен другий опис поруч із <code>Description</code></td>
+                </tr>
+                <tr>
+                  <td><code>Number</code></td>
+                  <td>Число; формат — <code>number</code>, <code>currency</code> або <code>percentage</code></td>
+                  <td>Сума, ставка, відсоток готовності — усе, що складають чи порівнюють</td>
+                </tr>
+                <tr>
+                  <td><code>Date</code></td>
+                  <td>Дата з календаря, без часу доби</td>
+                  <td>Дата співбесіди, дата доставки — усе, що лягає на календар</td>
+                </tr>
+                <tr>
+                  <td><code>Time stamp</code></td>
+                  <td>Дата <em>і</em> час</td>
+                  <td>Коли має значення година: запис, зміна, доставка на 14:00</td>
+                </tr>
+                <tr>
+                  <td><code>Dropdown</code></td>
+                  <td>Один варіант зі списку</td>
+                  <td>Посада, канал, категорія витрат — головний тип для звітів</td>
+                </tr>
+                <tr>
+                  <td><code>Checkbox</code></td>
+                  <td>Кілька варіантів зі списку одразу</td>
+                  <td>Коли відповідей чесно буває декілька: мови, послуги, зміни</td>
+                </tr>
+                <tr>
+                  <td><code>Label</code></td>
+                  <td>Вільні слова-мітки з підказками наявних</td>
+                  <td>Коли перелік ще не усталився; пробіли всередині заборонені</td>
+                </tr>
+                <tr>
+                  <td><code>People</code></td>
+                  <td>Людина або кілька людей з твого сайту</td>
+                  <td>Погоджувач, наставник; є галочка «Restrict to a single person»</td>
+                </tr>
+                <tr>
+                  <td><code>Formula</code></td>
+                  <td>Обчислене значення з інших полів</td>
+                  <td>Різниця між бюджетом і витратами; вручну не заповнюється</td>
+                </tr>
+                <tr>
+                  <td><code>Time tracking</code></td>
+                  <td>Журнал витраченого й залишкового часу</td>
+                  <td>Коли час справді записують; докладніше — у блоці 7</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            Одна деталь із цієї таблиці економить потім час: у полі <code>People</code>
+            Jira нікого не сповіщає — «Jira doesn't send notifications to people when you
+            use their name to complete a custom people field». Хочеш, щоб людина
+            дізналась, — згадай її в коментарі (урок 5).
+          </p>
+
+          <p>
+            Якщо колись відкриєш спейс зі спільною конфігурацією, ті самі типи звуться
+            інакше: <code>Dropdown</code> там «select list (single choice)»,
+            <code>Checkbox</code> — «select list (multiple choices)», <code>Short
+            text</code> — «text field (single line)». Це той самий набір під іншими
+            назвами.
+          </p>
+
+          <h3>Поле спейсу і глобальне поле</h3>
+
+          <p>
+            Поле, створене кнопкою <code>Create a field</code>, належить <em>цьому</em>
+            спейсу й нікуди з нього не виходить: «Fields in team-managed spaces are
+            contained within the space itself. Currently, you can't share a field created
+            in one team-managed space with another team-managed space, or with a
+            company-managed space».
+          </p>
+
+          <p>
+            Наслідок, який спантеличує на другому спейсі: якщо Ліна завела «Посаду» в
+            «Наймі», а Марта хоче таку саму в «Маркетингу» — це буде <strong>інше
+            поле</strong> з тією ж назвою, і спільного запиту по двох спейсах за ним не
+            побудуєш.
+          </p>
+
+          <p>
+            Другий різновид — <strong>глобальне поле</strong>: його заводить
+            адміністратор Jira для всього сайту, а в спейс воно підключається кнопкою
+            <code>Add field</code> на сторінці <code>Fields</code>. Умова з довідки: «To
+            reuse a field from another space, it needs to have been created by an
+            administrator and not in another team-managed project». На сайті, який від
+            початку був безкоштовним, ця роль є у всіх (урок 9).
+          </p>
+
+          <p>
+            Усередині <em>одного</em> спейсу поле, навпаки, спільне для типів роботи:
+            «When a field appears on more than one work type in the same space, the fields
+            share the same name and description. If you change the name in one work type,
+            it will change in the others that use that field». Списки варіантів теж
+            спільні, а от значення за замовчуванням у кожного типу може бути своє.
+          </p>
+
+          <h3>Обов'язкове поле і його ціна</h3>
+
+          <p>
+            Обов'язковість ставиться галочкою на тій самій сторінці типу роботи: «Select
+            the Required checkbox for any fields you want to make mandatory … Once saved,
+            new work items of that type can't be created unless the required field is
+            filled out». Звучить нешкідливо — але саме тут ховається механізм, який
+            вирішує, чи користуватиметься команда карткою взагалі.
+          </p>
+
+          <p>
+            Форма створення роботи за замовчуванням компактна (ти бачив її в уроці 5), і
+            місця в ній мало: «Up to 3 required fields appear as chips below the
+            description» — до трьох обов'язкових полів вона показує окремими плитками під
+            описом. Порядок цих плиток задаєш ти, і саме на сторінці типу роботи:
+            «Team-managed spaces … Reorder the fields to control what your team sees in
+            Quick Create».
+          </p>
+
+          <p>
+            А тепер головне речення цього уроку, і воно теж із документації: «The full
+            form opens automatically when your space configuration requires it, for
+            example if your space has more than three required fields». Тобто
+            <strong>четверте обов'язкове поле перемикає всю команду з короткої форми на
+            повну</strong> — назавжди й для кожної нової роботи. Створення справи з
+            «десять секунд» перетворюється на «відкрию пізніше».
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Правило трьох</span>
+            <ul>
+              <li>Обов'язкових полів у типі — не більше трьох, і кожне має відповідати на
+                питання «без цього роботу не почати».</li>
+              <li>Потрібне, але не завжди — під лінію <code>Hide when empty</code>.</li>
+              <li>Потрібне раз на рік — не поле, а рядок в описі.</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            Дві справи на цей урок. Перша — дати спейсу «Найм» три власні поля, щоб
+            картка кандидата почала відповідати на питання Ліни. Друга — зібрати в
+            «Другій точці» дерево ремонту. Якщо найм і ремонт тобі не близькі, візьми свою
+            сферу: поля будуть інші, дії — ті самі.
+          </p>
+
+          <h3>Крок 1. Відкрити типи роботи спейсу «Найм»</h3>
+
+          <p>
+            Біля назви спейсу в бічній панелі натисни <code>More actions (•••)</code> →
+            <code>Space settings</code> → <code>Work types</code> і обери тип
+            <code>Task</code>. Це та сама сторінка, з якої в минулому уроці ти заходив у
+            редактор процесу, — тільки тепер дивимось нижче кнопки <code>Edit
+            workflow</code>: на секції <code>Description fields</code>,
+            <code>Context fields</code> і межу <code>Hide when empty</code>.
+          </p>
+
+          <h3>Крок 2. Створити поле «Посада»</h3>
+
+          <p>
+            У правій панелі <code>Fields</code> натисни <code>Create a field</code>.
+            Обери тип <code>Dropdown</code> — один варіант зі списку. Назва —
+            <code>Посада</code>. Варіанти: <code>Бариста</code>, <code>Пекар</code>,
+            <code>Кур'єр</code>, <code>Адміністратор</code>. Створи.
+          </p>
+
+          <p>
+            Чому не текстове поле: у текстовому за місяць з'явиться «бариста»,
+            «Бариста», «баріста» і «бар.» — і жоден підрахунок по вакансії не зійдеться.
+            Список варіантів це закриває на вході.
+          </p>
+
+          <h3>Крок 3. Додати ще два поля</h3>
+
+          <p>
+            Тим самим шляхом створи <code>Дата співбесіди</code> з типом
+            <code>Date</code> і <code>Джерело</code> з типом <code>Dropdown</code> та
+            варіантами <code>Оголошення</code>, <code>Рекомендація</code>,
+            <code>Сам(а) написав(ла)</code>.
+          </p>
+
+          <h3>Крок 4. Розкласти поля по місцях</h3>
+
+          <p>
+            Перетягни <code>Посада</code> і <code>Дата співбесіди</code> у секцію
+            <code>Context fields</code> — вони будуть у правій колонці картки, поруч із
+            виконавцем і дедлайном. <code>Джерело</code> перетягни <em>під</em> лінію
+            <code>Hide when empty</code>: воно потрібне не завжди, і хай не займає місце,
+            поки порожнє.
+          </p>
+
+          <p>
+            Натисни <code>Save changes</code>. Без цього кроку нічого не станеться: поля
+            в спейсі є, а на картці їх немає — рівно та пастка, з якої починався блок 3.
+          </p>
+
+          <h3>Крок 5. Зробити «Посаду» обов'язковою</h3>
+
+          <p>
+            На тій самій сторінці типу <code>Task</code> постав галочку
+            <code>Required</code> навпроти поля <code>Посада</code> і знову натисни
+            <code>Save changes</code>. Тепер нову роботу цього типу не створити, поки
+            вакансію не обрано.
+          </p>
+
+          <p>
+            Зупинись тут на секунду й порахуй. Обов'язкових полів у типі стало два:
+            <code>Summary</code>, яке в Jira обов'язкове завжди, і твоя
+            <code>Посада</code>. Лишається запас рівно на одне — після нього форма
+            створення стане повною для всієї команди.
+          </p>
+
+          <h3>Крок 6. Зібрати дерево ремонту</h3>
+
+          <p>
+            Перейди в спейс «Друга точка» (<code>REM</code>) і відкрий
+            <code>Space settings</code> → <code>Work types</code>. Найімовірніше, там два
+            типи: <code>Task</code> і підзадача. Натисни <code>+ Add work type</code> і
+            додай запропонований тип для великої справи — той, що зветься
+            <code>Epic</code>. Не створюй власний тип із такою назвою: саме на
+            запропонованому тримаються таймлайн і звіти.
+          </p>
+
+          <p>
+            Далі — чотири роботи:
+          </p>
+
+          <ul>
+            <li><code>REM-1</code> «Ремонт другої точки» — тип <code>Epic</code>;</li>
+            <li><code>REM-2</code> «Електрика: погодити кошторис» — тип
+              <code>Task</code>, поле <code>Parent</code> = <code>REM-1</code>;</li>
+            <li><code>REM-4</code> «Вивіска: замовити макет» і <code>REM-6</code> «Меблі:
+              доставка й монтаж» — так само задачі з тим самим батьком;</li>
+            <li><code>REM-3</code> «Розводка під кавомашину» — відкрий
+              <code>REM-2</code>, натисни <code>+</code> під назвою
+              («Add or create related work») і обери <code>Add a child work item</code>.</li>
+          </ul>
+
+          <p>
+            Якщо поля <code>Parent</code> у формі створення не видно, додай його там само
+            через <code>Configure Fields</code> — або постав батька вже у відкритій
+            картці, у правій колонці.
+          </p>
+
+          <h3>Крок 7 (за бажанням). Свій тип роботи</h3>
+
+          <p>
+            Повернись у «Найм», натисни <code>+ Add work type</code> →
+            <code>Create work type</code> і заведи тип <code>Кандидат</code> зі своїм
+            значком: тепер картки кандидатів відрізнятимуться від організаційних задач
+            спейсу і в списку, і в пошуку. Одразу чесне питання до себе, бо крок недарма
+            необов'язковий: новий тип означає власну розкладку полів, власний процес і ще
+            один рядок у кожному фільтрі. Якщо відповідь «хай буде» — не заводь.
+          </p>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Перевірка полів робиться не в налаштуваннях, а там, де ними користуються: у
+            формі створення, на картці й у пошуку.
+          </p>
+
+<figure class="win" data-state="item" id="w3">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w3t">Jira Cloud · картка HR-2 у спейсі Найм · звірено 2026-09-17</span>
+    <span class="win__addr" aria-hidden="true">…/browse/HR-2</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w3t">
+    <div class="win__main">
+      <div class="win__item">
+        <p class="win__crumb">Spaces / Найм / <span class="win__key">HR-2</span></p>
+        <h4 class="win__item-title">Співбесіда: бариста (кандидатка Олена)</h4>
+        <p class="win__status" data-cat="progress">Offer ▾</p>
+        <dl class="win__fields">
+          <dt>Assignee</dt><dd>Ліна Шевчук</dd>
+          <dt>Посада <b class="win__mark" aria-hidden="true">①</b></dt><dd>Бариста</dd>
+          <dt>Дата співбесіди</dt><dd>Sep 24, 2026</dd>
+          <dt>Parent</dt><dd class="win__placeholder">Add parent</dd>
+          <dt>Priority</dt><dd>Medium</dd>
+          <dt>Labels</dt><dd>друга-точка</dd>
+          <dt>Due date</dt><dd>Sep 25, 2026</dd>
+          <dt>Team</dt><dd class="win__placeholder">Add team</dd>
+          <dt>Start date</dt><dd class="win__placeholder">Add date</dd>
+          <dt>Reporter</dt><dd>Оксана Коваль</dd>
+        </dl>
+        <p class="win__link">Show more fields <b class="win__mark" aria-hidden="true">②</b></p>
+        <div class="win__desc"><h5>Description</h5><ul class="win__checks"><li data-done>Надіслати тестове завдання</li><li>Домовитись про зміну-стажування</li></ul></div>
+        <p class="win__btn">Configure <b class="win__mark" aria-hidden="true">③</b></p>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «картка HR-2»">
+<li>Власні поля стоять поруч із вбудованими, без окремого розділу</li>
+<li><code>Show more fields</code> — під цим сховане порожнє <code>Джерело</code></li>
+<li><code>Configure</code> — звідси одразу в розкладку полів цього типу</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Будову картки — заголовок, кнопку статусу, праву колонку полів і
+            <code>Configure</code> внизу — знято з живого сайту Jira Cloud Free 17 вересня
+            2026 року. Поля <code>Посада</code> й <code>Дата співбесіди</code> та імена —
+            з історії про «Корицю». Напис посилання до прихованих полів довідка подає як
+            «Show X more fields», де X — їхня кількість.
+          </p>
+
+          <p>П'ять ознак, що все зроблено правильно:</p>
+
+          <ul>
+            <li><strong>У формі створення з'явилась плитка «Посада».</strong> Натисни
+              <code>Create</code> у верхній панелі, обери спейс «Найм» — під описом має
+              бути поле <code>Посада</code>, і воно позначене обов'язковим.</li>
+            <li><strong>Без неї робота не створюється.</strong> Спробуй лишити її
+              порожньою: Jira не дасть завершити створення. Це та сама галочка
+              <code>Required</code> з кроку 5.</li>
+            <li><strong>Старі картки не постраждали.</strong> Відкрий
+              <code>HR-2</code>, створену в минулому уроці: вона жива, хоч «Посада» в ній
+              порожня. Обов'язковість стосується лише нових робіт.</li>
+            <li><strong>Порожнє поле сховане.</strong> Поки <code>Джерело</code> не
+              заповнене, у правій колонці його немає — воно під посиланням
+              «Show more fields». Заповни його в одній картці й онови сторінку: поле
+              підніметься до решти. Порівняй із <code>Parent</code> і <code>Team</code>:
+              вони теж порожні, але стоять над лінією — тому видно їх завжди, підказкою
+              «Add parent» і «Add team». Саме в цій різниці й сенс лінії.</li>
+            <li><strong>У «Другій точці» видно дерево.</strong> Відкрий
+              <code>REM-1</code>: під описом перелік дочірніх робіт. Відкрий
+              <code>REM-2</code>: угорі видно батька, а нижче — власну дитину
+              <code>REM-3</code>.</li>
+          </ul>
+
+          <h3>Шоста перевірка: поле стало шуканим</h3>
+
+          <p>
+            Головна відмінність поля від коментаря — за полем можна шукати. Мова запитів
+            буде в уроці 7 повністю, а тут — два короткі рядки, які варто вставити в
+            пошук уже зараз. Довідка описує синтаксис для власних полів так: «Search
+            for work items where a particular custom field has a particular value. You can
+            search by custom field name or custom field ID» — шукають за назвою поля або
+            за його внутрішнім кодом.
+          </p>
+
+          <figure class="term term--cmd" id="p1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p1t">усі кандидати на вакансію бариста</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__in">project = HR AND "Посада" = "Бариста"</span></span></pre>
+          </figure>
+
+          <figure class="term term--cmd" id="p2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p2t">усе, що висить на ремонті другої точки</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p2t"><span class="term__line"><span class="term__in">project = REM AND parent = REM-1</span></span></pre>
+          </figure>
+
+          <p>
+            Слово <code>project</code> — це спейс: у мові запитів лишилось колишнє слово,
+            і про це вже йшлося в уроці 4. <code>parent</code> — те саме поле «батько»,
+            що й у картці. Назву власного поля пишуть так, як ти її назвав, у лапках;
+            якщо Jira її не впізнає, довідка дозволяє другий спосіб — «You can search by
+            custom field name or custom field ID», тобто за внутрішнім кодом поля з
+            колонки <code>Field ID</code>. Обидва рядки складені за правилами
+            довідки — перевіриш їх у своєму спейсі, щойно поля там з'являться.
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__body">
+              Поля на картці немає — перевір три речі по черзі. Перша: чи натиснуто
+              <code class="ds-code--inline">Save changes</code> на сторінці типу роботи.
+              Друга: чи додано поле <em>тому самому</em> типу, який має картка — розкладка
+              в кожного типу своя. Третя: чи не лежить поле під лінією
+              <code class="ds-code--inline">Hide when empty</code> порожнім — тоді його
+              видно лише під посиланням «Show more fields».
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3>Тип поля обирають назавжди</h3>
+
+          <p>
+            Найдорожча помилка уроку робиться за півсекунди: завести «Канал» текстовим
+            полем, бо так швидше. Через місяць у ньому двадцять різних написань того
+            самого, а перемкнути поле на список варіантів не вийде. Документація каже це
+            двічі й без пом'якшень: «Select what type of field you want to create — you
+            can't change this once the field is created» і «Once you create a field, you
+            can't change its type».
+          </p>
+
+          <p>
+            Лікування довше за хворобу: створити нове поле потрібного типу, перенести
+            значення в нього (масова зміна робіт — урок 7), прибрати старе поле з
+            розкладки. Дешевше витратити зайву хвилину на початку й спитати себе: за цим
+            полем будуть рахувати? Якщо так — це список варіантів, число або дата, але не
+            вільний текст. Тут легко сплутати дві різні речі: <em>тип роботи</em> в уже
+            створеній картці змінити якраз можна — значком типу біля її ключа, — а от тип
+            поля лишається назавжди.
+          </p>
+
+          <h3>Дві мітки замість одного поля — і навпаки</h3>
+
+          <p>
+            Мітки (<code>Labels</code>) спокушають: їх не треба створювати, вони вже є.
+            Але мітка — це вільне слово без правил: її не перейменувати, пробіли в ній
+            заборонені, а в колеги вона з'явиться в підказках не одразу (урок 4). Коли
+            перелік усталений — вакансія, канал, категорія витрат — це робота для поля
+            <code>Dropdown</code>: варіанти задані, друкарських помилок немає, звіт
+            зійдеться.
+          </p>
+
+          <p>
+            Помилка в інший бік не менш поширена: заводити поле там, де мітки вистачило б
+            з головою. Ознака — у полі рівно два значення, і ніхто за ним не шукає.
+            Кожне зайве поле вартує місця на картці й уваги того, хто її заповнює.
+          </p>
+
+          <h3>Обов'язкове поле, яке доїхало до підзадач</h3>
+
+          <p>
+            Галочка <code>Required</code> ставиться в межах одного типу роботи, і це легко
+            забути: ти зробив «Посаду» обов'язковою в задачах — у підзадачах і в епіках
+            вона лишилась звичайною. Проблема з'являється тоді, коли ту саму галочку
+            ставлять «про всяк випадок» у кожному типі. Дочірня робота («Подзвонити
+            кандидатці») теж почне вимагати вакансію, дату співбесіди й джерело — і
+            створювати дрібні кроки стане дорожче, ніж зробити їх.
+          </p>
+
+          <p>
+            Правило з блоку 3 діє окремо для кожного типу: до трьох обов'язкових полів —
+            і в дрібних типах роботи краще нуль.
+          </p>
+
+          <h3>Дерево заради дерева</h3>
+
+          <p>
+            Ієрархія має сенс, коли велика справа справді розпадається на частини, які
+            роблять різні люди й у різний час: ремонт, запуск сезонного меню, переїзд.
+            Епік на одну задачу дає лише зайвий клік, а підзадача, яку виконує та сама
+            людина того самого дня, — це радше пункт у списку кроків усередині опису
+            роботи (урок 5). Другий бік тієї самої граблі — власний тип із назвою
+            <code>Epic</code>: виглядає однаково, а таймлайн і звіти його не бачать.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Де поле для обліку витраченого часу?</h3>
+
+          <p>
+            Облік часу в Jira увімкнений завжди — «Time tracking is always enabled in Jira
+            Cloud spaces», — але поле для нього ти додаєш собі сам. У спейсі, яким керує
+            команда, це робиться так само, як з будь-яким іншим полем: «Adding or removing
+            the Time tracking field on your team-managed space' work types». Поле
+            <code>Time tracking</code> шукай у правій панелі, у групі системних.
+          </p>
+
+          <p>
+            Поруч із ним живе <code>Original estimate</code> — початкова оцінка. Довідка
+            уточнює, що воно «is always available», а ще з'являється саме, якщо увімкнути
+            в спейсі оцінювання часом. Команді не з ІТ облік часу зазвичай не потрібен:
+            дедлайну й статусу вистачає.
+          </p>
+
+          <h3>Що таке <code>Components</code> і чому я цього поля не маю?</h3>
+
+          <p>
+            Компоненти — ще один спосіб групувати роботи всередині спейсу, з власником і
+            автоматичним призначенням виконавця. У твоєму спейсі їх немає за конструкцією:
+            «Jira components are only available in company-managed spaces, and are scoped
+            to the space they're created in». Заміна на кожен день — мітка або власне поле
+            <code>Dropdown</code>; докладніше про самі компоненти йшлося в уроці 4.
+          </p>
+
+          <h3>Чому в колеги поля стоять в іншому порядку?</h3>
+
+          <p>
+            Бо кожен може підняти собі найпотрібніші поля нагору картки — і бачить це
+            лише він. Довідка про закріплення полів каже прямо: «Your pinned fields are
+            completely personal. Only you can see the fields you've pinned, and your
+            teammates will only see the fields they've pinned». Розкладка типу спільна для
+            всіх, а закріплення — особиста настройка. Робиться наведенням на назву поля й
+            кліком по значку шпильки.
+          </p>
+
+          <h3>Скільки полів і типів роботи взагалі можна завести?</h3>
+
+          <p>
+            Обмеження є на всі три речі — кількість власних полів у спейсі, кількість
+            варіантів у списку й кількість типів роботи. Числа змінюються, тому в цьому
+            курсі вони зібрані в одному місці з датою перевірки — у довіднику «Карта
+            інтерфейсу, глосарій і ліміти Free». Практично в них не впирається ніхто:
+            команді до десяти людей стає тісно від власних полів набагато раніше, ніж
+            Jira скаже «досить».
+          </p>
+
+          <h3>Чи можна зробити, щоб поле бачили не всі?</h3>
+
+          <p>
+            На безкоштовному плані — ні. Обмеження доступу до окремих робіт там вимкнене
+            («You can't restrict work items on the Free plan»), а прав на рівні полів у
+            спейсі, яким керує команда, немає взагалі. Практичний висновок: те, що не
+            можна показувати команді — очікувана зарплата, медичні дані, персональні
+            документи, — у Jira на цьому плані не заносять. Що з цим робити на платних
+            планах, оглядово буде в уроці 20.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Якщо картка в твоєму спейсі тепер відповідає на питання, які виникають
+            наступного дня, — а форма створення при цьому лишилась короткою, — урок
+            зробив своє. Це та рівновага, заради якої він існує: поля додають не для
+            повноти, а для пошуку, підрахунку й нагадування.
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li>Поле — це підписана комірка з типом: тип вирішує, як поле показують, як
+                за ним сортують і що в ньому можна шукати. Змінити тип після створення не
+                можна.</li>
+              <li>Поля спейсу, яким керує команда, живуть у типі роботи:
+                <code>Space settings</code> → <code>Work types</code> → тип. Окремих
+                екранів (<code>Screens</code>) там немає — їх заміняє розкладка.</li>
+              <li>Секцій три: <code>Description fields</code> — середина картки,
+                <code>Context fields</code> — права колонка, під лінією
+                <code>Hide when empty</code> поле ховається, поки порожнє.</li>
+              <li>Створити поле й показати поле — дві різні дії; без
+                <code>Save changes</code> і без перетягування в тип на картці нічого не
+                зміниться.</li>
+              <li>Набір типів роботи дає шаблон, і він короткий. Свої типи додаються
+                кнопкою <code>+ Add work type</code>; власний тип завжди «звичайний», а
+                називати його <code>Epic</code> чи <code>Subtask</code> не варто.</li>
+              <li>Ієрархія — три поверхи, і тримає її поле <code>Parent</code> у нижній
+                роботі. Власні поверхи — лише на платних планах.</li>
+              <li>Поле спейсу не ділиться з іншими спейсами; спільним буває лише
+                глобальне поле, заведене адміністратором для всього сайту.</li>
+              <li>Обов'язкових полів у типі — до трьох: із четвертим Jira перемикає всю
+                команду на повну форму створення.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Далі — <strong>урок 12 «Практикум: шаблони під сферу»</strong>. Уроки 9, 10 і
+            11 дали три окремі інструменти: тип спейсу, процес і поля. У дванадцятому вони
+            сходяться в один порядок дій, за яким ти збереш спейс під <em>свою</em> сферу —
+            маркетинг, закупівлі, найм, будівельний об'єкт чи особистий планер — і
+            наповниш його десятьма справжніми справами.
+          </p>
+          <p>
+            Одна дія до наступного уроку: відкрий у своєму спейсі картку, яку заповнював
+            найчастіше, і чесно подивись, які поля в ній завжди порожні. Кожне таке —
+            кандидат на лінію <code>Hide when empty</code> або на видалення з розкладки.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять
+            на назви: до кожної відповіді одразу з'являється пояснення, чому решта
+            варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Ліна створила в спейсі «Найм» поле «Джерело», діалог закрився без помилок. Наступного дня вона відкриває картку кандидата, а поля там немає. Що сталося?",
+            "options": [
+              "Нове поле показується на картках наступного дня: Jira перебудовує розкладку вночі, за розкладом",
+              "Поля такого типу на картці не показуються — їх видно лише колонкою у списку робіт",
+              "Поле з'явилось у списку полів спейсу, але не потрапило в розкладку типу роботи",
+              "Поле треба створювати окремо для кожного типу роботи: спільного списку полів у спейсі немає"
+            ],
+            "answer": 2,
+            "explain": "Створити поле й показати поле — дві різні дії. Спершу поле народжується у спейсі й потрапляє в розділ Fields, потім його перетягують у розкладку конкретного типу роботи й натискають Save changes. Доки другої дії не сталося, поле існує, але на картках його немає. Затримки в Jira тут немає, а список полів у спейсі один на всі типи."
+            },
+          {
+            "q": "У спейсі «Друга точка» серед типів роботи лише задача й підзадача, а Тарасу потрібна велика справа, яка збиратиме задачі ремонту. Що зробити?",
+            "options": [
+              "Додати запропонований тип для великої справи кнопкою + Add work type на сторінці Work types",
+              "Створити власний тип і назвати його Epic — Jira впізнає назву й увімкне для нього таймлайн і звіти",
+              "Перевести спейс у тип зі спільною конфігурацією: велика справа буває лише там",
+              "Нічого не вдієш: набір типів роботи задається шаблоном при створенні спейсу й потім не змінюється"
+            ],
+            "answer": 0,
+            "explain": "Типи роботи додаються на сторінці Work types: кнопка пропонує або готовий тип зі списку Jira, або власний. Важливо взяти саме запропонований тип для великої справи — на ньому тримаються таймлайн, звіти й смуги на дошці, а власний тип з такою самою назвою їх не вмикає. Тип спейсу міняти для цього не треба."
+          },
+          {
+            "q": "Оксана зробила обов'язковими чотири поля в типі «Задача». Наступного дня колеги скаржаться: форма створення роботи стала великою й повільною. Чому?",
+            "options": [
+              "Це збіг: розмір форми створення залежить від ширини вікна браузера, а не від налаштувань спейсу",
+              "Обов'язкові поля на форму не впливають — імовірно, хтось змінив шаблон, з якого зроблено спейс",
+              "Кожному, хто скаржиться, треба увімкнути компактну форму в особистих налаштуваннях акаунта",
+              "Компактна форма показує до трьох обов'язкових полів, а з четвертим Jira відкриває повну форму"
+            ],
+            "answer": 3,
+            "explain": "Компактна форма створення розрахована на невелику кількість обов'язкових полів: вона показує назву, опис і до трьох обов'язкових. Коли в спейсі їх більше трьох, Jira сама перемикає створення на повну форму — і це діє для всієї команди, а не для окремої людини. Тому обов'язкових полів тримають щонайбільше три."
+          },
+          {
+            "q": "Марта завела поле «Канал» текстовим, і за місяць у ньому двадцять різних написань того самого: «інстаграм», «Instagram», «інст». Як це виправити?",
+            "options": [
+              "Відкрити налаштування поля й перемкнути його тип на список варіантів — назва й значення збережуться",
+              "Створити нове поле-список, перенести в нього значення й прибрати старе поле з розкладки",
+              "Перейменувати значення в самому полі: Jira зведе однакові написання в одне автоматично",
+              "Замінити поле міткою: мітки самі зводять різні написання одного слова до спільного варіанта"
+            ],
+            "answer": 1,
+            "explain": "Тип поля обирається один раз: документація каже, що змінити його після створення не можна. Тому єдиний чесний шлях — нове поле потрібного типу, перенесення значень і прибирання старого з розкладки. Мітки проблему не лікують: це теж вільний текст, і різні написання так само лишаться різними."
+          },
+          {
+            "q": "Ліна завела поле «Посада» в спейсі «Найм». Марта хоче таке саме в «Маркетингу», щоб потім знайти всі роботи обох спейсів одним запитом. Що її чекає?",
+            "options": [
+              "Поле з'явиться в «Маркетингу» саме: власні поля спейсу видно в усіх спейсах сайту",
+              "Достатньо перетягнути поле в розкладку типу «Маркетингу»: у списку полів воно вже є",
+              "Так зробити не можна взагалі: назва поля унікальна на сайт, і Jira не дасть її повторити",
+              "У «Маркетингу» створюють своє поле, або адміністратор заводить глобальне на весь сайт"
+            ],
+            "answer": 3,
+            "explain": "Поле, створене у спейсі, яким керує команда, належить лише цьому спейсу й не ділиться ні з іншим таким спейсом, ні зі спейсом зі спільною конфігурацією. Однакова назва в двох спейсах — це два різні поля, і спільного запиту по них не буде. Спільним поле стає тільки тоді, коли його заводить адміністратор для всього сайту."
+          },
+          {
+            "q": "Денис відкрив ту саму картку, що й Ліна, і бачить поля в іншому порядку: у Ліни дата співбесіди вгорі, у нього — усередині списку. Хто щось зламав?",
+            "options": [
+              "Ніхто: Ліна закріпила поле вгорі картки, а закріплення бачить лише той, хто його зробив",
+              "У Дениса інша роль у спейсі, а від ролі залежить, які поля і в якому порядку він бачить",
+              "Розкладка полів зберігається окремо для кожного типу роботи — вони відкрили картки різних типів",
+              "Jira сортує поля за заповненістю: у кого що заповнене, те й піднімається вище в списку"
+            ],
+            "answer": 0,
+            "explain": "Розкладка полів у типі роботи спільна для всієї команди, але поверх неї кожен може закріпити собі найпотрібніші поля вгорі картки. Документація прямо каже, що закріплені поля повністю особисті й видно їх лише тому, хто закріпив. Ролі на порядок полів не впливають, а автоматичного сортування за заповненістю в Jira немає."
+          }
+        ]
+      }
+      </script>
+
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Урок позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
