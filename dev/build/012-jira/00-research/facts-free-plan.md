@@ -29,7 +29,7 @@ Sandbox-знімки — `00-research/screens/`. **Перед авторинго
 | 13 | Автоматизація — білінг | перевитрата з **2026-12-03**, $0.50 за 1 000 додаткових кроків; сторінка Usage: **Automation → Usage** у Jira (є і в спейсі, і глобально — `screens/14`) та Atlassian Administration → Insights → Platform usage | ✅ | "On December 3, 2026, extra usage billing takes effect." · sandbox-банер: "Starting at your next renewal on or after December 3, 2026, Automation flow runs will count toward allocations for Rovo credits and Automation steps." | там само · `screens/14-automation-global.md` | j15, дов. 3 |
 | 13b | «Single-project rules unlimited» | **більше не діє** | ❌ спростовано | "Usage limit: a monthly cap on the total number of successful rule runs for your product." (винятку немає) | automation/kb/difference-between-automation-service-limits-and-automation-usage-limits/ | j14 |
 | 3 | JSM Free | **3 агенти**, клієнти — без ліміту, 2 GB, Community support. **Є:** multi-channel support, customizable workflows **і SLA**, custom reports, автоматизація **1 250 steps per subscription**, global and multi-space automation **100 executions per month**. **Немає (прочерк):** work-level security settings, audit logs, sandboxes, release tracks, multiple help centers on a single site, data pinning to a realm, uptime SLA; Assets і virtual service agent — лише Premium/Enterprise. **Звірено 2026-09-17 (вечір) трьома способами:** `curl` + розбір `<td>` (автор j02), повторний `curl` кореневою сесією і **очима в Chrome** (`screens/24-plans-table-jsm.md`) — усі три збіглися; ранкове прочитання WebFetch було хибним (✓/– переплутані) | ✅ | "Up to 3 agents" · "Unlimited" · "Customizable workflows and SLA's" · "Custom reports" · "1,250 steps per subscription" · "100 executions per month" | explore-jira-cloud-plans (розділ «Plans comparison for Jira Service Management») · `screens/24` | j18, j19 |
-| 3 | JSM база знань | потребує **додати Confluence на сайт** (купувати не треба) — ⚠ автор j02 2026-09-17 цієї фрази на сторінці планів **не знайшов** (слів Confluence/knowledge base там немає); джерело шукати заново в `jira-service-management-cloud/docs/` (розділ «Knowledge base») | ⚠ | "No purchase of Confluence is required, but you must add Confluence to your site to unlock these features." | там само | j16, j19 |
+| 3 | JSM база знань | потребує **Confluence на тому самому сайті — щонайменше на плані Free**; фрази «No purchase of Confluence is required» у живих доксах **немає** (не вживати «купувати не треба») — закрито незалежно авторами j16 і j18 2026-09-18; шлях у спейсі: `Space settings → Channels & self service → Knowledge base`; додає site/org admin | ✅ | "at a minimum, you'll need to have a Free plan of Confluence on the same site" · "You need to be a site admin or an organization admin…" | jira-service-management-cloud/docs/add-confluence-to-set-up-knowledge-base/ | j16, j18, j19 |
 | 9 | Confluence Free | 10 користувачів, 2 GB; дозволи не налаштовуються, анонімного доступу немає | ✅ | "Seats for up to 10 users" · "2 GB of file storage" · "Permissions aren't customizable and anonymous access isn't available." | confluence-cloud/docs/learn-about-confluence-cloud-plans/ | j16 |
 | 9 | Jira у Confluence | макрос «Display Jira work items in a list», вставка `/jira` | ✅ (план не названий) | — | confluence-cloud/docs/insert-the-jira-issues-macro/ | j16 |
 | 14 | Rovo MCP Server | **є на Free**: 500 викликів/год (Standard 1 000; Premium/Enterprise 1 000 + 20/користувача, до 10 000) | ✅ | "All Atlassian Cloud customers have access to the Atlassian Rovo MCP server, although there are site-level rate limits depending on what Jira and Confluence plan you're on." · "Free: 500 calls per hour" | atlassian.com/platform/remote-mcp-server | j22 |
@@ -47,7 +47,7 @@ Sandbox-знімки — `00-research/screens/`. **Перед авторинго
 | 12 | Team- / company-managed | обидва на Free; **спільна конфігурація (shared configuration) company-managed — не на Free** | ✅ | "Any user can create their own team-managed space unless a Jira admin changes this in global permissions." | jira-software-cloud/docs/create-a-new-project/ | j09 |
 | 16 | Time tracking | завжди увімкнений; у team-managed Estimation вимкнена за замовчуванням, поля Original estimate + Time tracking додаються руками | ✅ | "Time tracking is always enabled in Jira Cloud spaces." | jira-cloud-administration/docs/configure-time-tracking/ | j11 (ЧаПи) |
 | 17 | Українська мова | у списку мов акаунта є, але для **Jira, JSM, JPD, Confluence — ❌**; ✅ для Compass, Home, Help center, **Customer Portal**. Sandbox: акаунт українською → Jira UI англійський (`screens/17`) | ✅ уточнено | "Portuguese (Portugal), Estonian, Icelandic, and Slovak are available for selection; however, we do not currently offer active support for these languages." | atlassian-account/docs/manage-your-language-preferences/ | j03, j18 (Customer Portal ✅ українською — підтверджено `curl`-ом таблиці мов рецензентами j01 і j03 2026-09-17; наживо на порталі — після додавання JSM) |
-| 20 | Marketplace $0 для 1–10 | **опція вендора**, не правило; фільтр «Free up to 10 users» — існування на 2026-09-17 не підтверджено (Marketplace — JS-застосунок) | ⚠ | "we are now giving Marketplace Partners the option to set a 1-10 user pricing tier to any price, including $0.00." | community.developer.atlassian.com (анонс) | j17 |
+| 20 | Marketplace $0 для 1–10 | **опція вендора**, не правило (допис від **2021-12-07** — єдине джерело); фільтр **`Free up to 10 users` існує** (`freeStarterTier`), поруч `Free for all teams` — підтверджено автором j17 2026-09-18 `curl`-ом сторінки пошуку `marketplace.atlassian.com` (фасети в HTML); усередині Jira фільтр `Pricing` ніхто не розкривав | ✅ (усередині Jira — ⚠) | "we are now giving Marketplace Partners the option to set a 1-10 user pricing tier to any price, including $0.00." | community.developer.atlassian.com (анонс) | j17 |
 | 19 | Apps на Free | **є** («Apps and integrations» ✅ у таблиці планів); частина застосунків працює обмежено | ✅ | "Some apps might have reduced functionality in Jira Free" | explore-jira-cloud-plans · what-is-the-free-jira-cloud-plan | j17 |
 
 ## Зміни, які визначають «стабільність» (для довідника 3, розділ «Що змінилось»)
@@ -61,6 +61,10 @@ Sandbox-знімки — `00-research/screens/`. **Перед авторинго
 | Сезонні релізи | три на рік з 2026 (весна · літо · осінь) | протокол підтримки |
 | Automation: runs → steps, білінг за перевитрату | з 2026-12-03 | `screens/14` |
 | Rovo в UI (Ask AI, Improve, Add agent) | видно на Free як апсел | `screens/04`, `06`, `12` |
+| Докси автоматизації: `rule → flow`, `component → step` | у живих доксах уже всюди (2026-09-18); `rule` лишився в слагах адрес | `reports/j14.md`, `j15.md` |
+| `Pages → Docs` | у польоті: «We're currently updating the Pages experience and renaming it to “Docs”»; адреса лишається `/pages` | `screens/09`, `reports/j16.md` |
+| Сторінка сповіщень — три написи | `Notification settings` (докси) · `Emails and notifications` (екран) · «Space and work item notifications» (довідки Slack/Teams) | `screens/17`, `reports/j16.md` |
+| `Cloud Fortified → Atlassian Enterprise Certified` | заявки закриті з 2026-09-01; «The CFA program will be retired on 31st December, 2026»; бейдж на екрані ще є | `screens/20`, `reports/j17.md` |
 
 ## Юридичне (без змін від 2026-09-17, з `.local.md`)
 - Назви Atlassian — fair use без письмової згоди, «without modification or deceptive intent»
@@ -74,9 +78,9 @@ Sandbox-знімки — `00-research/screens/`. **Перед авторинго
 | Forms на Free (функціонально) | докси плану не називають | sandbox, j19 |
 | Backup manager на Free | докси плану не називають; `jira/kb/automate-backups-for-jira-cloud/` → 404 | sandbox, j20 |
 | Повний список виглядів team-managed software | у доксах врозсип | sandbox «+», j06 |
-| Фільтр «Free up to 10 users» у Marketplace | JS-застосунок | sandbox `/jira/marketplace/discover`, j17 |
+| ~~Фільтр «Free up to 10 users» у Marketplace~~ | **закрито 2026-09-18 (j17):** існує на `marketplace.atlassian.com`; лишається розкрити `Pricing` усередині Jira | sandbox `/jira/marketplace/discover` |
 | Розподіл ✅/❌ мов по продуктах | прочитано моделлю з таблиці | очима власника, j18 (портал) |
-| Адреса пошти для business-спейсу (не JSM) | у доксах лише JSM і mail handler | j16 — писати обережно |
+| ~~Адреса пошти для business-спейсу (не JSM)~~ | **закрито 2026-09-18 (j16):** окремої адреси немає — лише mail handler (право `Administer Jira`); власна адреса відправника — «This page applies to company-managed spaces only»; у j16 не стверджується | — |
 | Endpoint MCP і кредити на Free | два офіційні джерела розходяться | після ввімкнення конектора, j22 |
 | Автоматизація на JSM Free у sandbox | продукту ще немає на сайті | після додавання JSM, j19 |
 | Платіжна картка при реєстрації Free — не запитується (твердження j03) | у доксах слів `credit card` немає (curl 2026-09-17) | **власник** — з власного досвіду створення sandbox; або новий акаунт |
@@ -124,3 +128,26 @@ Sandbox-знімки — `00-research/screens/`. **Перед авторинго
 - ⚠ **`+ Add work type` і `Epic` у діловому спейсі** — найдорожче: на цьому кроки j11, j12, j13, j21, а виноски в тексті j11 немає (Ф-4).
 - ⚠ **`Audit log` з хоча б одним запуском** — підписи `Status` (j14 узяв зі сторінки performance insights); якщо інші — правити j14 і j15 разом.
 - ⚠ Кириличні назви полів у JQL (`"Посада" = "Бариста"`) · напис `Show more fields` / `Show 2 more fields` · права панель `Fields` у діловому спейсі (j11).
+
+**Дописано після хвилі 4 (j15–j18, 2026-09-18, ніч) — лише живим sandbox; повні формулювання у `reports/jNN.md` §5:**
+- ⚠ **Автоматизація (j15, закриває й j14):** `Audit log` із запуском і **розгорнутим рядком** (підписи `Status`, підзаголовок
+  `Log message`, обчислені значення) · конструктор flow із гілкою (як підписаний крок гілки, де вибір спорідненості) ·
+  вкладка `Usage` **на рівні спейсу** (чи той самий набір плиток, що на глобальній) · панель `{}` розумних значень ·
+  налаштування `Scheduled` (мінімальний інтервал, підпис поля JQL).
+- ⚠ **Сповіщення й Docs (j16):** сторінка сповіщень зі **станом галочок** і підписом рейки · **меню `+` у діловому спейсі —
+  чи є там `Docs`** (на цьому крок 7 «Зроби сам» j16) · після додавання Confluence: вкладка `Docs` зі списком сторінок +
+  сторінка з макросом `/jira` (зніме «за документацією» з W3) · меню календаря спейсу (експорт/підписка) · живий лист
+  від Jira у скриньці (поле `From`).
+- ⚠ **Marketplace (j17):** екран згоди на доступ при `Get it now` для безкоштовного застосунку (**дійти й не
+  підтверджувати**) · `Connected apps` з будь-яким встановленим застосунком (зніме «за документацією» з W2 — потрібен
+  дозвіл власника на встановлення) · розкритий `Pricing` усередині Jira · фільтр `Use cases` (на сайті Marketplace
+  такого фасета немає) · меню `Add apps` на картці роботи.
+- ⚠ **JSM (j18, усе після додавання продукту):** портал очима клієнта — **точний напис у полі пошуку** (обіцянка ще з j01),
+  вступний текст, плитки, `Requests` · сторінка черг (назви типових черг шаблону, як друкується годинник SLA) · картка
+  заявки очима агента (панель SLA, рядок відповіді) · `Channels` — **чи є адреса пошти на Free** · `Space settings →
+  Request management` (типи запитів, `SLAs` — для j19) · галерея `Create space` після додавання JSM · колонка `Type` у
+  `Spaces` (закриє j03/j09) · **які статуси приносить шаблон** (§3: робочий канон `Open → Work in progress → Waiting
+  for customer → Done` — до j19) · що стає з планом сайту після додавання JSM (пробний платний → Free?).
+- ⚠ Без sandbox не закривається й лишено в текстах чесною виноскою: `Europe/Kyiv` у `convertToTimeZone` (j15) · підписка
+  Google Calendar на календар спейсу — у доксах лише для календаря змін JSM (j16) · як присуджуються `SPOTLIGHT` /
+  `BESTSELLER` (j17) · портал українською — лише таблиця мов (j18).
