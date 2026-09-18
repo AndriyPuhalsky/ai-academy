@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 15 · Автоматизація глибше — Jira з нуля</title>
+  <meta name="description"
+    content="Розумні значення у подвійних фігурних дужках, гілки по підзадачах і батьківських роботах, тригер за розкладом із запитом, пошук списку дією Lookup work items, налагодження через журнал запусків і сторінка Usage." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+</head>
+
+<body data-module="j15">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 15</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 4 · Автоматизація та інтеграції</p>
+        <h1 class="ds-h1">Автоматизація глибше</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 25 хв читання</p>
+        <p class="ds-lead">
+          Три flows з попереднього уроку роблять корисну, але однакову роботу: той самий
+          текст, та сама людина, та сама дія. Цей урок учить їх говорити конкретно —
+          підставляти в текст назву роботи й дату, діяти не з тією роботою, що запустила
+          flow, а з її підзадачами чи батьком, і збирати цілий список одним запитом.
+        </p>
+        <p>
+          Тут з'являються три нові речі й одна сторінка. Речі — <strong>розумні
+          значення</strong> (шматочки в подвійних фігурних дужках, які Jira замінює на
+          справжні дані), <strong>гілки</strong> (відгалуження ланцюжка на рідню роботи)
+          і <strong>пошук списку всередині flow</strong>. Сторінка — <code>Usage</code>,
+          де видно, скільки автоматизація вже витратила. Програмування й тут немає:
+          розумне значення — це текст, який ти вписуєш у звичайне поле.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> перших кроків у конструкторі — тригер, умова, дія,
+            <code class="ds-code--inline">Audit log</code>, власник flow — це урок 14,
+            і без нього тут буде важко. Немає синтаксису мови запитів JQL (урок 7): запити
+            в цьому уроці готові, і пояснюється лише те, що з ними робить автоматизація.
+            Немає тригерів Jira Service Management (урок 19) і точних чисел —
+            скільки кроків на місяць дає безкоштовний план, скільки листів на добу:
+            вони з датою перевірки лежать у довіднику «Карта інтерфейсу, глосарій
+            і ліміти Free».
+          </p>
+          <p>
+            <strong>Є:</strong> будова розумного значення й десяток найуживаніших;
+            формати дат; різниця між <code class="ds-code--inline">{{issue}}</code> і
+            <code class="ds-code--inline">{{triggerIssue}}</code>; гілки та їхні межі;
+            тригер за розкладом із запитом і дія
+            <code class="ds-code--inline">Lookup work items</code>; як побачити в журналі
+            запусків, що саме підставила Jira; сторінка <code class="ds-code--inline">Usage</code>
+            і чому гілка коштує дорожче за коментар; гігієна flows.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            Три flows «Кориці» працюють тиждень, і за цей тиждень стало видно, чого їм
+            бракує.
+          </p>
+
+          <ul>
+            <li><strong>Коментар не каже, про що він.</strong> Щоранку Оксана отримує в
+              картках однаковий текст «Дедлайн завтра». Коли таких карток три, вона мусить
+              відкрити кожну, щоб зрозуміти, у чого саме завтра дедлайн.</li>
+            <li><strong>Дія стосується не тієї роботи.</strong> Тарас закриває підзадачу
+              ремонту — і хотів би, щоб про це з'явився запис у батьківській роботі, яку
+              дивиться Оксана. Але flow за замовчуванням працює рівно з тією роботою, яка
+              його запустила.</li>
+            <li><strong>Лист приходить двадцять разів замість одного.</strong> Марті
+              потрібен один понеділковий лист зі списком того, що горить цього тижня,
+              а не окремий лист на кожну роботу.</li>
+            <li><strong>Незрозуміло, скільки це коштує.</strong> З уроку 14 відомо, що
+              кожен виконаний крок рахується. Де подивитись цей рахунок — там сказано
+              не було.</li>
+          </ul>
+
+          <p>
+            Перші три задачі закривають розумні значення, гілки й пошук списку всередині
+            flow; четверту — сторінка <code>Usage</code>. Усе це вже є на безкоштовному
+            плані й усе вписується в той самий ланцюжок «коли — якщо — що зробити»,
+            який ти зібрав(ла) в уроці 14.
+          </p>
+
+          <h3>Розумне значення — головне слово уроку</h3>
+
+          <p>
+            <strong>Розумне значення</strong> (smart value, читається «смарт велью») —
+            це текст у подвійних фігурних дужках, який Jira під час запуску замінює на
+            справжні дані. Довідка Atlassian визначає його так: «Smart values are dynamic
+            variables that can make your flow more flexible» — це змінні величини, які
+            роблять flow гнучкішим.
+          </p>
+
+          <p>
+            Написати <code>{{issue.summary}}</code> у полі коментаря — те саме, що сказати
+            «сюди підстав назву роботи». Коли flow спрацює для роботи
+            <code>REM-6</code> «Меблі: доставка й монтаж», у коментарі буде саме ця назва.
+            Наступного разу — назва іншої роботи. Дужки в текст не потрапляють.
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Чому всередині дужок старі слова</span>
+            <p>
+              У розумних значеннях живе <code class="ds-code--inline">issue</code>, а не
+              <code class="ds-code--inline">work item</code>, і
+              <code class="ds-code--inline">project</code>, а не
+              <code class="ds-code--inline">space</code> — так само, як у мові запитів
+              JQL з уроку 7. Довідка сама попереджає про це першим рядком сторінки про
+              розумні значення: у цих записах слово issue означає роботу, а project —
+              спейс. Перейменування дійшло до кнопок і не дійшло до синтаксису. Далі
+              в уроці ми це не коментуємо: бачиш <code class="ds-code--inline">issue</code>
+              у дужках — читай «робота».
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Місце те саме, що в уроці 14: у бічній панелі наведи на назву спейсу, натисни
+            <code>More actions</code> (три крапки) → <code>Space settings</code> →
+            <code>Automation</code>. Змінюється не сторінка, а вміст ланцюжка: у ньому
+            з'являється крок нового виду.
+          </p>
+
+          <h3>Ланцюжок, який роздвоюється</h3>
+
+          <figure class="win" data-state="form" id="w1">
+            <figcaption class="win__chrome">
+              <span class="win__dots" aria-hidden="true"></span>
+              <span class="win__title" id="w1t">Jira Cloud · flow із гілкою у спейсі Друга точка · за документацією, 2026-09-18</span>
+              <span class="win__addr" aria-hidden="true">…/jira/…/REM/settings/automate</span>
+            </figcaption>
+            <div class="win__body" role="group" aria-labelledby="w1t">
+              <ul class="win__rail" aria-label="Бічна панель Jira">
+                <li class="win__rail-item">For you</li>
+                <li class="win__rail-item win__rail-item--active">Spaces</li>
+                <li class="win__rail-item">Filters</li>
+                <li class="win__rail-item">Dashboards</li>
+              </ul>
+              <div class="win__main">
+                <div class="win__bar">
+                  <span class="win__crumb">Space settings / Друга точка / Automation</span>
+                  <span class="win__btn">Flow details</span>
+                </div>
+                <div class="win__page">
+                  <h4>Підзадача готова — відзначити в батьківській роботі</h4>
+                  <ol class="win__chain">
+                    <li class="win__step" data-kind="when"><span class="win__step-kind">When</span> Work item transitioned: to Done <b class="win__mark" aria-hidden="true">①</b></li>
+                    <li class="win__step" data-kind="branch"><span class="win__step-kind">Branch</span> Related work items: Parent <b class="win__mark" aria-hidden="true">②</b></li>
+                    <li class="win__step" data-kind="then"><span class="win__step-kind">Then</span> Comment on work item: {{triggerIssue.key}} {{triggerIssue.summary}} — готово, {{now.jiraDate}} <b class="win__mark" aria-hidden="true">③</b></li>
+                    <li class="win__step" data-kind="then"><span class="win__step-kind">Then</span> Log action: {{issue.key}} {{issue.summary}} <b class="win__mark" aria-hidden="true">④</b></li>
+                  </ol>
+                  <p class="win__actions"><span class="win__btn">Add step</span> <span class="win__btn win__btn--primary">Turn on flow</span></p>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <ol class="win__legend" aria-label="Пояснення до вікна «flow із гілкою у спейсі Друга точка»">
+            <li><code>When</code> — тригер: робота перейшла в завершений статус</li>
+            <li><code>Branch</code> — гілка: далі кроки йдуть по батьківській роботі</li>
+            <li>Текст коментаря з розумними значеннями замість даних</li>
+            <li><code>Log action</code> — друкує значення в журнал запусків</li>
+          </ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Вікно зібране з документації Atlassian (сторінки «Create automation flows in
+            Jira», «Jira automation branches», «Branch automation flows to perform actions
+            on related work items», «Jira automation actions», читані 18 вересня
+            2026 року): конструктор на навчальному сайті не відкривали. Назва flow, текст
+            коментаря й ключ спейсу — наші, з «Кориці».
+          </p>
+
+          <p>
+            Читається ланцюжок згори вниз, як і раніше. Нове тут одне: крок
+            <code>Branch</code> — <strong>гілка</strong>. Усе, що стоїть після неї,
+            виконується вже не з тією роботою, яка запустила flow, а з її ріднею — у цьому
+            випадку з батьківською роботою. Тому коментар з'явиться в батьківській картці,
+            а не в підзадачі.
+          </p>
+
+          <p>
+            Два останні кроки містять розумні значення, і вони різні навмисно:
+            <code>{{triggerIssue.summary}}</code> — назва роботи, яка запустила flow
+            (підзадачі), <code>{{issue.summary}}</code> усередині гілки — назва
+            батьківської роботи. Чому так — у блоці 3; це головна пастка всього уроку.
+          </p>
+
+          <h3>Сторінка, де видно ціну</h3>
+
+          <p>
+            Четверта вкладка автоматизації зветься <code>Usage</code> — «використання».
+            Вона відповідає на питання «скільки автоматизація вже витратила цього місяця»
+            і є у двох місцях: у налаштуваннях спейсу й на глобальній сторінці всього
+            сайту.
+          </p>
+
+          <figure class="win" data-state="settings" id="w2">
+            <figcaption class="win__chrome">
+              <span class="win__dots" aria-hidden="true"></span>
+              <span class="win__title" id="w2t">Jira Cloud · Automation → вкладка Usage · звірено 2026-09-17</span>
+              <span class="win__addr" aria-hidden="true">…/jira/…/MARK/settings/automate</span>
+            </figcaption>
+            <div class="win__body" role="group" aria-labelledby="w2t">
+              <ul class="win__rail win__rail--settings" aria-label="Space settings">
+                <li class="win__rail-item">Details</li>
+                <li class="win__rail-item">Access</li>
+                <li class="win__rail-item">Notifications</li>
+                <li class="win__rail-item win__rail-item--active">Automation</li>
+                <li class="win__rail-item">Fields</li>
+                <li class="win__rail-item">Work types</li>
+                <li class="win__rail-item">Features</li>
+                <li class="win__rail-item">Custom filters</li>
+                <li class="win__rail-item">Apps</li>
+              </ul>
+              <div class="win__main">
+                <div class="win__page">
+                  <h4>Automation</h4>
+                  <span class="win__tabs"><span>Flows</span><span>Audit log</span><span>Templates</span><span class="win__tab--active">Usage <b class="win__mark" aria-hidden="true">①</b></span></span>
+                  <p class="win__placeholder">Current usage model · Date range: Current month (September) · Last updated: Sep 17, 2026 at 6:11:38 PM · Upgrade subscriptions</p>
+                  <ul class="win__stats">
+                    <li>Automation step usage <span class="win__placeholder">0 steps · Estimate · Jira 0 · Other apps 0</span> <b class="win__mark" aria-hidden="true">②</b></li>
+                    <li>Rovo credit usage in Automation <span class="win__placeholder">0 credits</span></li>
+                  </ul>
+                  <h4>High usage flows <b class="win__mark" aria-hidden="true">③</b></h4>
+                  <table class="win__table">
+                    <thead>
+                      <tr><th>Flow</th><th>Flow runs</th><th>Automation steps</th><th>Rovo credits</th><th>Scope</th><th>Owner</th><th>Enabled</th></tr>
+                    </thead>
+                  </table>
+                  <p class="win__placeholder">Flows have not run in Jira during the selected time frame</p>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <ol class="win__legend" aria-label="Пояснення до вікна «Automation, вкладка Usage»">
+            <li><code>Usage</code> — четверта вкладка автоматизації</li>
+            <li>Плитка з витраченими кроками за вибраний період</li>
+            <li><code>High usage flows</code> — таблиця найненажерливіших flows</li>
+          </ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Плитки, назви колонок і напис про порожню таблицю — зі знімка навчального
+            сайту Jira Cloud Free від 17 вересня 2026 року; там цю вкладку відкривали на
+            рівні всього сайту (<code>Settings</code> → <code>System</code> →
+            <code>Global automation</code>), а рейка ліворуч і адреса — з налаштувань
+            спейсу, де вкладка зветься так само. Нулі в плитках справжні: на тому сайті
+            жоден flow ще не запускався. <code>Rovo credits</code> і
+            <code>Upgrade subscriptions</code> — платні можливості Atlassian, на
+            безкоштовному плані вони лишаються нулями й посиланням на прайс.
+          </p>
+
+          <p>
+            Плитка <code>Automation step usage</code> рахує <strong>кроки</strong>, а не
+            запуски: кожна виконана частина flow — тригер, умова, дія, гілка — це один
+            крок. Таблиця <code>High usage flows</code> показує, який саме flow з'їдає
+            найбільше, і саме її варто відкрити, коли кроки почнуть закінчуватись. Скільки
+            кроків на місяць дає безкоштовний план і з якої дати Atlassian рахуватиме
+            перевитрату — у довіднику «Карта інтерфейсу, глосарій і ліміти Free»: числа
+            там із датою перевірки, бо вони змінюються.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <h3>Будова розумного значення</h3>
+
+          <p>
+            Довідка описує запис так: «Each smart value is constructed using a specific
+            syntax called dot notation inside double mustache brackets» — кожне розумне
+            значення пишеться через крапку всередині подвійних фігурних дужок, у вигляді
+            <code>{{object.property.subProperty}}</code>. Простіше: спершу предмет
+            (<code>object</code>), потім через крапку його властивість
+            (<code>property</code>), потім — властивість властивості.
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: розумні значення, з яких починають">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Значення</th><th>Що друкує</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>{{issue.key}}</code></td><td>ключ роботи, наприклад <code>REM-6</code></td></tr>
+                <tr><td><code>{{issue.summary}}</code></td><td>назву роботи</td></tr>
+                <tr><td><code>{{issue.status.name}}</code></td><td>статус роботи словом</td></tr>
+                <tr><td><code>{{issue.assignee.displayName}}</code></td><td>ім'я виконавця</td></tr>
+                <tr><td><code>{{issue.reporter.displayName}}</code></td><td>ім'я автора роботи</td></tr>
+                <tr><td><code>{{issue.duedate}}</code></td><td>дедлайн роботи</td></tr>
+                <tr><td><code>{{issue.description}}</code></td><td>вміст поля опису</td></tr>
+                <tr><td><code>{{now}}</code></td><td>поточні дату й час</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            Повний перелік — сотні рядків, і він лежить у довіднику «Автоматизація:
+            тригери, дії, smart values». Восьми значень із таблиці вистачає на перший рік.
+          </p>
+
+          <p>
+            Дві дрібниці, через які значення частіше за все не спрацьовує. Перша: слова з
+            кількох частин пишуться злитно, кожне наступне — з великої літери
+            (<code>displayName</code>, а не <code>display name</code>). Довідка називає це
+            camelCase і попереджає прямо: «Notice that multiword properties use camelCase
+            capitalization» — багатослівні властивості пишуться саме так. Друга: якщо
+            значення не існує, Jira не лається, а мовчки друкує порожнє місце — «If a
+            field or value doesn't exist, it will return an empty value». Помилку видно не
+            на екрані конструктора, а в результаті.
+          </p>
+
+          <figure class="term term--cmd" id="p1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p1t">ключ і назва роботи в один рядок</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__in">{{issue.key}} — {{issue.summary}}</span></span></pre>
+          </figure>
+
+          <figure class="term term--cmd" id="p2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p2t">ім'я виконавця роботи</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p2t"><span class="term__line"><span class="term__in">{{issue.assignee.displayName}}</span></span></pre>
+          </figure>
+
+          <h3>Функції: коли значення треба підправити</h3>
+
+          <p>
+            До значення можна дописати <strong>функцію</strong> — дію над ним. Впізнати її
+            легко: після назви завжди стоять круглі дужки, порожні або з числом усередині.
+            Довідка пояснює на прикладі: <code>{{now.plusDays(5)}}</code> означає «add 5
+            days to the current time» — додати п'ять днів до поточного часу.
+          </p>
+
+          <p>
+            Найчастіше функції потрібні для дат, бо сирий вигляд дати читати незручно:
+            <code>{{now}}</code> сам по собі друкує технічний рядок на кшталт
+            <code>2026-09-29T08:00:37.0+0000</code>. Формат дописується в кінець через
+            крапку. Готових форматів у довіднику близько десятка; ось ті, що
+            знадобляться:
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: формати дати">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Формат</th><th>Що виходить</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>jiraDate</code></td><td>рік, місяць, день: <code>2026-09-29</code></td></tr>
+                <tr><td><code>mediumDate</code></td><td>по-англійськи словом: <code>Sep 29, 2026</code></td></tr>
+                <tr><td><code>shortDate</code></td><td>коротко цифрами</td></tr>
+                <tr><td><code>format("dd/MM/yyyy")</code></td><td>твій власний шаблон із дня, місяця й року</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <figure class="term term--cmd" id="p3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p3t">дедлайн роботи у звичному вигляді день/місяць/рік</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p3t"><span class="term__line"><span class="term__in">{{issue.dueDate.format("dd/MM/yyyy")}}</span></span></pre>
+          </figure>
+
+          <p>
+            У цьому записі дедлайн названий <code>dueDate</code>, а в таблиці вище —
+            <code>duedate</code>: так по-різному пишуть його дві сторінки самої довідки.
+            Що з цим робити — у блоці 6.
+          </p>
+
+          <figure class="term term--cmd" id="p4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p4t">дата через тиждень від сьогодні</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p4t"><span class="term__line"><span class="term__in">{{now.plusDays(7)}}</span></span></pre>
+          </figure>
+
+          <p>
+            Останнє значення стає в пригоді не в тексті, а в дії <code>Edit work item</code>.
+            Довідка описує її так: «Edit the current work item by choosing the field to set
+            and value to add» — вибираєш поле роботи й значення, яке в нього покласти.
+            Поставити дедлайн «через тиждень від сьогодні» замість конкретної дати — саме
+            такий випадок.
+          </p>
+
+          <h3>Гілка: коли діяти треба не з цією роботою</h3>
+
+          <p>
+            <strong>Гілка</strong> (branch) — окреме відгалуження ланцюжка. Довідка описує
+            її так: «it's possible to create a separate section of the flow and perform
+            actions on related work items — this is referred to as branching» — можна
+            зробити окрему частину flow й виконати дії над спорідненими роботами.
+            Споріднені — це ті, що пов'язані з нашою: підзадачі, батьківська робота, епік
+            та інші.
+          </p>
+
+          <p>
+            Коли гілка стоїть у ланцюжку, кроки під нею виконуються для кожної
+            спорідненої роботи окремо: чотири підзадачі — чотири виконання. І головне
+            правило, заради якого цей розділ існує:
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Усередині гілки issue означає вже іншу роботу</span>
+            <p>
+              Дослівно з довідки: усі дії й посилання на <code class="ds-code--inline">{{issue}}</code>
+              «will point to the related work item, not the trigger work item» —
+              вказуватимуть на споріднену роботу, а не на ту, що запустила flow. Щоб
+              дістатись до тієї, що запустила, є окреме значення: «You can still reference
+              the trigger work item in branched flows using the smart value»
+              <code class="ds-code--inline">{{triggerIssue}}</code>. Усе, що вміє
+              <code class="ds-code--inline">{{issue}}</code>, вміє й воно:
+              <code class="ds-code--inline">{{triggerIssue.key}}</code>,
+              <code class="ds-code--inline">{{triggerIssue.summary}}</code> і так далі.
+            </p>
+          </div>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart TB
+  T["Тригер: підзадача перейшла в Done"] --> M["Головна лінія: issue - це підзадача"]
+  M --> B["Гілка: батьківська робота"]
+  B --> I["Усередині гілки issue - це вже батько"]
+  B --> R["triggerIssue - та сама підзадача"]
+  I --> A["Дія: коментар у батьківській роботі"]
+  R --> A
+            </pre>
+            <p class="ds-diag__caption">
+              Гілка не перериває ланцюжок, а переводить його на іншу роботу; попередня
+              лишається доступною під іншим іменем
+            </p>
+          </div>
+
+          <p>
+            Види спорідненості, які пропонує Jira, — <code>Sub-tasks</code> (підзадачі),
+            <code>Parent</code> (батьківська робота), <code>Stories</code> (роботи
+            всередині епіка), <code>Epic</code>, <code>Created work items</code> (роботи,
+            створені цим самим flow) і <code>Linked work items</code> (пов'язані роботи).
+            Останній вид знадобиться рідко, перші два — постійно.
+          </p>
+
+          <p>
+            У гілок є три обмеження, про які краще знати заздалегідь, ніж дошукуватись:
+          </p>
+
+          <ul>
+            <li><strong>Гілка в гілці неможлива:</strong> «You can't have a branch inside
+              another branch» — вкласти одну в іншу не вийде.</li>
+            <li><strong>Гілки не бачать одна одної:</strong> «Branches are isolated. Any
+              changes that occur in a branch won't be visible to the main flow, or any
+              other branch» — те, що сталось усередині гілки, для решти ланцюжка
+              невидиме.</li>
+            <li><strong>Порядок не гарантований:</strong> «Branches on multiple work items
+              (such as 4 sub-tasks) will run in parallel with no guarantee one will finish
+              before the next one starts» — чотири підзадачі обробляються одночасно, і
+              покладатись на те, що перша закінчиться раніше за другу, не можна.</li>
+          </ul>
+
+          <h3>Список за запитом: Lookup work items</h3>
+
+          <p>
+            Гілка ходить по рідні. Коли ж потрібен довільний список — «усі роботи
+            маркетингу з дедлайном до кінця тижня», — беруть окрему дію
+            <code>Lookup work items</code>. Довідка: «Search for up to 100 work items
+            using a JQL query» — вона виконує запит JQL і бере знайдені роботи (не більше
+            ста за раз), а далі «Include the results list in other actions by using the
+            {{lookupIssues}} smart value» — знайдений список стає доступним іншим крокам
+            під іменем <code>{{lookupIssues}}</code>.
+          </p>
+
+          <p>
+            Щоб надрукувати список цілком, потрібен ще один прийом: <strong>значок
+            <code>#</code></strong> (решітка) на початку. Він означає «зроби
+            те саме для кожного елемента», а закривається обов'язково парою
+            <code>{{/}}</code>: «When using #, you must close the expression with
+            {{/}}». Усередині такого блоку властивості пишуться без префікса —
+            <code>{{key}}</code>, а не <code>{{issue.key}}</code>.
+          </p>
+
+          <figure class="term term--cmd" id="p5">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p5t">список знайдених робіт: ключ і назва в кожному рядку</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p5t"><span class="term__line"><span class="term__in">{{#lookupIssues}}* {{key}} {{summary}}{{/}}</span></span></pre>
+          </figure>
+
+          <p>
+            Крім <code>{{key}}</code> і <code>{{summary}}</code>, у списку доступні
+            <code>{{url}}</code>, <code>{{status}}</code>,
+            <code>{{assignee.displayName}}</code>, <code>{{reporter.displayName}}</code>
+            та інші — повний перелік є на сторінці довідки Atlassian про розумні значення
+            для робіт і в довіднику «Автоматизація: тригери, дії, smart values».
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart TB
+  S["Тригер за розкладом: понеділок, ранок"] --> L["Дія Lookup work items: запит JQL"]
+  L --> Q["Список знайдених робіт"]
+  Q --> E["Дія Send customized email: один лист зі списком"]
+  E --> G["Запис у журнал запусків"]
+            </pre>
+            <p class="ds-diag__caption">
+              Пошук усередині flow дає один лист зі списком; запит у самому тригері
+              натомість запустив би дії для кожної знайденої роботи окремо
+            </p>
+          </div>
+
+          <p>
+            Різницю з уроку 14 варто проговорити вголос, бо вона коштує двадцяти зайвих
+            листів. У тригера <code>Scheduled</code> є власне поле для запиту, і довідка
+            описує його дію так: «If you do, actions in this flow will execute on the work
+            items included in the query» — дії виконаються <em>для кожної</em> знайденої
+            роботи. Це правильно для щоденного коментаря з уроку 14 і неправильно для
+            листа зі списком. Тому у flow, який шле один лист, поле запиту в тригері
+            лишається порожнім, а запит переїжджає в дію <code>Lookup work items</code>.
+          </p>
+
+          <h3>Дії, які оживають від розумних значень</h3>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: дії, у яких розумні значення найкорисніші">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Дія</th><th>Що дає зі значеннями</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>Comment on work item</code></td><td>коментар, що називає роботу, дату й людину: «to reference work item fields to personalize the comment»</td></tr>
+                <tr><td><code>Edit work item</code></td><td>обчислене значення поля — дедлайн «через тиждень», текст із назвою роботи</td></tr>
+                <tr><td><code>Send customized email</code></td><td>лист зі списком; адресата теж можна задати значенням</td></tr>
+                <tr><td><code>Create sub-tasks</code></td><td>підзадачі за списком назв; «This action only supports setting the Summary of the sub-task» — крім назви, більше нічого</td></tr>
+                <tr><td><code>Lookup work items</code></td><td>список робіт за запитом для решти кроків</td></tr>
+                <tr><td><code>Log action</code></td><td>«Logs a value to the audit log» — друкує значення в журнал, щоб побачити, що вийшло</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            Поле, яке розуміє значення, позначене прямо в інтерфейсі: «When a field in a
+            step supports smart values, it will have double mustache brackets next to it»
+            — біля такого поля стоять ті самі подвійні дужки, і за ними ховається перелік
+            («Select the {} button in the text field to open a list of compatible smart
+            values»). Тобто вивчати напам'ять не треба: у кожному полі є список того,
+            що саме тут доступно.
+          </p>
+
+          <h3>Скільки все це коштує</h3>
+
+          <p>
+            Одиниця обліку та сама, що в уроці 14, але тепер її варто порахувати. Довідка
+            перелічує, що саме рахується: «Triggers», «Conditions», «Actions», «Branches
+            (if/else)», «Loops (for each)» — тригери, умови, дії, гілки й повтори; кожне
+            виконання — один крок. Причому крок рахується навіть тоді, коли нічого не
+            сталось: «Even if a trigger doesn't find a match to start the rest of the
+            flow, the trigger execution itself is charged as one step» — тригер, який
+            нічого не знайшов, усе одно коштує крок.
+          </p>
+
+          <p>
+            Звідси проста арифметика: flow із гілкою на десять підзадач витрачає не
+            три кроки, а десятки. Саме тому довідка радить «Use branches sparingly» —
+            користуватись гілками ощадливо: «This is because branches spawn new processes
+            in your flows», бо кожна гілка породжує нові процеси. Запас кроків
+            поновлюється щомісяця («Allowances refresh monthly»), а числа — у довіднику
+            «Карта інтерфейсу, глосарій і ліміти Free».
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            Зберемо два flows: один із гілкою й розумними значеннями, другий — за
+            розкладом, із пошуком і листом. Шлях скрізь названо словами; назви кроків —
+            англійською, як в інтерфейсі.
+          </p>
+
+          <h3>Підготовка: робота, на якій перевірятимемо</h3>
+
+          <ol>
+            <li><strong>Створи роботу в «Другій точці».</strong> Назва —
+              <code>Меблі: доставка й монтаж</code>, тип <code>Task</code>, дедлайн —
+              10 жовтня 2026 року. Ключ Jira дасть сама, наступний вільний: у «Кориці»
+              це <code>REM-6</code>.</li>
+            <li><strong>Додай їй дві підзадачі</strong> — про доставку й про монтаж
+              (назви придумай сам(а), вони ні на що не впливають). Як додати підзадачу,
+              було в уроці 5.</li>
+          </ol>
+
+          <h3>Flow 1: підзадача готова — сказати про це в батьківській роботі</h3>
+
+          <ol>
+            <li><strong>Відкрий автоматизацію спейсу.</strong> Наведи на «Другу точку»
+              в бічній панелі → <code>More actions</code> (три крапки) →
+              <code>Space settings</code> → <code>Automation</code> →
+              <code>Create flow</code> → <code>Create from scratch</code>.</li>
+            <li><strong>Тригер.</strong> Обери <code>Work item transitioned</code> —
+              «The flow will run when a work item transitions from one status to another»,
+              тобто коли робота переходить з одного статусу в інший. У налаштуваннях
+              тригера вкажи завершений статус (<code>Done</code>), щоб flow не прокидався
+              на кожен рух.</li>
+            <li><strong>Гілка.</strong> Додай наступний крок і обери тип
+              <code>Branch</code>, а в ньому — споріднену роботу <code>Parent</code>
+              (батьківська). Далі все, що ти додаси, працюватиме вже з нею.</li>
+            <li><strong>Дія в гілці.</strong> <code>Comment on work item</code>, текст —
+              нижче. Зверни увагу: тут саме <code>{{triggerIssue…}}</code>, бо нам
+              потрібна назва підзадачі, а не батьківської роботи.</li>
+          </ol>
+
+          <figure class="term term--cmd" id="p6">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p6t">текст коментаря в батьківській роботі</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p6t"><span class="term__line"><span class="term__in">{{triggerIssue.key}} {{triggerIssue.summary}} — готово, {{now.jiraDate}}</span></span></pre>
+          </figure>
+
+          <ol start="5">
+            <li><strong>Друга дія в гілці — для перевірки.</strong> Додай
+              <code>Log action</code> і встав туди значення нижче. Ця дія нічого не міняє
+              в роботах: вона друкує значення в журнал запусків, щоб ти побачив(ла),
+              що саме підставила Jira.</li>
+          </ol>
+
+          <figure class="term term--cmd" id="p7">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p7t">що надрукувати в журнал для перевірки</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p7t"><span class="term__line"><span class="term__in">{{issue.key}} {{issue.summary}}</span></span></pre>
+          </figure>
+
+          <ol start="6">
+            <li><strong>Назва й увімкнення.</strong> <code>Flow details</code> → назва
+              «Підзадача готова — відзначити в батьківській роботі» →
+              <code>Turn on flow</code>.</li>
+          </ol>
+
+          <h3>Flow 2: понеділковий лист зі списком того, що горить</h3>
+
+          <ol>
+            <li><strong>Відкрий автоматизацію спейсу «Маркетинг»</strong> тим самим
+              шляхом і почни з нуля.</li>
+            <li><strong>Тригер.</strong> <code>Scheduled</code>, частота — раз на тиждень
+              (для конкретного дня й години знадобиться розклад рядком, Cron expression
+              з уроку 14). <strong>Поле запиту в тригері лиши порожнім</strong> — інакше
+              лист піде окремо на кожну знайдену роботу.</li>
+            <li><strong>Пошук.</strong> Додай крок <code>Action</code> →
+              <code>Lookup work items</code> і встав запит нижче.</li>
+          </ol>
+
+          <figure class="term term--cmd" id="p8">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p8t">запит: незавершені роботи маркетингу з дедлайном до кінця тижня</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p8t"><span class="term__line"><span class="term__in">project = MARK AND due &lt;= endOfWeek() AND statusCategory != Done</span></span></pre>
+          </figure>
+
+          <p>
+            Запит зібраний з того, що вже було в уроці 7: <code>project = MARK</code> —
+            обмеження спейсом (старе слово <code>project</code> у мові запитів лишилось
+            живим), <code>statusCategory != Done</code> — робота ще не завершена.
+            Нове тут одне — функція <code>endOfWeek()</code>: «Search for work items that
+            are due by the end of the last day of the current week», тобто «до кінця
+            поточного тижня». За замовчуванням довідка вважає останнім днем тижня суботу.
+          </p>
+
+          <ol start="4">
+            <li><strong>Лист.</strong> Додай дію <code>Send customized email</code>.
+              У вкладці <code>Settings</code> постав себе в полі
+              <code>Recipient(s)</code>, у вкладці <code>Content</code> обери формат
+              <code>Plain text</code>, тема — «Маркетинг: дедлайни цього тижня», а в тіло
+              листа встав список.</li>
+          </ol>
+
+          <figure class="term term--cmd" id="p9">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p9t">тіло листа: рядок на кожну знайдену роботу</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p9t"><span class="term__line"><span class="term__in">Цього тижня горить:</span></span>
+<span class="term__line"><span class="term__in">{{#lookupIssues}}* {{key}} {{summary}}</span></span>
+<span class="term__line"><span class="term__in">{{/}}</span></span></pre>
+          </figure>
+
+          <ol start="5">
+            <li><strong>Назва й увімкнення.</strong> <code>Flow details</code> → назва
+              «Понеділковий список: що горить цього тижня» → <code>Turn on flow</code>.
+              Скільки листів на добу дозволяє безкоштовний план — у довіднику «Карта
+              інтерфейсу, глосарій і ліміти Free»; для одного листа на тиждень запасу
+              вистачає з великим гаком.</li>
+          </ol>
+
+          <div class="ds-note">
+            <span class="ds-note__title">Перевірити, не чекаючи понеділка</span>
+            <p>
+              Окремої кнопки «спробувати» в автоматизації немає — довідка каже про це
+              прямо й пропонує обхід: «you can test your flows manually using the Manual
+              trigger from a work item trigger», тобто тимчасово постав тригер
+              <code class="ds-code--inline">Manual trigger from work item</code>, запусти
+              flow руками з картки роботи (меню <code class="ds-code--inline">Actions</code>),
+              подивись журнал — і поверни розклад назад.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <h3>Хід перший: результат у картці</h3>
+
+          <p>
+            Переведи одну підзадачу роботи <code>REM-6</code> у завершений статус і через
+            кілька секунд онови сторінку самої <code>REM-6</code>. У ній має з'явитись
+            коментар від Automation for Jira з назвою підзадачі й сьогоднішньою датою —
+            саме тими даними, які підставили розумні значення. Порожні місця замість
+            назви чи дати означають, що значення написане з помилкою.
+          </p>
+
+          <h3>Хід другий: обчислені значення в журналі</h3>
+
+          <figure class="win" data-state="list" id="w3">
+            <figcaption class="win__chrome">
+              <span class="win__dots" aria-hidden="true"></span>
+              <span class="win__title" id="w3t">Jira Cloud · Audit log: один запуск, розгорнутий · за документацією, 2026-09-18</span>
+              <span class="win__addr" aria-hidden="true">…/jira/…/REM/settings/automate</span>
+            </figcaption>
+            <div class="win__body" role="group" aria-labelledby="w3t">
+              <ul class="win__rail" aria-label="Бічна панель Jira">
+                <li class="win__rail-item">For you</li>
+                <li class="win__rail-item win__rail-item--active">Spaces</li>
+                <li class="win__rail-item">Filters</li>
+                <li class="win__rail-item">Dashboards</li>
+              </ul>
+              <div class="win__main">
+                <div class="win__bar">
+                  <span class="win__crumb">Space settings / Друга точка / Automation</span>
+                  <span class="win__tabs"><span>Flows</span><span class="win__tab--active">Audit log</span><span>Templates</span><span>Usage</span></span>
+                  <span class="win__btn">Create flow</span>
+                </div>
+                <div class="win__page">
+                  <h4>Audit log</h4>
+                  <table class="win__table">
+                    <thead>
+                      <tr><th>Date &amp; time</th><th>Flow</th><th>Status</th><th>Total time</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>Sep 28, 2026, 08:00</td><td>Понеділковий список: що горить цього тижня</td><td>Successful</td><td>4s</td></tr>
+                      <tr><td>Sep 29, 2026, 14:02</td><td>Підзадача готова — відзначити в батьківській роботі</td><td>Successful <b class="win__mark" aria-hidden="true">①</b></td><td>2s</td></tr>
+                    </tbody>
+                  </table>
+                  <div class="win__sub">
+                    <h5>Log message</h5>
+                    <ul>
+                      <li>REM-6 Меблі: доставка й монтаж <b class="win__mark" aria-hidden="true">②</b></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <ol class="win__legend" aria-label="Пояснення до вікна «Audit log: один запуск, розгорнутий»">
+            <li><code>Successful</code> — дія відбулась</li>
+            <li>Значення, яке надрукувала дія <code>Log action</code></li>
+          </ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Вікно зібране з документації Atlassian («What is an automation audit log?»,
+            «Audit the run logs of automation flows», «Debug an automation flow», читані
+            18 вересня 2026 року): на навчальному сайті жоден flow не запускався, тому
+            журнал там порожній. Колонки й підпис результату взяті з довідки; назви flows,
+            час і надрукований рядок — наші. Рядок журналу в житті треба розгорнути
+            стрілкою праворуч: «Each log can be expanded to show the details and run times
+            of each step in the flow» — усередині видно кожен крок і скільки він тривав.
+          </p>
+
+          <p>
+            Саме тут видно <strong>обчислене</strong> значення, а не написане. Якщо в
+            журналі замість назви роботи порожньо — значення неправильне; якщо значення
+            правильне, а в коментарі порожньо — справа в самому полі або в тому, що дія
+            стоїть не в тій частині ланцюжка.
+          </p>
+
+          <p>
+            Другий спосіб зазирнути всередину — обгорнути будь-яке значення словом
+            <code>debug</code>: «Surrounding any smart value with debug, allows the smart
+            value to be processed as normal and also prints the value in the audit log to
+            provide more contextual information» — значення працює як звичайно й
+            додатково друкується в журнал. Пишеться це так:
+            <code>{{#debug}}{{issue.summary}}{{/}}</code>. Зручно, коли додавати окремий
+            крок не хочеться.
+          </p>
+
+          <h3>Хід третій: сторінка Usage</h3>
+
+          <p>
+            Після кількох запусків відкрий <code>Automation</code> →
+            <code>Usage</code>. Плитка <code>Automation step usage</code> більше не
+            показує нуль, а в таблиці <code>High usage flows</code> з'явились твої flows.
+            Це і є відповідь на питання «чи взагалі щось працює» — і водночас перший
+            натяк, який flow доведеться згодом підрізати.
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Ознака «так/ні» для цього уроку</span>
+            <p>
+              У картці <code class="ds-code--inline">REM-6</code> є коментар, у якому
+              стоїть назва підзадачі й дата, а не дужки й не порожнє місце. У журналі
+              запусків обидва нові flows мають хоча б по одному
+              <code class="ds-code--inline">Successful</code>, а на вкладці
+              <code class="ds-code--inline">Usage</code> кроків більше за нуль.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3>Замість значення — порожнє місце</h3>
+
+          <p>
+            Найчастіша й найтихіша помилка. Jira не підкреслює червоним неіснуюче
+            значення: вона друкує порожнечу. Причини майже завжди дві — зайва чи забута
+            крапка й неправильно склеєне слово. <code>{{issue.assignee.displayName}}</code>
+            працює, <code>{{issue.assignee.displayname}}</code> — уже ні, бо багатослівні
+            властивості пишуться camelCase.
+          </p>
+
+          <p>
+            Із назвами полів історія м'якша: «Field names aren't case sensitive» — до
+            регістру самих назв полів довідка байдужа. А от те, як пишеться конкретне
+            значення, у різних місцях довідки відрізняється: сторінка з переліком
+            властивостей подає дедлайн як <code>{{issue.duedate}}</code>, а сторінка з
+            прикладами — як <code>{{issue.dueDate.format("dd/MM/yyyy")}}</code>. Обидві
+            сторінки живі. Практичний висновок: не вгадуй — бери значення зі списку, який
+            відкривається кнопкою біля поля, і перевіряй результат у журналі.
+          </p>
+
+          <h3>Дата приходить не в тому вигляді й не в тому часі</h3>
+
+          <p>
+            <code>{{now}}</code> без формату друкує технічний рядок із часовим поясом —
+            у коментарі це виглядає як помилка. Формат треба дописувати завжди
+            (<code>jiraDate</code>, <code>mediumDate</code>, свій
+            <code>format("…")</code>).
+          </p>
+
+          <p>
+            Друга половина пастки: «Returns the current date and time in UTC+00:00» —
+            <code>{{now}}</code> повертає час за всесвітнім відліком UTC, а не за київським.
+            Ввечері різниця вже дає вчорашню дату. Лікується функцією
+            <code>convertToTimeZone</code>, якій називають часовий пояс:
+            <code>{{now.convertToTimeZone("Europe/Kyiv")}}</code>. Назви поясів довідка
+            бере зі стандартного переліку, посилання на нього є на тій самій сторінці.
+          </p>
+
+          <h3>Гілка тихо підмінила роботу</h3>
+
+          <p>
+            Класичний випадок: усередині гілки написали <code>{{issue.summary}}</code>,
+            очікуючи назву підзадачі, а отримали назву батьківської роботи. Це не збій —
+            це правило з блоку 3. Правило просте: якщо крок стоїть <em>після</em> гілки,
+            <code>{{issue}}</code> — це робота гілки, а та, що запустила flow, —
+            <code>{{triggerIssue}}</code>.
+          </p>
+
+          <h3>Запит без обмеження завершеності</h3>
+
+          <p>
+            Запит <code>project = MARK AND due &lt;= endOfWeek()</code> без
+            <code>statusCategory != Done</code> щотижня збиратиме й давно закриті роботи:
+            дедлайн у них минув, а значить, умова «до кінця тижня» виконується. Лист
+            розростається, люди перестають його читати. Друга межа того самого кроку:
+            «only the first 100 work items will be used» — <code>Lookup work items</code>
+            бере лише першу сотню знайденого, тож запит має бути вузьким не лише заради
+            зручності.
+          </p>
+
+          <h3>Гілка множить кроки</h3>
+
+          <p>
+            Дія всередині гілки виконується стільки разів, скільки робіт знайшла гілка:
+            десять підзадач — десять кроків, а не один, і так щоразу.
+            Поки flows три, це непомітно; коли їх стане п'ятнадцять, саме гілки
+            з'їдять місячний запас першими. Тому дію зі списком краще ставити після
+            умови, яка відсіює зайве, а сам список звужувати запитом. Сторінка
+            <code>Usage</code> з блоку 2 показує це числами — вона для того й існує.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Як дізнатись розумне значення для поля, якого немає в жодному переліку?</h3>
+
+          <p>
+            Спершу — кнопка біля поля: у ній лежить список значень, доступних саме цьому
+            flow, і його вистачає в дев'яти випадках з десяти. До власних полів, які ти
+            створив(ла) в уроці 11, довідка радить звертатись на ім'я —
+            <code>{{issue.My custom field name}}</code>, тобто замість
+            <code>My custom field name</code> ставиш назву свого поля; якщо поле складне
+            (скажімо, з людиною), береться його частина:
+            <code>{{issue.My user field.displayName}}</code>. Коли назв кілька однакових
+            або ім'я не спрацювало, є запасний шлях — номер поля
+            (<code>{{issue.customfield_10001}}</code>), який видно в налаштуваннях полів
+            спейсу. Перевірити, що вийшло, — тим самим <code>Log action</code>.
+          </p>
+
+          <h3>Чому кнопка перевірки запиту показує не те, що робить flow?</h3>
+
+          <p>
+            Бо перевірка йде твоїми правами, а запуск — правами того, хто записаний у
+            полі <code>Actor</code> (урок 14, за замовчуванням це Automation for Jira).
+            До того ж із розумними значеннями кнопка взагалі безсила: «If you're using
+            smart values, you won't be able to check if your JQL is valid using Validate
+            query» — запит зі значеннями всередині перевірити нею не вийде. Єдина чесна
+            перевірка — запуск і журнал.
+          </p>
+
+          <h3>Чи можна зробити так, щоб flow сам створив підзадачі?</h3>
+
+          <p>
+            Так, для цього є дія <code>Create sub-tasks</code>: їй дають список назв, і
+            вона створює підзадачі до поточної роботи. Обмеження чесно назване в довідці:
+            «This action only supports setting the Summary of the sub-task» — ставиться
+            лише назва. Потрібні ще й поля — тоді, як пише довідка, дія перетворюється на
+            створення повноцінної роботи типу «підзадача».
+          </p>
+
+          <h3>Лист прийшов порожній — що сталося?</h3>
+
+          <p>
+            Найімовірніше, запит нічого не знайшов: <code>{{lookupIssues}}</code> у такому
+            разі дає порожній список, а лист усе одно надсилається, бо дія в ланцюжку
+            стоїть. Дивись журнал: рядок буде <code>Successful</code>, бо з погляду Jira
+            все виконалось. Якщо порожні місця тільки в частині рядків — значить, у
+            частини робіт немає того поля, яке ти друкуєш.
+          </p>
+
+          <h3>Скільки flows тримати й як не заплутатись?</h3>
+
+          <p>
+            Довідка Atlassian починає розділ про гігієну з поради «Plan your flows before
+            creating them» — спершу подумай, які flows потрібні, і чи не можна двох
+            зробити одним з умовою. Далі три речі, які економлять найбільше:
+          </p>
+
+          <ul>
+            <li><strong>Зрозумілі назви.</strong> «Нова задача маркетингу — одразу з
+              виконавцем» через півроку читається, «Flow 3» — ні.</li>
+            <li><strong>Вимкнені зайві.</strong> Дослівна порада: «Monitor your flows, and
+              identify the ones that are either running too much, or flows that you don't
+              need, and disable them to prevent wasteful flow runs» — стеж, які flows
+              працюють забагато або не потрібні, і вимикай їх.</li>
+            <li><strong>Мітки на самих flows.</strong> «Labels are key words or tags that
+              you can add to flows to categorize, identify, and bookmark your automation
+              flows» — flows можна помічати словами (скажімо,
+              <code>нагадування</code>) і потім фільтрувати список за міткою. Це окремі
+              мітки: з мітками на роботах з уроку 4 вони ніяк не пов'язані.</li>
+          </ul>
+
+          <p>
+            І межа дії: flow, зроблений у спейсі, працює в цьому спейсі. Копіювати той
+            самий flow у кожен спейс — найдорожчий зі способів; коли однакова потреба
+            з'являється в кількох спейсах, це привід іти на глобальну сторінку
+            автоматизації з уроку 14.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li><strong>Розумне значення</strong> — текст у подвійних фігурних дужках,
+                який Jira замінює на дані роботи: <code>{{issue.key}}</code>,
+                <code>{{issue.summary}}</code>, <code>{{now}}</code>.</li>
+              <li><strong>Крапка означає «властивість»,</strong> багатослівні властивості
+                пишуться злитно з великої літери, а неіснуюче значення друкується як
+                порожнє місце — без жодної помилки на екрані.</li>
+              <li><strong>Дати потребують формату</strong> (<code>jiraDate</code>,
+                <code>format("dd/MM/yyyy")</code>), а <code>{{now}}</code> рахує час за
+                всесвітнім UTC, не за київським.</li>
+              <li><strong>Гілка переводить ланцюжок на рідню</strong> — підзадачі, батька,
+                епік; усередині неї <code>{{issue}}</code> — це вже інша робота, а та, що
+                запустила flow, зветься <code>{{triggerIssue}}</code>.</li>
+              <li><strong>Список за запитом дає дія <code>Lookup work items</code></strong>
+                і значення <code>{{lookupIssues}}</code>; запит у самому тригері
+                <code>Scheduled</code> натомість запускає дії для кожної знайденої
+                роботи.</li>
+              <li><strong>Журнал запусків показує обчислені значення</strong> — через
+                <code>Log action</code> або <code>{{#debug}}</code>; сторінка
+                <code>Usage</code> показує витрачені кроки й найненажерливіші flows.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+
+          <p>
+            Автоматизація вміє написати коментар і надіслати лист, але лист — це вже
+            вихід за межі Jira. Наступний урок якраз про межі: які листи Jira шле сама
+            й як їх стишити, що дають застосунки для Slack і Microsoft Teams, чим
+            Confluence відрізняється від вкладень і що таке вкладка
+            <code>Docs</code> у спейсі. Урок оглядовий: він не вчить чужих застосунків,
+            а показує, що з чим з'єднується.
+          </p>
+
+          <p>
+            До нього лиши обидва нові flows увімкненими на тиждень і раз загляни в
+            <code>Usage</code>. Через тиждень у тебе буде власна відповідь на питання,
+            з якого починався цей урок: скільки коштує ця зручність.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять
+            на назви: до кожної відповіді одразу з'являється пояснення, чому решта
+            варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Марта вписала в текст коментаря {{issue.summary}}. Що побачить людина, коли flow спрацює для роботи MARK-7 «Відповісти на відгуки за тиждень»?",
+            "options": [
+              "Рядок {{issue.summary}} так, як написано: подвійні дужки Jira показує читачам без змін",
+              "Порожнє місце — розумні значення працюють у листах, а в коментарях ні",
+              "Назву цієї роботи: Jira підставляє замість дужок дані роботи, з якою працює",
+              "Назву спейсу «Маркетинг» — слово issue у мові автоматизації означає контейнер"
+            ],
+            "answer": 2,
+            "explain": "Розумне значення — це змінна величина: дужки не потрапляють у текст, замість них стає дані роботи, з якою flow працює в цю мить. Слово issue у дужках означає саме роботу, а не спейс: для спейсу є окремі значення. Коментарі — одне з головних місць, де ці значення й використовують."
+          },
+          {
+            "q": "У flow Тараса після тригера стоїть гілка на батьківську роботу, а вже в гілці — коментар із текстом {{issue.summary}}. Спрацював він на підзадачі REM-6. Яку назву надрукує Jira?",
+            "options": [
+              "Назву батьківської роботи: усередині гілки issue означає вже її, а не підзадачу",
+              "Назву підзадачі, бо гілка не змінює того, на що вказує слово issue у тексті кроку",
+              "Обидві назви поспіль — спершу роботи гілки, потім тієї, що запустила flow",
+              "Порожнє місце: у гілці працює тільки triggerIssue, решта значень вимикається"
+            ],
+            "answer": 0,
+            "explain": "Довідка формулює це дослівно: посилання на issue після гілки вказують на споріднену роботу, а не на ту, що запустила flow. Щоб дістати підзадачу-ініціатора, потрібне окреме значення triggerIssue — воно вміє все те саме. Порожнім результат не буде: обидва значення в гілці робочі."
+          },
+          {
+            "q": "Оксана хоче, щоб при закритті роботи коментар з'явився в кожній її підзадачі. Що для цього потрібно додати у flow?",
+            "options": [
+              "Умову Related work items — вона сама поставить коментар кожній знайденій підзадачі",
+              "Окремий flow у кожному спейсі, бо одна дія працює лише з однією роботою",
+              "Дію Create sub-tasks: у ній є поле для тексту коментаря до всіх підзадач",
+              "Гілку на підзадачі: кроки після неї виконаються для кожної підзадачі окремо"
+            ],
+            "answer": 3,
+            "explain": "Гілка — це і є спосіб перевести ланцюжок на споріднені роботи: чотири підзадачі означають чотири виконання дії. Умова з такою ж назвою лише перевіряє стан рідні й нічого не робить. Дія Create sub-tasks створює нові підзадачі, а не коментує наявні, і вміє задати їм тільки назву."
+          },
+          {
+            "q": "Flow спрацював, у журналі стоїть Successful, але в коментарі замість дедлайну порожнє місце. Де швидше за все побачити, що саме підставила Jira?",
+            "options": [
+              "У вкладці History самої роботи: там зберігаються всі підставлені значення",
+              "У журналі запусків: додати крок Log action і розгорнути рядок потрібного запуску",
+              "У Flow details — поруч із власником flow показані останні обчислені значення кроків",
+              "Ніде: обчислені значення Jira не зберігає, лишається міняти текст навмання"
+            ],
+            "answer": 1,
+            "explain": "Журнал запусків — єдине місце, де видно обчислене, а не написане: дія Log action друкує туди будь-яке значення, а кожен рядок журналу розгортається до окремих кроків. Історія роботи показує зміни полів, а не підстановки. Поля flow зберігають налаштування, а не результати запусків."
+          },
+          {
+            "q": "Оксана хоче зрозуміти, скільки автоматизація витратила цього місяця й який flow витратив найбільше. Куди їй іти?",
+            "options": [
+              "Audit log і фільтр за датою: унизу таблиці журнал підсумовує кроки за місяць",
+              "Рахунок від Atlassian: на безкоштовному плані інших способів побачити витрати немає",
+              "Automation і вкладка Usage: плитка витрачених кроків і таблиця High usage flows",
+              "Flow details кожного flow: лічильник кроків стоїть поруч з іменем власника"
+            ],
+            "answer": 2,
+            "explain": "Вкладка Usage для цього й зроблена: плитка показує витрачені кроки за вибраний період, а таблиця High usage flows — які саме flows їх з'їли. Журнал запусків показує окремі запуски й нічого не підсумовує, а поля flow тримають налаштування. Рахунок тут ні до чого: на безкоштовному плані витрати видно всередині Jira."
+          },
+          {
+            "q": "Один flow щоранку проходить гілкою по десятьох підзадачах і кожній міняє поле. Другий раз на день пише один коментар. Чому перший витрачає значно більше кроків?",
+            "options": [
+              "Jira рахує складність ланцюжка, а довший ланцюжок вважається дорожчим",
+              "Кроки рахуються за часом роботи flow, а перебирання десяти робіт триває довше",
+              "Різниці немає: обидва flows рахуються як один запуск за добу — тут справа в іншому",
+              "Гілка виконує дію для кожної роботи окремо: десять підзадач дають десять виконань"
+            ],
+            "answer": 3,
+            "explain": "Кроком вважається кожна виконана частина flow, і гілка повторює свої кроки стільки разів, скільки знайшла робіт. Довжина ланцюжка сама по собі нічого не коштує, поки кроки не виконались, а тривалість запуску на облік не впливає. Саме через це довідка радить користуватись гілками ощадливо."
+          }
+        ]
+      }
+      </script>
+
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Урок позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
