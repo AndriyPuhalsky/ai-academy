@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 14 · Автоматизація: перші flows — Jira з нуля</title>
+  <meta name="description"
+    content="Як доручити Jira рутину: flow складається з тригера, умови й дії; три робочі приклади для команди, журнал запусків Audit log і чому напис «No action» не означає поломки." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+</head>
+
+<body data-module="j14">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 14</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 4 · Автоматизація та інтеграції</p>
+        <h1 class="ds-h1">Автоматизація: перші flows</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 24 хв читання</p>
+        <p class="ds-lead">
+          Досі кожну дію в Jira робила людина: створювала роботу, призначала виконавця,
+          міняла статус, нагадувала колезі про дедлайн. Частину цих дій можна віддати
+          самій Jira — описати словами «коли станеться ось це, зроби ось те», і воно
+          робитиметься без тебе, щодня і без винятків.
+        </p>
+        <p>
+          Штука, яка це робить, називається <strong>flow</strong> — раніше вона звалась
+          automation rule, правило автоматизації. Цей урок показує, з чого flow
+          складається, де він живе, як зібрати три такі flows для «Кориці» й — головне — як
+          подивитись, чому він не спрацював. Програмування тут немає: усе збирається
+          з готових пунктів у списках.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> розумних значень у подвійних фігурних дужках
+            (<code class="ds-code--inline">{{…}}</code>), гілок і сторінки обліку
+            використання — це урок 15. Немає тригерів, які є лише в Jira Service
+            Management, — урок 19. Немає точних чисел (скільки кроків на місяць дає
+            безкоштовний план, скільки листів на добу) — вони з датою перевірки лежать
+            у довіднику «Карта інтерфейсу, глосарій і ліміти Free».
+          </p>
+          <p>
+            <strong>Є:</strong> три частини будь-якого flow; два місця, де вони живуть;
+            три робочі flows для «Кориці» крок за кроком; журнал запусків Audit log
+            і три його результати; хто такий власник flow і від чийого імені він
+            працює в історії роботи.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            У «Кориці» до цього уроку вже налагоджено чимало: спейси відділів, картки
+            з дедлайнами, власний робочий процес найму, збережені запити. І разом з тим
+            щотижня повторюються три дії, які ніхто не любить.
+          </p>
+
+          <ul>
+            <li><strong>Марта</strong> щоразу після створення нової задачі в маркетингу
+              відкриває її й ставить виконавцем себе. Тридцять секунд, двадцять разів
+              на місяць.</li>
+            <li><strong>Тарас</strong> закриває підзадачі ремонту, а батьківську роботу
+              закрити забуває — і в списку «Другої точки» місяцями висить задача,
+              усередині якої вже все зроблено.</li>
+            <li><strong>Оксана</strong> щоранку відкриває свій спейс і дивиться, у чого
+              дедлайн завтра. Коли ранок починається з кухні, а не з ноутбука, вона цього
+              не робить, і термін минає.</li>
+          </ul>
+
+          <p>
+            Жодна з трьох дій не вимагає рішення. Усі три описуються реченням виду
+            «коли трапилось <em>це</em> — зроби <em>те</em>». Саме такі речення Jira вміє
+            виконувати сама. Документація Atlassian формулює призначення так:
+            «Automation removes the need to perform manual, repetitive tasks by allowing
+            your teams to automate their processes and workflows» — автоматизація знімає
+            потребу виконувати ручні повторювані дії.
+          </p>
+
+          <h3>Слово, яке щойно змінилось</h3>
+
+          <p>
+            Те, що ти зараз збираєш, називається <strong>flow</strong> (читається «флоу»,
+            дослівно «потік»). Донедавна це звалось <strong>automation rule</strong> —
+            правило автоматизації, і скорочено «правило». Ми в курсі говоримо
+            <strong>flow</strong>, бо саме це слово написане на кнопках.
+          </p>
+
+          <p>
+            На навчальному сайті 17 вересня 2026 року сторінка автоматизації має кнопку
+            <code>Create flow</code>, фільтр <code>Browse flows</code> і чотири вкладки:
+            <code>Flows</code>, <code>Audit log</code>, <code>Templates</code>,
+            <code>Usage</code>. Слова «rule» на екрані немає взагалі.
+          </p>
+
+          <p>
+            А от у документації перейменування ще котиться хвилею, і це добре видно,
+            якщо читати уважно. Текст сторінок уже всюди каже «flow»: «Every flow starts
+            with a trigger», «Actions are the doers of your flow». Але <em>адреси</em>
+            тих самих сторінок лишились старими — <code>what-is-a-rule-actor</code>,
+            <code>what-are-automation-rules</code>. Більше того, сусідні сторінки
+            розходяться між собою: сторінка про умови називає головну умову
+            <code>Issue fields condition</code>, а сторінка з порадами — ту саму умову
+            <code>Work item fields condition</code>.
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Практичний висновок</span>
+            <p>
+              Побачивши в інтернеті інструкцію зі словами «rule», «issue» і «project»,
+              не викидай її: механізм той самий, змінились підписи. І навпаки — не шукай
+              на екрані кнопку <code>Create rule</code>: її там більше немає.
+            </p>
+          </div>
+
+          <h3>Чого автоматизація не зробить</h3>
+
+          <p>
+            Межа тут така сама чесна, як і в решті курсу.
+          </p>
+
+          <ul>
+            <li><strong>Вона не вирішує, що робити.</strong> Flow виконує те, що ти
+              описав, буквально й без здорового глузду. Помилка в умові означає, що дія
+              не станеться зовсім або станеться не там.</li>
+            <li><strong>Вона не безкоштовна в обліку.</strong> Кожен виконаний крок flow
+              рахується сайтом, і на безкоштовному плані таких кроків на місяць
+              обмежена кількість. Скільки саме й де це дивитись — довідник
+              «Карта інтерфейсу, глосарій і ліміти Free» та урок 15.</li>
+            <li><strong>Вона не замінює домовленість.</strong> Flow, який щодня пише
+              коментар «зроби це», не змусить людину зробити. Він лише прибирає привід
+              «я не знав».</li>
+          </ul>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Автоматизація живе не поруч із роботами, а в налаштуваннях спейсу. Шлях
+            словами: у бічній панелі наведи на назву спейсу, натисни
+            <code>More actions</code> (три крапки) → <code>Space settings</code>, а далі
+            в лівому переліку розділів — <code>Automation</code>. Документація описує
+            той самий шлях дослівно: «find the space you want to add a flow in the side
+            navigation and select More actions (…) &gt; Space settings», потім «Select
+            Automation from the side panel».
+          </p>
+
+          <figure class="win" data-state="list" id="w1">
+            <figcaption class="win__chrome">
+              <span class="win__dots" aria-hidden="true"></span>
+              <span class="win__title" id="w1t">Jira Cloud · Automation у налаштуваннях спейсу Маркетинг · звірено 2026-09-17</span>
+              <span class="win__addr" aria-hidden="true">…/jira/…/MARK/settings/automate</span>
+            </figcaption>
+            <div class="win__body" role="group" aria-labelledby="w1t">
+              <ul class="win__rail" aria-label="Бічна панель Jira">
+                <li class="win__rail-item">For you</li>
+                <li class="win__rail-item win__rail-item--active">Spaces</li>
+                <li class="win__rail-item">Filters</li>
+                <li class="win__rail-item">Dashboards</li>
+              </ul>
+              <div class="win__main">
+                <div class="win__bar">
+                  <span class="win__crumb">Space settings / Маркетинг</span>
+                  <span class="win__tabs"><span class="win__tab--active">Flows</span><span>Audit log <b class="win__mark" aria-hidden="true">①</b></span><span>Templates</span><span>Usage</span></span>
+                  <span class="win__btn win__btn--primary">Create flow <b class="win__mark" aria-hidden="true">②</b></span>
+                </div>
+                <div class="win__page">
+                  <h4>Automation</h4>
+                  <p class="win__placeholder">Browse flows · This space · Scope: Space flows · Owned by · Action · Trigger · Label</p>
+                  <table class="win__table">
+                    <thead>
+                      <tr><th>Name</th><th>Owner</th><th>Enabled <b class="win__mark" aria-hidden="true">③</b></th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>Нова задача маркетингу — виконавець Марта</td><td>Марта Лисенко</td><td>ON</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <ol class="win__legend" aria-label="Пояснення до вікна «Automation у налаштуваннях спейсу Маркетинг»">
+            <li><code>Audit log</code> — журнал запусків: що спрацювало, а що ні</li>
+            <li><code>Create flow</code> — зібрати новий flow з нуля або з шаблону</li>
+            <li><code>Enabled</code> — перемикач: flow працює чи вимкнений</li>
+          </ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Шапка сторінки, чотири вкладки, кнопка й перелік фільтрів — зі знімка
+            навчального сайту Jira Cloud Free від 17 вересня 2026 року. Там список flows
+            був порожній, бо жодного ще не створили; рядок у таблиці — наш, із «Кориці»,
+            а назви колонок узяті з документації. Колонка <code>Owner</code> — це власник
+            flow; про нього наприкінці блоку 3.
+          </p>
+
+          <h3>Три способи почати</h3>
+
+          <p>
+            Кнопка <code>Create flow</code> відкриває перелік із трьох пунктів. Два
+            з них тобі знадобляться сьогодні, третій — ні.
+          </p>
+
+          <ul>
+            <li><strong><code>Create from scratch</code></strong> — зібрати з нуля:
+              обрати тригер, потім умови й дії. Так ми зробимо перший і третій flow.</li>
+            <li><strong><code>Use a template</code></strong> — узяти готовий flow
+              з бібліотеки й відредагувати. Так ми зробимо другий.</li>
+            <li><strong><code>Create with Rovo</code></strong> — описати бажане словами,
+              а зібрати доручити помічникові Atlassian. Rovo — це платний шар: його
+              кредити, як пише довідка, «are included in all paid Jira, Confluence,
+              Service Collection and Teamwork Collection cloud subscriptions». На
+              безкоштовному плані цей пункт видно, але користуватись ним нічим.</li>
+          </ul>
+
+          <h3>Той самий екран, тільки для всього сайту</h3>
+
+          <p>
+            Поруч із заголовком <code>Automation</code> є посилання
+            <code>Global administration</code>. Воно веде на ту саму сторінку рівнем
+            вище — <code>Settings</code> → <code>System</code> →
+            <code>Global automation</code>, — де видно flows усіх спейсів одразу.
+            Різниця не в кнопках, а в <strong>межі дії</strong>: flow, створений у
+            спейсі, працює в цьому спейсі, а глобальний може охоплювати кілька спейсів
+            чи всі. Докси перелічують можливі межі так: «Single space», «Multi-space»,
+            «Space type» і «Global» — і одразу застерігають: «Scope can only be set at
+            the Global level by a Jira or Confluence app admin».
+          </p>
+
+          <h3>Конструктор: ланцюжок згори вниз</h3>
+
+          <p>
+            Коли ти обрав <code>Create from scratch</code>, екран стає ланцюжком кроків.
+            Читається він згори вниз, і саме в цьому порядку виконується.
+          </p>
+
+          <figure class="win" data-state="form" id="w2">
+            <figcaption class="win__chrome">
+              <span class="win__dots" aria-hidden="true"></span>
+              <span class="win__title" id="w2t">Jira Cloud · конструктор нового flow у спейсі Маркетинг · за документацією, 2026-09-18</span>
+              <span class="win__addr" aria-hidden="true">…/jira/…/MARK/settings/automate</span>
+            </figcaption>
+            <div class="win__body" role="group" aria-labelledby="w2t">
+              <ul class="win__rail" aria-label="Бічна панель Jira">
+                <li class="win__rail-item">For you</li>
+                <li class="win__rail-item win__rail-item--active">Spaces</li>
+                <li class="win__rail-item">Filters</li>
+                <li class="win__rail-item">Dashboards</li>
+              </ul>
+              <div class="win__main">
+                <div class="win__bar">
+                  <span class="win__crumb">Space settings / Маркетинг / Automation</span>
+                  <span class="win__btn">Flow details</span>
+                </div>
+                <div class="win__page">
+                  <h4>Нова задача маркетингу — виконавець Марта</h4>
+                  <ol class="win__chain">
+                    <li class="win__step" data-kind="when"><span class="win__step-kind">When</span> Work item created <b class="win__mark" aria-hidden="true">①</b></li>
+                    <li class="win__step" data-kind="if"><span class="win__step-kind">If</span> Work item fields condition: Work type equals Task <b class="win__mark" aria-hidden="true">②</b></li>
+                    <li class="win__step" data-kind="then"><span class="win__step-kind">Then</span> Assign work item: Specify user — Марта Лисенко <b class="win__mark" aria-hidden="true">③</b></li>
+                  </ol>
+                  <p class="win__actions"><span class="win__btn">Add step</span> <span class="win__btn win__btn--primary">Turn on flow <b class="win__mark" aria-hidden="true">④</b></span></p>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <ol class="win__legend" aria-label="Пояснення до вікна «конструктор нового flow у спейсі Маркетинг»">
+            <li><code>When</code> — тригер: подія, після якої все починається</li>
+            <li><code>If</code> — умова: без неї дія станеться для будь-якої роботи</li>
+            <li><code>Then</code> — дія: те єдине, заради чого flow існує</li>
+            <li><code>Turn on flow</code> — зберегти й увімкнути</li>
+          </ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Вікно зібране з документації Atlassian (сторінки «Create automation flows in
+            Jira», «Jira automation triggers», «…conditions», «…actions», читані
+            18 вересня 2026 року) — конструктор на навчальному сайті не відкривали.
+            Кнопку <code>Turn on flow</code> довідка розміщує вгорі екрана; тут вона
+            стоїть під ланцюжком, щоб цифри в поясненні йшли за порядком читання.
+          </p>
+
+          <p>
+            Назви кроків у ланцюжку не вигадані й не перекладені: <code>Work item
+            created</code>, <code>Assign work item</code> — це підписи з переліків
+            Atlassian. Українською тут лише те, що вигадали ми самі: назва flow
+            і ім'я виконавиці.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <p>
+            Будь-який flow — це відповідь на три питання: <strong>коли</strong>,
+            <strong>за якої умови</strong> і <strong>що зробити</strong>. Документація
+            називає ці частини кроками (steps) і пише про першу з них так: «Every flow
+            starts with a trigger».
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart LR
+  E["Подія у спейсі"] --> T["Тригер: коли"]
+  T --> C["Умова: якщо"]
+  C -->|"пройшла"| A["Дія: що зробити"]
+  C -->|"не пройшла"| N["Не робиться нічого"]
+  A --> L["Запис у Audit log"]
+  N --> L
+            </pre>
+            <p class="ds-diag__caption">
+              Кожен запуск лишає слід у журналі — і тоді, коли дія відбулась,
+              і тоді, коли умова її не пропустила
+            </p>
+          </div>
+
+          <h3>Тригер: коли</h3>
+
+          <p>
+            <strong>Тригер</strong> (trigger, «спусковий гачок») — подія, після якої flow
+            прокидається. Він завжди рівно один і завжди перший. Нижче — ті тригери, яких
+            вистачає на перший рік роботи; повний перелік з усіма налаштуваннями лежить
+            у довіднику «Автоматизація: тригери, дії, smart values».
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: тригери, з яких починають">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Тригер</th><th>Коли спрацьовує</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>Work item created</code></td><td>створено нову роботу в спейсі</td></tr>
+                <tr><td><code>Work item transitioned</code></td><td>робота перейшла з одного статусу в інший</td></tr>
+                <tr><td><code>Work item assigned</code></td><td>у роботи змінився виконавець</td></tr>
+                <tr><td><code>Work item commented</code></td><td>до роботи додали коментар</td></tr>
+                <tr><td><code>Field value changed</code></td><td>змінилось значення вибраного поля</td></tr>
+                <tr><td><code>Scheduled</code></td><td>настав час за розкладом, а не подія</td></tr>
+                <tr><td><code>Manual trigger from work item</code></td><td>людина запустила flow вручну з картки</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            Два зауваження з документації, які економлять години. Перше: тригер варто
+            брати найвужчий із можливих — «Field Value Changed is far more economical than
+            Work Item Updated», бо оновленням роботи вважається будь-яка зміна, а зміною
+            поля — лише те, що тобі цікаво. Друге: щоб дочекатись саме зміни статусу,
+            потрібен <code>Work item transitioned</code>, а не <code>Work item
+            updated</code> — про це є окреме застереження на сторінці тригерів.
+          </p>
+
+          <h3>Умова: якщо</h3>
+
+          <p>
+            <strong>Умова</strong> (condition) — фільтр посеред ланцюжка. Довідка описує
+            її дію буквально: «If a condition fails, no actions following it will be
+            performed» — якщо умова не виконалась, жодна дія після неї не станеться.
+            Умов може не бути зовсім: «Not all flows need to have conditions».
+          </p>
+
+          <p>
+            Чотири умови покривають майже все, що потрібно маленькій команді:
+          </p>
+
+          <ul>
+            <li><strong><code>Work item fields condition</code></strong> — порівняти поле
+              роботи зі значенням або з іншим полем: тип роботи, статус, пріоритет,
+              мітка. Це та сама умова, яку сторінка про умови називає
+              <code>Issue fields condition</code>: перейменування ще не доїхало.</li>
+            <li><strong><code>JQL</code></strong> — умова у вигляді запиту з уроку 7.
+              Довідка радить спершу спробувати попередню: «It is easier and quicker
+              to set up».</li>
+            <li><strong><code>If/else block</code></strong> — розвилка: одне для тих
+              робіт, що підійшли, інше для решти.</li>
+            <li><strong><code>Related issues</code></strong> — перевірка, чи є в роботи
+              рідня (батько, підзадачі) і в якому вона стані. Саме на цій умові
+              тримається другий flow, який ми зберемо.</li>
+          </ul>
+
+          <h3>Дія: що зробити</h3>
+
+          <p>
+            <strong>Дія</strong> (action) — те, заради чого все й затівалось. Документація
+            називає дії «the doers of your flow». Дія обов'язкова: без неї flow
+            не зберігається — «You must add an action to complete the flow».
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: дії, з яких починають">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Дія</th><th>Що робить</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>Assign work item</code></td><td>призначає виконавця: конкретну людину, автора, того, хто коментував</td></tr>
+                <tr><td><code>Comment on work item</code></td><td>додає коментар до роботи</td></tr>
+                <tr><td><code>Transition work item</code></td><td>переводить роботу в інший статус</td></tr>
+                <tr><td><code>Edit work item</code></td><td>змінює значення полів</td></tr>
+                <tr><td><code>Create work item</code></td><td>створює нову роботу, зокрема в іншому спейсі</td></tr>
+                <tr><td><code>Create sub-tasks</code></td><td>створює підзадачі за списком назв</td></tr>
+                <tr><td><code>Send customized email</code></td><td>надсилає лист на вибрані адреси</td></tr>
+                <tr><td><code>Log action</code></td><td>пише значення в журнал — для перевірки</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            Одна пастка саме зараз: у списку дій поруч живе <code>Send email</code>
+            з позначкою <strong>Deprecated</strong> — застаріла. Довідка прямо веде на
+            заміну: «Use Send customized email action for greater flexibility», а вже
+            створені flows обіцяє перенести самостійно. Тому в нових flows обирай
+            <code>Send customized email</code>. Скільки листів на добу дозволяє
+            безкоштовний план — у довіднику «Карта інтерфейсу, глосарій і ліміти Free».
+          </p>
+
+          <h3>Кроки, які рахуються</h3>
+
+          <p>
+            Слово «крок» тут не метафора, а одиниця обліку. Довідка визначає: «An
+            automation step is a single executed part of an automation flow, including
+            triggers, conditions, actions, branches, and loops» — кроком вважається
+            кожна виконана частина flow, включно з тригером і умовою. Звідси просте
+            правило економії, яке Atlassian сама й радить: додавай умову якомога раніше,
+            щоб flow відсіював зайве на початку, а не після половини роботи.
+          </p>
+
+          <h3>Де живе flow і чиїм голосом говорить</h3>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart TB
+  S["Flow спейсу: Space settings → Automation"] --> S1["Діє в цьому спейсі"]
+  G["Глобальний flow: Settings → System → Global automation"] --> G1["Один спейс"]
+  G --> G2["Кілька спейсів"]
+  G --> G3["Усі спейси сайту"]
+            </pre>
+            <p class="ds-diag__caption">
+              Межу дії глобального flow задає адміністратор Jira; flow, зроблений
+              усередині спейсу, за його межі не виходить
+            </p>
+          </div>
+
+          <p>
+            У кнопці <code>Flow details</code> ховаються шість полів:
+            <code>Name</code>, <code>Description</code>, <code>Scope</code>,
+            <code>Owner</code>, <code>Actor</code> і <code>Notify on error</code>.
+            Зараз важливі два останні — і саме їх найчастіше не помічають.
+          </p>
+
+          <ul>
+            <li><strong><code>Owner</code> — власник.</strong> «By default, this is the
+              person who creates the flow. If a flow runs and results in an error, the
+              owner will be notified by email». Тобто власник — це той, кому прилетить
+              лист, коли flow зламається. Якщо людина йде з фірми, її flows лишаються
+              без адресата помилок.</li>
+            <li><strong><code>Actor</code> — від чийого імені працює.</strong> «In Jira
+              automation, the default flow actor is the “user” called Automation for
+              Jira». В історії роботи зміна буде підписана саме так — не твоїм іменем.
+              Довідка наводить той самий приклад: якщо flow перевів роботу в
+              <code>Done</code>, вкладка <code>History</code> покаже, що це зробив
+              Automation for Jira.</li>
+          </ul>
+
+          <p>
+            Право створювати flows у спейсі має його адміністратор: «By default, all
+            space admins can create and manage automation flows for their spaces». На
+            сайті, який від початку був безкоштовним, адміністраторами всіх спейсів
+            є всі учасники (урок 9), тож на практиці flows може зробити кожен.
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            Зберемо три flows — по одному на кожну рутину з початку уроку. Перший з нуля,
+            другий із готового шаблону, третій за розкладом. Шлях скрізь названо словами:
+            кнопки перемальовують частіше, ніж змінюються поняття.
+          </p>
+
+          <h3>Flow 1: нова задача маркетингу одразу має виконавця</h3>
+
+          <ol>
+            <li><strong>Відкрий автоматизацію спейсу.</strong> У бічній панелі наведи на
+              «Маркетинг», натисни <code>More actions</code> (три крапки) →
+              <code>Space settings</code> → <code>Automation</code>.</li>
+            <li><strong>Почни з нуля.</strong> <code>Create flow</code> →
+              <code>Create from scratch</code>.</li>
+            <li><strong>Тригер.</strong> Обери <code>Work item created</code> і підтверди
+              (<code>Next</code>).</li>
+            <li><strong>Умова.</strong> Додай наступний крок, обери тип
+              <code>Condition</code>, далі <code>Work item fields condition</code>:
+              поле — <code>Work type</code>, порівняння — <code>equals</code>,
+              значення — <code>Task</code>. Так flow не чіпатиме епіки й підзадачі.</li>
+            <li><strong>Дія.</strong> Додай ще крок, тип <code>Action</code>, дія
+              <code>Assign work item</code>, спосіб <code>Specify user</code>, людина —
+              ти сам чи сама.</li>
+            <li><strong>Назва.</strong> Відкрий <code>Flow details</code> і назви flow
+              так, щоб через півроку було зрозуміло без відкривання: наприклад, «Нова
+              задача маркетингу — одразу з виконавцем».</li>
+            <li><strong>Увімкни.</strong> Натисни <code>Turn on flow</code>.</li>
+          </ol>
+
+          <h3>Flow 2: усі підзадачі готові — закрити батьківську роботу</h3>
+
+          <p>
+            Цей збирати руками не треба: у бібліотеці шаблонів він уже є. На навчальному
+            сайті 17 вересня 2026 року серед шаблонів був, зокрема, такий:
+            <code>When all sub-tasks are done → move parent to done</code>.
+          </p>
+
+          <ol>
+            <li><strong>Відкрий автоматизацію спейсу «Друга точка»</strong> тим самим
+              шляхом.</li>
+            <li><strong>Візьми шаблон.</strong> <code>Create flow</code> →
+              <code>Use a template</code>, знайди шаблон про підзадачі й батьківську
+              роботу та обери його.</li>
+            <li><strong>Прочитай ланцюжок згори вниз.</strong> У ньому ті самі три
+              частини: тригер (підзадача перейшла в завершений статус), умова (чи всі
+              підзадачі тієї самої батьківської роботи вже завершені) і дія (перевести
+              батьківську роботу далі). Нічого не міняй з першого разу — спершу подивись,
+              як воно влаштоване.</li>
+            <li><strong>Перейменуй і ввімкни.</strong> Дай зрозумілу назву й натисни
+              кнопку ввімкнення.</li>
+          </ol>
+
+          <p>
+            Якщо в «Другій точці» немає роботи з підзадачами, візьми
+            <code>REM-2</code> «Електрика: погодити кошторис» — усередині неї є підзадача
+            <code>REM-3</code> «Електрика: розводка під кавомашину» з уроку 11.
+          </p>
+
+          <h3>Flow 3: щоденне нагадування про завтрашні дедлайни</h3>
+
+          <p>
+            Третій flow починається не з події, а з годинника. Тригер
+            <code>Scheduled</code> уміє працювати «раз на стільки-то» — довідка пише:
+            «run the flow at a fixed rate (for example, every 7 days), or use a Cron
+            expression for more complex schedules». Для щоденного нагадування досить
+            першого варіанта.
+          </p>
+
+          <ol>
+            <li><strong>Відкрий автоматизацію спейсу «Мої справи»</strong> і почни з нуля.</li>
+            <li><strong>Тригер.</strong> Обери <code>Scheduled</code> і постав частоту
+              «раз на день».</li>
+            <li><strong>Додай запит.</strong> У тому ж тригері є поле для JQL. Довідка
+              пояснює, навіщо воно: «If you do, actions in this flow will execute on the
+              work items included in the query» — дії виконаються над кожною знайденою
+              роботою. Встав запит нижче.</li>
+          </ol>
+
+          <figure class="term term--cmd" id="p1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p1t">запит для розкладу · незавершені справи з дедлайном не пізніше завтра</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__in">project = MY AND due &lt;= "1d" AND statusCategory != Done</span></span></pre>
+          </figure>
+
+          <p>
+            Три частини запиту вже знайомі з уроку 7. <code>project = MY</code> —
+            обмеження спейсом; слово <code>project</code> — те саме старе ім'я спейсу,
+            яке в мові запитів лишилось живим. <code>due &lt;= "1d"</code> — дедлайн не
+            пізніше ніж через добу; лапки тут обов'язкові, довідка наполягає: «Be sure
+            to use quote-marks (")». <code>statusCategory != Done</code> — робота ще не
+            завершена (урок 10).
+          </p>
+
+          <ol start="4">
+            <li><strong>Дія.</strong> Додай крок <code>Action</code> →
+              <code>Comment on work item</code> і напиши текст: «Дедлайн завтра. Якщо не
+              встигаєш — перенеси дату або передай комусь».</li>
+            <li><strong>Назва й увімкнення.</strong> Назви flow «Щоденне нагадування про
+              завтрашні дедлайни» й натисни <code>Turn on flow</code>.</li>
+          </ol>
+
+          <p>
+            Хочеш ще й лист — додай другу дію <code>Send customized email</code>
+            і постав отримувачем себе. Тільки пам'ятай про застарілу
+            <code>Send email</code> з блоку 3 і про добову межу листів на безкоштовному
+            плані.
+          </p>
+
+          <div class="ds-note">
+            <span class="ds-note__title">Одне слово, яке в flow означає інше</span>
+            <p>
+              Функція <code>currentUser()</code> з уроку 7 усередині flow означає не
+              обов'язково тебе. Запит там виконується не з твоїми правами: «when the flow
+              runs, it will use the flow actor's permissions instead» — правами того, кого
+              записано в <code>Actor</code>, а за замовчуванням це Automation for Jira.
+              Тому у flows надійніше називати людей явно, а <code>currentUser()</code>
+              лишити для власних фільтрів.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Автоматизація — єдина річ у курсі, яку не видно одразу: вона працює тоді,
+            коли ти не дивишся. Тому перевірка тут у два ходи — спершу подивитись
+            результат, потім подивитись журнал.
+          </p>
+
+          <h3>Хід перший: результат</h3>
+
+          <ul>
+            <li><strong>Flow 1.</strong> Створи в маркетингу задачу
+              <code>MARK-7</code> «Відповісти на відгуки за тиждень» і одразу відкрий її.
+              У полі <code>Assignee</code> має стояти людина, яку ти вибрав, а не
+              <code>Unassigned</code>.</li>
+            <li><strong>Flow 2.</strong> Переведи останню незакриту підзадачу роботи
+              <code>REM-2</code> у завершений статус. Через кілька секунд онови сторінку
+              батьківської роботи: вона теж має бути завершена.</li>
+            <li><strong>Flow 3.</strong> Постав одній картці «Моїх справ» дедлайн на
+              завтра. Чекати до ранку не обов'язково: на час перевірки зроби розклад
+              частішим, а потім поверни щоденний. У картці має з'явитись коментар від
+              Automation for Jira.</li>
+          </ul>
+
+          <h3>Хід другий: журнал</h3>
+
+          <p>
+            Журнал запусків зветься <strong>Audit log</strong>. Він є на двох рівнях:
+            усередині одного flow (кнопка <code>Audit log</code> у самому flow) і
+            вкладкою над списком — тоді видно запуски всіх flows одразу.
+          </p>
+
+          <figure class="win" data-state="list" id="w3">
+            <figcaption class="win__chrome">
+              <span class="win__dots" aria-hidden="true"></span>
+              <span class="win__title" id="w3t">Jira Cloud · Audit log усіх flows сайту · за документацією, 2026-09-18</span>
+              <span class="win__addr" aria-hidden="true">…/jira/settings/automation</span>
+            </figcaption>
+            <div class="win__body" role="group" aria-labelledby="w3t">
+              <ul class="win__rail" aria-label="Бічна панель Jira">
+                <li class="win__rail-item">For you</li>
+                <li class="win__rail-item">Spaces</li>
+                <li class="win__rail-item">Filters</li>
+                <li class="win__rail-item">Dashboards</li>
+              </ul>
+              <div class="win__main">
+                <div class="win__bar">
+                  <span class="win__crumb">Settings / System / Global automation</span>
+                  <span class="win__tabs"><span>Flows</span><span class="win__tab--active">Audit log <b class="win__mark" aria-hidden="true">①</b></span><span>Templates</span><span>Usage</span></span>
+                  <span class="win__btn">Create flow</span>
+                </div>
+                <div class="win__page">
+                  <h4>Audit log</h4>
+                  <table class="win__table">
+                    <thead>
+                      <tr><th>Date &amp; time</th><th>Flow</th><th>Status <b class="win__mark" aria-hidden="true">②</b></th><th>Total time</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>Sep 25, 2026, 09:00</td><td>Щоденне нагадування про завтрашні дедлайни</td><td>Successful</td><td>1s</td></tr>
+                      <tr><td>Sep 25, 2026, 10:14</td><td>Нова задача маркетингу — виконавець Марта</td><td>No action <b class="win__mark" aria-hidden="true">③</b></td><td>0.3s</td></tr>
+                      <tr><td>Sep 25, 2026, 16:02</td><td>Усі підзадачі готові — закрити батьківську роботу</td><td>Successful</td><td>2s</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <ol class="win__legend" aria-label="Пояснення до вікна «Audit log усіх flows сайту»">
+            <li><code>Audit log</code> — вкладка над списком: запуски всіх flows</li>
+            <li><code>Status</code> — результат запуску, а не стан flow</li>
+            <li><code>No action</code> — flow спрацював, але дія не знадобилась</li>
+          </ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Вікно зібране з документації Atlassian («What is an automation audit log?»,
+            «Audit the run logs of automation flows», «View performance insights for
+            automation flows», читані 18 вересня 2026 року): на навчальному сайті жоден
+            flow ще не запускався, тому журнал там порожній. Назви колонок і результатів
+            узяті звідти дослівно; назви flows і час — наші.
+          </p>
+
+          <h3>Що означають слова в колонці результату</h3>
+
+          <p>
+            Довідка перелічує результати запуску так: <code>Successful</code> — «the flow
+            performed an action»; <code>No action</code> — «the flow executed but no
+            action was performed»; <code>Some errors</code> — «the flow resulted in an
+            error». Є ще два, які трапляються рідше: <code>Loop</code> (flow закільцювався
+            — про це в наступному блоці) і <code>Throttled</code> (сайт притримав запуск,
+            бо вперся в межу).
+          </p>
+
+          <p>
+            Кожен рядок журналу розкривається: усередині видно кожен крок flow і час, який
+            він забрав («Each log can be expanded to show the details and run times of
+            each step in the flow»). Саме там видно, на якому кроці все спинилось.
+            І окремо варто знати, що журнал не вічний: «Automation audit logs store
+            activity from the past 90 days. Older entries are automatically deleted and
+            can't be recovered».
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Ознака «так/ні» для цього уроку</span>
+            <p>
+              У спейсах «Маркетинг», «Друга точка» й «Мої справи» є по одному
+              ввімкненому flow, а у вкладці <code>Audit log</code> навпроти кожного
+              з них хоча б раз стоїть <code>Successful</code>. Якщо навпроти якогось
+              flow немає жодного рядка — тригер ще не траплявся або flow вимкнений.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3><code>No action</code> — це не поломка</h3>
+
+          <p>
+            Найчастіша реакція на цей напис: «не працює». Насправді він означає рівно те,
+            що написано в довідці: «the flow executed but no action was performed» — flow
+            прокинувся, дійшов до умови, умова не пропустила, дія не знадобилась. Для
+            першого flow це нормальний щоденний результат: створили підзадачу — умова
+            «тип дорівнює Task» не пройшла — виконавця не призначили.
+          </p>
+
+          <p>
+            Поломка виглядає інакше: <code>Some errors</code> у журналі й лист власникові
+            flow. Якщо ж рядків у журналі немає зовсім, довідка радить дивитись не на дію,
+            а на початок: «you either haven't configured the trigger correctly, or the
+            trigger has a filter on it which isn't behaving as you expect».
+          </p>
+
+          <h3>Умова звужує мовчки</h3>
+
+          <p>
+            Умова не попереджає, що вона щось відсіяла, — вона тихо зупиняє ланцюжок.
+            Класичні випадки: у спейсі створюють підзадачі, а умова пропускає лише
+            <code>Task</code>; статус у спейсі називається не так, як записано в умові
+            (пастка мови з уроку 3); робота створена не в тому спейсі, на який
+            поширюється flow.
+          </p>
+
+          <p>
+            Порада звідси: після ввімкнення нового flow відкрий журнал і подивись перші
+            три запуски. Якщо всі три — <code>No action</code>, справа не в дії, а в
+            умові.
+          </p>
+
+          <h3>Flow, який запускає сам себе</h3>
+
+          <p>
+            Дія всередині flow — це така сама зміна роботи, як зміна руками. Тому flow,
+            який редагує роботу, здатен розбудити flow, що чекає на зміну роботи, —
+            і далі по колу. У налаштуваннях за це відповідає перемикач
+            <code>Allow flow trigger</code>, і довідка описує наслідок прямо: «if your
+            flow triggers when a work item is created, then all flows that create a work
+            item will trigger your flow».
+          </p>
+
+          <p>
+            Jira таке кільце помічає й зупиняє: серед службових меж є
+            <code>Loop detection</code> — «This controls how many times a flow can trigger
+            itself (or other flows) in quick succession before the execution is stopped
+            and marked as a LOOP». У журналі це і буде видно як <code>Loop</code>.
+            Ліки — вужчий тригер і умова, яка відсікає зміни, зроблені автоматизацією.
+          </p>
+
+          <h3>Вимкнений flow і незбережені зміни</h3>
+
+          <p>
+            Flow має три стани: <code>Enable</code> — працює, <code>Disable</code> —
+            не працює, <code>Draft</code> — «The flow has unpublished changes», тобто
+            є правки, яких Jira ще не застосувала. Третій стан і є найпідступнішим:
+            ти щось поміняв, вийшов, а працює стара версія. Довідка нагадує: «If you add
+            a new step after enabling, you'll need to select Update to apply any new
+            changes to the flow».
+          </p>
+
+          <p>
+            Окремо про розклад: «Scheduled flows that reach a Failure status for 10
+            consecutive executions will disable automatically» — flow за розкладом, який
+            десять разів поспіль завершився невдало, Jira вимикає сама. Він не зникає
+            зі списку — у нього гасне перемикач <code>Enabled</code>.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Навіщо flow для призначення, якщо є виконавець за замовчуванням?</h3>
+
+          <p>
+            Значення <code>Automatic</code> з уроку 5 бере виконавця з налаштувань
+            спейсу — і робить це для всіх нових робіт без розбору. Flow вміє те, чого
+            налаштування спейсу не вміє: ставити умову (лише задачі, лише з певною
+            міткою), обирати людину по черзі або за навантаженням — серед способів
+            призначення довідка називає <code>Balanced workload</code>,
+            <code>Random</code> і <code>Round-robin</code>. Якщо умови не потрібні,
+            налаштування спейсу дешевше: воно не витрачає кроків.
+          </p>
+
+          <h3>Чому в історії роботи написано Automation for Jira, а не моє ім'я?</h3>
+
+          <p>
+            Бо так виглядає виконавець дій за замовчуванням: «In Jira automation, the
+            default flow actor is the “user” called Automation for Jira». Це можна
+            змінити в <code>Flow details</code> → <code>Actor</code>: «you can set the
+            flow actor as yourself, or as the Automation for Jira user». Змінювати варто
+            свідомо — дії тоді виглядатимуть як твої власні, і колеги не відрізнять
+            автоматичну зміну від ручної.
+          </p>
+
+          <h3>Чи можна зробити справу, що повторюється, без конструктора?</h3>
+
+          <p>
+            Так, і для щотижневих побутових справ це найкоротший шлях. Довідка описує
+            його так: відкрий роботу, обери <code>Automation</code> (значок блискавки)
+            або поле <code>Due date</code>, далі <code>Set to recur</code> і заповни,
+            як часто вона має повторюватись. Jira створить копію роботи за розкладом
+            і сама зробить під це flow з назвою <code>Clone on a schedule</code>.
+            Запуски такої автоматизації рахуються як звичайні.
+          </p>
+
+          <h3>Чи є речі, які робляться лише автоматизацією?</h3>
+
+          <p>
+            Є. Приклад із уроку 10: у спейсах, якими керує команда, поле
+            <code>Resolution</code> не показується й не редагується руками — «When using
+            a Team Managed project, you don't have the option to manually set or view the
+            Resolution field on those project types». База знань Atlassian (позначка
+            «Cloud Only», оновлено 26 вересня 2025 року) пропонує єдиний шлях: flow
+            з тригером на перехід у завершений статус і дією, яка це поле заповнює.
+            Готовий рецепт лежить у довіднику «Автоматизація: тригери, дії, smart
+            values».
+          </p>
+
+          <h3>Хто може редагувати чужий flow?</h3>
+
+          <p>
+            Це задається полем <code>Who can edit this flow</code> з трьома значеннями:
+            <code>Private</code> — лише власник; <code>Specific admins</code> — названі
+            адміністратори; <code>All admins</code> — усі адміністратори спейсу. І одне
+            застереження понад усе це: «Site admins will always be able to edit your
+            flows, regardless of which option you choose».
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li><strong>Flow (раніше automation rule)</strong> — речення «коли —
+                якщо — що зробити», зібране зі списків, без програмування.</li>
+              <li><strong>Тригер один і завжди перший</strong>; умов може не бути;
+                дія обов'язкова, інакше flow не збережеться.</li>
+              <li><strong>Два місця:</strong> <code>Space settings</code> →
+                <code>Automation</code> для одного спейсу і
+                <code>Settings</code> → <code>System</code> →
+                <code>Global automation</code> для всього сайту.</li>
+              <li><strong><code>Audit log</code> — головний інструмент,</strong> а не
+                службова дрібниця: <code>Successful</code>, <code>No action</code>,
+                <code>Some errors</code> відповідають на питання «чому не спрацювало»
+                за десять секунд.</li>
+              <li><strong>Власник (<code>Owner</code>) отримує листи про помилки,
+                виконавець (<code>Actor</code>) підписує зміни</strong> — за
+                замовчуванням це Automation for Jira.</li>
+              <li><strong>Кожен виконаний крок рахується,</strong> тому вузький тригер
+                і рання умова — це не педантизм, а економія.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+
+          <p>
+            Три flows, які ти зібрав, не вміють однієї речі: підставляти в текст дані
+            самої роботи. Коментар «Дедлайн завтра» однаковий для всіх, а хотілося б
+            «Меблі: доставка й монтаж — дедлайн 3 жовтня». Саме це роблять
+            <strong>розумні значення</strong> — шматочки в подвійних фігурних дужках,
+            які Jira замінює на справжні дані. Про них, про гілки (дію над кожною
+            підзадачею) і про сторінку, де видно витрачені кроки, — урок 15.
+          </p>
+
+          <p>
+            До нього лиши всі три flows увімкненими на тиждень. Журнал запусків за
+            цей тиждень — найкращий матеріал для наступного уроку: у ньому вже буде
+            видно, що спрацьовує щодня, а що жодного разу.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять
+            на назви: до кожної відповіді одразу з'являється пояснення, чому решта
+            варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Марта зібрала flow: коли створено роботу → якщо тип роботи Task → призначити виконавця. Ігор питає, що зміниться, якщо прибрати середній крок.",
+            "options": [
+              "Flow перестане зберігатись — умова є обов'язковою частиною будь-якого ланцюжка автоматизації",
+              "Виконавець ставитиметься на кожну нову роботу спейсу — зокрема на епіки й на підзадачі",
+              "Flow працюватиме лише вручну, і Марті доведеться щоразу запускати його з картки роботи",
+              "Не зміниться нічого: тип роботи Jira звіряє сама перед виконанням будь-якої дії"
+            ],
+            "answer": 1,
+            "explain": "Умова — необов'язкова частина ланцюжка: «Not all flows need to have conditions». Без неї тригер віддає дію будь-якій створеній роботі, хай якого вона типу. Обов'язковою є саме дія: «You must add an action to complete the flow». А ручний запуск — це окремий тригер Manual trigger from work item, а не наслідок прибраної умови."
+          },
+          {
+            "q": "Тарас відкрив журнал свого flow і бачить три рядки поспіль зі словами No action. Що це означає?",
+            "options": [
+              "Flow зламався, і Jira зупинила його до втручання адміністратора сайту",
+              "Jira не встигла виконати дію — сайт був зайнятий, запуск повернеться пізніше",
+              "Flow спрацював і дійшов до умови, умова не пропустила — дія не знадобилась",
+              "Flow вимкнений, тому замість запуску Jira записує в журнал його наміри"
+            ],
+            "answer": 2,
+            "explain": "У довідці цей результат описаний так: «the flow executed but no action was performed». Поломка має інший підпис — Some errors, і про неї власник flow отримує листа. Притримані сайтом запуски позначаються як Throttled, а вимкнений flow не лишає в журналі жодного рядка взагалі."
+          },
+          {
+            "q": "Оксана хоче побачити всі flows, які працюють у спейсі «Бухгалтерія», і жодних інших. Куди їй іти?",
+            "options": [
+              "У налаштування цього спейсу, розділ Automation — там лежать flows саме цього спейсу",
+              "У картку будь-якої роботи спейсу, вкладка History — там перелічені всі його flows",
+              "В особисті налаштування, розділ сповіщень — flows показуються поруч із листами",
+              "У Filters: кожен flow зберігається як окремий запит і лежить серед фільтрів"
+            ],
+            "answer": 0,
+            "explain": "Шлях із довідки: More actions (…) → Space settings → Automation. Історія роботи показує зміни в одній роботі, хай і зроблені автоматизацією, а не перелік flows. Сповіщення й фільтри до автоматизації не причетні: фільтр — це збережений запит з уроку 7."
+          },
+          {
+            "q": "Flow, який зробила Ліна, впав з помилкою. Кому про це напише Jira?",
+            "options": [
+              "Усім адміністраторам сайту — помилки автоматизації стосуються всієї організації",
+              "Ліні: власником flow за замовчуванням стає той, хто цей flow створив",
+              "Виконавцеві роботи, на якій flow спіткнувся, — він бачить наслідок першим",
+              "Нікому: про помилки дізнаються лише з журналу, листів автоматизація не шле"
+            ],
+            "answer": 1,
+            "explain": "Поле Owner описане прямо: «By default, this is the person who creates the flow. If a flow runs and results in an error, the owner will be notified by email». Частоту таких листів задає сусіднє поле Notify on error. Виконавець роботи листа не отримує, а адміністратор сайту хоч і може відредагувати будь-який flow, адресатом помилок не стає."
+          },
+          {
+            "q": "Денис зробив flow: коли роботу оновлено → змінити в ній поле опису. За хвилину в журналі десятки запусків і слово Loop. Що сталося?",
+            "options": [
+              "Jira порахувала всі запуски за минулий місяць і показала їх одним списком",
+              "Хтось із колег масово змінював роботи — і кожна зміна дала окремий запуск",
+              "Слово Loop означає, що flow по колу чекає відповіді від зовнішньої системи",
+              "Flow змінює роботу, а зміна роботи — та сама подія, на яку він і чекає"
+            ],
+            "answer": 3,
+            "explain": "Дія автоматизації — така сама зміна роботи, як зроблена руками, тому flow здатен розбудити сам себе. Jira це помічає: серед службових меж є Loop detection, після якої виконання спиняється й позначається як LOOP. Масова зміна руками дала б звичайні успішні запуски, а очікування зовнішньої системи — це час обробки, а не кільце."
+          },
+          {
+            "q": "У меню кнопки Create flow є пункт Use a template. Що він дає?",
+            "options": [
+              "Готовий ланцюжок із бібліотеки, який далі редагують під себе й вмикають",
+              "Порожній ланцюжок із підказками, у який лишається вписати назви своїх полів",
+              "Копію flow сусіднього спейсу — з тими самими людьми й назвами робіт",
+              "Запис дій, які ти робиш руками, щоб Jira потім повторила їх сама"
+            ],
+            "answer": 0,
+            "explain": "Шлях із довідки: Create flow → Use a template → обрати шаблон → за потреби перейменувати й відредагувати → увімкнути. Самі шаблони лежать на окремій вкладці Templates і згруповані за темами. Копіювання чужого flow робиться інакше, а запису дій руками в Jira немає взагалі."
+          }
+        ]
+      }
+      </script>
+
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Урок позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
