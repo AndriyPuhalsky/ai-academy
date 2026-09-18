@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 18 · Jira Service Management — Jira з нуля</title>
+  <meta name="description"
+    content="Як приймати заявки від колег через портал: чим службовий спейс відрізняється від звичайного, хто такий агент і хто клієнт, що таке тип запиту, черга і годинник SLA — і чому клієнти не займають місць у Jira." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+</head>
+
+<body data-module="j18">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 18</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 5 · Service desk і адміністрування</p>
+        <h1 class="ds-h1">Jira Service Management</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 23 хв читання</p>
+        <p class="ds-lead">
+          Досі вся робота в курсі народжувалась усередині команди: хтось із своїх
+          відкривав Jira й створював картку. Але половина роботи будь-якої фірми
+          приходить ззовні — колега приносить рахунок, просить довідку, замовляє
+          закупівлю. Цей урок про те, як приймати такі звернення в одне місце, не
+          саджаючи всю фірму в Jira.
+        </p>
+        <p>
+          Робить це окремий продукт Atlassian — <strong>Jira Service Management</strong>.
+          Він живе на тому самому сайті, що й Jira, і додає до неї вхідні двері: сторінку
+          із кнопками для тих, хто в Jira не працює. Головне, заради чого його беруть
+          невеликі фірми: люди, які подають заявки, місць у Jira не займають. Урок
+          пояснює поняття — хто такий агент і хто клієнт, що таке портал, тип запиту,
+          черга й годинник SLA. Складати робочу бухгалтерію по кроках будемо в
+          наступному уроці.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> побудови спейсу «Бухгалтерія» до кінця — чотири типи
+            запитів, форми полів, групи порталу, черги за запитом, SLA з робочим
+            календарем, автоматизація й перевірка очима клієнта — це урок 19. Немає
+            Confluence як продукту (урок 16) і немає розмови про адміністраторів сайту
+            та організації (урок 20). Немає чисел, крім одного: скільки листів, скільки
+            сховища, скільки кроків автоматизації — з датою перевірки в довіднику
+            «Карта інтерфейсу, глосарій і ліміти Free».
+          </p>
+          <p>
+            <strong>Є:</strong> чим службовий спейс відрізняється від звичайного; агент
+            і клієнт та ціна помилки між ними; портал і центр допомоги; тип запиту,
+            черга й SLA як три опори служби; канали, якими заявка приходить; база знань
+            через Confluence; шаблони служб за відділами; що саме додає на сайт його
+            власник і чому без цього кроку нічого не запрацює.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            У «Кориці» бухгалтер Ігор Гнатюк отримує роботу так: бариста Соломія
+            надсилає фото рахунка в месенджер, пекар Богдан просить аванс усно на кухні,
+            власниця Оксана пише «треба довідка для банку» в загальний чат о пів на
+            одинадцяту вечора. За тиждень Ігор не пам'ятає, скільки в нього справ, а
+            кожен із трьох упевнений, що його прохання вже в роботі.
+          </p>
+
+          <p>
+            Перша думка людини, яка пройшла попередні сімнадцять уроків: завести спейс
+            «Бухгалтерія» і хай усі створюють у ньому картки. Це працює гірше, ніж
+            здається, з двох причин. Перша — місця: безкоштовний план Jira тримає десять
+            користувачів, і віддавати місця людям, які заходять раз на місяць з одним
+            рахунком, шкода (урок 2). Друга — люди: Соломія не має вчити дошку, статуси й
+            типи роботи, щоб попросити оплатити каву. Їй потрібна сторінка з кнопкою
+            «Подати рахунок».
+          </p>
+
+          <p>
+            Саме цю пару задач і закриває <strong>Jira Service Management</strong> — у
+            курсі й у довідці його часто скорочують до JSM. Це не інша Jira й не заміна
+            тому, що ти вже зробив(ла): це ще один продукт на тому самому сайті, який
+            додає особливий тип спейсу — <strong>службовий спейс (service space)</strong>.
+            Довідка описує його призначення так: «you can create service spaces that help
+            your team to manage incoming requests and provide help to customers» — спейси,
+            які допомагають команді керувати вхідними зверненнями й допомагати тим, хто
+            звернувся.
+          </p>
+
+          <h3>Дві ролі, між якими коштує помилитись</h3>
+
+          <p>
+            У службовому спейсі люди діляться на дві групи, і це поділ не за посадою, а
+            за тим, з якого боку стіни людина стоїть.
+          </p>
+
+          <ul>
+            <li><strong>Агент (agent)</strong> — той, хто розбирає заявки: бачить чергу,
+              бере роботу на себе, відповідає, закриває. Довідка називає агентів
+              ліцензованими користувачами: «Service space agents are licensed users who
+              work on customer requests». Ліцензований означає «займає місце»: на
+              безкоштовному плані JSM таких місць <strong>три</strong>. У «Кориці»
+              агент один — Ігор.</li>
+            <li><strong>Клієнт (customer)</strong> — той, хто просить допомоги: відкриває
+              портал, подає заявку, бачить її стан і відповідь. Клієнти місць не
+              займають. Про зовнішніх клієнтів довідка каже прямо: вони «have no access
+              to Atlassian apps (no app licenses consumed)» — доступу до застосунків
+              Atlassian не мають, ліцензій не витрачають. А про кількість клієнтів у
+              спейсі: «There is no limit on the number of customers you can add to your
+              service space». У «Кориці» клієнти — Соломія, Богдан і всі інші.</li>
+          </ul>
+
+          <p>
+            Те саме видно й у таблиці планів Atlassian: у колонці безкоштовного плану JSM
+            рядок <code>User limit</code> має значення <code>Up to 3 agents</code>, а
+            рядок <code>Customer limit</code> — <code>Unlimited</code>. Два різні рядки й два різні підрахунки. Через це схема «одна людина розбирає — уся фірма подає»
+            вміщується в безкоштовний план із запасом, і саме вона найчастіше і є
+            причиною, чому маленькі фірми додають цей продукт на свій сайт.
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__body">
+              Клієнтом людина стає не тому, що вона «не з команди». У «Кориці» всі свої,
+              але для бухгалтерії всі, крім Ігоря, — клієнти. Довідка так і ділить їх на
+              зовнішніх (клієнти компанії) і внутрішніх (працівники), і про внутрішніх
+              каже, що вони можуть «access your help centers for free, if no app access is
+              assigned to them» — користуватись центром допомоги безкоштовно, поки їм не
+              видано доступу до самих застосунків.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Одна служба має два обличчя: сторінку для того, хто просить, і чергу для
+            того, хто відповідає. Почнемо з першого.
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__body">
+              Усі три вікна цього уроку зібрані <strong>за документацією</strong>: на
+              навчальному сайті курсу Jira Service Management ще не додано, тому екранів
+              із живої служби в нас немає. Назви елементів узято з довідки Atlassian
+              станом на 18 вересня 2026 року; українські написи — це тексти, які команда
+              задає сама. Розташування блоків показане схематично: воно передає зміст, а
+              не точну геометрію сторінки.
+            </p>
+          </div>
+
+          <h3>Портал: те, що бачить Соломія</h3>
+
+<figure class="win" data-state="portal" id="w1">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w1t">Jira Cloud · портал служби «Бухгалтерія Кориці» · за документацією, 2026-09-18</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w1t">
+    <div class="win__portal">
+      <h4 class="win__portal-title">Бухгалтерія «Кориці» <b class="win__mark" aria-hidden="true">①</b></h4>
+      <p class="win__portal-intro">Рахунки, аванси, довідки й закупівлі — в одному місці. Відповідаємо до кінця робочого дня. <b class="win__mark" aria-hidden="true">②</b></p>
+      <p class="win__search">Search <b class="win__mark" aria-hidden="true">③</b></p>
+      <ul class="win__tiles">
+        <li class="win__tile">Подати рахунок <b class="win__mark" aria-hidden="true">④</b></li>
+        <li class="win__tile">Заявка на аванс</li>
+        <li class="win__tile">Замовити довідку</li>
+        <li class="win__tile">Закупівля</li>
+      </ul>
+      <p class="win__link">Requests <b class="win__mark" aria-hidden="true">⑤</b></p>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «портал служби Бухгалтерія Кориці»">
+<li>Назва порталу — поле <code>Portal name</code></li>
+<li>Вітальний текст — поле <code>Introduction text</code></li>
+<li>Пошук готових відповідей у базі знань</li>
+<li>Плитка = тип запиту (request type)</li>
+<li><code>Requests</code> — заявки цієї людини та їхній стан</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Назви трьох полів узято дослівно з довідки: «Edit the Portal name,
+            Introduction text, and Logo fields as needed». Українські написи на плитках —
+            це назви типів запитів, які «Кориця» задає сама. ⚠ Точний текст підказки в
+            полі пошуку живим екраном не звірений: у вікні стоїть нейтральне
+            <code>Search</code>, як і в уроці 1.
+          </p>
+
+          <p>
+            Головне про портал: його не треба створювати. Довідка каже це одним реченням —
+            «For each service space you create, a corresponding portal also gets
+            automatically created», тобто для кожного службового спейсу портал
+            народжується сам. Команда лише вирішує, як він називається, що написано
+            зверху і які плитки на ньому стоять.
+          </p>
+
+          <p>
+            Поруч із порталом у довідці живе друге слово — <strong>центр допомоги (help
+            center)</strong>. Різниця проста на вигляд і важлива на практиці: портал — це
+            сторінка <em>однієї</em> служби, центр допомоги — спільний вхід, де людина
+            бачить усі портали, до яких має доступ: «Customers can view portals that they
+            have permission to access from a help center». Поки служба в тебе одна,
+            різниці не помітно. Коли їх стане дві — бухгалтерія й господарка — центр
+            допомоги стане тією сторінкою, яку ти даси колегам замість двох посилань.
+          </p>
+
+          <h3>Черги: те, що бачить Ігор</h3>
+
+          <p>
+            Коли Соломія натискає плитку й надсилає форму, її заявка не лягає в чиюсь
+            пошту. Вона стає звичайною роботою в спейсі — з ключем, статусом і виконавцем,
+            рівно такою, як картки з попередніх уроків. Довідка описує це так: «When a
+            customer sends a request, it appears as a work item in your queues».
+          </p>
+
+<figure class="win" data-state="list" id="w2">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w2t">Jira Cloud · черги службового спейсу Бухгалтерія · за документацією, 2026-09-18</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w2t">
+    <ul class="win__rail" aria-label="Черги службового спейсу">
+      <li class="win__rail-item win__rail-item--active">Усі відкриті <b class="win__mark" aria-hidden="true">①</b></li>
+      <li class="win__rail-item">Нові</li>
+      <li class="win__rail-item">Мої</li>
+      <li class="win__rail-item">Горить SLA</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Spaces / Бухгалтерія / Queues</span>
+      </div>
+      <div class="win__page">
+        <h4>Усі відкриті</h4>
+        <table class="win__table">
+          <thead>
+            <tr><th>Key</th><th>Summary</th><th>Reporter</th><th>Status</th><th>Time to first response <b class="win__mark" aria-hidden="true">②</b></th></tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="win__key">FIN-1</span></td><td>Рахунок від постачальника кави (вересень)</td><td>Соломія Бойко <b class="win__mark" aria-hidden="true">③</b></td><td data-cat="todo">Open</td><td>within 3h 20m</td></tr>
+            <tr><td><span class="win__key">FIN-2</span></td><td>Аванс на закупівлю борошна</td><td>Соломія Бойко</td><td data-cat="todo">Open</td><td>within 6h 45m</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «черги службового спейсу Бухгалтерія»">
+<li>Черга — набір заявок, відібраний запитом</li>
+<li>Годинник SLA: скільки лишилось до цілі</li>
+<li>Автор заявки — клієнт, а не хтось із команди</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Назви черг ліворуч — вигадані «Корицею», як і назви фільтрів з уроку 7.
+            Колонки англійські: довідка каже, що черга дає «high-level information on a
+            work item – usually a summary, status and customer name», а формат годинника
+            взято з прикладу довідки «time to resolution within 8h 30m». Обидві заявки
+            мають однаковий статус не випадково: ця черга відбирає відкриті, і поки
+            заявка відкрита, вона в ній і стоїть.
+          </p>
+
+          <p>
+            Черга — те саме, що збережений фільтр з уроку 7, тільки повернуте до команди
+            й винесене в бічну панель служби. Означення з довідки: «A queue is a filtered
+            set of work items that are displayed to your team». Свіжий службовий спейс
+            приходить із готовими чергами («Your service space comes with a set of
+            pre-configured queues, but you can create your own to suit your needs»), і
+            майже завжди їх переробляють під себе.
+          </p>
+
+          <p>
+            Одна деталь, яка дивує: черги налаштовує адміністратор спейсу, а не той, хто
+            в них працює. Довідка каже про це без пом'якшень: «Agents don't have the
+            permissions to add new queues or configure existing ones». Якщо в тебе служба
+            на одну людину, ця межа непомітна — ти і адміністратор спейсу, і агент
+            одночасно.
+          </p>
+
+          <p>
+            Крім черг, у службовому спейсі є ще кілька розділів, і кожен з них довідка
+            називає місцем, куди заходять «from your service space»: <code>Customers</code>
+            (список клієнтів), <code>Channels</code> (адреса порталу й адреса пошти),
+            <code>Invite team</code> (додати агента), <code>Reports</code> (звіти). До
+            двох із них ми зайдемо в блоці «Зроби сам».
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <p>
+            Дорога заявки від прохання до відповіді має завжди однакові зупинки —
+            незалежно від того, чи це бухгалтерія кав'ярні, чи служба підтримки банку.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart LR
+  A["Клієнт: Соломія"] --> B["Портал або лист"]
+  B --> C["Заявка стає роботою в спейсі"]
+  C --> D["Черга: відібрано запитом"]
+  C --> G["Годинник SLA пішов"]
+  D --> E["Агент: Ігор відповідає"]
+  E --> F["Клієнт отримує лист"]
+            </pre>
+            <p class="ds-diag__caption">Шлях заявки: людина, канал, робота в спейсі, черга, агент, відповідь.</p>
+          </div>
+
+          <h3>Тип запиту — обличчя типу роботи</h3>
+
+          <p>
+            Плитка на порталі має власну назву — <strong>тип запиту (request
+            type)</strong>. Це не новий вид роботи, а спосіб показати наявний вид тому,
+            хто не знає слова «задача». Довідка формулює призначення так: «Request types
+            help you define and categorize incoming requests and allow you to collect the
+            information you need to resolve them» — типи запитів допомагають розкласти
+            вхідні звернення по полицях і зібрати з людини те, без чого заявку не
+            закрити.
+          </p>
+
+          <p>
+            У кожного типу запиту є три речі, які бачить клієнт: назва людською мовою,
+            короткий опис під нею («The portal description helps customers know which
+            request type to choose when they visit your portal») і форма з полями, які
+            треба заповнити. І одна річ, якої клієнт не бачить: до якого типу роботи цей
+            запит прив'язаний усередині.
+          </p>
+
+          <p>
+            Зв'язок описаний дослівно: «Every request type in Jira Service Management is
+            connected to a work type, and each work type is connected to a workflow» —
+            кожен тип запиту зв'язаний з одним типом роботи, а кожен тип роботи — зі
+            своїм робочим процесом (уроки 4 і 10). Зв'язок нерівний: «However, one request
+            type can only be connected to one work type at a time», тобто тип запиту
+            дивиться рівно на один тип роботи, а один тип роботи може стояти за кількома
+            типами запитів. Для «Кориці» це означає: чотири плитки на порталі цілком
+            можуть жити на одному типі роботи й одному робочому процесі.
+          </p>
+
+          <p>
+            Типи запитів складають у <strong>групи порталу (portal groups)</strong> —
+            це заголовки, під якими плитки стоять на сторінці: «Гроші», «Документи». Тут
+            же ховається найпоширеніша причина порожнього порталу, і на неї варто
+            подивитись двічі: «Request types that aren't assigned to a group will be
+            hidden from your portal» — тип запиту, не доданий у жодну групу, з порталу
+            зникає. Групами ми займемось у наступному уроці, а поки досить пам'ятати, що
+            вони існують.
+          </p>
+
+          <h3>Годинник: угода про рівень сервісу</h3>
+
+          <p>
+            Друга опора служби — обіцянка строку. В Atlassian вона зветься
+            <strong>угода про рівень сервісу (SLA, service level agreement)</strong>, і
+            всупереч поважній назві це звичайний годинник на заявці. Довідка: «Jira
+            Service Management provides powerful built-in SLAs (service level agreements),
+            so teams can track how well they're meeting the level of service expected by
+            their customers».
+          </p>
+
+          <p>
+            Годинник складається з чотирьох частин, і всі чотири задає адміністратор
+            спейсу:
+          </p>
+
+          <ul>
+            <li><strong>Коли починає рахувати.</strong> У налаштуваннях це умова
+              <code>Start</code> — наприклад, «коли заявку створено».</li>
+            <li><strong>Коли стає на паузу.</strong> Умова <code>Pause on</code>,
+              необов'язкова. Довідка наводить типовий приклад: «It may be used, for
+              example, when you are waiting for a customer to respond» — поки чекаємо на
+              відповідь клієнта, час не тече. Серед статусів, з якими приходять шаблони
+              служб, для цього є готовий <code>Waiting for customer</code>.</li>
+            <li><strong>Коли спиняється.</strong> Умова <code>Stop</code> — наприклад,
+              «коли заявку розв'язано».</li>
+            <li><strong>За яким календарем рахує.</strong> Окреме поле: «Choose a calendar
+              to specify the working hours during which time can be counted against
+              SLAs» — календар вирішує, які години взагалі йдуть у залік.</li>
+          </ul>
+
+          <p>
+            Самих годинників на заявці може бути кілька. Два найчастіші довідка називає
+            так: «Time to first response or time to resolution» — час до першої відповіді
+            й час до розв'язання. Перший цінний тим, що його легко пообіцяти й легко
+            дотримати: людині майже завжди важливіше почути «бачу, беру», ніж отримати
+            результат за годину. Коли час добігає кінця, годинник міняє колір: «The timer
+            will automatically turn yellow, then red when the SLA has been breached».
+          </p>
+
+          <h3>Заявка очима агента</h3>
+
+<figure class="win" data-state="item" id="w3">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w3t">Jira Cloud · заявка FIN-2 очима агента · за документацією, 2026-09-18</span>
+    <span class="win__addr" aria-hidden="true">…/browse/FIN-2</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w3t">
+    <div class="win__main">
+      <div class="win__item">
+        <p class="win__crumb">Queues / Усі відкриті / <span class="win__key">FIN-2</span></p>
+        <h4 class="win__item-title">Аванс на закупівлю борошна</h4>
+        <p class="win__status" data-cat="todo">Open ▾</p>
+        <dl class="win__fields">
+          <dt>Time to first response <b class="win__mark" aria-hidden="true">①</b></dt><dd>within 6h 45m</dd>
+          <dt>Assignee</dt><dd>Ігор Гнатюк</dd>
+          <dt>Reporter</dt><dd>Соломія Бойко</dd>
+          <dt>Request type</dt><dd>Заявка на аванс</dd>
+        </dl>
+        <div class="win__desc"><h5>Description</h5><ul class="win__checks"><li>Сума: 4 000 грн</li><li>Постачальник: млин «Золотий колос»</li><li>Потрібно до: Sep 25, 2026</li></ul></div>
+        <p class="win__actions"><span class="win__btn">Add internal note <b class="win__mark" aria-hidden="true">②</b></span> <span class="win__btn win__btn--primary">Reply to customer <b class="win__mark" aria-hidden="true">③</b></span></p>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «заявка FIN-2 очима агента»">
+<li>Годинник SLA стоїть серед полів заявки</li>
+<li><code>Add internal note</code> — нотатка лише для команди</li>
+<li><code>Reply to customer</code> — відповідь, яку побачить автор</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Написи двох кнопок — дослівно з довідки. Поля в лівій колонці названі так, як
+            їх називає довідка (годинник SLA, виконавець, автор, тип запиту), але ⚠ живим
+            екраном порядок і підписи полів не звірені. Текст у <code>Description</code> —
+            те, що Соломія заповнила у формі на порталі.
+          </p>
+
+          <p>
+            Головна відмінність цієї картки від усіх попередніх у курсі — внизу. Там не
+            одне поле коментаря, а два входи, і різниця між ними коштує репутації.
+            Довідка описує їх в одному реченні: «To add a comment, select Add internal
+            note to post a comment that only your team can see, or Reply to customer to
+            include the person that raised the request» — внутрішня нотатка видима лише
+            команді, відповідь клієнту йде тому, хто просив. І окремо, щоб не було
+            сумнівів: «Internal notes do not display to customers using your service
+            project's portal».
+          </p>
+
+          <h3>Канали: звідки заявки приходять</h3>
+
+          <p>
+            Портал — не єдиний вхід. Довідка перелічує їх так: «Customers can send
+            requests by email, via help centers, and an embeddable widget» — поштою, через
+            центри допомоги і через віконце, вбудоване в чужу сторінку; окремо описана
+            подача з Slack і Microsoft Teams. Усі ці входи разом у таблиці планів звуться
+            <code>Multi-channel support</code>, і в колонці безкоштовного плану JSM
+            навпроти цього рядка стоїть галочка, а не прочерк.
+          </p>
+
+          <p>
+            Для не-ІТ команди найцінніший другий канал — <strong>пошта</strong>. У
+            службового спейсу є власна адреса: «You can share your service space's email
+            address by selecting Channels from your service space and copying the
+            address». Лист на цю адресу стає заявкою, а далі все йде тим самим шляхом:
+            «A customer emails a request to your service space's email address. The
+            request is added to your queues as a work item. An agent comments on the work
+            item. The customer receives an email notification with your agent's comment».
+            Тобто Богдан може взагалі не відкривати портал — і все одно бути в черзі.
+            ⚠ Живим екраном ми цю адресу не бачили: продукт на навчальному сайті не
+            доданий.
+          </p>
+
+          <p>
+            Звичайний спейс (той, з яким ми працювали всі попередні уроки) власної адреси
+            не має — прийом пошти в Jira без JSM налаштовує адміністратор сайту окремо й
+            інакше. Про пошту як канал сповіщень ішлося в уроці 16; тут вона вперше стає
+            дверима, крізь які робота заходить у фірму.
+          </p>
+
+          <h3>База знань: відповідь замість заявки</h3>
+
+          <p>
+            Четверта опора служби — статті, які людина читає <em>замість</em> того, щоб
+            писати. Це і є <strong>база знань (knowledge base)</strong>, і вона в Jira
+            Service Management не своя: «Leverage the power of Atlassian's product
+            Confluence to set up your own knowledge base within your own project.
+            Knowledge base articles appear on your portal so your customers can help
+            themselves before reaching out to you».
+          </p>
+
+          <p>
+            Що це означає на практиці: щоб на порталі з'явились статті, на сайті має бути
+            ще один продукт — Confluence. Довідка називає мінімум дослівно: «To set up
+            your knowledge base in Jira Service Management, at a minimum, you'll need to
+            have a Free plan of Confluence on the same site» — досить безкоштовного плану
+            Confluence на тому самому сайті. Додає його на сайт та сама людина, що й JSM,
+            і тим самим способом; сам Confluence як продукт оглядався в уроці 16.
+          </p>
+
+          <h3>Звичайний спейс і службовий поруч</h3>
+
+          <p>
+            Якщо звести все сказане, службовий спейс відрізняється від звичайного не
+            виглядом, а тим, звідки береться робота і хто на неї дивиться.
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: звичайний спейс і службовий спейс поруч">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Ознака</th><th>Звичайний спейс</th><th>Службовий спейс</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Вхід</td><td>Людина відкриває Jira і створює роботу</td><td>Клієнт відкриває портал або пише листа</td></tr>
+                <tr><td>Автор</td><td>Хтось із команди</td><td>Той, хто попросив допомоги</td></tr>
+                <tr><td>Форма</td><td>Поля типу роботи</td><td>Форма типу запиту, складена для клієнта</td></tr>
+                <tr><td>Список</td><td>Дошка, список, календар</td><td>Черги, відібрані запитом</td></tr>
+                <tr><td>Строк</td><td>Дедлайн ставить людина</td><td>Годинник SLA рахує сам</td></tr>
+                <tr><td>Відповідь</td><td>Коментар бачить команда</td><td>Відповідь клієнту або внутрішня нотатка</td></tr>
+                <tr><td>Місця</td><td>Кожен учасник займає місце</td><td>Місця займають агенти, клієнти — ні</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="ds-diag__caption" data-align="start">
+            Рядки зібрані з довідки Atlassian, прочитаної 18 вересня 2026 року; рядок
+            «Місця» спирається на два рядки таблиці планів — <code>User limit</code> і
+            <code>Customer limit</code>.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            Зробимо мінімальну робочу службу: додамо продукт на сайт, створимо спейс
+            бухгалтерії, знайдемо його портал і подамо туди першу заявку чужими очима.
+            Налаштування типів запитів, черг і SLA лишаємо на урок 19 — сьогодні
+            достатньо побачити, що дорога заявки справді працює.
+          </p>
+
+          <h3>Крок 1. Додай Jira Service Management на свій сайт</h3>
+
+          <p>
+            Додати продукт на сайт може не будь-хто, а адміністратор сайту. Стаття бази
+            знань Atlassian формулює обмеження так: «Only members of the Site-Admin Group
+            can add Paid Add-ons or Applications to the instance» — додавати застосунки
+            можуть лише члени групи адміністраторів сайту. Якщо сайт створив(ла) ти —
+            це ти; якщо сайт заводив хтось інший, цей крок робить він. Увага: це не те
+            саме, що адміністратор спейсу, про якого йшлося в уроці 9, — різницю між
+            двома адміністраторами розбирає урок 20.
+          </p>
+
+          <ol>
+            <li><strong>Перший описаний шлях</strong> — зсередини Jira: <code>Settings</code>
+              → <code>User Management</code> → <code>Discover Applications</code>, і далі
+              <code>Free Trial</code> або <code>Sign up for free</code> навпроти
+              потрібного продукту.</li>
+            <li><strong>Другий</strong> — через адміністрування Atlassian: перемикач
+              застосунків → <code>Administration</code> → обрати свій сайт →
+              <code>Apps</code> → <code>Discover new apps</code>. Цим шляхом довідка веде,
+              коли на сайт додають Confluence для бази знань.</li>
+          </ol>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__body">
+              Після додавання подивись, на якому плані опинився новий продукт. Довідка
+              попереджає: «We start you on a free trial of the app or collection, either
+              on a Standard or Premium plan. At the end of the trial, you'll start paying
+              for the plan. If we don't have your payment details, we will change your app
+              to a Free plan» — тобто спершу дають пробний платний план, а далі або
+              рахунок, або перехід на безкоштовний. ⚠ Цей крок ми не проходили живцем:
+              на навчальному сайті курсу продукт не додавався.
+            </p>
+          </div>
+
+          <h3>Крок 2. Створи службовий спейс «Бухгалтерія»</h3>
+
+          <p>
+            Спейс створюється звідти ж, звідки всі попередні (урок 12): наведи на
+            <code>Spaces</code> у бічній панелі й натисни <code>Create space</code>. У
+            галереї шаблонів ліворуч з'явиться категорія <code>Service management</code> —
+            вона є лише тоді, коли продукт уже на сайті. Обери шаблон для фінансів;
+            довідка описує його як «a central place to field queries, and manage budget,
+            spend, and other finance requests». Якщо сфера інша, візьми шаблон свого
+            відділу: довідка перелічує служби, які найчастіше заводять, — «you might have
+            a Finance, HR, Facilities, IT, Marketing, Analytics, or Legal service space».
+            Є й універсальний шаблон загальної служби — «a central place to efficiently
+            collect, prioritize, and manage support requests». У самій галереї (знімок
+            навчального сайту від 17 вересня 2026 року) два шаблони для великих ІТ-служб
+            мають позначку платного плану — на безкоштовному вони не для нас.
+          </p>
+
+          <p>
+            Ключ спейсу Jira згенерує сама. Щоб він став <code>FIN</code>, як у нас, зайди
+            в <code>Space settings</code> → <code>Details</code> і зміни його там —
+            звичка з уроків 12 і 13.
+          </p>
+
+          <h3>Крок 3. Знайди портал і адресу пошти</h3>
+
+          <p>
+            У своєму новому спейсі відкрий розділ <code>Channels</code>. Довідка описує
+            його як місце, де лежать обидві адреси служби: «You can share the portal URL
+            by selecting Channels from your service space and copying the portal URL».
+            Скопіюй адресу порталу — вона знадобиться за хвилину. Заразом подивись, чи
+            стоїть там адреса пошти служби. Якщо стоїть — надішли на неї лист на одне
+            речення й перевір за кілька хвилин, чи з'явилась із нього заявка.
+          </p>
+
+          <h3>Крок 4. Додай клієнта</h3>
+
+          <p>
+            Відкрий розділ <code>Customers</code>, натисни <code>Add customers</code> і
+            введи пошту людини, яка подаватиме заявки (у нас це Соломія; якщо ти
+            працюєш сам(а) — візьми свою другу поштову адресу). Довідка описує, що далі:
+            людина отримає листа й зможе зайти на портал, створивши собі пароль. Місця
+            Jira ця дія не займає — саме про це був блок 1.
+          </p>
+
+          <h3>Крок 5. Подай заявку очима клієнта</h3>
+
+          <p>
+            Відкрий <strong>приватне вікно браузера</strong> — це окреме вікно, яке не
+            пам'ятає, хто ти: у ньому браузер не бере твої збережені входи, тож сайт
+            бачить не адміністратора, а сторонню людину. У Chrome воно зветься «Нове вікно
+            в режимі анонімного перегляду», у Safari — «Нове приватне вікно», у Firefox —
+            «Нове приватне вікно». Встав туди скопійовану адресу порталу.
+          </p>
+
+          <p>
+            Ти побачиш або сам портал, або сторінку входу — що саме, вирішують
+            налаштування доступу на сайті, і це теж корисно побачити: колезі покажеться
+            рівно те саме. Увійди як клієнт і подай одну заявку: обери будь-яку плитку,
+            заповни форму, надішли.
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__body">
+              Плитки на порталі поки називатимуться так, як їх назвав шаблон, — по-англійськи
+              й не завжди про твою сферу. Це нормально: перейменування типів запитів і
+              складання їх у групи — перші кроки уроку 19. Сьогодні важливо лише, щоб
+              заявка дійшла.
+            </p>
+          </div>
+
+          <h3>Крок 6. Знайди заявку в черзі</h3>
+
+          <p>
+            Повернись у звичайне вікно, у якому ти адміністратор, відкрий спейс
+            «Бухгалтерія» й зайди в <code>Queues</code>. Заявка має бути в одній із черг,
+            з якими прийшов шаблон, — з ключем, автором-клієнтом і годинником, якщо
+            шаблон приніс SLA. Відкрий її й подивись на дві кнопки внизу, не натискаючи
+            їх: <code>Add internal note</code> і <code>Reply to customer</code>.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Три ознаки, кожну видно очима за хвилину.
+          </p>
+
+          <ul>
+            <li><strong>Заявка в черзі.</strong> У розділі <code>Queues</code> спейсу
+              «Бухгалтерія» стоїть рядок із ключем (наприклад, <code>FIN-1</code>), а в
+              колонці автора — та людина, яка подавала заявку з порталу, не ти.</li>
+            <li><strong>Клієнт бачить свою заявку.</strong> У тому самому приватному
+              вікні працює посилання <code>Requests</code>: довідка каже, що звідти люди
+              «keep track of all their requests and check the status in their requests
+              list» — бачать усі свої звернення та їхній стан.</li>
+            <li><strong>Клієнт не бачить Jira.</strong> У приватному вікні є портал і
+              посилання <code>Requests</code> — і немає ані бічної панелі Jira, ані
+              спейсів, ані дощок. Це і є та межа, заради якої все затівалось.</li>
+          </ul>
+
+          <p>
+            Якщо в списку спейсів новий спейс з'явився, а порталу за адресою немає —
+            найімовірніше, адреса скопійована не звідти. Портал живе в розділі
+            <code>Channels</code> того самого спейсу, і в довідці це єдиний описаний шлях
+            до нього.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3>Колегу запросили агентом, хоча він лише подає заявки</h3>
+
+          <p>
+            Найдорожча помилка уроку, і зробити її легко: людина просить доступ, ти
+            заходиш у <code>Invite team</code> і додаєш її. Тепер вона агент — займає одне
+            з трьох місць безкоштовного плану й бачить усі чужі заявки. Тоді як у ролі
+            клієнта вона подавала б ті самі заявки, не займаючи нічого.
+          </p>
+
+          <p>
+            Правило просте: <code>Invite team</code> — для тих, хто <em>розбирає</em>
+            заявки; <code>Customers</code> — для тих, хто їх <em>подає</em>. Довідка
+            підкреслює, що працювати із заявками може лише той, хто має і роль агента, і
+            доступ до продукту: «Only people who have both the Agent role and product
+            access to Jira Service Management can communicate with customers and resolve
+            requests».
+          </p>
+
+          <h3>Портал порожній, хоча типи запитів створені</h3>
+
+          <p>
+            Класика перших годин: у налаштуваннях чотири типи запитів, на порталі —
+            порожньо або видно не все. Причина майже завжди одна, і вона названа в
+            довідці: «Request types that aren't assigned to a group will be hidden from
+            your portal». Тип запиту, який не потрапив у жодну групу порталу, для клієнта
+            не існує. Лікується це в налаштуваннях груп — покроково в наступному уроці.
+          </p>
+
+          <h3>Годинник рахує не ті години</h3>
+
+          <p>
+            SLA рахує час за тим календарем, який обрано в його цілі, а не за тим, як
+            фактично працює твоя команда. Новий календар довідка створює з робочими
+            годинами за замовчуванням: «By default, when you create a new calendar, the
+            hours are preset from 09:00 to 17:00 (9am-5pm)». Для кав'ярні, яка відчиняється
+            о сьомій і працює в суботу, це означає, що годинник проспить половину
+            робочого дня, а в неділю покаже порушення там, де ніхто нічого не порушував.
+          </p>
+
+          <p>
+            Тому перед тим, як обіцяти строк, варто відповісти на два питання: у які
+            години ми справді відповідаємо і коли годинник має ставати на паузу. Друге
+            закривається умовою <code>Pause on</code>.
+          </p>
+
+          <h3>Лист пішов на особисту адресу</h3>
+
+          <p>
+            Ігор дав колегам свою робочу пошту — і жодна з тих заявок у черзі не
+            з'явилась. Заявкою стає тільки лист, надісланий на адресу <em>служби</em>,
+            ту, що лежить у розділі <code>Channels</code>. Лист на особисту адресу
+            лишається звичайним листом, а лист на адресу звичайного (не службового)
+            спейсу нікуди не потрапляє: власної адреси такий спейс не має.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Чи буде портал українською?</h3>
+
+          <p>
+            Імовірно, так — і це єдине місце в усій системі, де українська можлива.
+            Atlassian публікує таблицю «Atlassian cloud apps are available in the
+            following languages», і в рядку <code>Ukrainian</code> навпроти Jira, Jira
+            Service Management і Confluence стоїть хрестик, а навпроти колонки
+            <code>Help center and Customer Portal</code> — галочка. Тобто інтерфейс, у
+            якому працює Ігор, лишається англійським (про це був урок 3), а сторінка, яку
+            відкриває Соломія, може бути українською. ⚠ Живим порталом ми цього не
+            перевіряли. Крім того, у службовому спейсі є розділ <code>Language
+            support</code>, де мови додають окремо: «From your service space, select Space
+            settings, then Language support».
+          </p>
+
+          <h3>На картці заявки є кнопка «Add agent» — це про колегу?</h3>
+
+          <p>
+            Ні, і плутанина тут майже неминуча. Слово «агент» у Jira Service Management
+            означає людину, яка розбирає заявки. А кнопка <code>Add agent</code> на картці
+            й напис <code>Ask AI</code> поруч — це про інше: про помічників на основі
+            штучного інтелекту (Rovo). На безкоштовному плані вони не працюють і
+            показуються як пропозиція перейти на платний, як і в решті Jira — про це
+            йшлося в уроках 2 і 3.
+          </p>
+
+          <h3>Може, обійтись без окремого продукту й впустити колег у Jira?</h3>
+
+          <p>
+            Можна, але ціна більша, ніж здається. По-перше, кожен впущений займе одне з
+            десяти місць. По-друге, обмежити його права не вийде: «You can't edit space
+            permissions or roles on the Free plan for Jira Cloud, and you can't configure
+            work-level security on any Free plan (including Jira Service Management)» —
+            на безкоштовному плані ролі не налаштовуються, тож людина, яку ти впустив(ла)
+            подати один рахунок, бачитиме й зможе змінювати все інше. Повна розмова про
+            людей і доступи — урок 20.
+          </p>
+
+          <h3>Чи обов'язково налаштовувати SLA?</h3>
+
+          <p>
+            Ні. Служба працює й без годинника: заявки приходять, черга збирається, агент
+            відповідає. SLA має сенс тоді, коли ви <em>комусь</em> пообіцяли строк — собі,
+            керівнику чи колегам — і хочете бачити, чи тримаєте обіцянку. Рядок
+            <code>Customizable workflows and SLA's</code> (власні робочі процеси й SLA)
+            у таблиці планів навпроти
+            безкоштовного JSM позначений галочкою, тож можливість є; питання лише в тому,
+            чи потрібна вона тобі з першого дня. Там же, у тій самій колонці, галочки
+            стоять навпроти рядків про власні звіти (<code>Custom reports</code>) і про
+            автоматизацію — на безкоштовному плані служба вміє більше, ніж здається.
+          </p>
+
+          <h3>Скільки службових спейсів можна завести?</h3>
+
+          <p>
+            Довідка каже «You can create as many service spaces as you like on your site»
+            — скільки завгодно. Але агентів на безкоштовному плані три на всі служби
+            разом, і кожен новий портал — це ще одна сторінка, яку хтось має тримати
+            живою. Для фірми на вісім людей одна служба зазвичай закриває все; другу
+            заводять тоді, коли в неї інша команда й інші строки.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Цей урок додав до курсу не нову кнопку, а новий бік стіни. Досі ми вчились
+            вести <em>свою</em> роботу; тепер у фірми з'явився спосіб приймати роботу
+            <em>чужу</em> — так, щоб вона не губилась у месенджерах і не коштувала місць
+            у Jira.
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li><strong>Jira Service Management — окремий продукт на тому самому
+                сайті.</strong> Додає його адміністратор сайту; поки продукт не доданий,
+                службового спейсу створити не вийде.</li>
+              <li><strong>Агент займає місце, клієнт — ні.</strong> На безкоштовному
+                плані агентів три, клієнтів — без обмеження. Це і є головний
+                економічний аргумент усієї схеми.</li>
+              <li><strong>Портал народжується сам</strong> для кожного службового спейсу;
+                центр допомоги — спільний вхід до кількох порталів.</li>
+              <li><strong>Тип запиту — обличчя типу роботи для клієнта:</strong> назва
+                людською мовою, опис, форма. Кожен тип запиту дивиться рівно на один тип
+                роботи.</li>
+              <li><strong>Черга — це фільтр для команди,</strong> а не окрема папка;
+                налаштовує її адміністратор спейсу.</li>
+              <li><strong>SLA — годинник із чотирьох налаштувань:</strong> старт, пауза,
+                зупинка й календар робочих годин.</li>
+              <li><strong>Заявка приходить кількома каналами</strong> — портал, пошта,
+                чат, віконце на сайті; у службового спейсу є власна поштова адреса.</li>
+              <li><strong>База знань живе в Confluence</strong> — статті з'являються на
+                порталі й знімають частину заявок.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+
+          <p>
+            Служба в тебе зараз така, якою її зробив шаблон: англійські назви плиток,
+            чужі черги, ніяких обіцянок щодо строків. У наступному уроці —
+            «Практикум: заявки до бухгалтерії»: чотири типи запитів українською, форми з
+            потрібними полями, групи порталу, черги за запитом, SLA з робочим календарем
+            і дві автоматизації, щоб Ігор отримував заявку на себе, а Соломія — лист про
+            результат. Наприкінці ти знову відкриєш портал у приватному вікні — і
+            побачиш різницю.
+          </p>
+
+          <p>
+            До того лиши службу як є й попроси одного колегу подати через неї справжню
+            заявку. Одна реальна заявка покаже про твої формулювання більше, ніж година
+            налаштувань.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять
+            на назви: до кожної відповіді одразу з'являється пояснення, чому решта
+            варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Ігор додав пекаря Богдана через Invite team, хоча той лише подає заявки на закупівлі. Що це змінило?",
+            "options": [
+              "Богдан зайняв одне з трьох агентських місць, хоча для подання заявок місце йому не потрібне",
+              "Нічого: доступ агента й доступ клієнта в службовому спейсі це та сама річ під двома назвами",
+              "Заявки Богдана перестали потрапляти в чергу, бо автором заявки в службовому спейсі не може бути агент",
+              "Богдан утратив доступ до порталу, бо агенти працюють лише з поштовим каналом служби"
+            ],
+            "answer": 0,
+            "explain": "У таблиці планів два різні рядки: User limit зі значенням Up to 3 agents і Customer limit зі значенням Unlimited. Агент розбирає заявки й займає місце, клієнт подає їх і місця не займає, бо довідка каже про клієнтів no app licenses consumed. Подавати заявки Богдан міг і далі, і портал у нього нікуди не дівся, але одне з трьох місць тепер витрачене намарне."
+          },
+          {
+            "q": "Соломія бачить на порталі плитку «Заявка на аванс», а Ігор у черзі відкриває ту саму заявку з типом роботи Task. Хтось щось налаштував неправильно?",
+            "options": [
+              "Так, плитка порталу мусить називатись так само, як тип роботи, інакше заявка загубиться в черзі",
+              "Так, тип запиту працює лише тоді, коли для нього заведено окремий службовий спейс із такою назвою",
+              "Ні, Jira показує клієнтові українську назву, а агентові автоматичний переклад тієї ж назви",
+              "Ні, тип запиту це те, що бачить клієнт на порталі, і він зв'язаний з одним типом роботи спейсу"
+            ],
+            "answer": 3,
+            "explain": "Довідка формулює зв'язок так: кожен тип запиту зв'язаний з одним типом роботи, а кожен тип роботи зі своїм робочим процесом. Назви при цьому різні навмисно: клієнтові потрібне людське формулювання, команді потрібен тип, за яким працює процес. Перекладу тут немає: обидві назви задає команда, і одна з них повернута до клієнта."
+          },
+          {
+            "q": "Ігор просить: «Хочу бачити окремо всі заявки, де ще ніхто не відповів». Що саме треба зробити в службовому спейсі?",
+            "options": [
+              "Створити ще один службовий спейс і переносити туди такі заявки руками щоранку",
+              "Попросити клієнтів ставити на своїх заявках позначку про те, що відповіді ще не було",
+              "Створити окрему чергу, тобто набір заявок, відібраний запитом і показаний команді",
+              "Створити новий тип запиту з такою назвою, і потрібні заявки перейдуть у нього самі"
+            ],
+            "answer": 2,
+            "explain": "Черга в довідці описана як filtered set of work items, тобто відібраний запитом набір робіт, показаний команді. Заявки в неї потрапляють самі, поки підходять під умову, і зникають, щойно перестають підходити. Тип запиту вирішує інше завдання: він описує, що людина просить. А перенесення руками або позначки від клієнтів ламаються на другому тижні."
+          },
+          {
+            "q": "Ігор відповів Соломії й перевів заявку в статус Waiting for customer. Годинник SLA перестав рахувати час. Чому так сталось?",
+            "options": [
+              "Бо на безкоштовному плані годинник працює лише до першої відповіді агента, а далі вимикається",
+              "Бо в налаштуваннях цього SLA задана умова паузи, і новий статус заявки під неї підпадає",
+              "Бо будь-який коментар агента зупиняє всі годинники на заявці до наступного ранку",
+              "Бо статус зі словом Waiting Jira завжди вважає завершеним і знімає заявку з обліку"
+            ],
+            "answer": 1,
+            "explain": "У SLA три групи умов: коли починати рахувати, коли ставати на паузу і коли спинятись. Про паузу довідка наводить саме цей приклад: її вмикають, коли чекають на відповідь клієнта. Тобто пауза це налаштування, а не властивість слова у назві статусу, і сам по собі коментар нічого не зупиняє. Статус Waiting for customer належить до категорії у роботі, а не до завершених."
+          },
+          {
+            "q": "Богдан не любить портали й надсилає прохання листом на адресу служби, яку Ігор узяв у розділі Channels. Що станеться з листом?",
+            "options": [
+              "Нічого: Jira Service Management приймає заявки лише з порталу, решта листів ігнорується",
+              "Jira створить заявку без автора, бо лист не містить облікового запису людини",
+              "Лист потрапить в особисту пошту Ігоря й ніяк не зв'яжеться зі спейсом бухгалтерії",
+              "Лист стане заявкою в черзі, а відповідь агента прийде Богданові звичайним листом"
+            ],
+            "answer": 3,
+            "explain": "Довідка описує цей шлях покроково: клієнт пише на адресу службового спейсу, звернення додається в черги як робота, агент коментує, клієнт отримує лист із його коментарем. Пошта це один із каналів, які в таблиці планів названі multi channel support і позначені галочкою для безкоштовного плану. Особиста адреса бухгалтера тут ні до чого: заявкою стає лист саме на адресу служби."
+          },
+          {
+            "q": "Оксана хоче, щоб на порталі перед формою з'явились відповіді на часті питання й частина заявок відпала сама. Чого для цього бракує на сайті?",
+            "options": [
+              "Confluence на тому самому сайті: база знань службового спейсу живе саме там",
+              "Платного плану Jira Service Management, бо на безкоштовному статей не буває взагалі",
+              "Окремого спейсу типу «База знань» у самій Jira, куди складають такі статті",
+              "Нічого не бракує: відповіді на часті питання пишуться в описі кожного типу запиту"
+            ],
+            "answer": 0,
+            "explain": "База знань у Jira Service Management не своя: довідка каже, що для неї на тому самому сайті потрібен щонайменше безкоштовний план Confluence, і що статті з'являються на порталі, щоб люди могли допомогти собі самі. Окремого спейсу для статей у Jira немає. Опис типу запиту теж не заміна: він пояснює, коли обрати цю плитку, а не відповідає на питання по суті."
+          }
+        ]
+      }
+      </script>
+
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Урок позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
