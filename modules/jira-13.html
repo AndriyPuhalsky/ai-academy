@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 13 · Scrum і Kanban — і коли вони не потрібні — Jira з нуля</title>
+  <meta name="description"
+    content="Два способи вести роботу — безперервний потік Kanban з лімітом колонки і робота порціями часу в Scrum: беклог, спринт, оцінки, звіти — і чесна відповідь, коли команді не з ІТ усе це не потрібне." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+</head>
+
+<body data-module="j13">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 13</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 3 · Під себе</p>
+        <h1 class="ds-h1">Scrum і Kanban — і коли вони не потрібні</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 22 хв читання</p>
+        <p class="ds-lead">
+          Два слова, через які Jira й отримала славу «інструмента для програмістів».
+          Насправді це не функції Jira й не кнопки — це два способи домовитись, як команда
+          бере роботу: безперервним потоком або порціями часу. Цей урок пояснює обидва,
+          показує, що під них вмикається в Jira, і дає чесну відповідь на питання, яке
+          рідко звучить уголос: чи потрібно це тобі взагалі.
+        </p>
+        <p>
+          Урок оглядовий навмисно. Команді, яка пече круасани, ремонтує другу точку й
+          відповідає на відгуки, майже ніколи не потрібні спринти — і курс не робитиме
+          вигляд, що потрібні. Але одна річ із цього світу корисна кожному, хто веде
+          роботу карткою на дошці, і вона займає рівно один крок руками. Це
+          <strong>ліміт колонки</strong> — стеля на кількість справ, які можна робити
+          одночасно.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> практичного Scrum — ролей, зустрічей і командного
+            оцінювання; курс цього не вчить свідомо. Немає редагування статусів і
+            переходів (урок 10), пошуку за спринтом (урок 7) і дашбордів (урок 8).
+          </p>
+          <p>
+            <strong>Є:</strong> Kanban як безперервний потік і ліміт колонки; Scrum як
+            черга роботи й відрізок часу; що саме вмикається в спейсі для розробки
+            (<code class="ds-code--inline">Backlog</code>,
+            <code class="ds-code--inline">Sprints</code>,
+            <code class="ds-code--inline">Estimation</code>); що показують чотири звіти;
+            один крок руками — ліміт на колонці дошки «Сайт»; і перелік ознак, за яких
+            спринти команді шкодять.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            Денис Романюк робить сайт «Кориці» на пів ставки. Оксана помічає дивну річ:
+            одні замовлення на доопрацювання сайту він закриває за день, інші висять
+            третій тиждень. Вона питає чому. Денис відповідає чесно: «Бо я беруся за все
+            одразу — і нічого не дороблюю до кінця».
+          </p>
+          <p>
+            Якщо наприкінці уроку 12 ти порахував(ла), скільки робіт у твоєму спейсі
+            стоїть у стані «роблю», тримай це число під рукою — у блоці 4 воно стане
+            налаштуванням.
+          </p>
+          <p>
+            Це не проблема Дениса й не проблема Jira. Це найстаріша проблема будь-якої
+            роботи: почати легше, ніж закінчити. Люди, які думали над нею довше за нас,
+            залишили два готові способи давати з нею раду. Один називається
+            <strong>Kanban</strong>, другий — <strong>Scrum</strong>.
+          </p>
+
+          <h3>Два слова, які означають домовленість, а не кнопку</h3>
+
+          <p>
+            Ані Kanban, ані Scrum не є частиною Jira. Це способи роботи, вигадані
+            задовго до неї: Kanban виріс із заводського виробництва, Scrum — із розробки
+            програм. Jira лише дає під них інструменти — дошку, чергу роботи, відрізки
+            часу, звіти. Тому питання «як увімкнути Scrum» неправильне за формою:
+            вмикають не метод, а окремі речі, які методу потрібні.
+          </p>
+          <p>
+            Різниця між ними менша, ніж здається збоку. Стаття Atlassian про вибір між
+            ними каже так: «It's easy to point out the differences between scrum practices
+            and kanban practices, but that's just at the surface level. While the practices
+            differ, the principles are largely the same» — відмінності лежать на поверхні,
+            а принципи здебільшого однакові. Обидва методи хочуть, щоб робота була видима,
+            а її кількість — керована.
+          </p>
+
+          <h3>Чому цей урок оглядовий</h3>
+
+          <p>
+            Курс написаний для команди, яка не пише програм. Для такої команди Scrum у
+            повному вигляді — це зустрічі, ролі й ритуал планування, які коштують більше,
+            ніж дають. Тому тут ти отримаєш рівно стільки, щоб:
+          </p>
+          <ul>
+            <li>розуміти обидва слова, коли їх вимовляє колега або консультант;</li>
+            <li>упізнати ситуацію, у якій спринти справді допомагають, — і назвати її;</li>
+            <li>зробити одну корисну дію, яка працює в будь-якій команді, — поставити
+              ліміт на колонку;</li>
+            <li>спокійно сказати «нам це не потрібно» й пояснити чому.</li>
+          </ul>
+          <p>
+            Порада щодо «не потрібно» тут не авторська. Сама Atlassian у довіднику про
+            можливості спейсу, яким керує команда, пише: «We recommend only enabling the
+            features your team needs and disabling everything else. This way, your space
+            doesn't get cluttered and your team can focus on the things that matter» —
+            вмикати варто лише те, що команді потрібно, інакше спейс захаращується.
+          </p>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Досі всі спейси «Кориці» були діловими (business): «Мої справи», «Маркетинг»,
+            «Друга точка», «Найм». Сайт — перший випадок, коли доречний спейс для
+            розробки (software). Різниця не в престижі, а в наборі можливостей: довідка
+            Atlassian формулює її одним реченням — «software spaces come with features
+            like a board and backlog», тобто саме в спейсах для розробки живуть черга
+            роботи, спринти й звіти про них.
+          </p>
+
+          <h3>Дошка з лімітом колонки</h3>
+
+          <p>
+            Ось дошка Дениса в той момент, коли Оксана поставила своє питання. Ліміт на
+            колонці <code>In Progress</code> уже стоїть, і його перевищено.
+          </p>
+
+<figure class="win" data-state="board" id="w1">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w1t">Jira Cloud · дошка спейсу Сайт із лімітом колонки · за документацією, 2026-09-18</span>
+    <span class="win__addr" aria-hidden="true">…/jira/software/projects/WEB/boards/1</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w1t">
+    <ul class="win__rail" aria-label="Бічна панель Jira">
+      <li class="win__rail-item">For you</li>
+      <li class="win__rail-item win__rail-item--active">Spaces</li>
+      <li class="win__rail-item">Filters</li>
+      <li class="win__rail-item">Dashboards</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Spaces / Сайт</span>
+        <span class="win__tabs"><span>Summary</span><span>List</span><span class="win__tab--active">Board</span><span>Docs</span><span>Development</span><span>+</span></span>
+        <span class="win__btn">View settings</span>
+      </div>
+      <ul class="win__cols">
+        <li class="win__col" data-cat="todo">
+          <h4 class="win__col-title">To Do <span class="win__count">1</span> <b class="win__mark" aria-hidden="true">①</b></h4>
+          <ul class="win__cards">
+            <li class="win__card">
+              <span class="win__card-title">Сторінка доставки: оновити текст</span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">WEB-5</span> <span class="win__due">Oct 2</span> <span class="win__who" title="Денис Романюк">ДР</span></span>
+            </li>
+          </ul>
+        </li>
+        <li class="win__col" data-cat="progress">
+          <h4 class="win__col-title">In Progress <span class="win__count">4</span> <b class="win__mark" aria-hidden="true">②</b></h4>
+          <ul class="win__cards">
+            <li class="win__card">
+              <span class="win__card-title">Онлайн-замовлення: кнопка «Повторити замовлення»</span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">WEB-1</span> <span class="win__due">Sep 30</span> <span class="win__who" title="Денис Романюк">ДР</span></span>
+            </li>
+            <li class="win__card">
+              <span class="win__card-title">Помилка: не приходить лист-підтвердження</span>
+              <span class="win__card-meta"><span class="win__key">WEB-2</span> <span class="win__due">Sep 22</span> <span class="win__who" title="Денис Романюк">ДР</span></span>
+            </li>
+            <li class="win__card">
+              <span class="win__card-title">Оновити ціни на сайті</span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">WEB-3</span> <span class="win__due">Sep 25</span> <span class="win__who" title="Денис Романюк">ДР</span></span>
+            </li>
+            <li class="win__card">
+              <span class="win__card-title">Підключити оплату карткою</span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">WEB-4</span> <span class="win__due">Oct 10</span> <span class="win__who" title="Денис Романюк">ДР</span></span>
+            </li>
+          </ul>
+        </li>
+        <li class="win__col" data-cat="done">
+          <h4 class="win__col-title">Done <span class="win__count">0</span> <b class="win__mark" aria-hidden="true">③</b></h4>
+          <p class="win__btn">+ Create</p>
+        </li>
+      </ul>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «дошка спейсу Сайт із лімітом колонки»">
+  <li>To Do — черга; звідси беруть наступну справу</li>
+  <li>In Progress — ліміт 3, а карток 4: колонка міняє колір</li>
+  <li>Done порожня: усе почато, нічого не завершено</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Будова дошки, склад картки й назва кнопки <code>View settings</code> — зі
+            знімка дошки Jira Cloud Free від 2026-09-17. Сам ліміт зібраний з довідки:
+            для спейсів, якими керує команда, вона каже лише, що колонка при перевищенні
+            змінює колір, — тому в цьому вікні число ліміту названо в поясненні під
+            вікном, а не домальоване написом. Тип роботи на картці показано
+            іконкою; іконку типу <code>Bug</code> (це <code>WEB-2</code>) у навчальному
+            сайті не знімали, тому на тій картці стоїть лише ключ.
+          </p>
+
+          <p>
+            Що тут варто прочитати. Перше: Денис не ледачий — він зайнятий. Чотири справи
+            в роботі одночасно, і жодної завершеної. Друге: дошка це показує без слів —
+            колонка <code>In Progress</code> сигналить кольором, бо в ній більше карток,
+            ніж команда собі дозволила. Третє: колонка <code>Done</code> порожня, і це
+            найважливіше число на екрані. Робота вважається зробленою тоді, коли вона
+            зроблена, а не коли розпочата.
+          </p>
+
+          <h3>Черга роботи й відрізок часу</h3>
+
+          <p>
+            Другий екран показує те, чого в ділових спейсах «Кориці» немає, — окремий
+            вигляд <code>Backlog</code>. Українською це «черга роботи»: список усього, що
+            команда збирається зробити колись, упорядкований за важливістю. Над чергою
+            лежить порція, узята на найближчі тижні, — <code>Sprint</code>.
+          </p>
+
+<figure class="win" data-state="list" id="w2">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w2t">Jira Cloud · вигляд Backlog спейсу Сайт · за документацією, 2026-09-18</span>
+    <span class="win__addr" aria-hidden="true">…/jira/software/projects/WEB/backlog</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w2t">
+    <ul class="win__rail" aria-label="Бічна панель Jira">
+      <li class="win__rail-item">For you</li>
+      <li class="win__rail-item win__rail-item--active">Spaces</li>
+      <li class="win__rail-item">Filters</li>
+      <li class="win__rail-item">Dashboards</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Spaces / Сайт</span>
+        <span class="win__tabs"><span>Summary</span><span>List</span><span>Board</span><span class="win__tab--active">Backlog</span><span>+</span></span>
+      </div>
+      <div class="win__page">
+        <h4>Sprint <b class="win__mark" aria-hidden="true">①</b></h4>
+        <table class="win__table">
+          <thead><tr><th>Work</th><th>Assignee</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><span class="win__key">WEB-1</span> Онлайн-замовлення: кнопка «Повторити замовлення»</td><td>ДР</td><td data-cat="todo">To Do</td></tr>
+          </tbody>
+        </table>
+        <p class="win__actions"><span class="win__btn win__btn--primary">Start sprint <b class="win__mark" aria-hidden="true">②</b></span></p>
+      </div>
+      <div class="win__page">
+        <h4>Backlog <b class="win__mark" aria-hidden="true">③</b></h4>
+        <table class="win__table">
+          <thead><tr><th>Work</th><th>Assignee</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><span class="win__key">WEB-2</span> Помилка: не приходить лист-підтвердження</td><td>ДР</td><td data-cat="todo">To Do</td></tr>
+            <tr><td><span class="win__key">WEB-3</span> Оновити ціни на сайті</td><td>ДР</td><td data-cat="todo">To Do</td></tr>
+            <tr><td><span class="win__key">WEB-4</span> Підключити оплату карткою</td><td>—</td><td data-cat="todo">To Do</td></tr>
+            <tr><td><span class="win__key">WEB-5</span> Сторінка доставки: оновити текст</td><td>—</td><td data-cat="todo">To Do</td></tr>
+          </tbody>
+        </table>
+        <p class="win__btn">+ Create work item</p>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «вигляд Backlog спейсу Сайт»">
+  <li>Sprint — порція роботи, узята з черги на найближчі тижні</li>
+  <li>Start sprint — доти картки не з'являться на дошці</li>
+  <li>Backlog — черга: усе, що робитимемо колись, за порядком</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Вікно зібране з довідки: у навчальному сайті спринти не вмикались, тому екран
+            беклогу зняти не було з чого. Назви <code>Backlog</code>, <code>Sprint</code>,
+            <code>Start sprint</code>, <code>+ Create work item</code> узяті з довідки
+            Atlassian про беклог і спринти в спейсах, якими керує команда (2026-09-18).
+            Назву, яку Jira дає першому спринту сама, у вікні не показано — її не
+            перевіряли.
+          </p>
+
+          <p>
+            Порядок тут головніший за вигляд. Довідка описує його так: «Add at least one
+            work item to your sprint, then select <strong>Start sprint</strong>» — спершу
+            перетягни в порцію хоча б одну роботу, потім запусти. І далі ключове
+            застереження: «Your board only displays work items once you've started the
+            sprint» — доки спринт не запущено, дошка порожня. Саме тут новачки й
+            губляться: картки нікуди не поділись, вони чекають у черзі.
+          </p>
+
+          <h3>Де це вмикається</h3>
+
+          <p>
+            Ані черга роботи, ані спринти не з'являються самі. Обидві речі — це
+            можливості спейсу, які вмикає його адміністратор. Живуть вони в налаштуваннях
+            спейсу, на сторінці <code>Features</code>.
+          </p>
+
+<figure class="win" data-state="settings" id="w3">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w3t">Jira Cloud · Space settings → Features у спейсі для розробки · звірено 2026-09-17</span>
+    <span class="win__addr" aria-hidden="true">…/jira/software/projects/WEB/settings/features</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w3t">
+    <ul class="win__rail win__rail--settings" aria-label="Space settings">
+      <li class="win__rail-item">Details</li>
+      <li class="win__rail-item">Access</li>
+      <li class="win__rail-item">Notifications</li>
+      <li class="win__rail-item">Automation</li>
+      <li class="win__rail-item">Fields</li>
+      <li class="win__rail-item">Work types</li>
+      <li class="win__rail-item win__rail-item--active">Features <b class="win__mark" aria-hidden="true">①</b></li>
+      <li class="win__rail-item">Custom filters</li>
+      <li class="win__rail-item">Apps</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__page">
+        <h4>Features</h4>
+        <dl class="win__fields">
+          <dt>Sprints <b class="win__mark" aria-hidden="true">②</b></dt>
+          <dd>Complete work in fixed units of time. Requires a backlog.</dd>
+          <dt>Estimation <b class="win__mark" aria-hidden="true">③</b></dt>
+          <dd>Capture expected efforts to plan, track and analyze work. Impacts reports and insights.</dd>
+          <dt>Standups in Jira</dt>
+          <dd>Run your team's standups in Jira with a time-boxed discussion and quick filters on the board</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «Space settings → Features»">
+  <li>Features — сторінка, де вмикають можливості спейсу</li>
+  <li>Sprints — вимагає черги роботи; у новому спейсі вимкнено</li>
+  <li>Estimation — оцінки; впливає на звіти</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Написи — дослівно зі знімка сторінки <code>Features</code> у спейсі для
+            розробки на Jira Cloud Free, 2026-09-17. На самому екрані перемикачі зібрані
+            у дві групи: <code>Planning</code> (там <code>Sprints</code> і
+            <code>Estimation</code>) і <code>More items</code> (там
+            <code>Standups in Jira</code>). Стан перемикачів у знімку не зафіксований;
+            у щойно створеному спейсі з дошкою потоку черги роботи немає, тому й спринти
+            вимкнені.
+          </p>
+
+          <p>
+            Зверни увагу на слова в описі: «<code>Requires a backlog</code>» — спринти
+            вимагають черги роботи. Це не примха інтерфейсу, а суть методу: порцію не
+            можна відрізати від нічого. Довідка повторює те саме прямою мовою: «Before
+            you can enable sprints, you must enable a backlog for your team-managed scrum
+            space».
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <h3>Kanban: потік, який не переповнюють</h3>
+
+          <p>
+            Kanban не планує відрізків часу. Він дивиться на роботу як на потік: справи
+            заходять, проходять етапи й виходять завершеними. Довідка Atlassian описує це
+            так: «Kanban is based on the continuous delivery of work. Rather than plan
+            iterations, the flow of work is constantly monitored to ensure that there are
+            always tasks being worked on. This means that when tasks are completed, new
+            tasks are pulled into work-in-progress» — нову справу беруть тоді, коли
+            попередню завершено, а не тоді, коли захотілось.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart LR
+  A["Черга справ"] --> B["У роботі: не більше трьох"]
+  B --> C["Готово"]
+  C --> D["Місце звільнилось"]
+  D --> B
+            </pre>
+            <p class="ds-diag__caption">
+              Kanban: нову справу починають тоді, коли в колонці «у роботі» звільнилось місце.
+            </p>
+          </div>
+
+          <p>
+            Уся конструкція тримається на одному числі — скільки справ дозволено мати в
+            роботі одночасно. Англійською його називають <strong>WIP limit</strong>
+            (work in progress limit), у Jira — <strong>ліміт колонки</strong>.
+            Формулювання Atlassian: «work in progress (WIP) limits set the maximum amount
+            of work that can exist in each status of a workflow. Limiting the amount of
+            work in progress makes it easier to identify inefficiency in a team's
+            workflow» — ліміт задає стелю для кожного етапу й робить видимими вузькі
+            місця.
+          </p>
+
+          <h3>Що ліміт робить насправді</h3>
+
+          <p>
+            Ліміт нічого не забороняє механічно: Jira дозволить перетягнути четверту
+            картку. Він робить інше — змінює колір колонки, тобто ставить питання вголос.
+            Для спейсів, якими керує команда, довідка формулює це коротко: у діалозі
+            редагування колонки «you can also set a maximum number of work items. The
+            column changes color when it contains too many work items».
+          </p>
+          <p>
+            Які саме кольори, написано на сусідній сторінці — тій, що описує дошки,
+            налаштовані на рівні компанії (у шапці сторінки так і зазначено):
+            «Red column header — maximum number of work items exceeded» (червоний
+            заголовок — перевищено максимум) і «Yellow column header — minimum number of
+            work items not met». Там само пояснено, навіщо це все: «Setting constraints on
+            each workflow state is a crucial part of kanban, so that you can ensure that
+            work is continually flowing through the pipeline».
+          </p>
+          <p>
+            Практична користь для команди, яка не пише програм, звучить так: коли колонка
+            червона, наступна правильна дія — не почати п'яту справу, а закінчити одну зі
+            своїх. Atlassian формулює вигоду прямо: «WIP limits improve throughput and
+            reduce the amount of work "nearly done", by forcing the team to focus on a
+            smaller set of tasks» — менше справ «майже готових», більше справ готових.
+          </p>
+          <p>
+            Тут стає в пригоді те, що ти вже знаєш з уроку 10: колонка на дошці й статус —
+            різні речі, і в одній колонці може лежати кілька статусів. Ліміт ставиться на
+            <em>колонку</em>, тобто на етап, а не на окремий статус.
+          </p>
+
+          <h3>Scrum: робота порціями часу</h3>
+
+          <p>
+            Scrum відрізає роботу не за кількістю, а за часом. Команда бере з черги
+            стільки, скільки, на її думку, встигне за фіксований відрізок, і на цей
+            відрізок більше нічого не додає. Відрізок називають <strong>спринтом</strong>.
+            Довідка: «A sprint is a fixed time period where a team commits to a set number
+            of work items from their backlog. Sprints are usually one, two, or four weeks
+            long» — один, два або чотири тижні.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart LR
+  A["Беклог: усе, що робитимемо колись"] --> B["Планування: беремо порцію"]
+  B --> C["Спринт: один-чотири тижні"]
+  C --> D["Огляд: що вийшло"]
+  D --> A
+            </pre>
+            <p class="ds-diag__caption">
+              Scrum: черга — планування — відрізок часу — огляд, і цикл повторюється спочатку.
+            </p>
+          </div>
+
+          <p>
+            <strong>Беклог</strong> (backlog) — це і є черга роботи. Довідка описує його
+            як «a dedicated space for defining and prioritizing work your team will take
+            on now and into the future» — місце, де роботу визначають і впорядковують за
+            важливістю. Порядок у беклозі має сенс: нагорі те, за що візьмуться
+            найближче.
+          </p>
+          <p>
+            Одна тонкість, через яку сперечаються цілі команди. Класичний Kanban беклогу
+            не має — усе видно на дошці. Atlassian це визнає й одразу пропонує змішаний
+            варіант: «Traditionally, teams that work in a kanban style don't use a
+            backlog… We call this style of working <strong>kanplan</strong>, where your
+            backlog keeps track of tasks that you want to do in the future and cleans up
+            your board's to-do column». Тобто беклог можна мати й без спринтів — щоб
+            перша колонка дошки не перетворювалась на смітник.
+          </p>
+
+          <h3>Оцінки й швидкість команди</h3>
+
+          <p>
+            Щоб планувати порції, Scrum-команди оцінюють роботи. У Jira це окрема
+            можливість — <code>Estimation</code>, і оцінювати можна або часом, або
+            <strong>story points</strong> («балами історій»). Бали — не години:
+            «Story points are a subjective unit of measurement that doesn't correlate to
+            any amount of time. Instead, story points express the amount of effort needed
+            to complete a task compared to other work in the sprint» — це порівняння
+            зусиль між роботами, а не прогноз у годинах. Там само сказано, кому вони
+            призначені: «Story points… can only be used by those planning for scrum
+            teams».
+          </p>
+          <p>
+            З оцінок народжується <strong>velocity</strong> — середня кількість роботи,
+            яку команда завершує за спринт: «Velocity is the average amount of work a
+            scrum team completes during a sprint. In team-managed spaces, this can be
+            measured in either story points or number of work items». Саме на цьому числі
+            тримається обіцянка Scrum «ми знаємо, скільки встигнемо». І саме тут ховається
+            найчастіша помилка, до якої дійдемо в блоці про граблі: на трьох картках
+            середнє не означає нічого.
+          </p>
+
+          <h3>Чотири звіти, і що вони показують</h3>
+
+          <p>
+            Спейс для розробки вміє малювати звіти про власну роботу. Довідка перелічує
+            чотири й одразу називає умову: «In team-managed spaces, a classic report will
+            only be available to view if there is enough data to show. For example, Burnup
+            and Velocity reports won't be available if you don't have the Sprints feature
+            enabled».
+          </p>
+          <ul>
+            <li><strong>Sprint burndown</strong> — «shows how much work has been completed
+              in a sprint against what's remaining»: скільки зроблено й скільки лишилось
+              до кінця відрізка. Вимагає спринтів.</li>
+            <li><strong>Burnup</strong> — «tracks how your team did when comparing the
+              work completed in a sprint with the work you planned to complete»:
+              зроблене проти запланованого. Вимагає спринтів.</li>
+            <li><strong>Velocity</strong> — «breaks down how much work your team was able
+              to complete over a period of time to help you plan your next sprint»:
+              скільки команда робить за спринт у середньому. Вимагає спринтів.</li>
+            <li><strong>Cumulative flow diagram</strong> — «helps you identify bottlenecks
+              in your space's work by showing how long work items stayed in each of your
+              statuses»: де накопичується робота. Спринтів не вимагає — це звіт саме для
+              потоку.</li>
+          </ul>
+          <p>
+            Ось чому три з чотирьох звітів команді без спринтів нічого не покажуть, а
+            четвертий — покаже. Якщо колись захочеш побачити, на якому етапі в «Кориці»
+            все застрягає, шукати треба саме діаграму накопиченого потоку.
+          </p>
+
+          <h3>Два методи поруч</h3>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: Kanban і Scrum поруч">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Ознака</th><th>Kanban</th><th>Scrum</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Ритм</td><td>Безперервний потік, без відрізків</td><td>Фіксовані відрізки в один–чотири тижні</td></tr>
+                <tr><td>Обмеження</td><td>Ліміт колонки: скільки справ у роботі</td><td>Обсяг, узятий у спринт: більше не додаємо</td></tr>
+                <tr><td>Ролі</td><td>Окремих ролей метод не вимагає</td><td>Власник продукту, скрам-майстер, команда</td></tr>
+                <tr><td>Що вмикати</td><td>Ліміт на колонці дошки</td><td>Спершу черга роботи, потім спринти й оцінки</td></tr>
+                <tr><td>Кому пасує</td><td>Потік справ, який не спиняється</td><td>Команда, що постачає результат порціями</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="ds-diag__caption" data-align="start">
+            Рядки «ритм», «обмеження» й «ролі» — з порівняння Scrum і Kanban на сайті
+            Atlassian (розділи Cadence, Practices, Roles), 2026-09-18; рядки «що вмикати»
+            й «кому пасує» зібрані з довідки про можливості спейсу, яким керує команда.
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            Одна дія руками — ліміт колонки. Решта кроків готують для неї місце: потрібен
+            спейс для розробки, бо саме там така настройка описана в довідці. Загалом
+            хвилин п'ятнадцять.
+          </p>
+
+          <h3>Крок 1. Створи спейс «Сайт»</h3>
+          <p>
+            У бічній панелі наведи курсор на <code>Spaces</code> і вибери
+            <code>Create space</code> — довідка описує шлях так: «Hover over Spaces in the
+            side navigation, then select Create space». Відкриється галерея шаблонів. Тобі
+            потрібен шаблон із дошкою потоку: на 2026-09-17 його картка називалась
+            <code>Kanban</code> з описом «Work efficiently and visualize work on a board
+            with to do, doing, and done». Назви шаблонів Atlassian змінює, тому орієнтуйся
+            на опис, а не на слово; повний перелік назв із датою перевірки лежить у
+            довіднику «Карта інтерфейсу, глосарій і ліміти Free».
+          </p>
+          <p>
+            Назва спейсу — «Сайт», ключ — <code>WEB</code>. Тип залиш той, що керується
+            командою (team-managed) — саме з ним працює решта уроку.
+          </p>
+
+          <h3>Крок 2. Постав ліміт на колонку</h3>
+          <p>
+            Відкрий вигляд <code>Board</code>. Наведи курсор на назву колонки
+            <code>In Progress</code>, натисни <code>More actions (•••)</code> і вибери
+            <code>Set column limit</code>. Постав <strong>3</strong>.
+          </p>
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__body">
+              Довідка Atlassian дає до цієї настройки два різні шляхи. Другий:
+              <code class="ds-code--inline">Space settings</code> →
+              <code class="ds-code--inline">Board</code> → блок
+              <code class="ds-code--inline">Columns and statuses</code> → навести на назву
+              колонки → <code class="ds-code--inline">Edit column</code>, і там «you can
+              also set a maximum number of work items». Але на знімку налаштувань спейсу
+              від 2026-09-17 пункту <code class="ds-code--inline">Board</code> у переліку
+              розділів немає. Тому починай із дошки; якщо на дошці пункту
+              <code class="ds-code--inline">Set column limit</code> не виявиться —
+              шукай у налаштуваннях спейсу.
+            </p>
+          </div>
+
+          <h3>Крок 3. Створи чотири роботи</h3>
+          <p>
+            Кнопкою <code>+ Create</code> зроби чотири картки. Назви бери свої; якщо
+            хочеться йти сюжетом «Кориці», ось вони:
+          </p>
+          <ul>
+            <li>Онлайн-замовлення: кнопка «Повторити замовлення»</li>
+            <li>Помилка: не приходить лист-підтвердження</li>
+            <li>Оновити ціни на сайті</li>
+            <li>Підключити оплату карткою</li>
+          </ul>
+          <p>
+            Виконавцем постав себе — так роботи буде видно у «For you» → «Assigned to
+            me», як в уроці 5.
+          </p>
+
+          <h3>Крок 4. Переведи всі чотири в роботу</h3>
+          <p>
+            Перетягни картки в колонку <code>In Progress</code> — одну за одною, і дивись
+            на заголовок колонки. На третій картці все спокійно. На четвертій колонка
+            змінює колір: ліміт перевищено.
+          </p>
+
+          <h3>Крок 5. Прочитай опис спринтів — і не вмикай їх</h3>
+          <p>
+            Відкрий <code>Space settings</code> → <code>Features</code>. Знайди перемикач
+            <code>Sprints</code> і прочитай підпис під ним: «Complete work in fixed units
+            of time. Requires a backlog». Поруч буде <code>Estimation</code>. Нічого не
+            вмикай — цей крок навчальний, і в наступному блоці буде видно, чому.
+          </p>
+          <p>
+            Якщо все ж кортить спробувати спринти, роби це в <em>окремому</em>,
+            спеціально створеному спейсі, а не в тому, де лежить жива робота. Причина —
+            у блоці про граблі.
+          </p>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Чотири ознаки на екрані. Кожна — «так» або «ні», без тлумачень.
+          </p>
+          <ul>
+            <li><strong>Колонка змінила колір.</strong> При чотирьох картках у
+              <code>In Progress</code> заголовок колонки виглядає інакше, ніж у сусідніх.
+              Якщо колір той самий — ліміт не збережено; повтори крок 2.</li>
+            <li><strong>Біля колонки видно число, яке ти поставив(ла).</strong> Про
+              дошки, налаштовані на рівні компанії, довідка каже: «The values of the
+              column constraints will appear at the top of each column you set them for».
+              Для дощок, якими керує команда, такого речення в довідці немає — тому якщо
+              числа не видно, а колір змінюється, ліміт усе одно стоїть.</li>
+            <li><strong>У рядку виглядів немає <code>Backlog</code>.</strong> Рядок
+              виглядів — це смуга <code>Summary</code> · <code>List</code> ·
+              <code>Board</code> під назвою спейсу. Черги роботи в новому спейсі немає, і
+              це правильний стан на кінець уроку.</li>
+            <li><strong><code>Features</code> показує <code>Sprints</code> вимкненими.</strong>
+              Перемикач стоїть у положенні «вимкнено», під ним напис «Requires a
+              backlog».</li>
+          </ul>
+          <p>
+            І одна перевірка не на екрані, а в голові: ти можеш назвати вголос число,
+            яке поставив, і пояснити, звідки воно взялось. Правильна відповідь для команди
+            з однієї людини — «стільки справ, скільки я реально тримаю одночасно», і це
+            зазвичай один або два, а не три.
+          </p>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3>Шаблон із назвою методу не дає методу</h3>
+          <p>
+            Створити спейс із шаблону, у якого на картці написано <code>Kanban</code>, —
+            це отримати дошку з трьома колонками. Методу там поки немає: немає лімітів,
+            немає домовленості, скільки справ команда тримає в роботі. Довідка каже про
+            це прямо: обмеження на кожному етапі — «a crucial part of kanban». Дошка без
+            лімітів — лише дошка, і в цьому немає нічого поганого, доки її не називають
+            Kanban у звіті керівництву.
+          </p>
+
+          <h3>Увімкнув спринти — і картки зникли з дошки</h3>
+          <p>
+            Найдорожча помилка цього уроку, і саме тому крок 5 просив нічого не вмикати.
+            Ось що станеться зі спейсом, у якому вже лежить жива робота. Довідка описує
+            це трьома реченнями: «All work items on your team-managed board will be sent
+            to the backlog with the same status as the column they were in»; «Jira creates
+            your first sprint for you»; «Your board only displays work items once you've
+            started the sprint».
+          </p>
+          <p>
+            Людина натискає перемикач, повертається на дошку — а там порожньо. Нічого не
+            втрачено: усе перемістилось у чергу роботи, і повернеться на дошку, коли
+            спринт запустять. Але хвилину паніки це коштує щоразу. Зворотний хід теж
+            описаний: «If you disable sprints, work items on your active sprint's board
+            remain on the board, in their respective columns».
+          </p>
+
+          <h3>Спринти в команді з двох людей</h3>
+          <p>
+            Scrum приносить із собою не лише відрізки часу, а й ролі та зустрічі. У
+            порівнянні методів на сайті Atlassian рядок ролей виглядає так: «Product
+            owner, scrum master, development team», а рядок практик — «Sprint planning,
+            sprint, daily scrum, sprint review, sprint retrospective». Для команди з двох
+            людей це означає, що одна людина грає три ролі й проводить зустрічі сама із
+            собою. Kanban у тому ж порівнянні вимагає рівно нічого: «No required roles».
+          </p>
+          <p>
+            Ознака, що спринти таки потрібні: команда постачає результат порціями й
+            мусить комусь обіцяти обсяг на два тижні наперед. Ознака, що не потрібні:
+            робота приходить нерівно, дедлайни зовнішні, а «обсяг на два тижні» щоразу
+            ламається новим терміновим завданням. Друге — це «Кориця», і це нормально.
+          </p>
+
+          <h3>Швидкість, порахована на трьох картках</h3>
+          <p>
+            Velocity спокушає: з'являється число, схоже на продуктивність. Довідка одразу
+            гасить цей запал: «Teams can use velocity to predict how quickly they can work
+            through the backlog because the report tracks the forecasted and completed
+            work over several sprints. <strong>The more sprints, the more accurate the
+            forecast</strong>». Тобто одне-два вимірювання не означають нічого, а
+            перетворення velocity на показник для оцінювання людей ламає сам показник:
+            оцінки роздують, і число перестане описувати реальність.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Це все є на безкоштовному плані?</h3>
+          <p>
+            Так. У таблиці порівняння планів Atlassian рядки <code>Scrum and Kanban
+            boards</code>, <code>Backlog</code> і <code>Agile reporting</code> позначені
+            галочкою для всіх планів, включно з безкоштовним (перевірено 2026-09-18).
+            Платним лишається планування завантаженості команд — <code>Capacity
+            planning</code>: у таблиці воно стоїть лише для двох найдорожчих планів.
+          </p>
+
+          <h3>А ліміт на колонці в діловому спейсі — наприклад, у «Маркетингу»?</h3>
+          <p>
+            Довідка Atlassian про дошки ділових спейсів такої настройки не описує: там
+            є <code>Configure columns</code> — створити й перейменувати колонку, покласти
+            в одну колонку кілька статусів, сховати статус у розділ <code>Unmapped
+            statuses</code>. Настройка «максимальна кількість робіт у колонці» описана
+            для спейсів для розробки. Це твердження про довідку, а не про продукт: якщо
+            у своєму діловому спейсі знайдеш <code>Set column limit</code> — користуйся
+            ним.
+          </p>
+          <p>
+            Те саме рішення без лімітів працює в будь-якому спейсі: домовитись усно, що в
+            <code>In Progress</code> не буває більше трьох карток, і раз на тиждень
+            дивитись на колонку. Дисципліну дає домовленість, а колір — лише нагадування.
+          </p>
+
+          <h3>Мені потрібні story points?</h3>
+          <p>
+            Майже напевно ні. Бали існують, щоб порівнювати роботи між собою всередині
+            команди, яка планує спринтами; поза спринтами порівнювати нема з чим. Якщо
+            хочеться оцінок, у Jira є другий варіант — час: можливість
+            <code>Estimation</code> дає вибір між балами й часом. А для більшості справ
+            «Кориці» достатньо поля з дедлайном, яке ти вже вмієш ставити з уроку 4.
+          </p>
+
+          <h3>Чим ці звіти відрізняються від дашборда з уроку 8?</h3>
+          <p>
+            Джерелом даних. Дашборд збирається з гаджетів, а гаджет живиться збереженим
+            фільтром — тобто може показувати роботу з усіх спейсів фірми одразу. Звіти,
+            про які йдеться тут, рахують <em>один</em> спейс і його спринти, і живуть у
+            самому спейсі: щоб вони з'явились, вигляд <code>Reports</code> додають у
+            рядок виглядів кнопкою <code>+</code> → <code>Add to navigation</code>.
+          </p>
+
+          <h3>Можна почати з потоку, а потім перейти на спринти?</h3>
+          <p>
+            Так, і навпаки теж — у спейсі, яким керує команда, це два перемикачі на
+            сторінці <code>Features</code>. Порядок обов'язковий: спершу черга роботи,
+            потім спринти («Before you can enable sprints, you must enable a backlog»).
+            Пам'ятай про попередній блок: у момент вмикання вся робота переїде з дошки в
+            чергу.
+          </p>
+
+          <h3>Що за <code>Agents dashboard</code> у розділі звітів?</h3>
+          <p>
+            Це не звіт про твою роботу, а вітрина платної можливості. Довідка каже прямо:
+            «The Agents dashboard is available with any paid Jira plan. Rovo must be
+            enabled for your site before agent insights are available». На безкоштовному
+            плані цей розділ нічого не покаже — як і кнопки <code>Ask AI</code> та
+            <code>See plans</code>, які ти вже бачив(ла) в уроках 2 і 3.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Якщо після цього уроку ти вирішив(ла) не користуватись ані Scrum, ані повним
+            Kanban — урок зробив своє. Він був не про те, щоб узяти метод, а про те, щоб
+            обрати свідомо й не соромитись відмови.
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li>Kanban і Scrum — не функції Jira, а способи домовитись про роботу. Jira
+                дає під них інструменти: ліміт колонки, чергу роботи, спринти, звіти.</li>
+              <li>Kanban — безперервний потік: нову справу беруть, коли завершено
+                попередню. Головний інструмент — ліміт на колонку.</li>
+              <li>Ліміт нічого не забороняє: він змінює колір колонки, коли робіт більше,
+                ніж домовлено. Це нагадування, а не заборона.</li>
+              <li>Scrum — робота фіксованими відрізками в один–чотири тижні, узятими з
+                черги. Спринти вимагають черги роботи: без неї перемикач не працює.</li>
+              <li>Оцінки (<code>Estimation</code>) дають бали або час, з них рахується
+                velocity — середня кількість роботи за спринт. На одному-двох спринтах це
+                число ще не означає нічого.</li>
+              <li>Три звіти з чотирьох вимагають спринтів; діаграма накопиченого потоку
+                працює й без них і показує, де робота застрягає.</li>
+              <li>Черга роботи корисна й без спринтів — Atlassian називає такий спосіб
+                <code>kanplan</code>.</li>
+              <li>Спринти в команді, де робота приходить нерівно, дають ритуал замість
+                користі. Вмикати варто лише те, що потрібно.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Далі — <strong>урок 14 «Автоматизація: перші flows»</strong>. Цей урок був про
+            те, як команда домовляється з собою; наступний — про те, як доручити рутину
+            самій Jira: нагадати про дедлайн, призначити виконавця, закрити батьківську
+            роботу, коли всі підзадачі готові. Жодного програмування там не буде.
+          </p>
+          <p>
+            Одна дія до наступного уроку: подивись на свою дошку «Сайт» увечері й закрий
+            те, що майже готове, замість починати нове. Це і є вся суть ліміту,
+            переказана без англійських слів.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять
+            на назви: до кожної відповіді одразу з'являється пояснення, чому решта
+            варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Денис поставив на колонку In Progress ліміт 3 і перетягнув туди четверту картку. Що зробить Jira?",
+            "options": [
+              "Поверне картку назад у To Do, бо перевищувати ліміт колонки Jira не дозволяє за жодних обставин",
+              "Створить праворуч додаткову колонку й перенесе зайву картку туди, щоб ліміт зберігся",
+              "Прийме картку й змінить колір колонки, показавши, що робіт стало більше за домовлену стелю",
+              "Попросить спершу обрати, яку з трьох попередніх карток закрити, і не пропустить рух без вибору"
+            ],
+            "answer": 2,
+            "explain": "Ліміт колонки нічого не забороняє механічно. Довідка Atlassian описує його дію кольором заголовка: червоний заголовок означає, що максимальну кількість робіт перевищено. Це сигнал команді закінчити почате, а не технічна перешкода, тому ані повернення картки, ані нової колонки, ані вибору жертви не буде."
+          },
+          {
+            "q": "Замовлення на доопрацювання сайту приходять нерівно: то три за тиждень, то жодного, і половина з них термінові. Ліна пропонує «працювати спринтами». Що це змінить для команди?",
+            "options": [
+              "Команда братиме обсяг роботи на фіксований відрізок наперед, і термінове завдання ламатиме взятий обсяг",
+              "Jira почне сама розподіляти нові замовлення між учасниками, спираючись на середню швидкість команди",
+              "Кожне замовлення отримає власний відрізок часу, а його картка закриється автоматично в кінці цього відрізка",
+              "Дошка перестане показувати завершену роботу, бо в спринтах завершене зберігається окремо від дошки"
+            ],
+            "answer": 0,
+            "explain": "Спринт — це зобов'язання на обсяг у фіксований проміжок часу, узятий із черги роботи. Коли робота приходить нерівно й зовнішніми термінами, взятий обсяг ламається майже щоразу, і замість користі лишається ритуал. Розподілом виконавців і автоматичним закриттям карток спринт не займається, а завершена робота лишається видимою."
+          },
+          {
+            "q": "Денис відкрив Space settings → Features й натиснув перемикач Sprints. Перемикач не вмикається. Що не так?",
+            "options": [
+              "Спринти доступні лише на платних планах, а сайт «Кориці» живе на безкоштовному плані Jira",
+              "У спейсі замало робіт: Jira вмикає спринти, коли в спейсі назбирується хоча б десять карток",
+              "Перемикач спрацює лише після того, як адміністратор сайту дозволить це в загальних налаштуваннях сайту",
+              "Спринтам потрібна черга роботи: доки вигляд Backlog не доданий у спейс, вмикати їх нема від чого"
+            ],
+            "answer": 3,
+            "explain": "Підпис під самим перемикачем каже «Requires a backlog», а довідка повторює це прямою мовою: перш ніж вмикати спринти, треба ввімкнути чергу роботи. Спринти є й на безкоштовному плані, кількість карток на це не впливає, і окремого дозволу від адміністратора сайту тут не потрібно."
+          },
+          {
+            "q": "Оксана хоче бачити одним поглядом, скільки роботи лишилось до кінця поточного двотижневого відрізка. Що їй відкрити?",
+            "options": [
+              "Cumulative flow diagram — він показує, у якому статусі накопичується робота за весь час життя спейсу",
+              "Sprint burndown — він показує зроблене й те, що лишилось, у межах поточного відрізка часу",
+              "Velocity — він показує, скільки роботи команда встигає завершити за один відрізок у середньому",
+              "Summary спейсу — він показує зведення за тиждень і не залежить від спринтів"
+            ],
+            "answer": 1,
+            "explain": "Довідка описує цей звіт так: «shows how much work has been completed in a sprint against what's remaining». Діаграма накопиченого потоку відповідає на інше питання — де робота застрягає; звіт швидкості рахує середнє за кілька відрізків; зведення спейсу показує тиждень і живе окремо від спринтів."
+          },
+          {
+            "q": "За якою ознакою видно, що команді спринти дадуть ритуал замість користі?",
+            "options": [
+              "У команді менше десяти людей, а більше десяти безкоштовний план Jira все одно не дозволяє",
+              "У спейсі менше десяти карток, а Jira рахує швидкість команди лише від десяти карток у кожному спринті",
+              "Робота приходить нерівно й зовнішніми термінами, тому взятий на два тижні обсяг ламається щоразу",
+              "Ніхто в команді не володіє англійською, а звіти про спринт Jira малює лише англійською мовою"
+            ],
+            "answer": 2,
+            "explain": "Спринт має сенс там, де команда сама керує обсягом і постачає результат порціями. Якщо терміни приходять ззовні, а плани щотижня переписує нове термінове завдання, залишаються тільки зустрічі. Кількість людей, кількість карток і мова інтерфейсу до придатності методу стосунку не мають."
+          },
+          {
+            "q": "Ліна прочитала про оцінки в балах і хоче їх увімкнути. Де в спейсі, яким керує команда, вмикають спринти й оцінки?",
+            "options": [
+              "Space settings, сторінка Features, де стоять перемикачі можливостей спейсу",
+              "Personal settings людини, у розділі, де живуть мова й тема оформлення",
+              "У діалозі Create під час створення кожної окремої роботи, окремим полем у формі",
+              "На сторінці порівняння планів Atlassian, бо обидві можливості належать платним планам"
+            ],
+            "answer": 0,
+            "explain": "Можливості спейсу вмикає його адміністратор на сторінці Features у налаштуваннях спейсу — там і Sprints, і Estimation. Особисті налаштування керують власним виглядом Jira, діалог створення роботи можливостей не вмикає, а обидві ці можливості доступні й на безкоштовному плані."
+          }
+        ]
+      }
+      </script>
+
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Урок позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
