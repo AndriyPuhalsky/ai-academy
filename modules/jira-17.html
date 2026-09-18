@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 17 · Marketplace обережно — Jira з нуля</title>
+  <meta name="description"
+    content="Крамниця застосунків Atlassian: що таке застосунок, хто має право його поставити, що означають значки довіри, скільки він коштує насправді й що станеться з даними, якщо його зняти." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+</head>
+
+<body data-module="j17">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 17</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 4 · Автоматизація та інтеграції</p>
+        <h1 class="ds-h1">Marketplace обережно</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 22 хв читання</p>
+        <p class="ds-lead">
+          У Jira є власна крамниця доповнень — понад тисяча готових застосунків, які
+          обіцяють закрити будь-яку задачу однією кнопкою. Частина з них справді корисна.
+          Частина робить те, що Jira вміє й без них. І кожен з них — це домовленість
+          з чужою фірмою на роки, а не покупка на вечір.
+        </p>
+        <p>
+          Цей урок не радить жодного застосунку. Він показує, де вони живуть, що означають
+          значки на їхніх картках, скільки такий застосунок коштує насправді, хто в команді
+          має право його поставити — і що станеться з даними, коли ви вирішите його зняти.
+          Наприкінці ти зможеш заповнити коротку таблицю з п'яти рядків на будь-який
+          застосунок і ухвалити рішення самостійно.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> порад «постав оцей» і жодних цін у гривнях чи доларах —
+            ціни партнери міняють, і будь-яке число тут застаріло б швидше за урок. Немає
+            Slack, Microsoft Teams і Confluence — вони теж застосунки, але про них урок 16
+            «Пошта, чати, Confluence — оглядово». Немає розбору прав адміністратора сайту —
+            це урок 20 «Люди і доступ». Немає чисел безкоштовного плану — вони з датою
+            перевірки лежать у довіднику «Карта інтерфейсу, глосарій і ліміти Free».
+          </p>
+          <p>
+            <strong>Є:</strong> що таке застосунок і хто його ставить; сторінка застосунків
+            усередині Jira; значки довіри й чим вони відрізняються один від одного;
+            п'ять питань, на які треба відповісти <em>до</em> встановлення; що відбувається
+            з даними після видалення; і приклад із чеклистами (так називають списки кроків,
+            які відмічають галочками) — коли застосунок потрібен, а коли вистачає того,
+            що вже є.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            Марта веде маркетинг «Кориці» й кожного разу робить з постом те саме: зібрати
+            фото, написати текст, погодити з Оксаною, поставити в стрічку. Кроки однакові,
+            і їй хочеться, щоб у кожній новій картці цей список з'являвся сам, з галочками.
+            Вона шукає в інтернеті «checklist for Jira» — і бачить десяток застосунків,
+            кожен з яких обіцяє саме це.
+          </p>
+
+          <p>
+            Оксана, власниця, питає коротко: «Ставимо?» Правильна відповідь на це питання
+            не «так» і не «ні», а «спершу п'ять питань». Цей урок — про них.
+          </p>
+
+          <h3>Що таке застосунок</h3>
+
+          <p>
+            <strong>Застосунок</strong> (англійською <strong>app</strong>; у старіших текстах
+            те саме звуть <em>add-on</em> або <em>plugin</em>, українською — «доповнення»
+            чи «плагін») — це шматок чужої програми, який вбудовується у твою Jira й додає
+            їй те, чого в ній немає. Довідка Atlassian визначає його так: «An app (sometimes
+            called an add-on or plugin) is an installable component that supplements or
+            enhances the functionality of Jira Cloud» — компонент, який доповнює або
+            розширює можливості Jira Cloud. Сторінка про ліцензії каже те саме простішими
+            словами: «Apps are small pieces of code that you (or your administrator) can
+            install into your Atlassian product to enhance or change its functionality».
+          </p>
+
+          <p>
+            Зверни увагу на слово <em>change</em> — «змінити». Застосунок не лише додає нове,
+            він здатен поміняти поведінку того, що вже працює. Тому далі в тому самому тексті
+            стоїть застереження, яке варто прочитати двічі: «Apps change the way your
+            Atlassian application behaves. Even though apps are designed to enhance your
+            product, there can be unintended effects. When you use or install apps, you do so
+            at your own risk» — можливі непередбачені наслідки, і ставиш ти застосунок
+            на власний ризик.
+          </p>
+
+          <h3>Marketplace — крамниця, а не склад Atlassian</h3>
+
+          <p>
+            Застосунки живуть в <strong>Atlassian Marketplace</strong> — це крамниця,
+            де Atlassian описує себе стримано: «The Atlassian Marketplace is a platform
+            for Atlassian customers to discover, try, and buy apps for Atlassian products»,
+            тобто місце, де застосунки знаходять, пробують і купують. Більшість із них
+            зробила не Atlassian, а інші фірми. Їх називають <strong>партнерами
+            Marketplace</strong> (Marketplace Partner); у старіших текстах і на самих
+            картках трапляється слово «вендор» (vendor) — це те саме.
+          </p>
+
+          <p>
+            Що це означає на практиці, сказано на сторінці про довіру до застосунків прямо:
+            «It's important to acknowledge that app installation requires a new relationship
+            with a Marketplace Partner that is separate from your relationship with
+            Atlassian» — встановлюючи застосунок, ти вступаєш у <em>нові</em> стосунки
+            з іншою фірмою, окремі від стосунків з Atlassian. Звідси два наслідки, які
+            новачки виявляють пізно:
+          </p>
+
+          <ul>
+            <li><strong>Підтримка — не в Atlassian.</strong> «While third-party apps aren't
+              supported by Atlassian's technical support team, many vendors provide support
+              via their own support portals» — якщо застосунок зламався, звертатись треба
+              до партнера, і тільки до нього.</li>
+            <li><strong>Код Atlassian не гарантує.</strong> «Atlassian checks entries in the
+              Atlassian Marketplace to ensure that app information is as complete as
+              possible. However, we don't actively monitor or guarantee any code posted
+              in this space» — перевіряється повнота опису, а не якість самої програми.</li>
+          </ul>
+
+          <p>
+            Це не означає «застосунки погані». Це означає, що застосунок — рішення рівня
+            «взяти підрядника», а не рівня «натиснути кнопку». Саме тому в цьому курсі
+            жоден урок не спирається на сторонній застосунок: усе, що ти зробив(ла)
+            в попередніх шістнадцяти уроках, працює на голій безкоштовній Jira й
+            продовжить працювати, навіть якщо завтра якийсь застосунок подорожчає,
+            зникне чи перестане підтримуватись.
+          </p>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Крамниця доступна з двох боків, і це той самий набір застосунків. Перший бік —
+            усередині Jira: у бічній панелі є пункт <code>Apps</code>, а сторінка з
+            переліком зветься <code>Marketplace apps</code>. Довідка описує шлях так:
+            «Select Apps. Select Explore more apps». Другий бік — окремий сайт
+            <code>marketplace.atlassian.com</code>: там той самий каталог, але більше
+            фільтрів і повна сторінка кожного застосунку.
+          </p>
+
+          <figure class="win" data-state="list" id="w1">
+            <figcaption class="win__chrome">
+              <span class="win__dots" aria-hidden="true"></span>
+              <span class="win__title" id="w1t">Jira Cloud · сторінка Marketplace apps усередині Jira · звірено 2026-09-17</span>
+              <span class="win__addr" aria-hidden="true">…/jira/marketplace/discover</span>
+            </figcaption>
+            <div class="win__body" role="group" aria-labelledby="w1t">
+              <ul class="win__rail" aria-label="Бічна панель Jira">
+                <li class="win__rail-item">For you</li>
+                <li class="win__rail-item win__rail-item--active">Apps</li>
+                <li class="win__rail-item">Spaces</li>
+                <li class="win__rail-item">Filters</li>
+                <li class="win__rail-item">Dashboards</li>
+              </ul>
+              <div class="win__main">
+                <div class="win__bar">
+                  <span class="win__crumb">Marketplace apps</span>
+                  <span class="win__btn">Sort by: Relevance</span>
+                </div>
+                <div class="win__page">
+                  <h4>Explore apps for Jira</h4>
+                  <p class="win__placeholder">Pricing <b class="win__mark" aria-hidden="true">①</b> · Trust signals <b class="win__mark" aria-hidden="true">②</b> · Categories · Use cases · More filters</p>
+                  <p class="win__placeholder">Showing over 1,000 apps</p>
+                  <ul class="win__tiles">
+                    <li class="win__tile">Checklists for Jira (Free) by HeroCoders · 4.8 /5 (1008) · 30.8k <b class="win__mark" aria-hidden="true">③</b></li>
+                    <li class="win__tile">Smart Checklists for Jira by TitanApps · RUNS ON ATLASSIAN · BESTSELLER</li>
+                    <li class="win__tile">Time in Status by SaaSJet · CLOUD FORTIFIED <b class="win__mark" aria-hidden="true">④</b></li>
+                  </ul>
+                  <p class="win__btn">Load more</p>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <ol class="win__legend" aria-label="Пояснення до вікна «сторінка Marketplace apps усередині Jira»">
+            <li><code>Pricing</code> — фільтр за ціною</li>
+            <li><code>Trust signals</code> — фільтр за значками довіри</li>
+            <li>Оцінка з кількістю відгуків і кількість встановлень</li>
+            <li><code>CLOUD FORTIFIED</code> — значок програми довіри</li>
+          </ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Заголовки, назви фільтрів, будова картки й три назви застосунків — зі знімка
+            навчального сайту Jira Cloud Free від 17 вересня 2026 року; оцінка й кількість
+            встановлень першого застосунку теж звідти. Значок <code>CLOUD FORTIFIED</code>
+            у третього застосунку звірений 18 вересня 2026 року в живому каталозі
+            Marketplace. Оцінки, кількість встановлень і значки змінюються — числа тут
+            показують форму картки, а не сьогоднішній стан.
+          </p>
+
+          <h3>Що написано на картці</h3>
+
+          <p>
+            Картка застосунку в переліку тримає п'ять речей: назву, слово <code>by</code>
+            і партнера, який його зробив, короткий опис, оцінку з кількістю відгуків
+            (наприклад, <code>4.8 /5 (1008)</code>) і кількість встановлень
+            (<code>30.8k</code> — понад тридцять тисяч встановлень). Плюс значки, і от з ними варто
+            розібратись окремо, бо вони бувають двох різних порід.
+          </p>
+
+          <p>
+            <strong>Порода перша — програми довіри.</strong> Їх присуджує Atlassian за
+            перевіреними вимогами, і саме вони щось означають. На сторінці про встановлення
+            сказано: «When exploring the Marketplace, you may find apps that are eligible
+            for programs, like Runs on Atlassian or Cloud Fortified. These apps appear with
+            corresponding badges».
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: значки довіри на картці застосунку">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Значок</th><th>Що він означає</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>Cloud Fortified</code></td><td>Партнер вклався в безпеку, надійність і підтримку понад загальні вимоги: «designed to help customers find cloud apps that offer advanced security, reliability, and support»</td></tr>
+                <tr><td><code>Runs on Atlassian</code></td><td>Застосунок працює всередині Atlassian і зберігає дані там само, у тому ж регіоні, що й сама Jira: «Are hosted on Atlassian's platform», «Store data within Atlassian», «Are data residency compliant»</td></tr>
+                <tr><td><code>Atlassian Enterprise Certified</code></td><td>Нова програма на заміну Cloud Fortified: «apps that meet rigorous enterprise standards for security, reliability, privacy, accessibility, and responsible AI»</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__body">
+              Значок на екрані живе довше за програму, яка його видає. 2 вересня 2026 року
+              Atlassian оголосила: «We are stopping submissions for the Cloud Fortified App
+              (CFA) program… The CFA program will be retired on 31st December, 2026», а на
+              заміну йде <code>Atlassian Enterprise Certified</code>. На знімку нашого сайту
+              від 17 вересня 2026 року значок <code>CLOUD FORTIFIED</code> на картках усе ще
+              стоїть — і стоятиме, доки програму не згорнуть остаточно. Це головна причина
+              дивитись на дату будь-якої поради про застосунки, включно з цим уроком.
+            </p>
+          </div>
+
+          <p>
+            <strong>Порода друга — позначки самої крамниці:</strong> <code>SPOTLIGHT</code>,
+            <code>BESTSELLER</code>. Вони про популярність і просування, а не про якість чи
+            безпеку. Офіційного опису того, як їх присуджують, знайти не вдалось (⚠), тому
+            в цьому уроці вони лишаються тим, чим виглядають: вітриною. Рішення на них
+            не спирають.
+          </p>
+
+          <h3>Фільтр «Trust signals»</h3>
+
+          <p>
+            У каталозі на <code>marketplace.atlassian.com</code> фільтр
+            <code>Trust signals</code> 18 вересня 2026 року пропонував десять значень:
+            <code>Atlassian Enterprise Certified</code>, <code>Runs on Atlassian</code>,
+            <code>Cloud Fortified</code>, <code>Bug Bounty</code>,
+            <code>Penetration Testing</code>, <code>SOC 2</code>, <code>ISO 27K</code>,
+            <code>Partner Trust Center</code>, <code>Supports Data Residency</code>,
+            <code>Standard Legal Agreement</code>. Останні сім — це зовнішні перевірки
+            безпеки й документи, якими фірми звітують перед великими клієнтами. Команді
+            з восьми людей розбиратись у кожному не обов'язково; корисно знати, що такий
+            фільтр існує, і що застосунок, у якого не позначено жодного з десяти, не проходив
+            цих перевірок узагалі.
+          </p>
+
+          <h3>Сторінка застосунку: сім вкладок</h3>
+
+          <p>
+            Клік по картці відкриває сторінку застосунку. 18 вересня 2026 року вона мала
+            сім вкладок: <code>Overview</code>, <code>Reviews</code>, <code>Pricing</code>,
+            <code>Privacy &amp; Security</code>, <code>Support</code>,
+            <code>Installation</code>, <code>Similar Apps</code>. Для рішення потрібні
+            чотири з них.
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: вкладки сторінки застосунку і що на них шукати">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Вкладка</th><th>Що на ній шукати</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>Overview</code></td><td>Що застосунок робить, знімки екранів, посилання на документацію партнера</td></tr>
+                <tr><td><code>Pricing</code></td><td>Ціна за вашу кількість людей і чи є безкоштовна сходинка</td></tr>
+                <tr><td><code>Privacy &amp; Security</code></td><td>Як застосунок поводиться з вашими даними, де їх зберігає, кому передає</td></tr>
+                <tr><td><code>Support</code></td><td>Чи є підтримка взагалі, куди писати й чи є публічний перелік відомих проблем</td></tr>
+                <tr><td><code>Reviews</code></td><td>Оцінки й відгуки інших команд, зокрема свіжі — вони найкорисніші</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Де видно те, що вже встановлено</h3>
+
+          <p>
+            Встановлені застосунки живуть на окремій сторінці — <code>Connected apps</code>.
+            Шлях із довідки: «Select Apps. Select Manage apps» — сусідня сторінка тієї самої
+            довідки називає ту саму кнопку трохи інакше («Click on Manage your apps which
+            will direct you to Connected apps»), тож не лякайся розбіжності в назві.
+            Там застосунки налаштовують, оновлюють і знімають: «The details include a short
+            description of the app, options to disable, uninstall, or configure the app,
+            and information about the app developer».
+          </p>
+
+          <figure class="win" data-state="settings" id="w2">
+            <figcaption class="win__chrome">
+              <span class="win__dots" aria-hidden="true"></span>
+              <span class="win__title" id="w2t">Jira Cloud · Connected apps — сторінка встановленого застосунку · за документацією, 2026-09-18</span>
+              <span class="win__addr" aria-hidden="true">…/admin/apps/connected-apps</span>
+            </figcaption>
+            <div class="win__body" role="group" aria-labelledby="w2t">
+              <ul class="win__rail win__rail--settings" aria-label="Кроки шляху в адмініструванні Atlassian">
+                <li class="win__rail-item">Apps</li>
+                <li class="win__rail-item">Sites</li>
+                <li class="win__rail-item win__rail-item--active">Connected apps <b class="win__mark" aria-hidden="true">①</b></li>
+              </ul>
+              <div class="win__main">
+                <div class="win__page">
+                  <h4>Checklists for Jira (Free) by HeroCoders</h4>
+                  <p class="win__placeholder">Search by name · User · System · Admin</p>
+                  <p class="win__actions"><span class="win__btn">Get started</span> <span class="win__btn">Configure <b class="win__mark" aria-hidden="true">②</b></span> <span class="win__btn">Uninstall <b class="win__mark" aria-hidden="true">③</b></span></p>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <ol class="win__legend" aria-label="Пояснення до вікна «Connected apps — сторінка встановленого застосунку»">
+            <li><code>Connected apps</code> — перелік усього встановленого на сайті</li>
+            <li><code>Configure</code> — налаштування самого застосунку</li>
+            <li><code>Uninstall</code> — зняти застосунок із сайту</li>
+          </ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            ⚠ Це вікно зібране з документації Atlassian («Integrate apps», «Manage an
+            installed app», «View and filter installed apps», читані 18 вересня 2026 року):
+            на навчальному сайті не встановлено жодного застосунку, тому екран
+            <code>Connected apps</code> ми не знімали. Три пункти ліворуч — це три кроки
+            шляху з довідки («Select Apps, then Sites… select Connected apps»), а не один
+            список у справжньому вікні. Назва застосунку взята з живого каталогу
+            Marketplace, щоб рядок не був вигаданим.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <p>
+            Рішення про застосунок — це п'ять питань підряд. Якщо хоч на одне відповідь
+            незручна, ставити не варто: незручність не зникне, вона лише переїде в майбутнє
+            й стане несподіванкою через півроку.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart TD
+  Q1["Чи вміє це сама Jira?"] -->|"вміє"| N1["Застосунок не потрібен"]
+  Q1 -->|"не вміє"| Q2["До яких даних просить доступ?"]
+  Q2 --> Q3["Хто партнер і чи є підтримка?"]
+  Q3 --> Q4["Що буде з даними, якщо зняти?"]
+  Q4 --> Q5["Скільки коштує за рік на нашу команду?"]
+  Q5 -->|"усі відповіді влаштовують"| Y["Ставити і записати навіщо"]
+  Q5 -->|"хоч одна ні"| N2["Не ставити"]
+            </pre>
+            <p class="ds-diag__caption">
+              П'ять питань у порядку, у якому їх дешевше ставити: перше відсіює найбільше
+            </p>
+          </div>
+
+          <h3>Питання 1: чи вміє це сама Jira?</h3>
+
+          <p>
+            Найчастіша причина зайвого застосунку — не знати, що потрібне вже є. Повернімось
+            до Мартиного чеклиста. Список кроків із галочками всередині картки Jira робить
+            без будь-яких доповнень: в описі роботи вони називаються <strong>action
+            items</strong>, набираються двома квадратними дужками й пробілом і клацаються
+            мишею (урок 5).
+          </p>
+
+          <figure class="win" data-state="item" id="w3">
+            <figcaption class="win__chrome">
+              <span class="win__dots" aria-hidden="true"></span>
+              <span class="win__title" id="w3t">Jira Cloud · картка MARK-1 «Пост про новий круасан» · звірено 2026-09-17</span>
+              <span class="win__addr" aria-hidden="true">…/browse/MARK-1</span>
+            </figcaption>
+            <div class="win__body" role="group" aria-labelledby="w3t">
+              <ul class="win__rail" aria-label="Бічна панель Jira">
+                <li class="win__rail-item">For you</li>
+                <li class="win__rail-item">Apps</li>
+                <li class="win__rail-item win__rail-item--active">Spaces</li>
+                <li class="win__rail-item">Filters</li>
+                <li class="win__rail-item">Dashboards</li>
+              </ul>
+              <div class="win__main">
+                <div class="win__bar">
+                  <span class="win__crumb">Spaces / Маркетинг / MARK-1</span>
+                  <span class="win__btn">Add apps <b class="win__mark" aria-hidden="true">②</b></span>
+                </div>
+                <div class="win__item">
+                  <h4 class="win__item-title">Пост про новий круасан</h4>
+                  <p class="win__status" data-cat="progress">In Progress ▾</p>
+                  <dl class="win__fields">
+                    <dt>Assignee</dt><dd>Марта Лисенко</dd>
+                    <dt>Priority</dt><dd>Medium</dd>
+                    <dt>Labels</dt><dd>інстаграм</dd>
+                    <dt>Due date</dt><dd>Sep 24, 2026</dd>
+                    <dt>Reporter</dt><dd>Оксана Коваль</dd>
+                  </dl>
+                  <div class="win__desc"><h5>Description</h5>
+                    <ul class="win__checks">
+                      <li data-done>Зібрати три фото з минулого тижня <b class="win__mark" aria-hidden="true">①</b></li>
+                      <li>Написати текст поста</li>
+                      <li>Погодити текст з Оксаною</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <ol class="win__legend" aria-label="Пояснення до вікна «картка MARK-1»">
+            <li>Чекбокси в описі (action items) — чеклист без застосунку</li>
+            <li><code>Add apps</code> — Jira пропонує застосунки прямо з картки</li>
+          </ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Будова картки — зі знімка навчального сайту від 17 вересня 2026 року; назви
+            полів англійські, як на екрані. Кнопка <code>Add apps</code> на справжньому
+            екрані живе під назвою роботи у вигляді трьох крапок із підказкою, а не
+            в горішньому рядку: довідка описує її так — «you can find and try new Atlassian
+            Marketplace apps right from the work item». Дані картки — з наскрізної історії
+            курсу.
+          </p>
+
+          <p>
+            Що вміє Jira без застосунків — коротко, з посиланнями на уроки, де це вже
+            робилось:
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: що вже вміє Jira без застосунків">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Хочеться</th><th>Що вже є в Jira</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Чеклист</td><td>Чекбокси (action items) в описі роботи — урок 5</td></tr>
+                <tr><td>Дрібні кроки</td><td>Підзадачі зі своїм виконавцем і статусом — уроки 4 і 5</td></tr>
+                <tr><td>Свій перелік</td><td>Запит JQL, збережений як фільтр — урок 7</td></tr>
+                <tr><td>Свої показники</td><td>Гаджети на дашборді поверх фільтрів — урок 8</td></tr>
+                <tr><td>Своє поле</td><td>Власні поля в налаштуваннях спейсу — урок 11</td></tr>
+                <tr><td>Рутина</td><td>Flows: тригер, умова, дія — уроки 14 і 15</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            Коли вбудованого мало — це нормальна, чесна відповідь. Мартині чеклисти саме
+            такий випадок: action items не мають шаблонів, їх не видно на дошці й за ними
+            не збудуєш перелік «де ще не зроблено фото». Якщо це болить щотижня —
+            застосунок виправданий. Якщо згадується двічі на рік — ні.
+          </p>
+
+          <h3>Питання 2: до яких даних застосунок просить доступ?</h3>
+
+          <p>
+            Застосунок не працює «збоку»: щоб щось зробити з твоїми роботами, він мусить їх
+            читати, а часто й змінювати. Сторінка про довіру формулює це так: «Most apps
+            need to access data in your instance to perform their core functions». Тому
+            встановлення завжди проходить через <strong>згоду на доступ</strong>: «When an
+            app is installed by an admin or a user, the app will ask for consent for any
+            permissions or scopes associated with the app», і окремо — «Admins must consent
+            to the app's request for data access during the installation flow».
+          </p>
+
+          <p>
+            Слово <em>scope</em> («обсяг доступу») ти побачиш на екрані згоди: це перелік
+            того, що застосунок зможе робити — читати роботи, писати коментарі, міняти поля.
+            Списки бувають довгі, і довжина сама по собі ще не вирок: «A longer list of app
+            actions does not mean an app has access to more of your Jira or Confluence
+            instance… These apps also provide more detailed information to customers about
+            the specific actions and information required». Дивитись треба не на довжину
+            переліку, а на суть — і на вкладку <code>Privacy &amp; Security</code>, де
+            партнер зобов'язаний описати, як він поводиться з даними.
+          </p>
+
+          <h3>Питання 3: хто партнер і чи є підтримка?</h3>
+
+          <p>
+            Підтримка застосунку — справа партнера, не Atlassian, і вона буває навіть не
+            обіцяна. У каталозі це видно: «If the Atlassian Marketplace Partner has decided
+            to provide customer support and maintenance for the app, the listing will show
+            that the app is “Supported”», а якщо не вирішив — «the app listing will show
+            “Unsupported”». Для непідтримуваних застосунків залишається лише спільнота:
+            «there are no guarantees for issue resolution».
+          </p>
+
+          <p>
+            Що ще варто подивитись, Atlassian перелічує сама: «Read reviews and ratings on
+            the Marketplace», «Check the number of active installations to assess
+            popularity», «From the Support tab, look for the availability of a public issue
+            tracker or support resources». Тобто три швидкі ознаки: свіжі відгуки, скільки
+            команд уже користується, і чи є куди написати про поломку.
+          </p>
+
+          <h3>Питання 4: що буде з даними, якщо застосунок зняти?</h3>
+
+          <p>
+            Це питання ставлять до встановлення, бо після нього відповідь уже не змінити.
+            Дані, які застосунок веде (ті самі чеклисти, години, звіти), — це <em>його</em>
+            дані, а не поля Jira. Довідка адміністратора описує долю цих даних так:
+            «After the app is uninstalled, the app data is retained for a limited period
+            (30 days) before being permanently deleted. The app will no longer appear in
+            Connected Apps or the host product once removal is complete».
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart LR
+  A["Адміністратор сайту обирає застосунок"] --> B["Згода на доступ до даних"]
+  B --> C["Застосунок працює всередині Jira"]
+  C --> D["Uninstall"]
+  D --> E["Дані застосунку лежать ще 30 днів"]
+  E --> F["Видаляються назавжди"]
+            </pre>
+            <p class="ds-diag__caption">
+              Шлях застосунку від згоди до видалення; тридцять днів — це остання
+              можливість передумати, а не резервна копія
+            </p>
+          </div>
+
+          <p>
+            Є й проміжний стан: застосунок можна не знімати, а <strong>відписатись</strong>
+            від нього (<code>Unsubscribe</code>). Довідка застерігає, що цього мало: «Apps
+            that use product events, such as Jira work item creation, to trigger outbound
+            webhooks continue to send their events while unlicensed. To remove all data and
+            stop outbound webhooks uninstall the app» — доки застосунок стоїть, він
+            продовжує надсилати назовні події, навіть без оплати.
+          </p>
+
+          <h3>Питання 5: скільки це коштує за рік?</h3>
+
+          <p>
+            Ціна застосунку рахується не «за застосунок», а за кількість людей у твоєму
+            продукті: «Purchase the license tier that matches the number of users you have
+            licensed for your host product», і для хмари це відбувається саме так —
+            «Cloud marketplace applications naturally match the tier of the host product
+            within the cloud site». Тобто платиш ти за всіх, навіть якщо застосунком
+            користуються двоє.
+          </p>
+
+          <p>
+            Звідси й головна пастка безкоштовних застосунків. Багато з них безкоштовні
+            рівно до десяти користувачів — і це не політика Atlassian, а вибір партнера.
+            В оголошенні для партнерів сказано прямо: «we are now giving Marketplace
+            Partners the option to set a 1-10 user pricing tier to any price, including
+            $0.00, for Cloud apps». Партнер може поставити $0, а може й не ставити; і
+            підтримку для цієї сходинки він теж визначає сам: «Support requirements for
+            customers in the 1-10 tier - To be determined by you, the Marketplace Partner,
+            as defined by individual EULAs or Terms of Use, regardless of price set» —
+            тобто рівень підтримки прописаний в угоді самого партнера, а не гарантований
+            Atlassian.
+          </p>
+
+          <p>
+            У каталозі на <code>marketplace.atlassian.com</code> ці дві різні речі рознесені
+            у фільтрі <code>Pricing</code> двома значеннями (звірено 18 вересня 2026 року):
+            <code>Free for all teams</code> — безкоштовний для будь-якої команди, і
+            <code>Free up to 10 users</code> — безкоштовний, поки вас не більше десяти.
+            Друге для «Кориці» з її вісьмома людьми виглядає як перше рівно доти, доки
+            не наймуть дев'ятого й десятого.
+          </p>
+
+          <p>
+            І третя складова ціни — <strong>пробний період</strong> (trial, у розмові
+            «тріал»). Він закінчується тихо: «If you don't terminate the trial within the trial period,
+            a subscription for the app kicks in», а триває він так — «Trials last for a
+            month from the start of your next billing date». Тобто «спробуємо й
+            подивимось» за замовчуванням перетворюється на «платимо щомісяця».
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            Завдання цього уроку — єдине в курсі, де правильний результат
+            <strong>нічого не змінює у твоєму сайті</strong>. Ти пройдеш шлях покупця
+            до кінця й зупинишся за крок до кнопки. На все — хвилин двадцять.
+          </p>
+
+          <ol>
+            <li>
+              <strong>Сформулюй задачу одним реченням.</strong> Не «хочу застосунок для
+              чеклистів», а «хочу, щоб у кожній новій картці маркетингу з'являвся однаковий
+              список із чотирьох кроків». Речення знадобиться на останньому кроці.
+            </li>
+            <li>
+              <strong>Перевір, чи цього вже нема в Jira.</strong> Пройдись таблицею з блоку
+              3. Якщо задача закривається чекбоксами, фільтром, гаджетом або flow — урок
+              для тебе вже закінчився успіхом.
+            </li>
+            <li>
+              <strong>Відкрий крамницю.</strong> У бічній панелі натисни <code>Apps</code>,
+              далі <code>Explore more apps</code>. Відкриється сторінка
+              <code>Marketplace apps</code>.
+            </li>
+            <li>
+              <strong>Постав фільтр ціни.</strong> Натисни <code>Pricing</code>. Той самий
+              фільтр на сайті <code>marketplace.atlassian.com</code> має два значення —
+              <code>Free for all teams</code> і <code>Free up to 10 users</code>; вибери
+              те, що тобі підходить, і подивись, як скоротився перелік.
+            </li>
+            <li>
+              <strong>Відкрий сторінку одного застосунку</strong> — того, який найбільше
+              схожий на відповідь до твого речення з кроку 1. Обійди чотири вкладки:
+              <code>Pricing</code> (скільки за рік на вашу кількість людей),
+              <code>Privacy &amp; Security</code> (що з даними), <code>Support</code>
+              (чи є підтримка й куди писати), <code>Reviews</code> (що пишуть інші,
+              особливо за останні місяці).
+            </li>
+            <li>
+              <strong>Перевір сумісність із безкоштовним планом.</strong> Відкрий сторінку
+              довідки «What is the Free Jira Cloud plan?», розділ <code>Apps</code>: там два
+              поіменні списки — «Apps with reduced functionality in Free plans» і «Apps that
+              aren't compatible with Free plans». Знайди свій застосунок у них (або
+              переконайся, що його там немає).
+            </li>
+            <li>
+              <strong>Заповни таблицю з п'яти рядків</strong> — у блокноті, у документі,
+              будь-де. Це і є результат уроку.
+            </li>
+          </ol>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: п'ять рядків оцінки застосунку">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Рядок</th><th>Що записати</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Вбудоване</td><td>Чим це робиться в Jira зараз і чому не вистачає</td></tr>
+                <tr><td>Дані</td><td>До чого просить доступ; що написано на <code>Privacy &amp; Security</code></td></tr>
+                <tr><td>Партнер</td><td>Хто зробив, чи <code>Supported</code>, куди писати про поломку</td></tr>
+                <tr><td>Вихід</td><td>Що станеться з даними, якщо зняти; чим замінимо</td></tr>
+                <tr><td>Ціна</td><td>Скільки за рік на нашу кількість людей; що буде на одинадцятій</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="ds-note">
+            <span class="ds-note__title">Нічого не встановлюй</span>
+            <p>
+              Наш навчальний сайт має лишитись чистим: далі в курсі буде Jira Service
+              Management, а зайвий застосунок здатен додати в інтерфейс пункти, яких немає
+              в уроках. Якщо все ж хочеш побачити екран згоди на власні очі — обери
+              безкоштовний застосунок, дійди до сторінки згоди й <strong>закрий її, не
+              підтверджуючи</strong>. А якщо встановив(ла) — зніми одразу:
+              <code>Apps</code> → <code>Manage apps</code> → <code>Connected apps</code> →
+              <code>View app details</code> → <code>Uninstall</code>.
+            </p>
+          </div>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Перевірка тут теж незвична: результат вимірюється не тим, що з'явилось,
+            а тим, що не з'явилось.
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Ознака «так/ні» для цього уроку</span>
+            <p>
+              У тебе заповнені всі <strong>п'ять рядків</strong> таблиці для одного
+              конкретного застосунку — і в жодному з них не стоїть «не знаю». А на сторінці
+              <code>Connected apps</code> твого сайту нічого нового не додалось.
+            </p>
+          </div>
+
+          <p>
+            Якщо хоч один рядок порожній, це не поразка, а відповідь: рішення поки
+            не визріло. Найчастіше порожніми лишаються «Вихід» (бо про видалення ніхто
+            не думає, коли тільки ставить) і «Ціна» (бо її доводиться рахувати самому:
+            за всю команду й на рік, а не за одну людину).
+          </p>
+
+          <h3>Як подивитись, чи не стоїть у сайті щось зайве</h3>
+
+          <p>
+            Відкрий <code>Apps</code> → <code>Manage apps</code>. Сторінка
+            <code>Connected apps</code> показує все, що встановлено, і першими — ті
+            застосунки, що потребують уваги адміністратора: «you'll first see apps that
+            require administrative action. This could be an app that has an update
+            available, is unlicensed, has a license expired, and more». Поруч із назвами
+            бувають позначки стану, з яких варто впізнавати дві: <code>UPDATE</code> —
+            вийшло оновлення, і <code>PAID UPDATE</code> — «An update is available for an
+            app that was previously free and is now a paid app», тобто застосунок був
+            безкоштовним і став платним.
+          </p>
+
+          <p>
+            А якщо потрібно з'ясувати, чи ставили щось раніше й хто саме, є журнал. База
+            знань Atlassian (позначка «Cloud Only», оновлено 26 вересня 2025 року) описує
+            шлях так: «On the same page, at the bottom corner, click 'Audit Log' to get more
+            information such as log message, user uninstalled or installed an app, and the
+            date» — у журналі видно, хто встановив або зняв застосунок і коли.
+          </p>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3>«Безкоштовно до десяти» — поки вас десять</h3>
+
+          <p>
+            Найпоширеніша історія: команда з семи людей ставить безкоштовний застосунок,
+            будує на ньому щоденну роботу, а через рік наймає ще трьох — і бачить рахунок.
+            Причина в тому, що ліцензія застосунку прив'язана до кількості людей у продукті
+            («Purchase the license tier that matches the number of users you have licensed
+            for your host product»), а $0 діє лише на найменшій сходинці.
+          </p>
+
+          <p>
+            Ліки прості: коли застосунок безкоштовний «до десяти», подивись у його
+            <code>Pricing</code> ціну наступної сходинки <em>до</em> того, як почнеш
+            на нього спиратись. Якщо ця сума виглядає неприйнятною — застосунок уже
+            не безкоштовний, у нього відкладений рахунок.
+          </p>
+
+          <h3>Пробний період закінчується тихо</h3>
+
+          <p>
+            Тріал не питає «продовжуємо?». Він перетворюється на підписку сам: «If you don't
+            terminate the trial within the trial period, a subscription for the app kicks
+            in». Тому, починаючи пробу, одразу постав собі нагадування на день до кінця —
+            якраз той випадок, для якого в уроці 14 робили flow за розкладом. І пам'ятай,
+            що ціни живуть своїм життям: «Marketplace Partners are able to change prices
+            for their apps every 30 days».
+          </p>
+
+          <h3>На безкоштовному плані працює не все</h3>
+
+          <p>
+            Урок 2 уже попереджав: «Some apps might have reduced functionality in Jira
+            Free. This is usually because they utilize features like permissions that can't
+            be changed in Free». Деталь, якої там не було: на тій самій сторінці довідки
+            лежать два <strong>поіменні списки</strong>. У першому — застосунки з
+            обмеженою роботою на Free, і там стоять обидва чеклист-застосунки HeroCoders
+            («Checklists for Jira (Pro)», «Checklists for Jira (Free)»). У другому —
+            несумісні з Free зовсім: серед них «Email This Issue», «Enterprise Mail Handler
+            for Jira (JEMH)», «Automated Release Notes for Jira», «Deep Clone for Jira»,
+            «Tempo Base plugin» (звірено 18 вересня 2026 року).
+          </p>
+
+          <p>
+            Мораль неприємна, але корисна: приклад із Мартиними чеклистами, з якого
+            починався урок, на безкоштовному плані впирається саме в цей список. Спершу
+            перевіряють сумісність, потім закохуються в застосунок.
+          </p>
+
+          <h3>Дані застосунку зникають разом із застосунком</h3>
+
+          <p>
+            Півроку роботи всередині застосунку — це півроку даних, які не є даними Jira.
+            Після зняття вони тримаються тридцять днів («the app data is retained for a
+            limited period (30 days) before being permanently deleted») і зникають. Ніхто
+            не переносить їх у поля Jira автоматично, і резервна копія сайту їх не рятує.
+          </p>
+
+          <p>
+            Практичне правило: якщо застосунок став місцем, де живе щось важливе, у нього
+            має бути власний спосіб вивантаження — і ти маєш перевірити цей спосіб
+            <strong>до</strong> того, як він знадобиться. Це і є «ризик залежності»:
+            небезпечний не сам застосунок, а те, що за рік він стає єдиним місцем,
+            де лежить правда.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Хто в нашій команді може поставити застосунок?</h3>
+
+          <p>
+            Адміністратор <strong>сайту</strong>. Довідка каже коротко: «Only Jira admins
+            can install or integrate new marketplaces apps onto your Jira site» (орфографія
+            оригіналу збережена), а сторінка про встановлення перелічує потрібні ролі як
+            «Organization admin, Site admin». Тут легко переплутати два різні
+            «адміністратори»: у безкоштовному сайті «everyone with access to Jira is an
+            admin for all Jira spaces» — але це адміністратор <em>спейсів</em>, право
+            всередині своїх спейсів, а не право ставити застосунки на весь сайт. Різницю
+            між цими двома ролями розбирає урок 20 «Люди і доступ». У «Кориці»
+            адміністратор сайту — Оксана, бо сайт створювала вона.
+          </p>
+
+          <p>
+            Якщо прав немає, застосунок можна попросити: «End-users are also able to shop
+            for apps and notify their admins about apps they'd like to use by selecting
+            “Try it free” → “Request this app” on any Marketplace app listing».
+          </p>
+
+          <h3>Чи безпечні застосунки з Marketplace?</h3>
+
+          <p>
+            Базова планка є: Atlassian ставить до всіх застосунків мінімальні вимоги
+            безпеки, щодня сканує їх («All cloud apps are scanned daily by Atlassian's
+            Ecoscanner platform») і зобов'язує партнерів вчасно лагодити знайдені дірки.
+            Але відповідальність за вибір лишається на тобі, і сказано це без пом'якшень:
+            «It is your responsibility to review apps and agreements provided by third
+            parties». Значки довіри з блоку 2 — спосіб швидко звузити вибір, а не гарантія.
+          </p>
+
+          <h3>Чи можна показати застосунок лише в одному спейсі?</h3>
+
+          <p>
+            Частково. Ставить застосунок на сайт адміністратор сайту, а далі адміністратор
+            спейсу може сховати або показати його в себе: «From your space's sidebar, select
+            Space settings, then Apps… Most apps have a toggle that changes their display
+            setting». Довідка одразу попереджає, що так уміє не кожен застосунок: «You may
+            not see a settings page for every app installed on your Jira site».
+          </p>
+
+          <h3>Чи сповільнить застосунок мою Jira?</h3>
+
+          <p>
+            Може: «Sometimes, yes. It's possible for an app to cause performance problems».
+            Atlassian радить у такому разі спробувати вимкнути застосунок і подивитись, чи
+            зникне проблема. Для команди з восьми людей це рідкість, але звідси випливає
+            корисна звичка — ставити застосунки по одному: коли додаєш два одночасно,
+            з'ясувати винуватця вже нічим.
+          </p>
+
+          <h3>Slack, Microsoft Teams і Confluence — це теж застосунки?</h3>
+
+          <p>
+            Зв'язок Jira зі Slack і Teams робиться саме застосунками з Marketplace, а
+            Confluence — окремий продукт Atlassian, який додають до сайту. І те, і те —
+            тема уроку 16 «Пошта, чати, Confluence — оглядово»; п'ять питань цього уроку
+            до них теж застосовні, з поправкою на те, що партнер там сам Atlassian.
+          </p>
+
+          <h3>Чому в уроці немає жодної ціни?</h3>
+
+          <p>
+            Бо будь-яке число тут жило б місяць: партнери мають право міняти ціни кожні
+            тридцять днів, а курс читатимуть і через рік. Ціну дивляться на вкладці
+            <code>Pricing</code> сторінки застосунку — і саме на ту дату, коли ти ухвалюєш
+            рішення. З тієї самої причини в уроці немає й чисел безкоштовного плану: вони
+            з датою перевірки лежать у довіднику «Карта інтерфейсу, глосарій і ліміти Free».
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li><strong>Застосунок (app) — чужа програма всередині твоєї Jira.</strong>
+                Встановлення відкриває окремі стосунки з партнером Marketplace:
+                підтримка, ціна й дані — його, а не Atlassian.</li>
+              <li><strong>Ставить адміністратор сайту,</strong> а не адміністратор спейсу.
+                Той, хто не має права, може натиснути <code>Request this app</code>.</li>
+              <li><strong>Значки довіри означають різне:</strong>
+                <code>Runs on Atlassian</code> — про те, що дані лишаються в Atlassian;
+                <code>Cloud Fortified</code> — про безпеку, надійність і підтримку,
+                але програма згортається до кінця 2026 року, а на заміну йде
+                <code>Atlassian Enterprise Certified</code>.</li>
+              <li><strong>П'ять питань до встановлення:</strong> вбудоване · дані ·
+                партнер · вихід · ціна. Порожній рядок у таблиці = рішення не визріло.</li>
+              <li><strong>Безкоштовність буває з умовою:</strong>
+                <code>Free for all teams</code> і <code>Free up to 10 users</code> —
+                різні речі, а пробний період сам стає підпискою.</li>
+              <li><strong>Після видалення дані застосунку живуть тридцять днів</strong>
+                і зникають назавжди — тому питання «як ми звідси вийдемо» ставлять
+                на вході.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+
+          <p>
+            Фаза про автоматизацію та інтеграції на цьому закінчується. Далі — інша
+            частина Jira, яку не можна отримати застосунком: <strong>Jira Service
+            Management</strong>, окремий продукт для заявок від людей, які самі в Jira
+            не працюють. Бухгалтерія «Кориці» перестане отримувати рахунки в особисті
+            повідомлення й почне приймати їх через портал із чергою й термінами.
+            Про це урок 18 «Jira Service Management».
+          </p>
+
+          <p>
+            До нього залиш свій сайт таким, як є: без жодного стороннього застосунку.
+            Так ти точно знатимеш, що все, що працюватиме далі, працює на безкоштовній
+            Jira — і жодна кнопка в наступних уроках не зникне через чужу підписку.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять
+            на назви: до кожної відповіді одразу з'являється пояснення, чому решта
+            варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Марта хоче поставити застосунок із чеклистами. Сайт «Кориці» безкоштовний, і з уроку 9 вона знає, що там усі — адміністратори спейсів. Чи вистачить цього?",
+            "options": [
+              "Ні: застосунок ставлять на весь сайт, і право на це має адміністратор сайту, а не адміністратор спейсу",
+              "Так: на безкоштовному плані права в усіх однакові, тому застосунок може встановити будь-який учасник",
+              "Так, але застосунок працюватиме лише в тому спейсі, адміністратором якого вона є, тобто в маркетингу",
+              "Ні: на безкоштовному плані застосунки з Marketplace не встановлюються взагалі, це можливість платних планів"
+            ],
+            "answer": 0,
+            "explain": "Довідка пише прямо: «Only Jira admins can install or integrate new marketplaces apps onto your Jira site». Фраза про безкоштовний план звучить схоже, але каже інше: «everyone with access to Jira is an admin for all Jira spaces» — це права всередині спейсів. Застосунки на Free ставляться (рядок Apps and integrations у таблиці планів має галочку), а учасник без прав може натиснути Request this app на сторінці застосунку."
+          },
+          {
+            "q": "На сторінці застосунку Оксана бачить, що для 1–10 користувачів ціна — $0. Що з цього випливає?",
+            "options": [
+              "Atlassian зробила цей застосунок безкоштовним для всіх маленьких команд, і ціна вже не зміниться",
+              "Застосунок безкоштовний перші десять місяців, а далі сам переходить на платну підписку партнера",
+              "Партнер сам вибрав таку ціну для найменшої сходинки, а з одинадцятою людиною вмикається платна",
+              "Це пробний період: він закінчиться, і застосунок вимкнеться, доки за нього не почнуть платити"
+            ],
+            "answer": 2,
+            "explain": "Ціна найменшої сходинки — рішення партнера, а не правило Atlassian: «we are now giving Marketplace Partners the option to set a 1-10 user pricing tier to any price, including $0.00». Ліцензія застосунку прив'язана до кількості людей у продукті («Purchase the license tier that matches the number of users you have licensed for your host product»), тож одинадцятий колега переводить його на наступну сходинку. Підтримку для цієї сходинки партнер теж визначає сам."
+          },
+          {
+            "q": "Ігор бачить на картці застосунку значок CLOUD FORTIFIED і питає, що саме цей значок йому обіцяє.",
+            "options": [
+              "Що цього тижня застосунок у топі продажів магазину й має найбільше встановлень серед усіх подібних",
+              "Що партнер вклався в безпеку, надійність і підтримку понад загальні вимоги до всіх застосунків",
+              "Що застосунок працює всередині Atlassian і не виносить дані назовні, за межі його серверів",
+              "Що застосунок безкоштовний для команд до десяти людей і сумісний із безкоштовним планом Jira"
+            ],
+            "answer": 1,
+            "explain": "Cloud Fortified описаний так: «designed to help customers find cloud apps that offer advanced security, reliability, and support». Про дані, що не виходять за межі Atlassian, каже інший значок — Runs on Atlassian («Are hosted on Atlassian's platform», «Store data within Atlassian»). Ціна й сумісність із безкоштовним планом зі значками не пов'язані. І головне на сьогодні: 2 вересня 2026 року Atlassian оголосила, що нові заявки в програму не приймаються, а сама вона «will be retired on 31st December, 2026»."
+          },
+          {
+            "q": "Команда три місяці вела чеклисти в застосунку, а потім вирішила його зняти. Що буде з цими чеклистами?",
+            "options": [
+              "Вони залишаться в описах робіт звичайним текстом: Jira переносить вміст застосунку до себе",
+              "Вони зникнуть з екрана, але Atlassian тримає їх у резервній копії й поверне на запит",
+              "Нічого: застосунок дозволено зняти лише тоді, коли всі його дані вже перенесені в поля Jira",
+              "Вони зникнуть разом із застосунком: його дані тримаються ще 30 днів, а потім видаляються"
+            ],
+            "answer": 3,
+            "explain": "Довідка адміністратора каже: «After the app is uninstalled, the app data is retained for a limited period (30 days) before being permanently deleted». Дані застосунку — це дані застосунку, а не поля Jira: переносити їх ніхто не зобов'язаний, і резервна копія сайту їх не повертає. Саме тому питання «що буде, якщо ми його знімемо» ставлять до встановлення, а не після."
+          },
+          {
+            "q": "Марті потрібен список кроків усередині картки, який можна відмічати галочками. Що варто спробувати першим?",
+            "options": [
+              "Створити окремий спейс під кроки — кожен крок стане роботою зі своїм виконавцем",
+              "Поставити застосунок із чеклистами: усередині роботи Jira списків з галочками не має взагалі",
+              "Чекбокси в описі роботи — набрати [] і пробіл, вийде рядок, який відмічається мишею",
+              "Записати кроки коментарями, бо коментар закривається сам, щойно крок у ньому вже зроблений"
+            ],
+            "answer": 2,
+            "explain": "Списки з галочками в Jira є без застосунку: в описі вони називаються action items і набираються двома квадратними дужками та пробілом (урок 5). Окремий спейс під кроки перетворює дрібниці на повноцінні роботи — дорого й незручно; коментарі нічого не закривають, вони пояснюють. Застосунок стає доречним тоді, коли потрібні шаблони чеклистів і пошук по них, — і тоді про нього ставлять п'ять питань з цього уроку."
+          },
+          {
+            "q": "Яка з чотирьох ситуацій — найкращий привід поставити застосунок?",
+            "options": [
+              "Потрібного Jira не вміє, партнер відповідає на звернення, ціна на рік відома й прийнятна",
+              "Застосунок стоїть першим у переліку пошуку, має позначку BESTSELLER і найбільше встановлень серед решти",
+              "Колега з іншої фірми радить цей застосунок і каже, що в них він працює вже два роки",
+              "Застосунок безкоштовний, тому його можна поставити на пробу й розібратись по дорозі"
+            ],
+            "answer": 0,
+            "explain": "Порядок у переліку й позначки магазину не кажуть нічого про те, чи підходить застосунок саме тобі: свою роль Atlassian описує стримано — «we don't actively monitor or guarantee any code posted in this space». Чужий досвід корисний, але фірма інша: інший план, інші дані, інші люди. Слово «безкоштовний» не знімає жодного з п'яти питань — доступ до даних, підтримка й вихід лишаються тими самими."
+          }
+        ]
+      }
+      </script>
+
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Урок позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
