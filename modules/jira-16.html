@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 16 · Пошта, чати, Confluence — оглядово — Jira з нуля</title>
+  <meta name="description"
+    content="Чим Jira з'єднується з рештою робочого світу: листи-сповіщення та їхні ручки, лист як заявка, застосунки для Slack і Microsoft Teams, акаунт Google і Confluence зі вкладкою Docs — оглядово, без кроків у чужих застосунках." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+</head>
+
+<body data-module="j16">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 16</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 4 · Автоматизація та інтеграції</p>
+        <h1 class="ds-h1">Пошта, чати, Confluence — оглядово</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 24 хв читання</p>
+        <p class="ds-lead">
+          Жодна команда не живе в одному застосунку. Хтось читає пошту, хтось не виходить
+          із робочого чату, домовленості лежать у документах, а файли — на диску. Цей урок —
+          карта того, чим Jira з'єднується з рештою цього господарства: що існує, що воно
+          дає, чого не дає і хто це вмикає.
+        </p>
+        <p>
+          Урок навмисно оглядовий. Показувати екрани Slack, Microsoft Teams чи Google
+          покроково немає сенсу: вони перемальовуються частіше за Jira, а вмикає їх
+          зазвичай не та людина, яка веде картки. Тому тут — суть кожного з'єднання
+          й ті дві дії, які ти справді зробиш сам(а): налаштуєш свої сповіщення й
+          (за бажанням) заведеш одну сторінку з живим списком робіт.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> покрокових інструкцій усередині Slack, Microsoft Teams
+            і сервісів Google. Немає пошти як каналу заявок від колег — лист, що стає
+            заявкою в черзі, це Jira Service Management, урок 18. Немає листів, які пише
+            автоматизація зі своїми підставленими значеннями, — урок 15. Немає порад, який
+            саме застосунок з Marketplace ставити, — урок 17. Немає чисел: скільки листів
+            на добу дозволяє безкоштовний план і скільки людей вміщує безкоштовний
+            Confluence — у довіднику «Карта інтерфейсу, глосарій і ліміти Free».
+          </p>
+          <p>
+            <strong>Є:</strong> як влаштований вихідний потік листів і де в ньому ручки;
+            чому лист від Jira приходить то від Jira, то від колеги, і як його надійно
+            фільтрувати; що дають застосунки Jira для Slack і Microsoft Teams і хто їх
+            вмикає; при чому тут акаунт Google; що таке Confluence, як із ним пов'язана
+            вкладка <code class="ds-code--inline">Docs</code> у спейсі й навіщо на сторінці
+            живий список робіт.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            До цього уроку «Кориця» жила всередині Jira: спейси відділів, картки,
+            власний робочий процес найму, збережені запити, три flows. Але фірма не
+            сидить у Jira цілий день, і саме на межі починаються втрати.
+          </p>
+
+          <ul>
+            <li><strong>Оксана</strong> живе в пошті. Jira шле їй листи, вона їх читає
+              через раз, а потім не може знайти потрібний серед сотні схожих.</li>
+            <li><strong>Марта</strong> живе в чаті. Домовленість «зніми вітрину завтра
+              вранці» вона пише в чат, у Jira її немає, і через тиждень ніхто не пам'ятає,
+              хто що обіцяв.</li>
+            <li><strong>Тарас</strong> надсилає підряднику кошторис файлом і отримує
+              відповідь листом. У картці ремонту про це немає ні рядка.</li>
+          </ul>
+
+          <p>
+            Питання не в тому, як загнати всіх у Jira — це не спрацює. Питання в тому, як
+            з'єднати Jira з тим місцем, де люди вже сидять, щоб інформація не роздвоювалась.
+            Таке з'єднання двох застосунків між собою називають <strong>інтеграцією</strong>:
+            одна програма показує або приймає дані іншої, і людині не треба перемикатись
+            між ними руками.
+          </p>
+
+          <h3>Два напрямки й один сусід</h3>
+
+          <p>
+            Усе, що буде в цьому уроці, розкладається на три купки — і в такому порядку
+            його простіше тримати в голові.
+          </p>
+
+          <ul>
+            <li><strong>З Jira назовні.</strong> Jira повідомляє людей про те, що
+              сталося: лист на пошту, дзвіночок у самому продукті, повідомлення в чаті.
+              Кому й за що вона пише — це урок 5; тут ми дивимось на це як на
+              <em>канал</em>, у якого є ручки.</li>
+            <li><strong>Ззовні в Jira.</strong> Лист або повідомлення в чаті перетворюється
+              на роботу. Тут є важлива межа: повноцінний прийом листів у чергу — це окремий
+              продукт, Jira Service Management, і йому присвячений урок 18.</li>
+            <li><strong>Поруч, на тому ж сайті.</strong> Confluence — продукт для тексту:
+              інструкції, плани, регламенти. Урок 1 уже розводив їх одним правилом:
+              інструкція — у Confluence, справа — у Jira. Тепер подивимось, як вони
+              з'єднуються всередині спейсу.</li>
+          </ul>
+
+          <p>
+            Слово «оглядово» в назві означає рівно одне: після уроку ти знатимеш, що з цього
+            існує і чого від нього чекати, — а не вмітимеш налаштувати кожне. Для більшості
+            з'єднань цього достатньо, бо вмикає їх адміністратор сайту, і робиться це один раз.
+          </p>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Почнемо з каналу, який у тебе вже працює, навіть якщо ти цього не помічав(ла), —
+            з пошти. Усі ручки до неї зібрані на одній сторінці особистих налаштувань.
+            Шлях словами: шестірня <code>Settings</code> у верхній панелі праворуч →
+            <code>Personal Jira settings</code> → <code>Notification settings</code>.
+          </p>
+
+          <p>
+            Одразу попередження про назву. У довідці Atlassian розділ зветься
+            <code>Notification settings</code>, а на живому екрані 17 вересня 2026 року та
+            сама сторінка підписана <code>Emails and notifications</code>. Це те саме місце;
+            назви розійшлись, бо сторінку перейменували, а довідку — ще ні. У курсі ми
+            називаємо обидва слова, щоб ти впізнав(ла) її в будь-якому вигляді.
+          </p>
+
+          <figure class="win" data-state="settings" id="w1">
+            <figcaption class="win__chrome">
+              <span class="win__dots" aria-hidden="true"></span>
+              <span class="win__title" id="w1t">Jira Cloud · Personal Jira settings → Emails and notifications · звірено 2026-09-17</span>
+              <span class="win__addr" aria-hidden="true">…/jira/settings/personal/notifications</span>
+            </figcaption>
+            <div class="win__body" role="group" aria-labelledby="w1t">
+              <ul class="win__rail win__rail--settings" aria-label="Personal Jira settings">
+                <li class="win__rail-item">General settings</li>
+                <li class="win__rail-item win__rail-item--active">Notification settings <b class="win__mark" aria-hidden="true">①</b></li>
+              </ul>
+              <div class="win__main">
+                <div class="win__page">
+                  <h4>Emails and notifications</h4>
+                  <p class="win__placeholder">Control when you receive email or in-app notifications from Jira.</p>
+                  <dl class="win__fields">
+                    <dt>Email preferences <b class="win__mark" aria-hidden="true">②</b></dt><dd>Send me emails for work item activity</dd>
+                    <dt>Receive emails when</dt><dd>You're the assignee · You're the reporter · You make changes to work items</dd>
+                    <dt>Group notification emails together</dt><dd>Every 3 minutes</dd>
+                    <dt>Email format</dt><dd>HTML · Text</dd>
+                    <dt>Customize space notifications <b class="win__mark" aria-hidden="true">③</b></dt><dd>Add space notifications</dd>
+                    <dt>Default notifications <b class="win__mark" aria-hidden="true">④</b></dt><dd>In product · Email</dd>
+                    <dt>Notifications for all work items</dt><dd>You're assigned to a work item · You're mentioned on a work item</dd>
+                    <dt>Notifications for relevant work items</dt><dd>Changes to work items · Changes to comments on work items · A work log is created, edited, or deleted · Other work item events</dd>
+                    <dt>All space notifications</dt><dd>Space access requests</dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <ol class="win__legend" aria-label="Пояснення до вікна «сторінка сповіщень»">
+            <li><code>Notification settings</code> — так розділ зветься в довідці</li>
+            <li><code>Email preferences</code> — головний вимикач листів</li>
+            <li><code>Customize space notifications</code> — окремі правила для спейсу</li>
+            <li>Дві колонки: <code>In product</code> — дзвіночок, <code>Email</code> — лист</li>
+          </ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Назви розділів, полів і подій зняті з живого сайту Jira Cloud Free 17 вересня
+            2026 року. Стан самих галочок у знімку не зафіксований, тому у вікні їх немає:
+            домальовувати позначки там, де їх не бачили, курс не буде. Праворуч від кожної
+            події на екрані стоять два незалежні квадратики — у колонці
+            <code>In product</code> і в колонці <code>Email</code>.
+          </p>
+
+          <h3>Дві колонки — це два різні канали</h3>
+
+          <p>
+            Головне, що варто винести з цього екрана: сповіщення в Jira ходять двома
+            каналами, і вони незалежні. <code>In product</code> — це дзвіночок усередині
+            самої Jira: його видно, лише коли ти в ній. <code>Email</code> — лист у
+            скриньку: він знайде тебе де завгодно, зате він і є джерелом того потоку, який
+            дратує. Довідка описує це так: «You can choose to receive (or not receive)
+            notifications in-app or by email by using the checkboxes» — ти сам(а)
+            вирішуєш, отримувати сповіщення в застосунку чи поштою, і робиш це галочками.
+          </p>
+
+          <p>
+            Рядок <code>Group notification emails together</code> зі значенням
+            <code>Every 3 minutes</code> — це склеювання: дрібні зміни, зроблені підряд,
+            приїдуть одним листом замість п'яти. Важливе — згадка, призначення — приходить
+            одразу й окремо. Це вже розбирав урок 5, тут лише нагадування, звідки береться
+            затримка.
+          </p>
+
+          <p>
+            Рядок <code>Email format</code> вибирає, як лист виглядатиме: <code>HTML</code> —
+            з оформленням і кнопками, <code>Text</code> — голим текстом. Другий варіант
+            інколи рятує на старих поштових програмах, більше різниці немає.
+          </p>
+
+          <h3>Чого ці галочки не стосуються</h3>
+
+          <p>
+            Найчастіше непорозуміння з цією сторінкою таке: людина знімає всі галочки, а
+            листи продовжують приходити — і робить висновок, що налаштування не працюють.
+            Насправді галочки керують лише листами <em>про активність робіт</em>. Довідка
+            перелічує окремо, що приходить поза ними: «Announcements and updates about your
+            Jira site», «Updates for work item filter subscriptions if you've set them up»
+            і «Notifications for activity outside of Jira, including those regarding your
+            Atlassian account» — повідомлення про сам сайт, листи підписки на збережений
+            запит (їх ти вмикав(ла) в уроці 7, і вимикаються вони там само) і листи про
+            твій акаунт Atlassian.
+          </p>
+
+          <p>
+            І друга межа, про яку вже казав урок 5: твої налаштування працюють як фільтр
+            поверх налаштувань адміністратора. «All your notification settings (default or
+            custom) act like a filter on top of the notification settings configured by
+            your admin» — прибрати зайвий лист вони можуть, додати той, що вимкнений для
+            всього спейсу, — ні.
+          </p>
+
+          <h3>Хто підписаний під листом від Jira</h3>
+
+          <p>
+            Ось факт, який економить години пошуку в скриньці. Поле «від кого» в листах
+            Jira <strong>не стале</strong>, а адреса відправника — стала. Довідка формулює
+            це в трьох рядках: «The <code>From</code> field will be the actioner's name, if
+            only one person added the updates presented in the email» — якщо зміни зробила
+            одна людина, у полі «від кого» стоятиме її ім'я; «The <code>From</code> field
+            will be Jira, if multiple people added the updates» — якщо кілька, у полі буде
+            слово Jira; «The sender's email will always be
+            <code>jira@&lt;yourinstance&gt;.atlassian.net</code>» — адреса відправника
+            завжди одна й та сама, з назвою твого сайту всередині.
+          </p>
+
+          <p>
+            Практичний висновок один: якщо збираєшся розкладати листи Jira по папках,
+            роби це <strong>за адресою відправника</strong>, а не за ім'ям. Інакше половина
+            листів осяде повз папку — саме ті, які надіслала жива людина.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <p>
+            Тепер розкладемо всю карту. У центрі — Jira зі спейсами й роботами, навколо —
+            п'ять з'єднань. Стрілка показує, у який бік їде інформація.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart LR
+  MAILIN["Лист від колеги"] -->|"лише в JSM: урок 18"| J
+  J["Jira: спейси, роботи, статуси"] -->|"сповіщення: урок 5"| MAILOUT["Пошта і дзвіночок"]
+  J -->|"застосунок Atlassian: оглядово"| CHAT["Slack і Microsoft Teams"]
+  CHAT -->|"робота з повідомлення"| J
+  J -->|"вкладка Docs: цей урок"| CONF["Confluence: сторінки"]
+  CONF -->|"живий список робіт"| J
+  GOOG["Акаунт Google і файли на диску"] -->|"вхід: урок 3"| J
+            </pre>
+            <p class="ds-diag__caption">П'ять з'єднань Jira з рештою робочого світу: підпис на стрілці каже, у якому уроці тема розібрана повністю, а що лишається оглядом.</p>
+          </div>
+
+          <h3>Пошта в Jira: лист, що стає роботою</h3>
+
+          <p>
+            Зворотний бік пошти виглядає привабливо: одна адреса, куди пишуть колеги, і
+            кожен лист сам перетворюється на картку. У Jira це існує, але з двома
+            застереженнями, і обидва варто знати до того, як ти це комусь пообіцяєш.
+          </p>
+
+          <p>
+            Перше: <strong>окремої поштової адреси у звичайного спейсу довідка не
+            описує</strong> — ні в ділового, ні в того, що для розробки. Прийом пошти
+            влаштований інакше й рівнем вище: адміністратор підключає до Jira поштову
+            скриньку й описує правилами, що з листами робити. Стаття про це починається
+            саме з цього: «Jira admins can configure their cloud apps to receive and
+            process emails» — налаштувати прийом пошти може адміністратор Jira, і потрібне
+            для цього глобальне право <code>Administer Jira</code>, тобто право на весь
+            сайт, а не на один спейс. Це не робота першого тижня, і в курсі ми її не робимо.
+          </p>
+
+          <p>
+            Друге: Atlassian сама відмовляє від цього шляху, якщо мета — приймати заявки.
+            Дослівно: «If you're looking for a help desk solution, it may be more practical
+            to use Jira Service Management rather than setting up Jira for this purpose» —
+            для служби підтримки практичніше взяти Jira Service Management. Там прийом
+            пошти вбудований: «Jira Service Management uses a built-in processor to receive
+            and process requests from emails», і — головне для «Кориці» — відправникові не
+            потрібна ліцензія: «Work items created in Jira Service Management don't require
+            the sender to have a license to create, view, comment, add attachments, or
+            transition work items».
+          </p>
+
+          <p>
+            Тобто відповідь на питання «чи можна писати в Jira листом» звучить так: можна,
+            і правильний шлях для цього — портал заявок і його поштовий канал. Це урок 18,
+            і там ця тема розібрана повністю.
+          </p>
+
+          <h3>Чати: Slack і Microsoft Teams</h3>
+
+          <p>
+            Slack і Microsoft Teams — робочі чати: листування розкладене по
+            <strong>каналах</strong>, тобто кімнатах на одну тему. Atlassian випускає для
+            них власні застосунки: <strong>Jira Cloud for Slack</strong> і
+            <strong>Jira Cloud for Microsoft Teams</strong>. Застосунок (app) — це окрема
+            надбудова, яку ставлять поверх продукту; про те, як обирати сторонні застосунки
+            й чим вони ризиковані, — наступний урок 17, а ці два зроблені самою Atlassian.
+          </p>
+
+          <p>
+            Обидва описані однією фразою, і вона чесно передає суть: «The Jira Cloud for
+            Slack app brings your Jira work into Slack, so you can create work items, get
+            notifications, and take action without ever leaving your conversations» —
+            застосунок приносить роботу з Jira у чат, щоб створювати картки, отримувати
+            сповіщення й діяти, не виходячи з розмови. Для Teams формулювання те саме.
+          </p>
+
+          <p>
+            Що з цього справді міняє життя команди:
+          </p>
+
+          <ul>
+            <li><strong>Особисті сповіщення в чат.</strong> Те саме, що приходило поштою,
+              приходить особистим повідомленням від застосунку.</li>
+            <li><strong>Канал, підписаний на спейс.</strong> Довідка описує це як
+              «Subscribe a Slack channel to a Jira space so the right team gets the right
+              updates at the right time» — у канал відділу їдуть оновлення його спейсу.</li>
+            <li><strong>Картка замість голого посилання.</strong> «Paste a Jira link or
+              just type a work item key… to get a live, editable card showing all key
+              fields» — вставлене посилання чи навіть сам ключ роботи розгортається в живу
+              картку зі статусом і виконавцем.</li>
+            <li><strong>Робота з повідомлення.</strong> Будь-яке повідомлення в чаті
+              перетворюється на картку Jira через меню повідомлення — саме те, чого бракує
+              Марті.</li>
+            <li><strong>Короткі команди.</strong> У Slack це рядки виду
+              <code>/jira connect</code> (підписати канал на спейс),
+              <code>/jira notify</code> (налаштувати свої сповіщення),
+              <code>/jira create</code> (створити роботу). У Teams те саме робиться
+              словами-командами до застосунку.</li>
+          </ul>
+
+          <p>
+            Тепер про те, чого не видно з реклами. <strong>Ставить це не той, хто веде
+            картки.</strong> З боку Jira потрібен адміністратор сайту: «Your Jira site
+            administrator must enable the Slack integration… before anyone can connect»,
+            і якщо він цього не зробив, людина побачить повідомлення «Connecting with this
+            Jira Cloud instance was disabled by administrator». З боку чату потрібен його
+            власний адміністратор: для Teams довідка попереджає «Your Microsoft Teams
+            administrator may need to allow the Jira Cloud app before you can install it».
+            У фірмі на вісім людей це одна розмова, у великій компанії — заявка на тиждень.
+          </p>
+
+          <p>
+            І друге, менш очевидне: <strong>підключивши чат, вимикай пошту</strong>. Інакше
+            про кожну подію ти дізнаєшся двічі. Довідка радить це сама, окремим розділом
+            «Turn off email notifications»: «Once you've set up personal notifications in
+            Slack, you might want to disable email notifications so that you're not
+            receiving duplicate messages» — і веде рівно на ту сторінку, з якої починався
+            блок 2, до перемикача <code>Send me emails for work item activity</code>.
+          </p>
+
+          <div class="ds-note">
+            <span class="ds-note__title">Частина написаного про чати — про платний рівень</span>
+            <p>
+              У довідці обох застосунків є рядки на кшталт «Quick actions with AI» і «Rovo
+              pre-fills the details»: помічник Atlassian заповнює поля картки за описом
+              словами. Працює він на кредитах, а про них довідка каже так: «Rovo credits
+              are included in all paid Jira, Confluence, Service Collection and Teamwork
+              Collection cloud subscriptions» — кредити йдуть лише з платними підписками.
+              На безкоштовному плані розраховуй на звичайні пункти меню, а не на розумне
+              заповнення.
+            </p>
+          </div>
+
+          <h3>Google: вхід і посилання на файли</h3>
+
+          <p>
+            Google Workspace — це набір робочих сервісів Google: пошта, диск із файлами,
+            календар, документи. З Jira його з'єднує акаунт.
+          </p>
+
+          <p>
+            По-перше, вхід. Акаунт Atlassian можна прив'язати до акаунта Google і заходити
+            кнопкою <code>Log in with Google</code> — про це вже йшлося в уроці 3, коли ми
+            заводили акаунт. Довідка додає, що прив'язка одноразова й діє на всі продукти:
+            «If you integrate your Google account with Jira, the integration will work with
+            other Atlassian apps, like Confluence».
+          </p>
+
+          <p>
+            По-друге, файли. Після прив'язки посилання на файл Google Drive, вставлене в
+            роботу, перестає бути голим рядком: «you can easily link Google Drive files in
+            Jira or Confluence», і посилання показується карткою з назвою файлу. Такі живі
+            посилання Atlassian зве <strong>Smart Links</strong>, «розумні посилання». Якщо
+            доступу до файлу немає, у картці буде кнопка попросити його у власника.
+          </p>
+
+          <p>
+            А тепер чесно про те, чого знайти не вдалось. <strong>Підписати Google Calendar
+            на календар спейсу Jira не виходить</strong>: у довідці про календар спейсу
+            (вигляд <code>Calendar</code> з уроку 6) такої можливості не описано, а єдина
+            згадка про підписку зовнішнього календаря стосується календаря змін у Jira
+            Service Management. Тому в цьому курсі календар Jira лишається всередині Jira,
+            а «синхронізацію з Google-календарем» вважай за непідтверджену, поки не
+            побачиш її власними очима.
+          </p>
+
+          <h3>Confluence: сусідній продукт для тексту</h3>
+
+          <p>
+            Confluence — другий великий продукт Atlassian, і в курсі він уже згадувався
+            двічі: в уроці 1 як «про текст, а не про справи» і в уроці 2 як окремий
+            продукт на тому ж сайті. Його власне означення таке: «Confluence is a
+            collaboration tool that brings people, knowledge, and ideas together in a
+            shared workspace» — спільний робочий простір для знань.
+          </p>
+
+          <p>
+            Влаштований він так само, як Jira, і це полегшує життя: «Confluence spaces are
+            like Jira spaces. They're used by your team to store information. But while
+            Jira spaces store work items, Confluence spaces store pages, whiteboards, and
+            other types of content» — там теж є spaces, тільки зберігають вони не роботи,
+            а сторінки. Щоб два слова не злиплись, у курсі ми називаємо їх по-різному:
+            у Jira — <strong>спейс</strong>, у Confluence — <strong>простір</strong>.
+          </p>
+
+          <p>
+            Усередині спейсу Jira Confluence з'являється однією вкладкою в рядку виглядів —
+            <code>Docs</code>. Ставить її адміністратор спейсу («Only space admins can add
+            new tabs via the space navigation» — нові вкладки додають лише адміністратори
+            спейсу), а шлях такий: «In the space navigation, select Add to navigation (+).
+            Select Docs» — у рядку виглядів натисни <code>+</code> і вибери
+            <code>Docs</code>. Назва цієї вкладки якраз у русі: довідка попереджає
+            «We're currently updating the Pages experience and renaming it to “Docs”» —
+            те, що стосується сторінок, зараз перероблюють і перейменовують на
+            <code>Docs</code>, тому в адресі тієї самої вкладки досі видно старе слово
+            <code>pages</code>.
+          </p>
+
+          <p>
+            Якщо Confluence на сайті немає, вкладка не порожня — вона пропонує його
+            підключити. Ось цей екран.
+          </p>
+
+          <figure class="win" data-state="list" id="w2">
+            <figcaption class="win__chrome">
+              <span class="win__dots" aria-hidden="true"></span>
+              <span class="win__title" id="w2t">Jira Cloud · вкладка Docs у спейсі Сайт без Confluence · звірено 2026-09-17</span>
+              <span class="win__addr" aria-hidden="true">…/jira/software/projects/WEB/pages</span>
+            </figcaption>
+            <div class="win__body" role="group" aria-labelledby="w2t">
+              <ul class="win__rail" aria-label="Бічна панель Jira">
+                <li class="win__rail-item">For you</li>
+                <li class="win__rail-item win__rail-item--active">Spaces</li>
+                <li class="win__rail-item">Filters</li>
+                <li class="win__rail-item">Dashboards</li>
+              </ul>
+              <div class="win__main">
+                <div class="win__bar">
+                  <span class="win__crumb">Spaces / Сайт</span>
+                  <span class="win__tabs"><span>Summary</span><span>List</span><span>Board</span><span class="win__tab--active">Docs <b class="win__mark" aria-hidden="true">①</b></span><span>Development</span><span>+</span></span>
+                </div>
+                <div class="win__page">
+                  <h4>Manage your project content, all in one place</h4>
+                  <p class="win__placeholder">No more switching between tools. Connect Confluence to your space to capture, organize, and share project knowledge right from Jira.</p>
+                  <p class="win__actions"><span class="win__btn win__btn--primary">Try Confluence now <b class="win__mark" aria-hidden="true">②</b></span> <span class="win__btn">Discover Confluence</span></p>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <ol class="win__legend" aria-label="Пояснення до вікна «вкладка Docs без Confluence»">
+            <li><code>Docs</code> — вкладка для сторінок Confluence</li>
+            <li><code>Try Confluence now</code> — не функція, а пропозиція підключити продукт</li>
+          </ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Заголовок, текст і обидві кнопки — дослівно з живого сайту Jira Cloud Free
+            17 вересня 2026 року, зі спейсу для розробки. Під кнопками там стоїть дрібний
+            рядок: «By selecting 'Try Confluence now', you will be enrolled in Confluence
+            and agree to the Atlassian Cloud Terms of Service and Privacy policies» —
+            натискання підключає до сайту ще один продукт і приймає умови сервісу, тому
+            кнопку не тиснуть навмання. За механікою це той самий апсел, який ми
+            впізнавали в уроці 2: кнопка пропонує не функцію, якої в тебе немає, а нове
+            підключення — з тією різницею, що тут воно веде не на платний план, а на
+            окремий продукт зі своїм безкоштовним планом.
+          </p>
+
+          <p>
+            Коли Confluence на сайті є, ця сама вкладка показує сторінки. Підключити до
+            спейсу можна або новий простір («Select <code>Create a new Confluence
+            space</code>»), або наявний («Select <code>Link existing Confluence spaces or
+            content</code>»). Два обмеження описані прямо: <strong>один спейс Jira тримає
+            одне підключення</strong> («Jira spaces can only be connected to one Confluence
+            space, folder, or page at a time») і <strong>доступ успадковується</strong>
+            («If a page is restricted in Confluence, the same permission settings apply in
+            Jira»). Ось як це виглядає у «Другій точці».
+          </p>
+
+          <figure class="win" data-state="list" id="w3">
+            <figcaption class="win__chrome">
+              <span class="win__dots" aria-hidden="true"></span>
+              <span class="win__title" id="w3t">Jira Cloud · вкладка Docs після підключення Confluence · за документацією, 2026-09-18</span>
+              <span class="win__addr" aria-hidden="true">…/jira/…/REM/pages</span>
+            </figcaption>
+            <div class="win__body" role="group" aria-labelledby="w3t">
+              <ul class="win__rail" aria-label="Бічна панель Jira">
+                <li class="win__rail-item">For you</li>
+                <li class="win__rail-item win__rail-item--active">Spaces</li>
+                <li class="win__rail-item">Filters</li>
+                <li class="win__rail-item">Dashboards</li>
+              </ul>
+              <div class="win__main">
+                <div class="win__bar">
+                  <span class="win__crumb">Spaces / Друга точка</span>
+                  <span class="win__tabs"><span>Summary</span><span>List</span><span>Board</span><span>Calendar</span><span>Timeline</span><span class="win__tab--active">Docs</span><span>+</span></span>
+                  <span class="win__btn">Manage connection <b class="win__mark" aria-hidden="true">①</b></span>
+                </div>
+                <div class="win__page">
+                  <h4>Docs</h4>
+                  <ul class="win__tiles">
+                    <li class="win__tile">Ремонт другої точки — план <b class="win__mark" aria-hidden="true">②</b></li>
+                    <li class="win__tile">Кошториси підрядників</li>
+                    <li class="win__tile">Вимоги пожежної інспекції</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <ol class="win__legend" aria-label="Пояснення до вікна «вкладка Docs після підключення»">
+            <li><code>Manage connection</code> — змінити підключений простір Confluence</li>
+            <li>Сторінки підключеного простору: назви — з історії «Кориці»</li>
+          </ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            ⚠ Це вікно зібране <strong>за документацією</strong>, а не зняте з екрана:
+            на навчальному сайті курсу Confluence не підключений. Назви кнопок і поведінка —
+            з довідки Atlassian від 18 вересня 2026 року, назви сторінок — наші. Розкладка
+            списку сторінок у твоєму сайті може виглядати інакше.
+          </p>
+
+          <h3>Живий список робіт на сторінці</h3>
+
+          <p>
+            Найкорисніше, що дає пара Jira і Confluence, — це можливість показати роботи
+            прямо в тексті плану. Робить це <strong>макрос</strong>: готовий блок, який
+            вставляють у сторінку, і він сам підтягує дані звідкись. Потрібний називається
+            «Display Jira work items in a list» — «показати роботи Jira списком».
+          </p>
+
+          <p>
+            Вставляється він трьома способами, і найшвидший — з клавіатури: «While editing,
+            type <code>/jira</code> and select Jira work items» — під час редагування набери
+            <code>/jira</code> й вибери вставлення робіт. Далі задається пошук: або
+            фільтрами й словами, або запитом JQL з уроку 7. Результат — таблиця робіт
+            усередині сторінки, у якій видно ключ, назву й статус.
+          </p>
+
+          <p>
+            Поруч є ще два з'єднання, які знадобляться пізніше. Дашборд або окремий гаджет
+            з уроку 8 можна показати на сторінці Confluence: «Share your team's Jira
+            dashboard in Confluence using Smart Links» — через ті самі розумні посилання.
+            А для порталу заявок Confluence працює базою знань — статтями, які клієнт
+            бачить до того, як подасть заявку. Вимога до цього одна й вона м'яка: «To set
+            up your knowledge base in Jira Service Management, at a minimum, you'll need to
+            have a Free plan of Confluence on the same site» — вистачить безкоштовного
+            плану Confluence на тому ж сайті. Додає продукт на сайт адміністратор:
+            «You need to be a site admin or an organization admin to add Confluence to your
+            site». Повністю це — уроки 18 і 19.
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            Вправа коротка: наводимо лад у власних листах і дивимось на вкладку
+            <code>Docs</code>. Останній крок — умовний: він робиться лише тоді, коли
+            власник сайту вже додав Confluence. Якщо ні — пропусти його без вагань, на
+            решту курсу це не впливає.
+          </p>
+
+          <ol>
+            <li>
+              <strong>Відкрий сторінку сповіщень.</strong> Шестірня
+              <code>Settings</code> у верхній панелі праворуч →
+              <code>Personal Jira settings</code> → <code>Notification settings</code>.
+              На екрані сторінка може бути підписана <code>Emails and notifications</code> —
+              це вона.
+            </li>
+            <li>
+              <strong>Перевір головний перемикач.</strong> Рядок <code>Send me emails for
+              work item activity</code> має бути увімкнений: саме він відповідає за те, чи
+              приходять листи взагалі. Вимикати його цілком — крайній захід.
+            </li>
+            <li>
+              <strong>Прибери зайве, лиши важливе.</strong> У блоці
+              <code>Receive emails when</code> лиши <code>You're the assignee</code>
+              (тобі призначили роботу) і зніми <code>You make changes to work items</code>
+              (ти сам(а) щось змінив(ла) — про свої ж дії лист не потрібен). Згадки
+              стоять окремим рядком у переліку подій нижче — їх лишай увімкненими.
+            </li>
+            <li>
+              <strong>Пройдись очима по двох колонках.</strong> У переліку подій
+              подивись, що в тебе стоїть у колонці <code>In product</code>, а що в
+              <code>Email</code>. Правило, яке працює для більшості: дрібні зміни —
+              у дзвіночок, призначення й згадки — у пошту.
+            </li>
+            <li>
+              <strong>Наведи лад у скриньці.</strong> Якщо твоя пошта вміє папки й
+              правила, зроби правило за <strong>адресою відправника</strong>
+              (<code>jira@</code> і назва твого сайту), а не за ім'ям у полі «від кого» —
+              воно міняється.
+            </li>
+            <li>
+              <strong>Напиши коментар зі згадкою.</strong> Відкрий будь-яку картку
+              ремонту, натисни <code>M</code> і напиши коментар, згадавши когось через
+              <code>@</code>. Якщо в сайті ти поки один(одна) — згадай себе; листа тоді може
+              й не бути, бо це твоя ж дія, і саме цю галочку ти щойно зняв(ла).
+            </li>
+            <li>
+              <strong>Додай вкладку <code>Docs</code> у спейс «Друга точка».</strong>
+              У рядку виглядів спейсу натисни <code>+</code> (<code>Add to navigation</code>)
+              і вибери <code>Docs</code>. Якщо Confluence на сайті немає — побачиш
+              пропозицію його підключити. <strong>Кнопку не тисни</strong>, доки не
+              вирішиш підключати продукт: це не перегляд, а підключення.
+            </li>
+            <li>
+              <strong>Умовно: сторінка з живим списком.</strong> Якщо Confluence на сайті
+              вже є — створи в ньому сторінку «Ремонт другої точки — план», опиши етапи
+              словами, а там, де має бути перелік робіт, набери <code>/jira</code>,
+              вибери вставлення робіт Jira і склади пошук по спейсу «Друга точка».
+              Збережи сторінку.
+            </li>
+          </ol>
+
+          <p>
+            Ось як це виглядає в Оксани. Листи тепер приходять лише про призначення й
+            згадки; у скриньці для них є папка, куди вони падають за адресою відправника.
+            У «Другій точці» з'явилась вкладка <code>Docs</code> — поки з пропозицією
+            підключити Confluence, і Оксана свідомо відклала це рішення до розмови
+            з Тарасом.
+          </p>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            П'ять ознак. Жодна з них не вимагає, щоб у сайті був хтось, крім тебе, —
+            і жодна не залежить від того, підключений Confluence чи ні.
+          </p>
+
+          <ul>
+            <li>
+              <strong>Сторінка сповіщень показує те, що ти лишив(ла).</strong> Перезавантаж
+              її й подивись ще раз: галочки мають лишитись у тому стані, у який ти їх
+              поставив(ла). Якщо повернулись назад — зміна не збереглась, спробуй ще раз.
+            </li>
+            <li>
+              <strong>Наступний лист від Jira приходить із тієї самої адреси.</strong>
+              Відкрий у скриньці будь-який лист від Jira й подивись на адресу, а не на
+              ім'я: там має бути <code>jira@</code> і назва твого сайту. Якщо ти зробив(ла)
+              правило — лист лежить у своїй папці.
+            </li>
+            <li>
+              <strong>Дрібна власна зміна листа не дає.</strong> Зміни статус будь-якої
+              своєї картки й почекай кілька хвилин. Листа бути не повинно — ти зняв(ла)
+              рядок про власні зміни. Якщо лист усе-таки прийшов, дивись, чи не стоїть ця
+              галочка назад.
+            </li>
+            <li>
+              <strong>У спейсі «Друга точка» з'явилась вкладка
+              <code>Docs</code>.</strong> Вона стоїть у тому ж рядку, де
+              <code>Board</code>, <code>Calendar</code> і <code>Timeline</code>.
+            </li>
+            <li>
+              <strong>Вкладка не показує помилки.</strong> Якщо Confluence немає, там —
+              пропозиція підключити; якщо є — перелік сторінок. І перше, і друге означає,
+              що вкладка працює правильно.
+            </li>
+          </ul>
+
+          <p>
+            Якщо щось не сходиться, найімовірніша причина не в Jira. Лист, якого немає,
+            найчастіше означає не поломку, а галочку: спершу дивись на сторінку сповіщень,
+            потім — у теку «Спам», і лише потім шукай складніші пояснення.
+          </p>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3>Шторм листів лікують фільтром у спам</h3>
+
+          <p>
+            Найпоширеніша реакція на потік листів — правило «усе від Jira в архів». Воно
+            працює рівно один тиждень, а потім людина пропускає призначену на неї роботу й
+            каже, що «Jira не працює». Різниця між двома підходами принципова: галочки
+            на сторінці сповіщень прибирають листи <em>вибірково</em>, фільтр у скриньці
+            ховає <em>усі</em>, включно з важливими. Лікуй причину, а не симптом: зніми
+            зайві події, а не весь канал. І пам'ятай, що листи про підписку на збережений
+            запит вимикаються не тут, а в самій підписці (урок 7).
+          </p>
+
+          <h3>Два канали одночасно — подвійні сповіщення</h3>
+
+          <p>
+            Підключили чат, а пошту лишили — і про кожну зміну приходить два повідомлення.
+            Далі люди вимикають обидва канали, і команда глухне. Довідка Atlassian сама
+            радить вимикати другий канал одразу після підключення першого, і це не
+            дрібниця, а умова того, щоб сповіщеннями взагалі користувались. Обирай один
+            основний канал на людину: хто живе в чаті — тому чат, хто в пошті — пошту.
+          </p>
+
+          <h3><code>Docs</code> — це не вкладення роботи</h3>
+
+          <p>
+            Схожі слова, різні речі. Вкладення живе <em>всередині</em> картки: файл, який
+            ти перетягнув(ла) на роботу, і бачить його кожен, хто бачить роботу.
+            <code>Docs</code> — це вікно в інший продукт: сторінки лежать у Confluence,
+            у нього свої користувачі й свої правила доступу. Наслідок, який часто стає
+            несподіванкою: якщо в Confluence сторінку обмежено, у Jira її теж не буде
+            видно, і навпаки — на безкоштовному плані Confluence дозволи не налаштовуються
+            взагалі («Permissions aren't customizable»), тож сховати сторінку від колеги
+            там не вийде. Confluence — окремий продукт на тому ж сайті, зі своїм лімітом
+            користувачів; число — у довіднику «Карта інтерфейсу, глосарій і ліміти Free».
+          </p>
+
+          <h3>Застосунок чату ставить не той, хто його хоче</h3>
+
+          <p>
+            Марта може скільки завгодно хотіти сповіщення в канал — вона цього не ввімкне.
+            Потрібні двоє: адміністратор сайту Jira вмикає інтеграцію з боку Jira,
+            адміністратор робочого простору чату дозволяє застосунок з боку чату. Якщо
+            плануєш це для команди, закладай не «п'ять хвилин», а окрему домовленість
+            із тими, у кого є права. Тексти помилок, які побачиш без цього, довідка
+            наводить прямо — вони згадують адміністратора, а не поломку.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Чи можна надіслати листа й отримати картку?</h3>
+
+          <p>
+            У звичайному спейсі — не напряму: власної адреси в нього немає, а прийом пошти
+            налаштовує адміністратор сайту на рівні всієї Jira, прив'язавши до неї поштову
+            скриньку. Якщо мета — приймати заявки від колег чи клієнтів, правильний
+            інструмент інший: Jira Service Management з порталом і вбудованим поштовим
+            каналом. Це урок 18.
+          </p>
+
+          <h3>Чому лист прийшов «від Марти», а не від Jira?</h3>
+
+          <p>
+            Так і має бути. Коли зміни зробила одна людина, Jira підписує лист її ім'ям —
+            щоб було видно, хто діяв. Коли змін кілька й від різних людей, у полі «від
+            кого» стоїть слово Jira. Адреса відправника при цьому завжди однакова, тому
+            фільтри в скриньці будуй саме на ній.
+          </p>
+
+          <h3>Чи безкоштовний Confluence?</h3>
+
+          <p>
+            Так, у нього є власний безкоштовний план — і саме його вистачає, щоб зробити
+            базу знань для порталу заявок. Але це окремий продукт на тому ж сайті: у нього
+            свій ліміт користувачів, своє сховище й своя логіка доступу (на безкоштовному
+            плані дозволи не налаштовуються). Числа з датою перевірки — у довіднику
+            «Карта інтерфейсу, глосарій і ліміти Free».
+          </p>
+
+          <h3>Чи можна бачити роботи Jira у своєму календарі Google?</h3>
+
+          <p>
+            Такої можливості для календаря спейсу знайти не вдалося: у довідці Jira Cloud
+            описано календар усередині продукту, а підписка зовнішнього календаря згадана
+            лише для календаря змін у Jira Service Management. Тому в курсі ми не обіцяємо
+            синхронізації з Google Calendar. Якщо колись знайдеш її на своєму екрані —
+            вір екрану, а не цьому абзацу: інтеграції з'являються й зникають швидше за
+            уроки.
+          </p>
+
+          <h3>Чим ці застосунки відрізняються від тих, що в Marketplace?</h3>
+
+          <p>
+            Головне — хто їх зробив. Jira Cloud for Slack і Jira Cloud for Microsoft Teams
+            зроблені самою Atlassian, і довідка веде ставити їх із магазину відповідного
+            чату: «You can install it from the Slack App Directory» для Slack і «install
+            the Jira Cloud app from the Microsoft Teams app store» для Teams. У Marketplace
+            здебільшого живуть надбудови сторонніх партнерів — там свої ціни, свій доступ
+            до даних і своя доля після видалення. П'ять питань уроку 17 варто ставити й до
+            цих двох, з поправкою на те, що постачальник тут — та сама компанія, що робить
+            Jira.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li><strong>Сповіщення ходять двома незалежними каналами:</strong>
+                <code>In product</code> (дзвіночок) і <code>Email</code> (лист) — і кожну
+                подію можна лишити в одному з них.</li>
+              <li><strong>Галочки керують лише листами про роботи.</strong> Повідомлення
+                про сайт, листи підписки на запит і листи про акаунт Atlassian ідуть повз
+                них.</li>
+              <li><strong>Ім'я у полі «від кого» міняється, адреса відправника — ні:</strong>
+                фільтри в скриньці будують на адресі.</li>
+              <li><strong>Лист як заявка — це Jira Service Management</strong> (урок 18);
+                для звичайних спейсів прийом пошти існує, але це налаштування рівня сайту.</li>
+              <li><strong>Чати з'єднуються застосунками самої Atlassian:</strong> канал
+                підписується на спейс, повідомлення перетворюється на роботу, ключ
+                розгортається в картку. Вмикають це адміністратори з обох боків.</li>
+              <li><strong>Confluence — сусідній продукт для тексту:</strong> вкладка
+                <code>Docs</code> показує його сторінки в спейсі, макрос показує роботи
+                Jira на сторінці, а для бази знань порталу вистачає безкоштовного плану
+                Confluence на тому ж сайті.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+
+          <p>
+            Усе, що було в цьому уроці, зроблене самою Atlassian і не коштує нічого. Але
+            поруч є цілий магазин надбудов від сторонніх розробників — і там усе інакше:
+            гроші, доступ до твоїх даних і питання «що станеться, коли ми це видалимо».
+            Урок 17 дає п'ять питань, на які варто відповісти <em>до</em> того, як тиснути
+            кнопку встановлення, і показує, чому найчастіше відповідь — «нам це не
+            потрібно».
+          </p>
+
+          <p>
+            До нього корисно прожити тиждень із новими налаштуваннями пошти. Якщо за
+            тиждень ти не пропустив(ла) нічого важливого й не отримав(ла) жодного зайвого
+            листа — канал налаштований правильно, і більше до нього повертатись не
+            доведеться.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять
+            на назви: до кожної відповіді одразу з'являється пояснення, чому решта
+            варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Оксана зняла на сторінці сповіщень усі галочки про активність робіт. Листи від Jira все одно приходять: щотижневий перелік робіт за її збереженим запитом і повідомлення про сам сайт. Що відбувається?",
+            "options": [
+              "Ці листи йдуть повз ті галочки, бо підписку вимикають у самому фільтрі, а про сайт Jira пише окремо",
+              "Налаштування сповіщень набувають сили лише з наступної доби, тому варто почекати добу й перевірити ще раз",
+              "Галочки діють тільки на листи про чужі роботи, а про свої власні Jira пише завжди, і вимкнути це неможливо",
+              "Хтось із адміністраторів увімкнув їй ці листи примусово, і зняти це може тільки він"
+            ],
+            "answer": 0,
+            "explain": "Галочки на сторінці сповіщень керують листами про активність робіт. Довідка Atlassian окремо перелічує те, що приходить поза ними: повідомлення про сам сайт, листи підписки на збережений запит і листи про акаунт Atlassian. Підписку вимикають там, де її створили, тобто у фільтрі з уроку 7. Затримки на добу в цих налаштуваннях немає, а примусово ввімкнути людині листи адміністратор не може: його налаштування задають стелю, вище якої особисті не піднімаються."
+          },
+          {
+            "q": "У «Кориці» хочуть, щоб колеги надсилали заявки листом на одну адресу, а ті потрапляли в чергу. Що на це каже довідка Atlassian?",
+            "options": [
+              "Кожен спейс має власну поштову адресу, її треба лише увімкнути в налаштуваннях спейсу",
+              "Пошта в Jira працює в один бік, тому листи виходять назовні, а вхідні не обробляються",
+              "Для заявок листом призначений Jira Service Management, і ліцензія відправникові не потрібна",
+              "Приймати листи вміє лише застосунок з Marketplace, бо вбудованого способу в Jira немає взагалі"
+            ],
+            "answer": 2,
+            "explain": "Довідка прямо радить не налаштовувати для цього звичайну Jira: для служби підтримки практичніше взяти Jira Service Management, де прийом пошти вбудований, а той, хто пише, не займає ліцензії. У звичайних спейсів власної адреси немає; прийом пошти в Jira існує, але це налаштування рівня всього сайту, яке робить адміністратор із глобальним правом. Стороннього застосунку для цього не потрібно."
+          },
+          {
+            "q": "Марта підписала канал у чаті на спейс маркетингу. Що зміниться і про що подбати одразу?",
+            "options": [
+              "Роботи спейсу переїдуть у чат, і в Jira їх більше не буде видно",
+              "Кожен учасник каналу стане виконавцем нових робіт спейсу, поки хтось не зніме це вручну",
+              "Підписка каналу замінює особисті сповіщення, тому окремих повідомлень про згадки більше не буде",
+              "У канал підуть оновлення робіт цього спейсу, тому варто вимкнути ті самі листи в Jira"
+            ],
+            "answer": 3,
+            "explain": "Підписка каналу на спейс означає одне: оновлення робіт цього спейсу з'являються в каналі. Роботи при цьому нікуди не переїжджають і живуть у Jira, а виконавця призначає людина. Особисті сповіщення лишаються окремим налаштуванням, тому довідка сама радить після підключення чату вимкнути листи, щоб про кожну подію не дізнаватись двічі."
+          },
+          {
+            "q": "Тарас відкрив у спейсі вкладку Docs і побачив великий текст із кнопкою «Try Confluence now». Що це означає?",
+            "options": [
+              "Вкладка зламалась, бо в спейсі немає жодного файлу",
+              "Confluence до сайту ще не додано, а вкладка показує саме його сторінки",
+              "Docs доступний лише на платному плані Jira, і кнопка веде на сторінку оплати",
+              "Це місце для файлів спейсу, і сторінки там створює сама Jira, коли хтось прикріплює документ"
+            ],
+            "answer": 1,
+            "explain": "Вкладка Docs — вікно у Confluence: вона показує сторінки підключеного простору. Поки продукт до сайту не доданий, там стоїть пропозиція його підключити, і дрібний рядок під кнопкою попереджає, що натискання підключає Confluence і приймає умови сервісу. З вкладеннями роботи це не пов'язано: файли живуть усередині картки. Сторінок сама Jira не створює — це вміє тільки Confluence."
+          },
+          {
+            "q": "До спейсу «Сайт» уже підключений простір Confluence з документацією. Денис хоче підключити до того самого спейсу ще й простір з регламентами. Що станеться?",
+            "options": [
+              "Обидва простори покажуться на вкладці Docs двома окремими переліками сторінок",
+              "Другий простір додасться, але бачитиме його лише адміністратор цього спейсу",
+              "Спейс Jira тримає лише одне підключення, тому новий вибір замінить попередній",
+              "Jira запропонує перенести сторінки другого простору в перший і об'єднати їх"
+            ],
+            "answer": 2,
+            "explain": "Довідка формулює це однозначно: спейс Jira можна підключити лише до одного простору, теки або сторінки Confluence за раз. Зміна підключення робиться кнопкою керування підключенням на тій самій вкладці, і після неї попередній простір із вкладки зникне, хоча в самому Confluence усе лишиться на місці. Нічого нікуди не переноситься й не ховається від частини людей: доступ до сторінок визначає Confluence."
+          },
+          {
+            "q": "Оксана пише в Confluence сторінку «Ремонт другої точки — план» і хоче показати там перелік робіт з Jira. Який шлях описує довідка?",
+            "options": [
+              "Скопіювати таблицю робіт з Jira, вставити її на сторінку і правити руками",
+              "Набрати в редакторі сторінки /jira, вибрати вставлення робіт і задати пошук",
+              "Вивантажити роботи у файл, прикріпити файл до сторінки як вкладення",
+              "Попросити адміністратора увімкнути окремий застосунок, бо вбудованого способу немає"
+            ],
+            "answer": 1,
+            "explain": "У редакторі Confluence є макрос «Display Jira work items in a list» — готовий блок, який показує роботи Jira списком. Довідка дає три способи його вставити, і найкоротший такий: під час редагування набрати /jira і вибрати вставлення робіт, а далі скласти пошук фільтрами або запитом JQL. Копія таблиці чи прикріплений файл дають мертвий знімок, а окремого застосунку для цього не потрібно: з'єднання Jira з Confluence вбудоване."
+          }
+        ]
+      }
+      </script>
+
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Урок позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
