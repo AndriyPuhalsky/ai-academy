@@ -151,3 +151,21 @@ Sandbox-знімки — `00-research/screens/`. **Перед авторинго
 - ⚠ Без sandbox не закривається й лишено в текстах чесною виноскою: `Europe/Kyiv` у `convertToTimeZone` (j15) · підписка
   Google Calendar на календар спейсу — у доксах лише для календаря змін JSM (j16) · як присуджуються `SPOTLIGHT` /
   `BESTSELLER` (j17) · портал українською — лише таблиця мов (j18).
+
+**Дописано після рецензії хвилі 4 (2026-09-19, ніч):**
+- ✅ **Slack-застосунок на Marketplace:** картка «Jira Cloud for Slack (Official)», vendor Atlassian, status `public` —
+  `marketplace.atlassian.com/rest/2/addons/com.atlassian.jira.slack` (перевірено кореневою сесією 2026-09-19); пошук REST
+  за текстом її **не повертає** — «пошук не знайшов» ≠ «картки немає»; Cloud-картки для Teams немає. Встановлення довідка
+  веде через крамницю чату (j16, j17).
+- ✅ **`Works with` у Marketplace має окреме значення `Jira Service Management`** (`value: "jira-service-desk"`) — знахідка
+  автора j17 «окремого рядка JSM немає» не підтвердилась (рецензент j17).
+- ✅ **Листи понад галочки:** «Even if you clear all checkboxes, you may still receive other email notifications configured
+  by your Jira admin» (`manage-your-jira-personal-settings`, звірено наживо 2026-09-19) — j16.
+- ✅ **Майстер службового спейсу:** «Select **Use template** next to the template you want to use. Select **Team-managed**.»
+  (`create-edit-and-delete-team-managed-service-projects`, звірено наживо 2026-09-19) — j18, j19.
+- ⚠ **Лише sandbox (додано до списків хвилі 4):** запуск flow з **порожнім** результатом `Lookup work items` — чи йде лист і
+  що в колонці `Status` (j15) · картка заявки очима агента — **чи є розділ `Agents` і як підписаний** (j18) · сторінка з
+  макросом `/jira` — які колонки за замовчуванням (j16) · що стає з планом сайту після додавання JSM — цитата в j18 зі
+  сторінки для «Organization admin / Enterprise plan», абзац переписати після живого додавання · **лист-підтвердження
+  клієнтові при створенні заявки** — у доксах не знайдений, картка j19 на нього розраховує.
+
