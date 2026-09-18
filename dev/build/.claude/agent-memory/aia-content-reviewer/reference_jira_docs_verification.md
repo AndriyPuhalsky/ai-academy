@@ -31,4 +31,19 @@ metadata:
 - **Таблиця мов** `atlassian-account/docs/manage-your-language-preferences/`: Ukrainian ❌ для Jira,
   JSM, JPD, Confluence, Team Calendars; ✅ для Compass, Home, **Help center and Customer Portal**.
 
+- **Докси автоматизації суперечать самі собі — перевіряй усі сторінки розділу, перш ніж
+  назвати перелік автора хибним.** У `cloud-automation/docs/` (2026-09-18) живуть три пари:
+  `Issue fields condition` (`jira-automation-conditions`) проти `Work item fields condition
+  (Jira only)` (`best-practices-…`); **`Flow details` = шість полів** із `Scope` і `Actor`
+  (`create-and-edit-jira-automation-rules`) проти поділу details / settings без них
+  (`what-are-rule-details-in-atlassian-automation`); результати запуску `Successful` /
+  `No action` / `Some errors` (`view-performance-insights-…`) проти `SUCCESS` /
+  `NO_ACTIONS_PERFORMED` / `SOME_ERRORS` (`how-is-my-usage-calculated`). Я був за крок від
+  того, щоб позначити перелік у j14 як дефект, — його дослівно підтвердила **друга** сторінка.
+  Індекс живих слагів: `curl -sL https://support.atlassian.com/cloud-automation/resources/ |
+  grep -o 'href="/cloud-automation/docs/[a-z0-9-]*/"'` → 136 адрес; індексні `…/docs/` — 404.
+- **`jql-fields`: цитата про лапки** в сирому HTML — `Be sure to use quote-marks (")`, а після
+  зняття тегів виглядає як `quote-marks ( " )`. Не «виправляти» правильну цитату за очищеним
+  текстом: звіряти по сирому HTML, коли всередині цитати є `<tt>`/`<code>`.
+
 Див. також [[lesson-fact-sources]], [[screens-line-count-offset]], [[quiz-frozen-007]].
