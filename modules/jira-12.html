@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 12 · Практикум: шаблони під сферу — Jira з нуля</title>
+  <meta name="description"
+    content="Як вибрати шаблон спейсу за призначенням, а не за назвою, і зібрати з нього робочий спейс під свою сферу: вісім кроків від шаблону й ключа до збереженого фільтра й гаджета на дашборді." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+</head>
+
+<body data-module="j12">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 12</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 3 · Під себе</p>
+        <h1 class="ds-h1">Практикум: шаблони під сферу</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 22 хв читання</p>
+        <p class="ds-lead">
+          Одинадцять уроків ти збирав(ла) Jira частинами: тут картка, там вигляд, там
+          власний перелік станів роботи. Цей урок складає частини в одну дію — зібрати
+          спейс під конкретну сферу за вечір і вміти повторити це для наступної.
+        </p>
+        <p>
+          Починається все з <strong>шаблону</strong>. Шаблон — це готовий набір
+          налаштувань, з якого народжується новий спейс. Довідка Atlassian описує його
+          так: «Jira comes with a variety of space templates to help teams get set up
+          quickly by creating spaces tailored to a specific team or use. These templates
+          include pre-configured work types, workflows and other features relevant to
+          their type» — шаблон приносить наперед налаштовані типи роботи, робочий процес
+          і вигляди, підібрані під певний спосіб роботи.
+        </p>
+        <p>
+          Далі в уроці шаблони названі <strong>призначенням</strong>, а не назвою: «той,
+          що дає два кроки роботи», «той, що про кампанії й контент». Причина не в
+          обережності. Галерея шаблонів перемальовується частіше, ніж виходить курс — у
+          Jira тепер три сезонні оновлення на рік, — і назва, написана в тексті, застаріє
+          раніше за сам текст. Точний перелік назв на дату перевірки лежить у довіднику
+          «Карта інтерфейсу, глосарій і ліміти Free», а найсвіжіше джерело — сама галерея
+          у тебе на екрані.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> як влаштовані статуси й переходи — це урок 10; як
+            створюються типи роботи й поля — урок 11; як пишеться запит і ставиться
+            гаджет — уроки 7 і 8. Сюди ці навички приходять готовими. Немає складання
+            всієї фірми одразу з імпортом і щотижневим оглядом — це урок 21. Немає
+            шаблонів порталу заявок — урок 18.
+          </p>
+          <p>
+            <strong>Є:</strong> галерея шаблонів очима; як читати плитку шаблону й що з
+            неї видно наперед; п'ять сценаріїв — маркетинг, бюджет і закупівлі, найм,
+            будівельний об'єкт, особистий планер; вісім кроків, якими спейс доводять до
+            робочого стану; що після шаблону доводиться прибирати; і що в спейсі
+            змінюється потім, а що вже ні.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            У «Кориці» на цей момент чотири спейси, і жоден з них не робили «цілком»:
+            <code>MY</code> з'явився в уроці 3, <code>MARK</code> — в уроці 6,
+            <code>REM</code> — в уроці 9, <code>HR</code> дозбирали в уроках 10 і 11.
+            Кожен був приводом показати одну річ. Тепер до Оксани приходить Марта:
+            «Мені потрібен спейс під контент, і я не хочу два тижні чекати, поки ти
+            дійдеш до нього руками».
+          </p>
+
+          <p>
+            Питання цього уроку саме таке: як людина, яка робить це вперше, за один вечір
+            отримує спейс, у якому можна працювати, а не порожню оболонку, куди страшно
+            заходити. Відповідь складається з двох частин — правильно обраний старт і
+            короткий перелік того, що після старту треба доробити руками.
+          </p>
+
+          <h3>Шаблон — це старт, а не рішення</h3>
+
+          <p>
+            Шаблон економить перші пів години: замість порожнього спейсу ти одразу маєш
+            типи роботи, перелік станів і кілька виглядів, підібраних під спосіб роботи.
+            Довідка описує це прямо для ділових спейсів: «if you're coordinating a
+            go-to-market launch for your product or business, select the Go-to-Market
+            template to create a space with a pre-configured workflow that follows this
+            process» — шаблон приносить процес, який уже приблизно схожий на твій.
+          </p>
+
+          <p>
+            Чого шаблон не робить — трьох речей. Він не знає твоїх людей і твоїх
+            дедлайнів. Він не знає полів, без яких твоя робота не описується: суми,
+            постачальника, посади. І він не наводить лад — лад наводить те, що ти
+            домовився(лась) із собою класти в цей спейс усе, а не половину.
+          </p>
+
+          <p>
+            Звідси й форма уроку. Спершу дивимось на галерею й учимося читати плитку
+            шаблону. Потім — п'ять сценаріїв, щоб упізнати свій. Потім — вісім кроків,
+            які перетворюють шаблон на робочий спейс. Кожен крок спирається на вже
+            пройдений урок, тому новим тут є не прийом, а порядок.
+          </p>
+
+          <h3>Другий бік: навіщо це тому, у кого вже все працює</h3>
+
+          <p>
+            Навіть якщо перший спейс у тебе живий і зручний, другий доведеться робити
+            заново — для іншого відділу, іншої людини, іншої задачі. Уміння зібрати спейс
+            за списком кроків коштує дорожче за один вдалий спейс: воно перетворює Jira з
+            «того, що нам колись налаштували» на інструмент, який ти розгортаєш під нову
+            задачу тоді, коли вона з'явилась.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Сам майстер створення спейсу ти вже проходив(ла) в уроці 9, коли з'явилась
+            «Друга точка». Тут дивимось на його перший екран — галерею, — бо саме на
+            ньому ухвалюється рішення, яке потім найдорожче міняти.
+          </p>
+
+          <p>
+            Вхід у галерею довідка описує так: «Hover over Spaces in the side navigation,
+            then select Create space» — навести курсор на <code>Spaces</code> у бічній
+            панелі й натиснути <code>Create space</code>. Там же описаний коротший
+            шлях — значок <code>+</code> біля <code>Spaces</code>. Сусідня сторінка тієї
+            самої довідки називає натомість верхню панель («Select Spaces &gt; Create
+            space in the top navigation bar»); на живому сайті у вересні 2026 року кнопка
+            <code>Create space</code> стояла в бічній панелі. Це звичайна для Jira
+            ситуація: дві сторінки довідки описують різні покоління інтерфейсу, а правий
+            той екран, який перед тобою.
+          </p>
+
+          <h3>Галерея шаблонів</h3>
+
+<figure class="win" data-state="form" id="w1">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w1t">Jira Cloud · галерея Space templates у майстрі Create space · звірено 2026-09-17</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w1t">
+    <ul class="win__rail" aria-label="Space templates: категорії та продукти">
+      <li class="win__rail-item">Made for you</li>
+      <li class="win__rail-item">Custom templates <span class="win__chip">Enterprise</span> <b class="win__mark" aria-hidden="true">③</b></li>
+      <li class="win__rail-item">Import data ↗</li>
+      <li class="win__rail-item win__rail-item--active">Work management <b class="win__mark" aria-hidden="true">①</b></li>
+      <li class="win__rail-item">Service management</li>
+      <li class="win__rail-item">Software development</li>
+      <li class="win__rail-item">Human resources</li>
+      <li class="win__rail-item">Finance</li>
+      <li class="win__rail-item">Marketing</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__page">
+        <h4>Space templates</h4>
+        <ul class="win__tiles">
+          <li class="win__tile">Blank space — Start with a blank canvas</li>
+          <li class="win__tile">Project management — Plan and deliver business projects. <b class="win__mark" aria-hidden="true">②</b></li>
+          <li class="win__tile">Task tracking — Organize and track team or personal tasks.</li>
+          <li class="win__tile">Campaign management — Run marketing campaigns from idea to launch.</li>
+          <li class="win__tile">Recruitment tracking — Track candidates from application to hire.</li>
+          <li class="win__tile">Budget planning — Plan and align on budget allocations.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «галерея Space templates»">
+  <li><code>Work management</code> — категорія ділових спейсів</li>
+  <li>плитка: назва шаблону й одне речення про призначення</li>
+  <li><code>Enterprise</code> на пункті — платний план, не Free</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Написи — дослівно з галереї живого сайту Jira Cloud Free, знятої 17 вересня
+            2026 року; діалог тоді лише переглядали, жодного спейсу не створювали.
+            Категорій у лівій колонці сімнадцять — тут показано шість; у діловій
+            категорії того дня було близько трьох десятків плиток. Значки продуктів і
+            маленькі картинки на плитках у схемі не показані.
+          </p>
+
+          <p>
+            Ліва колонка діалогу ділиться на три частини. Угорі — <code>Made for
+            you</code> (кілька шаблонів, які Jira пропонує першими),
+            <code>Custom templates</code> і посилання <code>Import data</code>. Далі —
+            категорії за сферою роботи: ділові спейси, обслуговування, розробка, кадри,
+            фінанси, маркетинг і ще з десяток. Найнижче — перелік продуктів, щоб
+            подивитись шаблони окремо для Jira, для Jira Service Management і для решти.
+          </p>
+
+          <p>
+            Дві речі в цій колонці — не функції безкоштовного плану.
+            <code>Custom templates</code> — це можливість зробити власний шаблон із
+            наявного спейсу, і довідка каже про неї одним рядком: «Custom space templates
+            are an exclusive Enterprise plan feature». Кнопка <code>Create with
+            Rovo</code>, яка пропонує зібрати спейс за описом словами, витрачає кредити
+            Rovo — окрему платну валюту, якої на безкоштовному плані немає (урок 2;
+            числа — у довіднику «Карта інтерфейсу, глосарій і ліміти Free»). Посилання
+            <code>Import data</code> веде на перенесення справ з іншого інструмента — це
+            урок 21.
+          </p>
+
+          <h3>Як читати плитку</h3>
+
+          <p>
+            Плитка — це назва, значок продукту, одне речення призначення і подекуди
+            позначка на кшталт <code>Premium</code> чи <code>Try</code>. Речення
+            призначення важливіше за назву: «Plan and deliver business projects» і
+            «Organize and track team or personal tasks» описують дві різні щоденні
+            практики, хоч обидва шаблони роблять ділові спейси.
+          </p>
+
+          <p>
+            Плитку можна відкрити до створення спейсу. Довідка: «Select a template to
+            view more information, including the template's default work types and
+            workflow» — видно, які типи роботи й який перелік станів принесе шаблон.
+            Після цього натискають <code>Use template</code>, дають спейсу назву,
+            обирають тип (<code>Team-managed</code> — урок 9) і тиснуть
+            <code>Create</code>.
+          </p>
+
+          <p>
+            Одна відмінність між двома найпоширенішими діловими шаблонами варта того, щоб
+            її знати наперед. Шаблон обліку задач має <strong>два</strong> кроки роботи:
+            «There are two steps in the workflow: To Do and Done». Шаблон керування
+            проєктом — <strong>три</strong>: «The workflow has three steps: To do, In
+            Progress, and Done». Якщо в твоїй роботі є стан «уже роблю», бери другий,
+            інакше перший стан доведеться додавати руками того ж вечора.
+          </p>
+
+          <h3>Куди все це приходить через вечір</h3>
+
+          <p>
+            Ось той самий маркетинговий спейс «Кориці» після того, як Марта пройшла
+            кроки цього уроку: до трьох станів із шаблону додано четвертий — той, у якому
+            матеріал чекає на погодження.
+          </p>
+
+<figure class="win" data-state="board" id="w2">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w2t">Jira Cloud · дошка спейсу Маркетинг після збирання · за документацією, 2026-09-18</span>
+    <span class="win__addr" aria-hidden="true">…/jira/…/MARK/board</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w2t">
+    <ul class="win__rail" aria-label="Бічна панель Jira">
+      <li class="win__rail-item">For you</li>
+      <li class="win__rail-item win__rail-item--active">Spaces</li>
+      <li class="win__rail-item">Filters</li>
+      <li class="win__rail-item">Dashboards</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Spaces / Маркетинг</span>
+        <span class="win__tabs"><span>Summary</span><span>List</span><span class="win__tab--active">Board</span><span>Calendar</span></span>
+        <span class="win__btn win__btn--primary">+ Create</span>
+      </div>
+      <ul class="win__cols">
+        <li class="win__col" data-cat="todo">
+          <h4 class="win__col-title">To Do <span class="win__count">1</span></h4>
+          <ul class="win__cards">
+            <li class="win__card">
+              <span class="win__card-title">Колаборація з книгарнею навпроти <b class="win__mark" aria-hidden="true">②</b></span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">MARK-8</span> <span class="win__due">Oct 2</span> <span class="win__who" title="Марта Лисенко">МЛ</span></span>
+            </li>
+          </ul>
+        </li>
+        <li class="win__col" data-cat="progress">
+          <h4 class="win__col-title">In Progress <span class="win__count">1</span></h4>
+          <ul class="win__cards">
+            <li class="win__card">
+              <span class="win__card-title">Пост про новий круасан</span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">MARK-1</span> <span class="win__due">Sep 24</span> <span class="win__who" title="Марта Лисенко">МЛ</span></span>
+            </li>
+          </ul>
+        </li>
+        <li class="win__col" data-cat="progress">
+          <h4 class="win__col-title">In Review <span class="win__count">1</span> <b class="win__mark" aria-hidden="true">①</b></h4>
+          <ul class="win__cards">
+            <li class="win__card">
+              <span class="win__card-title">Флаєри для другої точки</span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">MARK-6</span> <span class="win__due">Sep 25</span> <span class="win__who" title="Соломія Бойко">СБ</span></span>
+            </li>
+          </ul>
+        </li>
+        <li class="win__col" data-cat="done">
+          <h4 class="win__col-title">Done <span class="win__count">1</span></h4>
+          <ul class="win__cards">
+            <li class="win__card">
+              <span class="win__card-title">Розсилка «Осіннє меню»</span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">MARK-4</span> <span class="win__due">Sep 19</span> <span class="win__who" title="Марта Лисенко">МЛ</span></span>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «дошка спейсу Маркетинг після збирання»">
+  <li><code>In Review</code> — стан, доданий під свій процес</li>
+  <li>картка — справжня справа зі своїм дедлайном і виконавцем</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Схема зібрана з документації Atlassian 18 вересня 2026 року: склад панелі й
+            картки — з дошки живого сайту, назви робіт — з історії про «Корицю».
+            Четвертий стан доданий у цьому уроці; у вікнах уроків 1 і 6 цей самий спейс
+            має три стани — так і задумано, спейс змінюється разом з уроками.
+          </p>
+
+          <p>
+            Різниця між цією дошкою й тим, що дає шаблон, невелика на вигляд і велика на
+            практиці: доданий стан <code>In Review</code>, у картках стоять дедлайни й
+            виконавці, а назви робіт написані людською мовою. Саме цих трьох речей
+            шаблон принести не може — вони і є вміст восьми кроків із блоку 4.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <p>
+            Вибір шаблону виглядає як вибір із трьох десятків плиток, а насправді це
+            вибір з п'яти-шести способів вести роботу. Питання, на яке ти відповідаєш, —
+            не «як називається мій відділ», а «як рухається моя робота»: рівним потоком
+            дрібних справ, етапами з датами, конвеєром матеріалів, добором людей чи
+            заявками від інших.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart TD
+  A["Що ти ведеш"] --> B["Дрібні справи без етапів"]
+  A --> C["Проєкт з етапами й датами"]
+  A --> D["Контент і кампанії"]
+  A --> E["Добір людей"]
+  A --> F["Заявки від колег"]
+  B --> B1["Шаблон на два кроки роботи"]
+  C --> C1["Шаблон на три кроки роботи"]
+  D --> D1["Шаблон про кампанії та контент"]
+  E --> E1["Шаблон про добір кандидатів"]
+  F --> F1["Спейс обслуговування, урок 18"]
+            </pre>
+            <p class="ds-diag__caption">Спершу відповідай на питання «як рухається робота», і лише потім шукай плитку в галереї.</p>
+          </div>
+
+          <h3>Що приходить із шаблоном, а що доводиться дописати</h3>
+
+          <p>
+            Із шаблону приходять три речі: <strong>типи роботи</strong> (що взагалі
+            буває в цьому спейсі — задача, підзадача, іноді щось більше),
+            <strong>перелік станів</strong> із переходами між ними і
+            <strong>набір виглядів</strong> — дошка, список, часом календар чи таймлайн.
+            Це саме те, що довідка називає «pre-configured work types, workflows and other
+            features».
+          </p>
+
+          <p>
+            Не приходить теж три речі, і завжди ті самі: <strong>твої поля</strong> (сума,
+            постачальник, посада), <strong>твої стани</strong> — бо ніякий шаблон не знає,
+            що між «роблю» і «готово» у тебе є «чекаю на погодження», — і <strong>твої
+            запити</strong>: збережений фільтр та гаджет, який показує його числом.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart LR
+  T["Шаблон дає"] --> T1["Типи роботи"]
+  T --> T2["Стани й переходи"]
+  T --> T3["Кілька виглядів"]
+  Y["Ти додаєш"] --> Y1["Свої поля"]
+  Y --> Y2["Свої стани"]
+  Y --> Y3["Фільтр і гаджет"]
+  T1 --> R["Робочий спейс"]
+  T2 --> R
+  T3 --> R
+  Y1 --> R
+  Y2 --> R
+  Y3 --> R
+            </pre>
+            <p class="ds-diag__caption">Половину спейсу дає шаблон, другу половину — вісім кроків із наступного блоку.</p>
+          </div>
+
+          <h3>П'ять сценаріїв «Кориці»</h3>
+
+          <p>
+            Нижче — п'ять сфер, у яких Jira використовують люди не з ІТ, і для кожної:
+            з чого стартувати й що дописати. Один із цих рядків майже напевно схожий на
+            твою роботу.
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: п'ять сценаріїв — з чого стартувати і що дописати">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Сфера</th><th>Старт із шаблону</th><th>Що дописати руками</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Маркетинг</td>
+                  <td>шаблон про кампанії та контент: процес для матеріалів і текстів</td>
+                  <td>стан огляду перед публікацією, календар за дедлайнами, кампанія як батьківська робота над постами</td>
+                </tr>
+                <tr>
+                  <td>Закупівлі</td>
+                  <td>шаблон про бюджет і закупівлі: заявка = одна робота</td>
+                  <td>поля «Сума» і «Постачальник», свої стани (запит, погоджено, оплачено), поле <code>Labels</code> для відділу</td>
+                </tr>
+                <tr>
+                  <td>Найм</td>
+                  <td>шаблон про добір кандидатів: кандидат = одна робота</td>
+                  <td>стани добору (урок 10), поля «Посада» й «Джерело» (урок 11), вкладені резюме</td>
+                </tr>
+                <tr>
+                  <td>Ремонт</td>
+                  <td>шаблон керування проєктом: три кроки роботи</td>
+                  <td>етапи як батьківські роботи, таймлайн у рядку виглядів, підрядники в полі <code>Labels</code></td>
+                </tr>
+                <tr>
+                  <td>Планер</td>
+                  <td>шаблон обліку задач: два кроки роботи</td>
+                  <td>дедлайни на кожній справі, календар, нагадування автоматизацією (урок 14)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            Два рядки цієї таблиці мають підступ, про який варто знати заздалегідь.
+          </p>
+
+          <p>
+            <strong>Закупівлі.</strong> Довідка Atlassian для фінансових команд радить:
+            «Use components to track by department, so you can see where the main volume
+            of requests is coming from». Компоненти — це старий спосіб різати роботу на
+            групи, і в спейсах, якими керує команда, його немає: «Jira components are
+            only available in company-managed spaces». Заміна — поле <code>Labels</code>
+            (урок 4) або вбудоване поле ділових спейсів <code>Category</code>, про яке
+            йдеться в кроці 5 наступного блоку.
+          </p>
+
+          <p>
+            <strong>Планер.</strong> Спокуса повторюваних справ — перетягнути виконану
+            справу назад у перший стан і використати ще раз. Довідка проти, і причина
+            практична: «As tempting as it may be to recycle the small recurring tasks, and
+            put them back in To Do, don't. It'll affect reporting for the space and your
+            team won't get an accurate picture of how much they've completed. Instead,
+            select More actions (•••) then Clone to create a copy» — повторно використана
+            картка псує звіти, копія (<code>Clone</code>) не псує.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            Тепер — власний спейс під власну сферу. Не ще один спейс «Кориці»: візьми ту
+            свою роботу, яку зараз ведеш у чаті, таблиці чи блокноті. Вісім кроків нижче
+            йдуть у такому порядку навмисно — кожен наступний спирається на результат
+            попереднього, а зміна порядку коштує переробок.
+          </p>
+
+          <p>
+            Якщо якийсь крок здається знайомим — так і є: усі прийоми вже були в
+            попередніх уроках, номери вказані поруч. Новим тут є порядок, а не прийом.
+          </p>
+
+          <h3>Крок 1. Шаблон і назва</h3>
+
+          <p>
+            Наведись на <code>Spaces</code> у бічній панелі й натисни
+            <code>Create space</code>. У лівій колонці обери категорію, яка відповідає
+            твоїй сфері; для більшості робіт не з ІТ це категорія ділових спейсів
+            (<code>Work management</code>). Читай не назви, а речення під ними, і звіряй
+            їх із діаграмою блоку 3. Знайшов(ла) свій — відкрий плитку й подивись, які
+            типи роботи та які стани вона принесе, потім натисни <code>Use template</code>.
+          </p>
+
+          <p>
+            Далі — назва. Вона має бути такою, щоб колега впізнав(ла) спейс зі списку:
+            «Закупівлі кав'ярні», а не «Проєкт 2». Дві речі, які довідка каже про назви:
+            «Space names are unique in Jira» — двох однакових на сайті не буде; і
+            «They are always visible to Jira administrators… Avoid using confidential or
+            sensitive terms in your space's name» — назву бачать усі адміністратори, тож
+            для чутливого краще умовне слово.
+          </p>
+
+          <p>
+            Останнє в майстрі — тип: постав <code>Team-managed</code> (урок 9). Не плутай
+            його з окремою галочкою <code>Share settings with an existing space</code>:
+            це не тип, а спільна конфігурація кількох спейсів, і саме її на безкоштовному
+            плані немає — «Only Jira admins can create spaces with a shared configuration.
+            This setting isn't available on the Free plan». Натисни <code>Create</code>.
+          </p>
+
+          <h3>Крок 2. Ключ</h3>
+
+          <p>
+            Ключ — це дві-три великі літери перед номером роботи (<code>REM-2</code>).
+            Jira вигадує його сама: «Jira will generate a space key when you create the
+            space». Якщо згенероване тобі не подобається, зміни зараз, поки в спейсі
+            немає ні робіт, ні збережених запитів.
+          </p>
+
+          <p>
+            Шлях: біля назви спейсу в бічній панелі <code>More actions (•••)</code> →
+            <code>Space settings</code> → <code>Details</code> → поле
+            <code>Space key</code> → <code>Save</code>. Вимоги довідки до ключа:
+            «be at least two characters long; start with an uppercase letter; contain only
+            uppercase letters or numbers» — щонайменше два знаки, перший великий, лише
+            великі латинські літери й цифри.
+          </p>
+
+          <p>
+            Чому «зараз»: старі ключі Jira зберігає сама («we automatically save your
+            previous space keys»), тому посилання не ламаються, але все інше доведеться
+            правити руками — «You'll need to update board filters, dashboard filter
+            gadgets, and any other global queries with the new key». Через місяць таких
+            місць буде десяток.
+          </p>
+
+          <h3>Крок 3. Типи роботи</h3>
+
+          <p>
+            Відкрий <code>Space settings</code> → <code>Work types</code> і подивись, що
+            приніс шаблон. Правило одне (урок 11): окремий тип роботи заводять тоді, коли
+            в нього <em>інший набір полів</em> або <em>інший шлях</em>. «Терміновий пост»
+            і «звичайний пост» — це одна робота з різним пріоритетом, а не два типи.
+            Кандидат і вакансія — два типи, бо описуються різними полями.
+          </p>
+
+          <p>
+            На цьому кроці нічого додавати не обов'язково. Порожній крок теж результат:
+            ти подивився(лась) і вирішив(ла), що вистачає задачі та підзадачі.
+          </p>
+
+          <h3>Крок 4. Стани</h3>
+
+          <p>
+            Порівняй стани з шаблону зі своїм способом працювати. Якщо між «роблю» і
+            «готово» у тебе є очікування — погодження, доставка, відповідь клієнта, — цей
+            стан треба додати, інакше він житиме в голові.
+          </p>
+
+          <p>
+            У діловому спейсі новий стан додається прямо на дошці: натисни
+            <code>Create status</code> праворуч від останньої колонки й дай стану назву.
+            Довідка пояснює, що при цьому відбувається: «Creating a new column on the
+            Board will create an associated status. The newly added column will contain a
+            status in the status category you select» — разом із колонкою народжується
+            стан, а категорію (<code>To do</code>, <code>In progress</code>,
+            <code>Done</code>) ти обираєш у момент створення. Категорію обирай свідомо:
+            на ній тримаються звіти й пошук за завершеним (урок 10).
+          </p>
+
+          <p>
+            Дві умови, за яких цей спосіб працює: роботи на дошці згруповані за статусом
+            (так за замовчуванням) і в спейсі один процес — «You can only add, edit, or
+            delete columns on the board if your space uses a single workflow». Складніший
+            випадок — різні стани для різних типів роботи — робиться в редакторі процесу
+            з уроку 10.
+          </p>
+
+          <h3>Крок 5. Поля</h3>
+
+          <p>
+            Додай <strong>одне-два</strong> поля, без яких твоя робота не описується:
+            «Сума» й «Постачальник» для закупівель, «Посада» для найму, «Адреса» для
+            виїздів. Шлях і типи полів — урок 11. Перевір себе питанням: чи заповниш ти
+            це поле в кожній роботі? Якщо ні — поле стане порожньою колонкою, яка робить
+            список ширшим і нічого не додає.
+          </p>
+
+          <p>
+            У ділових спейсах є ще одне вбудоване поле, яке часто заміняє кілька власних, —
+            <code>Category</code>. Довідка описує його так: «Organize and break down your
+            team's work by grouping your work items by category. Use categories to classify
+            your space's work items…». Колонку додають у списку значком <code>+</code>
+            праворуч угорі, а варіанти редагують там же: навести на заголовок колонки →
+            <code>More actions</code> → <code>Edit field</code>. Одній роботі дають рівно
+            одне значення — «Only one category can be added to a work item».
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__title">Два різні «категорія»</span>
+            <p>
+              Поле <code class="ds-code--inline">Category</code> у ділових спейсах і
+              <strong>категорія статусу</strong> з уроку 10 — різні речі з однаковим
+              словом. Категорій статусу рівно три, їх не вигадують; значення поля
+              <code class="ds-code--inline">Category</code> ти придумуєш сам(а):
+              «Електрика», «Меблі», «Instagram».
+            </p>
+          </div>
+
+          <h3>Крок 6. Вигляди</h3>
+
+          <p>
+            У рядку під назвою спейсу лиши те, чим користуватимешся. Потрібного немає —
+            натисни <code>+</code> у кінці рядка й вибери пункт зі списку
+            (<code>Add to navigation</code>); другий шлях — <code>Space settings</code> →
+            <code>Features</code>. Усе це було в уроці 6. Для роботи з датами майже завжди
+            потрібен <code>Calendar</code>, для етапів — <code>Timeline</code>.
+          </p>
+
+          <p>
+            Зайві вигляди прибирай так само спокійно, як додаєш: кожна зайва вкладка — це
+            секунда вибору щоразу, коли ти відкриваєш спейс.
+          </p>
+
+          <h3>Крок 7. Збережений запит</h3>
+
+          <p>
+            Сформулюй головне питання до цього спейсу — «що горить цього тижня», «що без
+            виконавця», «що чекає на мене» — і збережи його як фільтр (урок 7). Один
+            запит, а не п'ять: п'ять збережених фільтрів у перший день означають, що
+            жодним не користуватимешся.
+          </p>
+
+          <p>
+            У ділових спейсах є ще й простіший вид фільтра — той, що живе всередині
+            вигляду: <code>Filter</code> вгорі дошки чи списку → <code>Save filter</code>.
+            Довідка попереджає про дві його межі: «Your saved filters are specific to the
+            space you create them in» — він працює лише в своєму спейсі, і «you can only
+            apply one at a time». Для питання в межах одного спейсу цього досить; для
+            питання про всю фірму потрібен запит з уроку 7.
+          </p>
+
+          <h3>Крок 8. Гаджет на дашборді</h3>
+
+          <p>
+            Постав на дашборд один гаджет, який показує результат збереженого запиту
+            числом або списком (урок 8). Це і є момент, коли спейс починає працювати не
+            лише на того, хто в ньому сидить: числа видно, не відкриваючи спейс.
+          </p>
+
+          <h3>І нарешті — десять карток</h3>
+
+          <p>
+            Створи в новому спейсі <strong>десять робіт із реальних справ</strong>. Не
+            вигаданих: візьми свій чат за останній тиждень, блокнот або список у телефоні
+            й перенеси звідти десять найближчих справ. Кожній постав дедлайн і виконавця;
+            якщо виконавець ти — постав себе.
+          </p>
+
+          <p>
+            Десять — не випадкове число. На трьох картках спейс виглядає порожнім і його
+            кидають; на десяти вже видно, чи підходить набір станів, чи не бракує поля й
+            чи взагалі ця робота лягає в Jira.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Шість ознак; кожну видно за кілька секунд, і кожна відповідає одному кроку
+            з попереднього блоку.
+          </p>
+
+          <ul>
+            <li><strong>Десять робіт із реальних справ.</strong> Відкрий список
+              (<code>List</code>) — має бути десять рядків, і в кожному назва, зрозуміла
+              без пояснень.</li>
+            <li><strong>Щонайменше три стани, і кожен щось означає.</strong> На дошці
+              колонки називаються словами твоєї роботи. Якщо всі роботи стоять в одній
+              колонці — стани поки лише на екрані, а не в житті.</li>
+            <li><strong>Щонайменше одне своє поле, заповнене хоча б у трьох роботах.</strong>
+              Порожнє в усіх десяти — сигнал, що поле заведене «про всяк випадок».</li>
+            <li><strong>Рядок виглядів змінений.</strong> Щось додано (календар,
+              таймлайн) або щось прибрано — тобто ти вирішив(ла), як дивитись на цю
+              роботу, а не лишив(ла) як прийшло.</li>
+            <li><strong>Один збережений запит.</strong> Він відкривається і показує
+              непорожній результат — інакше запит написаний не про цей спейс.</li>
+            <li><strong>Один гаджет на дашборді.</strong> Число в ньому збігається з тим,
+              що показує сам запит.</li>
+          </ul>
+
+          <p>
+            Ось як виглядає зібраний спейс у списку — на прикладі ремонту другої точки
+            «Кориці»: етап першим рядком, його роботи нижче, свій розріз у колонці
+            <code>Category</code> і дедлайни, за якими цей спейс і ведуть.
+          </p>
+
+<figure class="win" data-state="list" id="w3">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w3t">Jira Cloud · вигляд List спейсу Друга точка · за документацією, 2026-09-18</span>
+    <span class="win__addr" aria-hidden="true">…/jira/…/REM/list</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w3t">
+    <ul class="win__rail" aria-label="Бічна панель Jira">
+      <li class="win__rail-item">For you</li>
+      <li class="win__rail-item win__rail-item--active">Spaces</li>
+      <li class="win__rail-item">Filters</li>
+      <li class="win__rail-item">Dashboards</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Spaces / Друга точка</span>
+        <span class="win__tabs"><span>Summary</span><span class="win__tab--active">List</span><span>Board</span><span>Timeline</span></span>
+        <span class="win__btn">Configure columns <b class="win__mark" aria-hidden="true">②</b></span>
+      </div>
+      <table class="win__table">
+        <thead>
+          <tr><th>Work</th><th>Category <b class="win__mark" aria-hidden="true">①</b></th><th>Assignee</th><th>Due date</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="win__key">REM-1</span> Ремонт другої точки</td><td>—</td><td>ТМ</td><td>Nov 14, 2026</td></tr>
+          <tr><td><span class="win__key">REM-2</span> Електрика: погодити кошторис</td><td>Електрика</td><td>ТМ</td><td>Oct 3, 2026</td></tr>
+          <tr><td><span class="win__key">REM-4</span> Вивіска: замовити макет</td><td>Вивіска</td><td>ТМ</td><td>Oct 10, 2026</td></tr>
+          <tr><td><span class="win__key">REM-6</span> Меблі: доставка й монтаж</td><td>Меблі</td><td>ТМ</td><td>Oct 24, 2026</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «вигляд List спейсу Друга точка»">
+  <li><code>Category</code> — свій розріз роботи, значення придумуєш ти</li>
+  <li><code>Configure columns</code> — які поля показати колонками</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Схема зібрана з документації Atlassian 18 вересня 2026 року: набір колонок і
+            кнопка — зі сторінок про список у ділових спейсах, назви робіт і значення
+            <code>Category</code> — з історії про «Корицю». Колонки списку кожен обирає
+            собі сам: «The columns you choose to display in your list is only visible to
+            you».
+          </p>
+
+          <p>
+            І одна перевірка без екрана, через тиждень. Відкрий спейс і подивись, чи
+            з'явилась у ньому хоч одна робота, якої ти не створював(ла) у вечір збирання.
+            Якщо ні — справа не в налаштуваннях: спейс поки не став місцем, куди складають
+            роботу. Тоді допомагає не ще одне поле, а домовленість із собою й командою
+            класти сюди все, що стосується цієї сфери.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3>Шаблон сприймають як готове рішення</h3>
+
+          <p>
+            Найчастіша помилка після цього уроку — зупинитись на кроці 1. Спейс створено,
+            дошка є, картки додаються; на цьому все й завмирає. Через місяць виявляється,
+            що половина станів ніколи не вмикалась, у рядку виглядів висять три вкладки,
+            які ніхто не відкриває, а поле, якого бракує, так і не з'явилось.
+          </p>
+
+          <p>
+            Лікується це тим самим списком із восьми кроків, тільки пройденим у
+            зворотному боці: прибери те, чим не користуєшся. Вигляд прибирається так
+            само, як додається (урок 6); зайвий стан — у редакторі процесу або на дошці
+            (урок 10); зайве поле — у налаштуваннях типу роботи (урок 11). Спейс, у якому
+            немає нічого зайвого, легше пояснити колезі за одну хвилину.
+          </p>
+
+          <h3>Jira пам'ятає твій попередній вибір шаблону</h3>
+
+          <p>
+            Ця пастка коштує найдешевше, але дивує найбільше. Довідка каже прямо: «Jira
+            will remember your template choice and use it as the default the next time you
+            create a space» — наступного разу майстер підставить той самий шаблон, який ти
+            обрав(ла) минулого разу.
+          </p>
+
+          <p>
+            Виглядає це так: перший спейс ти збирав(ла) вдумливо, другий створив(ла)
+            поспіхом — і він мовчки народився з чужим набором станів. Лікування на одну
+            секунду: перш ніж натиснути <code>Use template</code>, подивись, яка плитка
+            підсвічена.
+          </p>
+
+          <h3>Чекають, що шаблон перемкнеться</h3>
+
+          <p>
+            Шаблон — це не налаштування спейсу, яке можна змінити; це те, з чого спейс
+            народився. Сторінка довідки, яка називається «Convert a space to a different
+            template or type», описує не перемикач, а переїзд, і перелічує його кроки
+            сама: «Create a new space, ready to receive your current space's work items…
+            Bulk move your current space's work items into your new space, effectively
+            changing its template».
+          </p>
+
+          <p>
+            Той самий переїзд ти вже бачив(ла) в уроці 9 — там ішлося про зміну типу
+            спейсу. Додаткова робота при переїзді одна й та сама: у майстрі перенесення
+            доводиться вручну зіставити старі стани з новими, «select a destination status
+            for each status in your old space». Тому шаблон вибирають уважно один раз, а
+            не «спробуємо, потім переробимо».
+          </p>
+
+          <h3>Ключ і назву відкладають «на потім»</h3>
+
+          <p>
+            Ключ і назва виглядають косметикою рівно доти, доки на спейс не почали
+            посилатись. Назву Jira підтягне сама («If you change the name of your space,
+            the new name will automatically update in any filters on your Jira site»), а
+            от після зміни ключа довідка радить пройтись руками: «You'll need to update
+            board filters, dashboard filter gadgets, and any other global queries with the
+            new key».
+          </p>
+
+          <p>
+            Звідси правило: ключ і назву доводять до пуття в перші пів години, поки в
+            спейсі три роботи й жодного збереженого запиту. Через місяць це вже не
+            п'ять хвилин.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Моєї сфери в списку немає — що брати?</h3>
+
+          <p>
+            Категорії в галереї — це підказка, а не обмеження. Ветеринарна клініка,
+            школа танців, ремонтна бригада й благодійний фонд ведуть роботу тими самими
+            способами, що й перелічені сфери: потік дрібних справ, проєкт з етапами,
+            конвеєр матеріалів. Бери шаблон за рухом роботи з діаграми блоку 3.
+          </p>
+
+          <p>
+            Якщо жоден не підходить, у галереї є порожній варіант — спейс без
+            налаштувань, який ти збираєш сам(а) кроками 3–8. Довідка нагадує, що зміст
+            роботи в Jira не обмежений задачами: work item «can represent an activity, a
+            document, an asset (creative or concrete), a purchase or even a person» —
+            роботою може бути захід, документ, обладнання, закупівля й навіть людина.
+          </p>
+
+          <h3>Чи створює шаблон приклади карток?</h3>
+
+          <p>
+            У документації Jira такого не описано: шаблон приносить налаштування, а не
+            роботу. Найпрямше це видно в описі власних шаблонів, де окремо перелічено, що
+            саме <em>не</em> переноситься: «Work items from the source space». Тобто новий
+            спейс приходить порожнім.
+          </p>
+
+          <p>
+            Виняток є в Jira Service Management: там разом з першим спейсом обслуговування
+            створюється окремий навчальний спейс — «The sample space is an IT service
+            management template project that is filled with realistic example data».
+            Це урок 18. Якщо ж у твоєму новому спейсі раптом виявились чужі приклади,
+            видали їх до того, як дивитись звіти: інакше числа рахуватимуть їх разом із
+            твоєю роботою.
+          </p>
+
+          <h3>Один спейс на фірму чи по одному на відділ?</h3>
+
+          <p>
+            Практичне правило: один спейс на сферу, у якої свій спосіб рухати роботу.
+            Найм і закупівлі мають різні стани, різні поля й різних людей — це два спейси.
+            Дві сусідні точки одного бізнесу з однаковим процесом — один спейс і поле для
+            розрізнення.
+          </p>
+
+          <p>
+            Ціна кількох спейсів невелика: запит з уроку 7 ходить по всьому сайту й
+            збирає роботу з усіх спейсів одразу, а гаджет з уроку 8 показує це числом.
+            Складання всієї фірми з кількох спейсів — це урок 21.
+          </p>
+
+          <h3>Помилився(лась) із шаблоном — видалити спейс?</h3>
+
+          <p>
+            Спейс не видаляють одразу: його переносять у кошик. Довідка описує шлях так:
+            біля <code>Spaces</code> у бічній панелі <code>More actions (•••)</code> →
+            <code>Manage spaces</code> → навпроти спейсу <code>More actions</code> →
+            <code>Move to trash</code>. У кошику спейс лежить обмежений час разом із
+            роботами й вкладеннями, і звідти його можна повернути; точний строк — у
+            довіднику «Карта інтерфейсу, глосарій і ліміти Free». Після цього строку
+            видалення остаточне.
+          </p>
+
+          <p>
+            На сайті, який від початку був безкоштовним, це може зробити будь-хто з команди
+            (урок 9), тож обережність тут не зайва.
+          </p>
+
+          <h3>Чи можна зробити власний шаблон із мого спейсу?</h3>
+
+          <p>
+            Технічно така функція в Jira є, але не на безкоштовному плані: «Custom space
+            templates are an exclusive Enterprise plan feature». На Free той самий
+            результат дає інша звичка: тримати під рукою свій список із восьми кроків і
+            проходити його щоразу. Це довше на пів години й не залежить від плану.
+          </p>
+
+          <h3>«Kanban» — це шаблон, вигляд чи метод?</h3>
+
+          <p>
+            Одразу три різні речі з одним словом, і плутанина тут нормальна. Kanban —
+            метод роботи (безперервний потік замість порцій), назва одного з шаблонів у
+            галереї й назва дошки, на якій цей потік видно. У цьому уроці йшлося лише про
+            шаблон; про метод і про те, коли він не потрібен команді не з ІТ, — наступний
+            урок.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Якщо в тебе тепер є спейс, який ти зібрав(ла) сам(а) за вечір і можеш
+            пояснити колезі за хвилину, урок зробив своє. Головне, що лишається після
+            нього, — не цей спейс, а порядок дій, який працює для наступного.
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li>Шаблон — це старт, а не рішення: він приносить типи роботи, стани з
+                переходами й кілька виглядів, і не знає ні твоїх полів, ні твоїх людей.</li>
+              <li>Шаблон обирають за рухом роботи, а не за назвою відділу: потік дрібних
+                справ, проєкт з етапами, конвеєр матеріалів, добір людей, заявки.</li>
+              <li>Назви плиток у галереї змінюються з оновленнями, тому в уроці їх
+                немає; точний перелік на дату — у довіднику «Карта інтерфейсу, глосарій і
+                ліміти Free», а найсвіжіший — у тебе на екрані.</li>
+              <li>Шаблон обліку задач дає два кроки роботи, шаблон керування проєктом —
+                три; якщо в тебе є стан «уже роблю», бери другий.</li>
+              <li>Вісім кроків: шаблон і назва, ключ, типи роботи, стани, поля, вигляди,
+                збережений запит, гаджет. Порядок економить переробки.</li>
+              <li>Ключ Jira генерує сама; міняти його варто в перші пів години, бо потім
+                доведеться руками оновити фільтри дошки, гаджети й загальні запити.</li>
+              <li>Наступного разу майстер підставить шаблон, обраний минулого разу, —
+                дивись на підсвічену плитку перед <code>Use template</code>.</li>
+              <li>Шаблон після створення не перемикається: зміна шаблону — це новий
+                спейс і переїзд робіт зі зіставленням станів.</li>
+              <li>Десять реальних карток — перевірка, а не формальність: на них видно, чи
+                бракує стану, поля або самої звички складати роботу в одне місце.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Далі — <strong>урок 13 «Scrum і Kanban — і коли вони не потрібні»</strong>.
+            Там два методи, про які найчастіше чують поруч зі словом Jira: потік із
+            обмеженням «скільки можна робити одночасно» і робота порціями по кілька
+            тижнів. Урок чесно розбирає, кому з них потрібен, а кому — ні; для більшості
+            команд не з ІТ відповідь друга.
+          </p>
+          <p>
+            Одна дія до наступного уроку: подивись на дошку свого нового спейсу й порахуй,
+            скільки робіт стоїть у стані «роблю». Якщо їх більше, ніж людей у команді, —
+            наступний урок відповість, що з цим робити.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять
+            на назви: до кожної відповіді одразу з'являється пояснення, чому решта
+            варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Марта зібрала спейс під контент, а через тиждень поспіхом створила другий — для акцій. Він народився з тим самим набором станів, хоч вона нічого не обирала. Що сталось?",
+            "options": [
+              "Усі ділові спейси на безкоштовному плані створюються з одного набору станів, вибору там немає",
+              "Стани копіюються з того спейсу, у якому людина працювала перед тим, як натиснути кнопку створення",
+              "Майстер підставив шаблон, обраний минулого разу, і Марта погодилась із ним, не дивлячись на галерею",
+              "Другий спейс успадкував усі налаштування першого, бо в обох спейсів та сама власниця й та сама команда"
+            ],
+            "answer": 2,
+            "explain": "Довідка Atlassian каже про це прямо: «Jira will remember your template choice and use it as the default the next time you create a space». Копіювання налаштувань між спейсами — окрема річ, вона зветься спільною конфігурацією, недоступна на безкоштовному плані й вмикається окремою галочкою в майстрі. Лікування на секунду: подивитись, яка плитка підсвічена, перш ніж тиснути Use template."
+          },
+          {
+            "q": "Тарас створив спейс, а наступного дня захотів змінити в ньому три речі: назву, ключ і тип. Що з цього Jira дасть змінити на місці?",
+            "options": [
+              "Лише назву: ключ і тип задаються один раз у майстрі й далі не редагуються ніде",
+              "Назву й ключ: обидва живуть у розділі Details налаштувань спейсу, а тип на місці не змінюється",
+              "Усі три: кожна з них правиться в тому самому розділі Details налаштувань спейсу",
+              "Лише тип: назва й ключ належать сайту загалом, а не окремому спейсу, тому й правляться в адмінці сайту"
+            ],
+            "answer": 1,
+            "explain": "Назва й ключ правляться в Space settings → Details, причому ключ має вимоги: щонайменше два знаки, перший великий, лише великі літери й цифри. Тип спейсу так не змінюється — зміна типу, як і зміна шаблону, робиться переїздом робіт у новий спейс (урок 9). Після зміни ключа довідка радить оновити фільтри дошки, гаджети дашборда й загальні запити."
+          },
+          {
+            "q": "Ліна відкрила галерею шаблонів і не знайшла плитки з тією назвою, яку бачила в статті рік тому. Як діяти?",
+            "options": [
+              "Шукати за призначенням: читати речення під назвами плиток, бо самі назви змінюються з оновленнями",
+              "Створити порожній спейс: якщо назви в галереї немає, цей шаблон прибрали з безкоштовного плану назавжди",
+              "Написати в підтримку: зниклий шаблон повертають на запит адміністратора сайту протягом доби",
+              "Узяти будь-яку плитку: набір станів у всіх ділових шаблонах однаковий, різниця лише в картинці"
+            ],
+            "answer": 0,
+            "explain": "Галерея перемальовується разом із сезонними оновленнями, і назви плиток у ній не вічні, а призначення описане реченням під назвою. Різниця між шаблонами реальна: шаблон обліку задач дає два кроки роботи, шаблон керування проєктом — три. Точний перелік назв на дату перевірки лежить у довіднику «Карта інтерфейсу, глосарій і ліміти Free»."
+          },
+          {
+            "q": "Богдан спершу переніс у новий спейс десять справ, а вже потім додав стан «Чекаю відповіді» й поле «Постачальник». Чим це обернулось?",
+            "options": [
+              "Нічим: Jira проставляє нові поля в наявних роботах сама, за змістом назви кожної роботи",
+              "Десять карток довелось створити заново, бо додавання нового стану скидає всі наявні роботи спейсу",
+              "Новий стан не застосувався до наявних робіт, і його довелось створювати вдруге вручну",
+              "Довелось відкрити кожну з десяти карток заново: проставити поле й розкласти роботи по станах"
+            ],
+            "answer": 3,
+            "explain": "Стани й поля додаються в спейс, а не в кожну роботу окремо, тож наявні роботи не зникають і не скидаються — вони лишаються з порожнім полем і в старому стані. Саме тому порядок кроків у блоці 4 такий: спершу стани й поля, потім картки. Переробка на десяти роботах коштує години, на ста — вечора."
+          },
+          {
+            "q": "Ігор завів у спейсі закупівель поле «Відділ» звичайним текстом, який заповнюють вручну. Через місяць пошук показує «Кухня», «кухня» і «Кухня.» як три різні відділи. Що варто було зробити інакше?",
+            "options": [
+              "Не заводити поле взагалі: відділ видно з того, хто створив роботу, тож окреме поле тут зайве",
+              "Узяти поле з готовим переліком варіантів, щоб значення обирали зі списку, а не набирали",
+              "Заборонити колегам редагувати це поле, лишивши право заповнювати його одному адміну",
+              "Писати назву відділу в назві роботи, щоб пошук знаходив її разом із текстом назви"
+            ],
+            "answer": 1,
+            "explain": "Вільний текст завжди перетворюється на кілька написань одного значення, і жоден пошук їх не зведе. Поле з переліком варіантів такого не дозволяє: людина обирає зі списку. У ділових спейсах для цього є ще й вбудоване поле Category, де одній роботі дають рівно одне значення, а перелік значень редагують прямо в колонці списку."
+          },
+          {
+            "q": "Соломія щотижня замовляє каву й щоразу перетягує ту саму картку зі стану «готово» назад у перший стан. Чому довідка Atlassian радить інакше?",
+            "options": [
+              "Повернути картку зі стану «готово» назад не вийде без прав адміністратора спейсу, а вони є не в усіх",
+              "Перетягування назад скидає дедлайн і виконавця картки й лишає обидва ці поля порожніми",
+              "Одна картка замість десяти псує звіти, бо в них видно одну справу замість десяти виконаних",
+              "Jira видаляє картки зі стану «готово» через тиждень, і повернути таку картку вже не вийде"
+            ],
+            "answer": 2,
+            "explain": "Довідка формулює це так: «It'll affect reporting for the space and your team won't get an accurate picture of how much they've completed» — і радить замість повторного використання робити копію через More actions (•••) → Clone. Тоді кожне замовлення лишається окремою виконаною роботою, а історія тижнів не переписується поверх себе."
+          }
+        ]
+      }
+      </script>
+
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Урок позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
