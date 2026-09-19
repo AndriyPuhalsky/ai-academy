@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 21 · Наскрізний проєкт — Jira з нуля</title>
+  <meta name="description"
+    content="Чеклист із двадцяти кроків: від порожнього сайту до робочої фірми. Порядок дій, перенесення справ з таблиці через CSV і вбудовані імпортери, конвенції назв, щотижневий огляд і що звіряти після сезонного оновлення." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+</head>
+
+<body data-module="j21">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 21</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 5 · Service desk і адміністрування</p>
+        <h1 class="ds-h1">Наскрізний проєкт</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 27 хв читання</p>
+        <p class="ds-lead">
+          Двадцять уроків позаду, і кожен дав окрему навичку: створити спейс, написати
+          запит, зібрати дашборд, підключити портал заявок. Фірма з цих навичок сама не
+          збирається — потрібен порядок дій. Цей урок і є таким порядком: двадцять кроків
+          від порожнього сайту до робочої фірми, перенесення того, що досі живе в таблиці,
+          і ритуал, який не дає всьому цьому розсипатись через місяць.
+        </p>
+        <p>
+          Нових кнопок тут майже немає. Новим є те, у якому порядку тиснути вже знайомі:
+          неправильний порядок коштує переробок, а правильний економить вечір.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> переказу двадцяти уроків — кожен крок чеклиста має
+            посилання на той урок, де він розібраний руками. Немає й налаштування порталу
+            заявок (уроки 18 і 19), запрошення колег (урок 20) і точних чисел про межі
+            безкоштовного плану — вони в довіднику «Карта інтерфейсу, глосарій і ліміти
+            Free», бо міняються частіше за все інше.
+          </p>
+          <p>
+            <strong>Є:</strong> чеклист на двадцять кроків із поясненням, чому вони саме
+            в такому порядку; перенесення справ із таблиці — файлом або прямо із застосунку, у якому вони
+            живуть зараз; чотири конвенції назв, які дешево домовити й дорого міняти; огляд
+            на п'ятнадцять хвилин у понеділок; і що звіряти після великого оновлення Jira.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            У «Кориці» станом на цей урок є шість спейсів: особисті справи Оксани,
+            маркетинг Марти, ремонт другої точки Тараса, найм Ліни, сайт Дениса й
+            бухгалтерія Ігоря. Є збережені запити, дашборд, кілька flows і портал заявок.
+            І при цьому половина справ Оксани досі живе у файлі
+            <code>справи_вересень_остання_версія.xlsx</code>, а на питання «коли ми
+            востаннє дивились на прострочене всією фірмою» відповіді немає ні в кого.
+          </p>
+
+          <p>
+            Це нормальний стан після навчання й найчастіша точка, у якій інструмент
+            кидають. Причина не в Jira: окремі навички вже є, а трьох речей бракує.
+          </p>
+
+          <h3>Три питання, на які відповідає цей урок</h3>
+
+          <ul>
+            <li><strong>У якому порядку.</strong> Двадцять кроків можна робити майже в
+              будь-якій послідовності, але деякі з них дешеві на початку й дорогі потім.
+              Назву сайту на безкоштовному плані не змінити взагалі (урок 3). Шаблон
+              спейсу після створення не перемикається — це переїзд робіт (урок 12). Ключ
+              спейсу змінюється, але після зміни треба руками оновити фільтри дошки,
+              гаджети дашборда й загальні запити.</li>
+            <li><strong>Що робити зі старим.</strong> Таблиця, у якій усе це велось досі,
+              нікуди не зникає сама. Її або переносять один раз, або вона живе паралельно
+              з Jira — і тоді жодне з двох місць не є правдою.</li>
+            <li><strong>Як не розсипатись.</strong> Система, на яку ніхто не дивиться
+              щотижня, за місяць перестає відповідати реальності. Огляд — це не звіт
+              керівництву, це п'ятнадцять хвилин, після яких у тебе немає робіт без
+              виконавця й без дати.</li>
+          </ul>
+
+          <h3>Чому чеклист, а не «роби як зручно»</h3>
+
+          <p>
+            Порядок із двадцяти кроків потрібен не через любов до порядку, а через
+            вартість помилки. Кроки діляться на три групи за ціною переробки, і це
+            видно на прикладах із попередніх уроків:
+          </p>
+
+          <ul>
+            <li><strong>Не переробляється взагалі:</strong> назва сайту на безкоштовному
+              плані. Довідка формулює це прямо: «If all of your Jira Cloud apps are on the
+              Free plan, you can't update your site's URL after your site is created».</li>
+            <li><strong>Переробляється переїздом:</strong> тип спейсу (урок 9) і шаблон
+              (урок 12). В обох випадках довідка описує не перемикач, а створення нового
+              спейсу й масове перенесення робіт зі зіставленням статусів.</li>
+            <li><strong>Переробляється за п'ять хвилин, поки спейс порожній:</strong> ключ,
+              назва, статуси, поля, вигляди. Через місяць кожне з них тягне за собою
+              фільтри, гаджети й звички команди.</li>
+          </ul>
+
+          <p>
+            Звідси й порядок: спершу те, що не переробляється, потім те, що переробляється
+            дорого, і аж потім дрібниці. Якщо ти проходив(ла) курс по черзі, більшість
+            кроків у тебе вже зроблені — тоді цей урок працює як перевірка: пройдись
+            списком і познач те, що пропустив(ла).
+          </p>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Зібрана фірма не виглядає складно — і це головна ознака того, що вона зібрана
+            правильно. Два екрани нижче показують результат двадцяти кроків: список усіх
+            робочих просторів фірми й ранок понеділка в особистому спейсі власниці.
+          </p>
+
+          <h3>Уся фірма одним списком</h3>
+
+          <p>
+            Сторінка <code>Spaces</code> — єдине місце, де фірму видно цілком. З неї
+            зручно перевіряти себе: кожен рядок має відповідати живому відділу або живій
+            сфері роботи, а не «здається, колись знадобиться».
+          </p>
+
+<figure class="win" data-state="list" id="w1">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w1t">Jira Cloud · список спейсів Spaces · звірено 2026-09-17</span>
+    <span class="win__addr" aria-hidden="true">…/jira/projects</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w1t">
+    <ul class="win__rail" aria-label="Бічна панель Jira">
+      <li class="win__rail-item">For you</li>
+      <li class="win__rail-item win__rail-item--active">Spaces</li>
+      <li class="win__rail-item">Filters</li>
+      <li class="win__rail-item">Dashboards</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Spaces · 6 spaces found</span>
+        <span class="win__btn win__btn--primary">Create space</span>
+        <span class="win__tabs"><span>Templates</span><span>Search spaces</span></span>
+      </div>
+      <table class="win__table">
+        <thead>
+          <tr><th>Name</th><th>Key <b class="win__mark" aria-hidden="true">②</b></th><th>Lead</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Мої справи <b class="win__mark" aria-hidden="true">①</b></td><td><span class="win__key">MY</span></td><td>Оксана Коваль</td></tr>
+          <tr><td>Маркетинг</td><td><span class="win__key">MARK</span></td><td>Марта Лисенко</td></tr>
+          <tr><td>Друга точка</td><td><span class="win__key">REM</span></td><td>Тарас Мельник</td></tr>
+          <tr><td>Найм</td><td><span class="win__key">HR</span></td><td>Ліна Шевчук</td></tr>
+          <tr><td>Сайт</td><td><span class="win__key">WEB</span></td><td>Денис Романюк</td></tr>
+          <tr><td>Бухгалтерія <b class="win__mark" aria-hidden="true">③</b></td><td><span class="win__key">FIN</span></td><td>Ігор Гнатюк</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «список спейсів Spaces»">
+<li>Один рядок — один відділ або одна сфера роботи</li>
+<li><code>Key</code> — код спейсу, з нього починається ключ кожної роботи</li>
+<li>Службовий спейс бухгалтерії стоїть у тому самому списку (урок 18)</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Будова сторінки — зі знімка списку спейсів Jira Cloud Free від 17 вересня
+            2026 року; назви, ключі й люди — з історії курсу. У справжньому списку є ще
+            колонка <code>Type</code> з типом спейсу (урок 9) — тут її немає навмисно:
+            напис у ній для службового спейсу на навчальному сайті курсу не знімався,
+            а вигадувати написи курс не має права.
+          </p>
+
+          <p>
+            Шість спейсів на вісім людей — багато це чи мало? Питання не в числі, а в
+            тому, чи в кожного свій спосіб рухати роботу. У найму — свої статуси від
+            першої розмови до виходу на роботу; у ремонту — етапи й дедлайни підрядників;
+            у бухгалтерії — заявки з порталу, яких решта команди не бачить. Якщо в двох
+            рядках цього списку однакові статуси, однакові поля й ті самі люди — це один
+            спейс, а різниця між ними робиться фільтром (урок 7) або окремим виглядом
+            (урок 6).
+          </p>
+
+          <h3>Ранок понеділка</h3>
+
+          <p>
+            Другий екран — той самий особистий спейс «Мої справи», з якого все починалось
+            в уроці 3. Дивитись тут треба не на справи, а на одну картку:
+            <code>MY-5</code> «Переглянути прострочені справи». Ритуал огляду в Jira
+            виглядає як звичайна робота з дедлайном — інакше він забувається.
+          </p>
+
+<figure class="win" data-state="board" id="w2">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w2t">Jira Cloud · дошка спейсу Мої справи, ранок понеділка · звірено 2026-09-17</span>
+    <span class="win__addr" aria-hidden="true">…/jira/…/MY/board</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w2t">
+    <ul class="win__rail" aria-label="Бічна панель Jira">
+      <li class="win__rail-item">For you</li>
+      <li class="win__rail-item win__rail-item--active">Spaces</li>
+      <li class="win__rail-item">Filters</li>
+      <li class="win__rail-item">Dashboards</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Spaces / Мої справи</span>
+        <span class="win__tabs"><span>Summary</span><span>List</span><span class="win__tab--active">Board</span></span>
+        <span class="win__btn win__btn--primary">+ Create</span>
+      </div>
+      <ul class="win__cols">
+        <li class="win__col" data-cat="todo">
+          <h4 class="win__col-title">To Do <span class="win__count">3</span></h4>
+          <ul class="win__cards">
+            <li class="win__card">
+              <span class="win__card-title">Переглянути прострочені справи <b class="win__mark" aria-hidden="true">①</b></span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">MY-5</span> <span class="win__due">Sep 21</span> <span class="win__who" title="Оксана Коваль">ОК</span></span>
+            </li>
+            <li class="win__card">
+              <span class="win__card-title">Замовити борошно на тиждень</span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">MY-1</span> <span class="win__due">Sep 21</span> <span class="win__who" title="Оксана Коваль">ОК</span></span>
+            </li>
+            <li class="win__card">
+              <span class="win__card-title">Оплатити оренду до 5-го</span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">MY-2</span> <span class="win__due">Oct 5</span> <span class="win__who" title="Оксана Коваль">ОК</span></span>
+            </li>
+          </ul>
+        </li>
+        <li class="win__col" data-cat="done">
+          <h4 class="win__col-title">Done <span class="win__count">2</span> <b class="win__mark" aria-hidden="true">②</b></h4>
+          <ul class="win__cards">
+            <li class="win__card">
+              <span class="win__card-title">Подзвонити постачальнику кави про знижку</span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">MY-3</span> <span class="win__due">Sep 18</span> <span class="win__who" title="Оксана Коваль">ОК</span></span>
+            </li>
+            <li class="win__card">
+              <span class="win__card-title">Оновити меню на дошці біля входу</span>
+              <span class="win__card-meta"><span class="win__type" aria-label="Task">☑</span> <span class="win__key">MY-4</span> <span class="win__due">Sep 16</span> <span class="win__who" title="Оксана Коваль">ОК</span></span>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «дошка спейсу Мої справи»">
+<li>Ритуал живе карткою: у нього є дата, як у будь-якої справи</li>
+<li>Колонки дві — стільки статусів дала заготовка особистого спейсу</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Будова дошки — зі знімка Jira Cloud Free від 17 вересня 2026 року; назви
+            справ і людина — з історії курсу. Двадцять перше вересня 2026 року —
+            понеділок. Значка повторення на картці дошки тут немає: довідка називає його
+            для картки роботи й для календаря, про дошку не каже.
+          </p>
+
+          <p>
+            Зверни увагу на дві колонки замість трьох. Особистий спейс Оксани народився
+            з заготовки для обліку задач, а вона дає два кроки роботи (уроки 3 і 5). Це не
+            недолік: для справ на одну людину «зробити — зроблено» достатньо, і додавати
+            третій статус заради симетрії з іншими спейсами не треба.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <p>
+            Двадцять кроків розпадаються на п'ять груп, і всередині групи порядок майже
+            не важливий, а між групами — важливий дуже. Кожна наступна група спирається
+            на результат попередньої.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart TD
+  A["Кроки 1–2 · Фундамент"] --> A1["Назва сайту й мова акаунта"]
+  A1 --> B["Кроки 3–8 · Спейси"]
+  B --> B1["Спейс на відділ: типи, статуси, поля, вигляди"]
+  B1 --> C["Кроки 9–11 · Погляд згори"]
+  C --> C1["Фільтри, дашборд, автоматизація"]
+  C1 --> D["Кроки 12–14 · Люди й заявки"]
+  D --> D1["Портал, ролі, сповіщення"]
+  D1 --> E["Кроки 15–17 · Перенести старе"]
+  E --> E1["Імпорт, доступи, конвенції"]
+  E1 --> F["Кроки 18–20 · Тримати ритм"]
+  F --> F1["Захист входу, огляд, дата перегляду"]
+  F1 -->|"щопонеділка"| C
+            </pre>
+            <p class="ds-diag__caption">
+              П'ять груп і зворотний хід: огляд щотижня повертає тебе до фільтрів і
+              дашборда, а не до налаштувань спейсів
+            </p>
+          </div>
+
+          <h3>Чому саме такий порядок</h3>
+
+          <p>
+            Три приклади з попередніх уроків пояснюють ціну переставлення кроків краще
+            за будь-яке правило.
+          </p>
+
+          <ul>
+            <li><strong>Мова перед спейсами (крок 2 перед кроком 3).</strong> Назви
+              статусів народжуються тією мовою, яка стоїть у твоєму акаунті в момент
+              створення спейсу (урок 3). Поміняєш порядок — запити з уроку 7 і flows з
+              уроку 14 доведеться переписувати під неанглійські назви.</li>
+            <li><strong>Спейси перед фільтрами (група Б перед групою В).</strong> Запит
+              із уроку 7 пишеться по полях і статусах, які вже існують. Збережений запит
+              ламається, коли перейменовують те, на що він посилається: довідка описує
+              це прямо — «Most often this will involve the JQL referring to a resource …
+              by name. Then if the resource's name is changed the JQL breaks».</li>
+            <li><strong>Імпорт після налаштування спейсу (крок 15 після групи Б).</strong>
+              Якщо дописувати роботи в наявний спейс, усе, що приходить із таблиці, має
+              в ньому вже існувати: «You can't add new statuses, work types, custom
+              fields, or custom field options during import. All imported data must match
+              the existing space configuration».</li>
+          </ul>
+
+          <h3>Двадцять кроків</h3>
+
+          <p>
+            Третя колонка — урок, де крок розібраний руками. Там, де стоїть «цей урок»,
+            дія описана нижче, у блоці 4.
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: чеклист із двадцяти кроків розгортання Jira">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>№</th><th>Крок</th><th>Де докладно</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>1</td><td>Обрати назву сайту: коротко, латиницею, назва фірми — на безкоштовному плані адреса не міняється</td><td>урок 3</td></tr>
+                <tr><td>2</td><td>Поставити мову акаунта English — до створення першого спейсу</td><td>урок 3</td></tr>
+                <tr><td>3</td><td>Виписати відділи й сфери роботи, вирішити, яким з них потрібен свій спейс, і довести ключі до пуття</td><td>уроки 9, 12</td></tr>
+                <tr><td>4</td><td>Обрати заготовку для кожного спейсу за рухом роботи, а не за назвою відділу</td><td>урок 12</td></tr>
+                <tr><td>5</td><td>Перевірити типи роботи: чи потрібна велика справа над меншими, чи вистачає задачі й підзадачі</td><td>урок 11</td></tr>
+                <tr><td>6</td><td>Довести статуси до свого процесу: додати очікування, прибрати зайве, перевірити категорії</td><td>урок 10</td></tr>
+                <tr><td>7</td><td>Додати свої поля — мінімум, до трьох обов'язкових на тип роботи</td><td>урок 11</td></tr>
+                <tr><td>8</td><td>Налаштувати вигляди: додати календар чи таймлайн, прибрати те, чим не користуєшся</td><td>урок 6</td></tr>
+                <tr><td>9</td><td>Зберегти три запити: прострочене, без виконавця, мої на цьому тижні</td><td>урок 7</td></tr>
+                <tr><td>10</td><td>Зібрати дашборд на три гаджети й дати йому зрозумілу назву</td><td>урок 8</td></tr>
+                <tr><td>11</td><td>Увімкнути три flows: авто-призначення, закриття батьківської роботи, нагадування за розкладом</td><td>уроки 14, 15</td></tr>
+                <tr><td>12</td><td>Підключити портал заявок, якщо колеги приносять прохання й рахунки</td><td>уроки 18, 19</td></tr>
+                <tr><td>13</td><td>Запросити людей у правильній ролі: хто розбирає роботу, а хто лише подає заявки</td><td>урок 20</td></tr>
+                <tr><td>14</td><td>Навести лад у сповіщеннях: свої галочки, один основний канал на людину</td><td>уроки 5, 16</td></tr>
+                <tr><td>15</td><td>Перенести те, що досі живе в таблиці або в іншому застосунку</td><td>цей урок</td></tr>
+                <tr><td>16</td><td>Перевірити доступ: чи бачать колеги фільтри, на яких стоять гаджети дашборда</td><td>уроки 7, 8</td></tr>
+                <tr><td>17</td><td>Домовитись про конвенції назв і записати їх туди, де команда їх знайде</td><td>цей урок</td></tr>
+                <tr><td>18</td><td>Увімкнути двоетапну перевірку входу й зробити вивантаження даних</td><td>урок 20</td></tr>
+                <tr><td>19</td><td>Завести щотижневий огляд карткою з повторенням</td><td>цей урок</td></tr>
+                <tr><td>20</td><td>Поставити дату наступного перегляду всієї системи — через три місяці</td><td>цей урок</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Що з цього можна пропустити</h3>
+
+          <p>
+            Кроки 12 і 13 потрібні не всім: якщо ти працюєш сам(а) або команда не приносить
+            заявок, портал і запрошення — зайва робота. Крок 11 відкладається без шкоди:
+            автоматизація має сенс тоді, коли рутина вже видно неозброєним оком. Усе інше
+            зроби, навіть якщо здається дрібницею — саме на цих дрібницях система тримається
+            в третій місяць, коли перший запал мине.
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            Чотири справи на цей урок. Перша — пройти чеклист по своїй фірмі й чесно
+            позначити те, чого бракує. Далі три дії руками: перенести таблицю, провести
+            перший огляд і поставити дату наступного перегляду. На все разом — вечір;
+            якщо переносити нема чого, то година.
+          </p>
+
+          <h3>А. Пройти чеклист</h3>
+
+          <p>
+            Візьми таблицю з блоку 3 і йди зверху вниз. Навпроти кожного кроку постав одне
+            з трьох: <em>зроблено</em>, <em>не потрібно нам</em> або <em>треба зробити</em>.
+            Третій список і є твоїм планом на вечір — у ньому зазвичай три-п'ять рядків,
+            а не двадцять.
+          </p>
+
+          <p>
+            Два кроки, які найчастіше виявляються пропущеними навіть у тих, хто пройшов
+            увесь курс.
+          </p>
+
+          <ul>
+            <li><strong>Крок 5, велика справа над меншими.</strong> У діловому спейсі за
+              замовчуванням є лише задача й підзадача: у довідці в рядку
+              <code>Work types</code> заготовки для керування проєктом стоїть рівно
+              «Task and subtask». Якщо тобі потрібна кампанія над постами або етап над
+              роботами, тип для великої справи додають кнопкою <code>+ Add work type</code>
+              в <code>Space settings</code> → <code>Work types</code> (урок 11).</li>
+            <li><strong>Крок 16, доступ до фільтрів.</strong> Поділитись дашбордом і не
+              поділитись запитами, на яких він стоїть, — найчастіша причина, чому в колеги
+              на тому самому екрані порожньо. Довідка описує рівні доступу до запиту так:
+              <code>Private</code> — «The filter is private and can only be viewed or
+              edited by the owner and Jira admins»; <code>My organization</code> — «The
+              filter is shared with all users on the Jira instance».</li>
+          </ul>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__body">
+              Сторінка довідки про типи роботи, на якій описана кнопка
+              <code class="ds-code--inline">+ Add work type</code>, написана для спейсів
+              розробки. У діловому спейсі цей крок на навчальному сайті курсу живцем не
+              перевірявся — якщо кнопки або потрібного типу в переліку не буде, зупинись
+              і подивись, які типи пропонує саме твій спейс.
+            </p>
+          </div>
+
+          <h3>Б. Перенести те, що живе в таблиці</h3>
+
+          <p>
+            Jira вміє забирати дані з таблиці, збереженої у форматі CSV, і напряму з кількох
+            застосунків.
+            Ось як виглядає сторінка, з якої це починається.
+          </p>
+
+<figure class="win" data-state="form" id="w3">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w3t">Jira Cloud · сторінка Import data into Jira · звірено 2026-09-17</span>
+    <span class="win__addr" aria-hidden="true">…/jira/settings/system/external-import</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w3t">
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Import data into Jira</span>
+        <span class="win__btn">Switch to the old experience <b class="win__mark" aria-hidden="true">③</b></span>
+      </div>
+      <div class="win__page">
+        <h4>Where would you like to import from?</h4>
+        <ul class="win__tiles">
+          <li class="win__tile">Asana</li>
+          <li class="win__tile">monday</li>
+          <li class="win__tile">ClickUp</li>
+          <li class="win__tile">Trello <b class="win__mark" aria-hidden="true">①</b></li>
+          <li class="win__tile">Notion</li>
+          <li class="win__tile">Airtable</li>
+          <li class="win__tile">CSV <b class="win__mark" aria-hidden="true">②</b></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «сторінка Import data into Jira»">
+<li>Плитка застосунку — перенесення прямо з нього, без файла</li>
+<li><code>CSV</code> — будь-яка таблиця, збережена у цьому форматі</li>
+<li>Стара версія імпорту — окремий набір можливостей</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Написи й набір плиток — зі знімка сторінки Jira Cloud Free від 17 вересня
+            2026 року. Плиток на ній було п'ятнадцять: <code>Asana</code>,
+            <code>monday</code>, <code>ClickUp</code>, <code>Trello</code>,
+            <code>Azure DevOps</code>, <code>GitHub</code>, <code>GitLab</code>,
+            <code>Smartsheet</code>, <code>Jetbrains YouTrack</code>,
+            <code>Notion</code>, <code>Linear</code>, <code>Wrike</code>,
+            <code>Airtable</code> — і дві плитки для перенесення між спейсами самої Jira.
+            <code>CSV</code> на екрані стоїть окремо, під питанням «Can't find your app?».
+            У вікні показано сім позицій із шістнадцяти.
+          </p>
+
+          <p>
+            Сторінка сама пояснює, коли брати <code>CSV</code>: «If you can't find your app
+            in the list, select CSV to use any CSV file to import your data». А для чотирьох
+            застосунків — Asana, ClickUp, monday і Trello — файл не потрібен узагалі: Jira
+            забирає дані прямо з них. Дані з дошки Trello, наприклад, приїжджають у спейс
+            уже розкладеними: «Your data will be migrated into a Kanban board».
+          </p>
+
+          <h3>Б1. Підготувати таблицю</h3>
+
+          <p>
+            CSV — це звичайна таблиця, збережена у текстовому форматі, де значення
+            розділені комами. Excel, Numbers і Google Таблиці вміють таке зберігати
+            («Зберегти як» → CSV); довідка Atlassian так і радить: «You can base the
+            structure of your CSV file on the default Microsoft Excel CSV format».
+          </p>
+
+          <p>Що має бути у файлі:</p>
+
+          <ul>
+            <li><strong>Перший рядок — заголовки колонок.</strong> Саме за ним Jira
+              розбирає решту: «The CSV importer uses the file header row to determine how
+              to map data from the file's second row and beyond to fields in Jira».</li>
+            <li><strong>Колонка з назвою справи обов'язкова.</strong> «When importing a
+              file, the summary field is always required» — без неї імпорт не піде далі.</li>
+            <li><strong>Люди — поштою, а не ім'ям.</strong> «Use email addresses when
+              adding people as assignees, reporters, or creators to your CSV file».</li>
+            <li><strong>У заголовках без розділових знаків.</strong> Довідка радить
+              «avoid including any punctuation in the header row (apart from the commas
+              separating each column)».</li>
+          </ul>
+
+          <p>
+            Для першого разу не бери весь архів: зроби файл на п'ять-десять рядків
+            із колонками <code>Summary</code>, <code>Assignee</code>,
+            <code>Due date</code>, <code>Status</code>, <code>Labels</code>. Якщо
+            вийде — повториш із повним.
+          </p>
+
+          <h3>Б2. Обрати один із двох шляхів</h3>
+
+          <p>
+            Шляхів справді два, і вони не взаємозамінні.
+          </p>
+
+          <ul>
+            <li><strong>У новий спейс</strong> — основний шлях. Біля <code>Spaces</code>
+              в бічній панелі натисни <code>Create space</code>, а тоді, як каже довідка,
+              «Scroll to the bottom of the sidebar then select Import data». Той самий
+              екран відкривається з налаштувань сайту: <code>Settings</code> →
+              <code>System</code> → <code>External System Import</code>.</li>
+            <li><strong>У наявний спейс</strong> — окрема сторінка довідки й окремі
+              обмеження: «This feature is available only to site and organization admins»
+              і лише з налаштувань сайту. Головне обмеження:
+              «You can't add new statuses, work types, custom fields, or custom field
+              options during import. All imported data must match the existing space
+              configuration».</li>
+          </ul>
+
+          <p>
+            Правило вибору просте. Немає ще спейсу під цю роботу — бери перший шлях,
+            Jira створить спейс сама. Спейс уже є й налаштований (як <code>MY</code> чи
+            <code>REM</code> у курсі) — бери другий, але спершу переконайся, що статуси
+            в таблиці збігаються з наявними: «If your CSV contains new statuses or
+            priorities that aren't present in your existing space, the import will fail».
+          </p>
+
+          <h3>Б3. Пройти майстер</h3>
+
+          <p>
+            Далі Jira веде екранами; називати їх напам'ять не треба, але знати, що на них
+            вирішується, — варто.
+          </p>
+
+          <ul>
+            <li><strong>Файл.</strong> Завантажуєш CSV.</li>
+            <li><strong>Спейс.</strong> Для нового — обираєш діловий, службовий чи для
+              розробки. Ключ Jira придумає сама, і це не назавжди: «You can modify the
+              Space name and Key later in the Space Settings».</li>
+            <li><strong>Колонки.</strong> Кожній колонці файла вказуєш поле Jira. Тут же
+              живе формат дати — окремою настройкою: «To import date and time data in
+              Jira, select Date time format options, adjust the date and time formats to
+              match the CSV file». Те, що не зіставиш, до Jira не приїде:
+              «Columns that aren't mapped will be automatically excluded from import».</li>
+            <li><strong>Люди.</strong> Додаєш пошту до кожного імені з файла. Пропустиш
+              цей крок — роботи приїдуть нічиїми: «If you choose not to import users, user
+              fields such as assignee and reporter will be unassigned, user @mentions in
+              comments will be converted to plain text, and commenter names will be
+              displayed as Anonymous».</li>
+            <li><strong>Перевірка й запуск.</strong> Імпорт іде у фоні, і про його кінець
+              Jira напише листом: «You will also receive an email once the import is
+              complete».</li>
+          </ul>
+
+          <p>
+            Хто може це робити? Довідка відповідає двома голосами, і знати про це корисно.
+            Оглядова сторінка про імпорт каже, що більшість імпортів прав адміністратора
+            організації не потребує; сторінки про CSV кажуть інше: «You need to be an
+            organization, site, or Jira administrator to use the new import experience».
+            Там же виняток: «In addition to administrators, users with permission to create
+            team-managed spaces can create and import data into team-managed business
+            spaces but won't be able to move users». Обидві сторінки живі 19 вересня
+            2026 року. На практиці це нічого не міняє: якщо сайт заводив(ла) ти — права в тебе є;
+            якщо хтось інший — цей крок робить він, а різницю між адміністратором сайту
+            й адміністратором спейсу розбирає урок 20.
+          </p>
+
+          <h3>В. Провести перший щотижневий огляд</h3>
+
+          <p>
+            П'ятнадцять хвилин у понеділок вранці. Відкрий три збережені запити з уроку 7 —
+            і пройдись кожним.
+          </p>
+
+          <p>
+            Одне уточнення, щоб не переплутати дві різні речі з однаковим словом
+            «фільтр». Огляд тримається на <strong>збережених запитах</strong> мовою JQL
+            з уроку 7 — вони ходять по всьому сайту. Фільтр вигляду з уроку 12 (кнопка
+            <code>Filter</code> над дошкою чи списком) — інше: довідка каже, що такі
+            фільтри «are specific to the space you create them in» і що «you can only
+            apply one at a time». Для щотижневого огляду потрібні саме перші.
+          </p>
+
+          <ol>
+            <li><strong>Прострочене (усі спейси).</strong> Кожен рядок отримує одне з трьох:
+              нову дату, іншого виконавця або завершений статус. Рядок, який лишився без
+              жодної з трьох дій, зустріне тебе наступного понеділка в тому самому вигляді.</li>
+            <li><strong>Без виконавця.</strong> Признач людину або визнай, що справа нічия,
+              і закрий її. Робота без виконавця не рухається — не тому, що Jira її ховає,
+              а тому, що ніхто не відчуває її своєю (урок 5).</li>
+            <li><strong>Мої на цьому тижні.</strong> Це вже не прибирання, а планування:
+              дивишся, скільки взяв(ла) на себе, і чесно переносиш зайве.</li>
+          </ol>
+
+          <p>
+            Корисний четвертий запит, якого в уроці 7 не було, — справи без дедлайну.
+            У маленькій команді це головне місце, де речі зникають тихо: робота є, ніхто
+            не обіцяв дати, і вона не спливає в жодному списку.
+          </p>
+
+          <figure class="term term--cmd" id="p1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p1t">четвертий запит огляду · незавершені справи без дедлайну</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__in">due IS EMPTY AND statusCategory != Done ORDER BY created ASC</span></span></pre>
+          </figure>
+
+          <p>
+            Обидві частини запиту вже знайомі з уроку 7: <code>IS EMPTY</code> — «поле
+            порожнє», <code>statusCategory != Done</code> — робота ще не завершена.
+            Сортування від найстарішого показує зверху те, що висить найдовше.
+          </p>
+
+          <h3>Щоб огляд не забувався</h3>
+
+          <p>
+            Ритуал, який тримається на пам'яті, помирає на третьому тижні. Тому огляд
+            заводять карткою з повторенням. Довідка описує шлях так: відкрити роботу,
+            «Select Automation via the lightning bolt icon, or select the Due date field»,
+            далі «Select Set to recur» і задати, як часто вона повторюється.
+          </p>
+
+          <p>
+            Що варто знати заздалегідь. Копія бере ті самі поля, крім дат початку й
+            завершення, а нову дату Jira ставить за розкладом сама. Вкладення, веб-посилання
+            й зв'язки з іншими роботами в копію не переїжджають. У картці роботи поруч із
+            полем дедлайну з'являється значок повторення; видно його й у календарі. І ще одне: кожен запуск такої автоматизації рахується як звичайна
+            робота автоматизації — «Executions of these automations count towards edition
+            usage limits»; скільки цього дає безкоштовний план, — у довіднику «Карта
+            інтерфейсу, глосарій і ліміти Free».
+          </p>
+
+          <h3>Г. Поставити дату наступного перегляду</h3>
+
+          <p>
+            Останній крок чеклиста — робота з дедлайном приблизно через три місяці й
+            назвою на кшталт «Перечитати чеклист і звірити, що змінилось у Jira». Можна
+            зробити її повторюваною раз на квартал тим самим <code>Set to recur</code>.
+          </p>
+
+          <p>
+            Навіщо це, якщо все працює? Бо Jira змінюється без твоєї участі. Довідка про
+            оновлення каже прямо: «Jira changes will now be available in seasonal release
+            cycles» — помітні зміни приходять не потроху, а великими порціями кілька разів
+            на рік. Курс зустрів таких змін уже кілька за один місяць: те, що роками звалось
+            <code>issue</code>, тепер <code>work item</code>; <code>project</code> став
+            <code>space</code>; правила автоматизації в інтерфейсі звуться <code>flow</code>,
+            а в довідці ще подекуди <code>rule</code>; поле <code>Summary</code> у довідці
+            вже названо <code>Title</code>, хоча на екрані воно поки старе; вкладку
+            <code>Pages</code> перейменовують на <code>Docs</code>. Тому перегляд раз на
+            квартал — не параноя, а дешева страховка.
+          </p>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Сім ознак. Перша — про чеклист цілком, решта — про те, що ти робив(ла) руками
+            в цьому уроці.
+          </p>
+
+          <ul>
+            <li><strong>Двадцять рядків мають позначку.</strong> Не «зроблено» напроти
+              кожного — саме позначку: зроблено, не потрібно або треба зробити. Порожній
+              рядок означає, що крок не прочитаний, а не що він не потрібен.</li>
+            <li><strong>Список «треба зробити» скоротився хоча б на один рядок</strong>
+              сьогодні ввечері. Один закритий крок кращий за план із п'яти.</li>
+            <li><strong>Імпортовані роботи мають ключі.</strong> Відкрий спейс, у який
+              переносив(ла), і подивись у список: у кожного рядка є ключ виду
+              <code>MY-14</code>. Ключ означає, що це справжня робота Jira, а не рядок
+              таблиці, що лежить поруч.</li>
+            <li><strong>У імпортованих робіт є дати й виконавці.</strong> Порожня колонка
+              з дедлайнами означає, що колонку не зіставили або формат дати не збігся;
+              порожній виконавець — що на кроці з людьми не дописали пошту. І те, і те
+              лікується повторним імпортом на кількох рядках.</li>
+            <li><strong>Три запити огляду відкриваються й дають непорожній результат.</strong>
+              Якщо «прострочене» порожнє — прекрасно; якщо порожні всі три, то запити,
+              найімовірніше, написані не про ті спейси.</li>
+            <li><strong>Колега бачить твій дашборд із числами, а не порожні рамки.</strong>
+              Найшвидша перевірка — попросити відкрити й сказати, що він бачить. Порожньо —
+              справа в доступі до запитів, а не до дашборда (урок 8).</li>
+            <li><strong>Огляд і квартальний перегляд стоять картками з датами.</strong>
+              Не в голові, не в нотатках телефону, а там само, де решта роботи.</li>
+          </ul>
+
+          <p>
+            І одна перевірка, яку неможливо зробити сьогодні. Через місяць відкрий
+            сторінку <code>Spaces</code> і спитай себе, чи всі рядки в ній живі. Спейс,
+            у якому за місяць не з'явилось жодної нової роботи, — це не «запас на майбутнє»,
+            а місце, де люди перестали складати справи. Тоді допомагає не нове поле, а
+            розмова з командою.
+          </p>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3>Імпорт приїхав не туди</h3>
+
+          <p>
+            Класика вечора перенесення: сорок рядків приїхали в новий спейс замість
+            «Другої точки» — або навпаки, дописались у спейс, у якому їм не місце. Перше, що варто знати: це не катастрофа, і
+            переробляти сайт не треба.
+          </p>
+
+          <p>
+            <strong>Ключ спейсу змінюється.</strong> Твердження «ключ назавжди» ходить по
+            інтернету, і воно неправильне. Шлях: біля назви спейсу
+            <code>More actions (•••)</code> → <code>Space settings</code> →
+            <code>Details</code> → поле <code>Space key</code>. Вимоги довідки до ключа
+            йдуть трьома рядками: «be at least two characters long», «start with an
+            uppercase letter», «contain only uppercase letters or numbers». Міняти ключ
+            може не кожен: «Only organization, site, and Jira admins can edit a space key».
+            Старі посилання після зміни працюють далі — «Links containing the old space key
+            will continue to work, since link aliases won't be updated with the new key», —
+            бо Jira зберігає попередні ключі сама: «Whenever you change your space key, we
+            automatically save your previous space keys». А от решту довідка радить
+            пройти руками: «You'll need to update board filters, dashboard filter gadgets,
+            and any other global queries with the new key».
+          </p>
+
+          <p>
+            <strong>Роботи переносяться між спейсами.</strong> Інструмент той самий, що в
+            уроці 7: у списку робіт <code>More actions</code> →
+            <code>Bulk change work items</code>, далі обираєш потрібні роботи,
+            <code>Move work items</code> — і вказуєш спейс та тип роботи призначення. Дві речі, про які довідка попереджає окремо. Перша: при різних
+            процесах частину даних можна втратити — «If work types use different workflows,
+            you may lose data when bulk moving work items», тому статуси старого й нового
+            спейсу доводиться зіставляти руками, і робити це варто по категоріях:
+            «When mapping statuses, it's a good idea to map work items to similar status
+            categories». Друга: підзадачі самі за батьком не поїдуть — «If your work items
+            have subtasks, then you will need to move the subtasks to the destination space
+            as well». Що ще втрачається при перенесенні між спейсами різних типів, курс
+            розбирав в уроках 9 і 11.
+          </p>
+
+          <p>
+            Звідси практичний висновок: перенеси спершу п'ять рядків, подивись на
+            результат і лише потім тягни решту. Виправляти п'ять помилок дешевше, ніж
+            сорок.
+          </p>
+
+          <h3>Файл виглядає нормально, а імпорт падає</h3>
+
+          <p>
+            Три причини, у порядку частоти.
+          </p>
+
+          <ul>
+            <li><strong>Немає рядка заголовків або немає колонки з назвою справи.</strong>
+              Jira розбирає файл саме за першим рядком, і колонка з назвою обов'язкова.
+              Якщо таблицю вели «як зручно» — перший рядок часто виявляється першою
+              справою, а не заголовками.</li>
+            <li><strong>Дати в різних форматах.</strong> Формат дати вказують один раз на
+              весь файл: «specify the date format used in the file using Java
+              SimpleDateFormat syntax». Тобто <code>12.03.2026</code> і
+              <code>March 12</code> в одній колонці не переживуть імпорт — спершу зведи
+              колонку до одного вигляду в самій таблиці.</li>
+            <li><strong>Помилка ховається в глибині файла.</strong> Найпідступніше:
+              «When importing, the first 30 rows of your CSV file are checked based on how
+              you map column headers to Jira fields. Errors in the first 30 rows will be
+              displayed in the Map space fields step for you to resolve. Your import can
+              fail if errors are present after 30 rows». Тобто майстер показав зелене
+              світло, а на сотому рядку все спинилось. Це ще один аргумент за те, щоб
+              спершу спробувати на кількох рядках.</li>
+          </ul>
+
+          <h3>Шість спейсів для двох людей</h3>
+
+          <p>
+            Спейси створюються за хвилину, і спокуса завести окремий «для ідей», «для
+            особистого» й «для звітності» велика. Ціна платиться потім: кожен спейс — це
+            свій набір статусів, своя дошка, свої налаштування й ще одне місце, куди треба
+            не забути зазирнути.
+          </p>
+
+          <p>
+            Ознака зайвого спейсу: у ньому ті самі люди й той самий спосіб рухати роботу,
+            а відрізняється лише розріз. Розріз робиться дешевше — збереженим запитом
+            (урок 7), виглядом (урок 6) або своїм полем (урок 11). Ознака потрібного —
+            інші статуси, інші поля або інші люди, як у найму й бухгалтерії «Кориці».
+          </p>
+
+          <p>
+            І дрібниця, яка рятує від дублів: «Space names are unique in Jira» — двох
+            однакових назв на сайті не буде, Jira не дасть. А от два спейси з назвами
+            «Ремонт» і «Ремонт другої точки» вона створить залюбки.
+          </p>
+
+          <h3>Огляд «колись» дорівнює ніколи</h3>
+
+          <p>
+            Найдорожчі граблі цього уроку, бо їх не видно одразу. Система, зібрана за
+            двадцять кроків, працює доти, доки в неї дивляться. Перший пропущений
+            понеділок не помітний. Після третього дошка починає розходитись із реальністю,
+            і люди повертаються в чат — бо там принаймні чесно.
+          </p>
+
+          <p>
+            Лікується це трьома домовленостями з собою. Огляд стоїть карткою з датою й
+            повторенням, а не в пам'яті. Він займає п'ятнадцять хвилин, а не годину —
+            інакше його переносять. І він закінчується дією: кожен рядок у трьох запитах
+            або отримав нову дату, або отримав людину, або закритий. Огляд, після якого
+            нічого не змінилось, — це не огляд, а перегляд.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Скільки часу займає весь чеклист із нуля?</h3>
+          <p>
+            Якщо робити все підряд для команди на вісім людей — вечір на групи А і Б
+            (фундамент і спейси), ще вечір на групи В і Д (фільтри, дашборд, імпорт,
+            конвенції). Група Г (портал заявок і люди) потребує не стільки часу, скільки
+            розмови з колегами, тому її зазвичай розтягують на тиждень. Робити все за
+            одну ніч не варто з простої причини: половина рішень про статуси й поля
+            народжується після того, як у спейсі з'явиться десяток справжніх робіт.
+          </p>
+
+          <h3>У мене вже все зроблено абияк. Починати заново?</h3>
+          <p>
+            Ні. Кроки мають різну ціну переробки, і майже все лагодиться на місці. Ключ
+            змінюється в налаштуваннях спейсу; роботи переносяться між спейсами масовою
+            зміною; статуси перейменовуються (урок 10); зайві вигляди прибираються
+            (урок 6); зайвий спейс відправляється в кошик (урок 12). Заново створювати
+            доводиться лише тоді, коли треба змінити шаблон або тип спейсу, — і навіть
+            це не «заново», а переїзд робіт.
+          </p>
+
+          <h3>Чи можна імпортувати прямо з Excel або Google Таблиць?</h3>
+          <p>
+            Не самим файлом <code>.xlsx</code>, але це не перешкода: обидві програми
+            зберігають таблицю у форматі CSV через «Зберегти як» або «Завантажити як».
+            Довідка сама відштовхується від цього формату — «You can base the structure of
+            your CSV file on the default Microsoft Excel CSV format». Перед збереженням
+            прибери з таблиці об'єднані клітинки, кольорові позначки й формули: у CSV
+            поїдуть лише значення.
+          </p>
+
+          <h3>Імпорт пройшов, а виконавців немає — чому?</h3>
+          <p>
+            Майже завжди через пошту. Jira шукає людину за адресою, а не за ім'ям:
+            «Use email addresses when adding people as assignees, reporters, or creators to
+            your CSV file». Якщо адрес у файлі немає, їх дописують у майстрі на кроці про
+            людей; якщо не дописати — поля виконавця й автора лишаться порожніми, а
+            згадки в коментарях перетворяться на звичайний текст. Лікування: додати
+            колонку з поштою в таблицю й імпортувати ті самі роботи ще раз у тестовий
+            спейс, щоб звірити результат, а потім перенести їх на місце.
+          </p>
+
+          <h3>Що робити з торішніми роботами, якщо архівації немає?</h3>
+          <p>
+            На безкоштовному плані архівації немає — замість неї працює гігієна: довести
+            роботу до завершеного статусу й повісити мітку <code>архів</code>, а в
+            збереженому запиті дописати умову, яка не викидає роботи без міток. Покроково,
+            з готовим запитом і перевіркою, це зроблено в уроці 20 «Люди і доступ» — тут
+            важливо лише не забути про цей крок під час прибирання перед імпортом.
+          </p>
+          <p>
+            Корисна деталь до того запиту: довідка про поля запитів дає приклад рівно на
+            цей випадок — «labels not in ("x") or labels is EMPTY», тобто «знайти роботи
+            без певної мітки, включно з тими, у яких міток немає зовсім». Тобто друга
+            половина умови — не хитрість курсу, а документована норма.
+          </p>
+
+          <h3>Які конвенції назв справді потрібні?</h3>
+          <p>
+            Чотири, і всі вони коштують п'ять хвилин домовленості на початку.
+          </p>
+          <ul>
+            <li><strong>Ключ спейсу — три-чотири літери, які легко продиктувати.</strong>
+              Це домовленість курсу, а не вимога Jira: її вимоги м'якші — щонайменше два
+              знаки, перший великий, лише великі латинські літери й цифри. Але ключ
+              читають уголос і пишуть у листах, тому <code>MARK</code> зручніший за
+              <code>MRKTNG2</code>.</li>
+            <li><strong>Назва роботи — дієслово плюс що саме.</strong> «Замовити флаєри
+              для другої точки», а не «Флаєри». Це правило з уроку 1, і воно єдине з
+              чотирьох, яке видно щодня.</li>
+            <li><strong>Мітки — одним словом і в одному написанні.</strong> Довідка каже:
+              «Since labels cannot contain spaces, use hyphens or underscores for
+              multi-word labels». Про однакове написання Jira не піклується — це ваша
+              домовленість; і пам'ятай, що нова мітка з'являється в підказках у колег із
+              помітною затримкою (урок 4), тож дві схожі мітки заводяться легко й непомітно.</li>
+            <li><strong>Велика справа — це кампанія, об'єкт або етап, а не тека.</strong>
+              Один епік на одну кампанію, один на один об'єкт ремонту. Епік на одну задачу
+              дає лише зайвий клік (урок 11).</li>
+          </ul>
+          <p>
+            Записати їх варто там, де команда їх знайде: в описі спейсу, на сторінці
+            Confluence (урок 16) або хоча б у закріпленому повідомленні робочого чату.
+            Конвенція, яка живе в голові однієї людини, конвенцією не є.
+          </p>
+
+          <h3>Jira оновилась, і кнопки зникли. З чого почати?</h3>
+          <p>
+            Не з підтримки. Спершу звір те, на чому тримається робота: відкриваються
+            збережені запити, працюють flows, на місці вигляди спейсів, дашборд показує
+            числа. Далі — перелік змін. Адміністратор організації бачить його в
+            адмініструванні Atlassian: «Select Apps, then Release management, then App
+            updates» (про два різні «адміністратори» — урок 20). А керувати тим,
+            <em>коли</em> зміни приїдуть, на безкоштовному плані не можна: сторінка про
+            це прямо обмежує таку можливість планами Premium і Enterprise. Що саме
+            перейменували востаннє й на що це вплинуло в курсі — розділ «Що змінилось»
+            довідника «Карта інтерфейсу, глосарій і ліміти Free».
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Якщо після цього уроку в тебе є список із трьох-п'яти кроків, які лишилось
+            закрити, перенесені зі старої таблиці справи й картка огляду з датою — урок
+            зробив своє. Далі система працює сама, доки в неї дивляться.
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li>Двадцять кроків ідуть у порядку від того, що не переробляється (назва
+                сайту, мова акаунта), до того, що переробляється за п'ять хвилин.</li>
+              <li>П'ять груп: фундамент, спейси, погляд згори, люди й заявки, перенесення
+                та ритм. Кожна наступна спирається на попередню.</li>
+              <li>Кроки 12 і 13 потрібні не всім, крок 11 можна відкласти. Решта
+                варта того, щоб зробити її навіть у маленькій команді.</li>
+              <li>Перенести старе можна двома шляхами: у новий спейс (Jira створить його
+                сама) або в наявний — там жорсткіше: усе з таблиці має вже існувати в
+                спейсі, і робить це адміністратор сайту чи організації.</li>
+              <li>У CSV обов'язкові дві речі: рядок заголовків і колонка з назвою справи.
+                Люди підтягуються за поштою, дати — за форматом, який ти вкажеш один раз
+                на весь файл.</li>
+              <li>Ключ спейсу не вічний: він міняється в налаштуваннях спейсу, старі
+                посилання після цього працюють, а фільтри дошки, гаджети й загальні запити
+                доводиться оновити руками.</li>
+              <li>Чотири конвенції: короткий ключ, назва роботи дієсловом, мітки одним
+                словом в одному написанні, епік на кампанію чи об'єкт.</li>
+              <li>Щотижневий огляд — п'ятнадцять хвилин і три запити: прострочене, без
+                виконавця, мої на цьому тижні. Четвертий корисний запит — без дедлайну.</li>
+              <li>Ритуал живе карткою з повторенням, а не в пам'яті; повторення
+                налаштовується прямо на роботі через <code>Set to recur</code>.</li>
+              <li>Помітні зміни Jira приходять сезонними порціями, тому в чеклисті є
+                двадцятий крок — дата наступного перегляду системи.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Далі — <strong>урок 22 «Jira + Claude Code через MCP»</strong>: як підключити
+            свою Jira до помічника, який читає й створює роботи на твоє прохання
+            українською. Це останній урок курсу перед іспитом, і він стоїть саме тут не
+            випадково: помічник корисний рівно настільки, наскільки впорядкована система,
+            до якої його підключають. Питати «покажи мої прострочені» має сенс тоді, коли
+            дедлайни справді проставлені.
+          </p>
+          <p>
+            Одна дія до наступного уроку: відкрий свій список спейсів і порахуй, у скількох
+            із них є хоч одна робота, створена не тобою. Це найчесніше число про те,
+            наскільки фірма справді переїхала в Jira.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять на
+            назви: до кожної відповіді одразу з'являється пояснення, чому решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Оксана ввечері відкриває новий сайт для фірми подруги й збирається одразу створити чотири спейси. Що вона має зробити до першого натискання Create space?",
+            "options": [
+              "Поставити мову акаунта English, бо назви статусів народжуються тією мовою, що стоїть у профілі в цю мить",
+              "Створити всі чотири спейси, а мову перемкнути після цього, коли стане видно, які саме статуси принесла кожна заготовка",
+              "Запросити всіх колег фірми заздалегідь, бо ролі в спейсі роздаються в момент його створення й пізніше вже не змінюються",
+              "Увімкнути платний план на місяць"
+            ],
+            "answer": 0,
+            "explain": "Мова акаунта в момент створення спейсу вирішує, якою мовою народяться назви статусів (урок 3). У спейсі з неанглійськими статусами запит status = Done відповідає помилкою про неіснуюче значення, а автоматизація з тієї ж причини мовчить. Ролі заготовка не роздає, а на безкоштовному плані спейс створює будь-хто, хто має доступ до Jira."
+          },
+          {
+            "q": "Тарас зібрав у таблиці сорок робіт з ремонту. Спейс «Друга точка» вже існує й налаштований. Що каже довідка про перенесення таблиці саме в нього?",
+            "options": [
+              "Спершу таблицю завантажують у Confluence, а Jira забирає рядки вже звідти",
+              "Будь-який імпорт дописує роботи в той спейс, який відкритий у сусідній вкладці браузера, тому спейс треба тримати відкритим",
+              "Це окремий шлях у налаштуваннях сайту, доступний лише адміністраторам, і все з таблиці має вже існувати в спейсі",
+              "Імпорт сам створить у спейсі статуси й типи роботи, яких у ньому бракує, тому готувати таблицю наперед не потрібно"
+            ],
+            "answer": 2,
+            "explain": "Довідка описує два різні шляхи. Основний імпорт створює під дані новий спейс. Перенесення в наявний спейс — окрема сторінка з обмеженнями: «This feature is available only to site and organization admins», а новий статус, тип роботи чи поле під час такого імпорту не створюються — все має збігатися з конфігурацією спейсу, інакше імпорт впаде. Confluence в перенесенні не бере участі."
+          },
+          {
+            "q": "Через місяць роботи Оксана бачить, що ключ спейсу маркетингу — MAR1, а хотілося б MARK. Що станеться, якщо змінити ключ зараз?",
+            "options": [
+              "Ключ змінити не вийде, він задається один раз при створенні спейсу, тож доведеться створити новий спейс і перенести туди всі роботи",
+              "Ключ зміниться, старі посилання працюватимуть, але фільтри дошки, гаджети й загальні запити доведеться оновити руками",
+              "Jira змінить ключ і сама перепише всі збережені запити, гаджети дашборда й посилання, тому робити після цього нічого не треба",
+              "Разом із ключем зміняться й номери робіт, а нумерація в спейсі почнеться з одиниці"
+            ],
+            "answer": 1,
+            "explain": "Ключ змінюється в Space settings → Details, і робить це адміністратор організації, сайту або Jira. Старі посилання після зміни працюють, бо Jira зберігає попередні ключі автоматично. А от фільтри дошки, гаджети дашборда й загальні запити довідка радить оновити руками — саме тому ключ доводять до пуття, поки спейс порожній."
+          },
+          {
+            "q": "Понеділок, п'ятнадцять хвилин на огляд. Чим три збережені запити кращі за прогортування дошок очима?",
+            "options": [
+              "Дошку взагалі не видно колегам, а результат запиту видно всім",
+              "Запит щоразу ставить те саме питання й збирає роботи з усіх спейсів одразу, а не з одного",
+              "Запит надсилає лист про кожну зміну за тиждень, тому дивитись на екран узагалі не доведеться",
+              "Дошка показує лише завершені роботи, а незавершені з'являються тільки в результатах збереженого запиту"
+            ],
+            "answer": 1,
+            "explain": "Збережений запит мовою JQL не прив'язаний до одного спейсу: якщо в ньому немає умови про спейс, він дивиться скрізь, де в тебе є доступ (урок 7). Дошка показує роботи всіх статусів, а не лише завершені; доступ до запиту навпаки треба налаштувати окремо; лист про зміни — це сповіщення, а не властивість запиту."
+          },
+          {
+            "q": "На безкоштовному плані архівації немає. Як прибрати з очей торішні роботи так, щоб вони не зникли назавжди?",
+            "options": [
+              "Видалити їх, бо резервна копія сайту поверне роботи назад у той самий спейс, якщо вони знадобляться",
+              "Сховати їх фільтром на дошці, після чого торішніх робіт не побачить ніхто в команді",
+              "Перенести їх у окремий спейс з назвою Архів, бо при перенесенні між спейсами всі поля зберігаються без винятку",
+              "Довести до завершеного статусу й повісити мітку архів, а в запитах дописати умову про порожнє поле"
+            ],
+            "answer": 3,
+            "explain": "Гігієна замість архівації: завершений статус плюс домовлена мітка (урок 20). У запиті при цьому не можна писати самé «не дорівнює»: воно викидає й роботи, у яких міток немає взагалі, тому поруч додають умову про порожнє поле. Видалення незворотне, фільтр на дошці особистий і чужого екрана не змінює, а перенесення між спейсами може коштувати частини даних."
+          },
+          {
+            "q": "Ігор повернувся з відпустки: Jira отримала велике сезонне оновлення, і кнопки, якою він користувався, на місці немає. Що робити першим?",
+            "options": [
+              "Звірити, чи відкриваються збережені запити, чи працюють flows і чи на місці вигляди спейсів",
+              "Відкотити сайт на резервну копію, щоб повернути попередній вигляд інтерфейсу до того, як команда побачить зміни",
+              "Створити спейс заново, бо старий лишився на попередній версії Jira",
+              "Написати в підтримку Atlassian і чекати відповіді, нічого поки не чіпаючи, щоб не зіпсувати дані остаточно"
+            ],
+            "answer": 0,
+            "explain": "Помітні зміни приходять сезонними порціями, і зникла кнопка зазвичай означає переїзд, а не поломку. Перевіряють спершу те, на чому стоїть щоденна робота: запити, flows, вигляди, дашборд. Перелік змін адміністратор організації бачить в адмініструванні Atlassian, а що саме перейменували останнім часом — у довіднику курсу. Версія Jira на сайті одна для всіх спейсів, і відкотити оновлення резервною копією не можна."
+          }
+        ]
+      }
+      </script>
+
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Урок позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
