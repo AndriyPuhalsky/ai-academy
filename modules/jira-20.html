@@ -307,12 +307,19 @@
             Service Management)».
           </p>
 
+          <p>
+            Друга кнопка, <code>Open access</code>, міняє не роль однієї людини, а рівень
+            доступу всього спейсу — тобто яку роль отримує в ньому будь-хто, хто ввійшов на
+            сайт. Три рівні (<code>Open</code>, <code>Limited</code>, <code>Private</code>)
+            розібрані в тому самому уроці 9.
+          </p>
+
           <h3>Приватність сайту: один екран, три перемикачі</h3>
 
           <p>
-            Другий поверх — налаштування самої Jira. Це той екран, куди заходять раз на рік,
-            і саме на ньому лежать три речі, які вирішують, що видно стороннім і що видно
-            колегам.
+            Наступний екран — поверхом вище: налаштування самої Jira на цьому сайті. Це
+            той екран, куди заходять раз на рік, і саме на ньому лежать три речі, які
+            вирішують, що видно стороннім і що видно колегам.
           </p>
 
 <figure class="win" data-state="settings" id="w2">
@@ -550,7 +557,7 @@ flowchart TB
                 <tr>
                   <td>Клієнт порталу</td>
                   <td><code>jira-servicemanagement-customers-…</code> · «Members of this group can visit your help center, submit help requests, and view articles under &lt;site name&gt;»</td>
-                  <td>ні: «Members of this group won't count towards your bill»</td>
+                  <td>ні: «Members of this group won't count towards your bill…»</td>
                 </tr>
                 <tr>
                   <td>Користувач Confluence</td>
@@ -584,7 +591,8 @@ flowchart TB
               managing a site in an organization» — відповідає за один сайт, зокрема за
               додавання нових продуктів на нього.</li>
             <li><strong>Адміністратор Jira</strong> — це не роль в адмінці, а глобальне
-              право всередині Jira під назвою <code>Administer Jira</code>. Довідка
+              право всередині Jira під назвою <code>Administer Jira</code>. «Глобальне»
+              означає, що воно діє на весь сайт, а не на один спейс. Довідка
               попереджає: «Throughout this documentation, we'll refer to any user with this
               permission as a Jira admin». Він створює спейси й налаштовує типи роботи, поля
               та процеси — але, за тією самою сторінкою, <em>не</em> може «manage existing
@@ -680,16 +688,17 @@ flowchart TB
               <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
                 data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
             </figcaption>
-            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__in">project = MARK AND (labels != архів OR labels IS EMPTY)</span></span></pre>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__in">project = MARK AND (labels != "архів" OR labels IS EMPTY)</span></span></pre>
           </figure>
 
           <p class="ds-diag__caption" data-align="start">
             Друга половина умови обов'язкова. Довідка про оператори JQL попереджає, що «не
             дорівнює» пропускає порожні поля: оператор <code>!=</code> «will not match a
             field that has no value». Без <code>OR labels IS EMPTY</code> ти втратиш усі
-            роботи, у яких міток немає взагалі. ⚠ Кириличну мітку в запиті ми живою Jira не
-            перевіряли: якщо запит її не приймає, назви мітку латиницею
-            (<code>arkhiv</code>) — на логіку фільтра це не впливає.
+            роботи, у яких міток немає взагалі. Значення мітки береться в лапки — так само,
+            як у запиті <code>labels = "дозволи"</code> з уроку 7. ⚠ Кириличну мітку в запиті
+            ми живою Jira не перевіряли: якщо запит її не приймає, назви мітку латиницею й
+            став у запит <code>labels != "arkhiv"</code> — на логіку фільтра це не впливає.
           </p>
         </section>
 
@@ -752,8 +761,9 @@ flowchart TB
             плані це не працює. Три різні сторінки довідки кажуть те саме різними словами:
             ролі й дозволи спейсу тут не редагуються; «You can't restrict work items on the
             Free plan»; на сайті, що завжди був безкоштовним, кожен є адміністратором усіх
-            спейсів. У таблиці планів рядки <code>Space roles</code> і <code>Advanced
-            permissions</code> порожні для безкоштовного стовпця й позначені галочкою
+            спейсів. У таблиці планів рядки <code>Space roles</code>, <code>Advanced
+            permissions</code> і <code>Audit logs</code> (журнал змін сайту — про нього
+            йшлося в уроці 2) порожні для безкоштовного стовпця й позначені галочкою
             починаючи зі Standard — саме туди дивляться, коли розмежування потрібне
             по-справжньому.
           </p>
@@ -770,8 +780,10 @@ flowchart TB
           <p>
             Найдорожча помилка маленької команди, бо помітна вона стає на десятій людині.
             Той, хто лише подає заявки, має бути клієнтом служби, а не користувачем Jira:
-            клієнти місць не займають, а група клієнтів, за довідкою, «won't count towards
-            your bill». Зворотна помилка теж існує: колега, доданий клієнтом, не зможе
+            клієнти місць не займають, а про групу клієнтів довідка каже повністю так:
+            «Members of this group won't count towards your bill (unless the user holds
+            another billable role)» — не займають, доки в тієї самої людини немає іншої,
+            платної ролі. Зворотна помилка теж існує: колега, доданий клієнтом, не зможе
             працювати із заявками — для цього потрібне місце агента (урок 18).
           </p>
 
@@ -848,8 +860,11 @@ flowchart TB
             Роботи, коментарі й сторінки лишаються. Навіть у найжорсткішому випадку —
             повного видалення акаунта — довідка перелічує серед того, що <em>не</em>
             видаляється: «Content the user has created in Atlassian account services, such as
-            pages, issues, and comments». Зникне сама людина зі списків, а її ім'я в полях
-            виконавця й автора лишиться.
+            pages, issues, and comments». А от підпис у полях виконавця й автора в цьому
+            випадку зміниться: «the account will be permanently deleted and the account
+            name will be replaced with "Former user" in products» — замість імені стане
+            напис <code>Former user</code>. Але це крайній випадок; дві дії, якими ти
+            справді користуватимешся, — нижче.
           </p>
 
           <p>
@@ -1037,7 +1052,7 @@ flowchart TB
             "explain": "Архівація спейсів і окремих робіт — можливість платних планів Premium і Enterprise, тому на безкоштовному сайті її немає. Кошик існує для спейсів і веде до остаточного видалення, а не ховає роботи. Видалення незворотне: копія сайту окремої роботи не повертає. Лишається гігієна фільтром — і саме її радить курс."
           },
           {
-            "q": "Оксана зберегла фільтр «labels != архів» і здивована: із десяти робіт спейсу в ньому видно лише дві, хоча мітку архів вона поставила лише на трьох. Що сталося?",
+            "q": "Оксана зберегла фільтр «labels != \"архів\"» і здивована: із десяти робіт спейсу в ньому видно лише дві, хоча мітку архів вона поставила лише на трьох. Що сталося?",
             "options": [
               "Мітка застосовується до всього спейсу, тому Jira заховала й ті роботи, які лежать в одній колонці з поміченими",
               "Оператор не дорівнює пропускає роботи, у яких мітки немає взагалі, тож треба дописати OR labels IS EMPTY",
