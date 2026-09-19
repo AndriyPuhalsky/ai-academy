@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 22 · Jira + Claude Code через MCP — Jira з нуля</title>
+  <meta name="description"
+    content="Як підключити Jira до помічника Claude Code через MCP-сервер Atlassian: одна команда, згода в браузері, три сценарії роботи словами — і де проходить межа між читанням і записом." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+</head>
+
+<body data-module="j22">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 22</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 5 · Service desk і адміністрування</p>
+        <h1 class="ds-h1">Jira + Claude Code через MCP</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 24 хв читання</p>
+        <p class="ds-lead">
+          Двадцять один урок ти працював(ла) з Jira руками: відкрити спейс, натиснути
+          <code>+ Create</code>, заповнити поля. Цей урок про інший спосіб: попросити
+          словами — і побачити результат у Jira. Між помічником і Jira для цього ставлять
+          окремий місток, і саме він, а не «розумність помічника», вирішує, що дозволено,
+          а що ні.
+        </p>
+        <p>
+          Урок стоїть останнім не випадково: щоб просити «покажи мої прострочені справи
+          в маркетингу», треба вже знати, що таке спейс, статус, дедлайн і запит JQL.
+          Усе це в тебе вже є.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> навчання самому помічнику — Claude Code має власний
+            безкоштовний курс на цій платформі, «AI Термінал», і в ньому є окремий урок
+            саме про MCP; тут ми його не переказуємо. Немає програмування й REST API —
+            це інструменти розробників. Немає Rovo — платного AI-шару всередині самої
+            Jira: кнопки <code>Ask AI</code> та <code>Improve Task</code>, які ти бачиш
+            на безкоштовному плані, це запрошення купити, а не доступна функція (урок 2).
+          </p>
+          <p>
+            <strong>Є:</strong> що таке MCP людською мовою; як підключити Jira однією
+            командою; що саме ти дозволяєш на екрані згоди; три робочі сценарії — знайти,
+            підсумувати, створити; межа між читанням і записом; що з цього безкоштовне;
+            і куди вчитись далі, коли курс закінчиться.
+          </p>
+          <p>
+            <strong>Урок необов'язковий.</strong> Jira від цього не залежить: усе, що ти
+            налаштував(ла) за двадцять один урок, працює й без жодного помічника. Пройди
+            цей урок, якщо хочеш, і переходь до іспиту в будь-якому разі.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            Сайт «Кориці» веде Денис Романюк — розробник на пів ставки, адміністратор
+            спейсу <code>WEB</code>. У понеділок Оксана надсилає йому список змін:
+            оновити ціни, підключити оплату карткою, переписати сторінку доставки.
+            Список — звичайний текст у повідомленні.
+          </p>
+
+          <p>
+            Щоб цей текст став роботою в Jira, хтось має відкрити спейс, натиснути
+            <code>+ Create</code> стільки разів, скільки пунктів у списку, і щоразу
+            перенести назву руками. Робота не складна — вона нудна, і саме тому її
+            відкладають. А відкладена робота живе там само, де жила до першого уроку:
+            у повідомленні.
+          </p>
+
+          <h3>Місток, а не розум</h3>
+
+          <p>
+            <strong>MCP</strong> (Model Context Protocol, «протокол контексту моделі») —
+            відкрита домовленість про те, як програма-помічник розмовляє із зовнішньою
+            системою. Довідка Claude Code описує його як «an open source standard for
+            AI-tool integrations» — відкритий стандарт для зв'язку помічника з
+            інструментами, і додає: «MCP servers give Claude Code access to your tools,
+            databases, and APIs» (сервери MCP дають помічнику доступ до твоїх
+            інструментів, баз даних і програмних інтерфейсів).
+          </p>
+
+          <p>
+            Слово <strong>сервер</strong> тут не означає «залізо в підвалі». Сервер MCP —
+            це програма, яка відповідає на запити: вона стоїть між помічником і Jira,
+            знає, які дії в Jira взагалі бувають, і виконує їх замість тебе. Atlassian
+            тримає такий сервер у себе й називає його Rovo MCP Server. Сам він нічого не
+            вигадує: маркетингова сторінка Atlassian формулює це прямо —
+            «The MCP server itself is not an AI model» (сам MCP-сервер не є моделлю
+            штучного інтелекту).
+          </p>
+
+          <p>
+            <strong>Термінал</strong> — вікно, у якому програмі пишуть текстом: набираєш
+            рядок, тиснеш Enter, отримуєш відповідь текстом. Claude Code живе саме там.
+            Рядок, який ти набираєш, називають <strong>командою</strong>, а один запуск
+            програми від старту до виходу — <strong>сесією</strong>. Усі команди цього
+            уроку можна скопіювати кнопкою й вставити в термінал.
+          </p>
+
+          <h3>Що для цього потрібно і скільки це коштує</h3>
+
+          <p>
+            Бік Jira безкоштовний. Atlassian пише про свій MCP-сервер так:
+            «All Atlassian Cloud customers have access to the Atlassian Rovo MCP server,
+            although there are site-level rate limits» — доступ мають усі клієнти Atlassian
+            Cloud, але є обмеження на частоту звернень залежно від плану. Скільки саме
+            звернень на годину дозволяє безкоштовний план — у довіднику
+            «Карта інтерфейсу, глосарій і ліміти Free», разом з усіма іншими числами курсу.
+          </p>
+
+          <p>
+            Бік помічника — ні. Claude Code ставлять на свій комп'ютер, і його довідка
+            серед вимог називає «A Claude subscription (Pro, Max, Team, or Enterprise),
+            Claude Console account, or access through a supported cloud provider» — тобто
+            підписку Claude або акаунт Claude Console (це вхід для розробників).
+            Курс безкоштовний, Jira безкоштовна,
+            а цей урок — про платний інструмент. Тому він і стоїть окремо, і тому його
+            можна пропустити без втрат.
+          </p>
+
+          <p>
+            Якщо Claude Code у тебе ще немає й ставити його ти не плануєш — прочитай урок
+            як опис механізму. Розуміти, що таке MCP і що дає згода в браузері, корисно
+            навіть тим, хто ніколи не відкриє термінал: те саме підключення до Jira роблять
+            і в інших програмах-помічниках, а питання «що я щойно дозволив(ла)» там
+            однакове.
+          </p>
+        </section>
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Екранів тут три, і вони з різних світів. Перший — термінал: чорне (або світле)
+            вікно з текстом, де ти набираєш команду. Другий — звичайна сторінка в браузері,
+            де Atlassian питає твоєї згоди. Третій — сама Jira, яку ти знаєш двадцять один
+            урок.
+          </p>
+
+          <h3>Екран згоди: що на ньому відбувається</h3>
+
+          <p>
+            Цей екран ми свідомо не малюємо схемою. Довідка Atlassian описує його словами,
+            але не наводить жодного напису з нього дослівно, а живого знімка в нас немає —
+            намальоване вікно було б вигадкою. Тому — прозою, за документацією.
+          </p>
+
+          <p>
+            Коли помічник уперше звертається до сервера, той відповідає «спершу вхід».
+            Далі, як пише довідка Atlassian, «The user is redirected to Atlassian to review
+            and grant access on a consent screen» — тебе перекидає на сторінку Atlassian,
+            де ти переглядаєш і надаєш доступ. Ти входиш своїм звичайним акаунтом (тим
+            самим, яким заходиш у Jira), обираєш <strong>сайт</strong> — якщо їх у тебе
+            кілька, — і підтверджуєш перелік дозволів.
+          </p>
+
+          <p>
+            Що саме вирішує цей екран, Atlassian формулює так: які застосунки Atlassian
+            ти дозволив(ла) (Jira, Confluence, Jira Service Management) і «Which scopes are
+            available to Atlassian MCP when calling those apps on behalf of the user» —
+            які дозволи має сервер, коли звертається до цих застосунків
+            <em>від імені користувача</em>. Ці три слова — головні в уроці: помічник
+            не отримує окремого акаунта й окремих прав. Він працює з твоїми.
+          </p>
+
+          <p>
+            Пароля ти йому не даєш. Механізм, за яким це влаштовано, називається
+            <strong>OAuth</strong>: ти підтверджуєш згоду на сайті Atlassian, а програма
+            отримує <strong>токен</strong> — довгий рядок-ключ, який діє обмежений час
+            і який можна відкликати, не міняючи пароля. Claude Code зберігає його в себе;
+            у документації це названо «Authentication tokens are stored securely and
+            refreshed automatically».
+          </p>
+
+          <h3>Jira після того, як помічник спрацював</h3>
+
+          <p>
+            А ось результат, заради якого все затівалось. Денис попросив завести три
+            роботи зі списку Оксани; нижче — одна з них, <code>WEB-3</code>.
+          </p>
+
+          <figure class="win" data-state="item" id="w1">
+            <figcaption class="win__chrome">
+              <span class="win__dots" aria-hidden="true"></span>
+              <span class="win__title" id="w1t">Jira Cloud · картка WEB-3 «Оновити ціни на сайті» · за документацією, 2026-09-19</span>
+              <span class="win__addr" aria-hidden="true">…/browse/WEB-3</span>
+            </figcaption>
+            <div class="win__body" role="group" aria-labelledby="w1t">
+              <ul class="win__rail" aria-label="Бічна панель Jira">
+                <li class="win__rail-item">For you</li>
+                <li class="win__rail-item win__rail-item--active">Spaces</li>
+                <li class="win__rail-item">Filters</li>
+                <li class="win__rail-item">Dashboards</li>
+              </ul>
+              <div class="win__main">
+                <div class="win__item">
+                  <p class="win__crumb">Spaces / Сайт / <span class="win__key">WEB-3</span> <b class="win__mark" aria-hidden="true">①</b></p>
+                  <h4 class="win__item-title">Оновити ціни на сайті</h4>
+                  <p class="win__status" data-cat="todo">To Do ▾</p>
+                  <dl class="win__fields">
+                    <dt>Assignee</dt><dd>Денис Романюк</dd>
+                    <dt>Reporter</dt><dd>Денис Романюк <b class="win__mark" aria-hidden="true">②</b></dd>
+                    <dt>Priority</dt><dd>None</dd>
+                    <dt>Labels</dt><dd>Add labels</dd>
+                    <dt>Due date</dt><dd>Sep 25, 2026</dd>
+                  </dl>
+                  <div class="win__desc">
+                    <h5>Description</h5>
+                    <p>Нові ціни на каву й випічку з понеділка, узяти з таблиці Оксани.</p>
+                  </div>
+                  <div class="win__comments">
+                    <h5>Activity · Comments</h5>
+                    <ul><li><span class="win__who" title="Денис Романюк">ДР</span> Створено через Claude Code за списком від Оксани <b class="win__mark" aria-hidden="true">③</b></li></ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </figure>
+          <ol class="win__legend" aria-label="Пояснення до вікна «картка WEB-3»">
+            <li><code>WEB-3</code> — звичайний ключ: робота нічим не позначена як «машинна»</li>
+            <li><code>Reporter</code> — акаунт, від імені якого зроблено виклик</li>
+            <li>Коментар — слід, який лишаєш ти сам(а), а не Jira</li>
+          </ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            ⚠ Вікно зібране <strong>за документацією</strong>: набір полів картки — зі знімка
+            живої Jira від 17 вересня 2026 року, вміст — сюжетний, а поведінку поля
+            <code>Reporter</code> при створенні через MCP ми живим запуском не перевіряли.
+            Підстава для ② — цитата вище: виклик іде «on behalf of the user». Перевір це на
+            своїй першій картці очима, як описано в блоці 5.
+          </p>
+
+          <p>
+            Головне в цьому вікні — те, чого в ньому немає. Немає особливого типу роботи,
+            позначки «створено роботом», окремого кольору. Робота, створена через MCP, —
+            звичайна робота. Порівняй із уроком 14: коли картку створює або змінює flow,
+            в історії стоїть «user» на ім'я Automation for Jira, і цим машинна дія
+            відрізняється від людської. Через MCP діє <em>людина</em>, лише швидше.
+          </p>
+
+          <p>
+            Коментар у картці — не автоматичний. Це домовленість, яку варто завести собі
+            самому: якщо роботу створено пачкою за чиїмось списком, один рядок у коментарі
+            економить колегам півгодини здогадок через місяць.
+          </p>
+        </section>
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <p>
+            Учасників чотири: ти, Claude Code на твоєму комп'ютері, MCP-сервер Atlassian
+            у хмарі й твій сайт Jira. Ось увесь шлях від команди до створеної картки.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+sequenceDiagram
+  participant L as Ти
+  participant C as Claude Code
+  participant M as MCP-сервер Atlassian
+  participant J as Jira Cloud
+  L->>C: команда підключення (один раз)
+  C->>M: хто ти і що вмієш
+  M-->>C: 401 - спершу вхід
+  C->>L: відкриває браузер, екран згоди
+  L->>M: сайт і дозволи підтверджено
+  M-->>C: токен доступу
+  L->>C: покажи мої прострочені в MARK
+  C->>M: виклик інструмента пошуку
+  M->>J: запит від твого імені
+  J-->>M: список робіт
+  M-->>C: відповідь
+  C-->>L: список словами
+  L->>C: створи три задачі зі списку
+  C->>L: питає дозвіл на запис
+  L-->>C: так
+  C->>M: виклик інструмента створення
+  M->>J: створити роботи
+  J-->>M: роботи створено
+  M-->>C: ключі нових робіт
+  C-->>L: готово, ось ключі
+            </pre>
+            <p class="ds-diag__caption">Вхід один раз, потім кожна дія — окремий виклик інструмента</p>
+          </div>
+
+          <h3>Три поняття, без яких далі буде туман</h3>
+
+          <ul>
+            <li><strong>Endpoint (адреса сервера).</strong> Рядок виду
+              <code>https://mcp.atlassian.com/v2/mcp</code>. Це не сторінка для людини:
+              ми зверталися за цією адресою без входу 19 вересня 2026 року — сервер
+              відповів відмовою й вимогою увійти. Це адреса, за якою до сервера
+              звертаються програми.</li>
+            <li><strong>Інструмент (tool).</strong> Одна конкретна дія, яку сервер уміє:
+              «знайти роботи запитом», «створити роботу», «додати коментар». Сервер дає
+              помічникові перелік інструментів, а помічник обирає з нього потрібний.</li>
+            <li><strong>Токен.</strong> Ключ, який програма отримує після твоєї згоди
+              й показує серверу при кожному зверненні. Пароль лишається в тебе.</li>
+          </ul>
+
+          <h3>Що вміє сервер Atlassian</h3>
+
+          <p>
+            Перелік інструментів Atlassian публікує відкрито, і він розбитий на групи
+            дозволів. Для Jira основні групи — читання, пошук і запис. Ось найчастіші
+            інструменти з описами з довідки:
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: основні інструменти Jira в MCP-сервері Atlassian">
+            <table class="ds-tbl">
+              <thead><tr><th>Інструмент</th><th>Опис із довідки Atlassian</th><th>Що це означає</th></tr></thead>
+              <tbody>
+                <tr><td><code>searchJiraIssuesUsingJql</code></td><td>Search Jira work items using JQL.</td><td>той самий пошук, що в уроці 7</td></tr>
+                <tr><td><code>getJiraIssue</code></td><td>Get a Jira work item by ID or key.</td><td>прочитати одну роботу за ключем</td></tr>
+                <tr><td><code>createJiraIssue</code></td><td>Create a new Jira work item.</td><td>створити роботу</td></tr>
+                <tr><td><code>addOrEditJiraIssueComment</code></td><td>Add a comment, or edit an existing one.</td><td>написати коментар</td></tr>
+                <tr><td><code>listJiraProjects</code></td><td>Get Jira spaces visible to the current user.</td><td>перелік спейсів, які бачиш <em>ти</em></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            У назвах інструментів живе старе слово <code>issue</code> — те саме, що в
+            JQL живе <code>project</code> замість <code>space</code>. Причина однакова:
+            перейменування дійшло до кнопок, але не до програмних назв. Побачиш
+            <code>issue</code> у відповіді помічника — це не помилка й не інша сутність,
+            це робота (work item).
+          </p>
+
+          <p>
+            Дві групи інструментів вимкнені, поки їх не ввімкне адміністратор організації.
+            Про одну з них довідка пише: «manage_jira is disabled by default. An admin must
+            enable it before you can utilize it» — і так само про групу видалення. Тобто
+            навіть помічник, який дуже старається, за замовчуванням не видалить твою роботу
+            й не створить спейс.
+          </p>
+
+          <h3>Що з цього безкоштовне</h3>
+
+          <p>
+            Тут треба бути точним, бо питання грошей у Atlassian описане двома різними
+            сторінками. Є <strong>кредити Rovo</strong> — внутрішня валюта AI-функцій
+            Atlassian. Довідка каже: «Rovo credits are included in all paid Jira, Confluence,
+            Service Collection and Teamwork Collection cloud subscriptions» — кредити
+            включені в <em>платні</em> підписки. На безкоштовному плані включених кредитів
+            немає.
+          </p>
+
+          <p>
+            Але не кожен виклик через MCP їх витрачає. Та сама сторінка ділить звернення
+            на два роди. Безкоштовні: «Free TWG API calls include installing the Teamwork
+            Graph CLI and Rovo MCP or running commands to look up or update context in any
+            single Atlassian product» — дії в межах <em>одного</em> застосунку Atlassian;
+            у прикладах прямо названі «Write operations such as updating a Jira work item»
+            і «Requesting single product context, such as looking up a Jira work item».
+            Платні (кредитами): звернення, які тягнуть контекст через кілька систем
+            одразу — у прикладі «…recent work across Jira, Confluence, Bitbucket, and
+            connected external tools».
+          </p>
+
+          <p>
+            Практичний висновок для безкоштовного плану один: <strong>тримай прохання в
+            межах Jira</strong>. «Знайди в спейсі MARK», «створи роботу в WEB», «додай
+            коментар до WEB-3» — це дії в одному застосунку. «Зведи разом, що в нас у Jira,
+            у Confluence і в чаті» — інший рід звернення. ⚠ Що саме відповість сервер на
+            таке прохання з безкоштовного сайту, ми живим запуском не перевіряли: у доксах
+            описані кредити й ліміти, але не поведінка Free-сайту в цьому випадку.
+          </p>
+        </section>
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            Після уроку 21 твоя фірма вже в Jira: спейси, справи, фільтри, дашборд,
+            автоматизації. Тепер підключимо до неї помічника. Кроки 1–3 роблять один раз,
+            кроки 4–6 — щоразу, коли потрібно.
+          </p>
+
+          <h3>Крок 0. Перевір, що Claude Code стоїть</h3>
+
+          <p>
+            Відкрий термінал і набери <code>claude --version</code>, потім Enter. Якщо
+            програма встановлена, вона друкує номер версії. Якщо термінал відповідає
+            «command not found» — Claude Code не встановлений; як його поставити й
+            налаштувати, розказує курс
+            <a href="../claude-code.html">«AI Термінал»</a> на цій платформі (там же,
+            в уроці 18, — MCP загалом, без прив'язки до Jira).
+          </p>
+
+          <figure class="term term--cmd" id="p1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p1t">macOS 26.5.2 · знято 2026-09-19</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude --version</span></span>
+<span class="term__line">2.1.278 (Claude Code)</span></pre>
+          </figure>
+
+          <p>
+            Номер у тебе буде інший, і це нормально: версії виходять часто. Важливо лише,
+            що рядок з'явився.
+          </p>
+
+          <h3>Крок 1. Додай сервер Atlassian</h3>
+
+          <p>
+            Одна команда. Її наводить сама Atlassian у розділі про Claude Code, дослівно:
+          </p>
+
+          <figure class="term term--cmd" id="p2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p2t">підключення сервера Atlassian — команда з довідки Atlassian, 2026-09-19</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p2t"><span class="term__line"><span class="term__meta">$</span> <span class="term__in">claude mcp add --transport http atlassian https://mcp.atlassian.com/v2/mcp</span></span></pre>
+          </figure>
+
+          <p>
+            Читається так: <code>claude mcp add</code> — додай сервер;
+            <code>--transport http</code> — він у мережі, а не програма на твоєму
+            комп'ютері; <code>atlassian</code> — ім'я, під яким ти його бачитимеш (можна
+            будь-яке, але не міняй без потреби); далі адреса сервера.
+          </p>
+
+          <p>
+            За замовчуванням сервер додається лише для тієї папки, у якій ти стоїш:
+            «Local scope is the default. A local-scoped server loads only in the project
+            where you added it and stays private to you». Якщо хочеш, щоб Jira була
+            під рукою в будь-якій папці, додай до команди <code>--scope user</code>.
+          </p>
+
+          <h3>Крок 2. Увійди</h3>
+
+          <p>
+            Запусти помічника командою <code>claude</code>, а всередині сесії набери:
+          </p>
+
+          <figure class="term term--cmd" id="p3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p3t">всередині сесії Claude Code — панель серверів і вхід</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p3t"><span class="term__line"><span class="term__in">/mcp</span></span></pre>
+          </figure>
+
+          <p>
+            Ця команда відкриває перелік серверів і дає увійти. Atlassian описує крок так:
+            запусти <code>/mcp</code> після відкриття сесії Claude Code, щоб пройти
+            автентифікацію. Відкриється браузер з екраном згоди — тим самим, що описаний
+            у блоці 2. Обери <strong>той сайт, який тобі потрібен</strong> (якщо акаунтів
+            чи сайтів кілька, дивись уважно: це найчастіша помилка), переглянь дозволи
+            й підтверди. ⚠ Живого знімка цього екрана в курсі немає — опис зроблено
+            за документацією.
+          </p>
+
+          <h3>Крок 3. Запит на читання</h3>
+
+          <p>
+            Почни з читання: воно нічого не змінює, і на ньому видно, чи взагалі працює
+            зв'язок. Попроси те, що ти вже вмієш зробити руками, — так буде з чим
+            порівняти:
+          </p>
+
+          <figure class="term term--cmd" id="p4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p4t">сценарій 1 · мої прострочені справи в маркетингу</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p4t"><span class="term__line"><span class="term__in">Покажи мої незавершені справи у спейсі MARK, у яких дедлайн уже минув. Відсортуй за дедлайном.</span></span></pre>
+          </figure>
+
+          <p>
+            Під капотом це той самий запит, який ти писав(ла) в уроці 7. Ось він —
+            вставиш у пошук Jira й звіриш результат:
+          </p>
+
+          <figure class="term term--cmd" id="p5">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p5t">та сама вибірка мовою JQL — для звірки в самій Jira</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p5t"><span class="term__line"><span class="term__in">project = MARK AND assignee = currentUser() AND due &lt; now() AND statusCategory != Done ORDER BY due ASC</span></span></pre>
+          </figure>
+
+          <h3>Крок 4. Запит на підсумок</h3>
+
+          <p>
+            Другий сценарій — те, чого пошук не вміє: зв'язний текст. Попроси підсумувати
+            тиждень в одному спейсі:
+          </p>
+
+          <figure class="term term--cmd" id="p6">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p6t">сценарій 2 · що зробили за тиждень у ремонті</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p6t"><span class="term__line"><span class="term__in">Підсумуй кількома реченнями, що змінилось у спейсі REM за останній тиждень: які роботи закрили, що в роботі, де є прострочення.</span></span></pre>
+          </figure>
+
+          <p>
+            Відповідь звіряй з Jira, поки не звикнеш довіряти. Помічник переказує те, що
+            прочитав, а прочитав він міг не все: довідка Claude Code описує, що завелику
+            відповідь інструмента програма обрізає й попереджає про це. Тому для
+            «скільки саме» надійніший фільтр із уроку 7, а не переказ.
+          </p>
+
+          <h3>Крок 5. Запит на запис</h3>
+
+          <p>
+            І аж тепер — запис. Візьми справжній список із трьох справ і назви спейс явно:
+          </p>
+
+          <figure class="term term--cmd" id="p7">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p7t">сценарій 3 · три роботи зі списку</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p7t"><span class="term__line"><span class="term__in">Створи у спейсі WEB три роботи типу Task і не переписуй назви: 1) Оновити ціни на сайті, 2) Підключити оплату карткою, 3) Сторінка доставки: оновити текст. Першій постав дедлайн 25 вересня 2026, решті дедлайн не став.</span></span></pre>
+          </figure>
+
+          <p>
+            Фраза «назви не переписуй» тут — підстрахування. Якщо помічник перефразує
+            назву «красивіше», ти потім не знайдеш свою справу пошуком за тим словом,
+            яке писав(ла) сам(а).
+          </p>
+
+          <p>
+            Перед самим записом Claude Code має спитати дозволу. Довідка описує ручний
+            режим так: «In Manual mode, Claude Code stops and asks you before most actions
+            that edit files, run shell commands, or reach the network», і окремо згадує
+            «MCP tool prompts» — запити дозволу на виклик MCP-інструмента. Дивись на те,
+            що написано у вікні запиту, а не тисни «так» рефлекторно: там видно, який саме
+            інструмент і з якими даними буде викликано.
+          </p>
+
+          <h3>Крок 6. Прибери за собою</h3>
+
+          <p>
+            Коли награвся — прибери доступ, особливо якщо пробував на робочому сайті.
+            Це робиться з двох боків:
+          </p>
+
+          <ul>
+            <li><strong>З боку помічника.</strong> У панелі <code>/mcp</code> є пункт
+              «Clear authentication» — він стирає збережений вхід; те саме робить команда
+              <code>claude mcp logout atlassian</code>. А повністю прибрати сервер —
+              <code>claude mcp remove atlassian</code>: «When you remove a remote server,
+              Claude Code also deletes the OAuth tokens and client registration it stored
+              for that server».</li>
+            <li><strong>З боку Atlassian.</strong> Дозвіл, який ти дав(ла) на екрані згоди,
+              живе у твоєму акаунті Atlassian, і його можна відкликати: «a user can revoke
+              their app grants at any time using their own connected apps screen» — на
+              власному екрані підключених застосунків. ⚠ Точного шляху до цього екрана
+              в курсі немає: ми його очима не бачили, а довідка називає екран, але не
+              шлях до нього.</li>
+          </ul>
+        </section>
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>Чотири ознаки, кожну видно очима.</p>
+
+          <ul>
+            <li><strong>Сервер підключений.</strong> Команда <code>claude mcp list</code>
+              показує стан кожного сервера. У документації названі три стани:
+              <code>✔ Connected</code> (підключено), <code>! Needs authentication</code>
+              (потрібен вхід) і <code>✘ Failed to connect</code> (не вдалося зв'язатись).
+              Потрібен перший. Другий означає, що крок із <code>/mcp</code> не
+              завершено.</li>
+            <li><strong>Читання повертає твою Jira, а не чужу.</strong> Попроси перелік
+              спейсів. У відповіді мають бути ключі твоєї фірми (<code>MY</code>,
+              <code>MARK</code>, <code>REM</code>…). Якщо перелік не той — ти підключився
+              не до того сайту або не тим акаунтом.</li>
+            <li><strong>Три нові картки в Jira мають ключі й дедлайни.</strong> Відкрий
+              спейс і подивись очима, а не на відповідь у терміналі. Назви мають збігатись
+              зі списком, який ти дав(ла), слово в слово.</li>
+            <li><strong>Подивись, чиє ім'я стоїть у полі <code>Reporter</code>.</strong>
+              Відкрий одну зі створених карток. За документацією виклик іде від імені
+              того, хто пройшов згоду, тож там має бути твій акаунт. Якщо ім'я чуже —
+              вхід пройдено не тим акаунтом, і це варто виправити до того, як пачка
+              карток піде в роботу. ⚠ Живим запуском ми цього поля не перевіряли —
+              ця ознака й для нас перевірка.</li>
+          </ul>
+
+          <p>
+            І одна ознака навпаки: <strong>у ручному режимі жодного запису не мало
+            статись без твого «так»</strong>. Якщо картки з'явились, а дозволу ніхто
+            не питав — подивись, у якому режимі дозволів працює твій Claude Code
+            (про це в граблях нижче).
+          </p>
+        </section>
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3>Підключився не до того сайту</h3>
+
+          <p>
+            Якщо в браузері відкрито кілька акаунтів Atlassian — робочий і особистий,
+            свій і клієнтський, — згоду легко підтвердити не для того сайту, для якого
+            ти її збирав(ла) давати. ⚠ Цього екрана ми не бачили, тому судимо по
+            результату: ознака помилки — перелік спейсів у відповіді помічника не твій.
+            Лікування: відкликати доступ (крок 6), вийти зі зайвих акаунтів у браузері,
+            повторити <code>/mcp</code> і цього разу прочитати, який сайт обрано.
+          </p>
+
+          <h3>«Учора працювало, сьогодні сервера немає»</h3>
+
+          <p>
+            Класична пастка першого дня: сервер додано без <code>--scope user</code>,
+            тобто лише для тієї папки, де ти стояв(ла). Наступного разу ти відкрив(ла)
+            термінал в іншому місці — і Jira «зникла». Нічого не зламалось:
+            «A local-scoped server loads only in the project where you added it».
+            Додай його ще раз із <code>--scope user</code>.
+          </p>
+
+          <h3>Адреса зі старої статті</h3>
+
+          <p>
+            В інтернеті лежать інструкції з адресою попереднього покоління сервера
+            (<code>/v1/</code> у рядку). Найнеприємніше — що така адреса <em>відповідає</em>:
+            ми зверталися за обома 19 вересня 2026 року, і обидві живі. Тобто нічого
+            гучно не зламається — ти тихо працюватимеш зі старим поколінням сервера,
+            а перелік інструментів там інший: довідка про інструменти застерігає, що
+            «The tools listed on this page are only available with Atlassian MCP v2».
+            Atlassian уже призначила дату переходу: «On March 1, 2027 any existing
+            utilization of v1 will automatically start to expose and utilize v2 tools».
+            Бери адресу з чинної сторінки довідки, а не з поста у блозі: сьогодні там
+            <code>https://mcp.atlassian.com/v2/mcp</code>.
+          </p>
+
+          <h3>Режим дозволів вирішує, чи тебе спитають</h3>
+
+          <p>
+            «Помічник завжди питає перед записом» — це правда не завжди, а в ручному
+            режимі. У Claude Code є режими, де дії схвалює не людина: в одному замість тебе
+            їх переглядає інша модель, в іншому підтвердження не питають зовсім.
+            Документація описує це прямо, називаючи режим, який «Skips permission prompts».
+            Поки не звик(ла) — працюй у ручному режимі й читай, що саме питають.
+          </p>
+
+          <h3>Помічник «покращив» те, про що не просили</h3>
+
+          <p>
+            Дві історії, до яких варто бути готовим(ою). Перша: назви робіт перефразовані,
+            і твій список більше не збігається з тим, що в Jira. Друга: замість трьох
+            карток з'явилось п'ять, бо один пункт списку «логічно розбити». Радимо
+            страхуватись формулюванням: називай кількість, називай спейс, додавай «назви
+            не переписуй» і не давай завдань виду «наведи лад у спейсі». І першу пачку
+            роби на трьох картках, а не на двадцяти — помилку на трьох виправити легко.
+          </p>
+
+          <h3>Кнопка Ask AI в Jira — це не твій помічник</h3>
+
+          <p>
+            <code>Ask AI</code> у пошуку, <code>Improve Task</code> на картці,
+            <code>Add agent</code> у редакторі workflow і розділ <code>Agents</code> на
+            картці роботи — усе це Rovo, платний AI-шар усередині самої Jira. На
+            безкоштовному плані вони видні як запрошення купити. MCP — інший шлях: він
+            нічого не вмикає в інтерфейсі Jira, і в самій Jira після підключення не
+            з'явиться жодної нової кнопки. Окремо не плутай Rovo-агентів з агентами служби
+            підтримки з уроку 18: там «агент» — це людина, яка відповідає на заявки.
+          </p>
+        </section>
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Помічник бачить усе, що є на сайті, чи лише моє?</h3>
+
+          <p>
+            Лише те, що бачиш ти. Дозволи беруться з твого акаунта: «MCP clients can perform
+            actions on all connected products (such as Jira, Confluence, Bitbucket) with your
+            existing permissions». Спейс, до якого тебе не пустили, не стане видимим через
+            помічника. Зворотний бік тієї самої медалі: якщо ти адміністратор сайту, то
+            й помічник працює з правами адміністратора сайту — з усіма наслідками.
+          </p>
+
+          <h3>Якою мовою писати запити?</h3>
+
+          <p>
+            Приклади в довідці Atlassian англійські; наші — українські, і ⚠ живим запуском
+            на нашому боці вони не перевірялись. Що точно не перекладається: ключі
+            (<code>WEB-3</code>), назви полів у JQL (<code>project</code>, <code>due</code>,
+            <code>assignee</code>) і назви статусів. Їх пиши так, як вони є в твоїй Jira.
+            Якщо відповідь явно не та — назви спейс ключем, а дати числами.
+          </p>
+
+          <h3>Чи обов'язково саме Claude Code?</h3>
+
+          <p>
+            Ні. Сервер один, а програм-клієнтів багато: довідка Atlassian пише, що
+            «Atlassian MCP supports any app with MCP support», і наводить серед них
+            ChatGPT, Claude, Docker, GitHub Copilot CLI, Google Gemini, Amazon Quick Suite.
+            Для кожного клієнта в тій самій довідці є своя інструкція, а адреса сервера
+            одна й та сама: «Use this server URL: https://mcp.atlassian.com/v2/mcp».
+          </p>
+
+          <h3>А якщо не людина, а програма? Я чув(ла) про API-токени</h3>
+
+          <p>
+            Такий шлях є. <strong>API-токен</strong> — довгий рядок-пароль, яким
+            користуються програми замість людини. Той самий сервер приймає і його, але,
+            як пише довідка, лише якщо це дозволив адміністратор організації, і
+            призначений цей спосіб для випадків, коли людини за клавіатурою немає взагалі
+            (фонові служби, автоматичні збирачі). Для ручної роботи це зайве ускладнення,
+            а писати власні програми проти Jira (REST API) — окрема професійна тема, якої
+            курс свідомо не вчить.
+          </p>
+
+          <h3>Це безпечно?</h3>
+
+          <p>
+            Настільки, наскільки безпечний твій акаунт і твоя уважність. Atlassian ставить
+            на своїх сторінках коротке застереження: користуйся мінімально потрібними
+            правами, переглядай значні зміни перед підтвердженням і зазирай у журнали.
+            Довідка Claude Code застерігає окремо: «Verify you trust each server before
+            connecting it» — перевір, чи довіряєш серверу, перш ніж підключати. Сервер
+            Atlassian — офіційний, від самої Atlassian; те саме правило варто пам'ятати,
+            коли наступного разу захочеться підключити сервер від невідомого автора.
+          </p>
+
+          <h3>Чи зіпсує це історію робіт?</h3>
+
+          <p>
+            Ні. Робота, створена через MCP, — звичайна робота: окремого типу чи позначки
+            «машинна» в Jira для неї немає. Порівняй з автоматизацією з уроку 14, де за
+            замовчуванням діє службовий користувач Automation for Jira — там машинну дію
+            видно одразу. ⚠ Чиє ім'я стоятиме в історії після виклику через MCP, ми живим
+            запуском не перевіряли; за документацією виклик іде від імені того, хто
+            пройшов згоду. Саме тому варто писати коментар, коли пачка карток створена
+            не руками.
+          </p>
+        </section>
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li>MCP — відкрита домовленість про те, як помічник розмовляє із зовнішньою
+                системою. Сервер Atlassian — місток між помічником і твоєю Jira, а не
+                розум усередині Jira.</li>
+              <li>Підключення — одна команда й одна згода в браузері. Пароля ти нікому
+                не даєш: згода видає токен, який можна відкликати.</li>
+              <li>Помічник працює <em>від твого імені і з твоїми правами</em>. Він не
+                бачить того, чого не бачиш ти, і не стає адміністратором, якщо ти не
+                адміністратор.</li>
+              <li>Починай із читання: пошук і підсумок нічого не змінюють. Запис — лише
+                з підтвердженням, і краще спершу на трьох картках, а не на двадцяти.</li>
+              <li>Доступ до сервера мають усі сайти Atlassian Cloud, включно з
+                безкоштовними; частота звернень обмежена планом — числа в довіднику
+                «Карта інтерфейсу, глосарій і ліміти Free».</li>
+              <li><code>Ask AI</code>, <code>Improve Task</code>, <code>Add agent</code>
+                у самій Jira — це Rovo, платний шар, а не те, що ти щойно підключив(ла).</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+
+          <p>
+            Це був останній урок курсу. Попереду — <strong>фінальний іспит</strong>: 26
+            питань по всьому, що ти пройшов(ла), від першої картки в уроці 5 до порталу
+            заявок і цього підключення. Перед ним варто зробити одну річ: відкрити свій
+            сайт і пройтись очима по спейсах, фільтрах і дашборду, які ти зібрав(ла).
+            Питання іспиту — ситуації, а не визначення: там питають «що сталось» і
+            «що робити», а не «як називається».
+          </p>
+
+          <h3>Куди вчитись далі</h3>
+
+          <p>
+            Курс закінчується, Jira — ні. У Atlassian є власний майданчик спільноти, де
+            все це продовжується. Назви нижче — з розділів самого сайту спільноти,
+            звірені 19 вересня 2026 року.
+          </p>
+
+          <ul>
+            <li><strong>Forums (форуми спільноти).</strong> Місце, де ставлять конкретні
+              питання й отримують відповіді від інших користувачів. Найшвидший спосіб
+              зрозуміти, чи твоя проблема — твоя помилка, чи поведінка продукту.</li>
+            <li><strong>Learning (навчання).</strong> Курси й навчальні шляхи за
+              продуктами; сторінка пропонує «Find free courses or explore focused learning
+              paths» і описує себе так: «Learn Atlassian apps quickly, build skills and
+              confidence, and earn globally recognized certifications». Є розділи для
+              початківців і для адміністраторів.</li>
+            <li><strong>Events (події).</strong> Зустрічі спільноти — і онлайн, і живі,
+              за містами. Саме там найлегше знайти людей, які вже вирішували твою задачу
+              у своїй фірмі.</li>
+            <li><strong>Certifications (сертифікації).</strong> Окремі іспити Atlassian
+              із власними назвами й рівнями. Умов і вартості ми тут не називаємо за тим
+              самим правилом, що й з лімітами плану: вони змінюються — дивись сторінку
+              сертифікацій.</li>
+            <li><strong>Champions (чемпіони спільноти).</strong> Програма для тих, хто
+              допомагає іншим: «Atlassian Champions are passionate about driving change for
+              the better». Один із напрямів — Community Champion, і робота в ньому описана
+              буденно: «Host local Atlassian Community Events from virtual meetups to local
+              user-led conferences» — проводити зустрічі спільноти, від онлайнових до
+              місцевих конференцій.</li>
+          </ul>
+
+          <p>
+            І остання порада, яка старша за будь-який продукт: повертайся до свого сайту
+            раз на тиждень на п'ятнадцять хвилин, як у ритуалі з уроку 21. Інструмент
+            тримає лад рівно доти, доки в нього хтось дивиться.
+          </p>
+        </section>
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Помилка тут коштує нуль — на відміну
+            від помилки на живому сайті.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Денис підключив Jira до Claude Code і каже колегам: «Тепер у нашій Jira є штучний інтелект, відкривайте — побачите». Оксана відкриває Jira й нічого нового не бачить. Чому?",
+            "options": [
+              "Нові можливості з'являються в Jira лише після того, як їх увімкне адміністратор сайту",
+              "MCP нічого не додає в інтерфейс Jira, бо це місток між помічником і сайтом, а не функція Jira",
+              "Оксана дивиться не в тому браузері, адже підключення видно лише у вікні, де проходила згода",
+              "Підключення діє лише в тому спейсі, у якому його зробили, тому решта спейсів лишаються без змін"
+            ],
+            "answer": 1,
+            "explain": "Сервер MCP стоїть між програмою-помічником і Jira; сама Jira від цього не змінюється, нових кнопок у ній не з'являється. Те, що виглядає як AI усередині Jira (Ask AI, Improve Task), — це Rovo, окремий платний шар, і до MCP він стосунку не має."
+          },
+          {
+            "q": "Марта працює на безкоштовному плані й чула, що всі AI-можливості Atlassian платні. Що з MCP-сервером на її сайті?",
+            "options": [
+              "Він доступний усім сайтам Atlassian Cloud, але частота звернень обмежена планом",
+              "Він працює лише перші тридцять днів після реєстрації, а далі потрібен платний план",
+              "Він недоступний, бо сервер вмикається разом із платною підпискою на AI-функції",
+              "Він доступний, але лише для читання, бо зміна даних потребує платного плану"
+            ],
+            "answer": 0,
+            "explain": "Atlassian пише, що доступ до Rovo MCP Server мають усі клієнти Atlassian Cloud, а відрізняються плани обмеженням частоти звернень. Читання й запис у межах одного застосунку в переліку типів звернень названі безкоштовними; точні числа лімітів — у довіднику «Карта інтерфейсу, глосарій і ліміти Free»."
+          },
+          {
+            "q": "Ігор боїться підключати помічника: у бухгалтерському спейсі лежать суми, і він не хоче, щоб їх побачив Денис, який усе це налаштовує. Що тут вирішує?",
+            "options": [
+              "Спейс треба закрити паролем окремо, інакше через підключення його побачить будь-хто",
+              "Помічник отримує окремий службовий акаунт із повним доступом, тому спейс варто закрити",
+              "Помічник працює з правами того, хто пройшов згоду, і побачить рівно те, що бачить Денис",
+              "Доступ визначається переліком дозволів у команді підключення, і його задає той, хто вводить команду"
+            ],
+            "answer": 2,
+            "explain": "Виклики йдуть від імені користувача, який пройшов згоду, і виконуються з його правами: довідка Atlassian каже, що клієнти MCP діють у межах наявних дозволів користувача. Якщо Денис не має доступу до спейсу бухгалтерії, то й через помічника він його не отримає. Окремого акаунта помічникові не видають."
+          },
+          {
+            "q": "Соломія попросила помічника створити дві роботи — і вони з'явились у Jira одразу, без жодного питання. Що це означає?",
+            "options": [
+              "Запис відбувся, бо сесія працює в режимі, де підтвердження не питають, і режим варто перевірити",
+              "Сервер Atlassian дозволяє запис без підтвердження, а питає лише про видалення",
+              "Підтвердження питають один раз на день, і сьогодні Соломія його вже давала",
+              "Роботи створено чернетками, і вони стануть справжніми лише після того, як Соломія підтвердить їх у Jira"
+            ],
+            "answer": 0,
+            "explain": "Питання дозволу перед дією — поведінка ручного режиму Claude Code; є режими, у яких дії схвалює інша модель або не питають зовсім. Сервер Atlassian підтверджень не показує: це бік програми-помічника. Чернеток у Jira немає — створена робота одразу справжня."
+          },
+          {
+            "q": "Тарас побачив у пошуку Jira кнопку Ask AI і вирішив, що це і є підключений помічник. Він тисне — і бачить пропозицію оновити план. Що сталось?",
+            "options": [
+              "Підключення злетіло, і Jira пропонує пройти згоду заново через сторінку плану",
+              "Кнопка працює лише в тому спейсі, де робилось підключення, а в пошуку по всьому сайту вона мовчить",
+              "Так виглядає вичерпаний ліміт звернень, і Jira пропонує план із більшою частотою",
+              "Ask AI належить Rovo, платному AI-шару самої Jira, а підключений помічник живе в терміналі"
+            ],
+            "answer": 3,
+            "explain": "Кнопки Ask AI, Improve Task і Add agent належать Rovo — платному AI-шару Atlassian, і на безкоштовному плані вони видні як запрошення купити. Підключення через MCP працює з іншого боку: запити пишуть у програмі-помічнику, а Jira лише виконує виклики."
+          },
+          {
+            "q": "Курс закінчився. Оксана хоче далі розбиратись із Jira і час від часу ставити конкретні питання людям, які вже це робили. Куди їй по це?",
+            "options": [
+              "У розділ сертифікацій Atlassian, бо іспити там побудовані саме як відповіді на питання користувачів",
+              "У форуми спільноти Atlassian, а за системним навчанням у розділ Learning з безкоштовними курсами",
+              "У довідку Atlassian, там є форма, через яку користувачі ставлять питання одне одному",
+              "У Marketplace, де питання й відповіді зібрані на сторінках застосунків у відгуках"
+            ],
+            "answer": 1,
+            "explain": "Питання й відповіді живуть у форумах спільноти, а курси й навчальні шляхи — у розділі Learning, який описує себе як спосіб швидко опанувати застосунки Atlassian і отримати визнані сертифікації. Сертифікації — це іспити, а не місце для питань; довідка й Marketplace задачі «спитати людей» не вирішують."
+          }
+        ]
+      }
+      </script>
+
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Урок позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
