@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 19 · Практикум: заявки до бухгалтерії — Jira з нуля</title>
+  <meta name="description"
+    content="Як зібрати робочу службу заявок за вечір: чотири типи запитів з формами, групи порталу, статуси запиту, SLA з робочим календарем, три черги за запитом JQL і два flows, які призначають заявку й відповідають клієнту." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+</head>
+
+<body data-module="j19">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 19</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 5 · Service desk і адміністрування</p>
+        <h1 class="ds-h1">Практикум: заявки до бухгалтерії</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 27 хв читання</p>
+        <p class="ds-lead">
+          Після попереднього уроку служба в тебе вже є, але вона чужа: плитки на
+          порталі називаються так, як їх назвав шаблон, черги зібрані не під твою
+          роботу, строків ніхто нікому не обіцяв, а заявки лежать без виконавця. Цей
+          урок доводить одну бухгалтерію до робочого стану — і робить це кроками, які
+          однаково лягають на господарку, HR чи будь-яку іншу службу.
+        </p>
+        <p>
+          Ми працюємо в спейсі <code>FIN</code> «Бухгалтерія» кав'ярні «Кориця». Агент
+          там один — бухгалтер Ігор Гнатюк; заявки подають усі інші, і найчастіше це
+          бариста Соломія Бойко та пекар Богдан Ткачук. До кінця уроку портал прийматиме
+          чотири види заявок із потрібними полями, черга покаже Ігорю, що брати першим,
+          годинник рахуватиме строк за робочим календарем кав'ярні, а дві автоматизації
+          зроблять за людей дві нудні дії.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> понять служби — агент, клієнт, портал, тип запиту,
+            черга, SLA — усе це урок 18, і тут воно не переказується. Немає Confluence як
+            продукту (урок 16), людей і доступів (урок 20), розумних значень
+            <code class="ds-code--inline">{{…}}</code> у листах (урок 15). Немає чисел
+            лімітів безкоштовного плану — вони з датою перевірки лежать у довіднику
+            «Карта інтерфейсу, глосарій і ліміти Free».
+          </p>
+          <p>
+            <strong>Є:</strong> чотири типи запитів із власними формами; поля, які бачить
+            клієнт, і поля, які бачить лише команда; дві групи на порталі; статуси заявки
+            й те, під якою назвою їх бачить клієнт; SLA з робочим календарем кав'ярні;
+            три черги, зібрані запитами JQL; два flows; одна стаття бази знань; і дорога
+            клієнта від плитки до листа, пройдена власними очима.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            Служба, яку шаблон приносить «з коробки», працює рівно один день — поки нею
+            користується та сама людина, що її створила. Далі починаються три однакові
+            історії, і в «Кориці» вони виглядають так.
+          </p>
+
+          <p>
+            Соломія відкриває портал і бачить плитки з чужими назвами. Вона не знає, що
+            обрати, тому обирає першу-ліпшу й пише все в описі одним абзацом. Ігор
+            відкриває заявку й не бачить головного: ні суми, ні постачальника, ні дати,
+            до якої гроші потрібні. Далі йде листування, у якому він двічі перепитує те,
+            що можна було спитати одразу у формі.
+          </p>
+
+          <p>
+            Богдан подав заявку на закупівлю і чекає. Ігор про неї не знає: заявка лежить
+            у спільній черзі без виконавця, поруч із десятком інших. Через три дні Богдан
+            питає в чаті «то що там?» — і ми повертаємось рівно туди, звідки тікали в
+            уроці 18.
+          </p>
+
+          <p>
+            Оксана, власниця, питає наприкінці місяця: скільки заявок було і чи встигали
+            ми відповідати. Відповіді немає — ніхто не домовлявся, за скільки відповідаємо,
+            і ніщо цього не рахувало.
+          </p>
+
+          <p>
+            Усі три історії закриваються одними й тими самими налаштуваннями, і всі вони
+            робляться один раз:
+          </p>
+
+          <ul>
+            <li><strong>Тип запиту з формою</strong> — щоб людина знала, що натиснути, і
+              щоб потрібне питали в неї одразу.</li>
+            <li><strong>Черга й строк</strong> — щоб Ігор бачив, що брати першим, а не
+              гортав усе підряд.</li>
+            <li><strong>Дві автоматизації</strong> — щоб заявка одразу мала виконавця, а
+              клієнт отримав відповідь, коли справу зроблено.</li>
+          </ul>
+
+          <p>
+            Порядок кроків у цьому уроці не випадковий: кожен наступний спирається на
+            попередній. Черга не збереться, поки немає типів запитів, за якими відбирати;
+            годинник не стане на паузу, поки в робочому процесі немає статусу очікування;
+            flow нема кого призначати, поки заявка не знає, до якого типу належить.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Два екрани, на яких ти проведеш більшу частину вечора: сторінка полів типу
+            запиту й сторінка SLA. Обидві живуть в одному місці — <code>Space
+            settings</code> → <code>Request management</code>, тобто в налаштуваннях
+            самого спейсу, у розділі керування запитами.
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__body">
+              Усі чотири вікна цього уроку зібрані <strong>за документацією</strong>: на
+              навчальному сайті курсу Jira Service Management досі не доданий, тому живих
+              екранів служби в нас немає. Назви елементів узято з довідки Atlassian
+              станом на 19 вересня 2026 року; українські написи — це те, що команда
+              вигадує сама. Розташування блоків показане схематично: воно передає зміст,
+              а не геометрію сторінки.
+            </p>
+          </div>
+
+          <h3>Поля типу запиту: що спитати в людини</h3>
+
+<figure class="win" data-state="form" id="w1">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w1t">Jira Cloud · поля типу запиту «Заявка на аванс» · за документацією, 2026-09-19</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w1t">
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Space settings / Бухгалтерія / Request management / Request types</span>
+        <span class="win__btn win__btn--primary">Save changes</span>
+      </div>
+      <div class="win__page">
+        <h4>Заявка на аванс</h4>
+        <p class="win__placeholder">Customer request form <b class="win__mark" aria-hidden="true">①</b></p>
+        <dl class="win__fields">
+          <dt>Summary</dt><dd>Display name: На що потрібен аванс</dd>
+          <dt>Сума</dt><dd>Number · Required <b class="win__mark" aria-hidden="true">②</b></dd>
+          <dt>Постачальник</dt><dd>Short text</dd>
+          <dt>Потрібно до</dt><dd>Date</dd>
+          <dt>Description</dt><dd>Display description: Що купуємо і чому саме зараз</dd>
+          <dt>Assignee <b class="win__mark" aria-hidden="true">③</b></dt><dd>Use preset value and hide from portal</dd>
+        </dl>
+        <p class="win__chips"><b class="win__mark" aria-hidden="true">④</b> <span class="win__chip">Short text</span><span class="win__chip">Paragraph</span><span class="win__chip">Number</span><span class="win__chip">Date</span><span class="win__chip">Dropdown</span><span class="win__chip">Checkbox</span><span class="win__chip">Labels</span><span class="win__chip">People</span></p>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «поля типу запиту Заявка на аванс»">
+<li><code>Customer request form</code> — це бачить клієнт на порталі</li>
+<li><code>Required</code> — без цього поля заявку не надіслати</li>
+<li><code>Assignee</code> — задане наперед і сховане від клієнта</li>
+<li><code>Create a field</code> — типи, з яких роблять нове поле</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Назва секції — з довідки для спейсів, якими керує команда: «Fields added
+            to the Customer request form appear in the portal for customers»; поруч із нею
+            в тій самій довідці стоять ще дві, для полів агента — «Fields added to the
+            Description fields and Content fields sections appear on work items for your
+            agents». Рядок <code>Use preset value and hide from portal</code> — це галочка
+            з довідки про приховані поля. Типи полів унизу — перелік зі сторінки про поля
+            службового спейсу. Українські назви полів вигадує команда. ⚠ Інша жива сторінка довідки
+            описує цей самий екран інакше — як дві вкладки, <code>Request form</code> і
+            <code>Work item view</code>; яка з двох відповідає сьогоднішньому екрану, без
+            живого JSM ми не знаємо.
+          </p>
+
+          <p>
+            Головне, що варто винести з цього вікна: у типу запиту два обличчя. Одне
+            повернуте до клієнта — це форма, яку він заповнює. Друге повернуте до
+            команди — поля, які клієнт не заповнює й не бачить, але з якими працює агент.
+            Довідка розводить ці ролі одним реченням: «Request types manage specific
+            settings such as naming, portal customization, and descriptions, while work
+            types manage foundational settings like workflows and fields» — тип запиту
+            відповідає за назву, вигляд на порталі й опис, а тип роботи — за робочий
+            процес і поля.
+          </p>
+
+          <p>
+            Звідси й обмеження, об яке спотикаються в перший вечір: не кожне поле можна
+            показати клієнтові. Поле виконавця, наприклад, додати можна, але лише зі
+            заздалегідь заданим значенням — «These fields can be added to the request type
+            and given a preset value, but you cannot make them visible on the portal».
+            Клієнт не має вирішувати, хто з команди робитиме його заявку.
+          </p>
+
+          <h3>SLA: сторінка, на якій живе обіцянка</h3>
+
+<figure class="win" data-state="settings" id="w2">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w2t">Jira Cloud · Request management → SLAs у спейсі Бухгалтерія · за документацією, 2026-09-19</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w2t">
+    <ul class="win__rail win__rail--settings" aria-label="Space settings службового спейсу">
+      <li class="win__rail-item">Details</li>
+      <li class="win__rail-item">Access</li>
+      <li class="win__rail-item win__rail-item--active">Request management</li>
+      <li class="win__rail-item">Channels &amp; self service</li>
+      <li class="win__rail-item">Notifications</li>
+      <li class="win__rail-item">Automation</li>
+      <li class="win__rail-item">Language support</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Request management / SLAs</span>
+        <span class="win__btn">+New Metric</span>
+      </div>
+      <div class="win__page">
+        <h4>Time to first response</h4>
+        <dl class="win__fields">
+          <dt>Start</dt><dd>Work item created</dd>
+          <dt>Pause on <b class="win__mark" aria-hidden="true">①</b></dt><dd>Status: Waiting for customer</dd>
+          <dt>Stop</dt><dd>Status: Done</dd>
+          <dt>Work items (JQL)</dt><dd>"Request Type" = "Заявка на аванс"</dd>
+          <dt>Goal <b class="win__mark" aria-hidden="true">②</b></dt><dd>8h</dd>
+          <dt>Calendar <b class="win__mark" aria-hidden="true">③</b></dt><dd>Кориця: Пн–Сб</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «сторінка SLA спейсу Бухгалтерія»">
+<li><code>Pause on</code> — статус, у якому годинник спиняється</li>
+<li><code>Goal</code> — скільки часу ми собі дали</li>
+<li><code>Calendar</code> — які години взагалі йдуть у залік</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Назви полів — дослівно з довідки для спейсів, якими керує команда: «Set the
+            Start, Pause on (optional), and Stop conditions» і «Under Goals, enter your
+            Work items (JQL), Goal, and Calendar». Перелік ліворуч — це розділи
+            налаштувань спейсу, названі в довідці для службового спейсу. ⚠ Порядок цих
+            розділів і точний вигляд сторінки живим екраном не звірені.
+          </p>
+
+          <p>
+            Годинник тут один, і в нього три умови й дві цифри. Умови — коли починати,
+            коли ставати на паузу, коли спинятись — прив'язані до подій і статусів. Цифри —
+            ціль (за скільки обіцяємо) і календар (у які години цей час узагалі тече).
+            Саме календар відрізняє «за вісім годин» кав'ярні від «за вісім годин» банку:
+            якщо кав'ярня працює в суботу, а календар про це не знає, годинник рахуватиме
+            не ті години.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <p>
+            Усі налаштування цього уроку тримаються на одному ланцюжку: <strong>статус</strong>
+            заявки рухає <strong>годинник</strong>, годинник і статус разом визначають,
+            у яку <strong>чергу</strong> заявка потрапить, а зміна статусу запускає
+            <strong>flow</strong>. Якщо тримати цей ланцюжок у голові, решта уроку —
+            механічна робота.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+stateDiagram-v2
+  state "Open" as OPEN
+  state "Work in progress" as WIP
+  state "Waiting for customer" as WFC
+  state "Done" as DONE
+  [*] --> OPEN
+  OPEN --> WIP: Ігор узяв у роботу
+  WIP --> WFC: Питання до Соломії
+  WFC --> WIP: Соломія відповіла
+  WIP --> DONE: Аванс видано
+  DONE --> [*]
+  note right of OPEN : годинник першої відповіді біжить
+  note right of WFC : пауза, поки чекаємо на клієнта
+  note right of DONE : категорія Done, годинник спинено
+            </pre>
+            <p class="ds-diag__caption">Життя заявки в спейсі «Бухгалтерія»: чотири статуси й місця, де годинник біжить, стоїть і спиняється.</p>
+          </div>
+
+          <p>
+            Назви статусів на діаграмі взяті не зі стелі. Довідка перелічує статуси, з
+            якими приходять шаблони службових спейсів: «Open Reopened Pending Work in
+            progress Waiting for customer Waiting for support Escalated Done Canceled».
+            Там же названі категорії — та сама трійця «зробити, у роботі, зроблено» з
+            уроку 10: «you might have a “Open” to-do status and a “Reopened” to-do status.
+            Or, you might have a “Waiting for customer” in-progress status and a “Waiting
+            for support” in-progress status». Тобто <code>Waiting for customer</code> — це
+            не «відкладено», це повноцінна робота, яка лише чекає на чужу дію.
+          </p>
+
+          <h3>Чому пауза важливіша за саму ціль</h3>
+
+          <p>
+            Уяви заявку на довідку, подану в п'ятницю о п'ятій. Ігор відповідає за
+            двадцять хвилин: «потрібен номер вашого рахунку в банку». Соломія бачить лист
+            у понеділок вранці й відповідає ще за годину. Якщо годинник рахував увесь цей
+            час, звіт покаже дві доби прострочення, хоча ніхто нічого не порушив.
+          </p>
+
+          <p>
+            Саме для цього в SLA є умова паузи — і довідка описує її саме цим прикладом:
+            «It may be used, for example, when you are waiting for a customer to respond».
+            Пауза — це налаштування, а не властивість слова «Waiting» у назві статусу: доки
+            ти не поставиш <code>Pause on</code>, годинник у будь-якому статусі
+            цокатиме далі.
+          </p>
+
+          <h3>Черга — це збережений запит, а не папка</h3>
+
+          <p>
+            Черги ми вже бачили в уроці 18. Тут важлива одна практична річ: черга
+            відбирає заявки запитом JQL — тим самим, що в уроці 7, — і в службовому спейсі
+            в цієї мови є кілька власних полів.
+          </p>
+
+          <p>
+            Перше — <code>"Request Type"</code>, тобто тип запиту. Довідка про поля JQL
+            каже про нього: «Used in service spaces only. Search for requests of a certain
+            request type», а приклад запиту на сторінці про черги виглядає так:
+            <code>"Request Type"="Get guest wi-fi access (MFSD)"</code>.
+          </p>
+
+          <p>
+            Друге — сам годинник. У JQL він теж поле: «Time to resolution», «Time to
+            first response» або назва твого власного SLA. Функції в нього свої, і читаються
+            вони майже як англійська фраза: <code>breached()</code> — ціль порушено,
+            <code>paused()</code> — годинник на паузі, <code>remaining("2h")</code> —
+            лишилось менше ніж дві години. Готовий приклад із довідки, який ми далі
+            поставимо в чергу «Горить SLA»:
+          </p>
+
+<figure class="term term--cmd" id="t1">
+  <figcaption class="term__chrome">
+    <span class="term__dots" aria-hidden="true"></span>
+    <span class="term__title" id="t1t">Заявки, яким до порушення строку лишилось менше ніж дві години</span>
+    <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+      data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+  </figcaption>
+  <pre class="term__body" tabindex="0" role="group" aria-labelledby="t1t"><span class="term__line"><span class="term__in">"Time to First Response" &lt; remaining("2h")</span></span></pre>
+</figure>
+
+          <p class="ds-diag__caption" data-align="start">
+            Запит узято дослівно зі сторінки довідки про поля JQL, де він підписаний
+            «Find work items that that will breach Time to First Response in the next two
+            hours» (подвоєне «that» — теж із довідки). ⚠ Та сама сторінка пише назву
+            годинника з великих літер, а сторінки про SLA — з малих
+            (<code>Time to first response</code>); живим екраном ми цього не звіряли.
+          </p>
+
+          <p>
+            І третє, що рятує вечір: у службовому спейсі, яким керує команда, <strong>поля
+            <code>resolution</code> не існує</strong>. Довідка каже прямо: «The resolution
+            field doesn't exist in service team-managed spaces. This means you can't search
+            for work items in service team-managed spaces with the resolution field.
+            Instead, you can use the statusCategory field (a work item is resolved when
+            statusCategory = Done)». Це та сама ознака завершеності, про яку йшлося в
+            уроці 10.
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__body">
+              Тут дві сторінки однієї й тієї самої довідки суперечать одна одній: приклад
+              черги побудований на <code>resolution = Unresolved</code>, а сторінка полів
+              JQL каже, що в службових спейсах, якими керує команда, такого поля немає.
+              Обидві сторінки живі на 19 вересня 2026 року. Це не привід не довіряти
+              документації — це привід звіряти її живою командою: набери запит у чергу й
+              подивись, чи зелена галочка підтвердить його правильність.
+            </p>
+          </div>
+
+          <h3>Три черги, які закривають робочий день</h3>
+
+<figure class="win" data-state="list" id="w3">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w3t">Jira Cloud · черга «Горить SLA» у спейсі Бухгалтерія · за документацією, 2026-09-19</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w3t">
+    <ul class="win__rail" aria-label="Черги службового спейсу">
+      <li class="win__rail-item">Starred</li>
+      <li class="win__rail-item">Нові <span class="win__count">3</span> <b class="win__mark" aria-hidden="true">①</b></li>
+      <li class="win__rail-item">Мої <span class="win__count">2</span></li>
+      <li class="win__rail-item win__rail-item--active">Горить SLA <span class="win__count">1</span></li>
+      <li class="win__rail-item">View all queues</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Spaces / Бухгалтерія / Queues</span>
+      </div>
+      <div class="win__page">
+        <h4>Горить SLA</h4>
+        <p class="win__query"><code>"Time to First Response" &lt; remaining("2h")</code> <b class="win__mark" aria-hidden="true">②</b></p>
+        <table class="win__table">
+          <thead>
+            <tr><th>Key</th><th>Summary</th><th>Status</th><th>Time to first response <b class="win__mark" aria-hidden="true">③</b></th></tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="win__key">FIN-5</span></td><td>Повернення за зіпсоване молоко</td><td data-cat="todo">Open</td><td>within 42m</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «черга Горить SLA»">
+<li>Лічильник — скільки заявок у черзі зараз</li>
+<li>Запит, за яким черга відбирає заявки</li>
+<li>Годинник: скільки лишилось до цілі</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Назви черг українські, бо їх вигадує команда; <code>Starred</code> і
+            <code>View all queues</code> — з довідки про черги, де сказано, що в бічній
+            панелі вони стоять «under: Starred, any 'priority groups' created in the space,
+            and View all queues», а лічильники оновлюються самі. Формат
+            <code>within 42m</code> — за прикладом довідки <code>within 8h 30m</code>.
+            ⚠ Набір колонок за замовчуванням живим екраном не звірений.
+          </p>
+
+          <p>
+            Три черги закривають три різні питання робочого дня, і жодна не дублює іншу:
+            «Нові» відповідає на «що прийшло», «Мої» — на «що на мені», «Горить SLA» — на
+            «що прямо зараз». Четверту чергу заводять тоді, коли з'являється друга людина
+            або другий вид роботи, а не «про всяк випадок».
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            Десять кроків. Перші чотири — про клієнта, наступні три — про команду, останні
+            три — про автоматику й перевірку. Роби їх по порядку: кожен спирається на
+            попередній. Якщо служби в тебе ще немає, повернись до уроку 18 — там вона
+            створюється за п'ять хвилин.
+          </p>
+
+          <h3>Крок 1. Назви чотири типи запитів людською мовою</h3>
+
+          <p>
+            Відкрий <code>Space settings</code> → <code>Request management</code> →
+            <code>Request types</code>. Ти побачиш типи, які приніс шаблон — довідка
+            попереджає про це заздалегідь: «Your service space may come with some default
+            request types determined by the template that was used to create it». Ті, що
+            підходять, перейменуй; яких бракує — додай кнопкою <code>Add request type</code>:
+            довідка пропонує <code>Create blank</code> (порожній) або
+            <code>Create from template</code> (з готового зразка).
+          </p>
+
+          <p>
+            Нам потрібні чотири: <strong>Подати рахунок</strong>, <strong>Заявка на
+            аванс</strong>, <strong>Замовити довідку</strong>, <strong>Закупівля</strong>.
+            Назву пиши так, як її вимовляє людина, що просить, а не так, як її називає
+            бухгалтерія. Перейменування безпечне: «Your request type's name updates
+            everywhere, including in the portal» — назва міняється скрізь, включно зі
+            старими заявками.
+          </p>
+
+          <p>
+            У кожного типу заповни ще два тексти. <code>Portal description</code> — рядок
+            під назвою плитки: він «appears under the request type's name in the list of
+            request forms your customer sees in your portal». <code>Portal instructions</code>
+            — підказка над самою формою: «They appear above the form fields of a request
+            form in your portal». Для «Закупівлі» це може бути одне речення: «Спершу
+            погодь суму з Оксаною, потім подавай заявку».
+          </p>
+
+          <h3>Крок 2. Збери форму «Заявки на аванс»</h3>
+
+          <p>
+            Обери тип запиту «Заявка на аванс». Поля, які має заповнити клієнт, лежать у
+            секції <code>Customer request form</code>, і це рівно те, що побачить Соломія.
+            Додай три власні поля — довідка описує це як перетягування: «Under Create a
+            field, drag and drop the type of field you want to create».
+          </p>
+
+          <ul>
+            <li><strong>Сума</strong> — тип <code>Number</code>, числове поле.</li>
+            <li><strong>Постачальник</strong> — тип <code>Short text</code>, короткий
+              текст в один рядок.</li>
+            <li><strong>Потрібно до</strong> — тип <code>Date</code>, вибір дати з
+              календарика.</li>
+          </ul>
+
+          <p>
+            Кожному полю дай <code>Display name</code> — це «what customers will see in
+            the portal when raising a request», тобто напис, який бачить клієнт. Поле
+            <code>Сума</code> зроби обов'язковим галочкою <code>Required</code>. Тут є
+            деталь, яку варто прочитати двічі: «You can only make fields required if they
+            appear above Hide fields below» — обов'язковим можна зробити лише поле, що
+            стоїть вище межі <code>Hide fields below</code>.
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__body">
+              У Jira Service Management є ще й окремий конструктор <strong>форм
+              (forms)</strong> — з умовною логікою, таблицями й власними полями, які не
+              створюють полів у самій Jira. ⚠ Чи доступний він на безкоштовному плані, ми
+              підтвердити не змогли: у таблиці планів такого рядка немає, а сторінки про
+              форми плану не називають. Тому весь цей урок побудований на звичайних полях
+              типу запиту — вони працюють у будь-якому разі.
+            </p>
+          </div>
+
+          <h3>Крок 3. Постав статуси, під якими клієнт побачить заявку</h3>
+
+          <p>
+            Відкрий тип запиту й натисни <code>Edit workflow</code> — редактор робочого
+            процесу, той самий, що в уроці 10. Доведи набір статусів до чотирьох:
+            <code>Open</code> → <code>Work in progress</code> →
+            <code>Waiting for customer</code> → <code>Done</code>. Зайві статуси шаблону
+            прибери — Jira не дасть загубити заявки, які в них стоять: «Jira Service
+            Management warns you about any requests that are in statuses you're deleting
+            and asks you to change their status to a valid one».
+          </p>
+
+          <p>
+            Заразом зроби те, про що згадують рідко: дай статусам назви, зрозумілі
+            клієнтові. Довідка описує це так: «Under Status name to show customer, enter
+            the workflow name that you want customers to see» — тобто для клієнта
+            <code>Waiting for customer</code> може називатись «Чекаємо на вашу відповідь»,
+            а <code>Work in progress</code> — «У роботі». Усередині команди статуси
+            лишаються англійськими, і JQL від цього не ламається.
+          </p>
+
+          <p class="ds-diag__caption" data-align="start">
+            ⚠ Сторінку з цим налаштуванням довідка описує через кнопку <code>Edit
+            fields</code> і вкладку <code>Workflow Statuses</code>; інша жива сторінка веде
+            до робочого процесу через <code>Service space settings</code> →
+            <code>Request types</code> → <code>Edit workflow</code>. До одного екрана в цій
+            довідці ведуть два різні шляхи, і живим екраном ми їх не звіряли.
+          </p>
+
+          <h3>Крок 4. Розклади плитки по двох групах</h3>
+
+          <p>
+            Групи порталу — це заголовки, під якими плитки стоять на сторінці. Шлях до
+            них незвичний: він іде не через налаштування, а через сам портал. Довідка:
+            «In your project, select Raise a request. Select your avatar icon at the top
+            right, then select Portal groups». Далі <code>+ Add group</code> — і створюєш
+            дві групи: <strong>Гроші</strong> (рахунок, аванс, закупівля) і
+            <strong>Документи</strong> (довідка). У кожну додаєш типи кнопкою
+            <code>+ Add request type</code>.
+          </p>
+
+          <p class="ds-diag__caption" data-align="start">
+            ⚠ До тієї самої сторінки груп довідка знає й другий шлях —
+            <code>Space settings</code> → <code>Channels &amp; self service</code> →
+            <code>Portal</code> → <code>Customize your portal</code>, і далі так само через
+            значок людини з меню <code>Portal groups</code>. Якщо в першому шляху ти не
+            знаходиш <code>Raise a request</code>, спробуй другий.
+          </p>
+
+          <p>
+            Двох груп тут не випадково: «Note that you'll need more than one group for
+            groups to appear in the portal» — з однією групою заголовків на порталі не
+            буде взагалі. І головне правило, яке коштує порожнього порталу: «Request types
+            that aren't assigned to a group will be hidden from your portal» — тип запиту,
+            не доданий у жодну групу, для клієнта не існує.
+          </p>
+
+          <h3>Крок 5. Постав робочий календар кав'ярні</h3>
+
+          <p>
+            Перш ніж обіцяти строк, скажи Jira, коли ви взагалі працюєте. Відкрий
+            <code>Space settings</code> → <code>Request management</code> →
+            <code>SLAs</code> і знайди значок календаря у верхньому правому куті сторінки —
+            далі <code>Add calendar</code>. Заповни <code>Name</code> («Кориця») і
+            <code>Time zone</code> (часовий пояс — Київ).
+          </p>
+
+          <p>
+            Новий календар приходить із готовими годинами: «By default, when you create a
+            new calendar, the hours are preset from 09:00 to 17:00 (9-5)». Для кав'ярні,
+            яка відчиняється о сьомій і працює в суботу, це не підходить. Зміна годин
+            робиться не так, як здається, тому цитуємо дослівно: «Click Delete for each day of the
+            week you want to add or modify. To create new times for the calendar, existing
+            times must be deleted» — спершу видаляєш наявні години дня, потім у розділі
+            <code>Work week</code> задаєш свої. Свята, коли кав'ярня зачинена, додаються
+            окремо в <code>Holidays</code>.
+          </p>
+
+          <h3>Крок 6. Заведи годинник першої відповіді</h3>
+
+          <p>
+            На тій самій сторінці <code>SLAs</code> натисни <code>+New Metric</code>.
+            Назву обирай уважно — це той рідкісний випадок, коли її потім не змінити:
+            «You can't change this later, so choose a name that clearly explains what it
+            measures».
+          </p>
+
+          <p>Далі три умови й три поля цілі:</p>
+
+          <ul>
+            <li><code>Start</code> — коли заявку створено.</li>
+            <li><code>Pause on</code> — статус <code>Waiting for customer</code>.</li>
+            <li><code>Stop</code> — статус <code>Done</code>.</li>
+            <li><code>Work items (JQL)</code> — до яких заявок ціль застосовується;
+              почни з одного типу: <code>"Request Type" = "Заявка на аванс"</code>.</li>
+            <li><code>Goal</code> — скільки часу ви собі дали. Вісім годин із таким
+              календарем означають «того самого дня, якщо заявка прийшла зранку».</li>
+            <li><code>Calendar</code> — той самий календар «Кориця».</li>
+          </ul>
+
+          <p>
+            Другу ціль для решти типів запитів додають кнопкою <code>Add goal</code> —
+            цілей у одного годинника може бути кілька.
+          </p>
+
+          <h3>Крок 7. Збери три черги</h3>
+
+          <p>
+            Наведи на <code>Queues</code> у бічній панелі спейсу, натисни
+            <code>More actions (•••)</code> → <code>Queue settings</code> →
+            <code>Create new queue</code>. Назва, умова відбору, набір колонок — усе в
+            одному діалозі, і правильність запиту видно одразу: «The green tick () means
+            that the query is valid. A red x ()means something isn't formatted
+            correctly» (дужки порожні, бо в довідці там стоять значки).
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: три черги спейсу Бухгалтерія та їхні запити">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Черга</th><th>Запит</th><th>Питання, на яке відповідає</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Нові</td><td><code>status = Open</code></td><td>Що прийшло й ніхто ще не взяв</td></tr>
+                <tr><td>Мої</td><td><code>assignee = currentUser() AND statusCategory != Done</code></td><td>Що зараз на мені</td></tr>
+                <tr><td>Горить SLA</td><td><code>"Time to First Response" &lt; remaining("2h")</code></td><td>Що треба зробити прямо зараз</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="ds-diag__caption" data-align="start">
+            <code>currentUser()</code> — функція з уроку 7: вона підставляє того, хто
+            дивиться, тому черга «Мої» в Ігоря і в тебе покаже різні заявки.
+            <code>statusCategory</code> замість <code>resolution</code> — через те, про що
+            йшлося в блоці 3.
+          </p>
+
+          <h3>Крок 8. Два flows: призначити й відповісти</h3>
+
+          <p>
+            Автоматизацію ми збирали в уроці 14, тому тут — лише два готові ланцюжки.
+            Шлях: <code>Space settings</code> → <code>Automation</code> →
+            <code>Create flow</code>.
+          </p>
+
+          <p>
+            <strong>Flow 1 — «Аванс одразу на Ігоря».</strong> Тригер
+            <code>Work item created</code>; умова <code>JQL</code> з рядком
+            <code>"Request Type" = "Заявка на аванс"</code>; дія
+            <code>Assign work item</code> — «Assigns a work item to a user». Заявка на
+            аванс більше не лежатиме нічия.
+          </p>
+
+          <p>
+            <strong>Flow 2 — «Сказати клієнтові, що готово».</strong> Тригер
+            <code>Work item transitioned</code> зі статусом <code>Done</code>; дія
+            <code>Comment on work item</code> із текстом на кшталт «Аванс видано, гроші
+            будуть на картці сьогодні». Ключова деталь дії: «You can also set the comment
+            visibility» — видимість коментаря обирається, і для клієнта потрібна саме
+            публічна, та, що в картці зветься <code>Reply to customer</code>.
+          </p>
+
+          <p>
+            Другий flow має сенс не тому, що без нього лист не піде — про самі листи
+            йдеться в кроці 10, — а тому, що він додає людський текст замість сухого
+            повідомлення про зміну статусу.
+          </p>
+
+          <h3>Крок 9. Одна стаття бази знань — якщо Confluence на сайті є</h3>
+
+          <p>
+            Цей крок умовний: база знань у Jira Service Management живе в Confluence, і
+            якщо того продукту на сайті немає, крок пропускається (умову й цитату
+            розбирав урок 18). Якщо Confluence є, шлях такий: <code>Space settings</code> →
+            <code>Channels &amp; self service</code> → <code>Knowledge Base</code> →
+            <code>Set up knowledge base</code>, і далі обираєш простір або сторінку, яку
+            вважати базою знань.
+          </p>
+
+          <p>
+            Потім у спейсі відкриваєш розділ <code>Knowledge base</code> і тиснеш
+            <code>Create article</code>. Напиши одну статтю — «Як подати рахунок»: що саме
+            сфотографувати, до якого числа подавати, коли гроші повертаються. Довідка
+            попереджає, з чого починати: «Before you can start creating articles, your
+            service space must have at least one knowledge base space linked to it».
+            Готову статтю публікуєш кнопкою <code>Publish</code>.
+          </p>
+
+          <h3>Крок 10. Пройди дорогу клієнта</h3>
+
+          <p>
+            Останній крок — найкорисніший. Відкрий приватне вікно браузера (те, яке не
+            пам'ятає, хто ти, — ми відкривали його в уроці 18), устав туди адресу порталу
+            з розділу <code>Channels</code> і зайди як Соломія. Подай справжню заявку на
+            аванс: заповни «Суму», «Постачальника» й «Потрібно до».
+          </p>
+
+          <p>
+            Потім повернись у звичайне вікно, знайди заявку в черзі, відповідай на неї
+            через <code>Reply to customer</code>, переведи в
+            <code>Waiting for customer</code>, подивись на годинник — і доведи заявку до
+            <code>Done</code>. Уся дорога займає п'ять хвилин і показує рівно те, що
+            побачить колега.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            П'ять ознак. Перші чотири видно очима за хвилину, п'ята — за день роботи.
+          </p>
+
+          <ul>
+            <li><strong>Портал має два заголовки й чотири плитки.</strong> У приватному
+              вікні над плитками стоять «Гроші» й «Документи». Якщо заголовків немає, а
+              плитки лежать суцільним списком — груп менше ніж дві.</li>
+            <li><strong>Форма питає те, що треба.</strong> Натискаєш «Заявка на аванс» —
+              бачиш поля «Сума», «Постачальник», «Потрібно до» з українськими написами, і
+              без суми форма не надсилається.</li>
+            <li><strong>Заявка приходить уже з виконавцем.</strong> У черзі «Нові» вона
+              не затримується: flow призначає її Ігорю, і вона перетікає в «Мої».</li>
+            <li><strong>Годинник спиняється на паузі.</strong> Переведи заявку в
+              <code>Waiting for customer</code> і подивись на значення годинника через
+              годину — воно не має змінитись.</li>
+            <li><strong>Клієнт бачить свою заявку й отримує відповідь.</strong> Як саме це
+              влаштовано — нижче, разом із вікном.</li>
+          </ul>
+
+          <h3>Що клієнт бачить у себе</h3>
+
+<figure class="win" data-state="portal" id="w4">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w4t">Jira Cloud · список заявок Соломії на порталі · за документацією, 2026-09-19</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w4t">
+    <div class="win__portal">
+      <h4 class="win__portal-title">Requests <b class="win__mark" aria-hidden="true">①</b></h4>
+      <p class="win__chips"><span class="win__chip">All</span><span class="win__chip">Created by me</span><span class="win__chip">Where I am a participant</span> <b class="win__mark" aria-hidden="true">②</b></p>
+      <ul class="win__tiles">
+        <li class="win__tile"><span class="win__key">FIN-2</span> Аванс на закупівлю борошна · <span class="win__status" data-cat="progress">Waiting for customer</span> <b class="win__mark" aria-hidden="true">③</b></li>
+        <li class="win__tile"><span class="win__key">FIN-1</span> Рахунок від постачальника кави (вересень) · <span class="win__status" data-cat="done">Done</span></li>
+      </ul>
+      <p class="win__link">Edit list view</p>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «список заявок Соломії на порталі»">
+<li><code>Requests</code> — усі заявки цієї людини</li>
+<li>Відбір: усі, мої, ті, де я учасник</li>
+<li>Стан заявки таким, яким його бачить клієнт</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Кнопка й три відбори — з довідки: клієнти «keep track of all their requests and
+            check the status in their requests list by selecting the Requests button near
+            their avatar», а фільтр за роллю стоїть «below the options All, Created by me
+            and Where I am a participant». ⚠ Набір колонок цього списку задає адміністратор
+            сайту, і в довідці він не названий — у вікні лишено тільки ключ, назву й стан.
+          </p>
+
+          <p>
+            Тепер про листи — і тут майже всі помиляються в один бік. Клієнт
+            <strong>не отримує</strong> листа на власну дію: «In both cases, people will
+            get notifications of other people's activity on the request. They won't get
+            notifications for their own activity». Тобто після того, як Соломія сама подала
+            заявку, у скриньці нічого не з'явиться, і це не поломка.
+          </p>
+
+          <p>
+            Листи приходять на чужу дію: «Customers receive notifications for public
+            activities on requests they're involved in». А на один випадок довідка дає
+            гарантію окремо: «Even if a customer turns off notifications for a request,
+            they will still receive notifications: When the request is resolved» — лист про
+            розв'язану заявку йде навіть тому, хто сповіщення вимкнув.
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__body">
+              Будь-яку перевірку виду «листа бути не повинно» роби обережно. Поруч із
+              сповіщеннями служби живуть сповіщення самої Jira, і їх налаштовує
+              адміністратор: у довідці про особисті налаштування сказано прямо — «Even if
+              you clear all checkboxes, you may still receive other email notifications
+              configured by your Jira admin». Тобто відсутність галочки не є обіцянкою
+              тиші.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3>Одна група порталу — це те саме, що жодної</h3>
+
+          <p>
+            Найчастіша перша помилка: людина створює групу «Заявки», складає в неї всі
+            чотири типи — і на порталі нічого не міняється. Причина названа в довідці
+            одним реченням: «you'll need more than one group for groups to appear in the
+            portal». Групи — це спосіб <em>розділити</em>, і поки ділити нема на що, Jira
+            їх не показує.
+          </p>
+
+          <p>
+            Сусідня версія тієї самої граблі гірша, бо тиха: тип запиту, який не потрапив
+            у жодну групу, зникає з порталу зовсім. У налаштуваннях він є, у клієнта —
+            немає.
+          </p>
+
+          <h3>Поле, змінене в одному типі запиту, міняється в усіх</h3>
+
+          <p>
+            Ігор додав до «Закупівлі» поле «Сума» й зробив його обов'язковим — і раптом
+            «Сума» стала обов'язковою в «Заявці на аванс». Це не збій: поле належить
+            спейсу, а не типу запиту. Довідка попереджає двічі: «Your changes will update
+            across all of the request types that use the field in your service space» і
+            окремо про обов'язковість — «This will make the field required on all request
+            types where it's used».
+          </p>
+
+          <p>
+            Лікування дешеве, якщо знати наперед: поля, які потрібні лише одному типу
+            запиту, називай так, щоб їх не хотілось перевикористати («Сума авансу», а не
+            «Сума»), а спільні — навпаки, роби справді спільними.
+          </p>
+
+          <h3>Календар за замовчуванням не знає про вашу суботу</h3>
+
+          <p>
+            Новий календар приходить із годинами «з дев'ятої до п'ятої», і якщо його не
+            чіпати, годинник спить у ті години, коли кав'ярня працює, і цокає в ті, коли
+            вона зачинена. Друга половина граблі — часовий пояс: поле <code>Time zone</code>
+            стоїть у тому самому діалозі, і якщо в ньому лишиться чужий пояс, «з сьомої
+            до сьомої» рахуватиметься за чужим часом.
+          </p>
+
+          <p>
+            І пам'ять про назву: ім'я SLA після створення не змінюється. Годинник, названий
+            «Тест», житиме в тебе під цим іменем стільки, скільки житиме служба.
+          </p>
+
+          <h3>Текст листа клієнтові на безкоштовному плані не переписати</h3>
+
+          <p>
+            Логічне бажання — відкрити шаблон листа й написати там своє. На безкоштовному
+            плані це не вийде: «Notification templates can't be edited if you are on a Free
+            plan or standard plan with 10 agents free for one year only limited-time offer
+            of Jira Service Management». Розділ <code>Space settings</code> →
+            <code>Notifications</code> → <code>Customer notifications</code> відкривається,
+            але редагування шаблонів упирається в план.
+          </p>
+
+          <p>
+            Обхід — той, що ми зібрали в кроці 8: текст, який має прочитати клієнт, кладуть
+            у публічний коментар (свій або від flow). Лист тоді приходить зі звичайного
+            шаблону, але з твоїми словами всередині.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Скільки типів запитів заводити?</h3>
+
+          <p>
+            Стільки, скільки різних <em>питань</em> ви ставите людині. Якщо для рахунку й
+            для закупівлі потрібні ті самі поля — це один тип із двома назвами в описі, а
+            не два типи. Зайві плитки шкодять двічі: клієнт довше обирає, а ви довше
+            підтримуєте чотири однакові форми. Почніть із трьох-чотирьох і додавайте тоді,
+            коли з'явиться питання, якого наявна форма не ставить.
+          </p>
+
+          <h3>Хочу видалити зайвий тип запиту — і не виходить</h3>
+
+          <p>
+            Два обмеження, обидва названі в довідці: «it's not possible to delete the
+            Email request request type, and that there must be at least two request types
+            (in addition to the Email request) before a request type can be deleted».
+            Тобто тип <code>Email request</code>, через який заходять листи, лишається
+            завжди, а видаляти можна лише тоді, коли після видалення лишиться щонайменше
+            два типи. А якщо заявки з таким типом уже є, Jira не дасть його загубити:
+            «If you have requests that use that type, we'll warn you about them. You'll
+            have to change their type to something that you actually use in your service
+            project».
+          </p>
+
+          <h3>Навіщо окремо поля для клієнта й поля для команди?</h3>
+
+          <p>
+            Бо питання «скільки грошей і кому» ставлять клієнтові, а «хто цим займається»
+            команда вирішує сама. Довідка ділить це рівно так: поля секції
+            <code>Customer request form</code> видно на порталі, а поля секцій
+            <code>Description fields</code> і <code>Content fields</code> «appear on work
+            items for your agents». Частину полів на портал не пустять навіть за бажання —
+            наприклад, виконавця: «you cannot make them visible on the portal».
+          </p>
+
+          <h3>Чи можна показати клієнтові український статус?</h3>
+
+          <p>
+            Так — і це те, що найдешевше покращує вигляд служби. У налаштуваннях типу
+            запиту є поле для назви статусу, яку бачить клієнт: «Under Status name to show
+            customer, enter the workflow name that you want customers to see». Усередині
+            команди статуси лишаються англійськими, тож черги й запити JQL працюють як
+            раніше. Сам портал теж може бути українською — про мову йшлося в уроці 18.
+          </p>
+
+          <h3>Як через місяць зрозуміти, чи служба працює?</h3>
+
+          <p>
+            У службовому спейсі є розділ <code>Reports</code>, і чотири звіти в ньому вже
+            готові. Довідка описує їх так: <code>Workload</code> — «Lists the number of
+            requests assigned to your agents», <code>Satisfaction</code> — середня оцінка
+            від клієнтів, <code>Requests deflected</code> — «Lists the number of times your
+            customers viewed knowledge base articles in the portal and found them helpful»,
+            <code>Requests resolved</code> — скільки заявок закрито зі статтею бази знань і
+            без неї. Разом вони відповідають на питання Оксани з початку уроку краще, ніж
+            будь-який підрахунок руками.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Служба, зібрана за цим уроком, тримається не на кнопках, а на одному
+            ланцюжку: питання до клієнта → статус → годинник → черга → автоматична дія.
+            Перемалюють кнопки — ланцюжок лишиться, і ти знатимеш, що шукати на новому
+            екрані.
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li><strong>Тип запиту — це питання до людини.</strong> Назва, опис під
+                назвою, підказка над формою й поля, які справді потрібні, щоб заявку
+                закрити.</li>
+              <li><strong>Поле живе у спейсі, не в типі запиту.</strong> Зміна назви чи
+                обов'язковості діє на всі типи, де це поле вжите.</li>
+              <li><strong>Груп порталу має бути більше ніж одна,</strong> інакше їх не
+                видно; тип запиту без групи зникає з порталу зовсім.</li>
+              <li><strong>Годинник — це три умови й календар.</strong> Пауза в
+                <code>Waiting for customer</code> рятує звітність; назву SLA після
+                створення не змінити.</li>
+              <li><strong>Черга — збережений запит.</strong> У службовому спейсі в JQL є
+                свої поля: <code>"Request Type"</code> і сам годинник; поля
+                <code>resolution</code> там немає.</li>
+              <li><strong>Два flows закривають рутину:</strong> призначити заявку одразу
+                й відповісти клієнтові словами, а не зміною статусу.</li>
+              <li><strong>Клієнт не отримує листа на власну дію,</strong> а на розв'язання
+                заявки лист приходить навіть при вимкнених сповіщеннях.</li>
+              <li><strong>Статус для клієнта можна назвати українською,</strong> не
+                чіпаючи англійських статусів усередині.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+
+          <p>
+            Служба працює, і тепер у неї з'являться люди: хтось має розбирати заявки, коли
+            Ігор у відпустці, хтось — лише подавати їх, а комусь узагалі не треба бачити
+            бухгалтерію. У наступному уроці — «Люди і доступ»: кого запрошувати
+            користувачем, кого клієнтом, чим адміністратор сайту відрізняється від
+            адміністратора спейсу, що на безкоштовному плані обмежити не вийде — і як
+            зробити резервну копію, поки цього ніхто не питає.
+          </p>
+
+          <p>
+            До того попроси двох колег подати через портал справжні заявки різних типів.
+            Дві чужі заявки покажуть про твої формулювання більше, ніж година перечитування
+            власних назв.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять
+            на назви: до кожної відповіді одразу з'являється пояснення, чому решта
+            варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Оксана створила на порталі одну групу «Гроші» і поклала в неї всі чотири типи запитів. На порталі заголовка групи немає, плитки стоять суцільним списком. Що сталось?",
+            "options": [
+              "Групи з'являються на порталі лише тоді, коли їх більше ніж одна",
+              "Група показується лише після першої обробленої заявки",
+              "Групи бачать лише агенти, а клієнтові портал завжди показує суцільний перелік плиток",
+              "Група ховається доти, доки в ній менше типів запитів, ніж було в шаблоні спейсу"
+            ],
+            "answer": 0,
+            "explain": "Довідка каже це прямо: більше ніж одна група потрібна, щоб групи взагалі з'явились на порталі. Клієнт і агент бачать той самий поділ, а кількість оброблених заявок на видимість груп не впливає. Поруч живе гірша версія цієї ж помилки: тип запиту, який не потрапив у жодну групу, з порталу зникає зовсім."
+          },
+          {
+            "q": "Ігор додав поле «Сума» до типу запиту «Закупівля» і зробив його обов'язковим. Наступного дня «Сума» стала обов'язковою і в «Заявці на аванс». Чому?",
+            "options": [
+              "Бо Jira щоночі вирівнює між собою форми всіх типів запитів, які стоять на одному порталі",
+              "Бо поле належить спейсу, а не типу запиту, і зміни діють на всі типи, де воно вжите",
+              "Бо обидва типи запитів стоять в одній групі порталу, а група має спільну форму",
+              "Бо поле з назвою українською Jira вважає системним і додає його до всіх типів"
+            ],
+            "answer": 1,
+            "explain": "У довідці два окремі попередження: зміни поля оновлюються в усіх типах запитів спейсу, що це поле використовують, і обов'язковість ставиться так само на всі типи. Групи порталу тут ні до чого, вони керують лише виглядом сторінки. Якщо поле потрібне рівно одному типу, його варто назвати вужче, наприклад «Сума авансу»."
+          },
+          {
+            "q": "Ігор збирає чергу «Мої» — усе, що призначене на нього і ще не закрите. Спейс «Бухгалтерія» службовий, ним керує команда. Який запит спрацює?",
+            "options": [
+              "resolution = Unresolved AND assignee = currentUser()",
+              "assignee = currentUser() AND statusCategory != Done",
+              "assignee = \"Ігор\" AND status = Done AND \"Request Type\" IS NOT EMPTY",
+              "\"Request Type\" = \"Мої\" AND assignee IS EMPTY"
+            ],
+            "answer": 1,
+            "explain": "Довідка про поля JQL каже, що в службових спейсах, якими керує команда, поля resolution не існує, і ознакою завершеності там служить statusCategory = Done. Функція currentUser() підставляє того, хто дивиться, тому одна черга працює для всіх агентів. Запит зі status = Done показав би рівно протилежне, а «Мої» не є типом запиту."
+          },
+          {
+            "q": "Соломія подала заявку через портал і каже, що не отримала жодного листа. Ігор перевіряє налаштування служби. Що відбувається насправді?",
+            "options": [
+              "На безкоштовному плані сповіщення клієнтам вимкнені, і вмикає їх адміністратор сайту в налаштуваннях служби",
+              "Заявка не дійшла до спейсу, бо портал не надсилає листів, поки не налаштовано SLA",
+              "Людина не отримує сповіщень про власні дії, а лист приходить на чужу активність і на розв'язання",
+              "Лист пішов агентові замість клієнта, бо в заявці не заповнене поле автора заявки"
+            ],
+            "answer": 2,
+            "explain": "Довідка формулює це загальним правилом: люди отримують сповіщення про чужу активність на заявці й не отримують про власну. Окремо сказано, що лист про розв'язану заявку приходить навіть тому, хто вимкнув сповіщення. Перевіряючи «листа бути не повинно», варто пам'ятати й інше застереження довідки: частину листів налаштовує адміністратор, і вони приходять понад галочки."
+          },
+          {
+            "q": "Оксана хоче, щоб лист клієнтові починався словами «Дякуємо, ми взяли вашу заявку». Вона відкрила шаблони сповіщень на безкоштовному плані. Що там буде?",
+            "options": [
+              "Шаблони редагуються, але лише англійською, бо мову листа задає мова самого сайту",
+              "Шаблонів немає взагалі, бо листи клієнтам надсилає портал, а не сам службовий спейс бухгалтерії",
+              "Шаблон міняється разом із назвою порталу, у тому самому діалозі налаштувань порталу",
+              "На безкоштовному плані шаблони не редагуються, свій текст додають публічним коментарем"
+            ],
+            "answer": 3,
+            "explain": "Довідка про редагування сповіщень клієнтам каже, що шаблони не редагуються на безкоштовному плані. Розділ налаштувань при цьому відкривається, тому здається, що справа в правах або в мові. Робочий обхід один: текст, який має прочитати людина, кладуть у публічний коментар, свій або доданий автоматично, і він приїжджає клієнтові звичайним листом."
+          },
+          {
+            "q": "Минув місяць. Оксана питає, скільки заявок було і чи встигала бухгалтерія відповідати. Куди дивитись, не рахуючи заявки руками?",
+            "options": [
+              "У розділ Reports службового спейсу, де вже є готові звіти про навантаження і задоволеність",
+              "У журнал автоматизації, бо він зберігає всі заявки, що надійшли за останній місяць",
+              "У налаштування SLA, бо сторінка цілей показує статистику виконання строків за обраний місяць",
+              "У список клієнтів, бо навпроти кожного видно, скільки заявок він подав за місяць"
+            ],
+            "answer": 0,
+            "explain": "Службовий спейс приходить із набором готових звітів, і довідка називає їх поіменно: навантаження на агентів, задоволеність, заявки, яких люди уникли завдяки статтям бази знань, і закриті заявки. Журнал автоматизації показує запуски flows, а не заявки; сторінка SLA зберігає налаштування годинника, а не його статистику; список клієнтів — це список людей."
+          }
+        ]
+      }
+      </script>
+
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Урок позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>
