@@ -36,6 +36,7 @@
 | 22 | `22-sidebar.md` | ліва бічна панель повністю: 13 пунктів, геометрія 32 px, чотири лінки за межі Jira (знято 2026-09-17, вечір) | j03, j07, j08, j09, j17, довідник 3 |
 | 23 | `23-create-space-templates.md` | галерея «Space templates»: 17 категорій, 4 продукти, 6 карток «Made for you», 30 шаблонів Work management, 16 Service management (вечір) | j05, j09, j12, j13, j18, j19, j21, довідник 3 |
 | 24 | `24-plans-table-jsm.md` | таблиця планів на support.atlassian.com — колонка JSM Free очима + `curl` (закрито ⚠ №3 у `facts-free-plan.md`) | j18, j19, довідник 3 |
+| 26 | `26-sandbox-2026-09-24.md` | дозйомка дня: майстер `Create space` (обидва типи, `Administrators only`, три рівні доступу), `System settings` (рейка, мови, `Backup manager`), `All work` (`•••` → `Export` ›, кирилична мітка в JQL, `Fix error`, `Ask AI`), `Improve Task`, автоматизація (меню `Create flow`, легенда статусів журналу, `Add a step`, `Save and enable`), `Access`, майстер CSV, дашборд (31 гаджет, `Filter Results`, кошик 60 днів), `Add agent` у workflow | j02–j04, j07–j10, j14, j15, j20, j22, довідники |
 
 **Чого НЕ вдалося зняти й чому:** `/jira/templates` → 404 (шаблони живуть у діалозі Create space);
 `/jira/settings/apps/discover` → 404 (Marketplace тепер на `/jira/marketplace/discover`);
