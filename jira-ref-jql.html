@@ -1,0 +1,2743 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="jira.config.json" data-course="jira" data-density="lesson" data-lit data-own-title>
+
+<head>
+  <meta charset="UTF-8" />
+  <!-- Масштаб не заборонений: сторінка народжується без дефекту WCAG 1.4.4. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Довідник: JQL — поля, оператори, функції — Jira з нуля</title>
+  <meta name="description"
+    content="Мова запитів Jira цілком українською: поля з їхніми JQL-іменами, 17 операторів, 6 ключових слів, функції дат і людей, відносні дати, 25 готових запитів, таблиця частих помилок. Дата звірки біля кожної таблиці." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → Tailwind → тема.
+       Tailwind іде ПІСЛЯ наших <link> навмисно: його preflight має стояти
+       в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/tw-theme.js"></script>
+</head>
+
+<body>
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Сторінка читається й без JavaScript: усі таблиці нижче — звичайний текст. JavaScript тут
+      відповідає лише за кнопку входу в шапці та за кнопки «Копіювати» біля запитів.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <a class="ds-hdr__brand" href="jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Довідник</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <!-- На <640 текстове посилання ховається: воно переносилось у два рядки
+           й вилазило за 64 px шапки. Вихід із довідника лишається на бренді
+           та у футері. -->
+      <a class="ds-nav__link hidden sm:inline-flex" href="jira.html#refs">Полиця довідників</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Сам довідник це не ламає —
+      без конфіга не працює лише кнопка входу в шапці.</p>
+    </div>
+  </div>
+
+  <div class="ds-ref">
+
+    <!-- ЗМІСТ СТОРІНКИ (статичний: js/module.js тут не підключений) -->
+    <details id="refToc" class="ds-ref__toc" open>
+      <!-- На <1024 зміст — смуга-акордеон; ВІДКРИТИЙ у розмітці, згортає його
+           рядок скрипта нижче. Тобто JS тільки згортає, ніколи не ховає. -->
+      <summary class="ds-ref__sum">Зміст довідника</summary>
+      <nav aria-label="Зміст довідника">
+      <p class="ds-ref__group">Початок</p>
+      <ul>
+        <li><a href="#how">Як користуватись сторінкою</a></li>
+        <li><a href="#anatomy">Анатомія запиту</a></li>
+        <li><a href="#old-words">Чому в запиті старі слова</a></li>
+      </ul>
+      <p class="ds-ref__group">Поля</p>
+      <ul>
+        <li><a href="#f-core">Щоденні поля</a></li>
+        <li><a href="#f-dates">Дати</a></li>
+        <li><a href="#f-text">Текст</a></li>
+        <li><a href="#f-hier">Ієрархія, тип, спринт</a></li>
+        <li><a href="#f-space">Спейс і його тип</a></li>
+        <li><a href="#f-service">Службовий спейс</a></li>
+        <li><a href="#f-custom">Власні поля</a></li>
+        <li><a href="#f-status">Статус, категорія, Resolution</a></li>
+      </ul>
+      <p class="ds-ref__group">Оператори й слова</p>
+      <ul>
+        <li><a href="#ops">17 операторів</a></li>
+        <li><a href="#ops-history">Історія: WAS і CHANGED</a></li>
+        <li><a href="#keywords">6 ключових слів</a></li>
+        <li><a href="#quotes">Лапки, символи, зарезервовані слова</a></li>
+      </ul>
+      <p class="ds-ref__group">Функції</p>
+      <ul>
+        <li><a href="#fn-dates">Дати й час</a></li>
+        <li><a href="#fn-rel">Відносні дати</a></li>
+        <li><a href="#fn-people">Люди</a></li>
+        <li><a href="#fn-lists">Спринти, типи, зв'язки</a></li>
+        <li><a href="#fn-sla">SLA службового спейсу</a></li>
+      </ul>
+      <p class="ds-ref__group">Готові запити</p>
+      <ul>
+        <li><a href="#queries">25 запитів «Марципану»</a></li>
+      </ul>
+      <p class="ds-ref__group">Коли не працює</p>
+      <ul>
+        <li><a href="#errors">Часті помилки</a></li>
+        <li><a href="#basic">Basic ↔ JQL</a></li>
+        <li><a href="#limits">Межі самої мови</a></li>
+        <li><a href="#speed">Швидкість запиту</a></li>
+      </ul>
+      <p class="ds-ref__group">Де живе запит</p>
+      <ul>
+        <li><a href="#filters">Збережений фільтр</a></li>
+        <li><a href="#where">Дошки, гаджети, flows, MCP</a></li>
+        <li><a href="#renames">Що змінилось у назвах</a></li>
+        <li><a href="#sources">Джерела й дати</a></li>
+      </ul>
+      <p class="ds-ref__group">Курс</p>
+      <ul>
+        <li><a href="jira.html">← До курсу</a></li>
+      </ul>
+      </nav>
+    </details>
+    <script>
+      /* Єдиний рядок логіки на цій сторінці: згортає зміст нижче 1024 px.
+         Без нього (JS вимкнено) зміст лишається розгорнутим. */
+      (function(){var t=document.getElementById("refToc");
+        if(t&&!matchMedia("(min-width: 1024px)").matches)t.open=false;})();
+    </script>
+
+    <main id="main" class="ds-ref__main" data-page-in>
+      <!-- Шапка сторінки довідника — СЕСТРА статті, а не її перший абзац:
+           надзаголовок і числа не входять у сітку прози. -->
+      <header class="ds-ref__head">
+        <p class="ds-eyebrow">Довідник · це не урок</p>
+        <h1 class="ds-h1">JQL: поля, оператори, функції</h1>
+        <ul class="ds-ref__stat">
+          <li><b>17</b> операторів</li>
+          <li><b>6</b> ключових слів</li>
+          <li><b>25</b> готових запитів</li>
+          <li>без квіза й без прогресу</li>
+        </ul>
+      </header>
+
+      <article class="ds-prose">
+
+        <p class="ds-lead">
+          Цю сторінку не проходять — до неї повертаються. Тут немає ні квіза, ні позначки
+          «завершено», і вона не входить у сертифікат. Її завдання одне: коли потрібен запит,
+          якого ти ще не писав(ла), знайти тут поле, оператор і робочий приклад за пів хвилини.
+          Як влаштована мова запитів і навіщо вона — <a href="modules/jira-07.html">урок 7</a>.
+        </p>
+
+        <hr />
+
+        <section id="how">
+          <h2>Як користуватись сторінкою</h2>
+          <p>
+            Читати підряд її не треба. Три способи знайти потрібне:
+          </p>
+          <ul>
+            <li>
+              <strong>Пошук по сторінці.</strong> Натисни <code>Cmd+F</code> на macOS або
+              <code>Ctrl+F</code> на Windows і Linux — браузер відкриє поле пошуку. Набери
+              ім'я поля так, як воно виглядає в запиті, наприклад <code>statusCategory</code>.
+            </li>
+            <li>
+              <strong>Зміст ліворуч</strong> (на вузькому екрані — вгорі сторінки): поля
+              згруповані за задачею, а не за абеткою, бо шукають зазвичай «як питати про
+              дедлайн», а не «що там було на літеру d».
+            </li>
+            <li>
+              <strong>Готові запити</strong> — <a href="#queries">окремий розділ</a>: 25 блоків
+              з кнопкою «Копіювати», кожен із сюжету курсу. Береш найближчий і міняєш у ньому
+              ключ спейсу або ім'я.
+            </li>
+          </ul>
+
+          <h3>Що в колонках таблиць</h3>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: що в колонках таблиць довідника">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Колонка</th>
+                <th>Що в ній</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Ім'я в запиті</td>
+                <td>Те, що набирають у полі JQL. Через похилу риску — псевдонім: інша назва того самого поля, обидві працюють.</td>
+              </tr>
+              <tr>
+                <td>Що це</td>
+                <td>Одне речення українською. Це переказ довідки, а не її дослівний переклад; дослівні цитати стоять у лапках «…».</td>
+              </tr>
+              <tr>
+                <td>Оператори</td>
+                <td>Те, що довідка Atlassian називає supported operators для цього поля. Решта операторів на ньому не працює.</td>
+              </tr>
+              <tr>
+                <td>Приклад</td>
+                <td>Робочий рядок. Якщо він узятий із довідки дослівно — про це сказано під таблицею.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="ds-note">
+            <span class="ds-note__glyph" aria-hidden="true">i</span>
+            <p class="ds-note__title">Чого тут немає</p>
+            <p>
+              <strong>Чисел безкоштовного плану.</strong> Скільки робіт влазить в один
+              вивантажений файл, скільки результатів несе лист підписки, скільки робіт показує
+              дошка — це ліміти плану, вони живуть в одному місці з датою перевірки: довідник
+              «Карта інтерфейсу, глосарій і ліміти Free». Тут є лише межі
+              <em>самої мови запитів</em> — <a href="#limits">окремий розділ</a>, кожне число
+              з цитатою.
+            </p>
+            <p>
+              <strong>Тригерів, дій і розумних значень автоматизації.</strong> Вони в довіднику
+              <a href="jira-ref-automation.html">«Автоматизація: тригери, дії, smart values»</a>.
+              Тут — лише три місця, де всередині flow стоїть саме запит JQL
+              (<a href="#where">розділ про це</a>).
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <section id="anatomy">
+          <h2>Анатомія запиту</h2>
+          <p>
+            Одна умова запиту — це <strong>поле, оператор і значення</strong>. Довідка формулює
+            це так: «A simple query in JQL (also known as a 'clause') consists of a field,
+            followed by an operator, followed by one or more values or functions». Кілька умов
+            зшивають словом <code>AND</code> або <code>OR</code>, а вказівку про порядок
+            (<code>ORDER BY</code>) ставлять останньою — інакше запит недійсний.
+          </p>
+
+          <figure class="term term--cmd" id="a1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="a1t">поле · оператор · значення · зшивка · порядок</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="a1t"><span class="term__line"><span class="term__in">assignee = currentUser() AND statusCategory != Done ORDER BY due ASC</span></span></pre>
+          </figure>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: чотири частини запиту">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Частина</th>
+                <th>Що це</th>
+                <th>У прикладі вище</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>поле</td>
+                <td>Слово, яке позначає поле роботи: «A field in JQL is a word that represents a Jira field».</td>
+                <td><code>assignee</code>, <code>statusCategory</code>, <code>due</code></td>
+              </tr>
+              <tr>
+                <td>оператор</td>
+                <td>Знак або слово, яке порівнює поле зі значенням праворуч.</td>
+                <td><code>=</code>, <code>!=</code></td>
+              </tr>
+              <tr>
+                <td>значення</td>
+                <td>Те, з чим порівнюємо: назва, ключ, дата, число.</td>
+                <td><code>Done</code></td>
+              </tr>
+              <tr>
+                <td>функція</td>
+                <td>«A function in JQL appears as a word followed by parentheses» — слово з дужками, яке Jira замінює на значення сама.</td>
+                <td><code>currentUser()</code></td>
+              </tr>
+              <tr>
+                <td>ключове слово</td>
+                <td>Слово, яке зшиває умови або змінює їхню логіку.</td>
+                <td><code>AND</code>, <code>ORDER BY</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            Визначення — зі сторінки «What is advanced search in Jira Cloud?», звірено 2026-09-27.
+          </p>
+
+          <p>
+            Дужки задають порядок обчислення. Без них умови читаються зліва направо: «if you do
+            not use parentheses, the statement will be evaluated left-to-right». Приклад із
+            довідки — <code>(status=resolved AND project=SysAdmin) OR assignee=bobsmith</code>.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="old-words">
+          <h2>Чому в запиті старі слова</h2>
+          <p>
+            В інтерфейсі Jira робочий простір зветься <strong>space</strong>, а одиниця роботи —
+            <strong>work item</strong>. У мові запитів досі живуть старі слова:
+            спейс — це <code>project</code>. Це не застаріла стаття: Atlassian сама повісила
+            попередження на сторінках про JQL.
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Попередження Atlassian на сторінках «JQL fields», «JQL operators», «JQL keywords»</p>
+            <p>
+              «We're updating terminology in Jira, moving from "issue" to "work item", and
+              "project" to "space". As we roll out these changes, some JQL entries using the new
+              terms may not work yet. If you come across this, try using the old term instead.
+              There are no changes to existing JQL queries.»
+            </p>
+            <p>
+              Переклад: терміни змінюються, частина записів із новими словами може ще не
+              працювати, і якщо натрапиш на таке — спробуй старе слово. Наявні запити
+              не ламаються. Звірено 2026-09-27.
+            </p>
+          </div>
+
+          <p>
+            Практичне правило цього довідника: <strong>у всіх запитах стоїть
+            <code>project</code></strong>. Саме він працював на живому екрані навчального сайту
+            курсу 17 вересня 2026 року, і він же стоїть у прикладах на сторінці довідки про
+            запити для SLA («This query finds all work items in the Test project… It uses the
+            project (field)»).
+          </p>
+          <p>
+            Слово <code>space</code> у прикладах довідки вже трапляється — і разом із ним
+            трапляються сліди автозаміни, які краще знати наперед. На сторінці полів у рядку
+            «Space» у графі Syntax стоїть <code>spaceJira</code> (звірено 2026-09-27) — такого
+            імені поля не існує, це наслідок машинної заміни слова. Тому нові імена, у яких є
+            <code>space</code>, <code>workItem</code> або <code>workType</code>, у цьому довіднику
+            подані так, як їх дає довідка, але з позначкою, де вони живим екраном не звірялись.
+            Повний перелік розбіжностей — <a href="#renames">«Що змінилось у назвах»</a>.
+          </p>
+        </section>
+
+        <hr />
+
+        <h2 id="fields">Поля</h2>
+        <p>
+          Поле — те, з чого починається кожна умова. Довідка каже: «Each field in Jira has a
+          corresponding JQL name», і ще одну річ, яку варто знати одразу: «It's not possible to
+          compare two fields in JQL» — поле з полем у запиті не порівнюють, лише поле зі
+          значенням.
+        </p>
+
+        <section id="f-core">
+          <h3>Щоденні поля</h3>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: щоденні поля JQL">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Ім'я в запиті</th>
+                <th>Що це</th>
+                <th>Оператори</th>
+                <th>Приклад</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>project</code></td>
+                <td>Спейс. Шукається за назвою, ключем або внутрішнім номером.</td>
+                <td><code>=</code> <code>!=</code> <code>IN</code> <code>NOT IN</code> <code>IS</code> <code>IS NOT</code></td>
+                <td><code>project = MARK</code></td>
+              </tr>
+              <tr>
+                <td><code>type</code> / <code>workType</code></td>
+                <td>Тип роботи: Task, Subtask, Epic, Bug. Шукається за назвою або номером.</td>
+                <td><code>=</code> <code>!=</code> <code>IN</code> <code>NOT IN</code> <code>IS</code> <code>IS NOT</code></td>
+                <td><code>type = Task</code></td>
+              </tr>
+              <tr>
+                <td><code>status</code></td>
+                <td>Назва етапу — рядок тексту, свій у кожного спейсу. Шукається за назвою або номером; історія (<code>WAS</code>) — лише за назвою.</td>
+                <td><code>=</code> <code>!=</code> <code>IN</code> <code>NOT IN</code> <code>IS</code> <code>IS NOT</code> <code>WAS</code>-родина <code>CHANGED</code></td>
+                <td><code>status = Open</code></td>
+              </tr>
+              <tr>
+                <td><code>statusCategory</code></td>
+                <td>Категорія етапу. Їх рівно три на всю Jira, вони не перейменовуються: To Do, In Progress, Done.</td>
+                <td><code>=</code> <code>!=</code> <code>IN</code> <code>NOT IN</code></td>
+                <td><code>statusCategory != Done</code></td>
+              </tr>
+              <tr>
+                <td><code>assignee</code></td>
+                <td>Виконавець. Шукається за повним ім'ям, внутрішнім номером акаунта або поштою.</td>
+                <td><code>=</code> <code>!=</code> <code>IS</code> <code>IS NOT</code> <code>IN</code> <code>NOT IN</code> <code>WAS</code>-родина <code>CHANGED</code></td>
+                <td><code>assignee = currentUser()</code></td>
+              </tr>
+              <tr>
+                <td><code>reporter</code></td>
+                <td>Автор роботи. «This may be the same as the creator, but can be distinct».</td>
+                <td><code>=</code> <code>!=</code> <code>IS</code> <code>IS NOT</code> <code>IN</code> <code>NOT IN</code> <code>WAS</code>-родина <code>CHANGED</code></td>
+                <td><code>reporter = "Марта Лисенко"</code></td>
+              </tr>
+              <tr>
+                <td><code>creator</code></td>
+                <td>Хто створив роботу. Не змінюється, тому історії в нього немає: «a work item's creator does not change, so you cannot search for past creators».</td>
+                <td><code>=</code> <code>!=</code> <code>IS</code> <code>IS NOT</code> <code>IN</code> <code>NOT IN</code></td>
+                <td><code>creator = currentUser()</code></td>
+              </tr>
+              <tr>
+                <td><code>priority</code></td>
+                <td>Пріоритет. Єдине зі щоденних полів, яке вміє більше-менше: порівняння йде за порядком пріоритетів, а не за абеткою.</td>
+                <td><code>=</code> <code>!=</code> <code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code> <code>IN</code> <code>NOT IN</code> <code>IS</code> <code>IS NOT</code> <code>WAS</code>-родина <code>CHANGED</code></td>
+                <td><code>priority = High</code></td>
+              </tr>
+              <tr>
+                <td><code>labels</code></td>
+                <td>Мітки — вільні слова на роботі. Пробілу в мітці бути не може.</td>
+                <td><code>=</code> <code>!=</code> <code>IS</code> <code>IS NOT</code> <code>IN</code> <code>NOT IN</code></td>
+                <td><code>labels = "дозволи"</code></td>
+              </tr>
+              <tr>
+                <td><code>key</code> / <code>id</code> / <code>workItemKey</code></td>
+                <td>Ключ роботи або її внутрішній номер. Єдине поле-ідентифікатор, яке вміє <code>~</code> — за шматком ключа.</td>
+                <td><code>=</code> <code>!=</code> <code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code> <code>~</code> <code>!~</code> <code>IN</code> <code>NOT IN</code></td>
+                <td><code>key = MARK-1</code></td>
+              </tr>
+              <tr>
+                <td><code>attachments</code></td>
+                <td>Чи є на роботі вкладення. Тільки «є / немає», за ім'ям файлу цим полем не шукають.</td>
+                <td><code>IS</code> <code>IS NOT</code></td>
+                <td><code>attachments IS NOT EMPTY</code></td>
+              </tr>
+              <tr>
+                <td><code>watcher</code></td>
+                <td>Хто спостерігає за роботою. Чужих спостерігачів видно лише з відповідним дозволом.</td>
+                <td><code>=</code> <code>!=</code> <code>IS</code> <code>IS NOT</code> <code>IN</code> <code>NOT IN</code></td>
+                <td><code>watcher = currentUser()</code></td>
+              </tr>
+              <tr>
+                <td><code>watchers</code></td>
+                <td>Скільком людям цікава робота — число спостерігачів, а не імена.</td>
+                <td><code>=</code> <code>!=</code> <code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code> <code>IN</code> <code>NOT IN</code></td>
+                <td><code>watchers &gt; 3</code></td>
+              </tr>
+              <tr>
+                <td><code>votes</code></td>
+                <td>Скільки голосів зібрала робота.</td>
+                <td><code>=</code> <code>!=</code> <code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code> <code>IN</code> <code>NOT IN</code></td>
+                <td><code>votes &gt;= 4</code></td>
+              </tr>
+              <tr>
+                <td><code>category</code></td>
+                <td><strong>Категорія спейсу</strong>, не роботи: «Search for work items that belong to spaces in a particular category».</td>
+                <td><code>=</code> <code>!=</code> <code>IS</code> <code>IS NOT</code> <code>IN</code> <code>NOT IN</code></td>
+                <td><code>category = "Alphabet Projects"</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            Поля й переліки операторів — сторінка довідки «JQL fields», звірено 2026-09-27.
+            Живим екраном у полі пошуку набирались <code>project</code>, <code>status</code>,
+            <code>statusCategory</code>, <code>labels</code>, <code>created</code> і
+            <code>ORDER BY</code> (навчальний сайт курсу, 2026-09-17 і 2026-09-24); решта імен —
+            з довідки.
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Три різні «категорії», які легко переплутати</p>
+            <p>
+              <code>statusCategory</code> — категорія <em>етапу</em> (To Do, In Progress, Done);
+              <code>category</code> — категорія <em>спейсу</em>; а поле <code>Category</code>,
+              яке є в ділових спейсах (<a href="modules/jira-12.html">урок 12</a>) — це третя
+              річ, звичайне поле роботи зі своїми значеннями. Як саме воно зветься в запиті, ми
+              не звіряли: власні поля шукаються за назвою або через <code>cf[номер]</code>
+              (<a href="#f-custom">нижче</a>).
+            </p>
+          </div>
+        </section>
+
+        <section id="f-dates">
+          <h3>Дати</h3>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: поля дат у JQL">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Ім'я в запиті</th>
+                <th>Що це</th>
+                <th>Точність</th>
+                <th>Приклад</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>due</code> / <code>dueDate</code></td>
+                <td>Дедлайн.</td>
+                <td>Лише дата, без часу; відносні — <code>w</code> і <code>d</code>.</td>
+                <td><code>due &lt; now()</code></td>
+              </tr>
+              <tr>
+                <td><code>created</code> / <code>createdDate</code></td>
+                <td>Коли роботу завели.</td>
+                <td>Дата й час; відносні — <code>w d h m</code>.</td>
+                <td><code>created &gt;= startOfMonth()</code></td>
+              </tr>
+              <tr>
+                <td><code>updated</code> / <code>updatedDate</code></td>
+                <td>Коли роботу останній раз змінювали.</td>
+                <td>Дата й час.</td>
+                <td><code>updated &gt;= "-7d"</code></td>
+              </tr>
+              <tr>
+                <td><code>resolved</code> / <code>resolutionDate</code></td>
+                <td>Коли роботу закрили.</td>
+                <td>Дата й час.</td>
+                <td><code>resolved &gt; "-1h"</code></td>
+              </tr>
+              <tr>
+                <td><code>lastViewed</code></td>
+                <td>Коли ти сам(а) відкривав(ла) роботу останній раз.</td>
+                <td>Дата й час.</td>
+                <td><code>lastViewed &gt; "-1w"</code></td>
+              </tr>
+              <tr>
+                <td><code>statusCategoryChangedDate</code></td>
+                <td>Коли робота перейшла в іншу категорію етапу.</td>
+                <td>Дата й час.</td>
+                <td><code>statusCategoryChangedDate &lt;= -7d</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            «JQL fields», звірено 2026-09-27; останній рядок — стаття бази знань
+            «How to search using statusCategory() &amp; statusCategoryChangedDate() function with
+            JQL» з позначкою «Platform Notice: Cloud Only», оновлена 25 вересня 2025 року.
+            Приклад у ній записаний без лапок — так, як стоїть у довідці.
+          </p>
+          <p>
+            Чотири формати абсолютної дати, які приймає Jira:
+            <code>"yyyy/MM/dd HH:mm"</code>, <code>"yyyy-MM-dd HH:mm"</code>,
+            <code>"yyyy/MM/dd"</code>, <code>"yyyy-MM-dd"</code>. Якщо час не вказано, Jira бере
+            північ. Результат залежить від твого часового поясу в налаштуваннях.
+          </p>
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Відносна дата — у лапках, завжди</p>
+            <p>
+              Довідка повторює це в кожному полі-даті: «Be sure to use quote-marks (");
+              if you omit the quote-marks, the number you supply will be interpreted as
+              milliseconds after epoch (1970-1-1)». Тобто <code>updated &gt;= -7d</code> без
+              лапок Jira прочитає як число мілісекунд від 1970 року: помилки не буде, а
+              результат буде безглуздий.
+            </p>
+          </div>
+        </section>
+
+        <section id="f-text">
+          <h3>Текст</h3>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: текстові поля JQL">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Ім'я в запиті</th>
+                <th>Де шукає</th>
+                <th>Оператори</th>
+                <th>Приклад</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>summary</code></td>
+                <td>Назва роботи. На екрані поле підписане <code>Summary</code>, у довідці подекуди вже <code>Title</code> — у запиті це <code>summary</code>.</td>
+                <td><code>~</code> <code>!~</code> <code>IS</code> <code>IS NOT</code></td>
+                <td><code>summary ~ "круасан"</code></td>
+              </tr>
+              <tr>
+                <td><code>description</code></td>
+                <td>Опис роботи.</td>
+                <td><code>~</code> <code>!~</code> <code>IS</code> <code>IS NOT</code></td>
+                <td><code>description ~ "кошторис"</code></td>
+              </tr>
+              <tr>
+                <td><code>comment</code></td>
+                <td>Коментарі.</td>
+                <td><code>~</code> <code>!~</code></td>
+                <td><code>comment ~ "оплатили"</code></td>
+              </tr>
+              <tr>
+                <td><code>text</code></td>
+                <td>Головне текстове поле: «allows you to search all text fields» — назву, опис, оточення, коментарі й усі текстові власні поля одразу.</td>
+                <td><code>~</code></td>
+                <td><code>text ~ "круасан"</code></td>
+              </tr>
+              <tr>
+                <td><code>textfields</code></td>
+                <td>Те саме, але без коментарів і журналу робочого часу.</td>
+                <td><code>~</code></td>
+                <td><code>textfields ~ "круасан"</code></td>
+              </tr>
+              <tr>
+                <td><code>environment</code></td>
+                <td>Поле «оточення» — у нетехнічних спейсах порожнє.</td>
+                <td><code>~</code> <code>!~</code> <code>IS</code> <code>IS NOT</code></td>
+                <td><code>environment IS EMPTY</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">«JQL fields», «JQL operators», звірено 2026-09-27.</p>
+          <p>
+            Чотири правила текстового пошуку, які видно лише в довідці:
+          </p>
+          <ul>
+            <li>
+              <strong>Знак рівності з текстом не працює</strong> — довідка каже прямо:
+              «cannot be used with text fields; see the CONTAINS operator instead». Текст шукають
+              хвилею <code>~</code>.
+            </li>
+            <li>
+              <strong>Пошук за коренем слова.</strong> «if you search for work items using the
+              query term 'customize' on the Summary field, Jira stems this word to its root form
+              'custom'» — тобто <code>summary ~ "customize"</code> знайде й customized, і
+              customs, і customer. Українські слова довідка не обговорює.
+            </li>
+            <li>
+              <strong>Точна фраза — у подвійних лапках усередині лапок:</strong>
+              <code>summary ~ "\"full screen\""</code>. Зовнішня пара потрібна мові запитів,
+              внутрішня — самому пошуку.
+            </li>
+            <li>
+              <strong>Зірочка дописує слово:</strong> <code>summary ~ "win*"</code> знайде
+              Windows і Win95. Знак питання Jira сама перетворює на зірочку, а значки
+              <code>^</code> і додаткова хвиля в тексті запиту тепер ігноруються.
+            </li>
+          </ul>
+        </section>
+
+        <section id="f-hier">
+          <h3>Ієрархія, тип, спринт</h3>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: поля ієрархії та спринту">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Ім'я в запиті</th>
+                <th>Що це</th>
+                <th>Оператори</th>
+                <th>Приклад</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>parent</code></td>
+                <td>Батьківська робота. «This field works for both team-managed and company-managed spaces».</td>
+                <td><code>=</code> <code>!=</code> <code>IN</code> <code>NOT IN</code></td>
+                <td><code>parent = REM-1</code></td>
+              </tr>
+              <tr>
+                <td><code>parentSpace</code></td>
+                <td>Спейс, у якому лежить батьківська робота.</td>
+                <td><code>=</code> <code>!=</code> <code>IN</code> <code>NOT IN</code></td>
+                <td><code>parentSpace = "REM"</code></td>
+              </tr>
+              <tr>
+                <td><code>sprint</code></td>
+                <td>Спринт. Працює там, де фіча спринтів увімкнена — у спейсах розробки (<a href="modules/jira-13.html">урок 13</a>).</td>
+                <td><code>=</code> <code>!=</code> <code>IS</code> <code>IS NOT</code> <code>IN</code> <code>NOT IN</code></td>
+                <td><code>sprint IN openSprints()</code></td>
+              </tr>
+              <tr>
+                <td><code>workItemLink</code></td>
+                <td>Зв'язки між роботами. Тип зв'язку ставиться в дужки: <code>workItemLink["blocks"]</code>.</td>
+                <td><code>=</code> <code>!=</code> <code>IN</code> <code>NOT IN</code></td>
+                <td><code>workItemLink = MARK-1</code></td>
+              </tr>
+              <tr>
+                <td><code>hierarchyLevel</code></td>
+                <td>Рівень в ієрархії числом: <code>1</code> — верхній (те, чим групують роботу), <code>0</code> — звичайні роботи, <code>-1</code> — підзадачі. Власних рівнів, зроблених у планах, це поле не бачить.</td>
+                <td><code>=</code> <code>!=</code> <code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code> <code>IN</code> <code>NOT IN</code></td>
+                <td><code>hierarchyLevel = "0"</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">«JQL fields», звірено 2026-09-27.</p>
+        </section>
+
+        <section id="f-space">
+          <h3>Спейс і його тип</h3>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: поле типу спейсу">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Ім'я в запиті</th>
+                <th>Значення</th>
+                <th>Оператори</th>
+                <th>Приклад</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>spaceType</code></td>
+                <td><code>business</code> — ділові спейси · <code>software</code> — спейси розробки · <code>service_desk</code> — службові спейси</td>
+                <td><code>=</code> <code>!=</code> <code>IN</code> <code>NOT IN</code></td>
+                <td><code>spaceType = "business"</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            «JQL fields», розділ «Space type», звірено 2026-09-27. У прикладах довідки лапки
+            стоять типографські — у запиті пиши звичайні. Там само: «Results depend on your
+            permission level. You will only see results for apps you have access to».
+          </p>
+          <p>
+            Що це дає практично: один запит на всю фірму можна звузити до однієї родини
+            спейсів — «прострочене в ділових відділах, без сайту й без заявок». Різниця між
+            типами спейсів — <a href="modules/jira-09.html">урок 9</a>.
+          </p>
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Це ім'я живим екраном не звірене</p>
+            <p>
+              <code>spaceType</code> і <code>parentSpace</code> стоять на тій самій сторінці, де
+              автозаміна вже зіпсувала ім'я поля спейсу (<code>spaceJira</code> замість
+              <code>project</code>). Якщо запит із цими іменами не приймається, дій за
+              попередженням Atlassian: «try using the old term instead» — підстав старе слово
+              замість <code>space</code>.
+            </p>
+          </div>
+        </section>
+
+        <section id="f-service">
+          <h3>Службовий спейс</h3>
+          <p>
+            Це поля, які існують лише в службових спейсах — там, де живе портал заявок
+            (<a href="modules/jira-18.html">урок 18</a>, <a href="modules/jira-19.html">урок 19</a>).
+            Ними відбирають заявки в черги.
+          </p>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: поля службового спейсу в JQL">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Ім'я в запиті</th>
+                <th>Що це</th>
+                <th>Оператори</th>
+                <th>Приклад</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>"Request Type"</code></td>
+                <td>Тип запиту: «Used in service spaces only. Search for requests of a certain request type». Ім'я поля — у лапках, бо в ньому пробіл.</td>
+                <td><code>=</code> <code>!=</code> <code>IN</code> <code>NOT IN</code></td>
+                <td><code>"Request Type" = "Заявка на аванс"</code></td>
+              </tr>
+              <tr>
+                <td><code>"Time to resolution"</code></td>
+                <td>Годинник SLA «до вирішення». У запиті це поле, а не число: порівнюють його з функціями зі списку нижче.</td>
+                <td><code>=</code> <code>!=</code> <code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code></td>
+                <td><code>"Time to resolution" = paused()</code></td>
+              </tr>
+              <tr>
+                <td><code>"Time to first response"</code></td>
+                <td>Годинник SLA «до першої відповіді».</td>
+                <td><code>=</code> <code>!=</code> <code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code></td>
+                <td><code>"Time to First Response" &lt; remaining("2h")</code></td>
+              </tr>
+              <tr>
+                <td><code>approvals</code></td>
+                <td>Погодження: «Used in business spaces and Jira Service Management only». Працює лише з <code>=</code> і лише разом зі своїми функціями. ⚠ У графі Syntax довідка дає <code>approvals</code>, а в усіх своїх прикладах пише <code>approval</code> — живим екраном не звіряли.</td>
+                <td><code>=</code></td>
+                <td><code>approval = pending()</code></td>
+              </tr>
+              <tr>
+                <td><code>request-channel-type</code></td>
+                <td>Канал, яким прийшла заявка. Значення довідка перелічує: <code>email</code>, <code>jira</code>, <code>portal</code>, <code>anonymous portal</code>, <code>api</code>. ⚠ Рядок підписаний «Used in business spaces only» — при цьому мова в ньому про заявки службового спейсу; живим екраном не звіряли.</td>
+                <td><code>=</code> <code>!=</code> <code>IS</code> <code>IS NOT</code> <code>IN</code> <code>NOT IN</code></td>
+                <td><code>request-channel-type = email</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            «JQL fields», розділи «Request type», «SLA», «Approvals», «Request channel type»,
+            звірено 2026-09-27. Написання назви годинника різниться між сторінками довідки:
+            у полях — <code>"Time to First Response"</code> з великих літер, на сторінці про
+            запити для SLA — <code>"Time to first response"</code> з малих. Живим екраном
+            службового спейсу ми не звіряли: на навчальному сайті курсу продукту Jira Service
+            Management ще немає.
+          </p>
+        </section>
+
+        <section id="f-custom">
+          <h3>Власні поля</h3>
+          <p>
+            Поле, яке завели ви самі (<a href="modules/jira-11.html">урок 11</a>), шукається
+            двома способами.
+          </p>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: власні поля в JQL">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Запис</th>
+                <th>Що це</th>
+                <th>Приклад із довідки</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>CustomFieldName</code></td>
+                <td>Назва поля так, як ти його назвав(ла). Назва з пробілом — у лапках.</td>
+                <td><code>location = "New York"</code></td>
+              </tr>
+              <tr>
+                <td><code>cf[CustomFieldID]</code></td>
+                <td>Внутрішній номер поля. Надійніше, коли полів із схожими назвами кілька.</td>
+                <td><code>cf[10003] = "New York"</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">«JQL fields», розділ «Custom field», звірено 2026-09-27.</p>
+          <p>
+            У полів зі списком значень (список, галочка, перемикач) є ще один спосіб: шукати не
+            за написом варіанта, а за його внутрішнім номером — «For multiple choice and dropdown
+            custom fields, you can search by both option value and option ID». Це рятує, коли
+            варіант перейменували, а запит має далі працювати.
+          </p>
+          <p>
+            Оператори власного поля залежать від його типу, і це найчастіша причина «чому воно
+            не шукається»:
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: оператори власних полів за типом">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Тип поля</th>
+                <th>Працює</th>
+                <th>Не працює</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>число, дата</td>
+                <td><code>=</code> <code>!=</code> <code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code> <code>IS</code> <code>IS NOT</code> <code>IN</code> <code>NOT IN</code></td>
+                <td><code>~</code> <code>!~</code>, вся <code>WAS</code>-родина, <code>CHANGED</code></td>
+              </tr>
+              <tr>
+                <td>список, галочка, перемикач</td>
+                <td><code>=</code> <code>!=</code> <code>IS</code> <code>IS NOT</code> <code>IN</code> <code>NOT IN</code></td>
+                <td><code>~</code> <code>!~</code> <code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code>, <code>WAS</code>-родина, <code>CHANGED</code></td>
+              </tr>
+              <tr>
+                <td>текст</td>
+                <td><code>~</code> <code>!~</code> <code>IS</code> <code>IS NOT</code></td>
+                <td><code>=</code> <code>!=</code> <code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code> <code>IN</code> <code>NOT IN</code>, <code>WAS</code>-родина, <code>CHANGED</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">«JQL fields», розділ «Custom field», звірено 2026-09-27.</p>
+          <p>
+            Підказка в полі запиту допомагає не всім типам. У графі Auto-complete довідка пише:
+            «Yes, for custom fields of type picker, group picker, select, checkbox and radio
+            button fields». Для поля з текстом або числом ім'я доведеться набрати руками.
+          </p>
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Кириличні назви полів у запиті</p>
+            <p>
+              Чи приймає поле пошуку українську назву власного поля
+              (<code>"Посада" = "Бариста"</code>), ми живою Jira не перевіряли — це ⚠ з
+              <a href="modules/jira-11.html">уроку 11</a>. Надійний шлях, який не залежить від
+              мови назви, — номер: <code>cf[10057] = "Бариста"</code>. Кирилицю у
+              <em>значенні</em> мітки Jira приймає — це перевірено наживо 24 вересня 2026 року
+              (<a href="#errors">таблиця помилок</a>).
+            </p>
+          </div>
+        </section>
+
+        <section id="f-status">
+          <h3>Статус, категорія і Resolution</h3>
+          <p>
+            Головна пара цього довідника — <code>status</code> і <code>statusCategory</code>.
+            <code>status</code> — назва етапу, рядок тексту:
+            її задає шаблон, з якого народився спейс, і її можна переписати. У наймі «Марципану»
+            етапи звуться <code>Screening</code>, <code>Interview</code>, <code>Offer</code>,
+            а в бухгалтерії — <code>Open</code>, <code>Work in progress</code>,
+            <code>Waiting for customer</code>, <code>Done</code>. Тому запит про назву працює
+            лише в тому спейсі, для якого його писали.
+          </p>
+          <p>
+            <code>statusCategory</code> — категорія етапу, і їх рівно три на всю Jira. Стаття
+            бази знань називає їх так, як вони підписані в адмінці: «you will see a column called
+            Category, with ToDo, Inprogress, and Done as the three status categories». Саме
+            категорія вирішує, чи вважається робота завершеною, і саме її радить сама довідка:
+            «you can use the statusCategory field (a work item is resolved when
+            statusCategory = Done)». Одна чесна деталь про цю цитату: вона стоїть у розділі про
+            поле <code>resolution</code> і написана для <strong>службових</strong> team-managed
+            спейсів. Ознака «завершено = категорія Done» від типу спейсу не залежить, але сама
+            порада в довідці адресована саме їм.
+          </p>
+          <p>
+            Третє поле, про яке питають щоразу, — <code>resolution</code>. Воно поводиться
+            по-різному в трьох типах спейсів, і це одна таблиця:
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: поле resolution у трьох типах спейсів">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Де</th>
+                <th>Що з полем <code>resolution</code></th>
+                <th>Чим перевіряти завершеність</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>company-managed</td>
+                <td>Звичайне поле: довідка дає приклади <code>resolution in ("Can't Reproduce", "Won't Fix")</code> і <code>resolution = unresolved</code>.</td>
+                <td>Можна <code>resolution</code>, можна <code>statusCategory</code>.</td>
+              </tr>
+              <tr>
+                <td>team-managed (ділові й розробка)</td>
+                <td>Поле в мові запитів є, але руками його не виставляють і в картці не видно: «When using a Team Managed project, you don't have the option to manually set or view the Resolution field on those project types».</td>
+                <td>Лише <code>statusCategory = Done</code>: у завершеній роботі поле лишається зі значенням <code>Unresolved</code> — це видно в колонці <code>Resolution</code> на живому екрані 2026-09-17.</td>
+              </tr>
+              <tr>
+                <td>службовий team-managed</td>
+                <td>Поля немає взагалі: «The resolution field doesn't exist in service team-managed spaces. This means you can't search for work items in service team-managed spaces with the resolution field».</td>
+                <td>Лише <code>statusCategory = Done</code> — це радить та сама сторінка.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            Рядок 1 і 3 — «JQL fields», розділ «Resolution», звірено 2026-09-27. Рядок 2 —
+            стаття бази знань «Set Resolution field for Team Managed project in Jira Cloud»
+            з позначкою «Platform Notice: Cloud Only», оновлена 26 вересня 2025 року. Усі шість
+            спейсів «Марципану» — team-managed, тому в цьому курсі
+            <code>resolution</code> не вживається ніде.
+          </p>
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Дві сторінки довідки суперечать одна одній</p>
+            <p>
+              Приклад черги на сторінці про службові спейси побудований на
+              <code>resolution = Unresolved</code>, а сторінка полів каже, що в службових
+              team-managed спейсах такого поля немає. Обидві сторінки живі. Курс тримається
+              сторінки полів і <code>statusCategory</code>; якщо будеш складати чергу — набери
+              запит у саму форму й подивись, чи підтвердить його зелена галочка
+              (<a href="modules/jira-19.html">урок 19</a>).
+            </p>
+          </div>
+          <p>
+            Заповнити <code>resolution</code> у team-managed спейсі все-таки можна — але не
+            руками, а автоматизацією: готовий рецепт лежить у довіднику
+            <a href="jira-ref-automation.html">«Автоматизація: тригери, дії, smart values»</a>.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="ops">
+          <h2>17 операторів</h2>
+          <p>
+            Оператор — те, що стоїть між полем і значенням: «An operator in JQL is one or more
+            symbols or words, which compares the value of a field on its left with one or more
+            values (or functions) on its right».
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: 17 операторів JQL">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Оператор</th>
+                <th>Що робить</th>
+                <th>Приклад</th>
+                <th>Про що пам'ятати</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>=</code></td>
+                <td>Точний збіг значення.</td>
+                <td><code>priority = High</code></td>
+                <td>«cannot be used with text fields» — з назвою, описом і коментарем не працює.</td>
+              </tr>
+              <tr>
+                <td><code>!=</code></td>
+                <td>Будь-яке значення, крім цього.</td>
+                <td><code>assignee != currentUser()</code></td>
+                <td>«will not match a field that has no value» — порожніх не показує. Лікується <code>OR поле IS EMPTY</code>.</td>
+              </tr>
+              <tr>
+                <td><code>&gt;</code></td>
+                <td>Більше, пізніше.</td>
+                <td><code>votes &gt; 4</code></td>
+                <td>Лише для полів із порядком: дати, числа, версії, пріоритет.</td>
+              </tr>
+              <tr>
+                <td><code>&gt;=</code></td>
+                <td>Більше або дорівнює.</td>
+                <td><code>created &gt;= "-5d"</code></td>
+                <td>Те саме обмеження.</td>
+              </tr>
+              <tr>
+                <td><code>&lt;</code></td>
+                <td>Менше, раніше.</td>
+                <td><code>due &lt; now()</code></td>
+                <td>Те саме обмеження.</td>
+              </tr>
+              <tr>
+                <td><code>&lt;=</code></td>
+                <td>Менше або дорівнює.</td>
+                <td><code>updated &lt;= "-4w 2d"</code></td>
+                <td>Відносний проміжок можна складати з двох частин, як у прикладі довідки.</td>
+              </tr>
+              <tr>
+                <td><code>IN</code></td>
+                <td>Одне зі списку значень у дужках.</td>
+                <td><code>project IN (MARK, REM)</code></td>
+                <td>Коротша заміна ланцюжка <code>OR</code> — і, на відміну від нього, переводиться назад у режим Basic.</td>
+              </tr>
+              <tr>
+                <td><code>NOT IN</code></td>
+                <td>Жодне зі списку.</td>
+                <td><code>assignee NOT IN (Jack, Jill)</code></td>
+                <td>Як і <code>!=</code>, порожніх не показує.</td>
+              </tr>
+              <tr>
+                <td><code>~</code></td>
+                <td>Містить текст.</td>
+                <td><code>summary ~ "круасан"</code></td>
+                <td>Лише для текстових полів і для ключа роботи. Шукає за коренем слова.</td>
+              </tr>
+              <tr>
+                <td><code>!~</code></td>
+                <td>Не містить текст.</td>
+                <td><code>summary !~ run</code></td>
+                <td>На коментарях ламається: «If the work item contains more than 1 comment, this operator will fail».</td>
+              </tr>
+              <tr>
+                <td><code>IS</code></td>
+                <td>Поле порожнє.</td>
+                <td><code>assignee IS EMPTY</code></td>
+                <td>Працює тільки зі словами <code>EMPTY</code> і <code>NULL</code>.</td>
+              </tr>
+              <tr>
+                <td><code>IS NOT</code></td>
+                <td>Поле заповнене.</td>
+                <td><code>attachments IS NOT EMPTY</code></td>
+                <td>Те саме обмеження.</td>
+              </tr>
+              <tr>
+                <td><code>WAS</code></td>
+                <td>Має зараз або мало раніше таке значення.</td>
+                <td><code>status WAS "In Progress"</code></td>
+                <td>Шість полів, див. <a href="#ops-history">нижче</a>.</td>
+              </tr>
+              <tr>
+                <td><code>WAS IN</code></td>
+                <td>Має або мало будь-яке зі списку.</td>
+                <td><code>status WAS IN ("Resolved","In Progress")</code></td>
+                <td>Те саме, що кілька <code>WAS</code> через <code>OR</code>.</td>
+              </tr>
+              <tr>
+                <td><code>WAS NOT</code></td>
+                <td>Ніколи не мало такого значення.</td>
+                <td><code>status WAS NOT "In Progress"</code></td>
+                <td>Шість полів.</td>
+              </tr>
+              <tr>
+                <td><code>WAS NOT IN</code></td>
+                <td>Ніколи не мало жодного зі списку.</td>
+                <td><code>status WAS NOT IN ("Resolved","In Progress")</code></td>
+                <td>Шість полів.</td>
+              </tr>
+              <tr>
+                <td><code>CHANGED</code></td>
+                <td>Значення поля колись змінювалось.</td>
+                <td><code>assignee CHANGED</code></td>
+                <td>Шість полів; має додаткові слова <code>FROM</code> і <code>TO</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            Сторінка «JQL operators», звірено 2026-09-27. Приклади взяті з неї (оператори тут
+            записані великими літерами для читності, у довідці вони подекуди з малих), крім
+            <code>summary ~ "круасан"</code>, <code>project IN (MARK, REM)</code> і
+            <code>due &lt; now()</code>: це запити курсу на тій самій граматиці.
+          </p>
+          <p>
+            Дві рівносильні форми, які варто знати, бо їх видно в чужих запитах:
+            <code>поле != значення</code> — те саме, що <code>NOT поле = значення</code>,
+            а <code>поле != EMPTY</code> — те саме, що <code>поле IS NOT EMPTY</code>.
+          </p>
+        </section>
+
+        <section id="ops-history">
+          <h3>Історія: WAS і CHANGED</h3>
+          <p>
+            П'ять операторів родини <code>WAS</code> і <code>CHANGED</code> дивляться не на
+            поточне значення, а на історію роботи. Довідка дає точне визначення
+            <code>WAS</code>: «used to find work items that currently have or previously had the
+            specified value» — <strong>має зараз <em>або</em> мало раніше</strong>. Тобто
+            <code>status WAS "In Progress"</code> покаже й ті роботи, які в цьому статусі
+            стоять і зараз.
+          </p>
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Тільки шість полів</p>
+            <p>
+              «This operator can be used with the Assignee, Fix Version, Priority, Reporter,
+              Resolution, and Status fields only». Для дедлайну, мітки, типу роботи чи власного
+              поля історії в мові запитів немає — її дивляться очима на самій роботі.
+            </p>
+          </div>
+          <p>
+            До цих операторів дописують уточнення — довідка зве їх predicates:
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: уточнення до операторів історії">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Уточнення</th>
+                <th>Що означає</th>
+                <th>Приклад із довідки</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>AFTER</code></td>
+                <td>Зміна сталась після дати.</td>
+                <td><code>priority CHANGED BY freddo BEFORE endOfWeek() AFTER startOfWeek()</code></td>
+              </tr>
+              <tr>
+                <td><code>BEFORE</code></td>
+                <td>Зміна сталась до дати.</td>
+                <td><code>status WAS NOT "In Progress" BEFORE "2011/02/02"</code></td>
+              </tr>
+              <tr>
+                <td><code>BY</code></td>
+                <td>Зміну зробила ця людина (або одна з дужок).</td>
+                <td><code>status WAS "Resolved" BY (jsmith,srogen) DURING ("2019/01/01","2020/01/01")</code></td>
+              </tr>
+              <tr>
+                <td><code>DURING</code></td>
+                <td>Зміна сталась між двома датами.</td>
+                <td><code>status WAS "Resolved" BY jsmith DURING ("2010/01/01","2011/01/01")</code></td>
+              </tr>
+              <tr>
+                <td><code>ON</code></td>
+                <td>Зміна сталась цього дня.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>FROM</code> / <code>TO</code></td>
+                <td>З якого значення в яке. Тільки для <code>CHANGED</code>.</td>
+                <td><code>status CHANGED FROM "In Progress" TO "Open"</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            «JQL operators», розділи WAS, WAS IN, WAS NOT, WAS NOT IN, CHANGED, звірено
+            2026-09-27. Прочерк у прикладі означає рівно одне: у довідці приклада саме з цим
+            словом немає.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="keywords">
+          <h2>6 ключових слів</h2>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: ключові слова JQL">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Слово</th>
+                <th>Що робить</th>
+                <th>Приклад</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>AND</code></td>
+                <td>Обидві умови мусять виконатись — звужує пошук.</td>
+                <td><code>project = MARK AND statusCategory != Done</code></td>
+              </tr>
+              <tr>
+                <td><code>OR</code></td>
+                <td>Досить однієї з умов — розширює пошук.</td>
+                <td><code>due &lt; now() OR due IS EMPTY</code></td>
+              </tr>
+              <tr>
+                <td><code>NOT</code></td>
+                <td>Перевертає умову на протилежну; з дужками — цілу групу умов.</td>
+                <td><code>not (reporter = jsmith or reporter = jbrown)</code></td>
+              </tr>
+              <tr>
+                <td><code>EMPTY</code></td>
+                <td>«Поле не має значення». Працює лише з <code>IS</code> та <code>IS NOT</code>.</td>
+                <td><code>due IS EMPTY</code></td>
+              </tr>
+              <tr>
+                <td><code>NULL</code></td>
+                <td>Те саме, що <code>EMPTY</code> — інше написання того самого.</td>
+                <td><code>assignee != null</code></td>
+              </tr>
+              <tr>
+                <td><code>ORDER BY</code></td>
+                <td>У якому порядку показати знайдене. <code>ASC</code> — за зростанням, <code>DESC</code> — за спаданням; полів може бути кілька через кому.</td>
+                <td><code>ORDER BY created, priority DESC</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            Сторінка «JQL keywords», звірено 2026-09-27. Приклади з <code>project</code>
+            й <code>due</code> — запити курсу; решта взяті з довідки. ⚠ На цій сторінці
+            автозаміна вже пройшлась по прикладах: там, де в довідці написано
+            <code>space = JRA</code>, у робочому запиті стоїть <code>project</code>.
+          </p>
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title"><code>ORDER BY</code> — завжди останнім</p>
+            <p>
+              «This requirement needs to be placed at the end of the JQL query, otherwise the
+              JQL will be invalid». Поставиш усередину — запит стане недійсним, і Jira покаже
+              помилку. Якщо після сортування треба ще одна умова, вона мусить переїхати вперед.
+            </p>
+          </div>
+        </section>
+
+        <section id="quotes">
+          <h3>Лапки, символи, зарезервовані слова</h3>
+          <p>
+            Три правила, через які робочий запит раптом перестає працювати.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: лапки, символи, зарезервовані слова">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Що</th>
+                <th>Правило</th>
+                <th>Приклад</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>лапки</td>
+                <td>Значення з пробілом, зі спецсимволом або зі зарезервованим словом береться в лапки — одинарні або подвійні.</td>
+                <td><code>status = "In Progress"</code></td>
+              </tr>
+              <tr>
+                <td>спецсимволи</td>
+                <td>«non-alphanumeric characters, such as + . , * / % ^ $ # @ [ ], aren't indexed for search and are ignored in queries». Виняток — адреси пошти й посилання.</td>
+                <td><code>reporter = "bob@mycompany.com"</code></td>
+              </tr>
+              <tr>
+                <td>подвійна похила</td>
+                <td>«some characters may need to be preceded by two backslashes».</td>
+                <td><code>field ~ "\\(text"</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">«What is advanced search in Jira Cloud?», розділ «Restricted words and characters», звірено 2026-09-27.</p>
+          <p>
+            <strong>Зарезервовані слова.</strong> У мові запитів є список слів, які самі щось
+            означають, тому в ролі значення їх треба брати в лапки: «These words need to be
+            surrounded by quotation marks (single or double) if you wish to use them in queries».
+            У списку майже дві сотні слів, і серед них є звичні англійські: <code>and</code>,
+            <code>or</code>, <code>not</code>, <code>in</code>, <code>is</code>,
+            <code>was</code>, <code>empty</code>, <code>null</code>, <code>order</code>,
+            <code>first</code>, <code>last</code>, <code>next</code>, <code>date</code>,
+            <code>user</code>, <code>field</code>, <code>this</code>, <code>the</code>,
+            <code>will</code>, <code>with</code>, <code>set</code>, <code>update</code>,
+            <code>delete</code>, <code>create</code>, <code>start</code>, <code>end</code>.
+          </p>
+          <p>
+            Той самий список працює ще в один бік, і з першого погляду цього не видно: у <em>текстовому</em> пошуку
+            ці слова взагалі викидаються з пошукового покажчика. Довідка попереджає прикладом:
+            робота з фразою «VSX will crash» і робота з фразою «VSX will not crash» знайдуться
+            обидві на запит про першу, «because the words will and not are part of the reserved
+            words list».
+          </p>
+        </section>
+
+        <hr />
+
+        <h2 id="functions">Функції</h2>
+        <p>
+          Функція — слово з дужками, яке Jira замінює на значення сама. Головна її користь у
+          тому, що запит не старіє: <code>due &lt; now()</code> лишається правильним і завтра,
+          і через рік.
+        </p>
+
+        <section id="fn-dates">
+          <h3>Дати й час</h3>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: функції дат у JQL">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Функція</th>
+                <th>Що підставляє</th>
+                <th>Про що пам'ятати</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>now()</code></td>
+                <td>Цей момент.</td>
+                <td>З неї роблять «прострочене»: <code>due &lt; now()</code>.</td>
+              </tr>
+              <tr>
+                <td><code>startOfDay()</code></td>
+                <td>Початок сьогоднішнього дня.</td>
+                <td>«створено сьогодні» — це <code>created &gt; startOfDay()</code>.</td>
+              </tr>
+              <tr>
+                <td><code>endOfDay()</code></td>
+                <td>Кінець сьогоднішнього дня.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>startOfWeek()</code></td>
+                <td>Початок цього тижня.</td>
+                <td>«by default, the first day is Sunday». Понеділок — <code>startOfWeek("+1d")</code>.</td>
+              </tr>
+              <tr>
+                <td><code>endOfWeek()</code></td>
+                <td>Кінець цього тижня.</td>
+                <td>«this function considers Saturday to be the last day of the week». Неділя — <code>endOfWeek("+1d")</code>.</td>
+              </tr>
+              <tr>
+                <td><code>startOfMonth()</code></td>
+                <td>Перше число цього місяця.</td>
+                <td>Зручно для «що я завів за місяць».</td>
+              </tr>
+              <tr>
+                <td><code>endOfMonth()</code></td>
+                <td>Останній день цього місяця.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>startOfYear()</code></td>
+                <td>Перше січня цього року.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>endOfYear()</code></td>
+                <td>Останній день цього року.</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>currentLogin()</code></td>
+                <td>Момент, коли почалась твоя поточна сесія.</td>
+                <td>«Find work items that have been created during your current session».</td>
+              </tr>
+              <tr>
+                <td><code>lastLogin()</code></td>
+                <td>Момент попереднього входу.</td>
+                <td>Що з'явилось, поки тебе не було.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">Сторінка «JQL functions», звірено 2026-09-27.</p>
+          <p>
+            Усі вісім функцій початку й кінця приймають зсув у дужках:
+            <code>startOfWeek("+1d")</code>, <code>endOfMonth("-1w")</code>. Правило зсуву
+            довідка описує так: «where inc is an optional increment of
+            (+/-)nn(y|M|w|d|h|m)» — число й одиниця, і якщо одиницю не вказати, береться
+            природна для цієї функції: <code>startOfDay("+1")</code> означає те саме, що
+            <code>startOfDay("+1d")</code>. Знак плюс можна не писати.
+          </p>
+          <p>
+            Ці функції працюють із полями <code>created</code>, <code>due</code>,
+            <code>resolved</code>, <code>updated</code> і власними полями типу «дата й час».
+          </p>
+        </section>
+
+        <section id="fn-rel">
+          <h3>Відносні дати без функцій</h3>
+          <p>
+            Другий спосіб сказати «нещодавно» — відносна дата в лапках. Це не функція, а
+            значення: число й одиниця.
+          </p>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: одиниці відносних дат">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Запис</th>
+                <th>Що означає</th>
+                <th>Де працює</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>"-7d"</code></td>
+                <td>Сім днів тому.</td>
+                <td>усі поля-дати</td>
+              </tr>
+              <tr>
+                <td><code>"-2w"</code></td>
+                <td>Два тижні тому.</td>
+                <td>усі поля-дати</td>
+              </tr>
+              <tr>
+                <td><code>"-1h"</code></td>
+                <td>Годину тому.</td>
+                <td><code>created</code>, <code>updated</code>, <code>resolved</code>, <code>lastViewed</code></td>
+              </tr>
+              <tr>
+                <td><code>"-30m"</code></td>
+                <td>Тридцять хвилин тому.</td>
+                <td>ті самі поля з часом</td>
+              </tr>
+              <tr>
+                <td><code>"1d"</code></td>
+                <td>Завтра. Без знака мінус це майбутнє.</td>
+                <td><code>due = "1d"</code> — приклад із довідки</td>
+              </tr>
+              <tr>
+                <td><code>"-4w 2d"</code></td>
+                <td>Місяць тому: два записи через пробіл складаються.</td>
+                <td>приклад із довідки для <code>updated</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            «JQL fields», розділи Created, Updated, Due, Resolved; «JQL operators», звірено
+            2026-09-27. У полі <code>due</code> одиниці лише <code>w</code> і <code>d</code> —
+            дедлайн не має часу.
+          </p>
+        </section>
+
+        <section id="fn-people">
+          <h3>Люди</h3>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: функції для людей у JQL">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Функція</th>
+                <th>Що робить</th>
+                <th>Де працює</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>currentUser()</code></td>
+                <td>Підставляє того, хто зараз дивиться на екран.</td>
+                <td><code>assignee</code>, <code>reporter</code>, <code>creator</code>, <code>watcher</code>, <code>voter</code>, власні поля типу «людина»; оператори <code>=</code> і <code>!=</code></td>
+              </tr>
+              <tr>
+                <td><code>membersOf(Group)</code></td>
+                <td>Усі люди з групи. Для команди — <code>membersOf(id:&lt;teamId&gt;)</code>: «Teams don't currently work with team names».</td>
+                <td>ті самі поля; оператори <code>IN</code>, <code>NOT IN</code>, <code>WAS IN</code>, <code>WAS NOT IN</code></td>
+              </tr>
+              <tr>
+                <td><code>updatedBy(user)</code></td>
+                <td>Хто щось робив із роботою: «includes creating a work item, updating any of the work item's fields, creating or deleting a comment, or editing a comment». Можна додати межі дат.</td>
+                <td>оператори <code>IN</code>, <code>NOT IN</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">«JQL functions», звірено 2026-09-27.</p>
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Пастка <code>currentUser()</code>, яка виглядає як баг</p>
+            <p>
+              У спільному фільтрі й у листі підписки ця функція рахується <strong>для того, хто
+              дивиться або отримує лист</strong>, а не для автора фільтра: «if the filter uses
+              the currentUser() function, the search results will be evaluated with the recipient
+              as the current user». Для фільтра «мої справи» це зручно — один фільтр на всю
+              команду. Для листа «ось що прострочено в Оксани» — ні: там має стояти ім'я.
+            </p>
+            <p>
+              І друге: «This function can only be used by logged-in users. So if you are creating
+              a saved filter that you expect to be used by anonymous users, do not use this
+              function».
+            </p>
+          </div>
+        </section>
+
+        <section id="fn-lists">
+          <h3>Спринти, типи, зв'язки, історія</h3>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: інші функції JQL">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Функція</th>
+                <th>Що робить</th>
+                <th>Приклад із довідки</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>openSprints()</code></td>
+                <td>Спринт, який почали й ще не закрили.</td>
+                <td><code>sprint in openSprints()</code></td>
+              </tr>
+              <tr>
+                <td><code>closedSprints()</code></td>
+                <td>Уже закриті спринти. Робота може належати і закритому, і відкритому одночасно.</td>
+                <td><code>sprint in closedSprints()</code></td>
+              </tr>
+              <tr>
+                <td><code>futureSprints()</code></td>
+                <td>Спринт, який ще не починали.</td>
+                <td><code>sprint in futureSprints()</code></td>
+              </tr>
+              <tr>
+                <td><code>standardWorkTypes()</code></td>
+                <td>Усе, що не є підзадачею.</td>
+                <td><code>workType in standardWorkTypes()</code></td>
+              </tr>
+              <tr>
+                <td><code>subtaskWorkTypes()</code></td>
+                <td>Лише підзадачі.</td>
+                <td><code>workType in subtaskWorkTypes()</code></td>
+              </tr>
+              <tr>
+                <td><code>linkedWorkItems()</code></td>
+                <td>Роботи, зв'язані з названою. Можна звузити до типу зв'язку.</td>
+                <td><code>linkedWorkItems(ABC-123)</code></td>
+              </tr>
+              <tr>
+                <td><code>watchedWorkItems()</code></td>
+                <td>Роботи, за якими ти спостерігаєш.</td>
+                <td><code>watchedWorkItems()</code></td>
+              </tr>
+              <tr>
+                <td><code>votedWorkItems()</code></td>
+                <td>Роботи, за які ти голосував(ла).</td>
+                <td><code>votedWorkItems()</code></td>
+              </tr>
+              <tr>
+                <td><code>workItemHistory()</code></td>
+                <td>Те, що ти недавно відкривав(ла).</td>
+                <td><code>workItemHistory()</code></td>
+              </tr>
+              <tr>
+                <td><code>statusCategory()</code></td>
+                <td>Категорія етапу — те саме поле з таблиці вище, у базі знань описане як функція.</td>
+                <td><code>StatusCategory in ("To Do","In Progress")</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            «JQL functions», звірено 2026-09-27; останній рядок — стаття бази знань про
+            <code>statusCategory</code> («Platform Notice: Cloud Only», оновлена 2025-09-25).
+            Імена, у яких є <code>WorkType</code> або <code>WorkItem</code>, уже переписані під
+            нові терміни й живим екраном не звірялись: якщо не приймаються, підстав старе слово,
+            як радить попередження Atlassian.
+          </p>
+        </section>
+
+        <section id="fn-sla">
+          <h3>SLA службового спейсу</h3>
+          <p>
+            Вісім функцій, які працюють лише з полем-годинником у службовому спейсі. Довідка
+            підписує кожну з них рядком «Only applicable for sites with Jira Service Management
+            subscriptions».
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: функції SLA у JQL">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Функція</th>
+                <th>Що відбирає</th>
+                <th>Приклад із довідки</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>breached()</code></td>
+                <td>Останній цикл годинника не вклався в ціль.</td>
+                <td><code>"Time to First Response" = breached()</code></td>
+              </tr>
+              <tr>
+                <td><code>everBreached()</code></td>
+                <td>Ціль порушено хоч раз.</td>
+                <td><code>"Time to First Response" = everBreached()</code></td>
+              </tr>
+              <tr>
+                <td><code>paused()</code></td>
+                <td>Годинник на паузі через умову (наприклад, «чекаємо на клієнта»).</td>
+                <td><code>"Time to First Response" = paused()</code></td>
+              </tr>
+              <tr>
+                <td><code>running()</code></td>
+                <td>Годинник цокає, незалежно від календаря.</td>
+                <td><code>"Time to First Response" = running()</code></td>
+              </tr>
+              <tr>
+                <td><code>completed()</code></td>
+                <td>Цикл завершено — заявка дійшла до події зупинки.</td>
+                <td><code>"Time to First Response" = completed()</code></td>
+              </tr>
+              <tr>
+                <td><code>withinCalendarHours()</code></td>
+                <td>Годинник цокає за календарем робочих годин.</td>
+                <td><code>"Time to First Response" = withinCalendarHours()</code></td>
+              </tr>
+              <tr>
+                <td><code>elapsed()</code></td>
+                <td>Скільки часу вже пройшло від початку циклу.</td>
+                <td><code>"Time to First Response" &gt; elapsed("1h")</code></td>
+              </tr>
+              <tr>
+                <td><code>remaining()</code></td>
+                <td>Скільки лишилось до цілі. Додатне число — час є, від'ємне — ціль уже порушена.</td>
+                <td><code>"Time to First Response" &lt; remaining("2h")</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            «JQL functions» і «JQL fields» (розділ SLA), звірено 2026-09-27. Окремої сторінки
+            для <code>elapsed()</code> у переліку функцій немає — її визначення й приклад
+            стоять у розділі поля SLA й на сторінці «Write JQL queries for SLAs» служби
+            підтримки Jira Service Management, звіреній того самого дня. Там само — підказка,
+            як прибрати з результату вже порушені цілі: «To exclude breached items from your
+            results, use &gt;= remaining("0h") or combine with != breached()».
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="queries">
+          <h2>25 запитів «Марципану»</h2>
+          <p>
+            Готові рядки на сюжеті курсу — кав'ярні-пекарні «Марципан» із шістьма спейсами:
+            <code>MY</code> (мої справи), <code>MARK</code> (маркетинг), <code>REM</code>
+            (друга точка), <code>HR</code> (найм), <code>WEB</code> (сайт), <code>FIN</code>
+            (бухгалтерія). Підстав свої ключі й імена — і запит стане твоїм. Біля кожного
+            сказано, звідки він: із уроку (тоді є посилання) або складений тут із граматики
+            довідки.
+          </p>
+
+          <h3 id="q-daily">Щодня</h3>
+
+          <figure class="term term--cmd" id="q1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q1t">1 · усе, що призначено мені й ще не зроблено</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q1t"><span class="term__line"><span class="term__in">assignee = currentUser() AND statusCategory != Done</span></span></pre>
+          </figure>
+          <p>
+            Найкорисніший запит курсу: один фільтр показує кожному його власні роботи
+            (<a href="modules/jira-07.html#l3">урок 7</a>).
+          </p>
+
+          <figure class="term term--cmd" id="q2">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q2t">2 · прострочене в усіх спейсах</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q2t"><span class="term__line"><span class="term__in">due &lt; now() AND statusCategory != Done ORDER BY due ASC</span></span></pre>
+          </figure>
+          <p>
+            Жодного <code>project</code> — тому дивиться скрізь, де в тебе є доступ
+            (<a href="modules/jira-07.html#l4">урок 7</a>).
+          </p>
+
+          <figure class="term term--cmd" id="q3">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q3t">3 · мої справи на цьому тижні</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q3t"><span class="term__line"><span class="term__in">assignee = currentUser() AND due &lt;= endOfWeek() AND statusCategory != Done</span></span></pre>
+          </figure>
+          <p>
+            Тиждень закінчується в суботу — це замовчування <code>endOfWeek()</code>
+            (<a href="modules/jira-07.html#l4">урок 7</a>).
+          </p>
+
+          <figure class="term term--cmd" id="q4">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q4t">4 · маркетинг без виконавця</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q4t"><span class="term__line"><span class="term__in">assignee IS EMPTY AND project = MARK</span></span></pre>
+          </figure>
+          <p>
+            Роботи, за які ніхто не відповідає — найчастіша причина, чому справа стоїть
+            (<a href="modules/jira-07.html#l4">урок 7</a>).
+          </p>
+
+          <figure class="term term--cmd" id="q5">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q5t">5 · незавершене маркетингу, найближчий дедлайн угорі</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q5t"><span class="term__line"><span class="term__in">project = MARK AND statusCategory != Done ORDER BY due ASC</span></span></pre>
+          </figure>
+          <p>
+            Той самий рядок, який стоїть у вікні <a href="modules/jira-07.html#l2">уроку 7</a> —
+            і в квізі того ж уроку.
+          </p>
+
+          <h3 id="q-week">Тиждень і дедлайни</h3>
+
+          <figure class="term term--cmd" id="q6">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q6t">6 · що рухалось у маркетингу й ремонті за тиждень</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q6t"><span class="term__line"><span class="term__in">project IN (MARK, REM) AND updated &gt;= "-7d" ORDER BY updated DESC</span></span></pre>
+          </figure>
+          <p>
+            <code>IN</code> замість двох <code>OR</code> — і такий запит перемикається назад
+            у режим Basic (<a href="modules/jira-07.html#l3">урок 7</a>).
+          </p>
+
+          <figure class="term term--cmd" id="q7">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q7t">7 · робота без дедлайну</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q7t"><span class="term__line"><span class="term__in">due IS EMPTY AND statusCategory != Done ORDER BY created ASC</span></span></pre>
+          </figure>
+          <p>
+            Четвертий фільтр щотижневого огляду фірми
+            (<a href="modules/jira-21.html">урок 21</a>): найстаріші безхозні справи вгорі.
+          </p>
+
+          <figure class="term term--cmd" id="q8">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q8t">8 · що горить завтра (для нагадування за розкладом)</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q8t"><span class="term__line"><span class="term__in">project = MY AND due &lt;= "1d" AND statusCategory != Done</span></span></pre>
+          </figure>
+          <p>
+            Цей рядок стоїть усередині тригера за розкладом
+            (<a href="modules/jira-14.html">урок 14</a>), а не в полі пошуку.
+          </p>
+
+          <h3 id="q-people">Люди</h3>
+
+          <figure class="term term--cmd" id="q9">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q9t">9 · що я сам(а) завів(ла) від початку місяця</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q9t"><span class="term__line"><span class="term__in">reporter = currentUser() AND created &gt;= startOfMonth()</span></span></pre>
+          </figure>
+          <p>
+            <code>assignee</code> відповідає на питання «що я маю зробити», а
+            <code>reporter</code> — «що я комусь доручив(ла)»
+            (<a href="modules/jira-07.html#l3">урок 7</a>).
+          </p>
+
+          <figure class="term term--cmd" id="q10">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q10t">10 · що зараз у роботі в конкретної людини</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q10t"><span class="term__line"><span class="term__in">assignee = "Марта Лисенко" AND statusCategory = "In Progress"</span></span></pre>
+          </figure>
+          <p>
+            Ім'я з пробілом — у лапках, як у прикладі довідки
+            <code>assignee = "John Smith"</code>. Складено тут.
+          </p>
+
+          <figure class="term term--cmd" id="q11">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q11t">11 · за чим я спостерігаю</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q11t"><span class="term__line"><span class="term__in">watcher = currentUser() AND statusCategory != Done</span></span></pre>
+          </figure>
+          <p>
+            Спостереження за роботою вводить <a href="modules/jira-04.html">урок 4</a>; запит
+            складено тут на прикладі довідки <code>watcher = currentUser()</code>.
+          </p>
+
+          <h3 id="q-text">Текст і мітки</h3>
+
+          <figure class="term term--cmd" id="q12">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q12t">12 · слово в назві роботи</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q12t"><span class="term__line"><span class="term__in">summary ~ "круасан"</span></span></pre>
+          </figure>
+          <p>
+            Текст шукають хвилею, не знаком рівності
+            (<a href="modules/jira-07.html#l3">урок 7</a>).
+          </p>
+
+          <figure class="term term--cmd" id="q13">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q13t">13 · слово будь-де в маркетингу</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q13t"><span class="term__line"><span class="term__in">project = MARK AND text ~ "круасан"</span></span></pre>
+          </figure>
+          <p>
+            <code>text</code> заглядає в назву, опис, коментарі й текстові власні поля одразу.
+            Складено тут на прикладі довідки <code>text ~ "Fred"</code>.
+          </p>
+
+          <figure class="term term--cmd" id="q14">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q14t">14 · усе, що позначене міткою «дозволи»</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q14t"><span class="term__line"><span class="term__in">labels = "дозволи"</span></span></pre>
+          </figure>
+          <p>
+            Так Тарас за секунду бачить усе, що залежить не від нього
+            (<a href="modules/jira-07.html#l3">урок 7</a>). Кирилицю в значенні мітки Jira
+            приймає — перевірено наживо 24 вересня 2026 року на мітці «архів».
+          </p>
+
+          <figure class="term term--cmd" id="q15">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q15t">15 · маркетинг без архіву</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q15t"><span class="term__line"><span class="term__in">project = MARK AND (labels != "архів" OR labels IS EMPTY)</span></span></pre>
+          </figure>
+          <p>
+            Друга половина умови обов'язкова: без неї зникають усі роботи, у яких міток немає
+            взагалі (<a href="modules/jira-20.html">урок 20</a>). Перевірено наживо: без
+            <code>OR labels IS EMPTY</code> запит повернув нуль робіт із трьох.
+          </p>
+
+          <h3 id="q-hier">Ієрархія, тип, спринт</h3>
+
+          <figure class="term term--cmd" id="q16">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q16t">16 · усе всередині епіка «Ремонт другої точки»</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q16t"><span class="term__line"><span class="term__in">parent = REM-1</span></span></pre>
+          </figure>
+          <p>
+            Приклад довідки — <code>parent = TEST-1234</code>; тут підставлений ключ епіка
+            з <a href="modules/jira-11.html">уроку 11</a>.
+          </p>
+
+          <figure class="term term--cmd" id="q17">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q17t">17 · ремонт без підзадач</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q17t"><span class="term__line"><span class="term__in">project = REM AND type IN standardWorkTypes()</span></span></pre>
+          </figure>
+          <p>
+            Зручно, коли підзадач багато й вони засмічують список. У довідці той самий приклад
+            записаний через псевдонім поля — <code>workType in standardWorkTypes()</code>;
+            обидва імені звертаються до одного поля.
+          </p>
+
+          <figure class="term term--cmd" id="q18">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q18t">18 · що в поточному спринті сайту</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q18t"><span class="term__line"><span class="term__in">project = WEB AND sprint IN openSprints()</span></span></pre>
+          </figure>
+          <p>
+            Спринти є лише там, де їх увімкнули — у спейсі розробки
+            (<a href="modules/jira-13.html">урок 13</a>). Приклад довідки —
+            <code>sprint in openSprints()</code>.
+          </p>
+
+          <h3 id="q-history">Історія</h3>
+
+          <figure class="term term--cmd" id="q19">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q19t">19 · що колись було в роботі на сайті</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q19t"><span class="term__line"><span class="term__in">project = WEB AND status WAS "In Progress"</span></span></pre>
+          </figure>
+          <p>
+            «Має зараз або мало раніше» — тому в результат потрапить і те, що в цьому статусі
+            стоїть і зараз. Приклад довідки — <code>status WAS "In Progress"</code>.
+          </p>
+
+          <figure class="term term--cmd" id="q20">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q20t">20 · хто з кандидатів дійшов до офера цього місяця</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q20t"><span class="term__line"><span class="term__in">project = HR AND status CHANGED TO Offer AFTER startOfMonth()</span></span></pre>
+          </figure>
+          <p>
+            Статус <code>Offer</code> — з власного процесу найму
+            (<a href="modules/jira-10.html">урок 10</a>). Запит складено тут із документованих
+            уточнень <code>TO</code> і <code>AFTER</code>.
+          </p>
+
+          <h3 id="q-service">Службовий спейс</h3>
+
+          <figure class="term term--cmd" id="q21">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q21t">21 · заявки одного типу</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q21t"><span class="term__line"><span class="term__in">"Request Type" = "Заявка на аванс"</span></span></pre>
+          </figure>
+          <p>
+            Так відбирають заявки в черги й так задають, до чого застосовується годинник SLA
+            (<a href="modules/jira-19.html">урок 19</a>).
+          </p>
+
+          <figure class="term term--cmd" id="q22">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q22t">22 · горить SLA: менше двох годин до цілі</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q22t"><span class="term__line"><span class="term__in">"Time to First Response" &lt; remaining("2h")</span></span></pre>
+          </figure>
+          <p>
+            Дослівний приклад із довідки, підписаний «Find work items that that will breach Time
+            to First Response in the next two hours» (подвоєне «that» — теж із довідки).
+            Черга «Горить SLA» в <a href="modules/jira-19.html">уроці 19</a> стоїть саме на ньому.
+          </p>
+
+          <h3 id="q-misc">Різне</h3>
+
+          <figure class="term term--cmd" id="q23">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q23t">23 · одна робота за ключем</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q23t"><span class="term__line"><span class="term__in">key = MARK-1</span></span></pre>
+          </figure>
+          <p>
+            Швидший шлях, ніж шукати очима. Приклад довідки записаний новим ім'ям поля —
+            <code>workItemKey = ABC-123</code>, а <code>key</code> названий там його
+            псевдонімом.
+          </p>
+
+          <figure class="term term--cmd" id="q24">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q24t">24 · прострочене лише в ділових спейсах</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q24t"><span class="term__line"><span class="term__in">spaceType = "business" AND due &lt; now() AND statusCategory != Done</span></span></pre>
+          </figure>
+          <p>
+            Відділи фірми без сайту й без заявок. ⚠ Ім'я <code>spaceType</code> живим екраном
+            не звірене — див. <a href="#f-space">застереження вище</a>.
+          </p>
+
+          <figure class="term term--cmd" id="q25">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="q25t">25 · заявки з вкладеннями</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="q25t"><span class="term__line"><span class="term__in">project = FIN AND attachments IS NOT EMPTY</span></span></pre>
+          </figure>
+          <p>
+            Рахунок без прикріпленого файлу бухгалтерія не проведе. Приклад довідки —
+            <code>attachments IS NOT EMPTY</code>.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="errors">
+          <h2>Часті помилки</h2>
+          <p>
+            Перша колонка — шматок запиту, на якому все зупиняється. Тексти помилок тут або
+            зняті з живого екрана (дата в останній колонці), або взяті з довідки дослівно;
+            вигаданих текстів у таблиці немає.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: часті помилки в запитах JQL">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Що в запиті</th>
+                <th>Що бачиш</th>
+                <th>Чому і що робити</th>
+                <th>Звідки</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>status = Done</code></td>
+                <td>Червона рамка: «JQL error» — «The value 'Done' does not exist for the field 'status'.» і кнопка <code>Fix error</code></td>
+                <td>Назва етапу — рядок тексту, і в цьому спейсі вона інша (статуси народжуються мовою акаунта). Питай категорію: <code>statusCategory != Done</code>.</td>
+                <td>екран, 2026-09-17</td>
+              </tr>
+              <tr>
+                <td><code>labels ==</code></td>
+                <td>«JQL error Expecting a value or function but got '='. You must surround '=' in quotation marks to use it as a value. (line 1, character 9)»</td>
+                <td>Оператор є, значення немає. Jira показує навіть номер знака, на якому спинилась.</td>
+                <td>екран, 2026-09-24</td>
+              </tr>
+              <tr>
+                <td><code>labels != "архів"</code></td>
+                <td>Порожній список без жодної помилки: «There are no work items here yet»</td>
+                <td>«will not match a field that has no value»: <code>!=</code> викидає й ті роботи, у яких міток немає. Дописуй <code>OR labels IS EMPTY</code>.</td>
+                <td>екран, 2026-09-24</td>
+              </tr>
+              <tr>
+                <td><code>summary = "круасан"</code></td>
+                <td>Помилка про оператор</td>
+                <td>«cannot be used with text fields; see the CONTAINS operator instead» — текст шукають хвилею: <code>summary ~ "круасан"</code>.</td>
+                <td>довідка</td>
+              </tr>
+              <tr>
+                <td><code>updated &gt;= -7d</code></td>
+                <td>Дивний результат без помилки</td>
+                <td>Без лапок число читається як мілісекунди від 1970 року. Пиши <code>"-7d"</code>.</td>
+                <td>довідка</td>
+              </tr>
+              <tr>
+                <td><code>status = In Progress</code></td>
+                <td>Помилка розбору</td>
+                <td>Значення з пробілом — у лапках: <code>status = "In Progress"</code>.</td>
+                <td>довідка</td>
+              </tr>
+              <tr>
+                <td><code>ORDER BY due ASC AND …</code></td>
+                <td>«the JQL will be invalid»</td>
+                <td>Сортування стоїть останнім і нічого після себе не терпить.</td>
+                <td>довідка</td>
+              </tr>
+              <tr>
+                <td><code>text ~ "will crash"</code></td>
+                <td>Знаходиться й «will not crash»</td>
+                <td>Слова зі списку зарезервованих у текстовому пошуку викидаються: «because the words will and not are part of the reserved words list».</td>
+                <td>довідка</td>
+              </tr>
+              <tr>
+                <td><code>due &lt;= endOfWeek()</code></td>
+                <td>У розкладі flow лист щотижня стає довшим</td>
+                <td>Без <code>statusCategory != Done</code> запит збирає й давно закриті роботи: у них дедлайн у минулому, отже умова «до кінця тижня» виконується.</td>
+                <td><a href="modules/jira-15.html">урок 15</a></td>
+              </tr>
+              <tr>
+                <td><code>project = "Мої справи"</code></td>
+                <td>Результат не з того спейсу</td>
+                <td>«In the rare case where there is a space whose key is the same as another space's name, then the space key takes preference». Надійніше — ключ: <code>project = MY</code>.</td>
+                <td>довідка</td>
+              </tr>
+              <tr>
+                <td><code>comment !~ "оплата"</code></td>
+                <td>Нічого або дивне</td>
+                <td>«If the work item contains more than 1 comment, this operator will fail» — заперечення на коментарях не працює.</td>
+                <td>довідка</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            Рядки «екран» зняті на навчальному сайті курсу (Jira Cloud, безкоштовний план) у
+            вказані дати; рядки «довідка» — сторінки «JQL operators», «JQL fields»,
+            «What is advanced search in Jira Cloud?», «Search for work items using the text
+            field», звірені 2026-09-27.
+          </p>
+
+          <h3 id="fix-error">Кнопка <code>Fix error</code></h3>
+          <p>
+            Поруч із текстом помилки Jira показує кнопку <code>Fix error</code>. Довідка описує
+            два шляхи: виправити руками «by identifying and correcting issues like missing
+            fields, incorrect operators, or typos» — або прийняти згенеровану підказку. Другий
+            шлях робить Rovo, AI-шар Atlassian; та сама сторінка каже, що Rovo «is available and
+            automatically enabled for all apps on Standard, Premium, and Enterprise plans», і про
+            безкоштовний план мовчить.
+          </p>
+          <p>
+            Наживо на безкоштовному плані кнопка працює: 24 вересня 2026 року на навчальному
+            сайті курсу запит <code>labels ==</code> дав панель із поточним запитом,
+            запропонованим <code>labels IS NOT EMPTY</code>, кнопкою <code>Accept</code> і
+            рядком «Uses AI. Verify results.»
+          </p>
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Читай підказку, перш ніж тиснути <code>Accept</code></p>
+            <p>
+              Зверни увагу, що саме вона запропонувала. <code>labels IS NOT EMPTY</code> —
+              правильний за синтаксисом запит, але зовсім не той, якого хотіла людина, що
+              почала писати <code>labels =</code>: вона шукала конкретну мітку. Підказка вгадує
+              намір і може вгадати не те.
+            </p>
+          </div>
+        </section>
+
+        <section id="basic">
+          <h3>Basic ↔ JQL і два види запиту</h3>
+          <p>
+            Перемикач <code>Basic</code> / <code>JQL</code> над результатами — це два режими
+            того самого пошуку. Складний запит назад у списки може не поміститись, і довідка
+            перелічує випадки прямо: запит не переведеться, якщо в ньому є
+          </p>
+          <ul>
+            <li><code>OR</code> — «Instead, you can use an IN operator and it will be translated»;</li>
+            <li><code>NOT</code>;</li>
+            <li><code>EMPTY</code>;</li>
+            <li>будь-що з <code>!=</code>, <code>IS</code>, <code>IS NOT</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code>, <code>&lt;=</code>;</li>
+            <li>поле, прив'язане до спейсу (версія, компонент, власне поле), без умови про сам спейс.</li>
+          </ul>
+          <p>
+            Правило згори там само: «if the query cannot be created in the basic search form,
+            then it will not be able to be translated from advanced search to basic search».
+            Практичний висновок один: почав складний запит у JQL — лишайся в JQL.
+          </p>
+          <p>
+            Ще два слова, які трапляються в довідці й у повідомленнях про помилки:
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: обмежений і необмежений запит">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Термін</th>
+                <th>Що це</th>
+                <th>Приклад із довідки</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>bounded</td>
+                <td>Обмежений запит: має хоч одну умову «поле — оператор — значення».</td>
+                <td><code>project = TEST order by key</code></td>
+              </tr>
+              <tr>
+                <td>unbounded</td>
+                <td>Необмежений: умов немає взагалі, лише порядок. Частина місць такий запит не приймає.</td>
+                <td><code>order by createdDate</code></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">«What is advanced search in Jira Cloud?», розділ «Types of JQL», звірено 2026-09-27.</p>
+        </section>
+
+        <section id="limits">
+          <h3>Межі самої мови</h3>
+          <p>
+            Це не ліміти плану (вони в довіднику «Карта інтерфейсу, глосарій і ліміти Free»), а
+            межі самого пошуку. Кожен рядок — з дослівною цитатою, бо саме такі числа
+            найчастіше переказують неправильно.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: межі мови запитів">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Де</th>
+                <th>Межа</th>
+                <th>Цитата</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>підказка в полі</td>
+                <td>перші 15 збігів за абеткою</td>
+                <td>«autocomplete suggestions only include the first 15 matches, displayed alphabetically»</td>
+              </tr>
+              <tr>
+                <td><code>WAS</code>, <code>CHANGED</code></td>
+                <td>історія глибше 10 000 змін не шукається</td>
+                <td>«If a work item has more than 10,000 changes, JQL queries using the WAS operator will only search the most recent changes»</td>
+              </tr>
+              <tr>
+                <td><code>comment</code></td>
+                <td>перша тисяча коментарів</td>
+                <td>«If a work item has more than 1,000 comments, JQL will only search the most recent ones»</td>
+              </tr>
+              <tr>
+                <td><code>membersOf()</code></td>
+                <td>група, що дає понад 10 000 людей, ламає пошук</td>
+                <td>«If a membersOf() function in your JQL query returns more than 10,000 users, the search won't run and you'll get an error»</td>
+              </tr>
+              <tr>
+                <td><code>watchedWorkItems()</code>, <code>votedWorkItems()</code></td>
+                <td>32 000 робіт</td>
+                <td>«This function will return up to 32,000 work item IDs»</td>
+              </tr>
+              <tr>
+                <td><code>workItemHistory()</code></td>
+                <td>50 останніх відкритих робіт</td>
+                <td>«workItemHistory() returns up to 50 work items»</td>
+              </tr>
+              <tr>
+                <td>дія <code>Lookup work items</code></td>
+                <td>перша сотня знайденого</td>
+                <td>«Search for up to 100 work items using a JQL query»</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            «What is advanced search in Jira Cloud?», «JQL operators», «JQL fields»,
+            «JQL functions» — звірено 2026-09-27; останній рядок — сторінка довідки про дії
+            автоматизації, звірена того самого дня. Числа наведені так, як їх називає довідка;
+            у другій колонці вони переказані українською, у третій стоять дослівно.
+          </p>
+        </section>
+
+        <section id="speed">
+          <h3>Швидкість запиту</h3>
+          <p>
+            Запит може бути правильним і при цьому повільним. Довідка радить три речі, і всі
+            вони помітні вже на кількох сотнях робіт.
+          </p>
+          <ul>
+            <li>
+              <strong>Обмеж спейсом.</strong> «When a query has to search through fewer work
+              items, results load faster» — тому <code>project = MARK AND assignee =
+              currentUser()</code> швидший за <code>assignee = currentUser()</code>, хоч і дає
+              вужчий результат.
+            </li>
+            <li>
+              <strong><code>OR</code> — зовні, <code>AND</code> — усередині дужок.</strong> «we
+              recommend that your OR clauses live outside the brackets, and your AND clauses are
+              inside». Довідка показує це на парі запитів: важкий варіант із двома дужками й
+              легкий — <code>space in (TIS, PMO) OR assignee in (A, B)</code>.
+            </li>
+            <li>
+              <strong>Мітки — важке поле.</strong> «the label field needs to reference multiple
+              data sets, which makes it a complicated field to use in search». Якщо той самий
+              зріз можна взяти ключем, він буде швидшим.
+            </li>
+          </ul>
+          <p class="ds-small">
+            «JQL optimization recommendations», звірено 2026-09-27. У другій цитаті збережено
+            слово <code>space</code> — у довідці приклад написаний саме так; у робочому запиті
+            підставляй <code>project</code>.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="filters">
+          <h2>Збережений фільтр</h2>
+          <p>
+            Фільтр — це збережений <em>текст запиту</em> під назвою, а не копія робіт: щоразу,
+            коли ти його відкриваєш, Jira виконує запит заново. Як його зробити —
+            <a href="modules/jira-07.html#l3">урок 7</a>; тут — те, що потрібно точно.
+          </p>
+
+          <h3 id="filters-save">Як зберегти</h3>
+          <p>
+            Довідка описує три кроки: «Define and run your search. Select Save as above the
+            search results. Enter a name for the new filter and select Submit». На живому екрані
+            17 вересня 2026 року кнопка над результатами називалась <code>Save filter</code>, а
+            не <code>Save as</code> — інтерфейс перемалювали швидше, ніж статтю. Одразу після
+            збереження фільтр потрапляє в обране: «By default, when you create a filter, it'll be
+            starred».
+          </p>
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Усередині team-managed спейсу списку фільтрів у панелі не видно</p>
+            <p>
+              «If you're in a team-managed space, you won't be able to see the list of filters
+              (system and starred) in the sidebar. To see your starred filters in a team-managed
+              space, you need to select Filters from the sidebar». Усі шість спейсів «Марципану»
+              — team-managed, тому шлях один: пункт <code>Filters</code> у бічній панелі, далі
+              <code>View all filters</code>.
+            </p>
+          </div>
+
+          <h3 id="filters-system">Дев'ять системних фільтрів</h3>
+          <p>
+            Ці фільтри вже є в кожному сайті: «Jira has a set of filters that are pre-defined
+            for you. The JQL query for these filters will be set and the search results will be
+            displayed».
+          </p>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: системні фільтри Jira">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Фільтр</th>
+                <th>Що показує</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>My open work items</code></td><td>Незакрите, що призначене тобі.</td></tr>
+              <tr><td><code>Reported by me</code></td><td>Те, що завів(ла) ти.</td></tr>
+              <tr><td><code>All work items</code></td><td>Усе, до чого в тебе є доступ.</td></tr>
+              <tr><td><code>Open work items</code></td><td>Усе незакрите.</td></tr>
+              <tr><td><code>Done work items</code></td><td>Усе завершене.</td></tr>
+              <tr><td><code>Viewed recently</code></td><td>Що ти недавно відкривав(ла).</td></tr>
+              <tr><td><code>Created recently</code></td><td>Що недавно завели.</td></tr>
+              <tr><td><code>Resolved recently</code></td><td>Що недавно закрили.</td></tr>
+              <tr><td><code>Updated recently</code></td><td>Що недавно змінювали.</td></tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">«What is a saved search?», звірено 2026-09-27.</p>
+          <p>
+            Дрібниця, яка пояснює раптове перемикання режиму: «Selecting some filters, like the
+            Viewed recently filter, will switch you to the advanced search (JQL) as the basic
+            search can't represent the ORDER BY clause in this filter».
+          </p>
+
+          <h3 id="filters-access">Кому видно фільтр</h3>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: доступ до збереженого фільтра">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Значення</th>
+                <th>Хто бачить або редагує</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Private</code></td>
+                <td>«The filter is private and can only be viewed or edited by the owner and Jira admins».</td>
+              </tr>
+              <tr>
+                <td><code>Users</code> / <code>Group</code> / <code>Space</code> / <code>Roles</code></td>
+                <td>Конкретна людина, група, спейс або роль у ньому.</td>
+              </tr>
+              <tr>
+                <td><code>My organization</code></td>
+                <td>«The filter is shared with all users on the Jira instance» — усі, хто заходить на цей сайт під своїм акаунтом.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">«Manage filters», звірено 2026-09-27.</p>
+          <p>
+            Яке значення отримує <strong>новий</strong> фільтр, вирішує налаштування сайту
+            <code>Default access</code> (<code>Settings</code> → <code>System</code> →
+            <code>Default user preferences</code>): «Choose the default access setting for when
+            you create new filters and dashboards, which can be either shared with all other
+            users (Public) or restricted to your viewing only (Private)». Тобто «новий фільтр
+            завжди приватний» — не константа мови, а настройка. Яке значення стоїть від
+            початку, довідка не називає.
+          </p>
+          <p>
+            І ще одне, про що варто знати в маленькій команді: «Any filter that is shared is
+            visible to users who have the Administer Jira global permission».
+          </p>
+
+          <h3 id="filters-sub">Підписка: лист замість звички</h3>
+          <p>
+            «Subscribing to a filter provides you with a periodic notification for all work
+            items returned by the search. If you want to be notified when a particular work item
+            changes, you should watch the work item instead». Шлях: відкрити фільтр →
+            <code>Details</code> → <code>New subscriptions</code> → розклад і отримувач →
+            <code>Subscribe</code>. У лист потрапляє лише перша частина результатів — число з
+            датою перевірки шукай у довіднику «Карта інтерфейсу, глосарій і ліміти Free».
+          </p>
+          <p>
+            Якщо готових розкладів не вистачає, є режим <code>Advanced</code> і рядок cron:
+            «A cron expression is a string of fields separated by spaces» у порядку
+            секунда · хвилина · година · день місяця · місяць · день тижня · рік (останній
+            необов'язковий). Приклад із довідки — <code>0 15 8 ? JAN MON 2014</code>, тобто
+            8:15 щопонеділка в січні 2014 року; знак питання означає «без конкретного
+            значення».
+          </p>
+
+          <h3 id="filters-view">Другий вид фільтра: фільтр вигляду</h3>
+          <p>
+            У ділових спейсах є ще одна річ із тим самим словом у назві, і плутанина між ними
+            коштує часу. Фільтр вигляду зберігає не запит, а набір позначених полів над дошкою,
+            списком, календарем чи таймлайном: <code>Filter</code> → позначити потрібне →
+            <code>Save filter</code>.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: два види фільтра в Jira">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Ознака</th>
+                <th>Збережений запит (урок 7)</th>
+                <th>Фільтр вигляду (ділові спейси)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>межі</td>
+                <td>Дивиться в усі спейси, де є доступ.</td>
+                <td>«Your saved filters are specific to the space you create them in».</td>
+              </tr>
+              <tr>
+                <td>скільки одразу</td>
+                <td>Скільки завгодно, кожен окремою сторінкою.</td>
+                <td>«you can only apply one at a time».</td>
+              </tr>
+              <tr>
+                <td>що правиться</td>
+                <td>Запит, назва, опис, доступ, підписки.</td>
+                <td>«Currently, you can only edit the name of your saved filter».</td>
+              </tr>
+              <tr>
+                <td>гаджет на дашборді</td>
+                <td>Годиться.</td>
+                <td>Не годиться — гаджет читає збережений запит.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            «Save your filters in business spaces» (банер «This page is for business spaces») і
+            «Manage filters», звірено 2026-09-27; останній рядок — налаштування гаджета,
+            знятого наживо 24 вересня 2026 року (див. нижче).
+          </p>
+        </section>
+
+        <section id="where">
+          <h2>Де живе запит, крім поля пошуку</h2>
+          <p>
+            Той самий рядок JQL працює ще у восьми місцях. Це і є причина, чому мову запитів
+            варто вивчити один раз.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: де ще живе запит JQL">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Місце</th>
+                <th>Як туди попадає запит</th>
+                <th>Де про це в курсі</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>адреса сторінки</td>
+                <td>Запит лежить в адресі після <code>?jql=</code> — щоб передати колезі результат, досить скопіювати адресу.</td>
+                <td><a href="modules/jira-07.html#l2">урок 7</a></td>
+              </tr>
+              <tr>
+                <td>гаджет дашборда</td>
+                <td>Через збережений фільтр. Гаджет <code>Filter Results</code> має поле <code>Saved Filter*</code>; назва спейсу або ключ у ньому дають «No Matches».</td>
+                <td><a href="modules/jira-08.html">урок 8</a></td>
+              </tr>
+              <tr>
+                <td>фільтр дошки</td>
+                <td>У company-managed спейсах дошку будують на запиті: «you can create a board using filters based on a JQL query».</td>
+                <td><a href="modules/jira-09.html">урок 9</a></td>
+              </tr>
+              <tr>
+                <td>тригер за розкладом</td>
+                <td>Поле JQL усередині тригера <code>Scheduled</code>: «You can also choose to enter a JQL query. If you do, actions in this flow will execute on the work items included in the query».</td>
+                <td><a href="modules/jira-14.html">урок 14</a></td>
+              </tr>
+              <tr>
+                <td>умова <code>JQL</code></td>
+                <td>«Checks to see if an issue matches a specified JQL query». Кнопка <code>Validate query</code> перевіряє запит твоїми правами, а flow працює правами свого виконавця.</td>
+                <td><a href="modules/jira-15.html">урок 15</a></td>
+              </tr>
+              <tr>
+                <td>дія <code>Lookup work items</code></td>
+                <td>«Search for up to 100 work items using a JQL query» — результат стає списком для інших кроків.</td>
+                <td><a href="modules/jira-15.html">урок 15</a></td>
+              </tr>
+              <tr>
+                <td>черги й SLA</td>
+                <td>Черга службового спейсу — це запит; у самій цілі SLA є поле <code>Work items (JQL)</code>.</td>
+                <td><a href="modules/jira-19.html">урок 19</a></td>
+              </tr>
+              <tr>
+                <td>сервер MCP</td>
+                <td>Інструмент <code>searchJiraIssuesUsingJql</code> — «Search Jira work items using JQL»; поруч <code>listJiraFilters</code> — «Search saved filters visible to the current user, returning IDs and JQL».</td>
+                <td><a href="modules/jira-22.html">урок 22</a></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            Джерела рядків: «What is advanced search in Jira Cloud?» і живий екран 2026-09-17
+            (адреса); налаштування гаджета <code>Filter Results</code>, зняте наживо 2026-09-24;
+            «What are board filters?»; сторінки довідки про тригери, умови й дії автоматизації;
+            «JQL fields» (розділи Request type і SLA); сторінка «Supported tools» сервера MCP —
+            усе звірено 2026-09-27.
+          </p>
+          <p>
+            Повний перелік тригерів, умов, дій і розумних значень — у довіднику
+            <a href="jira-ref-automation.html">«Автоматизація: тригери, дії, smart values»</a>.
+            Тут названі лише три місця, де всередині flow стоїть саме запит JQL.
+          </p>
+
+          <h3 id="askai">Ask AI: запит людською мовою</h3>
+          <p>
+            Поруч із перемикачем <code>Basic</code> / <code>JQL</code> живе кнопка
+            <code>Ask AI</code>. Довідка описує її так: «Rovo in Jira can translate what you type
+            into a Jira Query Language (JQL) code which quickly searches for the work items
+            you're looking for». Набираєш питання словами, тиснеш <code>Go</code> — і отримуєш
+            готовий фільтр; там само сказано, що для складного запиту Rovo сам перемикається в
+            режим JQL.
+          </p>
+          <p>
+            Та сама сторінка каже, що AI «is available and automatically activated for all apps
+            on Standard, Premium, and Enterprise plans», і про безкоштовний план мовчить. Наживо
+            24 вересня 2026 року на навчальному сайті курсу (безкоштовний план) кнопка
+            працювала: запит українською «роботи в статусі В работе» вона перетворила на фільтр
+            <code>statusCategory = "In Progress"</code> і показала рядок «Uses AI. Verify
+            results.» Перевіряти результат усе одно доводиться самому — і саме тому корисно
+            вміти прочитати те, що вона склала.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="renames">
+          <h2>Що змінилось у назвах</h2>
+          <p>
+            Jira перейменовує поняття в інтерфейсі швидше, ніж у мові запитів і в статтях
+            довідки. Нижче — усі розбіжності, на які натрапляєш, читаючи запити.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: розбіжності назв між екраном, довідкою і мовою запитів">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>У запиті</th>
+                <th>На екрані</th>
+                <th>У довідці</th>
+                <th>Що з цим робити</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>project</code></td>
+                <td>space (спейс)</td>
+                <td>подекуди вже <code>space</code>, у графі Syntax — зіпсоване <code>spaceJira</code></td>
+                <td>Писати <code>project</code>: він працював на живому екрані 2026-09-17 і стоїть у прикладах сторінки про запити для SLA.</td>
+              </tr>
+              <tr>
+                <td><code>summary</code></td>
+                <td><code>Summary</code></td>
+                <td>подекуди <code>Title</code></td>
+                <td>У запиті — <code>summary</code>. Обидва слова означають те саме поле.</td>
+              </tr>
+              <tr>
+                <td><code>key</code></td>
+                <td>ключ роботи</td>
+                <td>на сторінці полів — <code>workItemKey</code>, у прикладах сторінки операторів — <code>issueKey</code></td>
+                <td>Обидва написання живі в довідці 2026-09-27. Псевдонім <code>key</code> перейменування не зачепило.</td>
+              </tr>
+              <tr>
+                <td><code>due</code></td>
+                <td><code>Due date</code></td>
+                <td>на сторінці полів — <code>due</code> і <code>dueDate</code>, у прикладах ключових слів і операторів — <code>duedate</code></td>
+                <td>Працюють обидва; у запитах курсу стоїть коротке <code>due</code>.</td>
+              </tr>
+              <tr>
+                <td>—</td>
+                <td><code>Save filter</code></td>
+                <td><code>Save as</code></td>
+                <td>Кнопка збереження запиту. Кнопку перемалювали, статтю ні — шукай на екрані обидва написи.</td>
+              </tr>
+              <tr>
+                <td>—</td>
+                <td><code>flow</code></td>
+                <td>подекуди <code>rule</code>, <code>component</code></td>
+                <td>Це те саме правило автоматизації. Деталі — довідник <a href="jira-ref-automation.html">«Автоматизація…»</a>.</td>
+              </tr>
+              <tr>
+                <td>—</td>
+                <td>work item</td>
+                <td>work item</td>
+                <td>Старе слово <code>issue</code> лишилось в іменах інструментів MCP (<code>searchJiraIssuesUsingJql</code>), у розумних значеннях автоматизації й в адресах сторінок.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            Сторінки «JQL fields», «JQL operators», «JQL keywords», «Write JQL queries for SLAs»,
+            «Manage filters», «Supported tools» — звірено 2026-09-27; екранні написи —
+            навчальний сайт курсу, 2026-09-17 і 2026-09-24.
+          </p>
+          <div class="ds-note">
+            <span class="ds-note__glyph" aria-hidden="true">i</span>
+            <p class="ds-note__title">Правило, яке працює для будь-якого нового імені</p>
+            <p>
+              Попередження Atlassian на сторінках про JQL дає готовий порядок дій: «some JQL
+              entries using the new terms may not work yet. If you come across this, try using
+              the old term instead». Тобто <strong>не спрацювало нове ім'я — підстав старе
+              слово</strong>: <code>issue</code> замість work item, <code>project</code> замість
+              space. Наявні запити при цьому не ламаються: «There are no changes to existing JQL
+              queries».
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <section id="sources">
+          <h2>Джерела й дати</h2>
+          <p>
+            Ця сторінка зібрана з трьох родин джерел. Розбіжності між ними не сховані — вони
+            названі в самому тексті, бо саме в них найчастіше ховається втрачена година.
+          </p>
+          <ol>
+            <li>
+              <strong>Живі сторінки довідки Atlassian, прочитані 27 вересня 2026 року:</strong>
+              «JQL fields», «JQL operators», «JQL keywords», «JQL functions»,
+              «What is advanced search in Jira Cloud?»,
+              «Search for work items using the text field», «JQL optimization recommendations»,
+              «What is a saved search?», «Manage filters», «Save your search as a filter»,
+              «Save your filters in business spaces», «What are board filters?»,
+              «Search and find your work items», «Use Rovo to search for work items»
+              (усі — <code>support.atlassian.com/jira-software-cloud/docs/</code>);
+              «Configure the user default settings»
+              (<code>…/jira-cloud-administration/docs/</code>);
+              «Write JQL queries for SLAs»
+              (<code>…/jira-service-management-cloud/docs/</code>); сторінки про тригери, умови
+              й дії автоматизації (<code>…/cloud-automation/docs/</code>); «Supported tools»
+              сервера MCP (<code>…/atlassian-ai-gateway/docs/</code>).
+            </li>
+            <li>
+              <strong>Дві статті бази знань</strong> із позначкою «Platform Notice: Cloud Only»:
+              про <code>statusCategory</code> і <code>statusCategoryChangedDate</code>
+              (оновлена 25 вересня 2025 року) і про поле Resolution у team-managed спейсах
+              (оновлена 26 вересня 2025 року). Обидві потрібні тому, що
+              <code>statusCategory</code> на сторінці полів не описаний узагалі.
+            </li>
+            <li>
+              <strong>Живий екран навчального сайту курсу</strong> (Jira Cloud, безкоштовний
+              план): 17 вересня 2026 року — сторінка <code>All work</code>, перемикач
+              <code>Basic</code> / <code>JQL</code>, текст помилки про значення
+              <code>Done</code>; 24 вересня 2026 року — кирилична мітка в запиті, поведінка
+              голого <code>!=</code>, текст помилки про пропущене значення, панель
+              <code>Fix error</code>, кнопка <code>Ask AI</code> і налаштування гаджета
+              <code>Filter Results</code>.
+            </li>
+          </ol>
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__glyph" aria-hidden="true">i</span>
+            <p class="ds-note__title">Чесна межа цієї сторінки</p>
+            <p>
+              Живим екраном у полі пошуку набирались <code>project</code>, <code>status</code>,
+              <code>statusCategory</code>, <code>labels</code>, <code>created</code>,
+              <code>ORDER BY</code>, <code>IS EMPTY</code> і <code>OR</code>. Решта імен полів,
+              операторів і функцій узята з довідки Atlassian і <strong>живою Jira не
+              перевірялась</strong> — окремо це позначено там, де ризик найбільший: нові імена
+              зі словами <code>space</code>, <code>workItem</code> і <code>workType</code>,
+              поля службового спейсу й кириличні назви власних полів.
+            </p>
+            <p>
+              Якщо довідник розійшовся з тим, що показує твоя Jira, вір своєму екрану: набери
+              запит у поле пошуку, подивись на текст помилки — і, якщо в імені є нове слово,
+              спробуй старе. Дати біля таблиць стоять саме для цього.
+            </p>
+          </div>
+          <p>
+            Ця сторінка не входить у сертифікат і не має квіза.
+            <a href="jira.html#refs">Решта полиці довідників</a> ·
+            <a href="jira.html#map">Програма курсу</a> ·
+            <a href="modules/jira-07.html">Урок 7, з якого росте вся ця мова</a>
+          </p>
+        </section>
+
+      </article>
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Прогрес і конфіг потрібні лише шапці й футеру: у довідника немає ні модуля,
+       ні квіза, тому js/module.js і js/quiz.js тут свідомо не підключені.
+       js/ui.js потрібен кнопкам «Копіювати» біля запитів. -->
+  <script src="js/motion.js"></script>
+  <script src="js/progress.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth-ui.js"></script>
+  <script type="module" src="js/auth.js"></script>
+</body>
+
+</html>
