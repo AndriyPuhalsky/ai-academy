@@ -42,6 +42,18 @@ metadata:
   того, щоб позначити перелік у j14 як дефект, — його дослівно підтвердила **друга** сторінка.
   Індекс живих слагів: `curl -sL https://support.atlassian.com/cloud-automation/resources/ |
   grep -o 'href="/cloud-automation/docs/[a-z0-9-]*/"'` → 136 адрес; індексні `…/docs/` — 404.
+- **⚠ `docs-text.py` (текст `<main>`) ГУБИТЬ частину статті — і дає хибний «MISS» на живій
+  цитаті.** Сторінки Atlassian носять тіло статті ще й у JSON-блобі всередині `<script>`, а
+  `<main>` буває неповний: `what-are-smart-values.txt` вийшов 5,4 КБ і **не містив** ні
+  `camelCase`, ні цитати «Field names aren't case sensitive», яка на живій сторінці є. Для звірки
+  цитат корпус будувати **із сирого HTML, не вирізаючи `<script>`** (`re.sub(r'<[^>]+>', sep, raw)`
+  у двох варіантах — теги→нічого й теги→пробіл), і нормалізувати `\\u003c`/`\\/`. Інакше рецензент
+  «знаходить» непідтверджену цитату там, де все гаразд.
+- **Сторінка `smart-values-in-jira-automation` — окреме джерело, якого немає в переліках слагів
+  розділу.** Саме там живуть «Field names aren't case sensitive **and are translated using your
+  flow actor's language setting**» (друга половина важлива для українського сайту),
+  `More actions → Check for errors` і `Save and enable`. Якщо цитата про розумні значення не
+  знайшлась на `what-are-smart-values`, шукати тут.
 - **`jql-fields`: цитата про лапки** в сирому HTML — `Be sure to use quote-marks (")`, а після
   зняття тегів виглядає як `quote-marks ( " )`. Не «виправляти» правильну цитату за очищеним
   текстом: звіряти по сирому HTML, коли всередині цитати є `<tt>`/`<code>`.
