@@ -476,3 +476,15 @@ j22 — 1 (живий прогін MCP). **Усі вже в списку доз�
    правку рецензента.
 5. **Жодного уроку не відкривав на запис.** `git` виконував лише на читання
    (`git log`, `git show --stat`, `git log -1 --format=%B`).
+
+---
+
+## 10. Довідники — хвиля 1 (2026-09-27; `reports/ref-automation-review.md` §7)
+
+| довідник | місце | твердження | закривається |
+| --- | --- | --- | --- |
+| ref-automation | `#where`, абзац про вкладки | «Обидва екрани мають однакові чотири вкладки: `Flows` · `Audit log` · `Templates` · `Usage`» — для спейсу доведено (`screens/13`, `26`), для **глобального** (`screens/14`) лише `Templates`/`Usage` | 🟡 sandbox: глобальний екран автоматизації, рядок вкладок |
+| ref-automation | `#where`, `Create with Rovo` | «Витрачає кредити Rovo — окрему валюту, а не кроки автоматизації» — цитата `how-is-my-usage-calculated` про кроки flow під час запуску, не про конструктор | 🟡 жива довідка про Rovo або перенести речення до дії `Use Rovo agent` |
+| ref-automation | `#limits`, «елементів на гілку · 150» | рядок доксів перелічує лише «For each page» / «For each task» / «For each related entities (CQL)» — гілка `Related work items` не названа | 🟡 жива довідка / sandbox |
+| ref-automation | `#sv-dates`, ⚠-плашка | ~~«з 2022 року зветься `Europe/Kyiv`»~~ | ✅ закрито кореневою сесією 2026-09-27: «з 2022 року» знято (рік поза трьома джерелами) |
+| ref-automation → j14 | урок, блоки 3 і 8 | «Він завжди рівно один і завжди перший» (тригер) — у доксах лише «Every flow starts with a trigger»; документований шлях — `Multiple work item events` | ⚪ рішення власника (урок) |

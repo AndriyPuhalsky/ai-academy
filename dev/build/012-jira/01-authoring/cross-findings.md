@@ -586,3 +586,42 @@
   збережений фільтр; хрестик біля мітки; `Backup manager` на Free). Пом'якшення було правильним кроком
   (джерела не було), але `⚠`/хедж без запису в список sandbox не повернувся б ніколи.
 - **Кирилична мітка:** пастка уроку 7 наживо — голе `labels != "архів"` повернуло 0 із 3 робіт.
+
+## Довідники, хвиля 1 — автоматизація (2026-09-27; повні звіти — `reports/ref-automation.md` §8, `ref-automation-review.md` §7)
+
+- **Пари «екран / довідка» перевіряти в обидва боки; розділ сторінки ≠ сторінка.** Автор написав «`Save and enable` на
+  екрані, а в довідці `Turn on flow`» — рецензент знайшов на одній сторінці `create-and-edit-jira-automation-rules` усі три
+  підписи (`Turn on flow` — з нуля, `Turn it on` — з шаблону, `Save and enable` — з Rovo). Виправлено.
+- **`docs-text.py` (текст `<main>`) губить частину статей Atlassian** і дає хибний MISS на живій цитаті — корпус звірки
+  будувати з сирого HTML. Сторінка `smart-values-in-jira-automation` — окреме джерело, якого немає в переліках слагів.
+- **Запис хвилі 3 «докси автоматизації вже всюди кажуть flow/step» на 2026-09-27 неточний** — `jira-automation-branches`
+  і `jira-automation-conditions` досі пишуть «issue»/«project»; в адресах сторінок `rule` лишився майже всюди.
+- **→ j14:** урок каже про тригер «завжди рівно один» — джерела немає (реєстр §10, рішення власника). Назва умови flow 1 —
+  `Work item fields condition` (екран; у довідці `Issue fields condition`) — довідник вирівняно з уроком.
+- **→ j15 (новий факт, потрібен автор):** «To validate your input, go to More actions (), then select **Check for errors**.
+  Once your field is validated, select Save and enable» (`what-are-smart-values`, `smart-values-in-jira-automation`,
+  2026-09-27) — відповідь на симптом «замість значення порожнє місце»; у j14/j15 0 входжень. Також: `{{lookupIssues}}` має
+  13 документованих частин (урок називає шість); дія `Delay` пояснює довгий `Total time`.
+- **→ j19:** `SLA threshold breached` дозволяє обрати і SLA, і час **до** межі · `Add service space customer` — «up to 15
+  seconds», довідка радить `Delay` перед нею.
+- **→ j20:** дві галочки в `Global configuration` (`Allow space administrators to manage space flows`, `Allow non-admins to
+  create recurring flows`) · перенесення flows — глобальний адмін, приходять вимкненими, однойменні — `Copy of [flowname]`.
+- **→ ref-jql:** JQL у flow виконується правами `Actor` · `Validate query` безсила зі smart values · три місця JQL у flow
+  (`Scheduled` — дії для кожної роботи; умова `JQL`; `Lookup work items` — перші 100) · «субота — останній день тижня» —
+  цитата в j15 · повне речення про `resolution` у службових team-managed (`jql-fields`) · `{{now}}` — UTC+00:00.
+- **→ ref-map (числа, в автоматизації їх немає):** кроки на місяць по планах і продуктах (Jira Free 150 per subscription;
+  Standard 400/user; Premium 750/user; Enterprise 1000/user; Confluence 50/100/250/500; JSM 1250/3000/6500/9500; JPD
+  100/300/500/750; Teamwork 200/2500/5000/7500), пул на рівні організації, $0.50 за 1 000 кроків з 2026-12-03, сповіщення
+  80 % і 100 % · `Send email` «100 emails in a 24-hour period… only applies to the Free plan» · одночасні flows Free 5 /
+  Standard 10 / Premium 20 / Enterprise 30 (+ «only the highest limit will count») · Rovo Agent у flows 500 requests/min
+  (soft) · Confluence AI 1 000 uses / 12 h · `Steps per flow group` 65 (сенс лише на Premium/Enterprise) · шлях витрат:
+  Atlassian Administration → `Insights` → `Platform usage` · глосарій: «агент» у трьох сенсах (агент JSM, Rovo-агент,
+  `Automation for Jira` як actor) · advanced steps — лише Premium/Enterprise. Усе — `automation-service-limits`,
+  `how-is-my-usage-calculated`, 2026-09-27; перед картою перезвірити.
+- **→ білду/дизайну:** `.ds-tbl--wrap` на 14 із 31 таблиці (перша сторінка курсу з масовим wrap); **дві таблиці без wrap мають
+  у першій колонці ідентифікатори 53 і 39 знаків** — конструкція дефекту 2026-09-09, заміряти на 390 px разом зі «зведеним
+  переліком правил переходу» (перша колонка до 105 знаків); тришаровий `term` (тіло листа) — пастка «Копіювати» через `\n`,
+  як у j15; `jira.html`, `jira.html#refs`, `#map` → 404 до лендінга; чотири згадки карти назвою → посилання, коли зʼявиться
+  `jira-ref-map.html`.
+- **Контракт (пропозиція автора):** §10 «Скелет довідника» (як §3 «Скелет іспиту») і скрипт `check-refs.py` (парсер, `id`,
+  якорі, класи, альфа, звороти, регулярки чисел) — механіку двічі перевіряли вручну.
