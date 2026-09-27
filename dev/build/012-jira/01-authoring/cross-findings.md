@@ -625,3 +625,40 @@
   `jira-ref-map.html`.
 - **Контракт (пропозиція автора):** §10 «Скелет довідника» (як §3 «Скелет іспиту») і скрипт `check-refs.py` (парсер, `id`,
   якорі, класи, альфа, звороти, регулярки чисел) — механіку двічі перевіряли вручну.
+
+## Довідники, хвиля 1 — JQL (2026-09-27; повні звіти — `reports/ref-jql.md` §5–§7, `ref-jql-review.md` §7)
+
+- **⛔ Метод: `re.sub(r'<[^>]+>', '', html)` на сторінках Atlassian зʼїдає переліки операторів** — у тексті живуть літерні
+  `<`/`>` («`>` , `>=` , `<` , `<=`», `due < now()`), регулярка бере від першого `<` до наступного `>` і дає хибний MISS
+  (`updated <= "-4w 2d"`, `"Time to First Response" < remaining("2h")`, `~` для `workItemKey` — усі в доксах є). Правильно:
+  `re.sub(r'</?[a-zA-Z!][^<>]*?>', '', html)`, `html.unescape` ПІСЛЯ зняття тегів. Той самий клас, що `docs-text.py`/`<main>`.
+- **Твердження про самі докси знову найдорожчі:** «у довідці подекуди вже `Title`» — на пʼяти сторінках JQL `Title` як імені
+  поля немає (13–14 збігів — службова розмітка); справжній дім — «Create a work item and a subtask»: «This field was previously
+  labelled Summary. JQL queries, API calls, and automations that reference summary still work as before» (2026-09-27) ·
+  банер «We're updating terminology…» стоїть на **пʼятьох** сторінках JQL (`fields`, `operators`, `keywords`, `functions`,
+  `optimization-recommendations`) + `search-and-find-your-issues` · регістр назви годинника SLA різниться **всередині
+  `jql-fields`** (Syntax — з малих, приклади — з великих), JSM — лише з малих · `elapsed()` на `jql-functions` — 0 збігів.
+- **`startOfWeek()` — замовчування тепер умовне:** «By default, this function considers Sunday to be the first day of the
+  week when ISO8601 for the Date Picker is disabled in Look and feel settings». Урок 7 категоричного твердження не має.
+- **Старі імена живі в прикладах самої довідки** (`issueKey`, `duedate`) при нових `workItemKey`, `due`/`dueDate` на сторінці
+  полів; `jql-keywords` переписана під `space` цілком; `Syntax: spaceJira` на `jql-fields` — живий і сьогодні.
+- **→ j07 (закрито кореневою сесією 2026-09-27):** цитата про `endOfWeek()` була обрізана перед «By default,» — вирівняно з
+  живими доксами й уроком 15. **→ j07 (рішення власника):** «вичерпних таблиць» у вступі — реєстр §10.
+- **→ j19:** графа Syntax поля SLA має третє імʼя `<your custom SLA name>` — пара «своя ціль SLA → своє поле в JQL» у курсі
+  не сказана · `remaining()`: «Positive values… Negative values…» і «To exclude breached items… use >= remaining("0h")».
+- **→ j11:** пошук власного поля за номером варіанта документований — запасний шлях для кириличних значень.
+- **→ j23:** не питати про `spaceType`, `parentSpace`, `type`/`issuetype`, `textfields`, `statusCategoryChangedDate` і поля
+  службового спейсу — у довіднику вони під ⚠.
+- **→ ref-map:** пара `Summary` (екран) / `Title` (стаття) / `summary` (JQL) з цитатою вище · три «категорії» для глосарія
+  (категорія етапу / категорія спейсу / поле `Category` ділового спейсу) · числа: 200 у листі підписки, експорт, 60 днів
+  кошика, 5 000 на дошці.
+- **Sandbox (лише запити в `All work`, без запису):** `type = Task` + `type IN standardWorkTypes()` · `spaceType = "business"` +
+  `parentSpace = "REM"` · `key` / `workItemKey` / `issueKey = KAN-1` · `textfields` · `statusCategoryChangedDate` · 
+  `linkedWorkItems()` / `watchedWorkItems()` · кирилична назва власного поля · як у запиті зветься `Category` ділового спейсу
+  · `priority > Medium` · після JSM: `"Request Type"`, обидва годинники SLA (**точний регістр на екрані**), `approval`/`approvals`.
+- **→ білду:** `href` на обидва довідники поставлено в j23 блок 8 (кореневою сесією); карта — назвою до появи файлу; у j07, j10,
+  j14, j15 довідники названі текстом (рішення «називати назвою») — посилання поставити на білді разом із картою · нові
+  `<url>` у `sitemap.xml` (`/jira-ref-jql`, `/jira-ref-automation`) — на релізі · заміряти на 390/1280 чотириколонкові
+  таблиці JQL («Щоденні поля», «17 операторів», «Часті помилки», «Що змінилось») · живий клік «Копіювати» (26 блоків).
+- **Контракт (обидва автори незалежно):** §10 «Скелет довідника» + `check-refs.py` + одна конвенція підпису джерела під
+  таблицею (автор JQL узяв `p.ds-small`, 29 разів).
