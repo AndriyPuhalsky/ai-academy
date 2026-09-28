@@ -656,6 +656,18 @@
   `parentSpace = "REM"` · `key` / `workItemKey` / `issueKey = KAN-1` · `textfields` · `statusCategoryChangedDate` · 
   `linkedWorkItems()` / `watchedWorkItems()` · кирилична назва власного поля · як у запиті зветься `Category` ділового спейсу
   · `priority > Medium` · після JSM: `"Request Type"`, обидва годинники SLA (**точний регістр на екрані**), `approval`/`approvals`.
+- **2026-09-28 — прогнано через MCP (`searchJiraIssuesUsingJql`, лише читання; повна таблиця — `open-claims.md` §10.1):**
+  🔴 **три нові імена з доксів жива Jira НЕ приймає:** `space` («Field 'space' does not exist…»), `parentSpace` (працює
+  `parentProject`) і `linkedWorkItems()` («Unable to find JQL function» з будь-яким аргументом; працює `linkedIssues()`) —
+  правило банера «try using the old term instead» підтвердилось буквально, а довідник мав у таблицях дві неробочі назви.
+  Прийняті: `spaceType` (+`projectType`), `type`/`issuetype`/`workType`, `standardWorkTypes()`, `subtaskWorkTypes()`,
+  `key`/`workItemKey`/`issueKey`, `watchedWorkItems()`, `votedWorkItems()`, `workItemHistory()` (і всі старі `…Issues()`),
+  `workItemLink` (+`["blocks"]`), `textfields`, `statusCategoryChangedDate` з лапками й без, `hierarchyLevel`.
+  Лишились: `priority` (на KAN пріоритети порожні — потрібен запис), JSM, власне поле, `Category` ділового.
+  **Метод на майбутнє:** будь-яке нове ім'я з доксів перевіряти запитом до того, як воно піде в таблицю; негативний контроль
+  (`fooBarField`) обовʼязковий — інакше «0 результатів» не відрізнити від «запит проковтнули».
+  **→ j23:** обмеження «не питати про `spaceType`, `type`/`issuetype`, `textfields`, `statusCategoryChangedDate`» знято
+  (звірені); `parentSpace` — у курсі не вживати взагалі.
 - **→ білду:** `href` на обидва довідники поставлено в j23 блок 8 (кореневою сесією); карта — назвою до появи файлу; у j07, j10,
   j14, j15 довідники названі текстом (рішення «називати назвою») — посилання поставити на білді разом із картою · нові
   `<url>` у `sitemap.xml` (`/jira-ref-jql`, `/jira-ref-automation`) — на релізі · заміряти на 390/1280 чотириколонкові

@@ -494,3 +494,25 @@ j22 — 1 (живий прогін MCP). **Усі вже в списку доз�
 | ref-jql | `#ops`, `NOT IN` | ~~`assignee NOT IN (Jack, Jill)` — не дослівно~~ | ✅ закрито кореневою сесією 2026-09-27: дослівний приклад довідки `assignee not in (Jack,Jill,John)` |
 | ref-jql | `#limits`, останній рядок | «дія `Lookup work items` — перша сотня» стоїть у «межах самої мови», хоча це межа дії автоматизації; ліміт листа підписки (200, та сама природа) відданий карті | ⚪ **рішення власника:** обидві межі в `#limits` чи обидві в карті |
 | ref-jql → j07 | урок, вступ `jira-07.html:120` | «вичерпних таблиць усіх полів, операторів і функцій» — довідник дає відбір ~41 поля з ~55 (плашка «Чого тут немає» пояснює відбір) | ⚪ **рішення власника:** лишити як є чи зняти слово «вичерпних» в уроці |
+
+### 10.1 Стан на 2026-09-28 — ⚠ довідника JQL, прогнані запитами через MCP
+
+Метод: `searchJiraIssuesUsingJql` сервера `atlassian` (`mcp.atlassian.com/v2/mcp`) на sandbox, лише читання, спейс `KAN`
+(3 роботи: `KAN-1`, `KAN-2` — Task, `KAN-3` — Subtask). Це відповідь самої Jira на запит, але **не поле `All work`** —
+підказок поля пошуку не бачили. Негативний контроль: `fooBarField = 1` → «Field 'fooBarField' does not exist…»,
+`key IN fooBarItems()` → «Unable to find JQL function 'fooBarItems()'» — тобто MCP хибний запит не ковтає.
+
+| # з `reports/ref-jql.md` §5 | запит | результат | що зроблено в довіднику |
+| --- | --- | --- | --- |
+| 1 | `spaceType = "business"` / `"software"`; `projectType = "software"` | ✅ приймає: 0 / 3 / 3 | плашка `#f-space` → «звірено», ⚠ у запиті 24 знято |
+| 2 | `parentSpace = "KAN"` | ❌ «Field 'parentSpace' does not exist or you do not have permission to view it»; `parentProject = "KAN"` → 0 без помилки | рядок таблиці → `parentProject`, рядок у `#renames` |
+| 3 | `type = Task`, `issuetype = Task`, `type IN standardWorkTypes()`, `workType in subtaskWorkTypes()`, `project = KAN AND workType = Task` | ✅ усі (2 / 2 / 2 / 1 / 2) | ⚠ у запиті 17 знято, підпис `#fn-lists` |
+| 4 | `key = KAN-1`, `workItemKey = KAN-1`, `issueKey = KAN-1` | ✅ усі три → `KAN-1` | рядок `key` у `#renames` |
+| 5 | `watchedWorkItems()`, `votedWorkItems()`, `workItemHistory()`; `linkedWorkItems(KAN-1)` / `("KAN-1")` / `()` | ✅ перші три; ❌ `linkedWorkItems` — «Unable to find JQL function» з будь-яким аргументом; `linkedIssues(KAN-1)` → 0 без помилки; старі `watchedIssues()`, `votedIssues()`, `issueHistory()`, `standardIssueTypes()` теж приймає | рядок функції → `linkedIssues()`, рядок у `#renames`, підпис `#fn-lists` |
+| 6 | `textfields ~ "Task"` | ✅ 2 | лише «Чесна межа» |
+| 7 | `statusCategoryChangedDate <= -7d` і `<= "-7d"` | ✅ обидва | підпис під таблицею дат |
+| 12 | `hierarchyLevel = "0"` | ✅ 2 (Task без Subtask — рівень збігся з описом) | лише «Чесна межа» |
+| — | `workItemLink = KAN-1`, `workItemLink["blocks"] = KAN-1`, `issueLink = KAN-1` | ✅ усі (0 без помилки) | — |
+| — | `space = KAN` | ❌ «Field 'space' does not exist or you do not have permission to view it» | рядок `project` у `#renames` |
+| рядок `priority` вище | `priority > Medium`, `< High`, `> High`, `= Medium` | усі 0: **усі три роботи KAN без пріоритету** (`priority IS EMPTY` → 3) — порядок не перевіряється | лишається 🟡: потрібен запис (пріоритети на 2–3 роботах) |
+| 8, 9, 10, 11 | `approval`, поля JSM, кирилична назва власного поля, `Category` ділового | не перевірялось | лишається: JSM / власне поле / діловий спейс |
