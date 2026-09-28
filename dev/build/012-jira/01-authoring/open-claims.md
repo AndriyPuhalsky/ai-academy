@@ -488,7 +488,7 @@ j22 — 1 (живий прогін MCP). **Усі вже в списку доз�
 | ref-automation | `#limits`, «елементів на гілку · 150» | рядок доксів перелічує лише «For each page» / «For each task» / «For each related entities (CQL)» — гілка `Related work items` не названа | 🟡 жива довідка / sandbox |
 | ref-automation | `#sv-dates`, ⚠-плашка | ~~«з 2022 року зветься `Europe/Kyiv`»~~ | ✅ закрито кореневою сесією 2026-09-27: «з 2022 року» знято (рік поза трьома джерелами) |
 | ref-automation → j14 | урок, блоки 3 і 8 | «Він завжди рівно один і завжди перший» (тригер) — у доксах лише «Every flow starts with a trigger»; документований шлях — `Multiple work item events` | ⚪ рішення власника (урок) |
-| ref-jql | `#f-core`, рядок `priority` | «порівняння йде за порядком пріоритетів, а не за абеткою» — опора лише приклад `priority > normal`; «not a numeric or alphabetic order» на `jql-fields` — про поля версій | 🟡 sandbox (`priority > Medium`) або сторінка про пріоритети |
+| ref-jql | `#f-core`, рядок `priority` | «порівняння йде за порядком пріоритетів, а не за абеткою» — опора лише приклад `priority > normal`; «not a numeric or alphabetic order» на `jql-fields` — про поля версій | ✅ закрито sandbox 2026-09-28 (§10.1, `screens/27` §8) |
 | ref-jql | `#f-text`, рядок `environment` | «у нетехнічних спейсах порожнє» — у доксах нічого | 🟡 sandbox (поля ділового спейсу) або зняти категоричність |
 | ref-jql | `#f-custom`, плашка | ~~`cf[10057] = "Бариста"` — номер вигаданий~~ | ✅ закрито кореневою сесією 2026-09-27: `cf[номер]` + приклад довідки `cf[10003]` |
 | ref-jql | `#ops`, `NOT IN` | ~~`assignee NOT IN (Jack, Jill)` — не дослівно~~ | ✅ закрито кореневою сесією 2026-09-27: дослівний приклад довідки `assignee not in (Jack,Jill,John)` |
@@ -515,4 +515,5 @@ j22 — 1 (живий прогін MCP). **Усі вже в списку доз�
 | — | `workItemLink = KAN-1`, `workItemLink["blocks"] = KAN-1`, `issueLink = KAN-1` | ✅ усі (0 без помилки) | — |
 | — | `space = KAN` | ❌ «Field 'space' does not exist or you do not have permission to view it» | рядок `project` у `#renames` |
 | рядок `priority` вище | `priority > Medium`, `< High`, `> High`, `= Medium` | усі 0: **усі три роботи KAN без пріоритету** (`priority IS EMPTY` → 3) — порядок не перевіряється | лишається 🟡: потрібен запис (пріоритети на 2–3 роботах) |
+| рядок `priority` — **2026-09-28, друга сесія** | після наповнення sandbox: `priority > Medium` / `priority < Medium` | ✅ `MARK-6`, `REM-2` (High) / `MARK-5` (Low) — порядок за рангом пріоритету; `fooBarField = 1` → помилка (`screens/27` §8) | ✅ закрито; побічно: робота, створена через MCP без пріоритету, дістає `Medium` — 🔴 для вікна j22 (`WEB-3` · `Priority: None`) |
 | 8, 9, 10, 11 | `approval`, поля JSM, кирилична назва власного поля, `Category` ділового | не перевірялось | лишається: JSM / власне поле / діловий спейс |
