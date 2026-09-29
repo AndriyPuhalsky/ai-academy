@@ -400,7 +400,7 @@
               </tr>
               <tr>
                 <td><code>type</code> / <code>workType</code></td>
-                <td>Тип роботи: Task, Subtask, Epic, Bug. Шукається за назвою або номером.</td>
+                <td>Тип роботи. Назви залежать від заготовки спейсу: у спейсі розробки — Epic, Story, Bug, Task, Subtask; у ділових — Workstream або Campaign, Task, Sub-task (<a href="#f-hier">граблі — нижче</a>). Шукається за назвою або номером.</td>
                 <td><code>=</code> <code>!=</code> <code>IN</code> <code>NOT IN</code> <code>IS</code> <code>IS NOT</code></td>
                 <td><code>type = Task</code></td>
               </tr>
@@ -705,7 +705,7 @@
               </tr>
               <tr>
                 <td><code>hierarchyLevel</code></td>
-                <td>Рівень в ієрархії числом: <code>1</code> — верхній (те, чим групують роботу), <code>0</code> — звичайні роботи, <code>-1</code> — підзадачі. Власних рівнів, зроблених у планах, це поле не бачить.</td>
+                <td>Рівень в ієрархії числом: <code>1</code> — верхній (те, чим групують роботу), <code>0</code> — звичайні роботи, <code>-1</code> — підзадачі. Назва типу на число не впливає: <code>Epic</code>, <code>Workstream</code> і <code>Campaign</code> — усі троє мають <code>1</code>. Власних рівнів, зроблених у планах, це поле не бачить.</td>
                 <td><code>=</code> <code>!=</code> <code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code> <code>IN</code> <code>NOT IN</code></td>
                 <td><code>hierarchyLevel = "0"</code></td>
               </tr>
@@ -713,6 +713,28 @@
           </table>
           </div>
           <p class="ds-small">«JQL fields», звірено 2026-09-27.</p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title"><code>Epic</code> — не універсальне слово</p>
+            <p>
+              Верхній рівень ієрархії зветься так, як його назвала заготовка, з якої зроблено
+              спейс. На навчальному сайті курсу 28 вересня 2026 року: у спейсі розробки —
+              <code>Epic</code>, у спейсі із заготовки для керування проєктом —
+              <code>Workstream</code>, у спейсі із заготовки для кампаній —
+              <code>Campaign</code>. Для запиту це три різні значення поля <code>type</code>,
+              хоча рівень у всіх однаковий. Те саме з підзадачами: у спейсі розробки тип
+              зветься <code>Subtask</code>, у ділових — <code>Sub-task</code>, і запит за
+              одним написанням другого <strong>не бачить</strong>.
+            </p>
+            <p>
+              Звідси два робочі правила. У діловому спейсі пиши
+              <code>type = Workstream</code> або <code>type = Campaign</code>. Підзадачі
+              збирай функцією — <code>workType in subtaskWorkTypes()</code>: вона ловить обидва
+              написання. Перевірено запитами на тому самому сайті 29 вересня 2026 року; що
+              буває, коли помилитись, — у таблиці <a href="#errors">«Часті помилки»</a>.
+            </p>
+          </div>
         </section>
 
         <section id="f-space">
@@ -1548,12 +1570,12 @@
               </tr>
               <tr>
                 <td><code>standardWorkTypes()</code></td>
-                <td>Усе, що не є підзадачею.</td>
+                <td>Усе, що не є підзадачею, — разом із верхнім рівнем, хоч як він зветься (<code>Epic</code>, <code>Workstream</code>, <code>Campaign</code>).</td>
                 <td><code>workType in standardWorkTypes()</code></td>
               </tr>
               <tr>
                 <td><code>subtaskWorkTypes()</code></td>
-                <td>Лише підзадачі.</td>
+                <td>Лише підзадачі — і <code>Subtask</code> спейсів розробки, і <code>Sub-task</code> ділових. Надійніше за запит із назвою типу.</td>
                 <td><code>workType in subtaskWorkTypes()</code></td>
               </tr>
               <tr>
@@ -1595,6 +1617,15 @@
             стоїть старе <code>linkedIssues()</code>. Старі імена решти функцій
             (<code>watchedIssues()</code>, <code>votedIssues()</code>, <code>issueHistory()</code>,
             <code>standardIssueTypes()</code>) сайт теж досі приймає.
+          </p>
+          <p class="ds-small">
+            29 вересня 2026 року той самий сайт показав, що саме збирають дві функції про типи:
+            <code>standardWorkTypes()</code> повертає верхній рівень ділових спейсів
+            (<code>Workstream</code>, <code>Campaign</code>) разом зі звичайними задачами, а
+            <code>subtaskWorkTypes()</code> ловить обидва написання підзадачі —
+            <code>Subtask</code> спейсу розробки й <code>Sub-task</code> ділового. Саме тому
+            підзадачі надійніше збирати функцією, а не рівністю з назвою типу
+            (<a href="#f-hier">граблі з назвами</a>).
           </p>
         </section>
 
@@ -1908,15 +1939,18 @@
           <figure class="term term--cmd" id="q16">
             <figcaption class="term__chrome">
               <span class="term__dots" aria-hidden="true"></span>
-              <span class="term__title" id="q16t">16 · усе всередині епіка «Ремонт другої точки»</span>
+              <span class="term__title" id="q16t">16 · усе всередині етапу «Ремонт другої точки»</span>
               <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
                 data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
             </figcaption>
             <pre class="term__body" tabindex="0" role="group" aria-labelledby="q16t"><span class="term__line"><span class="term__in">parent = REM-1</span></span></pre>
           </figure>
           <p>
-            Приклад довідки — <code>parent = TEST-1234</code>; тут підставлений ключ епіка
-            з <a href="modules/jira-11.html">уроку 11</a>.
+            Приклад довідки — <code>parent = TEST-1234</code>; тут підставлений ключ великої
+            справи з <a href="modules/jira-11.html">уроку 11</a>. У спейсі ремонту цей рівень
+            зветься <code>Workstream</code> — етап, — і поле <code>parent</code> працює для
+            нього так само, як для <code>Epic</code>: 29 вересня 2026 року на навчальному сайті
+            курсу запит повернув задачу <code>REM-2</code>.
           </p>
 
           <figure class="term term--cmd" id="q17">
@@ -1933,6 +1967,10 @@
             записаний через псевдонім поля — <code>workType in standardWorkTypes()</code>;
             обидва імені звертаються до одного поля. Обидва записи навчальний сайт курсу
             прийняв 2026-09-28 — <a href="#fn-lists">див. підпис під таблицею функцій</a>.
+            Етап <code>REM-1</code> у результат теж потрапляє: він не підзадача. Зворотний
+            запит — <code>project = REM AND workType in subtaskWorkTypes()</code>: у ділових
+            спейсах тільки так, бо <code>type = Subtask</code> їхніх підзадач не бачить
+            (<a href="#f-hier">граблі з назвами</a>).
           </p>
 
           <figure class="term term--cmd" id="q18">
@@ -2099,6 +2137,18 @@
                 <td>екран, 2026-09-24</td>
               </tr>
               <tr>
+                <td><code>project = REM AND type = Epic</code></td>
+                <td>Порожній список без жодної помилки</td>
+                <td>У діловій заготовці верхній рівень звуть інакше — <code>Workstream</code> або <code>Campaign</code>. Тип <code>Epic</code> на сайті існує (він є у спейсі розробки), тому запит правильний, просто нічого не знаходить.</td>
+                <td>MCP, 2026-09-29</td>
+              </tr>
+              <tr>
+                <td><code>type = Subtask</code></td>
+                <td>Підзадачі ділового спейсу в результат не потрапили</td>
+                <td><code>Subtask</code> і <code>Sub-task</code> — два різні типи. Збирай підзадачі функцією: <code>workType in subtaskWorkTypes()</code>.</td>
+                <td>MCP, 2026-09-29</td>
+              </tr>
+              <tr>
                 <td><code>summary = "круасан"</code></td>
                 <td>Помилка про оператор</td>
                 <td>«cannot be used with text fields; see the CONTAINS operator instead» — текст шукають хвилею: <code>summary ~ "круасан"</code>.</td>
@@ -2153,7 +2203,8 @@
             Рядки «екран» зняті на навчальному сайті курсу (Jira Cloud, безкоштовний план) у
             вказані дати; рядки «довідка» — сторінки «JQL operators», «JQL fields»,
             «What is advanced search in Jira Cloud?», «Search for work items using the text
-            field», звірені 2026-09-27.
+            field», звірені 2026-09-27; рядки «MCP» — відповіді того самого сайту на запити,
+            набрані через сервер MCP (<a href="modules/jira-22.html">урок 22</a>).
           </p>
 
           <h3 id="fix-error">Кнопка <code>Fix error</code></h3>
@@ -2728,7 +2779,11 @@
               <code>Fix error</code>, кнопка <code>Ask AI</code> і налаштування гаджета
               <code>Filter Results</code>; 28 вересня 2026 року — нові імена полів і функцій,
               набрані запитами через сервер MCP (<a href="modules/jira-22.html">урок 22</a>):
-              відповідь самої Jira на запит, але без поля пошуку й без його підказок.
+              відповідь самої Jira на запит, але без поля пошуку й без його підказок;
+              29 вересня 2026 року — тим самим шляхом назви типів робіт у ділових спейсах
+              (<code>Workstream</code>, <code>Campaign</code>, <code>Sub-task</code>),
+              поведінка <code>type = Epic</code> і <code>type = Subtask</code>, обидві функції
+              про типи й поле <code>parent</code>.
             </li>
           </ol>
           <div class="ds-note ds-note--accent">
@@ -2741,7 +2796,9 @@
               сервер MCP 28 вересня 2026 року перевірені всі нові імена зі словами
               <code>space</code>, <code>workItem</code> і <code>workType</code>, а також
               <code>type</code>, <code>textfields</code>, <code>statusCategoryChangedDate</code>
-              (з лапками й без) і <code>hierarchyLevel</code>. Решта імен полів, операторів і
+              (з лапками й без) і <code>hierarchyLevel</code>, а 29 вересня — назви типів робіт
+              ділових спейсів, <code>standardWorkTypes()</code>, <code>subtaskWorkTypes()</code>
+              і <code>parent</code>. Решта імен полів, операторів і
               функцій узята з довідки Atlassian і <strong>живою Jira не перевірялась</strong> —
               окремо це позначено там, де ризик найбільший: поля службового спейсу й кириличні
               назви власних полів.
