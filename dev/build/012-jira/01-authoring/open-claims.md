@@ -526,18 +526,25 @@ j22 — 1 (живий прогін MCP). **Усі вже в списку доз�
 | --- | --- | --- | --- |
 | 1 | `REM` → `•••` у шапці → `Space settings` | рейка **до кінця** з розкритими групами: чи справді немає `Features` / `Custom filters` | j06, j09 W2, j10 W1, j11, j12 крок 6, j15, j20 — наскрізний фікс |
 | 2 | `REM` → `Space settings → Details` | чи є `Space owner` і `Default assignee` | j09 W2 |
-| 3 | `REM` → `Space settings → Work types` | сама сторінка; що пропонує `Add work type`; чи можна додати рівень 1 | j09 крок 3, j11, j21 |
+| 3 | `REM` → `Space settings → Work types` | сама сторінка; що пропонує `Add work type`; чи можна додати рівень 1 — 🟡 **частково 2026-09-29 (MCP, `screens/28` §5):** типи `REM`/`HR` — Workstream · Task · Sub-task, `MARK` — Campaign · Task · Sub-task, `MY` — Task · Sub-task; Workstream/Campaign — `hierarchyLevel: 1`. Сторінка й `Add work type` — браузер | j09 крок 3, j11, j21 |
 | 4 | майстер → Project management → поле `Access` | випайка (три рівні бачені лише в Task tracking) | j09 |
 | 5 | майстер | чи завжди є друге речення тоста; чи є `Start with sample work items` у ділових | j09, j12 |
-| 6 | `MARK-1` / `REM-2` (картка) | назва секції підзадач і кнопки (`Subtasks`/`Sub-tasks`, `Add subtask`) | j05, j21 |
+| 6 | `MARK-1` / `REM-2` (картка) | назва секції підзадач і кнопки (`Subtasks`/`Sub-tasks`, `Add subtask`) — 🟡 тип `Sub-task` підтверджено MCP (`screens/28` §5); написи картки — браузер | j05, j21 |
 | 7 | `REM` → `Summary` | плитка `Types of work` з Workstream | j06 |
 | 8 | `REM` → `Timeline` | що малює для Workstream | j06, j11 |
 | 9 | `HR` → редактор workflow | `Context fields` сторінки типу повністю; `Discard/Save changes`; режим `Text` (є `Any → Hired`, якого в W2 немає); групування `Add Rule` трьома заголовками | j10 |
 | 10 | `HR` → дошка | чи показує картки типу `Workstream` (`HR-1`) | j10 W3 |
 | 11 | `REM` → `Space settings → Automation` → тестовий flow | гілка `Epic` / `Stories` від `REM-2` — чи бачить Workstream `REM-1`; гілка `Parent`; `Log action` `{{issue.epic.key}}` | j15, ref-automation |
 | 12 | бічна панель | чи є `More actions` при наведенні на спейс (довідка так пише) | j14, j15, ref-automation |
-| 13 | `WEB-3` після створення через MCP | `Assignee` / `Reporter` (🔴-6) | j22 — живий прогін |
+| 13 | `WEB-3` після створення через MCP | `Assignee` / `Reporter` (🔴-6) — ✅ **закрито 2026-09-29 прогоном j22** (`screens/28` §1–§2): `Reporter` = `Creator` = власний акаунт (`accountType: atlassian`), `Assignee` = порожньо (у W1 j22 — «Денис Романюк», правити), `Priority` = `Medium`; ключі `WEB-3…5` у порядку уроку | j22 — живий прогін |
 | 14 | `MARK` → кнопка `+` у рядку виглядів | повний список `Add to navigation` | j06 |
+
+**Стан 2026-09-29, друга сесія (`screens/28`):** браузер не підключений (`list_connected_browsers` → `[]`), тож знято лише те,
+що дає MCP: №13 закрито, №3 і №6 — частково. Поза таблицею тим самим прогоном: ⚠ №3 j22 (крос-продуктовий запит на Free) —
+`search` STANDARD працює з попередженням про неповноту, AGENTIC/ENHANCED → 403 «Agentic search is not enabled for this user or
+site.»; Confluence API → 404 «Site temporarily unavailable» (Confluence на sandbox не працює, хоч `confluence` є в продуктах);
+⚠ №4 j22 (українські запити) — три сценарії виконано без уточнень; `REM-6` (+ `REM-7`, `REM-8` типу `Sub-task`) створено, ключ
+збігся з уроком; flows j15 — браузер (у MCP операцій автоматизації немає). **Решта 11 рядків — наступна сесія з браузером.**
 
 Закрито хвилею 7 (деталі — звіти): j10:237 (підрейка типів), j10:625 (`Any` — у шаблонних статусів, не в нових), j06:569
 (вкладки ділового спейсу без `Backlog`), 🔴 `Priority: None` у `WEB-3` (§10.1), хвіст «епіка в бізнес-спейсі немає» у j21.
