@@ -517,3 +517,27 @@ j22 — 1 (живий прогін MCP). **Усі вже в списку доз�
 | рядок `priority` вище | `priority > Medium`, `< High`, `> High`, `= Medium` | усі 0: **усі три роботи KAN без пріоритету** (`priority IS EMPTY` → 3) — порядок не перевіряється | лишається 🟡: потрібен запис (пріоритети на 2–3 роботах) |
 | рядок `priority` — **2026-09-28, друга сесія** | після наповнення sandbox: `priority > Medium` / `priority < Medium` | ✅ `MARK-6`, `REM-2` (High) / `MARK-5` (Low) — порядок за рангом пріоритету; `fooBarField = 1` → помилка (`screens/27` §8) | ✅ закрито; побічно: робота, створена через MCP без пріоритету, дістає `Medium` — 🔴 для вікна j22 (`WEB-3` · `Priority: None`) |
 | 8, 9, 10, 11 | `approval`, поля JSM, кирилична назва власного поля, `Category` ділового | не перевірялось | лишається: JSM / власне поле / діловий спейс |
+
+## 11. Хвиля 7 (2026-09-29) — запити на дозйомку sandbox (браузер «Працюй тут»; звіти `reports/w7-*.md` §5)
+
+Браузер у сесії 2026-09-29 не був підключений — усе нижче лишилось під ⚠ у текстах. MCP знімає лише JQL і метадані.
+
+| # | Спейс · шлях | Що подивитись | Кому (файли) |
+| --- | --- | --- | --- |
+| 1 | `REM` → `•••` у шапці → `Space settings` | рейка **до кінця** з розкритими групами: чи справді немає `Features` / `Custom filters` | j06, j09 W2, j10 W1, j11, j12 крок 6, j15, j20 — наскрізний фікс |
+| 2 | `REM` → `Space settings → Details` | чи є `Space owner` і `Default assignee` | j09 W2 |
+| 3 | `REM` → `Space settings → Work types` | сама сторінка; що пропонує `Add work type`; чи можна додати рівень 1 | j09 крок 3, j11, j21 |
+| 4 | майстер → Project management → поле `Access` | випайка (три рівні бачені лише в Task tracking) | j09 |
+| 5 | майстер | чи завжди є друге речення тоста; чи є `Start with sample work items` у ділових | j09, j12 |
+| 6 | `MARK-1` / `REM-2` (картка) | назва секції підзадач і кнопки (`Subtasks`/`Sub-tasks`, `Add subtask`) | j05, j21 |
+| 7 | `REM` → `Summary` | плитка `Types of work` з Workstream | j06 |
+| 8 | `REM` → `Timeline` | що малює для Workstream | j06, j11 |
+| 9 | `HR` → редактор workflow | `Context fields` сторінки типу повністю; `Discard/Save changes`; режим `Text` (є `Any → Hired`, якого в W2 немає); групування `Add Rule` трьома заголовками | j10 |
+| 10 | `HR` → дошка | чи показує картки типу `Workstream` (`HR-1`) | j10 W3 |
+| 11 | `REM` → `Space settings → Automation` → тестовий flow | гілка `Epic` / `Stories` від `REM-2` — чи бачить Workstream `REM-1`; гілка `Parent`; `Log action` `{{issue.epic.key}}` | j15, ref-automation |
+| 12 | бічна панель | чи є `More actions` при наведенні на спейс (довідка так пише) | j14, j15, ref-automation |
+| 13 | `WEB-3` після створення через MCP | `Assignee` / `Reporter` (🔴-6) | j22 — живий прогін |
+| 14 | `MARK` → кнопка `+` у рядку виглядів | повний список `Add to navigation` | j06 |
+
+Закрито хвилею 7 (деталі — звіти): j10:237 (підрейка типів), j10:625 (`Any` — у шаблонних статусів, не в нових), j06:569
+(вкладки ділового спейсу без `Backlog`), 🔴 `Priority: None` у `WEB-3` (§10.1), хвіст «епіка в бізнес-спейсі немає» у j21.
