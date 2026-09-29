@@ -400,7 +400,7 @@
               </tr>
               <tr>
                 <td><code>type</code> / <code>workType</code></td>
-                <td>Тип роботи. Назви залежать від заготовки спейсу: у спейсі розробки — Epic, Story, Bug, Task, Subtask; у ділових — Workstream або Campaign, Task, Sub-task (<a href="#f-hier">граблі — нижче</a>). Шукається за назвою або номером.</td>
+                <td>Тип роботи. Назви залежать від заготовки спейсу: у спейсі розробки — Epic, Story, Bug, Task, Subtask; у ділових набір свій у кожної заготовки — Task, Sub-task і верхній рівень зі своєю назвою (Workstream, Campaign) (<a href="#f-hier">граблі — нижче</a>). Шукається за назвою або номером.</td>
                 <td><code>=</code> <code>!=</code> <code>IN</code> <code>NOT IN</code> <code>IS</code> <code>IS NOT</code></td>
                 <td><code>type = Task</code></td>
               </tr>
@@ -728,8 +728,9 @@
               одним написанням другого <strong>не бачить</strong>.
             </p>
             <p>
-              Звідси два робочі правила. У діловому спейсі пиши
-              <code>type = Workstream</code> або <code>type = Campaign</code>. Підзадачі
+              Звідси два робочі правила. У діловому спейсі пиши ту назву, яку показує
+              <code>Space settings</code> → <code>Work types</code> саме твого спейсу: у спейсах
+              «Марципану» це <code>type = Workstream</code> і <code>type = Campaign</code>. Підзадачі
               збирай функцією — <code>workType in subtaskWorkTypes()</code>: вона ловить обидва
               написання. Перевірено запитами на тому самому сайті 29 вересня 2026 року; що
               буває, коли помилитись, — у таблиці <a href="#errors">«Часті помилки»</a>.
@@ -1969,8 +1970,8 @@
             прийняв 2026-09-28 — <a href="#fn-lists">див. підпис під таблицею функцій</a>.
             Етап <code>REM-1</code> у результат теж потрапляє: він не підзадача. Зворотний
             запит — <code>project = REM AND workType in subtaskWorkTypes()</code>: у ділових
-            спейсах тільки так, бо <code>type = Subtask</code> їхніх підзадач не бачить
-            (<a href="#f-hier">граблі з назвами</a>).
+            спейсах надійна саме функція, бо <code>type = Subtask</code> їхніх підзадач не
+            бачить (<a href="#f-hier">граблі з назвами</a>).
           </p>
 
           <figure class="term term--cmd" id="q18">
@@ -2139,7 +2140,7 @@
               <tr>
                 <td><code>project = REM AND type = Epic</code></td>
                 <td>Порожній список без жодної помилки</td>
-                <td>У діловій заготовці верхній рівень звуть інакше — <code>Workstream</code> або <code>Campaign</code>. Тип <code>Epic</code> на сайті існує (він є у спейсі розробки), тому запит правильний, просто нічого не знаходить.</td>
+                <td>У діловій заготовці верхній рівень звуть інакше — <code>Workstream</code> або <code>Campaign</code>. Тип <code>Epic</code> на сайті існує (він є у спейсі розробки), тому запит правильний — він лише нічого не знаходить.</td>
                 <td>MCP, 2026-09-29</td>
               </tr>
               <tr>
@@ -2329,19 +2330,19 @@
                 <td>50 останніх відкритих робіт</td>
                 <td>«workItemHistory() returns up to 50 work items»</td>
               </tr>
-              <tr>
-                <td>дія <code>Lookup work items</code></td>
-                <td>перша сотня знайденого</td>
-                <td>«Search for up to 100 work items using a JQL query»</td>
-              </tr>
             </tbody>
           </table>
           </div>
           <p class="ds-small">
             «What is advanced search in Jira Cloud?», «JQL operators», «JQL fields»,
-            «JQL functions» — звірено 2026-09-27; останній рядок — сторінка довідки про дії
-            автоматизації, звірена того самого дня. Числа наведені так, як їх називає довідка;
+            «JQL functions» — звірено 2026-09-27. Числа наведені так, як їх називає довідка;
             у другій колонці вони переказані українською, у третій стоять дослівно.
+          </p>
+          <p>
+            Межі там, де запит працює не в полі пошуку, а всередині іншого інструмента, живуть
+            поруч із тим інструментом: скільки робіт бере дія <code>Lookup work items</code> —
+            у довіднику «Автоматизація: тригери, дії, smart values», а скільки рядків уміщує
+            лист підписки на фільтр — у довіднику «Карта інтерфейсу, глосарій і ліміти Free».
           </p>
         </section>
 
