@@ -68,4 +68,21 @@ metadata:
   тегів, не до (інакше `&lt;`/`&gt;` самі стають фальшивими тегами й псують той самий текст).
   Той самий баг перевіряй у власних скриптах лічби заголовків і колонок.
 
-Див. також [[lesson-fact-sources]], [[screens-line-count-offset]], [[quiz-frozen-007]].
+- **🟢 Найнадійніший знімач тексту довідки — `articleBody` з JSON-LD, і він закриває всі три
+  хибні MISS вище (2026-10-01, рецензія довідника-карти).** `curl -sL` → `<script
+  type="application/ld+json">` → `json.loads` → рекурсивно дістати `articleBody`: це тіло статті
+  одним рядком, без нав-меню, без CSS і без втрат. Так знайдено число, яке автор довідника списав
+  як «джерела немає»: «You can customize notifications for **up to 50 spaces**» на
+  `jira-software-cloud/docs/manage-your-jira-personal-settings/` — у тексті `<main>` його немає,
+  в `articleBody` є. Це **третій** випадок, коли `<main>` дав хибний «факту немає». Робочий набір
+  для звірки цитат: `articleBody` + сирий HTML у двох варіантах зняття тегів; порівняння
+  регістрочутливе, з нормалізацією апострофів, лапок і тире.
+- **Багатоколонкові таблиці планів розбирай `HTMLParser`-ом по `<tr>/<td>`, і тоді вони точні.**
+  На `explore-jira-cloud-plans` так видно: рядок `Audit logs` — клітинка Free **порожня**;
+  `Guaranteed Uptime SLA` — Free і Standard порожні, Premium `99.9%`; таблиця JSM пише «немає»
+  **прочерком** `-`, таблиця Jira — порожньою клітинкою; а таблиця на `how-is-my-usage-calculated`
+  зветься «Automation step per month» і має рядок `Jira` → «150 per subscription». Без розбору по
+  клітинках жодне з цих тверджень не перевіряється.
+
+Див. також [[lesson-fact-sources]], [[screens-line-count-offset]], [[quiz-frozen-007]],
+[[kb-callout-vs-article-body]].

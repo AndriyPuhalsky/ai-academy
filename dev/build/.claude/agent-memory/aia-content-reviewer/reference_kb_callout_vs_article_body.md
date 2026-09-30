@@ -22,4 +22,19 @@ it's possible to archive single work items, but bulk archiving them is not avail
 `learningResourceType: "Knowledge base article"` у JSON-LD стоїть **на всіх** сторінках support.atlassian.com,
 включно з продуктовими доксами, — межу «KB / документація» визначає адреса (`/kb/`), а не мітка.
 
+**⚠ Доповнення 2026-10-01 (рецензія `jira-ref-map.html`): виноска прожила один день.** На тій самій
+сторінці `bulk-archive-issues-in-jira-cloud/` виноски **більше немає** (`grep -c ComponentCallout` → 0;
+для контролю: у сусідніх `export-over-10-000…` і `restore-deleted-work-items…` → 1), а обмеження
+переїхало в перше речення тіла: «Archiving work items is available on Premium and Enterprise plans. On
+Jira Cloud you can archive individual work items **natively**, but bulk archiving is not currently
+available in the UI». `datePublished` став `2026-09-30`. Обидві цитати, на яких стояв канон 012, тепер
+не знаходяться ніде.
+
+Практичні висновки: **(1)** «є виноска чи немає» перевіряй `grep ComponentCallout` по **сирому HTML**
+із негативним контролем на сусідній KB-статті — у знятому тексті виноски не видно ні так, ні так;
+**(2)** цитата з KB старіє за добу, тож у звіті завжди пиши дату читання й будь готовий, що канон
+(`program.md`, `cross-findings.md`) описує формулювання, якого вже немає; **(3)** суть при цьому може
+не змінитись — перевіряй її окремо від слів (продуктова `archive-an-issue` слів
+Premium/Enterprise/Free у тілі не має, екран Free архівує окрему роботу).
+
 Суміжне: [[claims-about-the-docs]], [[quote-truncated-qualifier]], [[jira-docs-verification]].
