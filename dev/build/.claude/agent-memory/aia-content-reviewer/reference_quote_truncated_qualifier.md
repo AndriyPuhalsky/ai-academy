@@ -21,4 +21,22 @@ and import automation flows»).
 Дужку можна дописати самому (джерело показане у звіті); якщо в колонці таблиці немає місця —
 ставити «…» як знак обрізання, а повну цитату давати в прозі.
 
+**Друга форма пастки (хвиля 10 012, 2026-09-30): заперечення стоїть не після цитати, а перед
+нею — у ВИНОСЦІ над статтею.** У `jira/kb/bulk-archive-issues-in-jira-cloud/` категоричне
+«Archiving issues is only available for Premium and Enterprise customers.» лежить у синій
+плашці `ComponentCallout`, а перше речення самого тексту статті каже протилежне: «In Jira
+Cloud, it's possible to archive single work items, but bulk archiving them is not available.»
+Курс півтора тижня будував на цьому формулу «стаття розходиться з екраном», хоча з екраном
+розходилась лише виноска. Тому: знайшов цитату — прочитай **початок `articleBody`**, а не лише
+околиці збігу.
+
+**Інструмент, що дає тіло статті чисто:** у кожної сторінки `support.atlassian.com` є
+`<script type="application/ld+json">` з `@graph` → обʼєкт `TechArticle` → поле `articleBody`
+(плюс `datePublished`). Це надійніше за `docs-text.py` і `<main>`: виносок і навігації там
+немає, тож «слова `Premium` у статті немає» доводиться одним `grep`. ⚠ **Зворотний бік того
+самого:** `articleBody` **не містить виносок** — категоричне речення з плашки в ньому не
+зʼявиться. І ⚠ `learningResourceType: "Knowledge base article"` стоїть у JSON-LD **усіх**
+сторінок розділу, зокрема продуктових доксів, — межу «KB / документація» проводить лише
+адреса (`/jira/kb/…` проти `/<product>/docs/…`), а не мітка.
+
 Поряд: [[claims-about-the-docs]], [[quote-without-gloss]], [[lesson-fact-sources]].
