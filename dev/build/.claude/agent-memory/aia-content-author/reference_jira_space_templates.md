@@ -53,5 +53,19 @@ hr, finance, task-management, project-management, sales, operations, legal, proc
 available in company-managed spaces» (`what-are-jira-components/`). Перед перенесенням поради
 звіряти тип спейсу.
 
+**Живий екран галереї на справжньому Free (2026-09-30, `screens/33` §5) — доксами не описаний:**
+- `Spaces` → `Create space` відкриває **спершу вузьку бічну панель `Templates`** («Preview a
+  template for your next space» + три заготовки); уся галерея — за посиланням
+  **`More templates`** у ній. Без цього кроку людина не бачить галереї взагалі;
+- у галереї **17 категорій** і **4 продукти**; у категорії `Work management` — **26 плиток**
+  разом із `Blank space`. Числа — спостереження з датою, не ліміт плану;
+- клік по **діловій** плитці веде одразу в майстер («Step 1 of 2»), а сторінка опису шаблону
+  живе за посиланням **`See details`** у самій формі: там `Features`, `Workflow`
+  (To Do · In Progress · Done) і `Work types` (Workstream · Task · Sub-task для Project
+  management) — друге джерело з екрана проти рядка доксів «Task and subtask»;
+- **власний тип роботи (`Add work type` → `Create work type`) народжується на рівні задачі:**
+  форма має лише `Name` · `Description` · `Icon`, а створений тип став у рейці в одну групу з
+  `Task` і повернув `hierarchyLevel: 0`. Одне спостереження на одному типі — без «завжди».
+
 Пов'язане: [[reference-atlassian-docs-contradict]] · [[atlassian-docs-fetch]] ·
-[[jira-course-facts-drift]]
+[[jira-course-facts-drift]] · [[reference-jira-reports-view]]
