@@ -168,3 +168,36 @@ Standard) і згоду з угодою; далі план JSM довелося 
 - **Глобальний список flows:** два тестові flows спейсу `TST` **лишились у списку** після перенесення спейсу в кошик — у
   колонці `Scope` замість назви стоїть число `10071`. Обидва **вимкнено** перемикачем (кореневою сесією, 30.09); не видалено.
   Теза зі `screens/29` §14 «flows підуть разом зі спейсом» — хибна.
+
+## 7. Третя порція — вікна уроків, позначені «звірено», проти Free (урок за уроком)
+
+Метод: текст кожного вікна уроку (`<figure class="win">`, 38 вікон із позначкою «звірено») зведено з живою сторінкою.
+Вікна курсу схематичні (імена й дані — сюжет), тож звіряються написи інтерфейсу, склад панелей і рейок.
+
+| Вікно | Що у вікні | На Free 30.09 | Вердикт |
+| --- | --- | --- | --- |
+| j02 W1, j03 W1 (верхня панель) | `+ Create` · `See plans` | `+ Create` · **`Upgrade`** | 🔴 правити (F9); квіз j03 про `See plans` — переписати |
+| j03 W1 (головна) | «Welcome Оксана. It's Thursday, Sep 17.» · «Let's find your work in Jira» · плитка спейсу · `View all spaces` · вкладки `For you` | заголовка-привітання **немає**; «Recommended spaces» · `View all spaces` · плитка · `For you`: Recommended · Assigned to me · Starred · Worked on · Viewed | правити (привітання було лише на порожньому сайті або зникло — причина не встановлена) |
+| j03 W2, j09 W1, j21 W1 (`Spaces`) | `Create space` · `Templates` · `Search spaces` · Name · Key · Type · Lead | те саме (+ `Filter by app`, `Space URL`) | ✅ |
+| j03 W3 (`Personal settings → General`) | Your timezone · Language · Watch work items automatically · Jira homepage · Theme | те саме; нижче `Jira labs` («New work transition experience», «Quick search smart queries», «Store data on your own device», «Smart replies in work item comments») і `Connected apps` | ✅ |
+| j01 W1, j04 W2, j05 W3, j10 W3, j21 W2 (дошки ділових спейсів) | рядок `Summary · Board · List (· Calendar)` · колонки · картки | рядок починається так само; `Capacity` у вікні j21 W2 — **немає на Free** | j21 W2 і j06 — правити (F4); решта ✅ |
+| j04 W3, j06 W2 (`List`) | `Filter` · `Group` · `Configure columns` · колонки | `Search work` · аватари · `Filter` · `Group` · `•••`; `Ask AI` немає (у вікнах його й не було) | ✅ |
+| j06 W3 (`Summary`) | плитки · `Status overview` · `Types of work` | те саме (`Related spaces` замість `Epic progress` у діловому) | ✅ |
+| j04 W1, j05 W2, j11 W3, j17 W3, j22 W1 (картки) | статус · поля · `Subtasks` · `Linked work items` · `Activity · Comments` · `Add apps` | те саме; `Improve Task` у вікнах не намальовано | ✅ (проза про `Improve Task` — F1) |
+| 🔴 j05 W1 (діалог `Create`) | «Add a description or type / for actions and Rovo» · чіпи `Automatic · Parent · Medium · Labels · Due date` | «**Add a description or type / for actions**» (слова Rovo немає) · чіпи у `MARK`: **`Automatic` · `Medium` · `Labels` · `Due date` · `Start date`** (чіпа `Parent` немає) · шапка «`MARK` ∣ ☑ `Task`» · три іконки (згорнути в куток · розгорнути · `×`) · унизу іконка · `Create another` · `Create` | 🔴 правити вікно й речення про Rovo в підказці (j05 ~242) |
+| j07 W1 (`All work`, JQL) | `Basic` ∣ `JQL` · `Save filter` · поле · `Syntax help` · `Search` · `Clear filters` · `Share` · `•••` | те саме (праворуч угорі ще `Search all apps` · `Apps`) | ✅ |
+| 🔴 j07 W3 (помилка JQL) | «JQL error: …» · **`Fix error`** ② | текст помилки під полем, **кнопки `Fix error` немає** | 🔴 правити вікно, крок і легенду (F1); те саме вікно в `jira-ref-jql.html` |
+| j08 W2 (`Dashboards`) | `Create dashboard` · Owner · Space · Group · Name · Owner · Viewers · Editors · Starred by | те саме | ✅ |
+| 🔴 j09 W2, j10 W1, j11 W1, j20 W1 (рейка ділового спейсу) | Details · Access · Notifications · Automation · **Approvals** · Fields · Work types · Apps | без `Approvals` | 🔴 правити (F3) |
+| 🔴 j20 W1 (`Access`) | `Add people` · `Open access` · ролі `Administrator` / `Member` у рядках · `Remove` | банер «Unlock more control — Access to this space is currently Open. To customize user access, such as roles and permissions, upgrade your plan to Standard.»; «This space has 1 role»; у рядку — випайка ролі, усі пункти **неактивні** (Administrator ✓ · Guest - Collaborator · Member · Viewer — з описами); фільтр `Roles`: Administrator · Guest - Collaborator · Member · Viewer | 🔴 правити вікно й усе, що урок 20 каже про ролі на Free (F6); квіз j20 — звірити |
+| j20 W2 (`General configuration`) | перемикачі `Options` | ті самі значення (додався «Allow reactions on comments — on») | ✅ |
+| j12 W1 (галерея) | ліва колонка, картки | ліва колонка: `Made for you` · **`Bundles`** · `Custom templates` `Enterprise` · `Import data`; картки «Made for you»: Project management `Last created` · Product discovery `Try` · Advanced IT service mana… `Try` … | звірити перелік (F11) |
+| j14 W1 (`Automation` у `MARK`) | `Create flow` · вкладки Flows · Audit log · Templates · Usage · фільтри | те саме | ✅ |
+| j16 W1 (сповіщення), j16 W2 (`Docs` у `WEB`) | — | `Docs`: той самий текст і кнопки | ✅ (сповіщення не перезнімали) |
+| j17 W1 (`Marketplace apps`) | «Explore apps for Jira» · Pricing · Trust signals · Categories · Use cases · More filters · «Showing over 1,000 apps» · `Sort by: Relevance` | те саме (картки інші: ScriptRunner for Jira · Jira Misc Workflow Extensions (JMWE) · Xray…) | ✅ (назви застосунків у вікні — приклад із датою) |
+| j13 W1–W3, j15 W1–W3 | беклог, спринти, flow, `Usage`, `Audit log` | **не перезнято** — файли в роботі авторів хвилі 8б; `Usage` рівня спейсу на Free — §3 | перезняти після 8б |
+| j21 W3 (`Import data into Jira`) | — | не перезнято | черга |
+
+**Разом:** із 38 «живих» вікон на Free розходяться **дев'ять** — j02 W1, j03 W1, j05 W1, j07 W3, j09 W2, j10 W1, j11 W1,
+j20 W1, j21 W2 (+ j06 проза й вікно з `Capacity`, + вікно з `Fix error` у довіднику JQL); решта збігається або не перезнята
+(j13, j15, j16 W1, j21 W3).
