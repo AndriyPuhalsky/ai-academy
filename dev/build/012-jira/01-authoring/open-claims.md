@@ -585,5 +585,21 @@ Open, за замовчуванням Open; §7.9) · **№6** (секція `Su
 ref-jql запит 24) · `workType in standardWorkTypes() AND project = WEB` (ref-jql ~1573, `Epic`) · `Work item created` на
 `Campaign`/`Sub-task` (j14 ~598, квіз П1) · `Subtask` на сторінці `Work types` у `WEB` · `Create with Rovo` на Free (j14).
 
+**Стан 2026-09-30 (`screens/29`; рішення власника: правки «за вже знятим» пишуть автор + рецензент — хвиля 8, канон
+`program.md` п. 21, інструкція `wave8-common-author.md`; колізію «етап» закрито — `Workstream` = «напрям робіт»):**
+✅ дознято браузером і MCP, лише читання: **`Create with Rovo` на Free** — відкриває робочий діалог, запит не надсилали (§1;
+j14 ~308–313 — висновок «користуватись нічим» хибний) · вкладка `Usage` (§1; j15 W2) · **`See details`** у майстрі — сторінка
+шаблону з `Use template` і `Work types: Workstream · Task · Sub-task` (§4; j12 ~315/~592) · **`Start with sample work items`** у
+діловій формі немає (§4; половина №5) · **`More 3` у `REM`** — Reports · Archived work items · Shortcuts, `Backlog` немає (§2) ·
+**`Capacity`** — у `MY` і `MARK`, у `REM` і `HR` немає (§2; знімає розбіжність `screens/27` §4 ↔ `screens/28` §7.8) ·
+**`Subtask` на `Work types` у `WEB`** (§3) · **`spaceType = "business"`** прийнято, 25 робіт ділових спейсів (§6; j09 ~931,
+ref-jql запит 24). 🆕 **Ряд вкладок у вікнах `WEB` уроків j13, j16 (~553) і в прозі j06 (~200) — це ряд `KAN`** (`Summary · List ·
+Board · Docs · Development`); живий `WEB` — `Summary · Timeline · Board · Calendar · List · Forms · Development · Docs` (§2) —
+у завданні автора ② хвилі 8 (j13, j16) і ① (j06).
+**Лишилось у дозйомці:** друге речення тоста (№5, потрібне створення спейсу) · №11 і flows j15 на `REM-6` · `Sub-task` з батьком
+`REM-1` · `Work item created` на `Campaign`/`Sub-task` — усе це **запис у sandbox, слово власника** · `workType in
+standardWorkTypes() AND project = WEB` — прийнято, але роботи типу `Epic` у `WEB` немає, тож про `Epic` запит нічого не каже
+(ref-jql ~1573) · чи збирає Rovo flow на Free.
+
 Закрито хвилею 7 (деталі — звіти): j10:237 (підрейка типів), j10:625 (`Any` — у шаблонних статусів, не в нових), j06:569
 (вкладки ділового спейсу без `Backlog`), 🔴 `Priority: None` у `WEB-3` (§10.1), хвіст «епіка в бізнес-спейсі немає» у j21.
