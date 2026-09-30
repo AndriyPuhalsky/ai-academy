@@ -1,0 +1,2812 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="jira.config.json" data-course="jira" data-density="lesson" data-lit data-own-title>
+
+<head>
+  <meta charset="UTF-8" />
+  <!-- Масштаб не заборонений: сторінка народжується без дефекту WCAG 1.4.4. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Довідник: карта інтерфейсу, глосарій і ліміти Free — Jira з нуля</title>
+  <meta name="description"
+    content="Де що лежить в інтерфейсі Jira: верхня й бічна панелі, рядок виглядів, налаштування спейсу, картка роботи, адмінка. Глосарій англійських написів українською. Усі числа безкоштовного плану — з дослівною цитатою, джерелом і датою перевірки." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → Tailwind → тема.
+       Tailwind іде ПІСЛЯ наших <link> навмисно: його preflight має стояти
+       в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/tw-theme.js"></script>
+</head>
+
+<body>
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Сторінка читається й без JavaScript: усі таблиці нижче — звичайний текст. JavaScript тут
+      відповідає лише за кнопку входу в шапці.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <a class="ds-hdr__brand" href="jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Довідник</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <!-- На <640 текстове посилання ховається: воно переносилось у два рядки
+           й вилазило за 64 px шапки. Вихід із довідника лишається на бренді
+           та у футері. -->
+      <a class="ds-nav__link hidden sm:inline-flex" href="jira.html#refs">Полиця довідників</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Сам довідник це не ламає —
+      без конфіга не працює лише кнопка входу в шапці.</p>
+    </div>
+  </div>
+
+  <div class="ds-ref">
+
+    <!-- ЗМІСТ СТОРІНКИ (статичний: js/module.js тут не підключений) -->
+    <details id="refToc" class="ds-ref__toc" open>
+      <!-- На <1024 зміст — смуга-акордеон; ВІДКРИТИЙ у розмітці, згортає його
+           рядок скрипта нижче. Тобто JS тільки згортає, ніколи не ховає. -->
+      <summary class="ds-ref__sum">Зміст довідника</summary>
+      <nav aria-label="Зміст довідника">
+      <p class="ds-ref__group">Початок</p>
+      <ul>
+        <li><a href="#how">Як користуватись сторінкою</a></li>
+      </ul>
+      <p class="ds-ref__group">Карта інтерфейсу</p>
+      <ul>
+        <li><a href="#m-top">Верхня панель</a></li>
+        <li><a href="#m-side">Бічна панель</a></li>
+        <li><a href="#m-views">Рядок виглядів спейсу</a></li>
+        <li><a href="#m-settings">Налаштування спейсу</a></li>
+        <li><a href="#m-item">Картка роботи</a></li>
+        <li><a href="#m-menus">Меню «•••»</a></li>
+        <li><a href="#m-personal">Особисті налаштування</a></li>
+        <li><a href="#m-system">Налаштування сайту</a></li>
+        <li><a href="#m-admin">Адміністрування Atlassian</a></li>
+        <li><a href="#templates">Галерея шаблонів спейсу</a></li>
+        <li><a href="#m-jsm">Портал заявок і Confluence</a></li>
+      </ul>
+      <p class="ds-ref__group">Глосарій</p>
+      <ul>
+        <li><a href="#g-core">Основні слова</a></li>
+        <li><a href="#g-hier">Ієрархія й типи роботи</a></li>
+        <li><a href="#g-auto">Автоматизація</a></li>
+        <li><a href="#g-people">Люди й доступ</a></li>
+        <li><a href="#g-jsm">Служба заявок</a></li>
+        <li><a href="#g-traps">Слова-пастки</a></li>
+      </ul>
+      <p class="ds-ref__group">Числа безкоштовного плану</p>
+      <ul>
+        <li><a href="#l-plan">План: люди, сайт, сховище</a></li>
+        <li><a href="#l-mail">Дві добові межі на листи</a></li>
+        <li><a href="#l-auto">Автоматизація</a></li>
+        <li><a href="#l-space">Межі налаштування спейсу</a></li>
+        <li><a href="#l-data">Дані: файли, експорт, імпорт, кошик</a></li>
+        <li><a href="#l-mcp">MCP і кредити Rovo</a></li>
+        <li><a href="#l-neighbors">Confluence і служба заявок</a></li>
+      </ul>
+      <p class="ds-ref__group">Що дає план</p>
+      <ul>
+        <li><a href="#no-free">Чого на безкоштовному немає</a></li>
+        <li><a href="#yes-free">Що на ньому все-таки є</a></li>
+      </ul>
+      <p class="ds-ref__group">Час і джерела</p>
+      <ul>
+        <li><a href="#changed">Що змінилось у назвах</a></li>
+        <li><a href="#where">Де звіряти самому</a></li>
+        <li><a href="#sources">Джерела й дати</a></li>
+      </ul>
+      <p class="ds-ref__group">Курс</p>
+      <ul>
+        <li><a href="jira.html">← До курсу</a></li>
+      </ul>
+      </nav>
+    </details>
+    <script>
+      /* Єдиний рядок логіки на цій сторінці: згортає зміст нижче 1024 px.
+         Без нього (JS вимкнено) зміст лишається розгорнутим. */
+      (function(){var t=document.getElementById("refToc");
+        if(t&&!matchMedia("(min-width: 1024px)").matches)t.open=false;})();
+    </script>
+
+    <main id="main" class="ds-ref__main" data-page-in>
+      <!-- Шапка сторінки довідника — СЕСТРА статті, а не її перший абзац:
+           надзаголовок і числа не входять у сітку прози. -->
+      <header class="ds-ref__head">
+        <p class="ds-eyebrow">Довідник · це не урок</p>
+        <h1 class="ds-h1">Карта інтерфейсу, глосарій і ліміти Free</h1>
+        <ul class="ds-ref__stat">
+          <li><b>11</b> екранів у карті</li>
+          <li><b>92</b> слова в глосарії</li>
+          <li><b>36</b> таблиць із датою</li>
+          <li>без квіза й без прогресу</li>
+        </ul>
+      </header>
+
+      <article class="ds-prose">
+
+        <p class="ds-lead">
+          Це третя сторінка полиці довідників — і єдина сторінка курсу, яка застаріває
+          першою. Тут три речі: <strong>карта</strong> — де в Jira що лежить і як цей напис
+          звучить українською; <strong>глосарій</strong> — англійське слово з екрана та його
+          переклад; <strong>числа безкоштовного плану</strong> — кожне з дослівною цитатою,
+          назвою сторінки й датою, коли його перевіряли. Як улаштований сам інтерфейс —
+          <a href="modules/jira-03.html">урок 3</a>; що безкоштовний план дає і чого ні —
+          <a href="modules/jira-02.html">урок 2</a>.
+        </p>
+
+        <hr />
+
+        <section id="how">
+          <h2>Як користуватись сторінкою</h2>
+          <p>
+            Читати підряд її не треба. Сюди приходять із конкретним питанням, і питань
+            зазвичай три:
+          </p>
+          <ul>
+            <li>
+              <strong>«Що це за напис на екрані?»</strong> — розділ
+              <a href="#m-top">карта інтерфейсу</a>: кожен екран Jira розібраний таблицею
+              «напис англійською · що це українською · де шукати · урок, де пояснено».
+            </li>
+            <li>
+              <strong>«Як це слово звучить у курсі?»</strong> — <a href="#g-core">глосарій</a>.
+              Там же старі назви: Jira перейменувала половину своїх слів, і старі живуть
+              у запитах, адресах сторінок і в самій довідці Atlassian.
+            </li>
+            <li>
+              <strong>«Скільки саме?»</strong> — <a href="#l-plan">числа безкоштовного
+              плану</a>. Уроки курсу чисел не називають навмисно; усі вони зібрані тут.
+            </li>
+          </ul>
+          <p>
+            Ще один спосіб, найшвидший: натисни <code>Cmd+F</code> на macOS або
+            <code>Ctrl+F</code> на Windows і Linux — браузер відкриє поле пошуку по
+            сторінці. Набери напис так, як він виглядає на екрані, наприклад
+            <code>Upgrade</code> або <code>Space settings</code>.
+          </p>
+
+          <h3>Чому в уроках немає чисел, а тут вони є</h3>
+          <p>
+            Це рішення курсу, а не випадковість. Atlassian переглядає межі безкоштовного
+            плану кілька разів на рік. Урок, у який вписали число, застаріває тихо: текст
+            навколо виглядає живим, а число вже ні, і читач дізнається про це найгіршим
+            способом — коли впреться. Тому всі числа лежать в одному місці, і біля кожного
+            стоять три речі: <strong>дослівна цитата</strong> англійською, <strong>назва
+            сторінки</strong>, де вона надрукована, і <strong>дата</strong>, коли ту
+            сторінку читали. Розійшлось із тим, що бачиш ти, — вір своєму екрану, а сюди
+            подивись, щоб зрозуміти, що саме змінилось.
+          </p>
+          <p>
+            В уроках названо рівно два числа, і обидва — не ліміти, а визначення самих
+            планів: <strong>десять користувачів</strong> Jira і <strong>три агенти</strong>
+            Jira Service Management. Усе інше — тут.
+          </p>
+
+          <h3>Три позначки, які трапляються в таблицях</h3>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: позначки джерел у довіднику">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Позначка</th>
+                <th>Що вона означає</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>довідка</td>
+                <td>Факт узятий із документації Atlassian на <code>support.atlassian.com</code>. Дослівна цитата стоїть у лапках «…», назва сторінки — під таблицею.</td>
+              </tr>
+              <tr>
+                <td>екран</td>
+                <td>Факт знятий з живого екрана навчального сайту курсу. Біля нього — дата зйомки. Дати <strong>30 вересня 2026 року</strong> — це справжній безкоштовний план; ранішими датами позначене те, що знімали, коли на сайті ще діяв пробний платний період, тож словами «на безкоштовному плані» такий рядок не підписаний.</td>
+              </tr>
+              <tr>
+                <td>консоль</td>
+                <td>Факт узятий із таблиці планів у самій консолі Atlassian (<code>admin.atlassian.com</code> → підписка Jira → <code>Change plan</code> → <code>Compare features</code>), знятої 30 вересня 2026 року. Ця таблиця подекуди розходиться з документацією — там, де це так, названі обидва джерела.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="ds-note">
+            <span class="ds-note__glyph" aria-hidden="true">i</span>
+            <p class="ds-note__title">Чого тут немає</p>
+            <p>
+              <strong>Синтаксису мови запитів.</strong> Поля, оператори, функції й готові
+              запити — у довіднику
+              <a href="jira-ref-jql.html">«JQL: поля, оператори, функції»</a>.
+            </p>
+            <p>
+              <strong>Тригерів, дій і розумних значень автоматизації.</strong> Вони в
+              довіднику
+              <a href="jira-ref-automation.html">«Автоматизація: тригери, дії, smart values»</a>.
+              Там же — власна таблиця меж автоматизації; числа в ній і тут <em>ті самі</em>,
+              з тих самих сторінок довідки.
+            </p>
+            <p>
+              <strong>Інструкцій.</strong> Ця сторінка каже, <em>де</em> кнопка і <em>що</em>
+              вона означає; <em>як</em> нею користуватись — в уроці, номер якого стоїть
+              в останній колонці кожної таблиці карти.
+            </p>
+          </div>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Дата перевірки всієї сторінки — 30 вересня 2026 року</p>
+            <p>
+              Цього дня перечитані всі сторінки довідки Atlassian, з яких узяті числа, і
+              заново знятий інтерфейс навчального сайту курсу — уже на справжньому
+              безкоштовному плані. Якщо ти читаєш це значно пізніше, найнадійніше джерело —
+              не цей довідник, а <a href="#where">твій власний екран і сторінка планів</a>.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <section id="m-top">
+          <h2>Верхня панель</h2>
+          <p>
+            Смуга вздовж верхнього краю вікна. Вона однакова на всіх сторінках Jira, і саме
+            тому її варто вивчити один раз: половина питань «а де це?» відпадає одразу.
+          </p>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: елементи верхньої панелі Jira">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Напис</th>
+                <th>Що це українською</th>
+                <th>Де шукати</th>
+                <th>Урок</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Switch sites or apps</code></td>
+                <td>Перемикач застосунків і сайтів: звідси переходять у Jira Service Management, у Goals, у адміністрування</td>
+                <td>Іконка з чотирьох квадратиків у лівій частині панелі</td>
+                <td><a href="modules/jira-03.html">3</a></td>
+              </tr>
+              <tr>
+                <td><code>Search</code></td>
+                <td>Пошук по всьому сайту: роботи, спейси, дошки, фільтри, люди. Те саме вікно відкриває поєднання клавіш <code>Cmd+K</code> (macOS) або <code>Ctrl+K</code> (Windows, Linux)</td>
+                <td>Напис <code>Search</code> у панелі</td>
+                <td><a href="modules/jira-03.html">3</a>, <a href="modules/jira-07.html">7</a></td>
+              </tr>
+              <tr>
+                <td><code>+ Create</code></td>
+                <td>Створити нову роботу. Кнопка є на кожному екрані — вибирати спейс наперед не треба, він вибирається в самому діалозі</td>
+                <td>Помітна кнопка праворуч від пошуку</td>
+                <td><a href="modules/jira-05.html">5</a></td>
+              </tr>
+              <tr>
+                <td><code>Upgrade</code></td>
+                <td>Перехід на платний план. На безкоштовному плані ця кнопка ще й найкоротший спосіб побачити свій план і залишок місць та сховища — вона відкриває вікно з цими числами</td>
+                <td>Праворуч від кнопки <code>+ Create</code></td>
+                <td><a href="modules/jira-02.html">2</a></td>
+              </tr>
+              <tr>
+                <td>дзвіночок</td>
+                <td>Сповіщення всередині Jira: хто що змінив у роботах, які ти бачиш. Що саме сюди приходить, вирішують особисті налаштування</td>
+                <td>Іконка дзвоника з лічильником</td>
+                <td><a href="modules/jira-05.html">5</a>, <a href="modules/jira-16.html">16</a></td>
+              </tr>
+              <tr>
+                <td>довідка</td>
+                <td>Довідка Atlassian, новини продукту, звернення в підтримку спільноти</td>
+                <td>Кнопка довідки — між дзвіночком і шестірнею</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>шестірня</td>
+                <td>Налаштування. Одна іконка веде у <strong>два різні світи</strong>: особисті налаштування (лише твої) і налаштування всього сайту (для адміністратора) — розібрано нижче</td>
+                <td>Іконка шестерні</td>
+                <td><a href="modules/jira-03.html">3</a>, <a href="modules/jira-20.html">20</a></td>
+              </tr>
+              <tr>
+                <td>аватар</td>
+                <td>Твій обліковий запис Atlassian: профіль, безпека, вихід. Це акаунт, а не «користувач Jira» — один акаунт живе в усіх продуктах Atlassian</td>
+                <td>Кружечок з ініціалами або фото, крайній праворуч</td>
+                <td><a href="modules/jira-03.html">3</a>, <a href="modules/jira-20.html">20</a></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            Екран: навчальний сайт курсу, 30 вересня 2026 року, безкоштовний план. Кнопка
+            <code>See plans</code> на місці <code>Upgrade</code> означає, що на сайті йде
+            пробний платний період, а не безкоштовний план — це найпростіша ознака, за якою
+            їх розрізняють.
+          </p>
+
+          <h3>Що показує кнопка <code>Upgrade</code></h3>
+          <p>
+            Одне вікно, у якому написано і план, і два головні лічильники. Дослівно, з екрана
+            30 вересня 2026 року: «<strong>Upgrade to the Standard plan</strong> — You're on
+            the Free plan. Get a free 14-day Standard trial for unlimited users, additional
+            storage and much more. Cancel anytime.», нижче «<strong>You've invited 1 out of 10
+            users</strong> — Upgrade for unlimited users. If you add more than 10 users, you'll
+            be automatically upgraded.» і «<strong>You've used 0.0 GB of 2.0 GB storage</strong>
+            — Upgrade for 250 GB storage to keep attaching files». Унизу дві кнопки:
+            <code>Continue with limits</code> (закрити й лишитись на безкоштовному) і
+            <code>Try now</code> (почати пробний платний період — на безкоштовному плані її
+            краще не чіпати).
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="m-side">
+          <h2>Бічна панель</h2>
+          <p>
+            Вертикальний стовпчик ліворуч. Це головна навігація: усе, що не «всередині
+            роботи», відкривається звідси. Панель згортається й розгортається, а склад її
+            пунктів можна змінити внизу — <code>Customize sidebar</code>.
+          </p>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: пункти бічної панелі Jira">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Напис</th>
+                <th>Що це українською</th>
+                <th>Що всередині</th>
+                <th>Урок</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>For you</code></td>
+                <td>Домашня сторінка: «для тебе»</td>
+                <td>Вкладки <code>Recommended</code> · <code>Assigned to me</code> (призначене тобі) · <code>Starred</code> (позначене зірочкою) · <code>Worked on</code> (де ти щось робив або робила) · <code>Viewed</code> (що відкривав)</td>
+                <td><a href="modules/jira-03.html">3</a></td>
+              </tr>
+              <tr>
+                <td><code>Recent</code></td>
+                <td>Недавнє</td>
+                <td>Спейси, роботи, дошки, фільтри й дашборди, які ти нещодавно відкривав(ла)</td>
+                <td><a href="modules/jira-03.html">3</a></td>
+              </tr>
+              <tr>
+                <td><code>Starred</code></td>
+                <td>Обране</td>
+                <td>Те, що ти позначив(ла) зірочкою: спейси, фільтри, дашборди</td>
+                <td><a href="modules/jira-07.html">7</a></td>
+              </tr>
+              <tr>
+                <td><code>Apps</code></td>
+                <td>Застосунки з крамниці Marketplace</td>
+                <td>Встановлені застосунки; у меню поруч — <code>Explore more apps</code></td>
+                <td><a href="modules/jira-17.html">17</a></td>
+              </tr>
+              <tr>
+                <td><code>Plans</code></td>
+                <td>Плани — зведене планування кількох спейсів разом</td>
+                <td>На безкоштовному плані це не сторінка, а підказка: «See all your timelines in one plan… Try free for 30 days with Premium»</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>Spaces</code></td>
+                <td>Спейси — контейнери роботи (колишні проєкти)</td>
+                <td>Список недавніх спейсів, <code>More spaces</code> (усі), кнопка <code>+</code> (створити) і меню <code>•••</code></td>
+                <td><a href="modules/jira-03.html">3</a>, <a href="modules/jira-09.html">9</a></td>
+              </tr>
+              <tr>
+                <td><code>Filters</code></td>
+                <td>Збережені пошукові запити</td>
+                <td>Готові фільтри Jira (<code>My open work items</code>, <code>Reported by me</code> та інші) і твої власні; <code>View all filters</code></td>
+                <td><a href="modules/jira-07.html">7</a></td>
+              </tr>
+              <tr>
+                <td><code>Dashboards</code></td>
+                <td>Дашборди — сторінки з віконцями-гаджетами</td>
+                <td>Твої й спільні дашборди, кнопка <code>+</code> (створити)</td>
+                <td><a href="modules/jira-08.html">8</a></td>
+              </tr>
+              <tr>
+                <td><code>Assets</code> ↗</td>
+                <td>Облік майна й обладнання — окремий продукт Atlassian</td>
+                <td>Відкривається в новій вкладці. У таблиці планів Jira Service Management рядок <code>Assets</code> заповнений лише для Premium і Enterprise</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>Teams</code> ↗</td>
+                <td>Команди — довідник людей, спільний для всіх продуктів Atlassian</td>
+                <td>Відкривається поза Jira, на <code>home.atlassian.com</code></td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>Goals</code> ↗</td>
+                <td>Цілі компанії</td>
+                <td>Теж поза Jira, на <code>home.atlassian.com</code></td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>Projects</code> ↗</td>
+                <td>⚠ <strong>Не спейси Jira.</strong> Це окремий продукт Atlassian Projects на тому самому сайті</td>
+                <td>Теж поза Jira. Найпідступніший пункт панелі: слово «project» у Jira щойно перейменували на «space», а тут воно означає зовсім інше</td>
+                <td><a href="modules/jira-04.html">4</a></td>
+              </tr>
+              <tr>
+                <td><code>Customize sidebar</code></td>
+                <td>Налаштувати саму панель</td>
+                <td>Галочками показати або сховати пункти, перетягуванням змінити порядок. Довідка: «Only you. Customizing the sidebar is personal to your account»</td>
+                <td><a href="modules/jira-03.html">3</a></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            Екран: навчальний сайт курсу, 30 вересня 2026 року, безкоштовний план (склад
+            пунктів) і 17 вересня 2026 року, коли на сайті ще діяв пробний платний період
+            (підказки кнопок і адреси, куди ведуть чотири нижні пункти). Довідка: сторінка
+            «What is the new navigation in Jira?», прочитано 30 вересня 2026 року.
+          </p>
+          <div class="ds-note">
+            <span class="ds-note__glyph" aria-hidden="true">i</span>
+            <p class="ds-note__title">Чому в мережі малюють іншу панель</p>
+            <p>
+              Atlassian міняє навігацію не одномоментно, а порціями, і сама про це пише:
+              «We're cautiously rolling out the new navigation for General Availability (GA)
+              <strong>in waves from March 2025 onwards</strong>. We'll notify you and your
+              admins when the new navigation is enabled for your site a few weeks prior».
+              Тому скріншот із чужої статті може чесно показувати інший екран, ніж твій, і
+              обидва будуть правильні. Орієнтуйся на назви пунктів, а не на їхнє
+              розташування.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <section id="m-views">
+          <h2>Рядок виглядів спейсу</h2>
+          <p>
+            Горизонтальна смуга під назвою спейсу: дошка, список, календар, таймлайн та
+            інше. Це <strong>один і той самий набір робіт, показаний по-різному</strong> —
+            перемикання вигляду нічого не створює й не видаляє. Склад рядка залежить від
+            того, якого типу спейс: діловий (business) чи для розробки (software).
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: вигляди спейсу і в яких спейсах вони є">
+          <table class="ds-tbl">
+            <thead>
+              <tr>
+                <th>Вигляд</th>
+                <th>Що показує</th>
+                <th>Діловий спейс</th>
+                <th>Спейс розробки</th>
+                <th>Урок</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Summary</code></td>
+                <td>Оглядова сторінка спейсу: скільки зроблено, хто чим зайнятий, які типи робіт</td>
+                <td>так</td>
+                <td>так</td>
+                <td><a href="modules/jira-06.html">6</a></td>
+              </tr>
+              <tr>
+                <td><code>Board</code></td>
+                <td>Дошка: колонки = статуси, картки перетягують мишею</td>
+                <td>так</td>
+                <td>так</td>
+                <td><a href="modules/jira-06.html">6</a>, <a href="modules/jira-13.html">13</a></td>
+              </tr>
+              <tr>
+                <td><code>List</code></td>
+                <td>Список-таблиця з колонками полів, сортуванням і групуванням</td>
+                <td>так</td>
+                <td>так</td>
+                <td><a href="modules/jira-06.html">6</a></td>
+              </tr>
+              <tr>
+                <td><code>Calendar</code></td>
+                <td>Календар за дедлайнами; збоку панель <code>Unscheduled work</code> — роботи без дати</td>
+                <td>так</td>
+                <td>так</td>
+                <td><a href="modules/jira-06.html">6</a></td>
+              </tr>
+              <tr>
+                <td><code>Timeline</code></td>
+                <td>Смуги «від дати початку до дедлайну» — те, що зазвичай звуть діаграмою Ґанта</td>
+                <td>так</td>
+                <td>так</td>
+                <td><a href="modules/jira-06.html">6</a></td>
+              </tr>
+              <tr>
+                <td><code>Approvals</code></td>
+                <td>Погодження всередині процесу</td>
+                <td>вкладка є, всередині заглушка <code>Try with Premium</code></td>
+                <td>немає</td>
+                <td><a href="modules/jira-02.html">2</a></td>
+              </tr>
+              <tr>
+                <td><code>Forms</code></td>
+                <td>Форми: збір однотипних даних заповненням полів</td>
+                <td>так</td>
+                <td>так</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>Docs</code></td>
+                <td>Сторінки Confluence, прив'язані до спейсу. Без Confluence — заглушка з кнопкою <code>Try Confluence now</code></td>
+                <td>так</td>
+                <td>так</td>
+                <td><a href="modules/jira-16.html">16</a></td>
+              </tr>
+              <tr>
+                <td><code>Attachments</code></td>
+                <td>Усі файли, прикріплені до робіт спейсу, в одному списку</td>
+                <td>так</td>
+                <td>немає</td>
+                <td><a href="modules/jira-05.html">5</a></td>
+              </tr>
+              <tr>
+                <td><code>Reports</code></td>
+                <td>Оглядова панель: плитки-картки з числами й діаграми. Самі звіти — за кнопкою <code>More reports</code></td>
+                <td>так, у рядку одразу</td>
+                <td>додається окремо через <code>+</code></td>
+                <td><a href="modules/jira-13.html">13</a></td>
+              </tr>
+              <tr>
+                <td><code>Development</code></td>
+                <td>Зв'язок із кодом: гілки, коміти, злиття</td>
+                <td>немає</td>
+                <td>так</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>Backlog</code></td>
+                <td>Черга: те, що ще не взяли в роботу. Потрібна для спринтів</td>
+                <td>немає</td>
+                <td>додається окремо через <code>+</code></td>
+                <td><a href="modules/jira-13.html">13</a></td>
+              </tr>
+              <tr>
+                <td><code>Archived work items</code></td>
+                <td>Заархівовані роботи — сховані, але не видалені</td>
+                <td>під <code>More</code></td>
+                <td>додається окремо через <code>+</code></td>
+                <td><a href="modules/jira-05.html">5</a></td>
+              </tr>
+              <tr>
+                <td><code>Shortcuts</code></td>
+                <td>Свої посилання на зовнішні сторінки, прикріплені до спейсу</td>
+                <td>під <code>More</code></td>
+                <td>додається окремо через <code>+</code></td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>More</code></td>
+                <td>Не окремий вигляд, а <strong>звалище того, що не вмістилось у ширину вікна</strong>. У широкому вікні під ним лежить менше, у вузькому — більше</td>
+                <td>так</td>
+                <td>так</td>
+                <td><a href="modules/jira-06.html">6</a></td>
+              </tr>
+              <tr>
+                <td><code>+</code></td>
+                <td>Додати вигляд у рядок. Відкриває панель <code>Views</code>; вибраний вигляд ставлять кнопкою <code>Add to navigation</code></td>
+                <td>пропонує <code>Board</code> · <code>List</code> · <code>Timeline</code></td>
+                <td>пропонує десять пунктів, зокрема <code>Backlog</code>, <code>Reports</code>, <code>Goals</code>, <code>Releases</code></td>
+                <td><a href="modules/jira-06.html">6</a>, <a href="modules/jira-13.html">13</a></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-small">
+            Екран: навчальний сайт курсу, 30 вересня 2026 року, безкоштовний план. Ділові
+            спейси — <code>MY</code>, <code>MARK</code>, <code>REM</code>, <code>HR</code>;
+            спейс розробки — <code>WEB</code> і тимчасовий спейс із шаблону дошки потоку.
+            У широкому вікні (близько 1570 точок) рядок ділового спейсу виглядав так:
+            <code>Summary · Board · List · Calendar · Timeline · Approvals · Forms · Docs ·
+            Attachments · Reports · More · +</code>; у вужчому вікні того самого спейсу
+            <code>Reports</code> ішов під <code>More</code>. Це один склад, показаний
+            по-різному, а не два різні спейси.
+          </p>
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Вигляд не показує — не означає «не існує»</p>
+            <p>
+              Вигляди в рядку може прибирати й додавати адміністратор спейсу, і кожен спейс
+              налаштований окремо. Тому «у мене немає дошки» майже завжди означає «її забрали
+              з рядка», а не «дошки в Jira немає»: додається вона кнопкою <code>+</code> за
+              кілька секунд. У спейсі розробки є ще другий шлях — <code>Space settings</code>
+              → <code>Features</code>; у діловому спейсі розділу <code>Features</code>
+              <strong>немає взагалі</strong>, там працює лише кнопка <code>+</code>.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <section id="m-settings">
+          <h2>Налаштування спейсу</h2>
+          <p>
+            Сюди заходять, коли треба змінити не роботу, а сам спейс: його назву, процес,
+            поля, типи роботи, автоматизацію. Шлях: біля назви спейсу — меню <code>•••</code>
+            (у шапці сторінки або в бічній панелі) → <code>Space settings</code>. Далі
+            ліворуч з'являється <strong>своя рейка розділів</strong> — вертикальний стовпчик
+            пунктів, — і вона різна у двох типів спейсу.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: розділи налаштувань спейсу">
+            <table class="ds-tbl">
+              <thead>
+                <tr>
+                  <th>Розділ</th>
+                  <th>Що всередині</th>
+                  <th>Діловий</th>
+                  <th>Розробки</th>
+                  <th>Урок</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>Details</code></td>
+                  <td>Назва спейсу, <strong>ключ</strong>, значок, категорія, власник спейсу, виконавець за замовчуванням</td>
+                  <td>так</td>
+                  <td>так</td>
+                  <td><a href="modules/jira-03.html">3</a>, <a href="modules/jira-09.html">9</a></td>
+                </tr>
+                <tr>
+                  <td><code>Access</code></td>
+                  <td>Хто має доступ до спейсу і з якою роллю. На безкоштовному плані — лише перегляд і кнопка <code>Add people</code>: ролі не налаштовуються</td>
+                  <td>так</td>
+                  <td>так</td>
+                  <td><a href="modules/jira-20.html">20</a></td>
+                </tr>
+                <tr>
+                  <td><code>Notifications</code></td>
+                  <td>Розгортається: усередині — кому й на що йдуть листи цього спейсу та журнал надісланих листів (<code>Settings</code> і <code>Space email audit</code>; ці два пункти знято 29 вересня 2026 року)</td>
+                  <td>так</td>
+                  <td>так</td>
+                  <td><a href="modules/jira-16.html">16</a></td>
+                </tr>
+                <tr>
+                  <td><code>Automation</code></td>
+                  <td>Flows цього спейсу: список, журнал виконань, заготовки, використання</td>
+                  <td>так</td>
+                  <td>так</td>
+                  <td><a href="modules/jira-14.html">14</a>, <a href="modules/jira-15.html">15</a></td>
+                </tr>
+                <tr>
+                  <td><code>Fields</code></td>
+                  <td>Поля спейсу: свої й системні, які можна поставити на картку</td>
+                  <td>так</td>
+                  <td>так</td>
+                  <td><a href="modules/jira-11.html">11</a></td>
+                </tr>
+                <tr>
+                  <td><code>Work types</code></td>
+                  <td>Типи роботи спейсу. Розгортається в список типів; усередині кожного — його поля й кнопка <code>Edit workflow</code> (редактор процесу)</td>
+                  <td>так</td>
+                  <td>так</td>
+                  <td><a href="modules/jira-10.html">10</a>, <a href="modules/jira-11.html">11</a></td>
+                </tr>
+                <tr>
+                  <td><code>Features</code></td>
+                  <td>Перемикачі можливостей спейсу: <code>Sprints</code>, <code>Estimation</code> та інші</td>
+                  <td><strong>немає</strong></td>
+                  <td>так</td>
+                  <td><a href="modules/jira-13.html">13</a></td>
+                </tr>
+                <tr>
+                  <td><code>Custom filters</code></td>
+                  <td>Свої фільтри дошки цього спейсу</td>
+                  <td><strong>немає</strong></td>
+                  <td>так</td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td><code>Toolchain</code></td>
+                  <td>Підключені інструменти розробки</td>
+                  <td><strong>немає</strong></td>
+                  <td>так</td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td><code>Apps</code></td>
+                  <td>Застосунки з Marketplace, підключені до цього спейсу</td>
+                  <td>так</td>
+                  <td>так</td>
+                  <td><a href="modules/jira-17.html">17</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Екран: навчальний сайт курсу, 30 вересня 2026 року, безкоштовний план (спейси
+            <code>REM</code>, <code>MY</code>, <code>HR</code>, <code>MARK</code> — ділові;
+            <code>WEB</code> — розробки). Стрілка <code>›</code> біля розділу означає, що він
+            розгортається у вкладені пункти.
+          </p>
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Найчастіша причина «у мене такого пункту немає»</p>
+            <p>
+              Половина інструкцій у мережі написана для спейсу розробки, і в них шлях
+              починається з <code>Space settings</code> → <code>Features</code>. У діловому
+              спейсі розділу <code>Features</code> немає, і це не помилка налаштувань: вигляди
+              там додають кнопкою <code>+</code> у кінці рядка виглядів. Друга причина —
+              права: на безкоштовному плані кожен, хто має доступ до Jira, є адміністратором
+              усіх спейсів («If your site has always been on a Free plan, everyone with access
+              to Jira is an admin for all Jira spaces»), тож справа зазвичай не в них.
+            </p>
+          </div>
+
+          <h3>Сторінка <code>Details</code> — поле за полем</h3>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: поля сторінки Details налаштувань спейсу">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Поле</th><th>Що це</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>Name</code></td><td>Назва спейсу — те, що бачать люди. Міняється будь-коли</td></tr>
+                <tr><td><code>Space key</code></td><td>Ключ: кілька великих латинських літер, з яких починається ключ кожної роботи (<code>MY-1</code>). Підказка Jira: «Space keys are unique keys used to identify a space»</td></tr>
+                <tr><td><code>Category</code></td><td>Категорія спейсу — власна мітка для групування спейсів у списку</td></tr>
+                <tr><td><code>Space owner</code></td><td>Власник спейсу. Підпис під полем: «Make sure your space lead has access to work items in the space»</td></tr>
+                <tr><td><code>Default assignee</code></td><td>Кому дістається робота, коли виконавця не вказали. За замовчуванням — <code>Unassigned</code>, тобто нікому</td></tr>
+                <tr><td><code>Change icon</code></td><td>Значок спейсу — його видно в списку спейсів і в бічній панелі</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Екран: навчальний сайт курсу, 30 вересня 2026 року, безкоштовний план, спейс
+            <code>MY</code>. Про зміну ключа — <a href="#l-data">розділ про дані</a>: вона
+            працює, але тягне за собою перебудову пошуку.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="m-item">
+          <h2>Картка роботи</h2>
+          <p>
+            Те, що відкривається кліком по роботі. Одна робота — одна картка; усе про неї
+            живе тут. Будова однакова в усіх спейсах, а от <strong>склад полів праворуч
+            відрізняється</strong> між діловим спейсом і спейсом розробки — і це та
+            відмінність, через яку інструкції з мережі раптом не збігаються.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: з чого складається картка роботи">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Частина</th><th>Що це</th><th>Де на екрані</th><th>Урок</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>крихта</td>
+                  <td>Ланцюжок «Spaces / назва спейсу / батьківська робота / ключ цієї роботи». Порожнє місце для батька підписане <code>Add epic</code> — навіть у спейсі, де верхній поверх зветься інакше</td>
+                  <td>Найвищий рядок картки</td>
+                  <td><a href="modules/jira-04.html">4</a></td>
+                </tr>
+                <tr>
+                  <td><code>Summary</code></td>
+                  <td>Назва роботи — великий заголовок. У документації Atlassian це поле вже подекуди зветься <code>Title</code>, у запитах — <code>summary</code></td>
+                  <td>Під крихтою</td>
+                  <td><a href="modules/jira-04.html">4</a></td>
+                </tr>
+                <tr>
+                  <td><code>Description</code></td>
+                  <td>Опис. Приймає заголовки, списки, таблиці, файли й списки з квадратиками, які клацаються</td>
+                  <td>Ліва частина, під назвою</td>
+                  <td><a href="modules/jira-05.html">5</a></td>
+                </tr>
+                <tr>
+                  <td><code>Subtasks</code></td>
+                  <td>Підзадачі — дрібніші кроки цієї роботи. Кнопка <code>Create child</code> або <code>Add subtask</code>; поруч смуга «N% Done»</td>
+                  <td>Ліва частина</td>
+                  <td><a href="modules/jira-04.html">4</a>, <a href="modules/jira-11.html">11</a></td>
+                </tr>
+                <tr>
+                  <td><code>Linked work items</code></td>
+                  <td>Зв'язки з іншими роботами: «блокує», «пов'язано з». Це не батько й не дитина, а лише позначка зв'язку</td>
+                  <td>Ліва частина</td>
+                  <td><a href="modules/jira-04.html">4</a></td>
+                </tr>
+                <tr>
+                  <td><code>Activity</code></td>
+                  <td>Стрічка подій, розкладена вкладками: <code>All</code> · <code>Comments</code> (коментарі) · <code>History</code> (хто що змінив) · <code>Work log</code> (облік часу)</td>
+                  <td>Ліва частина, найнижче</td>
+                  <td><a href="modules/jira-05.html">5</a></td>
+                </tr>
+                <tr>
+                  <td>статус</td>
+                  <td>Випадна кнопка з поточним етапом роботи. Перемикання статусу тут — те саме, що перетягування картки між колонками дошки</td>
+                  <td>Права частина, найвище</td>
+                  <td><a href="modules/jira-04.html">4</a>, <a href="modules/jira-10.html">10</a></td>
+                </tr>
+                <tr>
+                  <td><code>Details</code></td>
+                  <td>Панель полів: виконавець, дедлайн, пріоритет, мітки та інші. Склад полів різний у двох типів спейсу — таблиця нижче</td>
+                  <td>Права частина</td>
+                  <td><a href="modules/jira-04.html">4</a>, <a href="modules/jira-11.html">11</a></td>
+                </tr>
+                <tr>
+                  <td><code>Automation</code></td>
+                  <td>Згорнутий блок «Rule executions» — що автоматизація робила з цією роботою</td>
+                  <td>Права частина, під полями</td>
+                  <td><a href="modules/jira-14.html">14</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Поля <code>Details</code>: діловий спейс і спейс розробки</h3>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: поля панелі Details у двох типах спейсу">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Поле</th><th>Що це</th><th>Діловий</th><th>Розробки</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>Assignee</code></td><td>Виконавець — одна людина, відповідальна за роботу</td><td>так</td><td>так</td></tr>
+                <tr><td><code>Parent</code></td><td>Батьківська робота</td><td><strong>немає</strong> — батька ставлять у крихті, натиснувши <code>Add epic</code></td><td>так, окремим полем</td></tr>
+                <tr><td><code>Priority</code></td><td>Пріоритет: <code>Highest</code> … <code>Lowest</code>, за замовчуванням <code>Medium</code></td><td>так</td><td>так</td></tr>
+                <tr><td><code>Labels</code></td><td>Мітки — власні слова-ярлики, за якими потім шукають</td><td>так</td><td>так</td></tr>
+                <tr><td><code>Due date</code></td><td>Дедлайн. Прострочений підсвічується й підписується «Overdue since …»</td><td>так</td><td>так</td></tr>
+                <tr><td><code>Start date</code></td><td>Дата початку — потрібна таймлайну, щоб намалювати смугу</td><td>так</td><td>так</td></tr>
+                <tr><td><code>Time tracking</code></td><td>Облік витраченого часу, порожнє значення — «No time logged»</td><td>так</td><td>у знімках карток спейсу розробки не було</td></tr>
+                <tr><td><code>Category</code></td><td>Категорія роботи — власне поле ділових спейсів. Не плутати з категорією статусу</td><td>так</td><td>немає</td></tr>
+                <tr><td><code>Team</code></td><td>Команда з довідника Atlassian</td><td>так</td><td>так</td></tr>
+                <tr><td><code>Budget</code></td><td>Число-бюджет; з'являється в частині ділових шаблонів</td><td>трапляється</td><td>немає</td></tr>
+                <tr><td><code>Sprint</code></td><td>Спринт — відрізок часу, у який узято роботу. З'являється, коли в спейсі ввімкнені спринти</td><td>немає</td><td>так</td></tr>
+                <tr><td><code>Reporter</code></td><td>Автор — хто завів роботу. Стоїть у списку <strong>останнім</strong></td><td>так</td><td>так</td></tr>
+                <tr><td><code>Development</code></td><td>Згорнутий блок зв'язку з кодом: гілки, коміти</td><td>немає</td><td>так</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Екран: навчальний сайт курсу, 30 вересня 2026 року, безкоштовний план. Ділові
+            картки — <code>REM-6</code> і <code>HR-2</code>, картки спейсу розробки —
+            <code>WEB-3</code> і роботи тимчасового спейсу. Порядок полів у панелі трохи
+            різниться між спейсами; незмінне одне — <code>Reporter</code> стоїть останнім.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="m-menus">
+          <h2>Меню «•••» — їх кілька, і вони різні</h2>
+          <p>
+            Три крапки в Jira означають «ще дії», але <strong>які саме — залежить від того,
+            біля чого вони стоять</strong>. Це найчастіша причина, чому інструкція «відкрий
+            меню з трьох крапок» не спрацьовує: людина відкриває не те меню. Ось чотири
+            найпотрібніші.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: чотири різні меню з трьох крапок">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Де стоїть</th><th>Що всередині</th><th>Урок</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>біля назви спейсу</td>
+                  <td><code>Add to starred</code> · <code>Add people</code> · <code>Save as template</code> <code>Enterprise</code> · <code>Set space background</code> › · <code>Space settings</code> ∣ <code>Archive space</code> <code>Premium</code> · <code>Delete space</code>. Унизу меню написано, який це спейс: «Business space · Team-managed». ⚠ Це меню є <strong>у двох місцях одразу</strong> — у шапці сторінки й на наведенні в бічній панелі; вміст однаковий</td>
+                  <td><a href="modules/jira-09.html">9</a>, <a href="modules/jira-12.html">12</a></td>
+                </tr>
+                <tr>
+                  <td>на картці роботи</td>
+                  <td><code>Log work</code> · <code>Open command palette</code> ∣ <code>Add vote</code> ∣ <code>Select cover</code> › · <code>Add parent</code> (або <code>Change parent</code>) · <code>Clone</code> · <code>Move</code> · <code>Archive</code> · <code>Delete</code> ∣ <code>Connect Slack channel</code> ∣ <code>Print</code> · <code>Export Excel</code> · <code>Export Word</code></td>
+                  <td><a href="modules/jira-05.html">5</a></td>
+                </tr>
+                <tr>
+                  <td>на колонці дошки</td>
+                  <td><code>Set column limit</code> (ліміт незавершеного) ∣ <code>Move column left</code> · <code>Move column right</code> ∣ <code>Delete status</code>. У першої колонки пункту <code>Move column left</code> не було — тобто перелік залежить від того, де колонка стоїть. Кнопки колонки з'являються лише тоді, коли навести на неї курсор</td>
+                  <td><a href="modules/jira-13.html">13</a></td>
+                </tr>
+                <tr>
+                  <td>на сторінці <code>All work</code></td>
+                  <td><code>View work items as a chart</code> ∣ <code>Export</code> › · <code>Import work items from CSV</code> · <code>Bulk change work items</code> ∣ <code>Give feedback</code>. Саме тут живуть вивантаження результатів пошуку й масова зміна</td>
+                  <td><a href="modules/jira-07.html">7</a>, <a href="modules/jira-21.html">21</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Екран: навчальний сайт курсу, 30 вересня 2026 року, безкоштовний план. Позначки
+            <code>Premium</code> і <code>Enterprise</code> в меню — це підпис Atlassian:
+            пункт видно, але на безкоштовному плані він не спрацює.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="m-personal">
+          <h2>Особисті налаштування</h2>
+          <p>
+            Шлях: шестірня у верхній панелі → <code>Personal Jira settings</code>. Усе, що
+            тут стоїть, стосується <strong>лише тебе</strong> — колеги цього не бачать і на
+            них це не впливає.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: особисті налаштування Jira">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Пункт</th><th>Що це</th><th>Урок</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>General settings</code></td>
+                  <td>Часовий пояс (<code>Your timezone</code>), мова акаунта (<code>Language</code>), автоматичне спостереження за роботами (<code>Watch work items automatically</code>), домашня сторінка (<code>Jira homepage</code>) і тема оформлення (<code>Theme</code>: <code>Light</code> · <code>Dark</code> · <code>Match browser</code>)</td>
+                  <td><a href="modules/jira-03.html">3</a></td>
+                </tr>
+                <tr>
+                  <td><code>Jira labs</code></td>
+                  <td>Перемикачі експериментальних можливостей унизу тієї самої сторінки. Саме тут вмикають короткі команди швидкого пошуку (<code>Quick search smart queries</code>)</td>
+                  <td><a href="modules/jira-07.html">7</a></td>
+                </tr>
+                <tr>
+                  <td><code>Notification settings</code></td>
+                  <td>Пункт меню шестірні. ⚠ Сторінка, яку він відкриває, зветься інакше — <code>Emails and notifications</code>; у документації Atlassian розділ зветься третім способом. Це один і той самий екран</td>
+                  <td><a href="modules/jira-05.html">5</a>, <a href="modules/jira-16.html">16</a></td>
+                </tr>
+                <tr>
+                  <td><code>Email preferences</code></td>
+                  <td>Верхній блок сторінки сповіщень: перемикач <code>Send me emails for work item activity</code> і три галочки «коли саме» — <code>You're the assignee</code> · <code>You're the reporter</code> · <code>You make changes to work items</code>. Нижче — <code>Group notification emails together</code> (склеювати кілька подій в один лист) і <code>Email format</code> (HTML або текст)</td>
+                  <td><a href="modules/jira-05.html">5</a></td>
+                </tr>
+                <tr>
+                  <td><code>Customize space notifications</code></td>
+                  <td>Окремі правила для окремого спейсу — кнопка <code>Add space notifications</code></td>
+                  <td><a href="modules/jira-16.html">16</a></td>
+                </tr>
+                <tr>
+                  <td><code>Default notifications</code></td>
+                  <td>Матриця з двома колонками — <code>In product</code> (сповіщення всередині Jira) і <code>Email</code> (лист). Рядки згруповані: <code>Notifications for all work items</code>, <code>Notifications for relevant work items</code>, <code>All space notifications</code></td>
+                  <td><a href="modules/jira-16.html">16</a></td>
+                </tr>
+                <tr>
+                  <td><code>Digests</code></td>
+                  <td>Окремий пункт рейки — зведені листи-добірки</td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td><code>Connected apps</code></td>
+                  <td>Сторонні застосунки, яким ти дав(ла) доступ до свого акаунта. Звідси доступ і відкликають</td>
+                  <td><a href="modules/jira-22.html">22</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Екран: навчальний сайт курсу, 30 вересня 2026 року, безкоштовний план (сторінка
+            сповіщень і меню шестірні) і 17 вересня 2026 року, коли на сайті ще діяв пробний
+            платний період (<code>General settings</code>, <code>Jira labs</code>).
+          </p>
+          <div class="ds-note">
+            <span class="ds-note__glyph" aria-hidden="true">i</span>
+            <p class="ds-note__title">Особисті галочки лише віднімають</p>
+            <p>
+              Довідка Atlassian формулює це прямо: «All your notification settings (default or
+              custom) act like a filter on top of the notification settings configured by your
+              admin. If your admin has turned off a particular notification, you may not
+              receive it even if you've chosen to receive that kind of notification». Тобто
+              своєю галочкою ти можеш прибрати зайвий лист, але не можеш додати той, який
+              вимкнено для всього спейсу.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <section id="m-system">
+          <h2>Налаштування сайту</h2>
+          <p>
+            Та сама шестірня, але нижче — розділ <code>Jira admin settings</code>. Це вже
+            налаштування <strong>всього сайту</strong>, а не твої. Хто саме туди пускає,
+            вирішує право рівня сайту; про самі спейси довідка каже прямо: «If your site has
+            always been on a Free plan, everyone with access to Jira is an admin for all Jira
+            spaces».
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: меню шестірні у верхній панелі">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Пункт меню</th><th>Підпис Jira і що за ним</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>Search</code></td><td>«(⌘ + K)» — командна палітра, вікно пошуку по всьому сайту</td></tr>
+                <tr><td><code>General settings</code></td><td>«Manage language, time zone, and other personal preferences» — особисті, розібрані <a href="#m-personal">вище</a></td></tr>
+                <tr><td><code>Notification settings</code></td><td>«Manage email and in-app notifications from Jira» — теж особисті</td></tr>
+                <tr><td><code>System</code></td><td>«Manage general configuration, security, automation, user interface, and more» — головна адмінська сторінка Jira</td></tr>
+                <tr><td><code>Jira apps</code></td><td>«Manage access, settings, and integrations across Jira»</td></tr>
+                <tr><td><code>Spaces</code></td><td>«Manage space settings, categories, and more» — список усіх спейсів сайту, звідси ж кошик спейсів</td></tr>
+                <tr><td><code>Work items</code></td><td>«Configure work types, workflows, screens, fields, and more» — налаштування рівня сайту, а не окремого спейсу</td></tr>
+                <tr><td><code>Marketplace apps</code></td><td>«Add and manage Jira Marketplace apps and integrations»</td></tr>
+                <tr><td><code>User management</code> ↗</td><td>«Manage users, groups, and access requests» — веде за межі Jira, в адміністрування Atlassian</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Екран: навчальний сайт курсу, 30 вересня 2026 року, безкоштовний план. ⚠ Пункту
+            про план сайту чи рахунки в цьому меню <strong>немає</strong>: план видно за
+            кнопкою <code>Upgrade</code> або в адмініструванні Atlassian.
+          </p>
+
+          <h3>Розділи сторінки <code>System</code></h3>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: розділи адміністрування Jira">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Розділ</th><th>Що всередині</th><th>Урок</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>General configuration</code></td>
+                  <td>Назва сайту, мови, часовий пояс і довгий список перемикачів <code>Options</code> — зокрема <code>Allow users to share dashboards and filters with the public</code>, <code>Maximum space name size</code>, <code>Maximum space key size</code>, <code>Allow people to request space access</code></td>
+                  <td><a href="modules/jira-20.html">20</a></td>
+                </tr>
+                <tr>
+                  <td><code>Default user preferences</code></td>
+                  <td>Значення за замовчуванням для нових людей і нових фільтрів. Тут стоїть <code>Default access</code> — чи буде новий фільтр приватним</td>
+                  <td><a href="modules/jira-07.html">7</a>, <a href="modules/jira-08.html">8</a></td>
+                </tr>
+                <tr>
+                  <td><code>Default dashboard</code></td>
+                  <td>Який дашборд бачать ті, хто не налаштовував свій</td>
+                  <td><a href="modules/jira-08.html">8</a></td>
+                </tr>
+                <tr>
+                  <td><code>Look and feel</code></td>
+                  <td>Формат дат і дрібні налаштування вигляду</td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td><code>Announcement banner</code></td>
+                  <td>Смуга з оголошенням угорі кожної сторінки сайту</td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td><code>Backup manager</code></td>
+                  <td>Резервна копія всього сайту одним файлом. Розділ <code>Import and export</code></td>
+                  <td><a href="modules/jira-20.html">20</a></td>
+                </tr>
+                <tr>
+                  <td><code>External system import</code></td>
+                  <td>Перенесення справ з інших інструментів і з файлів CSV</td>
+                  <td><a href="modules/jira-21.html">21</a></td>
+                </tr>
+                <tr>
+                  <td><code>Global mail settings</code></td>
+                  <td>Пошта сайту: вихідна, вхідна, ручне надсилання. Розділ <code>Mail</code></td>
+                  <td><a href="modules/jira-16.html">16</a></td>
+                </tr>
+                <tr>
+                  <td><code>Global permissions</code></td>
+                  <td>Права рівня сайту: хто може створювати спейси, хто адмініструє Jira. Розділ <code>Security</code></td>
+                  <td><a href="modules/jira-20.html">20</a></td>
+                </tr>
+                <tr>
+                  <td><code>Global automation</code></td>
+                  <td>Усі flows сайту в одному місці — і <strong>вкладка <code>Usage</code>, де видно межу автоматизації</strong></td>
+                  <td><a href="modules/jira-14.html">14</a>, <a href="modules/jira-15.html">15</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Екран: навчальний сайт курсу, 30 вересня 2026 року, безкоштовний план (рейка
+            розділів, <code>Backup manager</code>, <code>Global automation</code> і сторінка
+            імпорту) і 17 вересня 2026 року, коли на сайті ще діяв пробний платний період
+            (перемикачі <code>Options</code> зі значеннями).
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="m-admin">
+          <h2>Адміністрування Atlassian</h2>
+          <p>
+            Окремий сайт — <code>admin.atlassian.com</code>. Jira керує <em>роботою</em>, а
+            це місце керує <em>людьми, продуктами й грошима</em>: хто має доступ до яких
+            продуктів, який у тебе план, коли наступний рахунок. Сюди веде пункт
+            <code>User management</code> з меню шестірні або перемикач застосунків →
+            <code>Administration</code>.
+          </p>
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Тут інтерфейс може бути українською</p>
+            <p>
+              Адміністрування Atlassian показується <strong>мовою твого акаунта</strong>, тоді
+              як сама Jira лишається англійською. На навчальному сайті курсу 30 вересня 2026
+              року акаунт стояв на українській — і адмінка була українською, а Jira поруч
+              англійською. Тому нижче дві колонки: як пункт зветься англійською і як він
+              виглядав українською. Якщо ти пройшов(ла) <a href="modules/jira-03.html">урок 3</a>
+              і поставив(ла) мову акаунта <code>English</code>, адмінка теж буде англійською.
+            </p>
+          </div>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: розділи адміністрування Atlassian">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Англійською</th><th>Українською</th><th>Що всередині</th><th>Урок</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>Overview</code></td><td>Огляд</td><td>Швидкі дії (запросити людей, додати продукт, підтвердити домен) і плитки-лічильники</td><td><a href="modules/jira-20.html">20</a></td></tr>
+                <tr><td><code>Directory</code> › <code>Users</code></td><td>Каталог › Користувачі</td><td>Усі люди організації: ім'я, адреса, роль, стан (активний), дата останнього входу. Звідси ж кнопка запрошення</td><td><a href="modules/jira-20.html">20</a></td></tr>
+                <tr><td><code>Directory</code> › <code>Groups</code></td><td>Каталог › Групи</td><td>Групи людей. Доступ до продуктів дають саме через групи</td><td><a href="modules/jira-20.html">20</a></td></tr>
+                <tr><td><code>Directory</code> › <code>Teams</code></td><td>Каталог › Команди</td><td>Команди — довідник для поля <code>Team</code> на картці</td><td>—</td></tr>
+                <tr><td><code>Apps</code> › <code>Atlassian apps</code></td><td>Додатки › Додатки Atlassian</td><td>Список продуктів сайту з планом кожного: <code>Jira — Free</code>, <code>Goals — Free</code> тощо. <strong>Найкоротший спосіб дізнатись план</strong></td><td><a href="modules/jira-02.html">2</a></td></tr>
+                <tr><td><code>Security</code></td><td>Безпека</td><td>Політики входу, двоетапна перевірка, підтвердження домену</td><td><a href="modules/jira-20.html">20</a></td></tr>
+                <tr><td><code>Billing</code></td><td>Виставлення рахунків</td><td>Підписки, план, дата наступного рахунку, зміна плану (<code>Change plan</code>)</td><td><a href="modules/jira-02.html">2</a></td></tr>
+                <tr><td><code>Organization settings</code></td><td>Параметри організації</td><td>Назва організації, домени, загальні налаштування</td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Екран: адміністрування Atlassian навчального сайту курсу, 30 вересня 2026 року,
+            безкоштовний план; написи українською — дослівно з екрана, англійські — з
+            документації Atlassian. Порядок пунктів у рейці може відрізнятись: він залежить
+            від того, які продукти є на сайті.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="templates">
+          <h2>Галерея шаблонів спейсу</h2>
+          <p>
+            Шаблон — заготовка спейсу: він приносить типи роботи, процес і набір виглядів.
+            Назви плиток у галереї Atlassian перемальовує разом із сезонними оновленнями, тому
+            уроки курсу шаблони <strong>описують призначенням</strong>, а не називають. Точний
+            перелік назв на дату перевірки — тут. Сюди відсилають
+            <a href="modules/jira-12.html">урок 12</a> (тричі) і
+            <a href="modules/jira-13.html">урок 13</a>.
+          </p>
+
+          <h3>Як дістатись галереї</h3>
+          <p>
+            Довідка описує шлях так: «Hover over <strong>Spaces</strong> in the side navigation,
+            then select <strong>Create space</strong>». На екрані 30 вересня 2026 року цей
+            клік відкривав <strong>не галерею, а вузьку бічну панель</strong>
+            <code>Templates</code> («Preview a template for your next space») з трьома
+            заготовками; уся галерея була за посиланням <code>More templates</code> у ній. Без
+            цього кроку галереї не видно взагалі.
+          </p>
+          <p>
+            Ліва колонка галереї: <code>Made for you</code> («Templates for you based on how
+            similar teams work») · <code>Bundles</code> (набір спейсів одразу) ·
+            <code>Custom templates</code> з позначкою <code>Enterprise</code> ·
+            <code>Import data</code>. Далі <code>CATEGORIES</code> —
+            <strong>17</strong> категорій: Software development · Service management · Work
+            management · Product management · Marketing · Customer service · Human resources ·
+            Finance · Design · Personal · Operations · Legal · Sales · Analytics · IT ·
+            Facilities · Nonprofit. І <code>PRODUCTS</code> — <strong>4</strong>: Jira · Jira
+            Service Management · Customer Service Management · Jira Product Discovery.
+          </p>
+
+          <h3>Категорія <code>Work management</code> — 26 плиток</h3>
+          <p>
+            Це ділові шаблони, з яких зроблено майже всі спейси курсу. Перелік станом на
+            30 вересня 2026 року, у порядку з екрана:
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: ділові шаблони спейсів і що вони дають">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Плитка</th><th>Опис під назвою (дослівно)</th><th>Де в курсі</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>Blank space</code></td><td>«Start with a blank canvas»</td><td>—</td></tr>
+                <tr><td><code>Project management</code></td><td>«Plan and deliver business projects.» Дає типи <code>Workstream</code> · <code>Task</code> · <code>Sub-task</code> і три статуси — <code>To Do</code> · <code>In Progress</code> · <code>Done</code></td><td>Спейси «Друга точка» і «Найм» — <a href="modules/jira-09.html">урок 9</a>, <a href="modules/jira-10.html">урок 10</a></td></tr>
+                <tr><td><code>Task tracking</code></td><td>«Organize and track team or personal tasks.» Верхнього поверху не дає: лише <code>Task</code> і <code>Sub-task</code>, і два статуси</td><td>Перший спейс «Мої справи» — <a href="modules/jira-03.html">урок 3</a></td></tr>
+                <tr><td><code>Campaign management</code></td><td>Дає верхній тип <code>Campaign</code></td><td>Спейс «Маркетинг» — <a href="modules/jira-06.html">урок 6</a></td></tr>
+                <tr><td><code>Recruitment tracking</code></td><td>Дає <code>Role</code> і <code>Candidate</code> без <code>Task</code> — для курсу не підійшло</td><td>згадано в <a href="modules/jira-12.html">уроці 12</a></td></tr>
+                <tr><td><code>Process control</code></td><td>«Track and improve recurring workflows.»</td><td>—</td></tr>
+                <tr><td>решта 20</td><td>Sales pipeline · Go-to-Market · UX design · Document management · Budget planning · Procurement management · Content management · Personal task planner · Financial close · Policy management · Marketing asset creation · Event planning · RFP process · Email marketing campaign · Sales lead tracking · IP infringement · Employee review · Grant application tracker · Nonprofit management · Community management</td><td><a href="modules/jira-12.html">урок 12</a> — вибір під свою сферу</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Екран: навчальний сайт курсу, 30 вересня 2026 року, безкоштовний план. ⚠ Дві
+            плитки з дуже схожим призначенням — <code>Campaign management</code> і
+            <code>Content management</code>: описи в них про кампанії й контент, а типи роботи
+            різні. Перед створенням спейсу варто відкрити <code>See details</code> і
+            подивитись, що саме шаблон принесе.
+          </p>
+
+          <h3>Інші категорії, які трапляються в курсі</h3>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: шаблони інших категорій">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Категорія</th><th>Плитки, побачені на екрані</th><th>Де в курсі</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>Software development</code></td>
+                  <td><code>Kanban</code> («Work efficiently and visualize work on a board with to do, doing, and done.») · <code>Scrum</code> · <code>Top-level planning</code> з позначкою <code>Premium</code> — і далі ще плитки. Шаблон <code>Kanban</code> дає типи <code>Epic</code> · <code>Story</code> · <code>Bug</code> · <code>Task</code> · <code>Subtask</code></td>
+                  <td>Спейс «Сайт» — <a href="modules/jira-13.html">урок 13</a></td>
+                </tr>
+                <tr>
+                  <td><code>Service management</code></td>
+                  <td><code>Blank space</code> · <code>IT service management</code> · <code>Advanced IT service management</code> <code>Premium</code> · <code>IT Operations</code> <code>Premium</code> · <code>IT asset management</code> <code>New</code> · <code>Customer service management</code> · <code>General service management</code> — і далі ще плитки. Усі належать продукту Jira Service Management</td>
+                  <td><a href="modules/jira-18.html">урок 18</a>, <a href="modules/jira-19.html">урок 19</a></td>
+                </tr>
+                <tr>
+                  <td><code>Bundles</code></td>
+                  <td>Не шаблон, а набір: «Set up multiple spaces at once… Each bundle comes with a set of templates from apps you already have access to». Приклад з екрана — «Marketing team bundle», «3 spaces in this bundle»</td>
+                  <td>—</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Екран: навчальний сайт курсу, 30 вересня 2026 року, безкоштовний план. Позначки
+            <code>Premium</code> у двох ІТ-шаблонів на безкоштовному плані лишились на місці.
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Дві пастки майстра, про які варто знати наперед</p>
+            <p>
+              <strong>Шаблон запам'ятовується.</strong> Довідка: «Jira will remember your
+              template choice and use it as the default the next time you create a space».
+              Тобто другий спейс мовчки народиться з того самого шаблону, що перший — дивись,
+              яка плитка підсвічена.
+            </p>
+            <p>
+              <strong>Опис шаблону сховано.</strong> Клік по <em>діловій</em> плитці веде
+              одразу у форму «Name your space», пропускаючи сторінку з описом; сама сторінка
+              живе за посиланням <code>See details</code> у полі <code>Template</code> тієї
+              форми. Там видно <code>Features</code>, <code>Workflow</code> і
+              <code>Work types</code> — тобто що саме шаблон принесе. У шаблонів розробки
+              сторінка опису відкривається одразу, з кнопкою <code>Use template</code>.
+            </p>
+            <p>
+              І одне уточнення про те, хто взагалі може створювати спейси: «Jira admins can
+              create spaces from any template, including company-managed and team-managed
+              spaces. Any user can create their own team-managed space unless a Jira admin
+              changes this in global permissions». Назва спейсу при цьому мусить бути
+              унікальною: «Space names are unique in Jira».
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <section id="m-jsm">
+          <h2>Портал заявок і Confluence</h2>
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Цей розділ — за документацією, без живого екрана</p>
+            <p>
+              Jira Service Management і Confluence на навчальному сайті курсу
+              <strong>не додавались</strong>. Причина проста й варта того, щоб її знати
+              заздалегідь: зсередини Jira обидва продукти додаються лише через пробний
+              <em>платний</em> період і згоду з окремою угодою — 30 вересня 2026 року вікно
+              пропонувало «14-days Standard trial» для служби заявок. Безкоштовні плани в
+              обох продуктів існують, але шлях до них іде через пробний платний. Тому все
+              нижче взяте з документації Atlassian, прочитаної 30 вересня 2026 року, і не
+              підписане словами «на безкоштовному плані».
+            </p>
+          </div>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: портал заявок і Confluence за документацією">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Напис</th><th>Що це українською</th><th>Урок</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>portal</td>
+                  <td>Портал: сайт для тих, хто подає заявки. Довідка: «a portal is the customer-facing website of every service space… For each service space you create, a corresponding portal also gets automatically created»</td>
+                  <td><a href="modules/jira-18.html">18</a></td>
+                </tr>
+                <tr>
+                  <td>help center</td>
+                  <td>Центр допомоги: спільна вітрина всіх порталів сайту. «Customers can view portals that they have permission to access from a help center»</td>
+                  <td><a href="modules/jira-18.html">18</a></td>
+                </tr>
+                <tr>
+                  <td><code>Channels</code></td>
+                  <td>Розділ налаштувань службового спейсу, де лежить адреса порталу: «In your service space, select Channels», далі «Select Open next to the portal URL»</td>
+                  <td><a href="modules/jira-19.html">19</a></td>
+                </tr>
+                <tr>
+                  <td>request type</td>
+                  <td>Тип запиту: плитка на порталі з власним набором полів («Подати рахунок», «Заявка на аванс»)</td>
+                  <td><a href="modules/jira-18.html">18</a></td>
+                </tr>
+                <tr>
+                  <td>queue</td>
+                  <td>Черга: збережений перелік заявок для тих, хто їх обробляє</td>
+                  <td><a href="modules/jira-19.html">19</a></td>
+                </tr>
+                <tr>
+                  <td>SLA</td>
+                  <td>Угода про рівень сервісу — годинник «скільки лишилось до обіцяного строку»</td>
+                  <td><a href="modules/jira-19.html">19</a></td>
+                </tr>
+                <tr>
+                  <td>agent</td>
+                  <td>Агент: людина, яка обробляє заявки. Агент займає <strong>місце</strong> в плані служби</td>
+                  <td><a href="modules/jira-18.html">18</a></td>
+                </tr>
+                <tr>
+                  <td>customer</td>
+                  <td>Клієнт: людина, яка подає заявку через портал. Місця не займає</td>
+                  <td><a href="modules/jira-18.html">18</a></td>
+                </tr>
+                <tr>
+                  <td>knowledge base</td>
+                  <td>База знань: статті-підказки на порталі. Живе не в Jira, а в Confluence: «To set up your knowledge base in Jira Service Management, at a minimum, you'll need to have a Free plan of Confluence on the same site»</td>
+                  <td><a href="modules/jira-16.html">16</a>, <a href="modules/jira-18.html">18</a></td>
+                </tr>
+                <tr>
+                  <td><code>Docs</code></td>
+                  <td>Вкладка спейсу Jira, за якою лежать сторінки Confluence. Без Confluence показує запрошення <code>Try Confluence now</code></td>
+                  <td><a href="modules/jira-16.html">16</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Довідка Atlassian: сторінки «What is a portal?» і «Add Confluence to set up knowledge base» (розділ <code>jira-service-management-cloud</code>) —
+            прочитано 30 вересня 2026 року.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="g-core">
+          <h2>Глосарій: основні слова</h2>
+          <p>
+            Інтерфейс Jira англійською — української локалізації продукту не існує. Тому
+            курс тримається правила: <strong>напис із екрана лишається англійським, а
+            пояснення — українське</strong>. Нижче — слова, які трапляються найчастіше.
+            Третя колонка потрібна тому, що Jira перейменувала половину своїх понять, і старі
+            слова нікуди не зникли: вони лишились у запитах, адресах сторінок і в частині
+            сторінок самої довідки.
+          </p>
+
+          <h3>Контейнери й одиниця роботи</h3>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця глосарію: контейнери й одиниця роботи">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Англійською</th><th>Українською в курсі</th><th>Колишнє слово й де воно живе</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>site</td><td>Сайт — увесь твій Jira за адресою виду <code>назва.atlassian.net</code></td><td>—</td></tr>
+                <tr><td>organization</td><td>Організація — рівень над сайтом: люди, продукти, рахунки. Живе на <code>admin.atlassian.com</code></td><td>—</td></tr>
+                <tr><td><code>space</code></td><td>Спейс — контейнер роботи одного відділу, напряму чи справи</td><td><strong>project</strong>: у запитах пишуть <code>project = MARK</code>, в адресі сторінки стоїть <code>/projects/</code></td></tr>
+                <tr><td><code>work item</code></td><td>Робота (одиниця роботи) — те, що ти бачиш карткою: задача, підзадача, дефект</td><td><strong>issue</strong>: адреса <code>/browse/MARK-1</code>, імена інструментів, розумні значення автоматизації</td></tr>
+                <tr><td><code>work type</code></td><td>Тип роботи — задача, підзадача, дефект, кампанія</td><td><strong>issue type</strong>: у запитах працюють обидва — <code>type</code> і <code>issuetype</code></td></tr>
+                <tr><td>key</td><td>Ключ роботи — <code>MARK-1</code>: ключ спейсу плюс номер. Це найкоротша адреса роботи</td><td>—</td></tr>
+                <tr><td>template</td><td>Шаблон — заготовка спейсу: приносить типи роботи, процес і вигляди, але <strong>не приносить самих робіт</strong></td><td>—</td></tr>
+                <tr><td>business space</td><td>Діловий спейс — для відділів, які не пишуть код: маркетинг, ремонт, найм, бухгалтерія</td><td>—</td></tr>
+                <tr><td>software space</td><td>Спейс розробки — з беклогом, спринтами й зв'язком із кодом</td><td>—</td></tr>
+                <tr><td>service space</td><td>Службовий спейс — із порталом заявок (це вже Jira Service Management)</td><td><strong>service project / service desk</strong></td></tr>
+                <tr><td>team-managed</td><td>Керований командою: налаштування живуть усередині спейсу, міняє їх адміністратор спейсу</td><td><strong>next-gen</strong>: слово збереглось в адресах сторінок довідки</td></tr>
+                <tr><td>company-managed</td><td>Керований компанією: налаштування спільні для кількох спейсів, міняє їх адміністратор Jira</td><td><strong>classic</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Поля роботи</h3>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця глосарію: поля роботи">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Англійською</th><th>Українською в курсі</th><th>Колишнє слово й де воно живе</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>Summary</code></td><td>Назва роботи — один рядок, який видно на картці дошки</td><td>У документації Atlassian уже трапляється <strong><code>Title</code></strong>; у запитах лишається <code>summary</code></td></tr>
+                <tr><td><code>Description</code></td><td>Опис — усе, що не влізло в назву</td><td>—</td></tr>
+                <tr><td><code>Status</code></td><td>Статус — етап, на якому робота зараз</td><td>—</td></tr>
+                <tr><td>status category</td><td>Категорія статусу — одна з трьох: «зробити», «у роботі», «зроблено». Саме вона, а не назва статусу, каже Jira, що робота завершена</td><td>У запитах — <code>statusCategory</code></td></tr>
+                <tr><td><code>Resolution</code></td><td>Результат розв'язання. У спейсах, якими керує команда, поле є, але руками не заповнюється</td><td>—</td></tr>
+                <tr><td><code>Assignee</code></td><td>Виконавець — одна людина. Значення <code>Automatic</code> означає «віддати тому, кого призначено за замовчуванням у налаштуваннях спейсу»</td><td>—</td></tr>
+                <tr><td><code>Reporter</code></td><td>Автор — хто завів роботу</td><td>—</td></tr>
+                <tr><td>watcher</td><td>Спостерігач — людина, яка отримує сповіщення про роботу, не будучи ні автором, ні виконавцем</td><td>—</td></tr>
+                <tr><td><code>Priority</code></td><td>Пріоритет: <code>Highest</code> · <code>High</code> · <code>Medium</code> · <code>Low</code> · <code>Lowest</code></td><td>—</td></tr>
+                <tr><td><code>Labels</code></td><td>Мітки — власні слова-ярлики. Пробілів не приймають: «Since labels cannot contain spaces, use hyphens or underscores for multi-word labels» — це стаття бази знань (адреса з <code>/kb/</code>), позначена «Cloud Only»</td><td>—</td></tr>
+                <tr><td><code>Due date</code></td><td>Дедлайн — до якої дати треба зробити</td><td>У запитах — <code>due</code> або <code>duedate</code></td></tr>
+                <tr><td><code>Start date</code></td><td>Дата початку — без неї таймлайн не намалює смуги</td><td>—</td></tr>
+                <tr><td><code>Category</code></td><td>Категорія роботи — власне поле ділових спейсів для групування. «Only one category can be added to a work item»</td><td>—</td></tr>
+                <tr><td>comment</td><td>Коментар — розмова навколо роботи. <code>@</code> плюс ім'я згадує людину й надсилає їй сповіщення</td><td>—</td></tr>
+                <tr><td>attachment</td><td>Вкладення — файл, прикріплений до роботи</td><td>—</td></tr>
+                <tr><td>link</td><td>Зв'язок — позначка «ця робота блокує ту». Не робить роботу ні батьком, ні дитиною</td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Вигляди й дошка</h3>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця глосарію: вигляди й дошка">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Англійською</th><th>Українською в курсі</th><th>Де про це в курсі</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>board</td><td>Дошка — колонки зі статусами й картки, які перетягують мишею</td><td><a href="modules/jira-06.html">урок 6</a></td></tr>
+                <tr><td>column</td><td>Колонка дошки. Одна колонка = один статус (іноді кілька)</td><td><a href="modules/jira-10.html">урок 10</a></td></tr>
+                <tr><td>swimlane</td><td>Доріжка — горизонтальний поділ дошки, наприклад за виконавцями</td><td><a href="modules/jira-06.html">урок 6</a></td></tr>
+                <tr><td>backlog</td><td>Беклог — черга робіт, які ще не взяли на дошку</td><td><a href="modules/jira-13.html">урок 13</a></td></tr>
+                <tr><td>sprint</td><td>Спринт — відрізок часу (найчастіше два тижні), на який команда бере порцію робіт</td><td><a href="modules/jira-13.html">урок 13</a></td></tr>
+                <tr><td>column limit</td><td>Ліміт колонки — стеля незавершеного: скільки робіт дозволено тримати в колонці одночасно</td><td><a href="modules/jira-13.html">урок 13</a></td></tr>
+                <tr><td><code>Group</code></td><td>Групування: розкласти дошку чи список за полем — за виконавцем, пріоритетом, категорією</td><td><a href="modules/jira-06.html">урок 6</a></td></tr>
+                <tr><td><code>Configure columns</code></td><td>Вибір колонок у вигляді <code>List</code>: які поля показувати таблицею</td><td><a href="modules/jira-06.html">урок 6</a></td></tr>
+                <tr><td>space navigation</td><td>Так документація зве рядок виглядів над спейсом; кнопка <code>+</code> у ньому зветься <code>Add to navigation</code></td><td><a href="#m-views">карта вище</a></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Джерела глосарію: сторінки довідки Atlassian, прочитані 30 вересня 2026 року, і
+            написи з екрана навчального сайту курсу. Переклади — ті самі, що в уроках: якщо
+            слово перекладено в уроці інакше, ніж тут, вір уроку й напиши нам.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="g-hier">
+          <h2>Глосарій: ієрархія й типи роботи</h2>
+          <p>
+            Ієрархія в Jira — це три поверхи: <strong>велика справа → задача →
+            підзадача</strong>. Плутанина починається з верхнього поверху: у кожного шаблону
+            спейсу він зветься по-своєму, хоча механіка та сама.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця глосарію: поверхи ієрархії й типи роботи">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Тип на екрані</th><th>Поверх</th><th>Українською в курсі</th><th>Де трапляється</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>Epic</code></td><td>верхній</td><td>Епік — велика справа, що збирає під собою задачі</td><td>Спейси розробки. Так само зветься порожній слот батька на картці <strong>будь-якого</strong> спейсу: <code>Add epic</code></td></tr>
+                <tr><td><code>Workstream</code></td><td>верхній</td><td>Напрям робіт — те саме, що епік, але в шаблоні керування проєктом</td><td>Ділові спейси з шаблону «Project management»</td></tr>
+                <tr><td><code>Campaign</code></td><td>верхній</td><td>Кампанія</td><td>Ділові спейси з шаблону «Campaign management»</td></tr>
+                <tr><td><code>Role</code></td><td>верхній</td><td>Вакансія</td><td>Шаблон «Recruitment tracking»</td></tr>
+                <tr><td><code>Task</code></td><td>середній</td><td>Задача — звичайна одиниця роботи</td><td>Усюди</td></tr>
+                <tr><td><code>Story</code></td><td>середній</td><td>Історія — задача, сформульована з погляду користувача</td><td>Спейси розробки</td></tr>
+                <tr><td><code>Bug</code></td><td>середній</td><td>Дефект — те, що зламалось</td><td>Спейси розробки; у ділових додається кнопкою</td></tr>
+                <tr><td><code>Sub-task</code></td><td>нижній</td><td>Підзадача — крок усередині задачі</td><td>Ділові спейси (з дефісом)</td></tr>
+                <tr><td><code>Subtask</code></td><td>нижній</td><td>Підзадача</td><td>Спейси розробки (без дефіса). ⚠ Це <strong>різні типи</strong>: запит <code>type = Subtask</code> не бачить <code>Sub-task</code> ділових спейсів</td></tr>
+                <tr><td>parent</td><td>—</td><td>Батьківська робота — та, що поверхом вище</td><td>Поле <code>Parent</code> є в спейсах розробки; у ділових батька ставлять у крихті картки</td></tr>
+                <tr><td>child</td><td>—</td><td>Дочірня робота — та, що поверхом нижче</td><td>Кнопка <code>Create child</code> у секції <code>Subtasks</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Екран: навчальний сайт курсу, 28–30 вересня 2026 року. Довідка Atlassian сама
+            прив'язує слово «epic» до спейсів розробки: «By default, this work type will be
+            called epic in software spaces» і «By default, the work type called Epic is
+            associated with the hierarchy level for larger pieces of work (level 1)» (сторінки
+            «Manage epics in team-managed spaces» і «Configure the work type hierarchy»,
+            прочитано 29 вересня 2026 року). Слова <code>Workstream</code> у довідці Atlassian
+            немає взагалі — воно відоме лише з екрана.
+          </p>
+          <div class="ds-note">
+            <span class="ds-note__glyph" aria-hidden="true">i</span>
+            <p class="ds-note__title">Чому курс каже «велика справа», а не «етап»</p>
+            <p>
+              Слово «етап» у курсі зайняте: ним з першого уроку називають <strong>статус і
+              колонку дошки</strong> («колонка = етап роботи»). Тому верхній поверх ієрархії
+              курс зве «велика справа», а конкретні типи — своїми іменами: «напрям робіт
+              (<code>Workstream</code>)», «кампанія (<code>Campaign</code>)», «епік
+              (<code>Epic</code>)».
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <section id="g-auto">
+          <h2>Глосарій: пошук, звіти й автоматизація</h2>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця глосарію: пошук, звіти й автоматизація">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Англійською</th><th>Українською в курсі</th><th>Колишнє слово й де воно живе</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>JQL</td><td>Мова запитів Jira (Jira Query Language) — спосіб описати «покажи мені саме це» одним рядком</td><td>Усі поля в запиті звуться старими іменами: <code>project</code>, <code>issuetype</code></td></tr>
+                <tr><td>filter</td><td>Фільтр — збережений запит. Його можна показати колезі, підписати на листи й покласти в гаджет</td><td>Кнопка на екрані — <code>Save filter</code>, у довідці подекуди <code>Save as</code></td></tr>
+                <tr><td>subscription</td><td>Підписка — лист із результатами фільтра за розкладом</td><td>—</td></tr>
+                <tr><td>dashboard</td><td>Дашборд — сторінка з віконцями, кожне з яких показує свій зріз даних</td><td>—</td></tr>
+                <tr><td>gadget</td><td>Гаджет — одне таке віконце: діаграма, лічильник, список</td><td>—</td></tr>
+                <tr><td><code>Reports</code></td><td>Звіти. ⚠ Сам вигляд <code>Reports</code> — це <strong>оглядова панель</strong> із плитками й діаграмами; окремі звіти лежать за кнопкою <code>More reports</code></td><td>У діловому спейсі назви звітів досі зі словом «issue»</td></tr>
+                <tr><td><code>flow</code></td><td>Flow — правило автоматизації: «коли сталось <em>це</em> — зроби <em>те</em>»</td><td><strong>rule</strong>: у документації й в адресах сторінок досі «rule»</td></tr>
+                <tr><td>trigger</td><td>Тригер — подія, з якої flow починається</td><td>—</td></tr>
+                <tr><td>condition</td><td>Умова — перевірка, після якої flow або йде далі, або спиняється</td><td>—</td></tr>
+                <tr><td>action</td><td>Дія — те, що flow робить: змінює поле, пише коментар, шле лист</td><td>—</td></tr>
+                <tr><td>branch</td><td>Гілка — «зроби це для кожної підзадачі» або «для батьківської роботи»</td><td>—</td></tr>
+                <tr><td>step</td><td>Крок — будь-яка з названих частин. Саме кроки рахує майбутня модель обліку</td><td>У старих сторінках довідки — <strong>component</strong></td></tr>
+                <tr><td>smart value</td><td>Розумне значення — підстановка у подвійних фігурних дужках, наприклад <code>{{issue.key}}</code></td><td>Усередині дужок лишились старі слова: <code>issue</code>, <code>project</code></td></tr>
+                <tr><td><code>Audit log</code></td><td>Журнал виконань — що і коли робила автоматизація</td><td>—</td></tr>
+                <tr><td><code>Usage</code></td><td>Використання — скільки автоматизації витрачено з дозволеного</td><td>—</td></tr>
+                <tr><td>actor</td><td>Виконавець flow: від чийого імені автоматизація діє. За замовчуванням — службовий обліковий запис <code>Automation for Jira</code></td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Докладніше про кожен рядок — довідники
+            <a href="jira-ref-jql.html">«JQL: поля, оператори, функції»</a> і
+            <a href="jira-ref-automation.html">«Автоматизація: тригери, дії, smart values»</a>.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="g-people">
+          <h2>Глосарій: люди й доступ</h2>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця глосарію: люди й доступ">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Англійською</th><th>Українською в курсі</th><th>Що варто знати</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Atlassian account</td><td>Обліковий запис Atlassian — один на всі продукти й усі сайти</td><td>Пароль і двоетапна перевірка — у нього, не в Jira</td></tr>
+                <tr><td>user</td><td>Користувач продукту — той, кому дали доступ до Jira</td><td><strong>Місце займає доступ, а не активність:</strong> «Additional users are automatically counted towards billing even if they don't accept your invite or log in»</td></tr>
+                <tr><td>site admin</td><td>Адміністратор сайту — керує самою Jira: налаштуваннями, спейсами, глобальними правами</td><td>Живе в шестірні Jira</td></tr>
+                <tr><td>organization admin</td><td>Адміністратор організації — керує людьми, продуктами й рахунками</td><td>Живе на <code>admin.atlassian.com</code>. Це <strong>інша</strong> посада, ніж адміністратор сайту</td></tr>
+                <tr><td>space admin</td><td>Адміністратор спейсу — керує одним спейсом</td><td>На безкоштовному плані ним є кожен, хто має доступ до Jira</td></tr>
+                <tr><td>group</td><td>Група — набір людей, якому дають доступ гуртом</td><td>Доступ до продукту дають саме через групу</td></tr>
+                <tr><td>role</td><td>Роль у спейсі: <code>Administrator</code> · <code>Member</code> · <code>Viewer</code></td><td>На безкоштовному плані ролі <strong>не налаштовуються</strong> — сторінка <code>Access</code> показує «This space has 1 role»</td></tr>
+                <tr><td>permission</td><td>Дозвіл — право на конкретну дію</td><td>Схеми дозволів — можливість платних планів</td></tr>
+                <tr><td><code>Open access</code></td><td>Відкритий доступ — спейс бачить кожен, хто має доступ до сайту</td><td>На безкоштовному плані це єдиний режим: «Access to this space is currently Open. To customize user access, such as roles and permissions, upgrade your plan to Standard»</td></tr>
+                <tr><td>anonymous access</td><td>Анонімний доступ — коли сторінку бачить людина без входу</td><td>«Free Jira sites can't be opened to the public»</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Довідка Atlassian: «What is the Free Jira Cloud plan?», «Permissions limitations in Free Jira sites», «Manage users and user tiers», «Allow dashboards and filters in
+            your site to be shared publicly» — усі прочитані 30 вересня 2026 року. Екран:
+            навчальний сайт курсу, 30 вересня 2026 року, безкоштовний план.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="g-jsm">
+          <h2>Глосарій: служба заявок</h2>
+          <p>
+            Слова Jira Service Management. Вони знадобляться, якщо ти колись увімкнеш портал заявок; у решті курсу вони не вживаються.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця глосарію: служба заявок">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Англійською</th><th>Українською в курсі</th><th>Що варто знати</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Jira Service Management</td><td>Служба заявок — окремий продукт Atlassian на тому самому сайті</td><td>Скорочення в довідці — JSM</td></tr>
+                <tr><td>service space</td><td>Службовий спейс — спейс із порталом</td><td>У списку спейсів має свій тип</td></tr>
+                <tr><td>portal</td><td>Портал — сторінка, через яку колеги подають заявки</td><td>Створюється сам разом зі службовим спейсом</td></tr>
+                <tr><td>help center</td><td>Центр допомоги — спільна вітрина порталів сайту</td><td>Кілька центрів допомоги — можливість планів Premium і Enterprise</td></tr>
+                <tr><td>request type</td><td>Тип запиту — плитка на порталі зі своїм набором полів</td><td>Це не те саме, що тип роботи, хоч під ним і лежить тип роботи</td></tr>
+                <tr><td>queue</td><td>Черга — перелік заявок для тих, хто їх обробляє</td><td>Будується запитом, а не руками</td></tr>
+                <tr><td>SLA</td><td>Угода про рівень сервісу — годинник «скільки лишилось до обіцяного строку»</td><td>Є й на безкоштовному плані служби</td></tr>
+                <tr><td>agent</td><td>Агент — той, хто обробляє заявки</td><td>Займає місце в плані: безкоштовний план служби дає <strong>три</strong> агенти</td></tr>
+                <tr><td>customer</td><td>Клієнт — той, хто подає заявку</td><td>Місця не займає, кількість не обмежена</td></tr>
+                <tr><td>knowledge base</td><td>База знань — статті-підказки на порталі</td><td>Живе в Confluence, а не в Jira</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            За документацією Atlassian, прочитаною 30 вересня 2026 року; живого екрана служби
+            заявок у курсу немає — <a href="#m-jsm">пояснення вище</a>.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="g-traps">
+          <h2>Глосарій: слова-пастки</h2>
+          <p>
+            Кілька слів Jira означають різні речі в різних місцях. Це не недбалість
+            перекладу — так в оригіналі, і саме на цих словах найлегше зрозуміти інструкцію
+            навпаки.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: слова з кількома значеннями">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Слово</th><th>Скільки значень</th><th>Які саме</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>кошик</td>
+                  <td>три</td>
+                  <td>Кошик <strong>спейсів</strong> — туди потрапляє видалений спейс і лежить там 60 днів. Кошик <strong>дашбордів</strong> — окремий, теж на 60 днів. А для окремої роботи кошика <strong>немає взагалі</strong>: видалення роботи незворотне</td>
+                </tr>
+                <tr>
+                  <td>категорія</td>
+                  <td>три</td>
+                  <td><strong>Категорія статусу</strong> (зробити · у роботі · зроблено) — механіка Jira. <strong>Поле <code>Category</code></strong> на картці ділового спейсу — власна мітка для групування. <strong>Категорія спейсу</strong> в налаштуваннях <code>Details</code> — групування самих спейсів у списку</td>
+                </tr>
+                <tr>
+                  <td>агент</td>
+                  <td>три</td>
+                  <td><strong>Агент служби заявок</strong> — людина, що обробляє заявки. <strong>Rovo-агент</strong> — помічник на основі AI (кнопка <code>Add agent</code>). <strong><code>Automation for Jira</code></strong> — службовий обліковий запис, від імені якого діє автоматизація</td>
+                </tr>
+                <tr>
+                  <td>project</td>
+                  <td>два</td>
+                  <td>У Jira це <strong>колишня назва спейсу</strong> — вона й досі в запитах і в адресах. Але в бічній панелі є ще пункт <code>Projects</code>, і це <strong>інший продукт Atlassian</strong>, який до спейсів Jira не має стосунку</td>
+                </tr>
+                <tr>
+                  <td>етап</td>
+                  <td>один — у курсі</td>
+                  <td>У цьому курсі «етап» означає <strong>лише статус і колонку дошки</strong>. Верхній поверх ієрархії курс зве «велика справа» або називає типом з екрана</td>
+                </tr>
+                <tr>
+                  <td>фільтр</td>
+                  <td>два</td>
+                  <td><strong>Збережений фільтр</strong> — запит JQL, який живе окремо й працює в усіх спейсах. <strong>Фільтр вигляду</strong> (<code>Filter</code> → <code>Save filter</code> на дошці ділового спейсу) — інша річ: «Your saved filters are specific to the space you create them in», і «you can only apply one at a time»</td>
+                </tr>
+                <tr>
+                  <td>архів і кошик</td>
+                  <td>два різні</td>
+                  <td><strong>Архів</strong> ховає роботу, лишаючи її назавжди й даючи повернути. <strong>Кошик</strong> — крок до остаточного видалення. Це різні механізми з різними правилами</td>
+                </tr>
+                <tr>
+                  <td><code>Docs</code> і <code>Attachments</code></td>
+                  <td>два різні</td>
+                  <td><strong><code>Attachments</code></strong> — файли всередині твоїх робіт, доступ той самий, що до роботи. <strong><code>Docs</code></strong> — вікно в Confluence: інший продукт зі своїми людьми й своїми правилами доступу</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Строки кошика — з діалогів підтвердження на екрані навчального сайту курсу
+            (30 вересня 2026 року, безкоштовний план) і з довідки Atlassian; цитати —
+            <a href="#l-data">у розділі про дані</a>.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="l-plan">
+          <h2>План: люди, сайт, сховище</h2>
+          <p>
+            Сюди відсилають <a href="modules/jira-01.html">урок 1</a> (скільки людей вміщує
+            безкоштовний план), <a href="modules/jira-02.html">урок 2</a> (весь перелік меж),
+            <a href="modules/jira-03.html">урок 3</a> (один сайт і незмінна адреса),
+            <a href="modules/jira-05.html">урок 5</a> (місце на диску),
+            <a href="modules/jira-09.html">урок 9</a>, <a href="modules/jira-17.html">урок
+            17</a>, <a href="modules/jira-18.html">урок 18</a> і
+            <a href="modules/jira-21.html">урок 21</a>.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: межі безкоштовного плану Jira — люди, сайт, сховище">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Межа</th><th>На Free</th><th>Дослівно з джерела</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Користувачі</td>
+                  <td><strong>до 10</strong></td>
+                  <td>«Up to 10 users» — таблиця планів, рядок <code>User limit</code>. Те саме показує вікно за кнопкою <code>Upgrade</code>: «You've invited 1 out of 10 users»</td>
+                </tr>
+                <tr>
+                  <td>Одинадцятий</td>
+                  <td>додати <strong>можна</strong></td>
+                  <td>«Adding more users will automatically move you from a Free plan to a Standard plan trial. You can switch back to a Free plan at any time by reducing your user count.» Те саме з екрана: «If you add more than 10 users, you'll be automatically upgraded». Тобто Jira не спиняє — вона <strong>переводить сайт на платний пробний план</strong></td>
+                </tr>
+                <tr>
+                  <td>Що займає місце</td>
+                  <td>доступ, не активність</td>
+                  <td>«Atlassian app pricing is based on the number of users who can access the app» · «Additional users are automatically counted towards billing even if they don't accept your invite or log in»</td>
+                </tr>
+                <tr>
+                  <td>Сайтів</td>
+                  <td><strong>один</strong></td>
+                  <td>«One» — таблиця планів, рядок <code>Site limit</code> («The number of instances that can be licensed under a plan»)</td>
+                </tr>
+                <tr>
+                  <td>Сховище</td>
+                  <td><strong>2 ГБ</strong></td>
+                  <td>«2 GB file storage» — таблиця планів. Розгорнуто: «The Free plans for Jira and Jira Service Management have a file storage limit of 2 GB per app. The Standard plan allows up to 250 GB per app, and file storage is unlimited on Premium plans»</td>
+                </tr>
+                <tr>
+                  <td>Підтримка</td>
+                  <td>лише спільнота</td>
+                  <td>«Community support» — таблиця планів, рядок <code>Support</code>. Тобто питання ставлять на форумі Atlassian Community, а не в підтримку</td>
+                </tr>
+                <tr>
+                  <td>Адреса сайту</td>
+                  <td><strong>не змінюється</strong></td>
+                  <td>«If all of your Jira Cloud apps are on the Free plan, you can't update your site's URL after your site is created. Paid plans are able to request an updated URL from Atlassian Support»</td>
+                </tr>
+                <tr>
+                  <td>Неактивність</td>
+                  <td>сайт можуть вимкнути</td>
+                  <td>«Atlassian reserves the right to deactivate Free Jira Cloud sites due to inactivity.» Далі там само: «If you're a site admin, we'll send you emails to let you know if your site has been inactive and is at risk of being deactivated»</td>
+                </tr>
+                <tr>
+                  <td>Журнал аудиту</td>
+                  <td><strong>немає</strong></td>
+                  <td>«If all of your Jira Cloud apps are on the Free plan, you won't have access to audit logs to track events like changes to global permissions on your site»</td>
+                </tr>
+                <tr>
+                  <td>Дозволи й ролі</td>
+                  <td><strong>не налаштовуються</strong></td>
+                  <td>«Space permissions, roles, and work-level security aren't customizable in Jira Free. If your site has always been on a Free plan, everyone with access to Jira is an admin for all Jira spaces.» Окрема сторінка дає список під заголовком «Those using free Jira sites can't:» — «assign space roles in Jira Cloud (or in Jira Service Management)», «configure work item security schemes», «restrict permissions using schemes»</td>
+                </tr>
+                <tr>
+                  <td>Публічний доступ</td>
+                  <td><strong>немає</strong></td>
+                  <td>«Standard, Premium, and Enterprise Jira sites can share filters and dashboards publicly. Free Jira sites can't be opened to the public»</td>
+                </tr>
+                <tr>
+                  <td>Застосунки</td>
+                  <td>є, частина — обмежено</td>
+                  <td>«Some apps might have reduced functionality in Jira Free. This is usually because they utilize features like permissions that can't be changed in Free.» Там само — іменний перелік застосунків, несумісних із безкоштовним планом</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Довідка Atlassian: «Explore Jira Cloud plans» і «What is the Free Jira Cloud
+            plan?» (розділ <code>jira-cloud-administration</code>), «Manage users and user
+            tiers» (розділ <code>subscriptions-and-billing</code>), «Permissions limitations in Free Jira sites», «Allow dashboards and filters in your site to be shared
+            publicly», «Add an attachment to a work item» — усі прочитані <strong>30 вересня
+            2026 року</strong>. Екран: вікно за кнопкою <code>Upgrade</code> на навчальному
+            сайті курсу, 30 вересня 2026 року, безкоштовний план.
+          </p>
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Одне місце, де довідка й консоль не збігаються</p>
+            <p>
+              У таблиці планів на сторінці довідки в рядку <code>User limit</code> для плану
+              Standard стоїть «Up to 100,000 users», а в таблиці планів усередині самої
+              консолі Atlassian того ж дня — «50,000 users». Для безкоштовного плану це нічого
+              не міняє (там і там «до 10»), але це наочний приклад того, чому біля числа має
+              стояти джерело: два тексти Atlassian про те саме розходяться в один і той самий
+              день.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <section id="l-mail">
+          <h2>Дві добові межі на листи</h2>
+          <p>
+            «Ліміт на листи» в Jira означає <strong>дві різні речі</strong>. Числа схожі,
+            механізми різні, сторінки довідки теж різні — і вони не складаються в одну межу.
+            Сюди відсилають <a href="modules/jira-02.html">урок 2</a>,
+            <a href="modules/jira-05.html">урок 5</a>, <a href="modules/jira-14.html">урок
+            14</a>, <a href="modules/jira-15.html">урок 15</a>,
+            <a href="modules/jira-16.html">урок 16</a> і
+            <a href="modules/jira-23.html">іспит</a>.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: дві добові межі на листи">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Яка межа</th><th>Скільки</th><th>Дослівно з джерела</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Сповіщення Jira</td>
+                  <td><strong>100 на день</strong></td>
+                  <td>«Jira can send a maximum of 100 emails per day on the Free plan. After 100 emails, notifications are paused until the following day. You can upgrade your plan to allow for more email notifications.» Там само уточнення про перехід на платний: «When upgrading to a paid plan, it may take up to 30 days for this limit to be lifted»</td>
+                </tr>
+                <tr>
+                  <td>Листи автоматизації</td>
+                  <td><strong>100 за 24 години</strong></td>
+                  <td>Рядок <code>Send email action</code> у таблиці службових меж: «100 emails in a 24-hour period. This limit only applies to the Free plan for Jira Cloud and Trial licenses»</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Перший рядок — сторінка «What is the Free Jira Cloud plan?» (розділ
+            <code>jira-cloud-administration</code>), другий — «Automation service limits»
+            (розділ <code>cloud-automation</code>); обидві прочитані <strong>30 вересня 2026
+            року</strong>. Ті самі два рядки з тими самими цитатами лежать і в довіднику
+            <a href="jira-ref-automation.html#limits-email">«Автоматизація: тригери, дії, smart
+            values»</a> — це одні й ті самі межі, названі двічі там, куди по них приходять.
+          </p>
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Рядок довідки названий дією, якої вже немає</p>
+            <p>
+              Межа автоматизації підписана в таблиці як <code>Send email action</code>, але
+              дії з такою назвою в конструкторі більше немає: 30 вересня 2026 року на
+              безкоштовному сайті в панелі <code>Add an action</code> стояла
+              <code>Send customized email</code>, а <code>Send email</code> у переліку була
+              відсутня. Чи поширюється межа й на нову дію, сторінка довідки не каже. Тому в
+              курсі про цю межу говорять описово — «у листів, які надсилає автоматизація, є
+              своя окрема добова межа», — а не назвою кнопки.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <section id="l-auto">
+          <h2>Автоматизація</h2>
+          <p>
+            Тут є тонкість, через яку легко вирішити, що Atlassian суперечить сама собі:
+            <strong>одиниць обліку дві</strong>. Чинна модель рахує <em>запуски flows</em>,
+            майбутня — <em>кроки</em>. Обидві видно на одній сторінці, під двома перемикачами.
+            Сюди відсилають <a href="modules/jira-14.html">урок 14</a>,
+            <a href="modules/jira-15.html">урок 15</a>,
+            <a href="modules/jira-21.html">урок 21</a> і
+            <a href="modules/jira-23.html">іспит</a>.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: дві моделі обліку автоматизації">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Модель</th><th>Одиниця й число</th><th>Де це видно й дослівно</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>Current usage model</code></td>
+                  <td><strong>100 запусків flow на місяць</strong></td>
+                  <td>Чинна модель. Сторінка: «This month's usage — Shows the number of flow runs available». Таблиця з колонками <code>Product · Current usage · Used · Remaining · Total limit · Plan</code>; у рядку <code>Jira</code> 30 вересня 2026 року стояли <code>Total limit</code> <strong>100</strong> і план <code>Free</code>. Те саме число називає таблиця планів у консолі: «100 rule runs per month»</td>
+                </tr>
+                <tr>
+                  <td><code>Upcoming usage model</code></td>
+                  <td><strong>150 кроків</strong> на підписку</td>
+                  <td>Модель, яку Atlassian готує на заміну. У довідці таблиця «Automation step per month» у рядку <code>Jira</code> для безкоштовного плану має значення «150 per subscription»; те саме число показує сторінка підписки: <code>Usage Contribution</code> → «Automation steps 150 steps». Що таке крок: «An automation step is a single executed part of an automation flow, including triggers, conditions, actions, branches, and loops»</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Екран: навчальний сайт курсу, 30 вересня 2026 року, безкоштовний план —
+            <code>Settings</code> → <code>System</code> → <code>Global automation</code> →
+            вкладка <code>Usage</code>. Довідка: «How is your automation usage calculated» (розділ
+            <code>cloud-automation</code>) і таблиця планів «Explore Jira Cloud plans»,
+            прочитані того ж дня. ⚠ У таблиці планів на сторінці довідки в рядку
+            <code>Automation</code> для безкоштовного плану стоять саме <strong>кроки</strong>
+            («150 steps per subscription»), а в консолі — <strong>запуски</strong> («100 rule
+            runs per month»). Це не помилка: дві сторінки Atlassian описують дві різні моделі,
+            і поки що діє та, яку показує вкладка <code>Usage</code> у тебе на сайті.
+          </p>
+
+          <p>
+            Одна деталь, яка спливає в <a href="modules/jira-21.html">уроці 21</a>: повторювані
+            роботи (ті, що Jira створює сама за розкладом) рахуються так само, як будь-яка інша
+            автоматизація — «Executions of these automations count towards edition usage
+            limits». Тобто щотижневе нагадування з'їдає той самий місячний запас.
+          </p>
+
+          <h3>Коли почнуть брати гроші за перевитрату</h3>
+          <p>
+            Дослівно: «On December 3, 2026, extra usage billing takes effect»; «Extra usage is
+            billed at <strong>$0.50 per 1,000 additional steps</strong>»; сповіщення приходять
+            двічі — «Organization and billing admins receive notifications at 80% and 100%
+            usage». І окремо про те, що буде, якщо перевитрату не ввімкнено: «If extra usage
+            is disabled and you reach 100% of your total steps allowance, your automation flows
+            will stop running until usage resets on your usage billing date». Запас
+            поновлюється щомісяця: «Allowances refresh monthly».
+          </p>
+
+          <h3>Службові межі, однакові на всіх планах</h3>
+          <p>
+            Ці числа обмежують не план, а сам рушій автоматизації. Вони стають важливими,
+            коли flow раптом зупиняється з дивною помилкою.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: службові межі автоматизації">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Межа</th><th>Скільки</th><th>Що це означає</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>Steps per flow</code></td><td>65</td><td>«A single flow contains more than 65 conditions, branches, and actions» — стільки кроків уміщує один flow</td></tr>
+                <tr><td><code>Work items searched</code></td><td>999</td><td>«A scheduled JQL search that isn't streamlined enough and returns more than 999 work items»</td></tr>
+                <tr><td><code>Lookup work items</code></td><td>100</td><td>«When entering a JQL query for the Lookup work items action, only the first 100 work items will be used»</td></tr>
+                <tr><td><code>New subtasks per action</code></td><td>50</td><td>«A flow executes the creation of over 50 subtasks»</td></tr>
+                <tr><td>Одночасні flows</td><td><strong>Free: 5</strong></td><td>У рядку <code>Number of flows that can run at the same time</code> стоять чотири значення — «Free: 5», «Standard: 10», «Premium: 20», «Enterprise: 30» — і пояснення: «If you have multiple apps on different plans, only the highest limit will count». Це єдиний рядок тієї таблиці, що залежить від плану</td></tr>
+                <tr><td><code>Loop detection</code></td><td>10</td><td>«This controls how many times a flow can trigger itself (or other flows) in quick succession before the execution is stopped and marked as a LOOP»</td></tr>
+                <tr><td>Час обробки</td><td>60 хв на 12 год</td><td>Рядок <code>Daily processing time</code>. Перевищення видно в журналі статусом <code>THROTTLED</code></td></tr>
+                <tr><td>Гілка за раз</td><td>150</td><td>«For each page» branch: 150 pages · «For each task» branch: 150 tasks · «For each related entities (CQL)»: 150 CQL query results</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Довідка Atlassian: «Automation service limits» і «How is your automation usage calculated»
+            (розділ <code>cloud-automation</code>), прочитані <strong>30 вересня 2026
+            року</strong>. Ті самі числа й та сама таблиця — у довіднику
+            <a href="jira-ref-automation.html">«Автоматизація: тригери, дії, smart values»</a>,
+            розділ про межі безкоштовного плану.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="l-space">
+          <h2>Межі налаштування спейсу</h2>
+          <p>
+            Скільки статусів, переходів, типів роботи й власних полів дозволяє Jira. Ці межі
+            <strong>не залежать від плану</strong> — вони однакові й на безкоштовному, і на
+            платному; залежать вони від типу спейсу. Практично в них не впирається команда до
+            десяти людей: тісно від власних полів стає набагато раніше, ніж Jira скаже
+            «досить». Сюди відсилають <a href="modules/jira-06.html">урок 6</a>,
+            <a href="modules/jira-10.html">урок 10</a>,
+            <a href="modules/jira-11.html">урок 11</a> і
+            <a href="modules/jira-13.html">урок 13</a>.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: межі налаштування спейсу, керованого командою">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Чого</th><th>Скільки</th><th>Дослівно з довідки</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Статусів</td>
+                  <td><strong>100</strong> на спейс, <strong>50</strong> на один процес</td>
+                  <td>«You can add up to 100 statuses across all of your space's workflows, and up to 50 statuses in any one workflow»</td>
+                </tr>
+                <tr>
+                  <td>Переходів</td>
+                  <td><strong>200</strong> на процес</td>
+                  <td>«You can add up to 200 transitions to your workflow»</td>
+                </tr>
+                <tr>
+                  <td>Типів роботи</td>
+                  <td><strong>30</strong> на спейс</td>
+                  <td>«You can add up to 30 work types» — і для готових типів зі списку, і для власних, створених кнопкою <code>Create work type</code></td>
+                </tr>
+                <tr>
+                  <td>Власних полів</td>
+                  <td><strong>50</strong> на спейс</td>
+                  <td>«You can create up to 50 custom fields in a team-managed space.» Там само про межі самих полів: «Fields in team-managed spaces are contained within the space itself. This means that you can't share a field created in one team-managed space with another team-managed space»</td>
+                </tr>
+                <tr>
+                  <td>Варіантів у списку</td>
+                  <td><strong>55</strong></td>
+                  <td>«You can add up to 55 options to a dropdown field» — і стільки ж для поля з галочками: «You can add up to 55 options to a checkbox field»</td>
+                </tr>
+                <tr>
+                  <td>Довгого тексту</td>
+                  <td>32 767 знаків</td>
+                  <td>«You can add up to 32,767 characters into a paragraph field»</td>
+                </tr>
+                <tr>
+                  <td>Дошок у спейсі</td>
+                  <td><strong>10</strong></td>
+                  <td>«If you're a space admin, you can create up to 10 different board views in a space to meet specific needs for your team»</td>
+                </tr>
+                <tr>
+                  <td>Робіт на дошці</td>
+                  <td>5 000</td>
+                  <td>«your board, backlog, sprint section, and timeline can each only show up to 5,000 work items at a time». Понад це Jira показує перші 5 000 і попереджає заздалегідь</td>
+                </tr>
+                <tr>
+                  <td>Обов'язкові поля</td>
+                  <td>більш як <strong>три</strong> — і діалог створення стає повним</td>
+                  <td>«Required fields — Up to 3 required fields appear as chips below the description»; а далі: «The full form opens automatically when your space configuration requires it, for example if your space has more than three required fields, uses custom tabs, custom create screens, Forge UI app modifications, or a complex field type». Тобто чотири обов'язкові поля — лише <em>одна</em> з причин, через які компактна форма перестає відкриватись. ⚠ Назва роботи в ці три не рахується: у живому досліді 30 вересня 2026 року повна форма з'явилась при <strong>чотирьох</strong> обов'язкових полях, крім <code>Summary</code>. Дослід зроблено на одному типі роботи одного спейсу, тож чи рахує Jira поля на тип чи на спейс, курс не розрізнив</td>
+                </tr>
+                <tr>
+                  <td>Назва спейсу</td>
+                  <td>80 знаків</td>
+                  <td>Перемикач <code>Maximum space name size</code> у налаштуваннях сайту; поруч <code>Maximum space key size</code> — 10</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Довідка Atlassian: «Create, edit and delete statuses in team-managed spaces»,
+            «Manage work item transitions in team-managed spaces», «Set up work types in team-managed spaces», «Customize work item fields in team-managed spaces», «Available custom fields for team-managed spaces», «What is a board in business spaces?», «Work item limits in team-managed spaces» (розділ
+            <code>jira-software-cloud</code>) — усі прочитані <strong>30 вересня 2026
+            року</strong>. Два останні рядки — з екрана налаштувань сайту навчального сайту
+            курсу, 17 вересня 2026 року (тоді на сайті ще діяв пробний платний період).
+          </p>
+          <div class="ds-note">
+            <span class="ds-note__glyph" aria-hidden="true">i</span>
+            <p class="ds-note__title">Одне місце, де довідка відстала від екрана</p>
+            <p>
+              Про новий статус довідка пише: «By default, new statuses allow work items in any
+              other status to move into them. The Any status label represents this kind of
+              «global» transition». На живому екрані 28 вересня 2026 року це було не так:
+              у діалозі <code>Add status</code> прапорець (квадратик, який клацається) «Allow transitions from any status»
+              стояв <strong>вимкненим</strong>, і бульбашка <code>Any</code> з'являлась у
+              нового статусу лише тоді, коли його ввімкнути. Якщо твій новий статус не приймає карток звідусіль — річ у цьому прапорці.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <section id="l-data">
+          <h2>Дані: файли, експорт, імпорт, кошик</h2>
+          <p>
+            Числа, які спливають, коли роботи стає багато: скільки важить файл, скільки рядків
+            влазить у вивантаження, скільки днів лежить видалене. Сюди відсилають
+            <a href="modules/jira-05.html">урок 5</a>,
+            <a href="modules/jira-07.html">урок 7</a>,
+            <a href="modules/jira-08.html">урок 8</a>,
+            <a href="modules/jira-12.html">урок 12</a>,
+            <a href="modules/jira-20.html">урок 20</a> і
+            <a href="modules/jira-21.html">урок 21</a>.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: межі на файли, експорт, імпорт і кошик">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Що</th><th>Скільки</th><th>Дослівно з джерела</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Розмір файла</td>
+                  <td><strong>1 ГБ</strong> за замовчуванням</td>
+                  <td>«By default, the maximum size of any one file is 1GB, but your Jira admin can change this limit». Але сумарне сховище безкоштовного плану — 2 ГБ, тож практична межа саме там</td>
+                </tr>
+                <tr>
+                  <td>Вкладень на роботі</td>
+                  <td>понад 150 — списком</td>
+                  <td>«Once a work item has over 150 attachments, they'll display as a list» — це не заборона, а зміна вигляду</td>
+                </tr>
+                <tr>
+                  <td>Масова зміна</td>
+                  <td><strong>1 000</strong> робіт за раз</td>
+                  <td>«You can edit fields in up to 1,000 work items at the same time»</td>
+                </tr>
+                <tr>
+                  <td>Вивантаження CSV</td>
+                  <td><strong>10 000</strong> робіт</td>
+                  <td>«In Jira Cloud, exporting up to 10,000 work items using the asynchronous Export CSV feature from the Issue Navigator is supported». Обхідний шлях для більших обсягів на тій самій сторінці має свою межу: «Each batch export has a maximum limit of 1,000 work items»</td>
+                </tr>
+                <tr>
+                  <td>Завантаження CSV</td>
+                  <td>радять <strong>1 500</strong> на файл</td>
+                  <td>Рядок «Recommended number of work items per file» має значення «1500 work items», а поруч «Estimated time to import» — «Approximately 1 hour». Це порада, а не заборона</td>
+                </tr>
+                <tr>
+                  <td>Оновлення з CSV</td>
+                  <td>за ключем роботи</td>
+                  <td>«To update existing work items, your CSV file needs to contain a column that maps to Work Item Key. If a work item exists for a given key, it will be updated»</td>
+                </tr>
+                <tr>
+                  <td>Лист підписки</td>
+                  <td><strong>200</strong> результатів</td>
+                  <td>«Note, only the first 200 results of a filter are sent» — решта знайденого в лист не потрапляє</td>
+                </tr>
+                <tr>
+                  <td>Кошик спейсів</td>
+                  <td><strong>60 днів</strong></td>
+                  <td>Діалог підтвердження на екрані: «The space along with its work items, Jira components, attachments, and versions will be available in the trash for 60 days after which it will be permanently deleted. Only Jira admins can restore the space from the trash»</td>
+                </tr>
+                <tr>
+                  <td>Кошик дашбордів</td>
+                  <td><strong>60 днів</strong></td>
+                  <td>Довідка: «Dashboards in the trash can be restored within 60 days of them moving to the trash». Діалог на екрані додає, хто саме може повернути: «Trashed dashboards can only be restored by your Jira administrator, and are permanently deleted from your Jira site after 60 days»</td>
+                </tr>
+                <tr>
+                  <td>Видалена робота</td>
+                  <td><strong>кошика немає</strong></td>
+                  <td>«When a Jira work item is deleted, it is removed from the database and can no longer be accessed or viewed. Atlassian's RDS backups can't restore individual work items» — тобто видалення окремої роботи незворотне, на відміну від спейсу чи дашборда</td>
+                </tr>
+                <tr>
+                  <td>Резервна копія</td>
+                  <td><strong>48 годин</strong> між копіями з файлами</td>
+                  <td>«You can backup your Jira data at any time. However, if you include attachments, avatars, and/or logos, you'll need to allow 48 hours between backups»</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Довідка Atlassian: «Add an attachment to a work item», «Edit multiple work items»,
+            «Manage filters» (розділ <code>jira-software-cloud</code>), «Import data from a CSV
+            file», «Export data from Jira Cloud», «Manage dashboards» (розділ
+            <code>jira-cloud-administration</code>) — прочитані <strong>30 вересня 2026
+            року</strong>. Дві статті бази знань (адреса з <code>/kb/</code>, обидві з
+            позначкою «Platform Notice: Cloud Only»): «Export over 10,000 work items in Jira
+            Cloud» і «Restore deleted work items in Jira Cloud using local backup files».
+            Екран: діалоги підтвердження на навчальному сайті курсу, 30 вересня 2026 року,
+            безкоштовний план.
+          </p>
+
+          <h3>Що не потрапляє в резервну копію</h3>
+          <p>
+            Заголовок розділу довідки — «Data that can't be exported», і під ним шість пунктів,
+            дослівно: «<strong>Automation flows</strong>» · «<strong>Third-party apps and app
+            data</strong>» · «Jira Service Management features powered by Opsgenie, (including
+            all content accessed through the Opsgenie URL, as well as alerts and on-call
+            schedules)» · «Assets for Jira Service Management» · «App access settings (you'll
+            need to add users to groups for permissions to apply)» · «Views configurations,
+            insights, and vote fields for Jira Product Discovery». Про перший рядок там само є втішне уточнення: «Although automation
+            flows aren't automatically exported, you can manually export and import automation
+            flows».
+          </p>
+
+          <h3>Зміна ключа спейсу</h3>
+          <p>
+            Ключ (<code>MY</code> у <code>MY-1</code>) міняють у <code>Space settings</code> →
+            <code>Details</code>. Вимоги до нового ключа довідка дає трьома пунктами: «be at least two
+            characters long» · «start with an uppercase letter» · «contain only uppercase
+            letters or numbers». Що буде зі старими посиланнями: «Whenever you change your space key, we
+            automatically save your previous space keys. This ensures that any links, filters,
+            and queries using your previous key continue working». Старий ключ можна прибрати
+            зі списку <code>Previous keys</code>, і ось що це коштує: «You have the option to
+            delete the old key from Previous keys, however, this restricts access to the work
+            items that refer to that old key».
+          </p>
+          <p>
+            Довідка попереджає й про затримку: «It can take up to <strong>10 minutes</strong>
+            for the updated key to appear on your board — so communicate the change to your team
+            in advance». На екрані навчального сайту курсу 30 вересня 2026 року ключ
+            змінювався <strong>без діалогу підтвердження</strong>, а посилання на роботу зі
+            старим ключем почало перенаправляти на новий одразу — але це одне спостереження на
+            одному спейсі, тож орієнтуватись варто на обережніше число з довідки.
+          </p>
+
+          <h3>Зміна адреси сайту: числа немає</h3>
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Дві сторінки довідки Atlassian суперечать одна одній</p>
+            <p>
+              Скільки разів можна змінити адресу сайту, довідка каже двома різними числами, і
+              обидві сторінки живі станом на 30 вересня 2026 року. «You can update the
+              subdomain <strong>up to 15 times</strong>» — сторінка «Update an app URL subdomain».
+              «You can't update an app URL <strong>more than 3 times</strong>. The Update URL
+              button will appear disabled if it has been changed too many times» — сторінка
+              «Can I update the URL used to access an app?». Там само різняться й плани, на
+              яких зміна взагалі доступна. Тому <strong>число тут не називається</strong>:
+              є розбіжність, і поки вона є, чесніше сказати про неї, ніж вибрати одне з двох.
+              Для безкоштовного плану це питання теоретичне: там адреса не змінюється взагалі.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <section id="l-mcp">
+          <h2>MCP і кредити Rovo</h2>
+          <p>
+            Сюди відсилає <a href="modules/jira-22.html">урок 22</a> (Jira через Claude Code) і
+            <a href="modules/jira-12.html">урок 12</a> (кнопка <code>Create with Rovo</code> у
+            галереї шаблонів).
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: межі сервера MCP і кредити Rovo">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Що</th><th>Скільки</th><th>Дослівно з джерела</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Доступ до MCP</td>
+                  <td>є на всіх планах</td>
+                  <td>«All Atlassian Cloud customers have access to the Atlassian Rovo MCP server, although there are site-level rate limits depending on what Jira and Confluence plan you're on»</td>
+                </tr>
+                <tr>
+                  <td>Частота звернень</td>
+                  <td><strong>Free: 500 за годину</strong></td>
+                  <td>Чотири окремі рядки сторінки: «Free: 500 calls per hour», «Standard: 1000 calls per hour», «Premium/Enterprise: 1000 calls per hour (+ 20 additional calls per user with up to 10,000 calls per hour)»</td>
+                </tr>
+                <tr>
+                  <td>Кредити Rovo</td>
+                  <td>лише платні підписки</td>
+                  <td>«Rovo credits are included in all paid Jira, Confluence, Service Collection and Teamwork Collection cloud subscriptions». Таблиця місячних дозволів має лише три колонки — Jira: <strong>Standard 25 · Premium 70 · Enterprise 150</strong> кредитів на людину на місяць; рядка для безкоштовного плану в ній немає</td>
+                </tr>
+                <tr>
+                  <td>Що безкоштовне</td>
+                  <td>читання й запис в одному продукті</td>
+                  <td>У таблиці «Category of interactions» рядок <code>Intelligence</code> має ціну «Free», а безкоштовними названі «Free TWG API calls include installing the Teamwork Graph CLI and Rovo MCP or running commands to look up or update context in any single Atlassian product» — тобто підключення сервера MCP і звернення, які читають або змінюють дані <strong>в одному</strong> продукті Atlassian</td>
+                </tr>
+                <tr>
+                  <td>Ціна одного звернення</td>
+                  <td>від нуля до «змінної»</td>
+                  <td>Довідка ділить звернення на категорії з різною ціною: <code>Intelligence</code> («Embedded AI woven across product surfaces…») — «Free»; <code>Basic</code> («Conversational and agentic AI… fast replies and light reasoning») — «10 Rovo credits per billable event»; <code>Premium</code> («Advanced AI for complex work…») — «Variable credits per billable event», і саме в цій категорії довідка називає <code>Create with Rovo</code>; <code>Teamwork Graph Context</code> — «Free». Що таке одне звернення: «In chat, each user message is a billable event. For Atlassian agents and AI features, each invocation is a billable event»</td>
+                </tr>
+                <tr>
+                  <td>Умова ввімкнення Rovo</td>
+                  <td>робочий домен пошти</td>
+                  <td>«To turn on Rovo, your organization admin must be on a verified business domain (for example, @yourcompany.com). We can't enable Rovo on sites where the organization is registered with a generic email domain such as gmail.com or outlook.com»</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Довідка Atlassian: сторінка «How Rovo credits work» (розділ <code>rovo</code>) і
+            сторінка Atlassian про сервер MCP (<code>atlassian.com/platform/rovo-mcp</code>,
+            стара адреса <code>…/remote-mcp-server</code> перенаправляє на неї) — обидві
+            прочитані <strong>30 вересня 2026 року</strong>.
+          </p>
+          <div class="ds-note">
+            <span class="ds-note__glyph" aria-hidden="true">i</span>
+            <p class="ds-note__title">Що з цього перевірено живим запитом</p>
+            <p>
+              На навчальному сайті курсу 30 вересня 2026 року, на безкоштовному плані:
+              <strong>звичайний пошук через MCP працює</strong>, створення роботи теж; а
+              «розумний» пошук відповідає помилкою <strong>403</strong> з текстом «Agentic
+              search is not enabled for this user or site». Тобто безкоштовний план дає доступ
+              до сервера, але не до всіх його можливостей. У самі межі частоти курс не
+              впирався: 500 звернень за годину на ручну роботу однієї людини витратити важко.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <section id="l-neighbors">
+          <h2>Confluence і служба заявок</h2>
+          <p>
+            Це <strong>окремі продукти</strong> на тому самому сайті, і плани в них свої. Тому
+            «у мене безкоштовна Jira» нічого не каже про те, скільки людей вміщує безкоштовний
+            Confluence. Сюди відсилають <a href="modules/jira-16.html">урок 16</a>,
+            <a href="modules/jira-18.html">урок 18</a>,
+            <a href="modules/jira-19.html">урок 19</a> і
+            <a href="modules/jira-20.html">урок 20</a>.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: безкоштовні плани Confluence і Jira Service Management">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Продукт</th><th>На безкоштовному плані</th><th>Дослівно з джерела</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Confluence</td>
+                  <td><strong>10 людей</strong>, 2 ГБ</td>
+                  <td>«The Free plan is for small teams of up to 10 people who are just getting started with Confluence», а під заголовком «On the Free plan you get:» — чотири пункти: «Seats for up to 10 users» · «2 GB of file storage» · «Unlimited spaces and pages» · «Support from the Atlassian Community (a public forum of community experts where you can ask questions)»</td>
+                </tr>
+                <tr>
+                  <td>Confluence: доступи</td>
+                  <td><strong>не налаштовуються</strong></td>
+                  <td>«Permissions aren't customizable and anonymous access isn't available. Everyone who can log in to your Confluence Free instance can view, add, and edit spaces and content»</td>
+                </tr>
+                <tr>
+                  <td>Служба заявок: агенти</td>
+                  <td><strong>3</strong></td>
+                  <td>«Up to 3 agents» — таблиця планів, рядок <code>User limit</code></td>
+                </tr>
+                <tr>
+                  <td>Служба заявок: клієнти</td>
+                  <td>без обмеження</td>
+                  <td>«Unlimited» — рядок <code>Customer limit</code></td>
+                </tr>
+                <tr>
+                  <td>Служба заявок: сховище</td>
+                  <td>2 ГБ</td>
+                  <td>«2 GB» — рядок <code>Storage</code>; сховище рахується окремо для кожного продукту</td>
+                </tr>
+                <tr>
+                  <td>Служба заявок: що є</td>
+                  <td>процеси, SLA, звіти</td>
+                  <td>У колонці Free стоять галочки навпроти <code>Multi-channel support</code>, <code>Customizable workflows and SLA's</code>, <code>Custom reports</code></td>
+                </tr>
+                <tr>
+                  <td>Служба заявок: автоматизація</td>
+                  <td>1 250 кроків на підписку</td>
+                  <td>«1,250 steps per subscription»; окремий рядок <code>Global and multi-space automation</code> — «100 executions per month»</td>
+                </tr>
+                <tr>
+                  <td>Служба заявок: чого немає</td>
+                  <td>прочерк у колонці Free</td>
+                  <td>Прочерк <code>-</code> стоїть навпроти <code>Work-level security settings</code>, <code>Audit logs</code>, <code>Sandboxes</code>, <code>Release tracks</code>, <code>Multiple help centers on a single site</code>, <code>Data pinning to a realm</code>, <code>Uptime SLA</code></td>
+                </tr>
+                <tr>
+                  <td>База знань</td>
+                  <td>потрібен Confluence</td>
+                  <td>«To set up your knowledge base in Jira Service Management, at a minimum, you'll need to have a Free plan of Confluence on the same site»</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Довідка Atlassian: «Learn about the features of Confluence Cloud plans» (розділ
+            <code>confluence-cloud</code>), «Explore Jira Cloud plans», розділ «Plans
+            comparison for Jira Service Management» (розділ
+            <code>jira-cloud-administration</code>), «Add Confluence to set up knowledge base» (розділ <code>jira-service-management-cloud</code>) — прочитані
+            <strong>30 вересня 2026 року</strong>.
+          </p>
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Дві таблиці планів записують «немає» по-різному</p>
+            <p>
+              У таблиці Jira клітинка навпроти відсутньої можливості <strong>порожня</strong>,
+              а в таблиці Jira Service Management у тому самому значенні стоїть
+              <strong>прочерк</strong> <code>-</code>. Сенс однаковий; це дві різні таблиці,
+              зроблені в різний час. Знати про це варто тому, що порожня клітинка легко
+              читається як «не знайшов рядок».
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <section id="no-free">
+          <h2>Чого на безкоштовному плані немає</h2>
+          <p>
+            Відсутність у Jira виглядає чотирма різними способами, і розрізняти їх корисно.
+            Буває, що <strong>елемента немає взагалі</strong> — тоді жодної кнопки на екрані не буде. Буває, що <strong>кнопка є, а за нею заглушка</strong> з
+            пропозицією перейти на платний план. Буває <strong>позначка</strong>
+            <code>Premium</code> або <code>Enterprise</code> прямо в меню. І буває
+            <strong>лічильник</strong>: можливість працює, але впирається в число.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: чого немає на безкоштовному плані Jira">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Можливість</th><th>Як це виглядає на Free</th><th>На чому це стоїть</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>AI у Jira</td>
+                  <td><strong>елементів немає зовсім</strong>: ні <code>Ask AI</code> у пошуку, ні <code>Fix error</code> під помилкою запиту, ні <code>Improve Task</code> на картці</td>
+                  <td>Консоль, рядок <code>Atlassian Intelligence (AI)</code>: Free ✗ · Standard ✗ · Premium ✓. Екран переходу на безкоштовний план: «By moving to the Free plan, you'll lose access to Premium-only features, including:» — і першим пунктом списку «Atlassian Intelligence to supercharge teamwork». Екран Free 30 вересня 2026 року: кнопок немає</td>
+                </tr>
+                <tr>
+                  <td>Погодження</td>
+                  <td>вкладка <code>Approvals</code> у рядку виглядів є, всередині — заглушка: «Add approvals to your workflow… <code>Try with Premium</code>». У рейці <code>Space settings</code> такого пункту немає</td>
+                  <td>Консоль, рядок <code>Customizable approvals processes</code>: Free ✗ · Standard ✗ · Premium ✓. Екран Free 30 вересня 2026 року</td>
+                </tr>
+                <tr>
+                  <td>Завантаження команди</td>
+                  <td>вкладки <code>Capacity</code> немає ніде</td>
+                  <td>Консоль, рядок <code>Capacity management</code>: Free ✗ · Standard ✗ · Premium ✓. Таблиця планів у довідці: <code>Capacity planning</code> — лише Premium і Enterprise. Екран Free 30 вересня 2026 року</td>
+                </tr>
+                <tr>
+                  <td>Ролі й доступ до спейсу</td>
+                  <td>у майстрі створення вибору немає: «Anyone with access to … can access and administer this space. <code>Upgrade your plan</code> to customize space permissions» (замість трьох точок на екрані стоїть адреса сайту). На сторінці <code>Access</code> — банер «Unlock more control — Access to this space is currently Open. To customize user access, such as roles and permissions, upgrade your plan to Standard» і напис «This space has 1 role»</td>
+                  <td>Довідка: «Space permissions, roles, and work-level security aren't customizable in Jira Free». Консоль, рядок <code>User roles and permissions</code>: Free ✗ · Standard ✓. Екран Free 30 вересня 2026 року</td>
+                </tr>
+                <tr>
+                  <td>Архів спейсу</td>
+                  <td>пункт <code>Archive space</code> у меню є, але з позначкою <code>Premium</code></td>
+                  <td>Довідка: «Space archiving is only available on Premium and Enterprise plans». Консоль, рядок <code>Project archiving</code>: Free ✗ · Standard ✗ · Premium ✓</td>
+                </tr>
+                <tr>
+                  <td>Архів робіт гуртом</td>
+                  <td>у панелі масових дій пункту <code>Archive</code> немає — позначити кілька робіт і заархівувати їх одним рухом не вийде</td>
+                  <td>Екран Free 30 вересня 2026 року. ⚠ Окрему роботу заархівувати <strong>можна</strong> — див. <a href="#yes-free">наступний розділ</a></td>
+                </tr>
+                <tr>
+                  <td>Зведене планування</td>
+                  <td>пункт <code>Plans</code> у бічній панелі є, але це не сторінка, а підказка: «See all your timelines in one plan… Try free for 30 days with Premium»</td>
+                  <td>Консоль, рядок <code>Advanced planning (Plans)</code>: Free ✗ · Standard ✗ · Premium ✓. Екран Free 30 вересня 2026 року</td>
+                </tr>
+                <tr>
+                  <td>Власні шаблони спейсів</td>
+                  <td>пункт <code>Custom templates</code> у галереї видно з позначкою <code>Enterprise</code></td>
+                  <td>Довідка: «Custom space templates are an exclusive Enterprise plan feature»</td>
+                </tr>
+                <tr>
+                  <td>Журнал аудиту</td>
+                  <td>розділу немає</td>
+                  <td>Довідка: «If all of your Jira Cloud apps are on the Free plan, you won't have access to audit logs». Таблиця планів: рядок <code>Audit logs</code> — клітинка Free порожня</td>
+                </tr>
+                <tr>
+                  <td>Публічні посилання</td>
+                  <td>поділитись фільтром чи дашбордом зі стороннім не вийде</td>
+                  <td>Довідка: «Standard, Premium, and Enterprise Jira sites can share filters and dashboards publicly. Free Jira sites can't be opened to the public»</td>
+                </tr>
+                <tr>
+                  <td>Зміна адреси сайту</td>
+                  <td>можливості немає</td>
+                  <td>Довідка: «If all of your Jira Cloud apps are on the Free plan, you can't update your site's URL after your site is created»</td>
+                </tr>
+                <tr>
+                  <td>Пісочниця й треки випусків</td>
+                  <td>у таблиці планів позначено як недоступне</td>
+                  <td>Консоль, рядки <code>Sandbox</code> і <code>Release tracks</code>: Free ✗ · Standard ✗ · Premium ✓</td>
+                </tr>
+                <tr>
+                  <td>Гарантія доступності</td>
+                  <td>немає</td>
+                  <td>Таблиця планів, рядок <code>Guaranteed Uptime SLA</code>: клітинки Free і Standard порожні, Premium — 99.9%</td>
+                </tr>
+                <tr>
+                  <td>Підтримка</td>
+                  <td>лише форум спільноти</td>
+                  <td>Таблиця планів, рядок <code>Support</code>: «Community support»</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Консоль — таблиця <code>Compare features</code> на сторінці зміни плану в
+            адмініструванні Atlassian, знята 30 вересня 2026 року. Довідка — сторінки «Explore
+            Jira Cloud plans», «What is the Free Jira Cloud plan?», «Archive a space», «Use
+            custom space templates», «Allow dashboards and filters in your site to be shared
+            publicly», прочитані того ж дня. Екран — навчальний сайт курсу 30 вересня 2026
+            року, уже на безкоштовному плані.
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Два висновки, які виглядають надійними й помиляються</p>
+            <p>
+              <strong>Перший:</strong> «функція входить у платні плани» — <em>не</em> те саме,
+              що «на безкоштовному її немає». Наприклад, довідка пише, що кредити Rovo «are
+              included in all <em>paid</em> … subscriptions», і з цього легко вивести, що на
+              безкоштовному плані нічого з Rovo не видно. Насправді дві кнопки зі словом Rovo
+              там є — <a href="#yes-free">про це нижче</a>.
+            </p>
+            <p>
+              <strong>Другий, дзеркальний:</strong> «ми бачили це на своєму сайті» — не те
+              саме, що «це є на безкоштовному плані». Новий сайт Atlassian починається з
+              пробного періоду платного плану, і поки він триває, сайт показує можливості,
+              яких після переходу на безкоштовний не буде. Саме тому в цьому довіднику біля
+              кожного екранного факту стоїть дата, а слова «на безкоштовному плані» — лише
+              біля тих, що зняті 30 вересня 2026 року й пізніше.
+            </p>
+          </div>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">Дві розбіжності, які треба знати саме тут</p>
+            <p>
+              <strong>Про AI на плані Standard.</strong> Консоль каже, що
+              <code>Atlassian Intelligence (AI)</code> недоступний і на Standard (✗), а
+              довідка того ж дня пише протилежне: «Rovo is available and automatically enabled
+              for all apps on Standard, Premium, and Enterprise plans». Для безкоштовного
+              плану це нічого не міняє — там AI-кнопок немає за обома джерелами, — але вибирати
+              переможця в цій суперечці курс не береться.
+            </p>
+            <p>
+              <strong>Про архів робіт.</strong> Стаття бази знань «Bulk archive work items in
+              Jira Cloud with Automation» (адреса з <code>/kb/</code>) суперечить сама собі:
+              у виносці над текстом стоїть «Archiving issues is only available for Premium and
+              Enterprise customers», а перше речення самої статті — «In Jira Cloud, it's
+              possible to archive single work items, but bulk archiving them is not available».
+              Продуктова документація («Archive a work item») обмеження за планом не має
+              взагалі, і живий екран безкоштовного плану з нею збігається. Тому в курсі виноска
+              з тієї статті подана як <strong>розбіжність</strong>, а не як опора.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <section id="yes-free">
+          <h2>Що на безкоштовному плані все-таки є</h2>
+          <p>
+            Другий бік тієї самої монети. Ці речі легко вважати платними — або тому, що так
+            написано в старих статтях, або тому, що поруч стоїть кнопка <code>Upgrade</code>.
+            Усе нижче перевірено на живому екрані навчального сайту курсу
+            <strong>30 вересня 2026 року, коли сайт уже стояв на справжньому безкоштовному
+            плані</strong>.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: що працює на безкоштовному плані Jira">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Що</th><th>Як це виглядає</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Обидва типи спейсу</td>
+                  <td>У майстрі створення поле <code>How your space is managed</code> пропонує і <code>Team-managed</code>, і <code>Company-managed</code>. У другого стоїть позначка <code>Administrators only</code> — це про те, хто його створює, а не про план</td>
+                </tr>
+                <tr>
+                  <td>Архів окремої роботи</td>
+                  <td>Пункт <code>Archive</code> у меню картки працює: робота зникає зі спейсу, на ній з'являється банер «This is an archived work item. You will need to restore it before you can edit it» з кнопкою <code>Restore</code>, а сама вона лягає у вигляд <code>Archived work items</code></td>
+                </tr>
+                <tr>
+                  <td>Резервна копія сайту</td>
+                  <td><code>Settings</code> → <code>System</code> → <code>Backup manager</code> → <code>Create backup for cloud</code> — сторінка на місці й працює</td>
+                </tr>
+                <tr>
+                  <td>Беклог і спринти</td>
+                  <td>У спейсі розробки беклог додається кнопкою <code>+</code>, після цього вмикається <code>Sprints</code>. Перший спринт Jira називає сама — <code>&lt;ключ&gt; Sprint 1</code>; шлях від <code>Start sprint</code> до <code>Complete sprint</code> пройдено повністю</td>
+                </tr>
+                <tr>
+                  <td>Автоматизація</td>
+                  <td>Конструктор, розклад із вибором днів тижня, гілки, розумні значення, журнал виконань і сторінка <code>Usage</code> — усе на місці. Обмежує лише <a href="#l-auto">місячний лічильник</a></td>
+                </tr>
+                <tr>
+                  <td>Дашборди й гаджети</td>
+                  <td>Створення дашборда, режим правки, панель <code>Add a Gadget</code> і <strong>31 гаджет</strong> у ній (фільтри панелі: <code>All 31</code> · <code>Jira 30</code> · <code>Charts 12</code> · <code>Wallboard 5</code>)</td>
+                </tr>
+                <tr>
+                  <td>Звіти</td>
+                  <td>Вигляд <code>Reports</code>: оглядова панель із плитками й діаграмами, а за кнопкою <code>More reports</code> — самі звіти. У спейсі розробки їх шість, серед них <code>Burnup report</code>, який на безкоштовному плані відкривається</td>
+                </tr>
+                <tr>
+                  <td>Імпорт</td>
+                  <td>Сторінка <code>Import data into Jira</code> з п'ятнадцятьма плитками інструментів (Asana, monday, ClickUp, Trello та інші) і окремою кнопкою <code>CSV</code></td>
+                </tr>
+                <tr>
+                  <td>Свої статуси, переходи, типи й поля</td>
+                  <td>Редактор процесу (<code>Add status</code> · <code>Add Transition</code> · <code>Add Rule</code>), <code>Add work type</code> і <code>Create work type</code>, сторінка полів — усе працює. Межі — <a href="#l-space">у таблиці вище</a>, і вони не про план</td>
+                </tr>
+                <tr>
+                  <td>Верхній поверх ієрархії</td>
+                  <td>У спейсі, де верхнього типу ще немає, кнопка <code>Add work type</code> пропонує <code>Epic</code> серед готових — і додає його</td>
+                </tr>
+                <tr>
+                  <td>MCP</td>
+                  <td>Сервер працює: звичайний пошук і створення робіт через нього проходять. Не працює лише «розумний» пошук — 403 «Agentic search is not enabled for this user or site»</td>
+                </tr>
+                <tr>
+                  <td>Кнопки зі словом Rovo</td>
+                  <td>Їх видно у двох місцях: <code>Create with Rovo</code> у меню створення flow і <code>Add agent</code> у редакторі процесу; є ще блок «Rovo AI» у панелі <code>Add an action</code>. Діалоги відкриваються. ⚠ Але <strong>зібрати flow описом не вдалося</strong>: 30 вересня 2026 року обидва запити повернули помилку («Something went wrong» і «[Code 404] … No message available»). Тому flows у цьому курсі збирають руками</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Екран: навчальний сайт курсу, 30 вересня 2026 року, безкоштовний план. Кожен рядок
+            — те, що бачили й натискали самі; там, де результат виявився іншим, ніж очікували
+            (Rovo), про це сказано прямо.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="changed">
+          <h2>Що змінилось у назвах</h2>
+          <p>
+            За останні два роки Jira перейменувала половину своїх головних слів. Перейменування
+            йшло не одномоментно, тому сьогодні в одному й тому самому продукті живуть обидві
+            версії: нова — на екрані, стара — у запитах, адресах сторінок і частині
+            документації. Це не безлад, а етап. Практичний висновок простий: <strong>не
+            спрацювало нове слово — підстав старе</strong>. Саме це радить і сама Atlassian:
+            «some JQL entries using the new terms may not work yet. If you come across this,
+            try using the old term instead».
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: перейменування в Jira і де живе старе слово">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Було</th><th>Стало</th><th>Де старе слово живе далі</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>issue</td>
+                  <td><code>work item</code> — робота</td>
+                  <td>Адреси сторінок (<code>/browse/MARK-1</code>, <code>/jira/issues/</code>), імена полів у запитах (<code>issuetype</code>), розумні значення автоматизації (<code>{{issue.key}}</code>), імена інструментів сервера MCP, назви звітів у діловому спейсі. Банер у налаштуваннях сайту прямо попереджає: «As we roll out 'work' as the new term for items tracked in Jira, you may still see 'issue' in some areas»</td>
+                </tr>
+                <tr>
+                  <td>project</td>
+                  <td><code>space</code> — спейс</td>
+                  <td>Запити (<code>project = MARK</code>), адреси (<code>/projects/</code>), заготовки flows, повідомлення про помилку на екрані («Project 'Мої справи' uses this project key»). ⚠ Слово <code>space</code> у запиті жива Jira <strong>не приймає</strong> — перевірено запитами 28 вересня 2026 року</td>
+                </tr>
+                <tr>
+                  <td>automation rule</td>
+                  <td><code>flow</code></td>
+                  <td>Адреси сторінок довідки про автоматизацію (<code>…automation-rules…</code>) і частина самих сторінок; у таблиці планів консолі теж «rule runs per month»</td>
+                </tr>
+                <tr>
+                  <td>component (крок flow)</td>
+                  <td><code>step</code> — крок</td>
+                  <td>Старі сторінки довідки</td>
+                </tr>
+                <tr>
+                  <td><code>Summary</code></td>
+                  <td><code>Title</code> — у документації</td>
+                  <td>Тут довідка попереду екрана: «This field was previously labelled Summary. JQL queries, API calls, and automations that reference summary still work as before». На екрані навчального сайту курсу 30 вересня 2026 року поле лишалось <code>Summary</code></td>
+                </tr>
+                <tr>
+                  <td>Pages</td>
+                  <td><code>Docs</code></td>
+                  <td>Вкладка спейсу зветься <code>Docs</code>, а адреса сторінки закінчується на <code>/pages</code> — спостереження з екрана навчального сайту курсу</td>
+                </tr>
+                <tr>
+                  <td>стара навігація</td>
+                  <td>бічна панель</td>
+                  <td>Пункти переїхали з верхньої панелі в бічну. Atlassian: «We're cautiously rolling out the new navigation for General Availability (GA) in waves from March 2025 onwards». Тому чужі скріншоти можуть чесно показувати іншу картинку</td>
+                </tr>
+                <tr>
+                  <td><code>Send email</code></td>
+                  <td><code>Send customized email</code></td>
+                  <td>Стара дія — застаріла; у переліку дій конструктора на безкоштовному плані 30 вересня 2026 року її вже не було. Але рядок службових меж досі підписаний старою назвою</td>
+                </tr>
+                <tr>
+                  <td>запуски flows</td>
+                  <td>кроки (у майбутньому)</td>
+                  <td>Перехід іще не завершено: чинна модель рахує запуски, майбутня — кроки, обидві видно на одній сторінці. Платна перевитрата почнеться пізніше: «On December 3, 2026, extra usage billing takes effect»</td>
+                </tr>
+                <tr>
+                  <td><code>Save as</code></td>
+                  <td><code>Save filter</code></td>
+                  <td>Кнопку перемалювали, частину документації — ні; на екрані шукай обидва написи</td>
+                </tr>
+                <tr>
+                  <td>Cloud Fortified</td>
+                  <td>Atlassian Enterprise Certified</td>
+                  <td>Позначка надійності застосунків у крамниці. Оголошення Atlassian: «We are stopping submissions for the Cloud Fortified App (CFA) program… The CFA program will be retired on 31st December, 2026». Стару позначку на картках застосунків ще видно</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="ds-small">
+            Довідка Atlassian: сторінки про JQL, «Create a work item and a subtask», «What is
+            the new navigation in Jira?», «Automation service limits», «How is your automation usage calculated» — прочитані <strong>30 вересня 2026 року</strong>; оголошення про
+            програму сертифікації застосунків — журнал змін для розробників на
+            <code>developer.atlassian.com</code>, запис від 2 вересня 2026 року, прочитано
+            30 вересня 2026 року. Екран: навчальний сайт курсу, 17–30 вересня 2026 року.
+          </p>
+
+          <h3>Як часто змінюється сама Jira</h3>
+          <p>
+            Дослівно з довідки: «Jira changes will now be available in <strong>seasonal release
+            cycles</strong>. If your Jira app is on the bundled track, you'll notice that
+            bundles outside the seasonal release cycles may not contain many changes». Тобто
+            помітні зміни приходять порціями, а не потроху щодня. Вибирати, коли саме їх
+            отримувати, дозволяють лише платні плани: сторінка про треки випусків у блоці «Who
+            can do this?» називає «Premium or Enterprise plan». А подивитись, що вже приїхало, можна на будь-якому плані — у блоці «Who can do this?» тієї сторінки стоїть «Atlassian Cloud: All plans», а шлях описано так: «Select <strong>Apps</strong>, then <strong>Release management</strong>, then <strong>App updates</strong>». Потрібна лише роль адміністратора організації.
+          </p>
+        </section>
+
+        <hr />
+
+        <section id="where">
+          <h2>Де звіряти самому</h2>
+          <p>
+            Головна порада цієї сторінки — не вірити їй сліпо через півроку. Ось чотири місця,
+            де живе правда, у порядку від найшвидшого до найповнішого.
+          </p>
+          <div class="ds-tbl__wrap ds-tbl--wrap" tabindex="0" role="region" aria-label="Таблиця: де перевіряти план і межі самому">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Де</th><th>Що там видно</th><th>Як дістатись</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>кнопка <code>Upgrade</code></td>
+                  <td>Назва плану («You're on the Free plan»), скільки людей із десяти запрошено й скільки сховища витрачено</td>
+                  <td>Верхня панель Jira, праворуч. Вікно закривають хрестиком або кнопкою <code>Continue with limits</code>; кнопку <code>Try now</code> не тиснути — вона починає пробний платний період</td>
+                </tr>
+                <tr>
+                  <td>адмінка Atlassian</td>
+                  <td>План кожного продукту сайту окремим рядком, дата наступного рахунку, спосіб оплати</td>
+                  <td><code>admin.atlassian.com</code> → <code>Apps</code> (Додатки) → <code>Atlassian apps</code>; для дат і рахунків — <code>Billing</code> (Виставлення рахунків)</td>
+                </tr>
+                <tr>
+                  <td>вкладка <code>Usage</code></td>
+                  <td>Скільки автоматизації витрачено цього місяця, яка межа й коли вона поновиться</td>
+                  <td><code>Settings</code> → <code>System</code> → <code>Global automation</code> → <code>Usage</code></td>
+                </tr>
+                <tr>
+                  <td>сторінки довідки</td>
+                  <td>Повні таблиці планів і перелік меж</td>
+                  <td>Розділи <code>support.atlassian.com/jira-cloud-administration/docs/</code> (плани й безкоштовний план), <code>…/cloud-automation/docs/</code> (межі автоматизації), <code>…/confluence-cloud/docs/</code> (плани Confluence). Шукати за назвою сторінки, а не за адресою: адреси в Atlassian змінюються частіше за заголовки</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="ds-note">
+            <span class="ds-note__glyph" aria-hidden="true">i</span>
+            <p class="ds-note__title">Як відрізнити безкоштовний план від пробного платного</p>
+            <p>
+              Найшвидша ознака — кнопка у верхній панелі. <strong><code>Upgrade</code></strong>
+              означає безкоштовний план; <strong><code>See plans</code></strong> — що на сайті
+              йде пробний платний період. Це важливо тому, що новий сайт Atlassian
+              <em>починається</em> з пробного платного плану: перші тижні людина бачить
+              можливості, яких потім не буде. Точну відповідь дає адмінка: план кожного
+              продукту написаний там словом. Як перейти на безкоштовний — <code>Billing</code>
+              → підписка Jira → <code>Change plan</code> → <code>Select Free</code>; це той
+              шлях, яким пройшов навчальний сайт цього курсу. Докладніше —
+              <a href="modules/jira-02.html">урок 2</a>.
+            </p>
+          </div>
+        </section>
+
+        <hr />
+
+        <section id="sources">
+          <h2>Джерела й дати</h2>
+          <p>
+            Сторінка зібрана з трьох родин джерел. Розбіжності між ними не сховані — вони
+            названі прямо в тексті, бо саме в них найчастіше ховається втрачена година.
+          </p>
+          <ol>
+            <li>
+              <strong>Живі сторінки довідки Atlassian, прочитані 30 вересня 2026 року.</strong>
+              Розділ <code>jira-cloud-administration</code>: «Explore Jira Cloud plans»,
+              «What is the Free Jira Cloud plan?», «Permissions limitations in Free Jira sites»,
+              «Allow dashboards and filters in your site to be shared publicly»,
+              «Archive a space», «Move a space to trash», «Manage dashboards»,
+              «Import data from a CSV file», «Export data from Jira Cloud».
+              Розділ <code>jira-software-cloud</code>: «Create, edit and delete statuses in team-managed spaces», «Manage work item transitions in team-managed spaces», «Set up work types in team-managed spaces», «Customize work item fields in team-managed spaces», «Available custom fields for team-managed spaces», «Create and edit team-managed spaces», «Edit a space's
+              details», «What is a board in business spaces?», «Work item limits in team-managed spaces», «Edit multiple work items», «Manage filters»,
+              «Add an attachment to a work item», «Archive a work item»,
+              «Use custom space templates», «What is the new navigation in Jira?»,
+              «What is advanced search in Jira Cloud?», «Create a work item and a subtask»,
+              «Create a new space».
+              Розділ <code>cloud-automation</code>: «Automation service limits»,
+              «How is your automation usage calculated», «Schedule work items to recur using automations».
+              Розділ <code>confluence-cloud</code>: «Learn about the features of Confluence Cloud plans».
+              Розділ <code>jira-service-management-cloud</code>: «What is a portal?», «Add Confluence to set up knowledge base».
+              Розділ <code>subscriptions-and-billing</code>: «Manage users and user tiers».
+              Розділ <code>organization-administration</code>: «Update an app URL subdomain»,
+              «Can I update the URL used to access an app?», «What are release tracks?».
+              Розділ <code>rovo</code>: «How Rovo credits work». Плюс сторінка Atlassian про сервер
+              MCP (<code>atlassian.com/platform/rovo-mcp</code>) і журнал змін крамниці
+              застосунків на <code>developer.atlassian.com</code>.
+            </li>
+            <li>
+              <strong>Дві статті бази знань</strong> — їх видно за адресою: у ній стоїть
+              <code>/kb/</code>, а не <code>/docs/</code>. Обидві з позначкою «Platform Notice:
+              Cloud Only»: «Export over 10,000 work items in Jira Cloud» і «Restore deleted
+              work items in Jira Cloud using local backup files». Третя стаття бази знань —
+              «Bulk archive work items in Jira Cloud with Automation» — <strong>джерелом не
+              взята</strong>: вона суперечить сама собі (див. <a href="#no-free">розділ про те,
+              чого немає</a>). Курс тримається правила: стаття бази знань і продуктова
+              документація — різні за вагою джерела, і атрибутувати їх треба точно.
+            </li>
+            <li>
+              <strong>Живий екран навчального сайту курсу.</strong>
+              <strong>30 вересня 2026 року, уже на справжньому безкоштовному плані</strong>:
+              верхня й бічна панелі, вікно за кнопкою <code>Upgrade</code>, рядки виглядів
+              чотирьох ділових спейсів і спейсу розробки, рейки <code>Space settings</code>,
+              сторінки <code>Details</code> і <code>Access</code>, картки робіт обох типів
+              спейсу, чотири меню <code>•••</code>, сторінка сповіщень, меню шестірні,
+              <code>Global automation</code> з обома моделями обліку, <code>Backup manager</code>,
+              сторінка імпорту, галерея шаблонів, дашборд і панель гаджетів, вигляд
+              <code>Reports</code>, архів окремої роботи, спринт від початку до завершення,
+              діалоги кошика, адміністрування Atlassian і таблиця планів у консолі.
+              <strong>17 вересня 2026 року</strong> (сайт тоді був на пробному платному плані):
+              особисті налаштування <code>General</code>, перемикачі
+              <code>General configuration</code> з їхніми значеннями, підказки пунктів бічної
+              панелі. <strong>28–29 вересня 2026 року</strong> (той самий пробний платний
+              план): назви типів роботи в ділових спейсах і перевірка імен полів запитами
+              через сервер MCP.
+            </li>
+          </ol>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__glyph" aria-hidden="true">i</span>
+            <p class="ds-note__title">Чесна межа цієї сторінки</p>
+            <p>
+              <strong>Портал заявок і Confluence курс не бачив живими.</strong> Обидва продукти
+              на навчальний сайт не додавались, бо зсередини Jira вони додаються лише через
+              пробний платний період і згоду з окремою угодою. Тому весь
+              <a href="#m-jsm">розділ про портал</a> і рядки про Confluence зібрані з
+              документації, і про це сказано на місці.
+            </p>
+            <p>
+              <strong>Числа сусідніх продуктів узяті з таблиць планів, а не з екрана.</strong>
+              Три агенти служби заявок, десять людей Confluence, 1 250 кроків автоматизації —
+              це рядки таблиць довідки, прочитані 30 вересня 2026 року.
+            </p>
+            <p>
+              <strong>Частина меж не перевірялась на практиці.</strong> Ніхто не додавав 101-й
+              статус, не заводив 51-ше поле й не надсилав 500 звернень до сервера MCP за
+              годину — ці числа взяті з довідки й наведені з цитатою. Перевірені живими діями
+              лише ті, які курс справді зачепив: місячний лічильник автоматизації, архів
+              окремої роботи, кошик, зміна ключа спейсу.
+            </p>
+            <p>
+              Якщо довідник розійшовся з тим, що показує твоя Jira, <strong>вір своєму
+              екрану</strong>. Дати біля таблиць стоять саме для цього.
+            </p>
+          </div>
+
+          <p>
+            Ця сторінка не входить у сертифікат і не має квіза.
+            <a href="jira.html#refs">Решта полиці довідників</a> ·
+            <a href="jira.html#map">Програма курсу</a> ·
+            <a href="modules/jira-02.html">Урок 2, з якого росте розмова про план</a> ·
+            <a href="modules/jira-03.html">Урок 3, з якого росте карта інтерфейсу</a>
+          </p>
+        </section>
+
+
+      </article>
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Прогрес і конфіг потрібні лише шапці й футеру: у довідника немає ні модуля,
+       ні квіза, тому js/module.js і js/quiz.js тут свідомо не підключені. -->
+  <script src="js/motion.js"></script>
+  <script src="js/progress.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth-ui.js"></script>
+  <script type="module" src="js/auth.js"></script>
+</body>
+
+</html>

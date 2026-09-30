@@ -16,3 +16,5 @@
 - [Плани й ліміти: де правда](reference_jira_plan_limits_sources.md) — консоль `Compare features` проти доксів (Rovo: докси Standard+, консоль Standard ✗); дві РІЗНІ добові межі листів; межа названа за застарілою дією `Send email`
 - [Довести, що джерело чогось НЕ каже](reference_docs_scope_articlebody.md) — обмеження за планом шукати в JSON-LD `articleBody`, а не grep по HTML; цитати зі `screens/*.md` звіряти після зняття `**` і переносів
 - [Порогові числа доксів](reference_docs_threshold_counting_base.md) — «more than three required fields» не рахує `Summary`; перед переказом числа з'ясувати базу лічби, інакше помилка на одиницю живе хвилями
+- [Назва сторінки — це `<title>`](reference_atlassian_page_titles.md) — 20 із 45 назв у курсі писались зі слагів і розійшлись (projects→spaces, «Rovo usage limits»→«How Rovo credits work»); KB чи докси визначає лише `/kb/` в адресі
+- [Числа налаштувань спейсу](reference_jira_config_limits.md) — 100/50 статусів, 200 переходів, 30 типів, 50 полів, 55 варіантів, 10 дошок, 5000 робіт: чотири різні сторінки, від плану НЕ залежать

@@ -13,6 +13,13 @@ metadata:
 Premium ✓ · `Automation` — «100 rule runs per month» на Free · `Project archiving` ✗ ✗ ✓ ·
 `User roles and permissions` ✗ ✓ ✓ · `Capacity management` ✗ ✗ ✓.
 
+**1а. Та сама консоль розходиться з доксами ще у двох рядках** (звірено 2026-09-30, довідник-карта):
+`User limit` Standard — докси «Up to 100,000 users», консоль «50,000 users»; `Automation` на Free —
+докси «150 steps per subscription», консоль «100 rule runs per month». Друге — **не суперечність, а дві
+одиниці**: чинна модель на екрані `Global automation → Usage` рахує запуски flows (100), кроки живуть
+під перемикачем `Upcoming usage model`. Для Free перше нічого не змінює (там і там «до 10»), але це
+готовий приклад для тези курсу «біля числа має стояти джерело».
+
 **2. Докси про Rovo кажуть інше про Standard.** Обидві сторінки звірені наживо 2026-09-30:
 `jira-software-cloud/docs/what-is-advanced-search-in-jira-cloud/` — «Rovo is available and
 automatically enabled for all apps on Standard, Premium, and Enterprise plans.»;
