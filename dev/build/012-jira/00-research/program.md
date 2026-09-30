@@ -1499,6 +1499,60 @@ Spaces, Filters, Dashboards, Audit log, Text-режим workflow, Summary-пли
     `parent = REM-1` працює.
     · **Обсяг хвилі 7** (grep 2026-09-29, ширший за `screens/27` §10): j03, j04, j05, j06, j09, j10, j11, j12, j14, j15,
     j21, j22, j23, `jira-ref-jql.html`, `jira-ref-automation.html`.
+21. **Дозйомка 2026-09-29 і 2026-09-30 (`screens/28-sandbox-2026-09-29.md` §7, `screens/29-sandbox-2026-09-30.md`) — хвиля 8
+    «черга §11.1».** Рішення власника 2026-09-30
+    (через `AskUserQuestion`): правки пишуть **автор + рецензент** · українське слово для `Workstream` — **«напрям робіт»**
+    (далі на сторінці — «напрям»). **У частині слова «етап» — пріоритет над п. 20.**
+    · **«Етап» — лише про статус і колонку дошки** (так курс говорить з уроку 1: «колонка = етап», «на якому етапі»). Тип
+    `Workstream` при першій згадці на сторінці — «напрям робіт (Workstream)» або «`Workstream` (напрям робіт)», далі
+    «напрям»; «кампанія (Campaign)» і «епік (Epic)» — без змін; «велика справа» — слово j04 для цього поверху загалом
+    (не «велика робота»). Речення-застереження в j04 («Слово «етап» тут означає великий шматок роботи, а не крок
+    процесу…») більше не потрібне — знімається разом із заміною.
+    · **Рейка `Space settings` — дві** (§7.1): ділова (`REM`, `HR`, `MARK`, `MY`; підпис «Business space») — Details ·
+    Access · Notifications (`Settings` · `Space email audit`) · Automation · **Approvals** · Fields · Work types · Apps;
+    розробки (`WEB`, `KAN`; «Software space») — без `Approvals`, з **Features · Custom filters · Toolchain**. У діловому
+    спейсі `Features` **немає** — шлях «Space settings → Features» чинний лише для спейсу розробки. Вигляд у діловому спейсі
+    додають кнопкою `+` в кінці рядка виглядів (підказка «Add to navigation») → панель `Views` (Board · List · Timeline) →
+    `Add to navigation` (§7.6).
+    · **Рядок виглядів ділового спейсу починається `Summary · Board · List · Calendar`** (не `Summary · List · Board`);
+    далі — `REM`: Timeline · Approvals · Forms · Docs · Attachments; `MARK`: Capacity · Timeline · Approvals · Forms · Docs
+    (§7.5–§7.6). Число в `More N` залежить від ширини вікна — у тексті не називати. У вікні уроку ряд можна скорочувати,
+    але порядок — живий. **`Capacity` — у `MY` і `MARK`; у `REM` і `HR` його немає** (`screens/29` §2, 2026-09-30; рядок
+    `screens/27` §4 про `HR` не підтверджено). **`Backlog` немає ні в рядку, ні під `More` у `REM` і `MARK`** (`screens/29`
+    §2, `screens/28` §7.6). Спейс розробки `WEB` має свій ряд: Summary · Timeline · Board · Calendar · List · Forms ·
+    Development · Docs (`screens/27` §4) — j13 і вікна `WEB` звіряти з ним, а не з діловим.
+    · **Сторінка типу `Work types → Task` у діловому спейсі** (§7.8): ділова рейка; `Description fields` (Summary
+    [Required] · Description) · `Context fields` (Status · Assignee · Due date · Priority · Labels · Time tracking · Start
+    date · Category · Team · Budget · Reporter) · зона `Hide when empty` **порожня** (з підказкою) · `Discard` · `Save
+    changes` · права панель `Fields`. Вікно W1 у j11 — за цим, узгоджено з j10 W1.
+    · **`Add work type`** (§7.3): діалог пропонує `SUGGESTED: Bug · Story` і `Create work type` (Name* · Description ·
+    Icon) — **поля вибору рівня ієрархії немає**, верхній поверх цією формою не додати; у діловій рейці пункт написаний
+    без плюса.
+    · **Картка ділового спейсу** (§7.4): порожній слот батька в крихті — **`Add epic`**, заповнений — іконка й назва
+    `Workstream`; секція `Subtasks` (без дефіса, хоч тип — `Sub-task`) з кнопкою `Create child`; у `Details` поля `Parent`
+    **немає**, є `Category` · `Team` · `Budget`. Дім цієї подробиці — j04/j05, одним реченням з датою.
+    · **`More actions` (`•••`) біля назви спейсу — і в шапці сторінки, і на наведенні в бічній панелі** (§7.7), меню те саме.
+    Уроки називають один шлях послідовно: **«біля назви спейсу — у шапці сторінки або в бічній панелі»** при першій
+    згадці на сторінці; цитата довідки «in the sidebar» лишається дослівною.
+    · **`Access` у майстрі** (§7.9): три рівні — Private · Limited · Open — і в Task tracking, і в Project management; за
+    замовчуванням `Open`.
+    · **Rovo на Free** (j14, j15): формула «кредити дають лише платні підписки → на Free користуватись нічим» — та сама
+    конструкція, що спростована 2026-09-24 («X входить у платні плани» ≠ «на Free X немає»). **Знято наживо 2026-09-30**
+    (`screens/29` §1): `Create with Rovo` на безкоштовному сайті відкриває робочий діалог «Automate work in minutes with
+    Rovo» з полем для опису й підказками, без згадок про план чи кредити; запит не надсилали — чи збере Rovo flow і чи
+    спише кредити, **не перевірено**, тож у тексті — що діалог відкривається, без обіцянки результату. Вкладка `Usage`
+    рівня спейсу: картки `Automation step usage` і `Rovo credit usage in Automation`, таблиця `High usage flows` з колонками
+    Flow · Flow runs · Automation steps · Rovo credits · Owner · Enabled (без `Scope`); нулі — бо жоден flow не запускався.
+    · **Майстер, уточнення до п. 20** (`screens/29` §4): сторінка шаблону з кнопкою `Use template` у ділового шаблону
+    **є** — на неї веде посилання `See details` у розділі `Template` форми «Name your space» (клік по картці в галереї її
+    пропускає й одразу дає форму). На тій сторінці — `Features`, `Workflow` (To Do · In Progress · Done) і **`Work types`:
+    Workstream · Task · Sub-task** — друге джерело з екрана для складу типів шаблону Project management. Прапорця `Start
+    with sample work items` у формі ділового шаблону **немає**.
+    · **`Work types` у спейсі розробки `WEB`** (`screens/29` §3): Epic | Bug · Story · Task | `Subtask` (без дефіса).
+    · **Дані сюжету:** `REM-3` дедлайну не має (§3, `screens/27` §9) — `Oct 8, 2026` у вікні `List` j04 прибрати.
+    · **Дати живих написів хвилі 8:** `screens/28` — «звірено 2026-09-29», `screens/29` — «звірено 2026-09-30».
+    · **Обсяг хвилі 8:** j01, j03, j04, j05, j06, j09, j10, j11, j12, j14, j15, j16, j21, `jira-ref-jql.html`,
+    `jira-ref-automation.html`; j13 і j23 — лише перевірка (правка, якщо знайдеться слід).
 
 ## Відкриті питання власнику
 
