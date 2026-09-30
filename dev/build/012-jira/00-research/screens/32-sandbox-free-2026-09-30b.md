@@ -351,7 +351,119 @@ item collectors ∣ `Automation`: **Global automation**. Сторінка `Autom
   «Додаток · План · Користувачі · Дії» · «Керувати додатком». У читача написи можуть бути англійською (`Atlassian apps`,
   `Plan`, `Users`) — в уроці давати обидва або описувати місце.
 
+## 15. Запити авторів хвилі 9 (групи `ai` і `rest`) — знято після їхніх звітів; у тексти вносять рецензенти
+
+- **`All work` на Free** (`…/issues/?jql=project = MARK`): заголовок «All work» · праворуч `Search all apps` · `Apps` ▾
+  (`Open in Google Sheets` · `Open in Microsoft Excel`) · `Share` ▾ («Share search criteria» — `Names or teams*` · `Message
+  (optional)` · `Copy link` · `Share`) · `•••`. Рядок запиту: `Basic` ∣ `JQL` · `Search work` · `Space = Маркетинг` ▾ ·
+  `Assignee` ▾ · `Type` ▾ · `Status` ▾ · `More filters` ▾ · `Clear filters` · `Save filter`. Колонки: ☐ · Work · Assignee ·
+  Reporter · Priority · Status · Resolution …; «8 of 8». **`project = MARK` Free приймає** (у `Basic` показує як `Space =`).
+  Бічна панель `Filters`: `Search work items` · `Default filters` (My open work items · Reported by me · All work items ·
+  Open work items · Done work items · Viewed recently · Created recently · Resolved recently · Updated recently) · `View all
+  filters`.
+- **Меню `•••` на `All work`:** `View work items as a chart` ∣ **`Export`** › · **`Import work items from CSV`** · **`Bulk
+  change work items`** ∣ `Give feedback`.
+- 🔴 **Помилка «значення не існує» на Free — без префікса «JQL error:»** і не завжди з порожнім списком:
+  · `status = Foo` → поле запиту в червоній рамці, під ним рядок «⚠ **The value 'Foo' does not exist for the field
+  'status'.**»; перемикач `Basic` неактивний; список порожній: «**There are no work items here yet** — You either don't have
+  any work items or your existing ones don't match your current filters.»;
+  · `status != Foo ORDER BY created DESC` → та сама рамка й той самий рядок під полем, але **список показано повністю** —
+  «36 of 36» (умова з неіснуючим значенням нікого не відсіяла).
+  Вікно W2 уроку 7 (`id="w2"`: «JQL error: The value 'Done' does not exist…» і теза «отримує не порожній список, а червону
+  рамку») — звести: префікса немає; для `!=` рамка є **разом** зі списком усіх робіт. (Запит `status != Done` на цьому сайті
+  помилки не дає — статус `Done` тут існує; перевірено на вигаданому значенні `Foo`.)
+- **`Save filter` на Free** → діалог «**Save filter**» — «Required fields are marked with an asterisk *» · `Name*` ·
+  `Description` · **`Viewers`** — випайка `Private` ▾ («Only you») · `Add` · рядок «Private» · **`Editors`** — так само ·
+  `Cancel` · `Save`. Варіанти випайки `Viewers`: **`Space` · `Group` · `My organization` · `User` · `Private`** (пункту
+  `Roles` немає). Після `Save`: тост «**"Test Free filter" filter saved** — We've saved this filter successfully. `Copy
+  link`»; заголовок сторінки — назва фільтра з ★ (фільтр одразу в `Starred` у бічній панелі) і посилання **`Filter
+  details`**; у рядку запиту замість `Save filter` — **`Copy filter`**.
+- **`Filter details`** (випливне вікно, не діалог із кнопкою `Save`): назва · `Description` — «This filter doesn't have a
+  description.» · `Edit name and description` · «Owned by <власник>» · **`Permissions`** · `Edit Permissions` · «Visible to:
+  Private» · «Editable by: Private» · **`Subscriptions`** ⓘ · `Add subscription` · «This filter doesn't have any
+  subscriptions.» Вікно W3 уроку 7 («за документацією»: `Details` з `Viewers` / `Editors` / `New subscriptions` / `Save`) —
+  перемалювати за цим.
+- **Галерея, категорія `Service management` на Free:** «Empower every team, from IT to HR to marketing, as they collect,
+  prioritize, assign, and track incoming requests with ease. Get up and running quickly by selecting one of our tailored
+  templates that include pre-configured workflows, forms, and settings based on service management best practices.» ·
+  картки (усі — Jira Service Management): **Blank space** · **IT service management** · **Advanced IT service management**
+  `Premium` · **IT Operations** `Premium` · **IT asset management** `New` · **Customer service management** · **General
+  service management** … Позначки `Premium` у двох ІТ-шаблонів на Free лишились.
+- **Ліва колонка галереї повністю:** Made for you · Bundles · Custom templates `Enterprise` · Import data ∣ `CATEGORIES`
+  (**17**): Software development · Service management · Work management · Product management · Marketing · Customer service
+  · Human resources · Finance · Design · Personal · Operations · Legal · Sales · Analytics · IT · Facilities · Nonprofit ∣
+  `PRODUCTS` (**4**): Jira · Jira Service Management · Customer Service Management · Jira Product Discovery.
+- **Картка спейсу розробки на Free (`WEB-3`):** крихти «Spaces / Сайт / ✎ Add epic / ☑ WEB-3» · угорі праворуч замок
+  (фіолетовий) · 👁 1 · поділитись · `•••` · статус `To Do` ▾ · `</>` («Open in coding tool») · ⚡ · **`Details`:
+  Assignee (`Unassigned` · `Assign to me`) · Parent (`Add parent`) · Priority (Medium) · Labels · Due date («Overdue since
+  Sep 25, 2026») · Team · Start date · Reporter** · згорнуті `Development` і `Automation` («Rule executions»). Секції:
+  Description · Subtasks («Add subtask») · Linked work items · Activity (All · Comments · History · Work log). `Reporter` —
+  **останнім** у `Details`. У картці `TFB-3` (спейс розробки з увімкненими спринтами) між `Start date` і `Reporter` є ще
+  поле **`Sprint`** («Add sprint»).
+- **Створення роботи через MCP на Free (повтор прогону уроку 22):** `createJiraIssue` у `TFB` → `TFB-3`; статус `To Do`,
+  `Assignee` — порожній (`Unassigned`), `Priority` — `Medium`, `Reporter` — акаунт, що пройшов згоду; `Activity` →
+  `History`: «<імʼя акаунта> created the Work item · 33 seconds ago» — **жодної позначки MCP**. Пошук: `STANDARD` працює
+  (1 результат на «вивіска»), `AGENTIC` → 403 «Agentic search is not enabled for this user or site.» Усе, що урок 22
+  знімав 29 вересня, на Free відтворюється.
+- **Меню `•••` колонки на дошці спейсу сюжету (`REM`, середня колонка `In Progress`):** `Set column limit` ∣ `Move column
+  left` · `Move column right` ∣ `Delete status`. Кнопки колонки (`↔` згорнути · `•••`) зʼявляються лише на наведенні. Дошка
+  `REM`: `Search board` · аватари · `Filter` · `Group` ∣ дві іконки; колонки `To Do` 4 · `In Progress` 1 · `Done` 0 · `+`;
+  на картці `REM-2` — мітка «електрика», дата, випайка батька «Ремонт другої точки», рядок `Subtasks 0/1`.
+
+- **Матриця `Default notifications` — рядки й стан галочок на Free** (`In product` ∣ `Email`; рядки-групи розкриваються):
+  `Notifications for all work items`: You're assigned to a work item ☑ ☑ · You're mentioned on a work item ☑ ☑ ∣
+  `Notifications for relevant work items`: **Changes to work items** ☑ ☑ → A work item is created ☑ ☑ · A work item is
+  edited ☑ ☑ · A work item is deleted ☑ ☑ · A work item is moved ☑ (одна галочка) · **Changes to comments on work items**
+  ☑ ☑ → A comment is added ☑ ☑ · A comment is edited ☑ ☑ · A comment is deleted ☑ (одна) · A work log is created, edited,
+  or deleted ☑ (одна) · Other work item events (including a change to a work item's status) ☑ (одна) ∣ `All space
+  notifications`: Space access requests ☑ ☑. Перемикачі вгорі: `Send me emails for work item activity` — on · You're the
+  assignee — on · You're the reporter — on · You make changes to work items — **off** · `Group notification emails
+  together` — on.
+- **`Reports` у спейсі розробки `WEB`:** вигляду в ряду немає; пряма адреса `…/WEB/reports` дає «We can't find the page
+  you're looking for — The view does not exist in this board. Error code: 404 · `Go to the default view`». Щоб побачити
+  звіти, вигляд `Reports` треба спершу додати через `+` → `Views` (не додавали — це зміна спейсу сюжету). **Вміст звітів
+  на Free не знято.**
+- **Не знято:** склад картки застосунку на сторінці `Marketplace apps`.
+
+## 16. Запити авторів хвилі 9 (групи `access` і `plans`) — знято після їхніх звітів
+
+- **Діалог `Add people` на Free** (`MARK` → `Space settings` → `Access` → `Add people`): «**Add people to Маркетинг**» ·
+  `•••` · `×` · `Names or emails*` («e.g., Maria, maria@company.com») · «Search by name, enter an email, or paste a list» ·
+  **`Role*` — `Administrator`, поле сіре, неактивне** · «This site is protected by reCAPTCHA and the Google `Privacy Policy`
+  and `Terms of Service` apply.» · `Cancel` · `Add` (неактивна без імені). Нікого не додавали. Сторінка `Access` у `MARK` —
+  та сама, що в `REM` (`screens/31` §6): `Add people` · `Open access` · «This space has 1 role» · банер «Unlock more
+  control…» · `Current users` · `Access requests` 0 · `Search roles` · `Roles` ▾ · Name · Email · Role (`Administrator` ▾) ·
+  Action.
+- **Вигляд `List` ділового спейсу на Free (`MARK`):** панель `Search work` · аватари · `Filter` · `Group` ∣ `•••`; рядок
+  заголовків: ☐ · › `Work` · `Assignee` · `Reporter` · `Priority` · `Status` · `Resolution` · `Created` · `Updated` · `Due
+  date` … і в кінці рядка — кнопка-іконка **`Configure columns`** (▥). У кожного заголовка — сортування («Assignee • Sort
+  A to Z») і «More actions for …»; над таблицею ще кнопка `Expand parent work items`. Рядки: «› ☑ MARK-1 Пост про новий
+  круасан» (розкривається — підзадача `MARK-3`), «⚡ MARK-2 Акція «друга кава −50 %»» …; унизу `+ Create` · «7 of 7» ·
+  оновити. **`Configure columns` на Free є — у рядку заголовків, не у верхній панелі.**
+- **`Group` у вигляді `List` (`MARK`):** поле «Search grouping options» · Agent · Assignee · Category · Created · Due date ·
+  Labels · Priority · Reporter · Resolution · Start date … · `Clear selection`.
+  **`Group` на дошці (`MARK`):** Assignee · **Campaign** · Category · Labels · Priority · **Sub-task** (назва верхнього
+  типу — з цього спейсу; у `REM` на цьому місці очікувано `Workstream` — не знімали).
+- **`+` → `Views` у діловому `MY` (Task tracking) на Free:** `Views`: **Board · List · Timeline** — `Capacity` немає й тут.
+  Права частина панелі: малюнок · «**Board** — Get a snapshot of the status of your team's work and easily drag your cards
+  through a workflow.» · `Add to navigation`. Дошка `MY`: `To Do` 3 · `Done` 2 · `+`; ряд виглядів `Summary · Board · List
+  · Calendar · Timeline · Approvals · Forms · Docs · Attachments · Reports · More 2 · +` (що саме потрапляє перед `More`,
+  залежить від ширини вікна й від того, які вигляди відкривали).
+- **Масові дії на `All work` на Free:** позначка рядка відкриває внизу панель «**1 selected** · `Select all` ∣ `Edit
+  fields` · `Change status` · `Add agent` `New` · `Watch options` · `Delete` ∣ `×`». **Пункту `Archive` серед масових дій
+  немає** — гуртом роботи на Free не архівуються (окрему — можна, §12). Кнопки в рядку роботи: «More actions for TFB-3».
+- **Не знято:** адмінка `Directory → Users` (j20 W3; там імена й адреси людей — знімати лише структуру); кнопки над
+  дашбордом і панель `Add a Gadget` (j08); форма перейменування спейсу й ключа (j03); повний перелік колонок `List` (j04).
+
+⚠ **Пастка керування браузером цієї сесії:** кнопка, що зʼявляється або оживає лише на наведенні (меню `•••` колонки, `+` у
+ряду виглядів, `Add people`, `Save filter`), на перший клік за `ref` лише отримує наведення; спрацьовує **другий** клік.
+Вікно посеред роботи звузилось (кадр 1568 px, сторінка ~1410 px) — кліки за координатами почали влучати лівіше; далі
+лише `find` + `ref` або JS.
+
 ## 14. Слід у sandbox після цієї зйомки
+
+- Збережений фільтр **«Test Free filter»** (`project = TF`, приватний, у `Starred`) — лишено; видалить власник або
+  наступна сесія за його словом. Робота **`TFB-3`** «Тест: створено через MCP на Free».
 
 - План — Free. `REM-7`: `Done → To Do → Done` (третій коментар автоматизації в `REM-6`). `MARK`: flow «Понеділковий
   список…» вмикали на хвилину й **знову вимкнули**; у журналі два нові рядки (`Config change`, `Some errors`) і ще один
