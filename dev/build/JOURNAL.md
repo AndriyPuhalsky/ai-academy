@@ -70,7 +70,7 @@
 `ref-map-author.md`» + перечитати `ref-promises.md` перед фіналом. Редактор квізів — «прочитай ЦІЛКОМ
 `quiz-lexical-common.md`, партія А|Б|В, `<BASELINE>` = …» (baseline знімати **після** комітів рецензентів:
 `python3 dev/build/007-quiz-distractors/check-quiz.py --files modules/jira-*.html --baseline <скретчпад>/quiz-baseline-012.json`).
-Рецензент карти — `prompt-reviewer.md` блок «Для довідників» + `ref-map-author.md` як канон + звіт `ref-map.md`.
+Рецензент карти — «прочитай ЦІЛКОМ `01-authoring/ref-map-review.md`» (інструкція готова, `9803866`) + скретчпад-підпапка.
 
 **Після всіх авторів хвилі 10 (коренева сесія, `47c1b41`):** `check-lessons` 0 ✗ на 23 · маркерів 0 на 23 · `check-refs`
 0 ✗ на 2 · `ref-promises.md` перегенеровано (карта — 46 обіцянок) · памʼять автора — чотири нові записи.
@@ -159,7 +159,7 @@ Results` на Free (j08 ~493, 🔴-1), меню `•••` рядка іншо�
 **Після всіх агентів — фінал (порядок):** (1) скрипти на 23 уроках + `check-refs.py` на 3 довідниках + `--lexical`
 (ціль — 0 маркерів) · (2) `href` на карту в j23 блок 8 (≈ рядок 623: `<strong>«Карта…»</strong>` → посилання
 `../jira-ref-map.html`, як у двох сусідніх рядках) · (3) `ref-promises.py` — карта має виконати всі обіцянки · (4)
-`open-claims.md` §12.4 (що закрила хвиля 10, що лишилось «за документацією» свідомо) · `cross-findings.md` «Хвиля 10» ·
+✅ `open-claims.md` §12.4 і `cross-findings.md` «Хвиля 10» — написано (`9803866`) ·
 `facts-free-plan.md` — рядок «числа тепер живуть у `jira-ref-map.html`» · (5) бриф дизайну `dev/design/012-jira/task.md`
 — рядок «Контент закрито» (три довідники, лічильник вікон перерахувати) + індекси `dev/build/README.md` і
 `dev/design/README.md` · `012-jira/task.md` чеклист (ж) — карта написана · (6) журнал, `CLAUDE.md`, памʼять · push.
