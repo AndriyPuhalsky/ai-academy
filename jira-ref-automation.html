@@ -335,8 +335,8 @@
             Окремо про план. AI-кнопки самої Jira — <code>Ask AI</code> у пошуку,
             <code>Fix error</code> під помилкою запиту, <code>Improve Task</code> на картці — це
             можливість плану Premium: на безкоштовному плані їх немає взагалі, і розбирає це
-            урок <a href="modules/jira-03.html">3</a>. Автоматизація й редактор workflow — два
-            місця, де слово Rovo видно й на безкоштовному сайті: 30 вересня 2026 року обидва
+            урок <a href="modules/jira-03.html">3</a>. Автоматизація й редактор workflow — місця,
+            де слово Rovo видно й на безкоштовному сайті: 30 вересня 2026 року обидва
             діалоги там відкривались. Результату вони, втім, не дали: <code>Create with
             Rovo</code> на обидва запити відповів помилкою, а у виборі агента для
             <code>Add agent</code> стояло «We can't find any recently used agents, try
@@ -860,12 +860,16 @@ flowchart LR
                     rate (for example, every 7 days)»), або розклад рядком
                     (<code>Cron expression</code>). На екрані 30 вересня 2026 року панель мала
                     вкладки <code>Basic</code> і <code>Advanced</code>, і у
-                    <code>Basic</code> розклад збирається <strong>кнопками</strong>:
-                    <code>Run flow every</code> [число] [одиниця] · <code>On</code> з кнопками
-                    <code>Mon</code>…<code>Sun</code> · <code>At</code> з годиною й часовим
-                    поясом · <code>Start date</code> / <code>End date</code>
-                    (<code>Never ends</code> · <code>On</code> · <code>After N
-                    occurrences</code>) · блок <code>Next run</code> і посилання «Show next 10
+                    <code>Basic</code> розклад збирається <strong>кнопками</strong>, у двох
+                    блоках. Перший, «Date and time»: <code>Start date</code> ·
+                    <code>At</code> з годиною й часовим поясом · <code>End date</code>
+                    (<code>Never ends</code> · <code>On</code> з датою · <code>After N
+                    occurrences</code>). Другий, «Occurrence»: <code>Run flow every</code>
+                    [число] і випайка одиниць — <code>Minutes</code> · <code>Hours</code> ·
+                    <code>Days</code> · <code>Weeks</code> · <code>Months</code>; для
+                    <code>Weeks</code> під нею з'являються кнопки
+                    <code>Mon</code>…<code>Sun</code> і своє поле <code>At</code>. Нижче —
+                    плашка <code>Next run</code> з найближчим запуском і посилання «Show next 10
                     runs». Тобто для «щопонеділка о 9:00» Cron не потрібен. Вкладка
                     <code>Advanced</code> (знято 30 вересня 2026 року) — це одне обов'язкове
                     поле <code>Cron expression*</code> і плашка «A CRON expression gives you
@@ -3149,8 +3153,15 @@ flowchart LR
           </ol>
           <p>
             Другий чесний спосіб — тригер <code>Scheduled</code> із коротким проміжком на час
-            перевірки. ⚠ Мінімального проміжку, який Jira приймає, довідка не називає, і живою Jira
-            ми його не міряли.
+            перевірки. Найкоротша одиниця у випайці <code>Run flow every</code> —
+            <code>Minutes</code>, і 30 вересня 2026 року, на безкоштовному плані, панель
+            прийняла <code>1</code> <code>Minutes</code> без жодного попередження: картка
+            тригера підписалась «Every minute», <code>Next run</code> показав наступну
+            хвилину, кнопка <code>Next</code> пропустила далі. ⚠ Чи дасть Jira такий flow
+            <strong>зберегти й увімкнути</strong>, ми не перевіряли: щохвилинний flow з'їв би
+            <a href="#limits-free">місячний запас запусків</a> за півтори доби. Для перевірки
+            беріть проміжок, який ви точно встигнете дочекатись, — і вимикайте flow одразу
+            після неї.
           </p>
 
           <h3 id="r4">Рецепт 4 · Готові flows, які приносить шаблон служби</h3>
@@ -3237,8 +3248,8 @@ flowchart LR
           </p>
           <p>
             <strong>Так виглядає живий журнал із справжніми рядками</strong> (той самий день,
-            спейс «Друга точка»). Дата у форматі <code>30.09.2026, 10:03:45</code> — вигляд
-            залежить від мови профілю. Розгорнутий рядок flow з гілкою показав п'ять кроків
+            спейс «Друга точка»). Дата стояла у форматі <code>30.09.2026, 10:03:45</code>.
+            Розгорнутий рядок flow з гілкою показав п'ять кроків
             підряд: <code>Work item transitioned</code> ·
             <code>BRANCH</code> · <code>Branch flow / related work items</code> ·
             <code>Comment on work item</code> · <code>Log action</code>, — а вже під останнім
@@ -3602,9 +3613,10 @@ flowchart TD
           <p>
             Спершу — межі <strong>однакові на всіх планах</strong>: вони про те, як улаштована
             сама автоматизація, а не про те, за що Atlassian бере гроші. Місячна межа
-            безкоштовного плану — <a href="#limits-free">одразу під таблицею</a>. Решта чисел,
-            які залежать від плану
-            (скільки листів на добу, скільки flows працює одночасно, з
+            безкоштовного плану — <a href="#limits-free">одразу під таблицею</a>, а дві добові
+            межі на листи, які часто плутають між собою, — <a href="#limits-email">за нею</a>.
+            Решта чисел, які залежать від плану
+            (скільки flows працює одночасно, з
             якого дня перевитрата стає платною), живуть в іншому довіднику — «Карта інтерфейсу,
             глосарій і ліміти Free», де в кожного є дата перевірки.
           </p>
@@ -3718,9 +3730,11 @@ flowchart TD
           </table>
           </div>
           <p class="ds-diag__caption" data-align="start">
-            Зі сторінки <code>automation-service-limits</code>, звірено 27 вересня 2026 року. Ця
-            сторінка містить і числа, що залежать від плану (листи за добу, одночасні flows) — їх тут
-            свідомо немає: вони в довіднику «Карта інтерфейсу, глосарій і ліміти Free».
+            Зі сторінки <code>automation-service-limits</code>, звірено 27 вересня 2026 року
+            (перечитана 30 вересня 2026 року — рядки не змінились). Ця
+            сторінка містить і числа, що залежать від плану: межа на листи — <a
+            href="#limits-email">нижче, разом із другою такою межею</a>, скільки flows працює
+            одночасно — у довіднику «Карта інтерфейсу, глосарій і ліміти Free».
           </p>
 
           <h3 id="limits-free">Місячна межа безкоштовного плану</h3>
@@ -3772,6 +3786,54 @@ flowchart TD
             Вкладка <code>Usage</code> в налаштуваннях спейсу межі не показує взагалі — лише
             витрачене. Ці числа Atlassian переглядає кілька разів на рік: якщо твій екран каже
             інше, вір екрану.
+          </p>
+
+          <h3 id="limits-email">Дві добові межі на листи — і це різні межі</h3>
+          <p>
+            «Межа листів» у Jira означає дві різні речі. Числа схожі, а механізми різні: одна
+            межа — про листи, які надсилає <strong>дія автоматизації</strong>, друга — про
+            листи-<strong>сповіщення</strong>, які Jira шле сама, коли хтось змінив роботу.
+          </p>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: дві добові межі на листи">
+          <table class="ds-tbl ds-tbl--wrap">
+            <thead>
+              <tr>
+                <th>Межа</th>
+                <th>Скільки</th>
+                <th>Що каже довідка</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>листи дій автоматизації</td>
+                <td>100 за 24 години</td>
+                <td>Рядок <code>Send email action</code> у таблиці службових меж: «100 emails in a
+                    24-hour period. This limit only applies to the Free plan for Jira Cloud and
+                    Trial licenses.» Тобто це межа саме безкоштовного плану й пробних ліцензій.
+                    ⚠ Рядок названий дією <code>Send email</code>, якої в панелі <code>Add an
+                    action</code> на безкоштовному плані 30 вересня 2026 року вже не було; чи
+                    стосується межа й дії <code>Send customized email</code>, сторінка не
+                    каже.</td>
+              </tr>
+              <tr>
+                <td>листи-сповіщення Jira</td>
+                <td>100 на добу</td>
+                <td>Інший механізм і інша сторінка довідки: «Jira can send a maximum of 100 emails
+                    per day on the Free plan. After 100 emails, notifications are paused until the
+                    following day.» Далі там само: «You can upgrade your plan to allow for more
+                    email notifications.» Про самі сповіщення — уроки
+                    <a href="modules/jira-02.html">2</a> і <a href="modules/jira-16.html">16</a>.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-diag__caption" data-align="start">
+            Перший рядок — зі сторінки <code>automation-service-limits</code> розділу
+            <code>cloud-automation</code>, другий — зі сторінки
+            <code>what-is-the-free-jira-cloud-plan</code> розділу
+            <code>jira-cloud-administration</code>; обидві прочитані 30 вересня 2026 року. Уроки
+            цих чисел не називають — вони живуть тут і в довіднику «Карта інтерфейсу, глосарій і
+            ліміти Free».
           </p>
 
           <h3>Як зрозуміти, що вперся саме в межу</h3>
@@ -4145,6 +4207,17 @@ flowchart TD
             <code>how-to-store-the-old-issue-key-when-an-issue-is-moved-from-one-project-to</code>
             (та сама позначка, оновлено 25 вересня 2025 року).
           </p>
+          <h3>Дві сторінки, перечитані 30 вересня 2026 року</h3>
+          <p>
+            Для <a href="#limits-email">двох добових меж на листи</a> сторінки читались окремо,
+            того дня: <code>automation-service-limits</code> розділу
+            <code>support.atlassian.com/cloud-automation/docs/</code> — рядок <code>Send email
+            action</code>; <code>what-is-the-free-jira-cloud-plan</code> розділу
+            <code>support.atlassian.com/jira-cloud-administration/docs/</code> — розділ «Email
+            notifications». Друга сторінка — не про автоматизацію: вона описує сам безкоштовний
+            план, і саме тому межі з неї легко сплутати з межами автоматизації.
+          </p>
+
           <h3>Власні очі на навчальному сайті — 17, 24, 28, 29 і 30 вересня 2026 року</h3>
           <p>
             Навчальний сайт Jira Cloud, інтерфейс англійський; остання звірка — 30 вересня
@@ -4190,7 +4263,9 @@ flowchart TD
             <code>Create with Rovo</code> на запит — обидві з помилкою; діалог
             <code>Add agent</code> у редакторі workflow; те, що <code>Run scheduled flow
             now</code> у вимкненого flow нічого не запускає; повторний прогін flow уроку
-            <a href="modules/jira-15.html">15</a> з результатом <code>Success</code>.
+            <a href="modules/jira-15.html">15</a> з результатом <code>Success</code>; випайка
+            одиниць у полі <code>Run flow every</code> тригера <code>Scheduled</code> і те, що
+            проміжок «кожну хвилину» панель приймає без попередження.
           </p>
           <p>
             Того ж 30 вересня 2026 року в ділових спейсах того сайту <strong>зібрано й запущено
@@ -4230,7 +4305,9 @@ flowchart TD
               безкоштовному плані відкривається, готових агентів у ньому немає, свого ми не
               заводили); автоматизація всередині службового
               спейсу (Jira Service Management на навчальному сайті ще не додано, тому flows 6 і 7
-              описані за документацією); мінімальний проміжок для розкладу; чи доходить лист
+              описані за документацією); чи дасть Jira <strong>зберегти</strong> flow із
+              розкладом «кожну хвилину» — панель такий проміжок приймає й не попереджає, але
+              зберігати ми не пробували; чи доходить лист
               <code>Send customized email</code> на вписану адресу — 30 вересня 2026 року
               одержувачем була група адміністраторів, і запуск дав <code>Some errors</code>;
               яке написання київського
