@@ -61,14 +61,33 @@
   - **Хвиля 7 переписала вікна й кроки** в j03, j04, j05, j06, j09, j10, j11, j12, j14, j15, j21, j22, j23 і обох
     довідниках (коміти `b1d6030`, `098f23a`, `570ace1`, `864910c`, `c8349e2`). Нові живі кадри для макета:
     `j10` W1 (рейка ділового спейсу + сторінка типу Task, 2026-09-28) і W3 (дошка `HR`), `j09` W2 (рейка ділового спейсу).
-    **Рецензія хвилі 7 ще попереду** — тексти j01–j03 (еталон сторінки уроку) змінились лише в j03 (кроки майстра й
-    ключ); еталон лишається чинним.
+    **Рецензія хвилі 7 закрита того ж дня** (5 рецензентів, коміт `79a61f5`, ≈ 55 правок формулювань) — тексти j01–j03
+    (еталон сторінки уроку) змінились лише в j03 (кроки майстра й ключ); еталон лишається чинним.
   - **Заявки дизайну, що додались:** `win__tabs` з 5+ вкладками на 390 px (j12 W3, j10 W3) · дві рейки `settings` (ділова /
     розробки) · `js/mermaid-theme.js` без `state: { useMaxWidth: false }` — діаграми станів j10, j19 стискаються (білд) ·
     повний реєстр — `dev/build/012-jira/01-authoring/cross-findings.md`, пункти «Дизайну» в розділах хвиль 2–7.
-  - **Ще не знято (не блокує дизайн, лише вміст окремих вікон):** повна рейка `Space settings` у `REM` з розкритими
-    групами, сторінка `Work types`, секція підзадач на картці ділового спейсу, плитка `Types of work` і `Timeline`
-    ділового спейсу; JSM (`FIN`, стан `portal` і черги) і Confluence — після того, як власник додасть їх на sandbox.
+  - **Дознято 2026-09-29, друга сесія** — `dev/build/012-jira/00-research/screens/28-sandbox-2026-09-29.md` §7 (усе, що
+    попередній рядок цього брифа називав «ще не знято», крім JSM і Confluence):
+    - **стан `settings`, дві рейки остаточно** (§7.1): ділова (`REM`, підпис «Business space») — Details · Access ·
+      Notifications › · Automation · **Approvals** · Fields · Work types › (`Workstream` · `Task` · `Sub-task` ·
+      `Add work type`) · Apps ›; розробки (`WEB`, «Software space») — те саме без `Approvals`, але з **Features · Custom
+      filters · Toolchain**. Сторінка типу (§7.8): `Description fields` / `Context fields` (11 полів) / порожня зона
+      `Hide when empty` з підказкою / права панель `Fields` / низ `Discard` · `Save changes`;
+    - **стан `item` ділового спейсу** (§7.4): крихта `Spaces / <спейс> / Add epic / REM-6` (порожній слот батька — `Add
+      epic`, заповнений — іконка й назва `Workstream`), секція `Subtasks` зі смугою «0% Done», кнопкою `Create child` і
+      таблицею `Work · Priority · Assignee · Status`; у `Details` **немає `Parent`**, є `Category` · `Team` · `Budget`;
+      вкладки `Activity`: All · Comments · History · Work log · Approvals;
+    - **рядок виглядів ділового спейсу** (§7.5–7.6): `Summary · Board · List · Calendar · Timeline · Approvals · Forms ·
+      Docs · Attachments · More 3 · +` (`REM`, `HR`); у `MARK` ще `Capacity` і `More 4`. Панель `+` → `Views` з кнопкою
+      `Add to navigation`; плитка `Types of work` на `Summary`; `Timeline` з розкривними рядками Workstream;
+    - **редактор workflow, режим `Text`** і діалог `Add rule` з фільтрами `All rules` / `RULE TYPES` (§7.8); форма
+      `Name your space` з випайкою `Access` на три рівні (§7.9).
+  - **Ще не знято (не блокує дизайн):** JSM (`FIN`, стан `portal` і черги) і Confluence — після того, як власник додасть
+    їх на sandbox; стан `portal` поки малюється за `screens/` з публічних сторінок і j16/j18/j19 «за документацією».
+  - **Контент ще рухатиметься, структура вікон — ні** (черга `dev/build/012-jira/01-authoring/open-claims.md` §11.1):
+    порядок вкладок ділового спейсу в семи файлах, зокрема в еталонному `jira-01.html` (~267: `Summary · List · Board` →
+    `Summary · Board · List · Calendar …`); вікно W1 у `jira-11.html` перемальовується з рейки `KAN` на ділову; у j06
+    зникає шлях через `Features`. Нових станів, класів чи компонентів ці правки не додають.
 - **Програма курсу, сюжет, факти про Jira Free, глосарій (історичний ескіз):** `dev/jira-course-plan.local.md`
   (локальний файл поза гітом; читати можна, копіювати в задачу — ні; чинна версія — у `00-research/`)
 
