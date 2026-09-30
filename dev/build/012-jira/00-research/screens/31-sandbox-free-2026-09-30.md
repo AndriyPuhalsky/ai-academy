@@ -201,3 +201,62 @@ Standard) і згоду з угодою; далі план JSM довелося 
 **Разом:** із 38 «живих» вікон на Free розходяться **дев'ять** — j02 W1, j03 W1, j05 W1, j07 W3, j09 W2, j10 W1, j11 W1,
 j20 W1, j21 W2 (+ j06 проза й вікно з `Capacity`, + вікно з `Fix error` у довіднику JQL); решта збігається або не перезнята
 (j13, j15, j16 W1, j21 W3).
+
+## 8. Дозйомка на Free в тимчасових спейсах `TF` і `TFB` (запити авторів хвилі 8б; зупинено словом власника «закінчуй»)
+
+**Майстер, діловий шаблон (Work management → Task tracking), Free:** категорія «Work management — Track, coordinate, and
+manage work with structure and consistency using our work management templates.»; картки: Project management `Recommended` ·
+Blank space («Start with a blank canvas») · Task tracking … Клік по картці одразу дає форму «Name your space»: `Name*` · `How
+your space is managed` (Team-managed) · рядок `Access` (§2) · `Key*` (для «Test Free A» Jira підставила `TF`) · `Template` ·
+`See details` · «Step 1 of 2» · `Next`. Після `Next` — 🟢 **тост, якого не вдавалось зловити тричі: «Jira space successfully
+created — Just a few more steps to get it connected.»** Крок 2: «Bring your team along — Get a head start by inviting your
+team while you wait.» · `Enter names or emails` («John Smith») · **`Role` — `Administrator`, поле неактивне** (на пробному
+Premium тут стояло `Member`) · «Step 2 of 2» · `I'll do this later` · `Next`. Порожня дошка: `To Do` 0 · `Done` 0 · «No work
+items — Create a work item to get started. Work will appear here.»
+
+**Меню `•••` колонки** (діловий `TF` і розробки `TFB` — однакове): `Set column limit` · `Move column right` · `Delete status`.
+Закриває запит про ліміт колонки в діловому спейсі.
+
+**`Add work type` → `Epic` → `Add`** (`TF`, Task tracking): тост «**Work type created** — “Epic” has been successfully
+created.»; рейка `Work types`: `Epic` ∣ `Task` ∣ `Sub-task` · `+ Add work type`; сторінка типу «Epic — Epics track large pieces
+of work.» · `Edit workflow` · `•••`; у правій панелі `Other fields`: Agent Sessions · Category. Через MCP створено `TF-1`
+(Epic) і `TF-2` (Task) — тип `Epic` у діловому спейсі після цього працює.
+
+**Слот `Add epic` ставить батька:** картка `TF-2` → `Add epic` → випайка «Recent epics» → `TF-1 Тест: епік` ∣ `View all
+epics` → клік по `TF-1` → крихта стала «Spaces / Test Free A / ⚡ TF-1 / ☑ TF-2». Закриває рядок 12 §11.2 повністю.
+
+**Майстер, шаблон розробки (Software development → Kanban), Free:** категорія «Software development — Plan, track and
+release great software. Get up and running quickly with templates that suit the way your team works. Plus, integrations for
+DevOps teams that want to connect work across their entire toolchain.»; картки Kanban · Scrum · Top-level planning `Premium`
+… Клік по картці дає **сторінку шаблону**: «Kanban — Visualize work in progress, reduce bottlenecks, and keep your team
+moving with a flexible Kanban board.» · `Use template` · `Features`: Track work on a visual board · Limit work in progress ·
+Continuously improve with agile reports · `Workflow`: To Do · In Progress · Done · `Work types`: Epic · Story · Bug · Task ·
+Subtask. Форма: `Name*` · **`How your space is managed*` — `Please select`** (обовʼязкове, нічого не вибрано; у випайці
+`Team-managed` `Last created` і `Company-managed` — без позначки `Administrators only`) · `Learn more about space types` ·
+блок **`Space permissions`** — «Choose who can view, edit, and comment — With space permissions, control who has access to
+your spaces and what they can do.» `Try it free for 14 days` · **`Key*` є на першому кроці** (`TFB`) · «**Step 1 of 3**».
+Крок 2: «**Let's set up your space** — These form the building blocks of your space. You can change these settings later.» ·
+`Configuration*` (кнопки `Suggest` і скидання) · `Work types` Epic, Story, Bug, Task › · `Statuses` To Do, In Progress, Done ›
+· `Views` Summary, Timeline, Board, Calendar, List, Forms, Development, Docs › · перемикач `Start with sample work items`
+(вимкнено). Крок 3: «**We're setting up your space...**» → «**Your space is ready**» (смуга поступу) · запрошення · `Role`
+Administrator (неактивне) · `I'll do this later` · `Next`.
+
+**Спейс розробки на Free (`TFB`):** ряд `Summary · Timeline · Board · Calendar · List · Forms · Development · Docs · +`.
+`+` → `Views` — **10 пунктів**: Archived work items · Backlog · Code `Moved` · Deployments `Moved` · Goals · List · Releases ·
+Reports · Security `Moved` · Shortcuts (**`Capacity` немає** — на пробному Premium було 11). `Backlog` → «Plan and prioritize
+your team's work in a dedicated space.» → `Add to navigation` → вкладка `Backlog` остання.
+**Вигляд `Backlog` без спринтів:** `Search backlog` · аватари · `Filter` · `Import work` · `View settings` · `•••`; секція
+«**Board** (2 work items)» з лічильниками `2 · 0 · 0`, рядки робіт зі статусом, `+ Create`; роздільник «2 of 2 work items
+visible»; секція «**Backlog** (0 work items)» — «Your backlog is empty.» · `+ Create` (іконка «Plan on whiteboard»).
+**`Features` на Free:** `Planning` — `Sprints` («Complete work in fixed units of time. Requires a backlog. More about
+Sprints») · `Estimation`; `More items` — `Standups in Jira` (увімкнено). Після додавання `Backlog` перемикач `Sprints`
+активний; увімкнено. **Після ввімкнення:** у панелі зʼявилась іконка `Backlog insights`; секція «**TFB Sprint 1** · `Add
+dates` · (0 work items)» · `0 · 0 · 0` · `Start sprint` (неактивна) · `•••` · «**Plan your sprint** — Drag work items from
+the Backlog section or create new ones to plan the work for this sprint. Select Start sprint when you're ready.» · `+ Create`
+· «0 of 0 work items visible» · секція «**Backlog** (2 work items)» · `Create sprint`. **Усе, що урок 13 описує про чергу й
+перший спринт, на справжньому Free відтворюється дослівно** (назва спринта — `<ключ> Sprint 1`).
+
+**Не зроблено (черга наступної сесії, у `TFB`):** перетягнути роботу в спринт → `Start sprint` → дошка спринта → `Complete
+sprint`; звіти. **Слід:** тимчасові спейси **`TF` «Test Free A»** (Task tracking; доданий тип `Epic`, роботи `TF-1`, `TF-2`)
+і **`TFB` «Test Free B»** (Kanban; вкладка `Backlog`, увімкнені `Sprints`, роботи `TFB-1`, `TFB-2`) — **лишені для
+продовження дозйомки; після неї обидва в кошик** (так само, як `TST`, — рішення власника 2026-09-30).
