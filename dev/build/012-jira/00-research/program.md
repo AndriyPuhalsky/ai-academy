@@ -1525,9 +1525,22 @@ Spaces, Filters, Dashboards, Audit log, Text-режим workflow, Summary-пли
     [Required] · Description) · `Context fields` (Status · Assignee · Due date · Priority · Labels · Time tracking · Start
     date · Category · Team · Budget · Reporter) · зона `Hide when empty` **порожня** (з підказкою) · `Discard` · `Save
     changes` · права панель `Fields`. Вікно W1 у j11 — за цим, узгоджено з j10 W1.
-    · **`Add work type`** (§7.3): діалог пропонує `SUGGESTED: Bug · Story` і `Create work type` (Name* · Description ·
-    Icon) — **поля вибору рівня ієрархії немає**, верхній поверх цією формою не додати; у діловій рейці пункт написаний
-    без плюса.
+    · **`Add work type`** (§7.3; **виправлено 2026-09-30 ввечері за `screens/29` §11**): форма `Create work type` (Name* ·
+    Description · Icon) **поля вибору рівня не має**. Розділ `SUGGESTED` залежить від спейсу: у `REM`, де верхній тип
+    (`Workstream`) уже є, — `Bug` · `Story`; у **`MY` (Task tracking, верхнього поверху немає) — `Epic` · `Bug` · `Story`**,
+    тобто там верхній поверх додати **можна**. Формула «цією кнопкою поверху не додати» правдива лише для спейсу, де
+    верхній тип уже є; автор ① хвилі 8 узагальнив її в j11 і на `MY` — **виправити**. У рейці пункт — з іконкою `+`.
+    · **Автоматизація наживо** (`screens/29` §7–§10; в уроки ще не внесено): тригер `Scheduled` має вкладку `Basic` з
+    кнопками днів тижня й часом (Cron не потрібен); у меню `•••` flow за розкладом є `Run scheduled flow now`; `Save and
+    enable` без назви відкриває панель «Turn this flow on» (`Flow name*` → `Turn on flow`), `Flow details` — у меню `•••`;
+    дія `Comment on work item` має ввімкнений за замовчуванням прапорець `Prevent duplicates…` — другий коментар у ту саму
+    роботу не додається; гілки `Epic (parent)` і `Stories (or other work items in Epic)` Jira позначає «will soon be
+    removed» і радить `Parent` / `Children`; `Stories` від `Workstream` — «Unable to run this step»; `{{issue.epic.key}}`
+    у задачі ділового спейсу повертає ключ `Workstream`; `Send customized email`: `Email name*` і `Subject*` — у вкладці
+    `Settings`, формат за замовчуванням `Rich text`.
+    · **Спейс розробки** (`screens/29` §12): `Backlog` додають через `+` → `Views` → `Add to navigation` (вкладка стає
+    останньою), а не через `Features`; `Features` у `WEB` — `Sprints` (неактивний без беклогу) · `Estimation` · `Standups
+    in Jira`; перший спринт Jira називає `WEB Sprint 1`.
     · **Картка ділового спейсу** (§7.4): порожній слот батька в крихті — **`Add epic`**, заповнений — іконка й назва
     `Workstream`; секція `Subtasks` (без дефіса, хоч тип — `Sub-task`) з кнопкою `Create child`; у `Details` поля `Parent`
     **немає**, є `Category` · `Team` · `Budget`. Дім цієї подробиці — j04/j05, одним реченням з датою.
