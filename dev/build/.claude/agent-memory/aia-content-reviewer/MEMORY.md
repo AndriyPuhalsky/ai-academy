@@ -35,3 +35,6 @@
 - [Знімок покриває один шлях](reference_snapshot_covers_one_path.md) — «сама форма — це…» правда для ділової заготовки, хибна для розробки; змішане вікно датують у заголовку («звірено X, рейка — Y»)
 - [Слово задає урок-дім](reference_home_lesson_sets_the_word.md) — переказ поняття рахувати по ВСЬОМУ курсу (j04 «поверх» 23 проти «рівень» 13 у групі ④); перефраз не має зливати «поверх» і «назву типу»
 - [Узагальнення зі знімка](reference_snapshot_generalization.md) — «те саме без Capacity» і хвіст `More 1`: рядок `screens/*` читати до крапки з комою, скрипти цього не бачать
+- [Виноска KB ≠ текст статті](reference_kb_callout_vs_article_body.md) — синя `ComponentCallout` над статтею суперечить `articleBody`; межу «KB/докси» задає адреса `/kb/`, не мітка JSON-LD
+- [Сторінка планів — кілька продуктів](reference_plans_page_many_product_tables.md) — рядок `Timeline views` там із таблиці Jira Product Discovery, у Jira таймлайн — рядок `Roadmaps` (`Basic`)
+- [Крок проти власного блоку уроку](reference_step_vs_own_lesson_block.md) — «Зроби сам» обіцяє пункт, якого немає в переліку з блоку 2 того ж уроку (j06: `Calendar` у панелі `Views`)
