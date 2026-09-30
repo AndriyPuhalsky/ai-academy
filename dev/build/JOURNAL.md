@@ -61,7 +61,7 @@
 | рецензент ③ | `aia-content-reviewer` | j07, j18, j22, j23, ref-jql | ✅ j23, j18, j22 «готово»; j07, ref-jql «з зауваженнями» | `w10-ai-review.md` · `6a75b26` |
 | рецензент ④ | `aia-content-reviewer` | j10, j11, j14, j15, ref-automation | ✅ j15 «готово», решта «з зауваженнями» | `w10-automation-review.md` · `9b2e4d2` |
 | рецензент ⑤ | `aia-content-reviewer` | j12, j13, j16, j17, j19 | ✅ j19 «готово», решта «з зауваженнями» | `w10-rest-review.md` · `fb74a3b` |
-| редактор квізів А / Б / В | `aia-quiz-editor` ×3 | партії з `quiz-lexical-common.md` | ⬜ після всіх рецензентів | `quiz-lex-<а\|б\|в>.md` |
+| редактор квізів А / Б / В | `aia-quiz-editor` ×3 | А: j02, j04, j06, j07, j08 · Б: j10, j11, j12, j16, j18 · В: j19, j21, j22, j23 | ⏳ працюють (стартовий замір — 22 маркери в 14 файлах, як у інструкції) | `quiz-lex-a.md` · `quiz-lex-b.md` · `quiz-lex-c.md` |
 | рецензент карти | `aia-content-reviewer` | `jira-ref-map.html` | ⬜ після автора карти | `ref-map-review.md` |
 
 **Промпти (однакові за формою):** автор / рецензент хвилі 10 — «прочитай ЦІЛКОМ і виконай `01-authoring/wave10-common-
@@ -137,6 +137,12 @@ subscription`, `Bulk change`, `Fix error` на платному, сайт на S
 fields» (довідка пише «Show X more fields»), j10 ~679 діалог `Add a status` зі `screens/27` (пробний платний) — єдина
 екранна опора категорій · автору карти через `SendMessage`: числа листів — у `#limits-email` довідника автоматизації,
 апострофи U+02BC → U+0027, `check-refs`.
+
+**Редактори квізів (запущено після коміту `561a7db` — стан усіх рецензентів):** baseline для `--verify` —
+`<скретчпад>/quiz-baseline-012.json` (158 питань, 23 файли). ⚠ Скретчпад гине при перезапуску процесу: якщо сесія
+обірвалась — відтворити baseline з git: `git -C /Users/ander1.sage/Downloads/AIA worktree add /tmp/q561 561a7db` (або
+`git show 561a7db:modules/jira-NN.html > …` по файлах) і `check-quiz.py --files <ті файли> --baseline <новий шлях>`, потім
+`--verify` на поточних. Скрипт рахує файли за імʼям, тож шляхи мусять мати ті самі імена `jira-NN.html`.
 
 **Що передати рецензенту ③ (іспит j23, запускати останнім з рецензентів хвилі):** питання іспиту про «колонку Role» у списку
 людей адмінки опори більше не має (j20 W3 — роль під іменем, колонки немає) · j08 — гаджет зветься `Created vs Resolved
