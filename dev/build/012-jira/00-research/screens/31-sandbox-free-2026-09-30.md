@@ -115,3 +115,56 @@ portal» · «View, triage, and resolve them in one place» · «See the whole p
 Закрито `Cancel`. **Безкоштовного шляху зсередини Jira немає:** JSM додається лише через пробний період (тепер — 14 днів
 Standard) і згоду з угодою; далі план JSM довелося б знижувати до Free в адмінці так само, як план Jira (§1). Це і є шлях,
 яким піде учень уроку 19, — його варто описати в уроці дослівно, коли власник дозволить пройти.
+
+## 6. Друга порція перезвірки на Free (того ж дня; порівняння зі `screens/01`–`14`)
+
+- **Головна `For you`** (вкладка `Recommended`): «Recommended spaces» · `View all spaces` · плитка «Моя команда — Software
+  space» · вкладки `Recommended` · `Assigned to me` 1 · `Starred` · `Worked on` · `Viewed` · «Get your team set up for
+  success» (Create tasks / Import existing work / Invite your team / Connect your tools — тексти як у `screens/01`) · «**Review
+  work due soon** — You have work items overdue or due within 7 days. Update your progress to keep your team informed. Review
+  all work due soon» · рядок роботи з кнопкою `Review` · «Revitalize your roadmap — Try Jira Product Discovery to explore,
+  discuss, and prioritize ideas—then move the best ones straight into Jira.» `Try it` · `Dismiss` · `Give us feedback`.
+  Привітання «Welcome … It's Thursday…» і поле «Find a space» зі `screens/01` зараз немає.
+- **Список `Spaces`:** `Create space` · `Templates` · `Filter by app` · «6 spaces found» · колонки Name · Key · Type · Lead ·
+  Space URL; типи — «Team-managed business» (`REM`, `MARK`, `MY`, `HR`) і «Team-managed software» (`KAN`, `WEB`). Без змін.
+- 🔴 **Вигляд `List`** (`REM` і `KAN`): панель — `Search work` · аватари · `Filter` · `Group` · `•••`; **кнопки `Ask AI`
+  немає** (`screens/04` ставив її першою). У діловому спейсі рядки вкладені (`REM-1` і `REM-6` розгортаються стрілкою);
+  унизу `+ Create` · «4 of 4» · оновити.
+- **`Summary` ділового спейсу** (`REM`): банер «Customize your Reports view to suit your space.» · `Filter` · плитки
+  completed / updated / created / due soon · `Status overview` · `Recent activity` · `Priority breakdown` («Get a holistic
+  view of how work is being prioritized. How to manage priorities for spaces») · `Types of work` (Task 67% · Workstream 17% ·
+  Sub-task 17%) · `Team workload` («Monitor the capacity of your team. Reassign work items to get the right balance») ·
+  **`Related spaces`** («Use spaces to manage all your work in one place and stay aligned with stakeholders.» `View all
+  spaces`) — блоку `Epic progress` у діловому спейсі немає.
+- 🔴 **`Space settings → Access` на Free** (`REM`): `Add people` · `Open access` · «This space has 1 role» · банер «**Unlock
+  more control** — Access to this space is currently **Open**. To customize user access, such as roles and permissions,
+  upgrade your plan to Standard.» `Upgrade` · `Learn more` · вкладки `Current users` · `Access requests` 0 · `Search roles` ·
+  `Roles` · таблиця Name · Email · Role · Action → «Користувач Jira · (email приховано) · Administrator». Кнопки `Settings`
+  зі `screens/10` немає.
+- **Вкладка `Docs`** (`REM`): та сама заглушка, що у `screens/09`, — «Manage your project content, all in one place — No more
+  switching between tools. Connect Confluence to your space to capture, organize, and share project knowledge right from
+  Jira.» · `Try Confluence now` · `Discover Confluence` · «By selecting ‘Try Confluence now’, you will be enrolled in
+  Confluence and agree to the Atlassian Cloud Terms of Service and Privacy policies.» Не натискали.
+- 🔴 **Картка у спейсі розробки** (`KAN-2`): праворуч від статусу — `</>` («Open in coding tool») і ⚡ (`Automation`);
+  **`Improve Task` немає**. Іконка замка у шапці — фіолетова; клік відкриває «**Upgrade to manage access** — To select which
+  roles can view and edit this work item, upgrade your plan.» з трьома неактивними прапорцями «Administrator (full work item
+  access)» · «Member (can do most things)» · «Viewer (view and comment only)» · `Learn more` · `Upgrade`. У шапці картки
+  ділового спейсу (`REM-4`) замка немає. `Details` у `KAN-2`: Assignee · Parent · Priority · Labels · Due date · Team · Start
+  date · Reporter · `Development` · `Automation` — як у `screens/06`.
+- 🔴 **Глобальна автоматизація → `Usage`** (Settings → System → Global automation): перемикач **`Current usage model`** ∣
+  **`Upcoming usage model`**.
+  `Current usage model`: «**This month's usage** — Shows the number of flow runs available. Your usage resets через 1 день
+  (1 жовтня).» · таблиця Product · Current usage · Used · Remaining · Total limit · Plan → «Jira · 3% · 97 · **100** · `Free` ·
+  `Upgrade`» · «Jira Work Management is bundled with your existing products. Learn how Jira Work Management flows contribute
+  to your usage» · `Usage trends` — «Your automation usage over the last 6 months.» · `Understanding automation usage`: «How
+  is my usage calculated?» · «When will my monthly limit reset?» · «What happens if I reach my monthly limit?» · «What kinds
+  of flows don't count towards my monthly limit?» · «Explore monthly usage for all spaces — Find the automations that are
+  contributing most to your limits» · `Select product` Jira · `Select month` Current month's usage · таблиця Flow name · Used ·
+  Owner · Scope · Enabled → «Підзадача готова — відзначити в батьківській роботі · 3 · … · ENABLED».
+  `Upcoming usage model`: плитки `Automation step usage` «22 steps» `Estimate` і `Rovo credit usage in Automation` «0 credits»;
+  `High usage flows` з колонкою `Scope` (Flow · Flow runs · Automation steps · Rovo credits · Scope · Owner · Enabled).
+  **Закриває F10:** «100» — це запуски flow за чинною моделлю, «150 steps» у підписці — кроки за майбутньою моделлю; це дві
+  різні одиниці, а не суперечність. Вкладка `Usage` рівня спейсу показує лише майбутню модель (кроки).
+- **Глобальний список flows:** два тестові flows спейсу `TST` **лишились у списку** після перенесення спейсу в кошик — у
+  колонці `Scope` замість назви стоїть число `10071`. Обидва **вимкнено** перемикачем (кореневою сесією, 30.09); не видалено.
+  Теза зі `screens/29` §14 «flows підуть разом зі спейсом» — хибна.

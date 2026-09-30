@@ -1231,8 +1231,10 @@ Spaces, Filters, Dashboards, Audit log, Text-режим workflow, Summary-пли
     суть дублюється в уроці. Сторінки планів — дві названі в `facts-free-plan.md`.
 11. **Sandbox: пастка мови.** Спейси в sandbox створювати з мовою акаунта **English**, інакше
     статуси народжуються російськими/українськими і ламають JQL у вікнах.
-12. **Апсели Free не описувати як функції:** See plans і те, що апселом видно на знімку. ~~Ask AI, Improve Task, Add agent~~ —
-    **спростовано наживо 2026-09-24** (`screens/26`): на Free-сайті вони працюють; «X входить у платні плани» ≠ «на Free X немає».
+12. **Апсели Free не описувати як функції:** `Upgrade` у шапці (а `See plans` — ознака пробного платного плану) і те, що
+    заглушкою видно на знімку справжнього Free (`screens/31`). **Запис «спростовано наживо 2026-09-24» СКАСОВАНО 2026-09-30:**
+    той сайт був на пробному Premium. На Free `Ask AI`, `Fix error`, `Improve Task` немає зовсім; `Add agent` і `Create with
+    Rovo` видно, діалоги відкриваються, результат не перевіряли — див. «Уточнення» **п. 22**.
 13. **Квіз — 6 питань**, іспит — 26; `explain` без «перший/третій варіант» (`js/quiz.js` тасує);
     довжина варіантів не підказує (007); ситуаційні питання, не «скільки».
 14. **Один агент — одна сторінка; git не виконує; звіт `.md` у `01-authoring/reports/`**
@@ -1566,6 +1568,50 @@ Spaces, Filters, Dashboards, Audit log, Text-режим workflow, Summary-пли
     · **Дати живих написів хвилі 8:** `screens/28` — «звірено 2026-09-29», `screens/29` — «звірено 2026-09-30».
     · **Обсяг хвилі 8:** j01, j03, j04, j05, j06, j09, j10, j11, j12, j14, j15, j16, j21, `jira-ref-jql.html`,
     `jira-ref-automation.html`; j13 і j23 — лише перевірка (правка, якщо знайдеться слід).
+22. 🔴 **Sandbox до 2026-09-30 був на пробному Premium; з 2026-09-30 — на справжньому Free (`screens/30-sandbox-plan-2026-09-30.md`,
+    `screens/31-sandbox-free-2026-09-30.md`). Пріоритет над п. 20, п. 21, правилом 12 і записами «спростовано наживо
+    2026-09-24».** Слово власника 2026-09-30: **«лише Free тариф, весь курс на цьому побудований має бути»**. Кожен знімок
+    `screens/01`–`29` зроблено на сайті з можливостями Premium (новий сайт Atlassian стартує з `FREE 30-DAY TRIAL` Premium,
+    у шапці при цьому `See plans`); джерелом «наживо на Free» вони більше **не є** — лише `screens/31` і пізніші. Механіка
+    інтерфейсу (майстер, картка, конструктор flow, гілки, JQL, беклог) від плану здебільшого не залежить, але це гіпотеза,
+    а не факт: місце, якого `screens/31` не бачив, позначається як «знято до 30 вересня 2026 року, на пробному платному
+    плані» або перезнімається.
+    · **AI в інтерфейсі (скасовує запис 2026-09-24):** на Free **немає** `Ask AI` (ні в пошуку, ні у вигляді `List`), кнопки
+    `Fix error` під помилкою JQL, `Improve Task` на картці; підказки під полем коментаря — «Looks good!» · «Need help?» ·
+    «This is blocked...» · «Can you clarify...?» · «This is on track», а не «Suggest a reply…». Це не заглушки — елементів
+    немає зовсім. Опора: таблиця планів у консолі (`Atlassian Intelligence (AI)` — Free ✗, Standard ✗, Premium ✓) і екран
+    переходу («By moving to the Free plan, you'll lose access to Premium-only features, including: Atlassian Intelligence…»).
+    **Лишаються видимими й на Free** (діалоги відкриваються; запитів не надсилали; перезняти наступного дня): `Create with
+    Rovo` у меню `Create flow` і `Add agent` у редакторі процесу. Формула курсу: «AI-кнопки Jira — це можливість плану
+    Premium; на безкоштовному їх немає. Два місця, де слово Rovo видно й на Free, — автоматизація й редактор процесу; чи
+    дадуть вони результат без кредитів, курс не перевіряв». Правило «X входить у платні плани ≠ на Free X немає» лишається
+    правилом про **висновки з довідки**; тут опора — екран.
+    · **Рейка `Space settings` ділового спейсу на Free (скасовує «дві рейки» п. 21 у частині `Approvals`):** Details ·
+    Access · Notifications › · Automation · Fields · Work types › · Apps › — **без `Approvals`**. Рейка спейсу розробки — та
+    сама плюс `Features · Custom filters · Toolchain` перед `Apps`.
+    · **Рядок виглядів ділового спейсу на Free — однаковий в усіх чотирьох:** `Summary · Board · List · Calendar · Timeline
+    · Approvals · Forms · Docs · Attachments · More · +`. **`Capacity` на Free немає ніде** (скасовує «`Capacity` — у `MY` і
+    `MARK`»). Вкладка `Approvals` у рядку є, але всередині заглушка «Add approvals to your workflow … `Try with Premium`».
+    Вкладки `Approvals` серед `Activity` на картці немає.
+    · **Доступ (скасовує «рівнів доступу три»):** у майстрі на Free вибору немає — «Access: Anyone with access to `<site>`
+    can access and administer this space. `Upgrade your plan` to customize space permissions.»; сторінка `Access` — банер
+    «Unlock more control — Access to this space is currently Open. To customize user access, such as roles and permissions,
+    upgrade your plan to Standard.»; замок на картці спейсу розробки — «Upgrade to manage access».
+    · **Меню `•••` біля назви спейсу на Free:** Add to starred · Add people · Save as template `Enterprise` · Set space
+    background › · Space settings ∣ **Archive space `Premium`** · Delete space. Пункту `Create a plan with this space` немає.
+    · **Шапка:** на Free — кнопка **`Upgrade`**; `See plans` — ознака пробного платного плану.
+    · **Ліміт автоматизації на Free:** Settings → System → Global automation → `Usage` → `Current usage model` — «Total
+    limit 100» запусків flow на місяць, `Plan: Free`; вкладка `Upcoming usage model` рахує кроки (у підписці — «Automation
+    steps 150 steps»). Вкладка `Usage` рівня спейсу показує лише кроки. Число в уроці — за правилом стійкості (лише в
+    довіднику з датою); в уроці — де його побачити.
+    · **Тримається й на справжньому Free:** обидва типи спейсу в майстрі (`Company-managed` з позначкою `Administrators
+    only`); `Add work type` у `MY` пропонує `Epic` · `Bug` · `Story`; `Backup manager`; рейка й ряд виглядів `WEB`; `+` →
+    `Views` у діловому спейсі (Board · List · Timeline); конструктор flow; MCP (звичайний пошук працює, агентний → 403).
+    · **JSM і Confluence:** зсередини Jira додаються лише через пробний період («14-days Standard trial» для JSM) і згоду з
+    угодою; рішення власника 2026-09-30 — **«поки без JSM і Confluence»**. j16, j18, j19 лишаються «за документацією».
+    · **Дати:** `screens/31` — «звірено 30 вересня 2026 року на безкоштовному плані». Слова «на безкоштовному плані /
+    сайті» біля факту, знятого до 30 вересня, — дефект.
+    · **Обсяг хвилі 9 «назад на Free»** — черга F1–F11 у `screens/31` §4 і `open-claims.md` §12.
 
 ## Відкриті питання власнику
 
