@@ -484,12 +484,26 @@ flowchart LR
               (<code>create-and-edit-jira-automation-rules</code>): у розділі «з нуля» —
               <code>Turn on flow</code>, у розділі «з шаблону» — <code>Turn it on</code>, у
               розділі «з Rovo» — те саме <code>Save and enable</code>, що й на екрані.
+              Біля кнопки є стрілка («More "Turn on flow" options») з єдиним пунктом
+              <code>Save without enabling</code>. У flow <strong>без назви</strong> ця
+              кнопка спершу відкриває панель <code>Turn this flow on</code>:
+              <code>Flow name*</code> · <code>Who can edit this flow?*</code>
+              (<code>Private</code> за замовчуванням) · кнопка
+              <code>Turn on flow</code> — ось де живе третя назва. Якщо назву вписати
+              заздалегідь у <code>Flow details</code>, flow вмикається одразу, а після
+              цього Jira показує панель «✓ Your flow has been turned on» (звірено
+              30 вересня 2026 року).
             </li>
             <li>
-              <strong><code>Update</code></strong> — застосувати правки до вже ввімкненого flow:
+              <strong><code>Update</code> у довідці — <code>Save</code> на екрані.</strong>
+              Правки до вже ввімкненого flow застосовують окремим натисканням:
               «If you add a new step after enabling, you'll need to select Update to apply any new
               changes to the flow». Поки не натиснуто, працює стара версія, а сам flow стоїть у
-              стані <code>Draft</code>.
+              стані <code>Draft</code>. На екрані 30 вересня 2026 року ця кнопка звалась
+              <code>Save</code> (у шапці, поруч із перемикачем <code>Enabled</code>;
+              неактивна, поки нічого не змінено, підказка <code>⌘S</code>), а після
+              збереження Jira показала панель «Your flow has been updated» і повідомлення
+              «Flow updated».
             </li>
             <li>
               <strong>Порядок кроків</strong> перетягується мишею, зайвий крок знімається
@@ -539,7 +553,20 @@ flowchart LR
           <p>
             Дві живі сторінки довідки ділять налаштування flow по-різному, і в тексті нижче
             навпроти кожного поля стоїть сторінка, з якої взято опис. На екрані все це відкривається
-            з <code>More actions</code> у конструкторі.
+            з <code>More Actions</code> (три крапки) у конструкторі — там пункти
+            <code>Flow details</code>, <code>Settings</code>, <code>Connections</code> і
+            <code>Check for errors</code>.
+          </p>
+          <p>
+            <strong>Живий екран 30 вересня 2026 року розсудив цей спір на користь поділу
+            на два набори.</strong> Панель <code>Flow details</code> того дня мала рівно
+            п'ять полів — <code>Name*</code>, <code>Description</code>,
+            <code>Owner*</code> («The owner will receive emails when the flow fails.»),
+            <code>Notify on error</code>, <code>Who can edit this flow?*</code> — і примітку
+            прямо в панелі: «Flow settings have moved. Manage trigger settings, scope, and
+            actor in the Settings panel». Тобто <code>Scope</code>, <code>Actor</code> і
+            налаштування тригера шукати треба в сусідньому пункті
+            <code>Settings</code> того самого меню.
           </p>
           <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: поля Flow details і Settings">
           <table class="ds-tbl ds-tbl--wrap">
@@ -613,7 +640,8 @@ flowchart LR
             <code>what-are-rule-details-in-atlassian-automation</code> ділить їх на
             <code>Flow details</code> (назва, опис, власник, сповіщення про помилки, хто може
             редагувати) і <code>Settings</code> (межа дії, actor, запуск від іншого flow).
-            Обидві живі на 27 вересня 2026 року.
+            Обидві живі на 27 вересня 2026 року; живий екран 30 вересня 2026 року
+            збігається з другою.
           </p>
 
           <h3>Хто має право створювати flows</h3>
@@ -785,7 +813,17 @@ flowchart LR
                 <td><code>Scheduled</code></td>
                 <td>Настав час, а не сталась подія. Або рівний проміжок («run the flow at a fixed
                     rate (for example, every 7 days)»), або розклад рядком
-                    (<code>Cron expression</code>). Є поле для запиту JQL: «If you do, actions in
+                    (<code>Cron expression</code>). На екрані 30 вересня 2026 року панель мала
+                    вкладки <code>Basic</code> і <code>Advanced</code>, і у
+                    <code>Basic</code> розклад збирається <strong>кнопками</strong>:
+                    <code>Run flow every</code> [число] [одиниця] · <code>On</code> з кнопками
+                    <code>Mon</code>…<code>Sun</code> · <code>At</code> з годиною й часовим
+                    поясом · <code>Start date</code> / <code>End date</code>
+                    (<code>Never ends</code> · <code>On</code> · <code>After N
+                    occurrences</code>) · блок <code>Next run</code> і посилання «Show next 10
+                    runs». Тобто для «щопонеділка о 9:00» Cron не потрібен. Запит JQL
+                    увімкнює прапорець «Run a JQL search and execute actions for each work item
+                    in the query»: «If you do, actions in
                     this flow will execute on the work items included in the query».</td>
                 <td><code>{{issue}}</code></td>
                 <td>Щоденне нагадування про завтрашні дедлайни
@@ -840,7 +878,14 @@ flowchart LR
             згруповані за застосунком, і в групі <code>Automation</code> стояли три:
             <code>Incoming webhook</code>, <code>Scheduled</code>,
             <code>Service limit breached</code>. Прочерк у колонці прикладів означає, що в сюжеті
-            курсу такого flow немає.
+            курсу такого flow немає. Три тригери 30 вересня 2026 року знято дослівно:
+            <code>Work item created</code> — «Flow is run when a work item is created.»;
+            <code>Work item transitioned</code> — поля <code>From status</code> і
+            <code>To status</code>, в обох підказка «Leave blank to match all statuses.»;
+            <code>Scheduled</code> — вкладка <code>Basic</code> (вкладку
+            <code>Advanced</code> не відкривали). Того ж дня <code>Work item created</code>
+            у діловому спейсі спрацював на всіх трьох поверхах ієрархії — на роботі типу
+            <code>Workstream</code>, на <code>Task</code> і на <code>Sub-task</code>.
           </p>
 
           <h3>Тригери Jira Service Management</h3>
@@ -1174,8 +1219,14 @@ flowchart LR
               <tr>
                 <td><code>Comment on work item</code></td>
                 <td>Додає коментар. Розуміє розумні значення («to reference work item fields to
-                    personalize the comment») і дає вибрати видимість коментаря — для клієнта
-                    служби потрібна публічна.</td>
+                    personalize the comment») і дає вибрати видимість коментаря
+                    (<code>Comment Visibility</code>) — для клієнта служби потрібна публічна.
+                    ⚠ Прапорець «Prevent duplicates by only adding this comment once to a
+                    particular work item» <strong>увімкнений за замовчуванням</strong>: з ним
+                    та сама робота дістане коментар від цього flow лише один раз, а другий
+                    запуск буде <code>Success</code> із рядком «No new comment was added since
+                    this issue has been commented on before: <em>ключ</em>» під кроком
+                    (перевірено наживо 30 вересня 2026 року в обох станах прапорця).</td>
                 <td>«Дедлайн завтра» (<a href="#f3">flow 3</a>); запис у батьківській роботі
                     (<a href="#f4">flow 4</a>); відповідь клієнтові (<a href="#f7">flow 7</a>).</td>
               </tr>
@@ -1222,10 +1273,23 @@ flowchart LR
               </tr>
               <tr>
                 <td><code>Send customized email</code></td>
-                <td>Надсилає лист. Вкладки: <code>Settings</code> (кому, від кого, тема),
-                    <code>Content</code> (формат <code>Plain text</code> / <code>Rich text</code> /
-                    <code>HTML</code>), <code>Attachments</code>. Кожен отримувач отримує свій лист
-                    і не бачить решти адресатів. У службових спейсах є адресат
+                <td>Надсилає лист. На екрані 30 вересня 2026 року в панелі було
+                    <strong>дві</strong> вкладки. <code>Settings</code>: обов'язкові
+                    <code>Email name*</code> («Recipients won't see this name.»),
+                    <code>Recipient(s)*</code>, <code>From*</code>
+                    (<code>jira@…atlassian.net</code>), <code>Subject*</code>; там само
+                    прапорець «Send messages separately to each recipient», <code>Cc</code>,
+                    <code>Bcc</code> і <code>Optional settings</code> (<code>From name</code> ·
+                    <code>Reply to name</code> · <code>Reply to address</code>).
+                    <code>Content</code>: <code>Content format*</code> (за замовчуванням
+                    <code>Rich text</code>; у випайці того дня було лише
+                    <code>Plain text</code> · <code>Rich text</code>, хоч довідка згадує ще
+                    <code>HTML</code>), <code>Content*</code> і блок
+                    <code>Attachments</code> — це блок усередині вкладки, а не третя вкладка.
+                    ⚠ У полі <code>Recipient(s)</code> <strong>пошуку людей за іменем
+                    немає</strong>: випайка дає поля роботи (<code>Assignee</code>,
+                    <code>Reporter</code>) і групи, а набране слово — лише «Add email:
+                    <em>набране</em>». У службових спейсах є адресат
                     <code>All customers involved</code>.</td>
                 <td>Понеділковий лист зі списком того, що горить
                     (<a href="#f5">flow 5</a>).</td>
@@ -1242,7 +1306,12 @@ flowchart LR
                 <td><code>Lookup work items</code></td>
                 <td>Виконує запит JQL і бере знайдене — «Search for up to 100 work items using a
                     JQL query». Список стає доступним решті кроків під іменем
-                    <code>{{lookupIssues}}</code>.</td>
+                    <code>{{lookupIssues}}</code>. У панелі (30 вересня 2026 року) —
+                    поле <code>JQL*</code> з підказкою «priority &gt; Medium», порада «To
+                    optimise performance, include a project ID.», кнопки
+                    <code>Insert project ID</code> · <code>Insert account id</code> ·
+                    <code>Resolve users</code> і <code>Validate query</code>, яка одразу
+                    відповідає, скільки робіт знайшлось («5 work items found»).</td>
                 <td>Зібрати все, що горить цього тижня, в один лист
                     (<a href="#f5">flow 5</a>).</td>
               </tr>
@@ -1419,7 +1488,11 @@ flowchart LR
               <tr>
                 <td><code>Related work items</code></td>
                 <td>Головна й майже єдина потрібна: дії над ріднею роботи. Види спорідненості —
-                    нижче.</td>
+                    нижче. На екрані 30 вересня 2026 року цей пункт звався
+                    <code>Branch flow / related work items</code>, а сама панель гілки —
+                    <code>Add a branch</code>; вибір спорідненості лежить у полі
+                    <code>Type of related work items*</code> (за замовчуванням
+                    <code>Current work item</code>).</td>
               </tr>
               <tr>
                 <td>Advanced branching</td>
@@ -1436,17 +1509,25 @@ flowchart LR
               </tr>
               <tr>
                 <td><code>AQL</code></td>
-                <td>Об'єкти Assets за запитом AQL, до 50 за раз. Лише Jira Service Management.</td>
+                <td>Об'єкти Assets за запитом AQL, до 50 за раз. Лише Jira Service Management.
+                    На екрані пункт зветься <code>Branch on AQL</code>.</td>
               </tr>
             </tbody>
           </table>
           </div>
+          <p class="ds-diag__caption" data-align="start">
+            На безкоштовному сайті 30 вересня 2026 року панель <code>Add a branch</code>
+            пропонувала три пункти: <code>Advanced branching</code> ·
+            <code>Branch flow / related work items</code> · <code>Branch on AQL</code>.
+          </p>
 
-          <h3>Шість видів спорідненості</h3>
+          <h3>Види спорідненості</h3>
           <p>
-            Той самий перелік працює й у гілці, і в умові <code>Related work items</code>; дослівно
-            він надрукований у довідці в розділі про <strong>умову</strong> — гілка бере ті самі
-            значення.
+            Той самий перелік працює й у гілці, і в умові <code>Related work items</code>: дослівно
+            він надрукований у довідці в розділі про <strong>умову</strong>, а назви в таблиці
+            нижче — з живої випайки <code>Type of related work items</code> у панелі гілки
+            (30 вересня 2026 року). Там, де екран і довідка називають той самий вид по-різному,
+            у першій колонці стоїть напис з екрана.
           </p>
           <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: види спорідненості робіт">
           <table class="ds-tbl">
@@ -1465,24 +1546,33 @@ flowchart LR
               </tr>
               <tr>
                 <td><code>Parent</code></td>
-                <td>Батьківську роботу.</td>
+                <td>Батьківську роботу. Працює і в задачі, і в підзадачі; у роботи верхнього
+                    поверху батька немає, тож там гілка нічого не знаходить.</td>
                 <td>Підзадача готова — написати про це в батьківській картці
                     (<a href="#f4">flow 4</a>).</td>
               </tr>
               <tr>
-                <td><code>Stories</code></td>
+                <td><code>Children</code></td>
+                <td>Усі дочірні роботи: «Children may include both subtasks and standard work
+                    items».</td>
+                <td>Замінює <code>Stories</code> — і працює там, де та не працює (нижче).</td>
+              </tr>
+              <tr>
+                <td><code>Stories (or other work items in Epic)</code></td>
                 <td>Роботи всередині великої справи з верхнього поверху ієрархії (у довідці вона
-                    зветься <code>Epic</code>).</td>
-                <td>Велику справу закрили — закрити все, що в ній.</td>
+                    зветься <code>Epic</code>). ⚠ Jira позначає цей пункт як такий, що зникає.</td>
+                <td>Не брати: замість неї — <code>Children</code>.</td>
               </tr>
               <tr>
-                <td><code>Epic</code></td>
-                <td>Велику справу з верхнього поверху, до якої належить робота.</td>
-                <td>Перша задача пішла в роботу — посунути й велику справу.</td>
+                <td><code>Epic (parent)</code></td>
+                <td>Велику справу з верхнього поверху, до якої належить робота. ⚠ Jira позначає
+                    цей пункт як такий, що зникає.</td>
+                <td>Не брати: замість неї — <code>Parent</code>.</td>
               </tr>
               <tr>
-                <td><code>Created work items</code></td>
-                <td>Роботи, створені цим самим flow.</td>
+                <td><code>All created work items</code> ·
+                    <code>Most recently created work item</code></td>
+                <td>Роботи, створені цим самим flow (усі або остання).</td>
                 <td>Обов'язковий крок, якщо створену роботу треба ще й прокоментувати — див.
                     нижче.</td>
               </tr>
@@ -1491,25 +1581,105 @@ flowchart LR
                 <td>Зв'язані роботи.</td>
                 <td>Робота розблокувалась — сказати про це в тій, що чекала.</td>
               </tr>
+              <tr>
+                <td><code>Current work item</code></td>
+                <td>Ту саму роботу. Стоїть у полі за замовчуванням: «Useful when comparing work
+                    item against multiple values and a different action is needed for each».</td>
+                <td>Розвилка за значенням поля без окремих flows.</td>
+              </tr>
+              <tr>
+                <td>решта переліку</td>
+                <td><code>Destination work item</code> · <code>JQL</code> ·
+                    <code>Issues fixed in version</code> · <code>Issues in the sprint</code> ·
+                    <code>Similar work item description</code> — разом із попередніми це всі
+                    <strong>чотирнадцять</strong> пунктів випайки на 30 вересня 2026 року.</td>
+                <td>—</td>
+              </tr>
             </tbody>
           </table>
           </div>
           <div class="ds-note ds-note--warn">
             <span class="ds-note__glyph" aria-hidden="true">▲</span>
-            <p class="ds-note__title">Слово Epic у двох рядках — назва з довідки, а не з екрана</p>
+            <p class="ds-note__title">Два пункти зникають: замість них Parent і Children</p>
             <p>
-              Тип на верхньому поверсі ієрархії (урок
+              Jira сама попереджає про це в самій випайці, жовтим: «Epic will soon be removed
+              from this list. Use Parent to prepare for this change» і «Stories will soon be
+              removed from this list. Use Children to prepare for this change» (навчальний сайт,
+              30 вересня 2026 року). Тому в нових flows одразу бери
+              <code>Parent</code> і <code>Children</code>.
+            </p>
+            <p>
+              Слово <code>Epic</code> у назвах цих пунктів — назва з довідки, а не з екрана
+              ділового спейсу: тип на верхньому поверсі ієрархії (урок
               <a href="modules/jira-04.html">4</a>) зветься <code>Epic</code> у спейсах, зроблених
-              за шаблонами розробки. У ділових спейсах «Марципану» він на екрані 28 вересня
+              за шаблонами розробки, а в ділових спейсах «Марципану» 28 вересня
               2026 року мав інші назви: <code>Workstream</code> (напрям робіт) у «Другій точці»
               (<code>REM</code>) і <code>Campaign</code> (кампанія) у «Маркетингу»
               (<code>MARK</code>); підзадача там —
-              <code>Sub-task</code> з дефісом, а не <code>Subtask</code>. ⚠ Чи бачать гілки
-              <code>Epic</code> і <code>Stories</code> цей поверх у ділових спейсах, ми не
-              перевіряли. Гілки <code>Sub-tasks</code> і <code>Parent</code>, на яких стоять усі
-              flows курсу, від назви верхнього поверху не залежать.
+              <code>Sub-task</code> з дефісом, а не <code>Subtask</code>.
             </p>
           </div>
+
+          <h3>Що кожна гілка знайшла в діловому спейсі — перевірено наживо</h3>
+          <p>
+            30 вересня 2026 року в спейсі шаблону <code>Project management</code> зібрано три
+            роботи — <code>TST-1</code> (тип <code>Workstream</code>), <code>TST-2</code>
+            (<code>Task</code>, батько <code>TST-1</code>) і <code>TST-3</code>
+            (<code>Sub-task</code>, батько <code>TST-2</code>), — і flow з тригером
+            <code>Work item transitioned</code> та чотирма гілками, у кожній
+            <code>Log action</code>. Усі три запуски — <code>Success</code>.
+          </p>
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: кого знайшла кожна гілка в діловому спейсі">
+          <table class="ds-tbl ds-tbl--wrap">
+            <thead>
+              <tr>
+                <th>Хто запустив</th>
+                <th><code>Epic (parent)</code></th>
+                <th><code>Parent</code></th>
+                <th><code>Stories</code></th>
+                <th><code>Children</code></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>TST-2</code> (Task у Workstream)</td>
+                <td><code>TST-1</code> Workstream</td>
+                <td><code>TST-1</code> Workstream</td>
+                <td>—</td>
+                <td><code>TST-3</code> Sub-task</td>
+              </tr>
+              <tr>
+                <td><code>TST-3</code> (Sub-task)</td>
+                <td>—</td>
+                <td><code>TST-2</code> Task</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>TST-1</code> (Workstream)</td>
+                <td>—</td>
+                <td>—</td>
+                <td>⚠ «Unable to run this step»</td>
+                <td><code>TST-2</code> Task</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <p class="ds-diag__caption" data-align="start">
+            Висновки: гілка <code>Epic (parent)</code> верхній поверх ділового спейсу
+            <strong>бачить</strong> (хоч і зникає з переліку); <code>Stories</code> від самого
+            верхнього поверху не працює зовсім; <code>Parent</code> і <code>Children</code>
+            щоразу знаходили рівно те, що в спейсі є — батька в задачі й підзадачі, дітей
+            у напряму робіт і в задачі. Там само перевірено розумні значення:
+            <code>{{issue.parent.key}}</code> працює і в задачі, і в підзадачі, а
+            <code>{{issue.epic.key}}</code> у задачі ділового спейсу повертає <strong>ключ
+            роботи типу <code>Workstream</code></strong> (у підзадачі й у самого
+            <code>Workstream</code> — порожньо). Перевірено в спейсі шаблону
+            <code>Project management</code>; у спейсі розробки ці гілки ми не перевіряли.
+            Ще один результат того дня: <code>Sub-task</code> одразу під
+            <code>Workstream</code> створити не можна — Jira відмовляє: «Please select valid
+            parent issue.»
+          </p>
           <p>
             Умова <code>Related work items</code> з тим самим переліком перевіряє стан рідні:
             <code>Are present</code> · <code>Are not present</code> ·
@@ -1535,7 +1705,10 @@ flowchart LR
             <li>
               <strong>Гілка в гілці неможлива:</strong> «You can't have a branch inside another
               branch». Так само не працює всередині гілки умова <code>If/else block</code>: «The
-              If/else block condition can't be used inside a branch».
+              If/else block condition can't be used inside a branch». На екрані це видно одразу:
+              панель додавання кроку всередині гілки 30 вересня 2026 року пропонувала лише
+              <code>Action</code> і <code>Condition</code>, без <code>Branch</code> і
+              <code>Add a control</code>.
             </li>
             <li>
               <strong>Гілки не бачать одна одної:</strong> «Branches are isolated. Any changes that
@@ -2638,8 +2811,11 @@ flowchart LR
             завтра. Коли ранок починається з кухні, а не з ноутбука, цього не відбувається.
           </p>
           <ul>
-            <li><strong>Тригер:</strong> <code>Scheduled</code>, частота «раз на день».</li>
-            <li><strong>Запит у самому тригері:</strong> нижче. Дії виконаються для
+            <li><strong>Тригер:</strong> <code>Scheduled</code>, вкладка <code>Basic</code>,
+                <code>Run flow every</code> — «раз на день», година в полі
+                <code>At</code>.</li>
+            <li><strong>Запит у самому тригері:</strong> нижче; його вмикає прапорець «Run a JQL
+                search and execute actions for each work item in the query». Дії виконаються для
                 <strong>кожної</strong> знайденої роботи — саме це тут і потрібно.</li>
             <li><strong>Дія:</strong> <code>Comment on work item</code> з текстом на кшталт
                 «Дедлайн завтра. Якщо не встигаєш — перенеси дату або передай комусь».</li>
@@ -2670,11 +2846,15 @@ flowchart LR
           <ul>
             <li><strong>Тригер:</strong> <code>Work item transitioned</code> зі статусом
                 <code>Done</code>.</li>
-            <li><strong>Гілка:</strong> <code>Branch</code> → споріднена робота
-                <code>Parent</code>. Усе, що нижче, працює вже з батьківською роботою.</li>
+            <li><strong>Гілка:</strong> <code>Branch</code> →
+                <code>Branch flow / related work items</code> → <code>Type of related work
+                items</code>: <code>Parent</code>. Усе, що нижче, працює вже з батьківською
+                роботою.</li>
             <li><strong>Дія в гілці:</strong> <code>Comment on work item</code> з текстом нижче.
                 Тут саме <code>{{triggerIssue…}}</code>, бо потрібна назва <em>підзадачі</em>, а
-                всередині гілки <code>{{issue}}</code> означає вже батька.</li>
+                всередині гілки <code>{{issue}}</code> означає вже батька. ⚠ У цій же панелі
+                треба <strong>зняти</strong> прапорець «Prevent duplicates…»: інакше друга
+                завершена підзадача коментаря вже не додасть.</li>
             <li><strong>Друга дія в гілці:</strong> <code>Log action</code> зі значенням
                 <code>{{issue.key}} {{issue.summary}}</code> — щоб побачити в журналі, що саме
                 підставила Jira.</li>
@@ -2696,13 +2876,19 @@ flowchart LR
             а не двадцять окремих листів про кожну роботу.
           </p>
           <ul>
-            <li><strong>Тригер:</strong> <code>Scheduled</code>, раз на тиждень. <strong>Поле запиту
-                в тригері лишається порожнім</strong> — інакше лист піде окремо на кожну знайдену
-                роботу.</li>
-            <li><strong>Дія 1:</strong> <code>Lookup work items</code> із запитом нижче.</li>
+            <li><strong>Тригер:</strong> <code>Scheduled</code>, вкладка <code>Basic</code>:
+                <code>Run flow every</code> <code>1</code> <code>Weeks</code>, кнопка
+                <code>Mon</code> у рядку <code>On</code>, <code>9:00 AM</code> у полі
+                <code>At</code> (вузол підписується «Every week on Mon at 9:00 AM»).
+                <strong>Прапорець запиту в тригері лишається знятим</strong> — інакше лист піде
+                окремо на кожну знайдену роботу.</li>
+            <li><strong>Дія 1:</strong> <code>Lookup work items</code> із запитом нижче;
+                <code>Validate query</code> одразу показує, скільки робіт знайшлось.</li>
             <li><strong>Дія 2:</strong> <code>Send customized email</code>: у вкладці
-                <code>Settings</code> — отримувач, у вкладці <code>Content</code> формат
-                <code>Plain text</code>, тема й тіло листа зі списком.</li>
+                <code>Settings</code> — <code>Email name</code>, отримувач (свою адресу
+                <strong>вписують</strong>) і <code>Subject</code>, у вкладці
+                <code>Content</code> — формат <code>Plain text</code> замість
+                <code>Rich text</code> і тіло листа зі списком.</li>
             <li><strong>Крок за кроком:</strong> урок <a href="modules/jira-15.html#l4">15</a>.</li>
           </ul>
           <figure class="term term--cmd" id="p11">
@@ -2729,7 +2915,12 @@ flowchart LR
             ⚠ Дві межі цього flow: <code>Lookup work items</code> бере лише першу сотню знайденого
             («only the first 100 work items will be used»), а функція <code>endOfWeek()</code> за
             замовчуванням вважає останнім днем тижня <strong>суботу</strong> — робота з дедлайном у
-            неділю в понеділковий список не потрапить.
+            неділю в понеділковий список не потрапить. І третя, знайдена наживо 30 вересня
+            2026 року: рядок у журналі — ще не доставлений лист. Коли одержувачем стоїть група
+            адміністраторів, а не людина, запуск дає <code>Some errors</code> з текстом «We
+            couldn't send emails to any recipients. This may be for data privacy or recipient
+            email account configuration reasons.» Чи доходить лист на вписану адресу, ми не
+            перевіряли.
           </p>
 
           <h3 id="f6">6 · Заявка на аванс одразу на бухгалтера</h3>
@@ -2875,9 +3066,13 @@ flowchart LR
 
           <h3 id="r3">Рецепт 3 · Перевірити flow, не чекаючи події</h3>
           <p>
-            Кнопки «спробувати» в автоматизації немає, і довідка каже про це прямо: «While there's
+            <strong>Для flow за розкладом кнопка є:</strong> <code>More Actions</code> (три крапки
+            вгорі конструктора) → <code>Run scheduled flow now</code>. Ми натиснули її
+            30 вересня 2026 року, і запуск одразу з'явився в журналі. Довідка цієї кнопки не
+            згадує й каже протилежне: «While there's
             no "test" function in Atlassian Cloud automation, you can test your flows manually using
-            the Manual trigger from a work item trigger». Порядок, який радить сторінка про
+            the Manual trigger from a work item trigger». Для решти тригерів цей довший обхід і
+            досі єдиний; порядок, який радить сторінка про
             налагодження:
           </p>
           <ol>
@@ -2975,6 +3170,22 @@ flowchart LR
           <p>
             Перелік фільтрується: у самому flow — за власником, за конкретними тригерами, діями чи
             мітками; у вкладці журналу — за датою й часом, за номером запуску, за тригерами й діями.
+            На екрані спейсу 30 вересня 2026 року над таблицею стояли
+            <code>Search flows</code> · <code>Last 30 days</code> · <code>Audit log ID</code> ·
+            <code>Actions</code> · <code>Triggers</code> · <code>Reset filters</code> і три
+            крапки.
+          </p>
+          <p>
+            <strong>Так виглядає живий журнал із справжніми рядками</strong> (той самий день,
+            спейс «Друга точка»). Дата у форматі <code>30.09.2026, 10:03:45</code> — вигляд
+            залежить від мови профілю. Розгорнутий рядок flow з гілкою показав п'ять кроків
+            підряд, кожен із галочкою: <code>Work item transitioned</code> ·
+            <code>BRANCH</code> · <code>Branch flow / related work items</code> ·
+            <code>Comment on work item</code> · <code>Log action</code>, — а вже під останнім
+            лежало підписане <code>Log</code> надруковане значення. Крок, який не спрацював,
+            позначається червоним значком із підказкою «Unable to run this step». Статуси,
+            бачені того дня наживо: <code>Success</code>, <code>Config change</code> (запис про
+            зміну самого flow) і <code>Some errors</code>.
           </p>
 
           <h3>Десять слів у колонці Status</h3>
@@ -3128,7 +3339,7 @@ flowchart TD
         <section id="traps">
           <h2>Симптом → причина</h2>
           <p>
-            Дев'ятнадцять випадків, на які припадає майже все «не працює». Порядок — від найчастішого
+            Двадцять випадків, на які припадає майже все «не працює». Порядок — від найчастішого
             до рідшого; номер у першій колонці ні на що не вказує, він для того, щоб було зручно
             сказати колезі «дивись випадок 7».
           </p>
@@ -3177,7 +3388,9 @@ flowchart TD
                 <td>5</td>
                 <td>Правки зроблено, а працює старе.</td>
                 <td>Flow стоїть у стані <code>Draft</code>: «If you add a new step after enabling,
-                    you'll need to select Update to apply any new changes to the flow».</td>
+                    you'll need to select Update to apply any new changes to the flow». На екрані
+                    ця кнопка зветься <code>Save</code> і стоїть у шапці конструктора поруч із
+                    перемикачем <code>Enabled</code>.</td>
               </tr>
               <tr>
                 <td>6</td>
@@ -3251,9 +3464,10 @@ flowchart TD
               <tr>
                 <td>15</td>
                 <td>Замість одного листа зі списком приходить двадцять окремих.</td>
-                <td>Запит стоїть у полі тригера <code>Scheduled</code>, а він працює для кожної
+                <td>У тригері <code>Scheduled</code> стоїть прапорець «Run a JQL search and
+                    execute actions for each work item in the query», а він працює для кожної
                     знайденої роботи окремо. Для одного листа запит переносять у дію
-                    <code>Lookup work items</code>, а поле в тригері лишають порожнім.</td>
+                    <code>Lookup work items</code>, а прапорець у тригері знімають.</td>
               </tr>
               <tr>
                 <td>16</td>
@@ -3267,12 +3481,15 @@ flowchart TD
               <tr>
                 <td>17</td>
                 <td>Лист не приходить або приходить порожній.</td>
-                <td>Чотири причини за частотою: узята застаріла дія <code>Send email</code> замість
+                <td>П'ять причин за частотою: узята застаріла дія <code>Send email</code> замість
                     <code>Send customized email</code>; запит у <code>Lookup work items</code> нічого
                     не знайшов, тож друкувати нема чого; вичерпано добову межу листів (число — у
                     довіднику «Карта інтерфейсу, глосарій і ліміти Free»); у тілі листа
                     <strong>перемикали формат</strong> — «Switching between content formats will
-                    delete any existing content from the Content field».</td>
+                    delete any existing content from the Content field»; Jira взагалі відмовилась
+                    надсилати на такого одержувача — статус <code>Some errors</code> і текст «We
+                    couldn't send emails to any recipients…» (у нас так було з групою
+                    адміністраторів замість людини, 30 вересня 2026 року).</td>
               </tr>
               <tr>
                 <td>18</td>
@@ -3286,6 +3503,16 @@ flowchart TD
                 <td>За замовчуванням дія ставить новий набір замість старого. Щоб додати або зняти
                     одну мітку, у налаштуванні поля <code>Labels</code> вибирають
                     <code>More actions</code> → <code>Add/remove values</code>.</td>
+              </tr>
+              <tr>
+                <td>20</td>
+                <td>Коментар з'явився лише один раз, хоч запусків було кілька, і всі
+                    <code>Success</code>.</td>
+                <td>У дії <code>Comment on work item</code> лишився ввімкнений (він такий за
+                    замовчуванням) прапорець «Prevent duplicates by only adding this comment once
+                    to a particular work item». У журналі під кроком стоїть «No new comment was
+                    added since this issue has been commented on before» і ключ роботи. Знімається
+                    в тій самій панелі; перевірено наживо 30 вересня 2026 року.</td>
               </tr>
             </tbody>
           </table>
@@ -3629,10 +3856,28 @@ flowchart TD
                     <code>Campaign</code>, підзадача — <code>Sub-task</code>
                     (ділові спейси «Марципану», 28 вересня 2026 року)</td>
                 <td><code>Epic</code> · <code>Subtask</code></td>
-                <td>гілки <code>Epic</code> і <code>Stories</code>, дія
+                <td>гілки <code>Epic (parent)</code> і <code>Stories</code>, дія
                     <code>Copy from Epic</code>, значення <code>{{issue.epic.*}}</code>,
-                    назви шаблонів flows. ⚠ Це розбіжність написів; чи бачать ці гілки й
-                    значення верхній поверх ділового спейсу, ми не перевіряли</td>
+                    назви шаблонів flows. Це розбіжність написів, а не механізму: 30 вересня
+                    2026 року <code>Epic (parent)</code> і <code>{{issue.epic.key}}</code>
+                    верхній поверх ділового спейсу <strong>побачили</strong>
+                    (<a href="#branches">таблиця гілок</a>)</td>
+              </tr>
+              <tr>
+                <td><code>Save</code> у ввімкненому flow · <code>Flow details</code> як пункт
+                    меню <code>More Actions</code> · <code>Run scheduled flow now</code> там
+                    само</td>
+                <td><code>Update</code> · <code>Flow details</code> як кнопка · «no "test"
+                    function in Atlassian Cloud automation»</td>
+                <td>шапка конструктора й <a href="#r3">рецепт 3</a> (звірено 30 вересня
+                    2026 року)</td>
+              </tr>
+              <tr>
+                <td><code>Branch flow / related work items</code> · <code>Branch on AQL</code> ·
+                    <code>Children</code> у переліку спорідненості</td>
+                <td><code>Related work items</code> · <code>AQL</code>; <code>Children</code>
+                    у переліку умови не названий</td>
+                <td>панель <code>Add a branch</code> (звірено 30 вересня 2026 року)</td>
               </tr>
             </tbody>
           </table>
@@ -3661,11 +3906,13 @@ flowchart TD
                     (<code>best-practices-for-optimizing-automation-rules</code>)</td>
               </tr>
               <tr>
-                <td>де налаштування flow</td>
+                <td>де налаштування flow <strong>(закрито живим екраном)</strong></td>
                 <td>шість полів під однією кнопкою <code>Flow details</code>
                     (<code>create-and-edit-jira-automation-rules</code>)</td>
                 <td>два набори: <code>Flow details</code> і <code>Settings</code>
-                    (<code>what-are-rule-details-in-atlassian-automation</code>)</td>
+                    (<code>what-are-rule-details-in-atlassian-automation</code>) — 30 вересня
+                    2026 року екран показав саме так, ще й із приміткою «Flow settings have
+                    moved…»</td>
               </tr>
               <tr>
                 <td>чи рахується крок, який нічого не зробив</td>
@@ -3795,6 +4042,24 @@ flowchart TD
             <code>Create with Rovo</code> і вкладку <code>Usage</code> в налаштуваннях ділового
             спейсу — без колонки <code>Scope</code>, яка є на глобальному екрані.
           </p>
+          <p>
+            Того ж 30 вересня 2026 року в ділових спейсах того сайту <strong>зібрано й запущено
+            справжні flows</strong> — звідти взяті: шапка конструктора (<code>←</code> · назва ·
+            <code>Save and enable</code> з випайкою · <code>More Actions</code> з пунктами
+            <code>Flow details</code> · <code>Settings</code> · <code>Connections</code> ·
+            <code>Check for errors</code> · <code>Run scheduled flow now</code>); панель
+            <code>Turn this flow on</code>; поля панелей <code>Work item created</code>,
+            <code>Work item transitioned</code>, <code>Scheduled</code> (вкладка
+            <code>Basic</code>), <code>Add a branch</code> з усіма чотирнадцятьма видами
+            спорідненості й двома жовтими попередженнями, <code>Comment on work item</code>
+            (прапорець <code>Prevent duplicates</code>), <code>Log action</code>,
+            <code>Lookup work items</code> (<code>Validate query</code>),
+            <code>Send customized email</code> (обидві вкладки); журнал запусків із
+            справжніми рядками, розгорнутим ланцюжком кроків і трьома статусами; таблиця
+            <code>High usage flows</code> з непорожнім рядком; результати чотирьох гілок і
+            розумних значень <code>{{issue.parent.key}}</code> та
+            <code>{{issue.epic.key}}</code> у діловому спейсі.
+          </p>
           <h3>Уроки курсу</h3>
           <p>
             Вісім flows і всі приклади «Марципану» — з уроків
@@ -3808,18 +4073,19 @@ flowchart TD
             <p class="ds-note__title">Чесна межа цієї сторінки</p>
             <p>
               Дев'яти речей ми <strong>не бачили</strong> живими, і в тексті вони позначені знаком ⚠:
-              чи бачать гілки <code>Epic</code> і <code>Stories</code> (та значення
-              <code>{{issue.epic.*}}</code>) верхній поверх ділового спейсу, тип якого зветься
-              <code>Workstream</code> чи <code>Campaign</code>; нутрощі заготовки про підзадачі;
+              нутрощі заготовки про підзадачі;
               вміст четвертого типу кроку
               (<code>Controls</code>) на безкоштовному плані; чи справді Rovo збере flow на
               безкоштовному плані — діалог <code>Create with Rovo</code> ми відкрили
               30 вересня 2026 року, а запиту в нього не надсилали; автоматизація всередині службового
               спейсу (Jira Service Management на навчальному сайті ще не додано, тому flows 6 і 7
-              описані за документацією); мінімальний проміжок для розкладу; яке написання київського
+              описані за документацією); мінімальний проміжок для розкладу; вміст вкладки
+              <code>Advanced</code> тригера <code>Scheduled</code>; чи доходить лист
+              <code>Send customized email</code> на вписану адресу — 30 вересня 2026 року
+              одержувачем була група адміністраторів, і запуск дав <code>Some errors</code>;
+              яке написання київського
               часового поясу приймає функція <code>convertToTimeZone</code>; чи працює
-              <code>{{changelog.key.fromString}}</code>; журнал запусків із хоча б одним справжнім
-              рядком — той, що ми бачили, був порожній, а підписи взяті з його легенди.
+              <code>{{changelog.key.fromString}}</code>.
             </p>
             <p>
               Правильний порядок дій, коли довідник розійшовся з твоїм екраном: <strong>вір
