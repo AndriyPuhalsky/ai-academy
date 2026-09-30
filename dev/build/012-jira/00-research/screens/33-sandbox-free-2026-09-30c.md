@@ -329,16 +329,33 @@ Management for Jira` (Xblend; 4.3/5 (553); 25.2k; `BESTSELLER`) — усі тр�
   роздільниками на три групи: `Epic` ∣ `Task` · `Закупівля` ∣ `Sub-task`) — тобто на рівні задачі. Контекстні поля
   нового типу: `Status` · `Assignee` · `Labels` · `Due date` · `Start date` …; у правій панелі `Fields` у нього вільні
   `Category`, `Priority`, `Time tracking`, `Parent` (у `Task` вони вже на картці). У шапці типу, крім `Edit workflow`, є
-  `•••`. ⚠ Числове значення рівня (`hierarchyLevel`) через MCP **не звірено** — сесію обірвав ліміт.
+  `•••`. Числове значення рівня — §12.
 
-## 12. Слід у sandbox після цієї зйомки (план — Free)
+## 12. Дознято після рецензентів (той самий вечір)
 
-- `TF` → **`TFA`** (ключ змінено; старий `TF` у `Previous space keys`); тип `Task` із трьома обовʼязковими полями; новий
-  тип «Закупівля». Спейс — у кошик.
-- `TFB`: нові `TFB-4` (епік) і `TFB-5` (підзадача), `TFB-1` має батька `TFB-4`; вкладка `Reports` у навігації. Спейс — у
-  кошик.
-- Тестовий дашборд — уже в кошику. Flow у `TFA` не збережено. Запрошень не надсилали. Спейсів не створювали.
-- **Не зроблено з черги:** `hierarchyLevel` власного типу · перетягування з `Unscheduled work` у календарі (j06) · пункт
-  `Clear` і `Status` у меню `Group` · сторінка `Access` з двома людьми (потрібна друга людина) · доставка листа
-  автоматизації на вписану адресу (потрібне слово власника) · блок «Rovo AI» в `Add an action` (не натискали) · решта
-  пʼять звітів `More reports`.
+- **Рівень власного типу:** через MCP створено `TFA-3` типу «Закупівля»; відповідь `getJiraIssue` — `issuetype.hierarchyLevel:
+  0`, `subtask: false` (для порівняння `Task` у `TFB-1` — теж `0`). Тобто тип, створений через `Create work type`, став
+  на рівень задачі — як і показала рейка (§11). Бачили на одному типі одного ділового спейсу.
+- **Виконавець роботи, створеної через діалог `Create`** (запит рецензента `plans` №1): `TFA` → `+ Create` (спрацювала з
+  третього кліку) → кнопка типу в шапці діалогу (`Type: Task`) → меню **`Task` · `Epic` · `Закупівля`** (`Sub-task` у
+  цьому меню немає) → «Закупівля» → назва → `Create`. Для «Закупівлі» рядок обовʼязкових полів зник: `Automatic` ·
+  `Labels` · `Due date` · `Start date` · `Team`. Тост «**Created Закупівля TFA-4** · View Закупівля · Copy link»; дошка
+  нову картку одразу не показала. Через MCP: `TFA-4` — `assignee: null` (тобто `Unassigned`), `priority: Medium`. У
+  діалозі поле виконавця стояло на `Automatic`, а в `Details` спейсу `Default assignee` — `Unassigned` (§1).
+
+## 13. Слід у sandbox після цієї зйомки (план — Free)
+
+- **`TFA` і `TFB` — у кошику** (кінець сесії). Шлях: `Space settings` → `Details` → `•••` (меню: `Save as template`
+  `Enterprise` · `Move to trash`) → діалог «**Move to trash?** — The space along with its work items, Jira components,
+  attachments, and versions will be available in the trash for 60 days after which it will be permanently deleted. ·
+  Only Jira admins can restore the space from the trash.» · `Cancel` · `Move` → тост «Space successfully moved to
+  trash» · `Go to trash`; перехід на `…/jira/settings/projects/manage`. Лишились шість спейсів сюжету: `REM`, `MARK`,
+  `KAN`, `MY`, `HR`, `WEB`.
+- У кошику разом зі спейсами: `TFA-1…4` (ключ `TF` → `TFA`, тип «Закупівля», три обовʼязкові поля в `Task`), `TFB-1…5`
+  (епік, підзадача, завершений спринт, вкладка `Reports`). Тестовий дашборд — теж у кошику (§8).
+- Flow у `TFA` не збережено. Запрошень не надсилали. Нових спейсів не створювали.
+- **Не зроблено з черги:** перетягування з `Unscheduled work` у календарі (j06) · пункт `Clear` і `Status` у меню `Group` ·
+  сторінка `Access` з двома людьми (потрібна друга людина) · доставка листа автоматизації на вписану адресу (потрібне
+  слово власника) · блок «Rovo AI» в `Add an action` (не натискали) · решта пʼять звітів `More reports` · підменю `Export`,
+  `Edit Permissions` фільтра, `Add subscription`, майстер `Bulk change work items` (запити рецензента `ai`) · значок `+`
+  колонки у `List`, колір колонки при перевищенні ліміту в діловому спейсі (запити рецензента `rest`).
