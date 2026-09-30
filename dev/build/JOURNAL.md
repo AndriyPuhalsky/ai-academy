@@ -56,7 +56,7 @@
 | автор ④ `automation` | `aia-content-author` | j10, j11, j14, j15, `jira-ref-automation.html` | ✅ | `w10-automation.md` · `0ce014a` |
 | автор ⑤ `rest` | `aia-content-author` | j12, j13, j16, j17, j19 | ✅ | `w10-rest.md` · `deb8fa8` |
 | автор карти | `aia-content-author` | `jira-ref-map.html` (новий) | ⏳ працює | `ref-map.md` |
-| рецензент ① | `aia-content-reviewer` | j01–j05 | ⏳ працює | `w10-plans-review.md` |
+| рецензент ① | `aia-content-reviewer` | j01–j05 | ✅ j01, j04 «готово»; j02, j03, j05 «з зауваженнями» | `w10-plans-review.md` · `4241bb8` |
 | рецензент ② | `aia-content-reviewer` | j06, j08, j09, j20, j21 | ⏳ працює | `w10-access-review.md` |
 | рецензент ③ | `aia-content-reviewer` | j07, j18, j22, j23, ref-jql | ⏳ працює (іспит — проти всієї хвилі; шість відомих змін передано в промпті) | `w10-ai-review.md` |
 | рецензент ④ | `aia-content-reviewer` | j10, j11, j14, j15, ref-automation | ⏳ працює | `w10-automation-review.md` |
@@ -85,6 +85,15 @@ category` на Free (після хвилі 10 — єдина опора j10 дл
 `win__table` на дві колонки з довгими складеними рядками (перенос у клітинці), `p.win__actions` угорі `win__page`;
 j11 `#w3` — 12 рядків `dl.win__fields`; блискавка «на переході є правило» поставлена як `win__type` з `aria-label` —
 класу для гліфа, що не є типом роботи, немає (кандидат `win__glyph`); довідник — таблиця `#limits-email` на 3 колонки.
+
+**Рецензент ① (`4241bb8`):** 🔴 **стаття бази знань про архів суперечить сама собі** — «Archiving issues is only
+available for Premium and Enterprise customers.» стоїть у синій виносці над статтею, а перше речення тексту — «…possible
+to archive single work items, but bulk archiving them is not available.»; j02, j05 → «перше речення статті…»; формулу
+в `program.md` п. 22 уточнено; **передано через `SendMessage`** рецензентам ② (j20, j21), ③ (j23) і автору карти ·
+`learningResourceType: "Knowledge base article"` у JSON-LD — на всіх сторінках support, межу визначає адреса `/kb/` ·
+запит «що буде, якщо прибрати старий ключ із `Previous space keys`» закрито доксами («…this restricts access to the work
+items that refer to that old key») · для рецензента ④: j11 ~759 «коротку форму» проти ~1307 «компактна форма» · наскрізно
+(не зараз): пара «код спейсу» (15) / «ключ спейсу» (9) — окремий прохід.
 
 **Що передати рецензенту ③ (іспит j23, запускати останнім з рецензентів хвилі):** питання іспиту про «колонку Role» у списку
 людей адмінки опори більше не має (j20 W3 — роль під іменем, колонки немає) · j08 — гаджет зветься `Created vs Resolved

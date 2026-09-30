@@ -1635,7 +1635,7 @@ Spaces, Filters, Dashboards, Audit log, Text-режим workflow, Summary-пли
     · **Архів робіт — атрибуція:** «Archiving issues is only available for Premium and Enterprise customers» — цитата
     **статті бази знань**, а не продуктової документації: продуктові докси (`archive-an-issue`,
     `what-is-the-free-jira-cloud-plan`) такого обмеження не мають, екран Free (архів окремої роботи працює) збігається з
-    ними. Формула курсу: «стаття бази знань розходиться з екраном і продуктовою довідкою».
+    ними. Формула курсу: «стаття бази знань розходиться з екраном і продуктовою довідкою». **Уточнено рецензентом хвилі 10 (наживо 2026-09-30):** це речення стоїть у синій **виносці над** статтею `jira/kb/bulk-archive-issues-in-jira-cloud/`, а перше речення самого тексту — «In Jira Cloud, it's possible to archive single work items, but bulk archiving them is not available.» — тобто стаття суперечить сама собі, а її текст з екраном збігається; писати «виноска / перше речення статті бази знань…», не «стаття» цілком. Мітка `learningResourceType: "Knowledge base article"` у JSON-LD стоїть на всіх сторінках `support.atlassian.com` — «KB чи документація» визначає адреса (`/kb/`), не мітка.
     · **Дві різні добові межі листів — два механізми, два джерела:** сповіщення Jira — «Jira can send a maximum of 100
     emails per day on the Free plan. After 100 emails, notifications are paused until the following day.»
     (`jira-cloud-administration/docs/what-is-the-free-jira-cloud-plan/`); листи дій автоматизації — «100 emails in a
