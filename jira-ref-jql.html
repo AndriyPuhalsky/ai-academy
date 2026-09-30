@@ -2121,15 +2121,21 @@
             <tbody>
               <tr>
                 <td><code>status = Done</code></td>
-                <td>Червона рамка: «JQL error» — «The value 'Done' does not exist for the field 'status'.»</td>
+                <td>Червона рамка навколо поля, під ним рядок «The value 'Done' does not exist for the field 'status'.»; перемикач <code>Basic</code> неактивний, список порожній</td>
                 <td>Назва етапу — рядок тексту, і в цьому спейсі вона інша (статуси народжуються мовою акаунта). Питай категорію: <code>statusCategory != Done</code>.</td>
-                <td>екран, 2026-09-17</td>
+                <td>екран, 2026-09-30</td>
+              </tr>
+              <tr>
+                <td><code>status != Foo</code></td>
+                <td>Та сама рамка й той самий рядок під полем, але список показано <strong>повністю</strong></td>
+                <td>Найтихіша з помилок: умова з неіснуючим значенням нікого не відсіює, тож унизу стоїть повний лічильник робіт і виникає відчуття, що запит спрацював. Дивись на рамку, а не на кількість рядків.</td>
+                <td>екран, 2026-09-30</td>
               </tr>
               <tr>
                 <td><code>labels ==</code></td>
-                <td>«JQL error Expecting a value or function but got '='. You must surround '=' in quotation marks to use it as a value. (line 1, character 9)»</td>
+                <td>«Expecting a value or function but got '='. You must surround '=' in quotation marks to use it as a value. (line 1, character 9)»</td>
                 <td>Оператор є, значення немає. Jira показує навіть номер знака, на якому спинилась.</td>
-                <td>екран, 2026-09-24</td>
+                <td>екран, 2026-09-30</td>
               </tr>
               <tr>
                 <td><code>labels != "архів"</code></td>
@@ -2397,9 +2403,14 @@
             Довідка описує три кроки: «Define and run your search. Select Save as above the
             search results. Enter a name for the new filter and select Submit». На живому екрані
             30 вересня 2026 року кнопка над результатами називалась <code>Save filter</code>, а
-            не <code>Save as</code> — інтерфейс перемалювали швидше, ніж статтю. Одразу після
-            збереження фільтр потрапляє в обране: «By default, when you create a filter, it'll be
-            starred».
+            не <code>Save as</code> — інтерфейс перемалювали швидше, ніж статтю. Розходиться й
+            склад діалогу: обов'язкове там одне поле, <code>Name</code>, але поруч із ним
+            стоять <code>Description</code>, <code>Viewers</code> і <code>Editors</code>, тож
+            доступ задають одразу при збереженні. Після <code>Save</code> назва фільтра стає
+            заголовком сторінки, поруч з'являється посилання <code>Filter details</code>, а
+            замість <code>Save filter</code> у рядку запиту — <code>Copy filter</code>. Одразу
+            після збереження фільтр потрапляє в обране: «By default, when you create a filter,
+            it'll be starred».
           </p>
           <div class="ds-note ds-note--warn">
             <span class="ds-note__glyph" aria-hidden="true">▲</span>
@@ -2473,6 +2484,18 @@
           </table>
           </div>
           <p class="ds-small">«Manage filters», звірено 2026-09-27.</p>
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__title">На екрані варіантів п'ять, у довідці шість</p>
+            <p>
+              Випайка <code>Viewers</code> у діалозі <code>Save filter</code> на
+              безкоштовному плані 30 вересня 2026 року пропонувала
+              <code>Space</code> · <code>Group</code> · <code>My organization</code> ·
+              <code>User</code> · <code>Private</code>. Пункту <code>Roles</code> у ній не
+              було; чи є він на платних планах — не перевіряли. Написання теж різне: у
+              довідці <code>Users</code>, на екрані <code>User</code>.
+            </p>
+          </div>
           <p>
             Яке значення отримує <strong>новий</strong> фільтр, вирішує налаштування сайту
             <code>Default access</code> (<code>Settings</code> → <code>System</code> →
@@ -2491,9 +2514,11 @@
           <p>
             «Subscribing to a filter provides you with a periodic notification for all work
             items returned by the search. If you want to be notified when a particular work item
-            changes, you should watch the work item instead». Шлях: відкрити фільтр →
-            <code>Details</code> → <code>New subscriptions</code> → розклад і отримувач →
-            <code>Subscribe</code>. У лист потрапляє лише перша частина результатів — число з
+            changes, you should watch the work item instead». Шлях (екран, 30 вересня 2026
+            року): відкрити фільтр → <code>Filter details</code> поруч із назвою → блок
+            <code>Subscriptions</code> → <code>Add subscription</code> → розклад і отримувач.
+            Поки підписок немає, у цьому блоці стоїть рядок «This filter doesn't have any
+            subscriptions.» У лист потрапляє лише перша частина результатів — число з
             датою перевірки шукай у довіднику «Карта інтерфейсу, глосарій і ліміти Free».
           </p>
           <p>
@@ -2625,7 +2650,7 @@
             Тут названі лише три місця, де всередині flow стоїть саме запит JQL.
           </p>
 
-          <h3 id="askai">Ask AI: запит людською мовою</h3>
+          <h3 id="askai">Ask AI: запит людською мовою — на безкоштовному плані цієї кнопки немає</h3>
           <p>
             Довідка описує кнопку <code>Ask AI</code> так: «Rovo in Jira can translate what you type
             into a Jira Query Language (JQL) code which quickly searches for the work items
@@ -2786,7 +2811,10 @@
               <code>Filter Results</code> (сайт тоді був на пробному платному плані);
               <strong>30 вересня 2026 року, на безкоштовному плані</strong> — рядок пошуку
               <code>All work</code> без кнопок <code>Ask AI</code> і <code>Fix error</code>,
-              напис <code>Save filter</code> над результатами;
+              напис <code>Save filter</code> над результатами, тексти помилок під полем
+              (без слів «JQL error» на початку) і поведінка списку при неіснуючому значенні,
+              діалог <code>Save filter</code> зі списком варіантів <code>Viewers</code> і
+              вікно <code>Filter details</code>;
               28 вересня 2026 року — нові імена полів і функцій,
               набрані запитами через сервер MCP (<a href="modules/jira-22.html">урок 22</a>):
               відповідь самої Jira на запит, але без поля пошуку й без його підказок;
