@@ -329,6 +329,24 @@ item collectors ∣ `Automation`: **Global automation**. Сторінка `Autom
   it's temporarily unavailable. Check your spelling in the address bar. Or, try opening this site's home page to search or
   browse for the content.» · «Error code: 404» · `Go to the homepage`. Бічна панель без списку спейсів: For you · Recent ·
   Starred · Apps · Plans · Spaces · Filters · Dashboards ∣ Assets · Teams · Goals · Projects ∣ `Customize sidebar`.
+- 🟢 **Кнопка `Upgrade` у шапці на Free відкриває вікно, де план названо прямо** (найкоротший спосіб учневі побачити
+  свій план і межі, не заходячи в адмінку): «**Upgrade to the Standard plan** — **You're on the Free plan.** Get a free
+  14-day Standard trial for unlimited users, additional storage and much more. Cancel anytime.» · «**You've invited 1 out
+  of 10 users** — Upgrade for unlimited users. If you add more than 10 users, you'll be automatically upgraded.» (ряд із
+  десяти силуетів, один зафарбований) · «**You've used 0.0 GB of 2.0 GB storage** — Upgrade for 250 GB storage to keep
+  attaching files» (смуга) · `Continue with limits` · `Try now`; праворуч — «Standard includes advanced features like:»
+  карусель із трьох слайдів (перший — «Unlimited users»); `×`. Закрито `×`; `Try now` **не натискали** (це початок
+  пробного платного плану). Рядок «If you add more than 10 users, you'll be automatically upgraded» — друге, з екрана,
+  джерело для того, що одинадцятий користувач не блокується, а переводить сайт на платний план (урок 2, урок 20).
+- **Меню ⚙ у шапці Jira на Free:** `Search (⌘ + K)` ∣ **`Personal Jira settings`**: `General settings` «Manage language,
+  time zone, and other personal preferences» · **`Notification settings`** «Manage email and in-app notifications from
+  Jira» ∣ **`Jira admin settings`**: `System` «Manage general configuration, security, automation, user interface, and
+  more» · `Jira apps` «Manage access, settings, and integrations across Jira» · `Spaces` «Manage space settings,
+  categories, and more» · `Work items` «Configure work types, workflows, screens, fields, and more» · `Marketplace apps`
+  «Add and manage Jira Marketplace apps and integrations» ∣ **`Atlassian admin settings`**: `User management` ↗ «Manage
+  users, groups, and access requests». Пункту про рахунки чи план у цьому меню **немає** — план видно в адмінці
+  (`admin.atlassian.com`) і за кнопкою `Upgrade`. Пункт меню зветься `Notification settings`, а сторінка, яку він
+  відкриває, — `Emails and notifications` (§6).
 - **Адмінка (`admin.atlassian.com`) — українською**, бо така мова акаунта: «Додатки Atlassian» · `Додати додаток` · колонки
   «Додаток · План · Користувачі · Дії» · «Керувати додатком». У читача написи можуть бути англійською (`Atlassian apps`,
   `Plan`, `Users`) — в уроці давати обидва або описувати місце.

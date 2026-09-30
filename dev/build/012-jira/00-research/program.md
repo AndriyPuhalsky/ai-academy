@@ -1604,6 +1604,19 @@ Spaces, Filters, Dashboards, Audit log, Text-режим workflow, Summary-пли
     limit 100» запусків flow на місяць, `Plan: Free`; вкладка `Upcoming usage model` рахує кроки (у підписці — «Automation
     steps 150 steps»). Вкладка `Usage` рівня спейсу показує лише кроки. Число в уроці — за правилом стійкості (лише в
     довіднику з датою); в уроці — де його побачити.
+    · **Доповнення 2026-09-30, третя сесія (`screens/32-sandbox-free-2026-09-30b.md`; пріоритет над формулою вище в
+    частині «курс не перевіряв»):** `Create with Rovo` на Free — діалог відкривається, але **запит відповідає помилкою**
+    (двічі: «Something went wrong» і «[Code 404] … No message available»); flow описом зібрати не вдалося. `Add agent` —
+    діалог є, у полі «Choose an agent» — «We can't find any recently used agents…» · `Browse agents` · `Create agent`. У
+    панелі `Add an action` конструктора блок «Rovo AI» (`Use agent` · `Use Rovo` `Beta`) на Free видно. У галереї
+    шаблонів спейсів `Create with Rovo` немає. Формула курсу тепер: «AI-кнопки Jira — можливість плану Premium; на
+    безкоштовному їх немає. Слово Rovo на Free видно в автоматизації й у редакторі процесу, але зібрати flow описом на
+    безкоштовному плані не вдалося — 30 вересня 2026 року запит двічі повернув помилку; flow курс збирає руками».
+    Flow 1 уроку 15 на Free пройдено (`Success`); `Run scheduled flow now` у вимкненого flow нічого не запускає; вкладка
+    `Advanced` розкладу — Cron-вираз у UTC. Спринт на Free пройдено від `Start sprint` до `Complete sprint`. **Архів
+    окремої роботи на Free працює** (`Archive` у меню картки, `Restore`, вигляд `Archived work items`); архів спейсу — ні.
+    `Plans` у бічній панелі на Free — підказка «Try free for 30 days with Premium». Вікна W1 уроку 16 (сповіщення) і W3
+    уроку 21 (`Import data into Jira`) на Free підтверджено.
     · **Тримається й на справжньому Free:** обидва типи спейсу в майстрі (`Company-managed` з позначкою `Administrators
     only`); `Add work type` у `MY` пропонує `Epic` · `Bug` · `Story`; `Backup manager`; рейка й ряд виглядів `WEB`; `+` →
     `Views` у діловому спейсі (Board · List · Timeline); конструктор flow; MCP (звичайний пошук працює, агентний → 403).
