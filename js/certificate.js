@@ -54,6 +54,17 @@
       brand: "AI Термінал", brandCaps: "AI ТЕРМІНАЛ", mono: "AIT",
       home: "claude-code.html", program: "claude-code.html#map",
       accent: "#7692DC", accentDeep: "#536CB3"   /* лазур · --p-accent-terminal-500 / -edge */
+    },
+    /* 012: четвертий курс. Слаг звірено з живою базою 2026-10-01 — міграція
+       012-1 вставляє `jira`. `brandCaps` = «AI АКАДЕМІЯ · JIRA» (рішення
+       власника Р7, dev/design/012-jira/SUMMARY.md п. 4): курс виданий
+       Академією, тому медальйон називає обох. Варіант «JIRA З НУЛЯ» з
+       03-build/NOTES.md §8 ХИБНИЙ. Якір програми — #map, як у Термінала
+       (секції #syllabus на jira.html немає). */
+    "jira": {
+      brand: "Jira з нуля", brandCaps: "AI АКАДЕМІЯ · JIRA", mono: "AIJ",
+      home: "jira.html", program: "jira.html#map",
+      accent: "#C57CB4", accentDeep: "#9A578A"   /* магента · --p-accent-jira-500 / -edge */
     }
   };
   /* Акцент PDF — рішення власника 2026-09-10 (011, рядок 11): аркуш бере колір
