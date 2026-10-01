@@ -83,9 +83,13 @@
   --jira-hero-text-min: 20rem;  /* мінімум текстової колонки поруч із вікном */
   --jira-card-h:   0px;         /* висоту картки вимірює JS один раз (§11.2) */
 
-  /* --- маршрут карти --- */
-  --jira-tick:     var(--s-4);  /* довжина насічки від лінії до рядка */
-  --jira-dot:      var(--s-2);
+  /* --- карта програми: вісь і поле фази (за зразком --cc-* «AI Термінала»,
+         css/claude-code.css §1; на ≥1024 поле = --w-meta, див. §7) --- */
+  --jira-rail-w:      132px;
+  --jira-spine-x:     44px;   /* вісь усередині поля */
+  --jira-node-r:      4px;
+  --jira-node-r-exam: 7px;
+  --jira-fs-num:      clamp(1.75rem, 1.2rem + 1.9vw, 2.5rem);   /* номер фази */
 
   /* --- резерв висоти до приходу конфіга (CLS = 0) ---
      ⚠ Урок 010 D-06: резерв на ОБГОРТЦІ лишає діру, бо фактична висота
@@ -556,74 +560,115 @@
 .jira-out__hint { display: block; margin-top: var(--s-2); font-size: var(--fs-ui); line-height: var(--lh-body); color: var(--c-text-2); }
 
 /* ============================================================================
-   7. КАРТА ПРОГРАМИ — ШЛЯХ, А НЕ СІТКА
+   7. КАРТА ПРОГРАМИ — ЗА ЗРАЗКОМ «AI ТЕРМІНАЛА» (слово власника 2026-10-01)
    ----------------------------------------------------------------------------
-   23 пункти: 22 уроки + іспит окремим вузлом, 5 фаз (4·4·5·4·5 — звірено з
-   конфігом). Принцип із 003 варіанта A («час тече вниз») узятий як ПРИНЦИП,
-   не як копія: там лінія була змійкою, тут — прямий маршрут із насічками.
-   ⚠ Малювати треба в НАЙГІРШОМУ стані: сьогодні всі 23 модулі мають
-   `status: "draft"`, тобто карта цілком складається з «Скоро». Exercism
-   показує, що шлях із 16 закритими вузлами з 19 не виглядає пусткою —
-   якщо стан кодується формою, а не відсутністю.
+   Власник порівняв карту з лендінгом «AI Термінала»: «зроби як там». Тут
+   відтворена конструкція `cc-phase` / `cc-row` / `cc-exam` (css/claude-code.css
+   §3 і §7) з префіксом сторінки `jira-`; сам файл Термінала на цю сторінку НЕ
+   підключається — ізоляція І-0. Значення ті самі, відмінності свідомі:
+     · вісь належить самій карті, а не всій сторінці (у Jira немає «спини» від
+       hero): вона починається на вузлі першої фази й закінчується на вузлі
+       іспиту; заповнення під скрол немає;
+     · на ≥1024 поле фази = --w-meta з проміжком --s-8, як у .ds-meta, — назви
+       фаз стоять рівно під заголовком розділу.
+   Що замінено (макет V2, «маршрут із насічками»): дві мітки «почати звідси»
+   на одному рядку, назви уроків дисплейним кеглем, рядки, обрізані на
+   --w-prose, і іспит, який не був посиланням.
    ========================================================================== */
-.jira-map { margin-top: var(--s-8); min-height: var(--jira-map-reserve); }
-.jira-phase { margin-top: var(--s-10); }
-.jira-phase:first-child { margin-top: 0; }
-.jira-phase__head { display: flex; align-items: baseline; gap: var(--s-4); }
-.jira-phase__n {
-  font-family: var(--f-display);
-  font-size: var(--fs-h2);
-  line-height: 1;
-  color: var(--c-accent);
-  font-variant-numeric: tabular-nums;
-  min-width: 2ch;
-}
-.jira-phase__t { margin: 0; font-family: var(--f-display); font-size: var(--fs-h3); line-height: var(--lh-h3); font-weight: var(--w-regular); color: var(--c-text); }
-.jira-phase__s { margin: var(--s-1) 0 0 calc(2ch + var(--s-4)); font-size: var(--fs-small); color: var(--c-text-3); }
+@media (max-width: 768px) { :root { --jira-rail-w: 60px; --jira-spine-x: 18px; } }
+@media (max-width: 640px) { :root { --jira-rail-w: 44px; --jira-spine-x: 14px; } }
+@media (min-width: 1024px) { :root { --jira-rail-w: var(--w-meta); } }
 
-/* МАРШРУТ. Лінія належить СПИСКУ, а не сторінці, тому вона розривається між
-   фазами сама — без жодного додаткового елемента. */
-.jira-phase__lessons {
-  list-style: none;
-  margin: var(--s-5) 0 0 calc(2ch / 2 + var(--s-2));
-  padding: 0 0 0 var(--s-6);
-  border-left: var(--bw) solid var(--c-line);
-}
-.jira-phase__lessons > li { position: relative; }
-/* Насічка — не декор: її ФОРМА кодує стан уроку, і це видно в сірому друку. */
-.jira-phase__lessons > li::before {
+.jira-map { min-height: var(--jira-map-reserve); }
+.jira-phases { margin: 0; padding: 0; list-style: none; }
+
+/* Сітка фази: [поле з номером] [зміст]. */
+.jira-grid { display: grid; grid-template-columns: var(--jira-rail-w) minmax(0, 1fr); column-gap: var(--s-6); }
+@media (min-width: 1024px) { .jira-grid { column-gap: var(--s-8); } }
+.jira-grid__rail { grid-column: 1; min-width: 0; }
+.jira-grid__body { grid-column: 2; min-width: 0; }
+
+/* Вісь — відрізок на кожній фазі; суміжні відрізки зливаються в одну лінію. */
+.jira-phase,
+.jira-exam { position: relative; }
+.jira-phase::before,
+.jira-exam::before {
   content: "";
-  position: absolute;
-  left: calc(var(--s-6) * -1);
-  top: calc(var(--s-6) + var(--s-1));
-  width: var(--jira-tick);
-  border-top: var(--bw) dashed var(--c-line-strong);   /* базовий стан — `soon` */
+  position: absolute; top: 0; bottom: 0;
+  left: var(--jira-spine-x);
+  width: var(--bw);
+  background: var(--c-line-strong);
 }
-.jira-phase__lessons > li[data-state="ready"]::before { border-top-style: solid; }
-.jira-phase__lessons > li[data-state="done"]::before  { border-top-style: solid; border-top-color: var(--c-ok-edge); border-top-width: var(--bw-strong); }
-.jira-phase__lessons > li[data-state="start"]::before { border-top-style: solid; border-top-color: var(--c-accent); border-top-width: var(--bw-strong); width: calc(var(--jira-tick) * 1.5); }
-/* У карті рядок не має власного верхнього хайрлайна: роздільником працює
-   сам маршрут, а два роздільники поруч — це вже сітка, а не шлях. */
-/* ⚠ Ширина рядка карти обмежена --w-prose не для краси: `ds-row` — грід
-   `auto 1fr auto`, тож бейдж притискається до правого краю колонки. У тілі
-   розділу 930px і назві уроку в 20 знаків між ними лишалось понад 500px
-   порожнечі, і рядок читався як таблиця з загубленим стовпцем. */
-.jira-map .ds-row { border-top: 0; padding-left: 0; max-width: var(--w-prose); }
-.jira-map .ds-plain > li:last-child > .ds-row { box-shadow: none; }
+/* Лінія не стирчить над першим вузлом і не йде нижче вузла іспиту. */
+.jira-phase:first-child::before { top: calc(var(--s-10) + 0.55em + var(--jira-node-r)); }
+.jira-exam::before { bottom: auto; height: calc(var(--s-12) + 0.4em + var(--jira-node-r-exam)); }
 
-/* Іспит — ВІЗУАЛЬНО ІНШИЙ за картку уроку (рішення 005) і стоїть ПОЗА
-   маршрутом: лінія до нього не доходить, бо він не є ще одним кроком. */
-.jira-exam {
-  display: block;
-  margin-top: var(--s-10);
-  padding: var(--s-6) 0 0;
-  border-top: var(--bw-strong) solid var(--c-accent-edge);
-  color: inherit;
-  text-decoration: none;
+/* Вузол на осі: ставиться на блок, що має position: relative. */
+.jira-node { position: absolute; left: calc(var(--jira-spine-x) - var(--jira-node-r)); width: calc(var(--jira-node-r) * 2); height: calc(var(--jira-node-r) * 2); border-radius: var(--r-pill); background: var(--c-bg); box-shadow: 0 0 0 var(--bw-strong) var(--c-accent); }
+
+.jira-phase { padding-block: var(--s-10) var(--s-8); }
+.jira-phase + .jira-phase { border-top: var(--bw) solid var(--c-line); }
+.jira-phase__node { top: calc(var(--s-10) + 0.55em); }
+.jira-phase__num { display: block; font-family: var(--f-mono); font-size: var(--jira-fs-num); line-height: 1; color: var(--c-text-3); padding-left: calc(var(--jira-spine-x) + var(--s-4)); font-variant-numeric: tabular-nums; }
+.jira-phase__count { display: block; margin-top: var(--s-2); padding-left: calc(var(--jira-spine-x) + var(--s-4)); font-family: var(--f-mono); font-size: var(--fs-label); color: var(--c-text-3); }
+.jira-phase__title { margin: 0; font-family: var(--f-display); font-weight: var(--w-regular); font-size: var(--fs-h3); line-height: var(--lh-h3); color: var(--c-text); }
+.jira-phase__sub { margin: var(--s-2) 0 0; max-width: var(--w-narrow); font-size: var(--fs-ui); color: var(--c-text-2); }
+/* ⚠ Відступ від зразка, заміряно 2026-10-01 на 390: у полі 44 px «4 уроки»
+   ламається на два рядки, а «5 уроків» налазить на підзаголовок (у Терміналі
+   на 390 так само — «5 модулів» поверх «сесія»; Термінал не чіпаємо, І-0);
+   на 768 у полі 60 px — той самий перенос. Тому на ≤768 кількість переїжджає
+   в рядок підзаголовка, а в полі лишається лише номер — трохи менший, щоб не
+   впиратись у назву фази. Приховане через display: none скрінрідер не читає,
+   тож кількість не звучить двічі. */
+.jira-phase__sub-count { display: none; }
+@media (max-width: 768px) {
+  .jira-phase__count { display: none; }
+  .jira-phase__sub-count { display: inline; }
+  .jira-phase__num { font-size: 1.5rem; padding-left: calc(var(--jira-spine-x) + var(--s-3)); }
 }
-.jira-exam__t { font-family: var(--f-display); font-size: var(--fs-h3); line-height: var(--lh-h3); color: var(--c-text); display: block; }
-.jira-exam__d { display: block; margin-top: var(--s-3); max-width: var(--w-narrow); font-size: var(--fs-ui); line-height: var(--lh-body); color: var(--c-text-2); }
-.jira-exam__m { display: block; margin-top: var(--s-3); font-family: var(--f-mono); font-size: var(--fs-label); color: var(--c-text-3); }
+
+/* Зміст книги: назва ліворуч, номер моно праворуч, крапки між ними. */
+.jira-rows { margin: var(--s-6) 0 0; padding: 0; list-style: none; }
+.jira-row { position: relative; }
+.jira-row__link { display: flex; align-items: baseline; gap: var(--s-3); padding-block: var(--s-3); border-radius: var(--r-inner); color: inherit; text-decoration: none; }
+.jira-row__name { flex: 0 1 auto; font-size: var(--fs-body); line-height: var(--lh-lead); color: var(--c-prose); transition: color var(--dur-hover) var(--e-out); }
+.jira-row__leader { flex: 1 1 auto; min-width: var(--s-6); border-bottom: var(--bw) dotted var(--c-line-strong); transition: border-color var(--dur-hover) var(--e-out); }
+.jira-row__num { flex: 0 0 auto; font-family: var(--f-mono); font-size: var(--fs-small); color: var(--c-text-3); font-variant-numeric: tabular-nums; transition: color var(--dur-hover) var(--e-out); }
+@media (hover: hover) {
+  a.jira-row__link:hover .jira-row__name { color: var(--c-text); }
+  a.jira-row__link:hover .jira-row__leader { border-bottom-color: var(--c-accent-edge); }
+  a.jira-row__link:hover .jira-row__num { color: var(--c-accent); }
+}
+a.jira-row__link:focus-visible .jira-row__name { color: var(--c-text); }
+a.jira-row__link:focus-visible .jira-row__leader { border-bottom-color: var(--c-accent-edge); }
+.jira-row--done .jira-row__name { color: var(--c-text); }
+.jira-row--soon .jira-row__name { color: var(--c-text-2); }
+.jira-row--soon .jira-row__link { cursor: default; }
+.jira-row__badge { flex: 0 0 auto; }
+/* Точка входу для гостя: єдина мітка кольором акценту в усій карті. */
+.jira-row__start { flex: 0 0 auto; font-family: var(--f-mono); font-size: var(--fs-label); color: var(--c-accent); white-space: nowrap; }
+/* На 320 тіло фази ~220 px, а рядок — flex без переносу: назві дозволено
+   переноситись, інакше номер вилазить за край документа (заміряно на
+   Терміналі 2026-09-07, css/claude-code.css §7). */
+@media (max-width: 640px) {
+  .jira-row__link { column-gap: var(--s-2); }
+  .jira-row__name { min-width: 0; overflow-wrap: break-word; }
+}
+
+/* Іспит — окремий вузол ПОЗА фазами, інша геометрія; не рядок уроку. */
+.jira-exam { padding-block: var(--s-12); }
+.jira-exam__node { top: calc(var(--s-12) + 0.4em); left: calc(var(--jira-spine-x) - var(--jira-node-r-exam)); width: calc(var(--jira-node-r-exam) * 2); height: calc(var(--jira-node-r-exam) * 2); background: var(--c-accent); box-shadow: 0 0 0 var(--s-1) var(--c-bg), 0 0 0 calc(var(--s-1) + var(--bw)) var(--c-accent); }
+.jira-exam__box { display: block; max-width: var(--w-prose); padding: var(--s-6) var(--s-8); border: var(--bw) solid var(--c-accent-edge); border-radius: var(--r-control); color: inherit; text-decoration: none; transition: border-color var(--dur-hover) var(--e-out); }
+@media (max-width: 640px) { .jira-exam__box { padding: var(--s-5); } }
+@media (hover: hover) {
+  a.jira-exam__box:hover { border-color: var(--c-accent); }
+  a.jira-exam__box:hover .jira-exam__title { color: var(--c-text); }
+}
+.jira-exam__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-4); }
+.jira-exam__badge { flex: 0 0 auto; }
+.jira-exam__title { margin: 0; font-family: var(--f-display); font-weight: var(--w-regular); font-size: var(--fs-h3); line-height: var(--lh-h3); color: var(--c-accent); transition: color var(--dur-hover) var(--e-out); }
+.jira-exam__text { margin: var(--s-3) 0 0; font-size: var(--fs-ui); line-height: var(--lh-body); color: var(--c-prose); }
+.jira-exam__meta { margin: var(--s-4) 0 0; font-family: var(--f-mono); font-size: var(--fs-label); color: var(--c-text-3); }
 
 /* ============================================================================
    8. ПОЛИЦЯ ДОВІДНИКІВ

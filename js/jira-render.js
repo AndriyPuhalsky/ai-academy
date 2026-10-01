@@ -97,16 +97,30 @@
   }
 
   /* ==========================================================================
-     КАРТА ПРОГРАМИ — ШЛЯХ ІЗ 22 УРОКІВ + ІСПИТ
+     КАРТА ПРОГРАМИ — ЗА ЗРАЗКОМ «AI ТЕРМІНАЛА» (слово власника 2026-10-01)
      --------------------------------------------------------------------------
-     Три стани рядка малюються ЗАВЖДИ, незалежно від того, що в конфізі
-     (референс Exercism: 16 закритих вузлів із 19 не виглядають пусткою, якщо
-     стан кодується ФОРМОЮ).
+     Та сама розмітка, що в js/claude-code-render.js renderMap(): фаза — грід
+     [поле з номером і кількістю уроків] [назва, підзаголовок, «зміст книги»],
+     рядок — назва · крапки · мітка · номер. Префікс класів — `jira-`
+     (css/jira.css §7); код Термінала не підключається — ізоляція І-0.
+
+     ⚠ Стан НІКОЛИ не кодується лише кольором: слово лишається завжди, гліф
+     додається атрибутом data-glyph (правило 3 системи 009).
 
      ⚠ Функція ІДЕМПОТЕНТНА й викликається двічі: один раз після конфіга і ще
      раз на кожному `aia:progress`. Тому вона спершу чистить контейнер — інакше
-     після гідратації прогресу під картою виросла б її друга копія.
+     після гідратації прогресу під картою виросла б її друга копія. Вузлів
+     [data-reveal] тут свідомо немає: повний перерендер не блимає.
      ========================================================================== */
+  function pad2(n) { return (n < 10 ? "0" : "") + n; }
+
+  function rowMark(isDone, isSoon, isStart) {
+    if (isStart) return el("span", "jira-row__start", cfg.map.startLabel);
+    if (isDone)  return badge("done", "✓", "пройдено");
+    if (isSoon)  return badge("soon", "○", "скоро");
+    return null;
+  }
+
   function renderMap() {
     var map = $("#jiraMap");
     if (!map || !cfg) return;
@@ -120,59 +134,90 @@
     }
 
     map.textContent = "";
+    var phases = el("ol", "jira-phases");
     (cfg.tracks || []).forEach(function (tr, ti) {
       var mine = lessons.filter(function (m) { return m.track === tr.id; });
       if (!mine.length) return;
 
-      var ph = el("section", "jira-phase");
-      var head = el("div", "jira-phase__head");
-      head.appendChild(el("b", "jira-phase__n", String(ti + 1)));
-      head.appendChild(el("h3", "jira-phase__t", tr.title));
-      ph.appendChild(head);
-      ph.appendChild(el("p", "jira-phase__s",
-        tr.subtitle + " · " + mine.length + " " + plural(mine.length, cfg.map.moduleWord)));
+      var ph = el("li", "jira-phase jira-grid");
+      var node = el("span", "jira-node jira-phase__node");
+      node.setAttribute("aria-hidden", "true");
+      ph.appendChild(node);
 
-      var ul = el("ol", "jira-phase__lessons ds-plain");
+      var rail = el("div", "jira-grid__rail");
+      var num = el("span", "jira-phase__num", pad2(tr.order || ti + 1));
+      num.setAttribute("aria-hidden", "true");
+      rail.appendChild(num);
+      rail.appendChild(el("span", "jira-phase__count",
+        mine.length + " " + plural(mine.length, cfg.map.moduleWord)));
+      ph.appendChild(rail);
+
+      var body = el("div", "jira-grid__body");
+      body.appendChild(el("h3", "jira-phase__title", tr.title));
+      /* Кількість уроків дублюється в підзаголовку для ≤768, де поле фази
+         завузьке для неї (css/jira.css §7); видима завжди лише одна копія. */
+      var sub = el("p", "jira-phase__sub", tr.subtitle || "");
+      sub.appendChild(el("span", "jira-phase__sub-count",
+        (tr.subtitle ? " · " : "") + mine.length + " " + plural(mine.length, cfg.map.moduleWord)));
+      body.appendChild(sub);
+
+      var rows = el("ol", "jira-rows");
       mine.forEach(function (m) {
         var isDone  = done.has(m.id);
         var isStart = m.id === startId;
         var isSoon  = m.status !== "ready";
-        var li = el("li");
-        li.setAttribute("data-state", isDone ? "done" : isStart ? "start" : isSoon ? "soon" : "ready");
+        var li = el("li", "jira-row" + (isDone ? " jira-row--done" : "") + (isSoon ? " jira-row--soon" : ""));
+        li.setAttribute("data-module-id", m.id);
 
-        var row = el(isSoon ? "div" : "a", "ds-row" + (isSoon ? " ds-row--locked" : ""));
-        if (!isSoon) row.href = m.slug;
-        row.appendChild(el("b", "ds-row__n", String(m.number)));
+        var link = el(isSoon ? "span" : "a", "jira-row__link");
+        if (!isSoon) link.href = m.slug;
+        link.appendChild(el("span", "jira-row__name", m.title));
+        var leader = el("span", "jira-row__leader");
+        leader.setAttribute("aria-hidden", "true");
+        link.appendChild(leader);
+        var mark = rowMark(isDone, isSoon, isStart);
+        if (mark) {
+          var holder = el("span", "jira-row__badge");
+          holder.appendChild(mark);
+          link.appendChild(holder);
+        }
+        link.appendChild(el("span", "jira-row__num", pad2(m.number)));
 
-        var main = el("span", "ds-row__main");
-        main.appendChild(el("span", "ds-row__title", m.title));
-        if (isStart) main.appendChild(el("span", "ds-row__meta", cfg.map.startLabel));
-        row.appendChild(main);
-
-        var side = el("span", "ds-row__side");
-        if (isDone)      side.appendChild(badge("done", "✓", "пройдено"));
-        else if (isSoon) side.appendChild(badge("soon", "·", "Скоро"));
-        else if (isStart) side.appendChild(badge("ready", "→", cfg.map.startLabel));
-        if (!isSoon) side.appendChild(el("span", "ds-row__go", "→"));
-        row.appendChild(side);
-
-        li.appendChild(row);
-        ul.appendChild(li);
+        li.appendChild(link);
+        rows.appendChild(li);
       });
-      ph.appendChild(ul);
-      map.appendChild(ph);
+      body.appendChild(rows);
+      ph.appendChild(body);
+      phases.appendChild(ph);
     });
+    map.appendChild(phases);
 
-    /* Іспит — окремим вузлом ПОЗА фазами й візуально інший за рядок уроку.
-       Точкою входу він бути не може, тому в розрахунку startId його немає (той
-       самий поділ, що в js/claude-code-render.js:394–397). Власного стану
-       «пройдено» макет для нього не малює — і тут нічого не домальовується. */
+    /* Іспит — окремим вузлом ПОЗА фазами: без крапок і номера, з видимим
+       кінцем осі (той самий поділ, що в js/claude-code-render.js). Точкою
+       входу він бути не може, тому в розрахунку startId його немає. */
     var exam = (cfg.modules || []).filter(function (m) { return m.kind === "exam"; })[0];
     if (exam) {
-      var ex = el("div", "jira-exam");
-      ex.appendChild(el("b", "jira-exam__t", exam.title));
-      if (exam.text) ex.appendChild(el("span", "jira-exam__d", exam.text));
-      if (exam.meta) ex.appendChild(el("span", "jira-exam__m", exam.meta));
+      var ex = el("div", "jira-exam jira-grid");
+      var exNode = el("span", "jira-node jira-exam__node");
+      exNode.setAttribute("aria-hidden", "true");
+      ex.appendChild(exNode);
+      ex.appendChild(el("div", "jira-grid__rail"));
+
+      var exBody = el("div", "jira-grid__body");
+      var box = el(exam.status === "ready" ? "a" : "div", "jira-exam__box");
+      if (exam.status === "ready") box.href = exam.slug;
+      var head = el("div", "jira-exam__head");
+      head.appendChild(el("h3", "jira-exam__title", exam.title));
+      if (done.has(exam.id)) {
+        var exBadge = el("span", "jira-exam__badge");
+        exBadge.appendChild(badge("done", "✓", "пройдено"));
+        head.appendChild(exBadge);
+      }
+      box.appendChild(head);
+      if (exam.text) box.appendChild(el("p", "jira-exam__text", exam.text));
+      if (exam.meta) box.appendChild(el("p", "jira-exam__meta", exam.meta));
+      exBody.appendChild(box);
+      ex.appendChild(exBody);
       map.appendChild(ex);
     }
     map.style.minHeight = "0";    /* резерв віддав роботу — знімаємо його, щоб
