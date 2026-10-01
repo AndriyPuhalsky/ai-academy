@@ -414,16 +414,22 @@
 @keyframes jira-cursor {
   0%        { opacity: 0; transform: translate(calc(var(--jira-cur-x) + var(--jira-fly-x1)), calc(var(--jira-cur-y) + var(--jira-fly-y1) + var(--s-8))) scale(1); }
   12%       { opacity: 1; transform: translate(calc(var(--jira-cur-x) + var(--jira-fly-x1)), calc(var(--jira-cur-y) + var(--jira-fly-y1))) scale(1); }
-  15%, 27%  { opacity: 1; transform: translate(calc(var(--jira-cur-x) + var(--jira-fly-x1)), calc(var(--jira-cur-y) + var(--jira-fly-y1))) scale(.86); }
-  27.1%     { transform: translate(calc(var(--jira-cur-x) + var(--jira-fly-x2)), calc(var(--jira-cur-y) + var(--jira-fly-y2))) scale(.86); }
-  31%, 42%  { transform: translate(calc(var(--jira-cur-x) + var(--jira-fly-x2)), calc(var(--jira-cur-y) + var(--jira-fly-y2))) scale(1); }
+  15%       { opacity: 1; transform: translate(calc(var(--jira-cur-x) + var(--jira-fly-x1)), calc(var(--jira-cur-y) + var(--jira-fly-y1))) scale(.86); }
+  27%       { transform: translate(calc(var(--jira-cur-x) + var(--jira-fly-x2)), calc(var(--jira-cur-y) + var(--jira-fly-y2))) scale(.86); }
+  31%, 39%  { transform: translate(calc(var(--jira-cur-x) + var(--jira-fly-x2)), calc(var(--jira-cur-y) + var(--jira-fly-y2))) scale(1); }
+  42%       { transform: translate(calc(var(--jira-cur-x) + var(--jira-fly-x2)), calc(var(--jira-cur-y) + var(--jira-fly-y2))) scale(.86); }
   54%       { transform: translate(var(--jira-cur-x), var(--jira-cur-y)) scale(.86); }
   58%       { opacity: 1; transform: translate(var(--jira-cur-x), var(--jira-cur-y)) scale(1); }
   70%, 100% { opacity: 0; transform: translate(var(--jira-cur-x), calc(var(--jira-cur-y) + var(--s-8))) scale(1); }
 }
 /* ⚠ Курсор тягне картку, тому його переїзд мусить збігатися з її переїздом
    кадр у кадр. Саме через це обидві анімації мають ОДНУ тривалість і одні
-   відсотки — у таймлайні на JS це була б домовленість, тут це конструкція. */
+   відсотки — у таймлайні на JS це була б домовленість, тут це конструкція.
+   012 · 2026-10-01, слово власника: у макеті (_base/jira.css) перший переїзд
+   був `15%, 27%` на To Do + `27.1%` стрибком в In Progress — картка їхала,
+   а курсор стояв і телепортувався (замір на 1280: відстань курсор↔картка
+   пливла 615 → 433 px). Тепер відрізок 15→27 той самий, що в `jira-fly`, і
+   натиск перед другим переїздом (39→42) такий самий, як перед першим (12→15). */
 
 .jira-hero.is-playing .jira-trail {
   animation: jira-trail var(--jira-cycle) var(--e-out) infinite both;
