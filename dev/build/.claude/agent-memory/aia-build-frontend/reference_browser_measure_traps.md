@@ -34,3 +34,20 @@ metadata:
 (рахувати правила, а не дивитись очима); `performance.getEntriesByType('paint')`.
 
 Див. також [[wave-report-via-final-message]].
+
+## Додано 2026-10-01 (012, власний Chrome по CDP)
+
+- **Програмний `.focus()` НЕ вмикає `:focus-visible`.** Кільце фокуса «зникає» без причини, і
+  замір виглядає як дефект доступності. Тиснути справжній `Tab` через `Input.dispatchKeyEvent`.
+- **`Enter` / `Space` через CDP вимагають ТРЬОХ подій** — `rawKeyDown` + `char` + `keyUp`.
+  Лише з двома браузер не синтезує `click`, і кнопка «не працює»: у 012 через це
+  `aria-expanded` випадайки читався `false` після «натискання» Enter.
+- **`Emulation.setScriptExecutionDisabled` не глушить `Runtime.evaluate`.** Скрипти сторінки
+  не виконуються, а власний замір працює — тобто стан «без JS» можна міряти, а не лише
+  читати `DOM.getOuterHTML`.
+- **`Page.addScriptToEvaluateOnNewDocument` — єдиний спосіб виставити `data-motion="calm"`
+  ДО завантаження.** Поставлений після завантаження пресет дефекту D-01 не відтворює.
+  ⚠ У цьому скрипті `document.documentElement` ще `null` — потрібен `setTimeout`-цикл.
+- **`#aiaGate` знімається трьома рядками:** прибрати сам вузол, зняти `hidden` з усіх дітей
+  `#main`, зняти `data-aia-gate` з `<html>`. До цього всі ширини на уроці нульові, і
+  `js/jira-win.js` свідомо не чіпає вузол із `clientWidth === 0`.
