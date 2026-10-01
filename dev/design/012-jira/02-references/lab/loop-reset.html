@@ -1,0 +1,61 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><title>Лабораторія · скидання циклу</title>
+<style>
+:root{--motion:1}
+@media (prefers-reduced-motion: reduce){:root{--motion:0}}
+body{background:#161311;color:#F0EEE6;font:15px/1.5 system-ui,sans-serif;margin:0;padding:22px}
+h1{font-size:18px;margin:0 0 16px}
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:#26221D;border:1px solid #3A342E;border-radius:10px;padding:12px;width:620px;margin-bottom:16px;position:relative}
+.col{min-height:92px}
+.col h3{font:600 11px/1.2 ui-monospace,monospace;color:#9A9184;text-transform:uppercase;letter-spacing:.07em;margin:0 0 8px}
+.slot{height:38px}
+.card{background:#302C27;border:1px solid #494844;border-radius:6px;padding:7px 9px;font-size:13px;position:absolute;width:176px;will-change:transform}
+.cur{position:absolute;width:11px;height:17px;background:#C57CB4;clip-path:polygon(0 0,100% 62%,56% 68%,78% 100%,56% 100%,36% 74%,0 92%);pointer-events:none}
+</style></head><body>
+<h1>Скидання циклу: стрибок · перезапуск з фейдом · реверс</h1>
+<div class="board" id="b">
+  <div class="col"><h3>To Do</h3><div class="slot"></div></div>
+  <div class="col"><h3>In Progress</h3><div class="slot"></div></div>
+  <div class="col"><h3>Done</h3><div class="slot"></div></div>
+  <div class="card" id="card" style="left:12px;top:46px">Замовити борошно на тиждень</div>
+  <div class="cur" id="cur" style="left:60px;top:70px"></div>
+</div>
+<div id="log" style="font:12px/1.6 ui-monospace,monospace;color:#9A9184"></div>
+<script>
+const card = document.getElementById('card'), cur = document.getElementById('cur');
+const STEP = 203;                        // ширина колонки + gap, заміряно нижче
+const MOVE = 620, PRESS = 120, HOLD = 420, GAP = 520;
+const mo = () => +getComputedStyle(document.documentElement).getPropertyValue('--motion') || 0;
+window.__frames = [];
+let raf;
+function sample(){ window.__frames.push({ t: Math.round(performance.now()), cx: card.getBoundingClientRect().left, ux: cur.getBoundingClientRect().left, o: +getComputedStyle(card).opacity }); raf = requestAnimationFrame(sample); }
+sample();
+const ease = 'cubic-bezier(.33,0,.1,1)';
+function to(el, x, y, ms, extra){ el.style.transition = `transform ${ms * mo()}ms ${ease}${extra || ''}`; el.style.transform = `translate(${x}px,${y}px)`; return new Promise(r => setTimeout(r, ms * mo() + 20)); }
+async function leg(i){                     // курсор підходить, «натискає», тягне картку
+  await to(cur, i * STEP + 40, 0, MOVE);
+  cur.style.transition = `transform ${PRESS * mo()}ms ease-out`;
+  cur.style.transform = `translate(${i * STEP + 40}px,0) scale(.86)`;
+  await new Promise(r => setTimeout(r, PRESS * mo()));
+  await Promise.all([ to(card, (i + 1) * STEP, 0, MOVE), to(cur, (i + 1) * STEP + 40, 0, MOVE) ]);
+  cur.style.transform = `translate(${(i + 1) * STEP + 40}px,0)`;
+  await new Promise(r => setTimeout(r, HOLD * mo()));
+}
+window.__run = async (mode) => {
+  window.__frames.length = 0;
+  const t0 = performance.now();
+  for (let k = 0; k < 2; k++) await leg(k);
+  await new Promise(r => setTimeout(r, GAP * mo()));
+  const beforeReset = card.getBoundingClientRect().left;
+  if (mode === 'jump') { card.style.transition = 'none'; cur.style.transition = 'none'; card.style.transform = 'none'; cur.style.transform = 'none'; }
+  else if (mode === 'fade') { await to(card, 2 * STEP, 0, 260, ', opacity 260ms ease-out'); card.style.opacity = 0; await new Promise(r => setTimeout(r, 260 * mo())); card.style.transition = 'none'; card.style.transform = 'none'; cur.style.transition = 'none'; cur.style.transform = 'none'; await new Promise(r => requestAnimationFrame(r)); card.style.transition = 'opacity 260ms ease-out'; card.style.opacity = 1; await new Promise(r => setTimeout(r, 300 * mo())); }
+  else if (mode === 'reverse') { await Promise.all([ to(card, 0, 0, MOVE), to(cur, 40, 0, MOVE) ]); }
+  await new Promise(r => setTimeout(r, 120));
+  const afterReset = card.getBoundingClientRect().left;
+  return { mode, totalMs: Math.round(performance.now() - t0), jumpPx: (()=>{let m=0,f=window.__frames;for(let i=1;i<f.length;i++)m=Math.max(m,Math.abs(f[i].cx-f[i-1].cx));return Math.round(m)})(),
+    jumpOpacity: (()=>{let m=0,f=window.__frames;for(let i=1;i<f.length;i++)m=Math.max(m,Math.abs(f[i].o-f[i-1].o));return +m.toFixed(2)})(),
+    travelPx: Math.round(Math.abs(afterReset - beforeReset)),
+    frames: window.__frames.length, motion: mo(),
+    maxFrameGapMs: (() => { let g = 0; for (let i = 1; i < window.__frames.length; i++) g = Math.max(g, window.__frames[i].t - window.__frames[i - 1].t); return g; })(),
+    stepPx: Math.round(document.querySelectorAll('.col')[1].getBoundingClientRect().left - document.querySelectorAll('.col')[0].getBoundingClientRect().left) };
+};
+</script></body></html>
