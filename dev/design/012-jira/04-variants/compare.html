@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>012 «Jira з нуля» · порівняння варіантів</title>
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../../css/tokens.css" />
+  <style>
+    /* Оболонка порівняння — НЕ частина макета. Вона свідомо зроблена
+       найпростішими засобами: усе, що оцінюється, живе всередині iframe. */
+    html { background: var(--c-bg); color-scheme: dark; }
+    body {
+      margin: 0; min-height: 100vh;
+      display: flex; flex-direction: column;
+      background: var(--c-bg); color: var(--c-text);
+      font-family: var(--f-sans); font-size: var(--fs-ui); line-height: var(--lh-ui);
+    }
+    header {
+      position: sticky; top: 0; z-index: 10;
+      padding: 10px 16px 12px;
+      background: var(--c-surface);
+      border-bottom: 1px solid var(--c-line);
+    }
+    h1 { margin: 0 0 8px; font-family: var(--f-display); font-weight: 400; font-size: 18px; }
+    h1 small { font-family: var(--f-sans); font-size: 12px; color: var(--c-text-3); }
+    .bar { display: flex; flex-wrap: wrap; gap: 6px 22px; align-items: baseline; }
+    .grp { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+    .grp > b { font-weight: 500; font-size: 11px; letter-spacing: .08em;
+               text-transform: uppercase; color: var(--c-text-3); margin-right: 2px; }
+    button {
+      font: inherit; font-size: 12px; cursor: pointer;
+      padding: 4px 10px; min-height: 26px;
+      border: 1px solid var(--c-line-strong); border-radius: var(--r-control);
+      background: none; color: var(--c-text-2);
+    }
+    button[aria-pressed="true"] {
+      border-color: var(--c-accent-edge); background: var(--c-accent-quiet);
+      color: var(--c-text); font-weight: 500;
+    }
+    button:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
+    .stage { flex: 1; display: flex; justify-content: center; padding: 16px; overflow: auto; }
+    iframe { border: 1px solid var(--c-line); background: var(--c-bg); width: 1280px; height: 100%; min-height: 720px; }
+    .note { margin: 6px 0 0; font-size: 12px; color: var(--c-text-3); max-width: 100ch; }
+    .note b { color: var(--c-text-2); font-weight: 500; }
+    [data-course="jira"] { }
+  </style>
+</head>
+<body data-course="jira">
+  <header>
+    <h1>012 «Jira з нуля» · три варіанти вікна <small>вісь: ступінь схематичності вікна</small></h1>
+    <div class="bar">
+      <div class="grp" id="gVar"><b>варіант</b>
+        <button type="button" data-k="v" data-v="variant-1" aria-pressed="false">1 · креслення</button>
+        <button type="button" data-k="v" data-v="variant-2" aria-pressed="true">2 · жива схема</button>
+        <button type="button" data-k="v" data-v="variant-3" aria-pressed="false">3 · щільний знімок</button>
+      </div>
+      <div class="grp" id="gPage"><b>сторінка</b>
+        <button type="button" data-k="p" data-v="jira" aria-pressed="true">лендінг</button>
+        <button type="button" data-k="p" data-v="lesson" aria-pressed="false">урок</button>
+        <button type="button" data-k="p" data-v="gallery" aria-pressed="false">усі 62 вікна</button>
+      </div>
+      <div class="grp" id="gW"><b>ширина</b>
+        <button type="button" data-k="w" data-v="390" aria-pressed="false">390</button>
+        <button type="button" data-k="w" data-v="768" aria-pressed="false">768</button>
+        <button type="button" data-k="w" data-v="1280" aria-pressed="true">1280</button>
+      </div>
+    </div>
+    <div class="bar" style="margin-top:8px">
+      <div class="grp" id="gTempo"><b>темп циклу hero</b>
+        <button type="button" data-k="t" data-v="slow" aria-pressed="false">повільний</button>
+        <button type="button" data-k="t" data-v="mid" aria-pressed="true">середній</button>
+        <button type="button" data-k="t" data-v="brisk" aria-pressed="false">жвавий</button>
+      </div>
+      <div class="grp" id="gFlip"><b>поверхня вікна</b>
+        <button type="button" data-k="f" data-v="0" aria-pressed="true">світліша за шапку</button>
+        <button type="button" data-k="f" data-v="1" aria-pressed="false">темніша (відкат)</button>
+      </div>
+      <div class="grp" id="gH"><b>заголовки розділів</b>
+        <button type="button" data-k="h" data-v="h2" aria-pressed="true">більші (h2)</button>
+        <button type="button" data-k="h" data-v="h3" aria-pressed="false">менші (h3)</button>
+      </div>
+      <div class="grp" id="gHero"><b>вікно в hero</b>
+        <button type="button" data-k="o" data-v="520px" aria-pressed="true">третина</button>
+        <button type="button" data-k="o" data-v="720px" aria-pressed="false">пів екрана</button>
+      </div>
+      <div class="grp" id="gRm"><b>рух</b>
+        <button type="button" data-k="r" data-v="0" aria-pressed="true">звичайний</button>
+        <button type="button" data-k="r" data-v="1" aria-pressed="false">вимкнений (reduced-motion)</button>
+      </div>
+    </div>
+    <p class="note" id="note"></p>
+  </header>
+
+  <div class="stage"><iframe id="frame" title="Макет варіанта"></iframe></div>
+
+<script>
+(function () {
+  "use strict";
+  var S = { v: "variant-2", p: "jira", w: "1280", t: "mid", f: "0", h: "h2", o: "520px", r: "0" };
+
+  var NOTES = {
+    "variant-1": "<b>1 · креслення.</b> Категорії статусів тримаються лише формою канта (пунктир / тонкий / товстий). Єдиний колір у вікні — мітка ①–⑧ і позначка «де я». Ціна: цитата уроків «grey, blue, green» не має підтвердження на екрані.",
+    "variant-2": "<b>2 · жива схема.</b> Форма ПЛЮС колір: todo сірий, progress синій, done зелений — рівно як каже проза уроків. `+ Create` синя (рішення Р6). Ціна: читач тримає два коди одночасно.",
+    "variant-3": "<b>3 · щільний знімок.</b> Колонки й картки мають власні поверхні, рейка відокремлена, таблиця в зебрі. Ціна: одна нова сходинка поверхні (`--c-raised-2`), найменший запас до антиреференсу «копія Atlassian», чотири поверхні замість трьох на кожній перевірці контрасту."
+  };
+
+  var frame = document.getElementById("frame"), note = document.getElementById("note");
+
+  function url() { return S.v + "/" + S.p + ".html"; }
+
+  function apply() {
+    var d = frame.contentDocument;
+    if (!d || !d.documentElement) return;
+    var r = d.documentElement;
+    r.setAttribute("data-jira-tempo", S.t);
+    r.classList.toggle("win-flip", S.f === "1");
+    r.classList.toggle("rm", S.r === "1");
+    r.style.setProperty("--jira-hero-win", S.o);
+    var st = d.getElementById("cmpStyle");
+    if (!st) { st = d.createElement("style"); st.id = "cmpStyle"; d.head.appendChild(st); }
+    /* Два перемикачі, яких у макеті немає як станів, доливаються сюди:
+       (а) відкат поверхні працює на БУДЬ-ЯКІЙ сторінці, не лише в галереї
+           (правило живе в gallery.css, тож повторюємо його тут);
+       (б) кегль заголовків розділів — побічна правка білдера, яку власник
+           не просив; відкат — один рядок. */
+    st.textContent =
+      /* панель-підмостки самого макета всередині порівняння зайва */
+      ".jira-lab,.gal__lab{display:none!important}" +
+      "html.win-flip .win{--win-chrome-bg:var(--c-raised);--win-canvas-bg:var(--c-surface)}" +
+      (S.h === "h3" ? ".jira-h2{font-size:var(--fs-h3);line-height:var(--lh-h3)}" : "");
+  }
+
+  function load() {
+    frame.style.width = S.w + "px";
+    var want = url();
+    if (frame.getAttribute("data-src") !== want) {
+      frame.setAttribute("data-src", want);
+      frame.src = want;
+      frame.onload = apply;
+    } else { apply(); }
+    note.innerHTML = NOTES[S.v];
+  }
+
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-k]");
+    if (!b) return;
+    var k = b.getAttribute("data-k");
+    S[k] = b.getAttribute("data-v");
+    Array.prototype.forEach.call(b.parentNode.querySelectorAll("button"), function (o) {
+      o.setAttribute("aria-pressed", o === b ? "true" : "false");
+    });
+    load();
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>
