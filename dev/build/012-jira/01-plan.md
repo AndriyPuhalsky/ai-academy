@@ -145,12 +145,12 @@
 1. **Скриптів платформи немає взагалі.** У макеті лише `motion.js`, `ui.js`,
    `jira-render.js`, `jira-motion.js`. Відсутні `js/progress.js`, `js/auth-ui.js`,
    `js/auth.js`, `js/contact.js` (порівняння: `claude-code.html:348-364`). Без них слот
-   `#aiaAuth` лишається порожнім, `#navProgress` не існує як дані, а `AIA_PROGRESS.done`,
+   `#aiaAuth` лишається порожнім, `#navProgress` не існує як дані, а `AIAProgress.completedSet()` (у первісному плані помилково `AIA_PROGRESS.done`),
    який читає карта (`jira-render.js:93`), завжди порожній.
 2. **`#navProgress` є в розмітці (`jira.html:76`), але рендерера пілюлі немає.**
    Див. П-4: третю інлайн-копію робити заборонено (`task.md`, «чого НЕ робити»).
 3. **Карта не оновлюється після гідратації прогресу.** `jira-render.js` читає
-   `AIA_PROGRESS.done` один раз у `fill()` і **не слухає `aia:progress`** (`js/progress.js:22`
+   `AIAProgress.completedSet()` (у первісному плані помилково `AIA_PROGRESS.done`) один раз у `fill()` і **не слухає `aia:progress`** (`js/progress.js:22`
    кидає цю подію; `js/config.js:512` і `js/claude-code-render.js:673` її слухають). Прогрес
    приходить із Supabase **після** конфіга, тому без слухача учень, який пройшов 10 уроків,
    побачить карту без жодної галочки.
@@ -443,7 +443,7 @@ jira: { course: "jira", brand: "Jira з нуля", home: "jira.html",
 | -- | ------------------ | ------------------ | ------------ |
 | `aia:progress` | `js/progress.js:22` | **додати слухача в `js/jira-render.js`** | без нього карта не оновиться після гідратації прогресу |
 | `aia:config-ready` | `js/config.js:502` | `js/ui.js:370` (`scheduleFades`), `js/module.js:521` | `js/config.js` на `jira.html` **не підключений** → подію має кинути `js/jira-render.js` у кінці `fill()` (разом із наявним `data-config-ready`). Безпечно: інших слухачів немає, `module.js` на лендінгу не вантажиться |
-| `window.AIA_PROGRESS.done`, `window.AIAProgress.isHydrated()` | `js/progress.js` | `jira-render.js:93`, `js/config.js` | контракт карти й пілюлі |
+| `window.AIAProgress.completedSet()` (→ `Set`), `window.AIAProgress.isHydrated()` | `js/progress.js` | `jira-render.js`, `js/config.js` | контракт карти й пілюлі. ⚠ **Виправлено 2026-10-01 за звітом фронтендера:** у плані й у `_base/jira-render.js:93` стояло `window.AIA_PROGRESS.done` — такого глобаля в проєкті немає (0 вживань поза макетом), карта лишилась би без позначок завжди |
 | `window.AIA.motion.bind(node)` | `js/motion.js` | `jira-render.js` у кінці `fill()` | `js/motion.js` — єдиний власник спостерігача появи; чіпляти **після** рендера |
 | `window.AIA.winScrollers` | дельта в `js/ui.js` | QA | ручна перевірка `tabindex` на скролерах вікна |
 | `window.AIAContact.open` | `js/contact.js` (003) | `#contactTrigger` у футері `jira.html` | модалка «Написати нам» |
@@ -546,7 +546,7 @@ jira: { course: "jira", brand: "Jira з нуля", home: "jira.html",
   `progress.js → ui.js → auth-ui.js → auth.js (module) → contact.js (module) → motion.js →
   jira-render.js → jira-motion.js`.
   Причини порядку: `motion.js` — до рендерера, бо той у кінці `fill()` викликає
-  `AIA.motion.bind`; `progress.js` — до рендерера, бо карта читає `AIA_PROGRESS.done`;
+  `AIA.motion.bind`; `progress.js` — до рендерера, бо карта читає `AIAProgress.completedSet()` (у первісному плані помилково `AIA_PROGRESS.done`);
   `ui.js` — до рендерера, бо він володіє випадайкою «Курси» і скролерами.
 - `class="contents"` на `#jiraNav` / `#jiraNavMobile` — дві Tailwind-утиліти в HTML. Це в
   межах норми проєкту (утиліти в HTML є і в уроках, і в довідниках; заборонені лише ті, що
