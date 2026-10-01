@@ -270,26 +270,38 @@
       if (hasLink) { al.href = au.link.href; al.textContent = au.link.label; } else { al.remove(); }
     }
 
-    /* --- донати: конструкція «AI Термінала» (рішення власника 2026-10-01) ---
-       Примітка йде В ПІДПИС через « · », а не окремим рядком: у 010 окремий
-       рядок лишався неоформленим абзацом кеглем тіла тексту. Текст збережений
-       дослівно, змінилась лише його позиція. */
+    /* --- донати: блок «Підтримка» як на index.html (012 · слово власника
+       2026-10-01 «однаковий на всіх чотирьох лендінгах», скасовує Р9). Картка —
+       дзеркало donationCard із js/config.js: значення в .ds-code (прокручується
+       вбік), кнопка «Копіювати» з data-copy (клік ловить initCopyButtons() у
+       js/ui.js; для IBAN — лише номер із copyValue), банка — «Відкрити ↗».
+       Колір дає data-course="jira". ⚠ Правити разом з js/config.js і
+       js/claude-code-render.js. Розмітка будується через DOM, без innerHTML. */
     var don = cfg.donations || {};
     if (!don.enabled) {
       var ds = $("#donate"); if (ds) ds.remove();
-    } else (don.methods || []).forEach(function (m) {
+    } else (don.methods || []).filter(function (m) { return m.enabled !== false; }).forEach(function (m) {
       var isLink = (m.type === "link") || (!m.type && /^https?:\/\//.test(m.value));
-      var li = el("li", "jira-donate__card");
-      li.setAttribute("data-reveal", "");
-      li.appendChild(el("span", "jira-donate__label", m.label + (m.note ? " · " + m.note : "")));
+      var card = el("div", "ds-card ds-donate");
+      card.setAttribute("data-reveal", "");
+      var head = el("div", "ds-fld__row");
+      head.appendChild(el("h3", "ds-h4", m.label));
+      if (m.note) head.appendChild(el("span", "ds-small", m.note));
+      card.appendChild(head);
       if (isLink) {
-        var a = el("a", "ds-btn ds-btn--quiet jira-donate__btn", "Відкрити ↗");
+        var a = el("a", "ds-btn ds-btn--secondary", "Відкрити ↗");
         a.href = m.value; a.target = "_blank"; a.rel = "noopener noreferrer";
-        li.appendChild(a);
+        card.appendChild(a);
       } else {
-        li.appendChild(el("span", "jira-donate__value", m.value));
+        var code = el("div", "ds-code");
+        code.appendChild(el("pre", "ds-code__pre", m.value));
+        card.appendChild(code);
+        var btn = el("button", "ds-btn ds-btn--secondary ds-btn--sm ds-btn--copy", "Копіювати");
+        btn.type = "button";
+        btn.setAttribute("data-copy", m.copyValue != null ? m.copyValue : m.value);
+        card.appendChild(btn);
       }
-      $("#donateList").appendChild(li);
+      $("#donateList").appendChild(card);
     });
 
     /* --- футер --- */
