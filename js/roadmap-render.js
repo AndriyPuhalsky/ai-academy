@@ -503,12 +503,17 @@
     line.appendChild(t);
     meta.appendChild(line);
 
-    var plat = h("p", "rm-row__plat");
-    plat.appendChild(sr("Платформа: "));
-    plat.appendChild(h("span", "rm-row__plat-mark rm-row__plat-mark--" + it.platform, null));
-    plat.appendChild(document.createTextNode(c.platformLabels[it.platform]));
-    plat.querySelector(".rm-row__plat-mark").setAttribute("aria-hidden", "true");
-    meta.appendChild(plat);
+    // 012 · слово власника 2026-10-01: мітку «Усі платформи» (platform: "both")
+    // не показуємо зовсім — платформ уже чотири, а позначка з двох комірок
+    // лишилась від часів двох. Пункти з однією платформою мітку зберігають.
+    if (it.platform && it.platform !== "both") {
+      var plat = h("p", "rm-row__plat");
+      plat.appendChild(sr("Платформа: "));
+      plat.appendChild(h("span", "rm-row__plat-mark rm-row__plat-mark--" + it.platform, null));
+      plat.appendChild(document.createTextNode(c.platformLabels[it.platform]));
+      plat.querySelector(".rm-row__plat-mark").setAttribute("aria-hidden", "true");
+      meta.appendChild(plat);
+    }
 
     li.appendChild(meta);
 
