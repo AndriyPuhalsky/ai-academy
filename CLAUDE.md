@@ -130,6 +130,14 @@ Supabase (auth/прогрес/сертифікати) + Telegram Edge Function (
   `is_paid = false` — слово власника «всі курси безкоштовні… це баг». Тепер `price_uah = null`
   у всіх чотирьох курсах; колонку не читає ні сайт, ні `tg/`, ні жодна функція `public`.
   Деталі обох — `tg/CHANGELOG.md`, запис 2026-10-01.
+- **Сповіщення про новий сертифікат (013, 2026-10-01):** тригер `trg_notify_new_certificate AFTER INSERT ON
+  public.certificates` → `notify_new_certificate()` (`SECURITY DEFINER`, `search_path = ''`) → `net.http_post` у Edge
+  Function `telegram` з `x-webhook-secret` із **Vault** (`telegram_webhook_secret`; значення скопійоване з
+  `notify_new_profile()`, яка й досі тримає його літералом). Збій сповіщення лише `warning`, видачу не ламає. Застосувала
+  коренева сесія через Chrome за словом власника (агентові `apply_migration`/`deploy_edge_function` відхилив класифікатор);
+  деплой бота з кнопкою «🎓 Сертифікати» — власник. Деталі — `tg/CHANGELOG.md` 2026-10-01.
+  Знахідка бекендера, окремої задачі ще немає: `anon`/`authenticated` мають `INSERT/UPDATE/DELETE/TRUNCATE` на
+  `certificates`, `progress`, `courses`, `modules` — тримається лише на відсутності політик запису (клас 002).
 - **Коди модулів мусять бути глобально унікальними — це несуча конструкція.**
   `js/auth.js` будує `AIA_MODULE_MAP` запитом `select id, code` **без фільтра за курсом**,
   тож збіг коду в різних курсах мовчки затер би чужий модуль. База такий збіг дозволяє:
