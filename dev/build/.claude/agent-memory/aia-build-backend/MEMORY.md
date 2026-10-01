@@ -6,3 +6,4 @@
 - [Дрібні знахідки поза обсягом](feedback_report_out_of_scope_nits.md) — перелічувати поіменно у звіті: власник дає окреме коло, поки файл у роботі
 - [Перевірка PDF сертифіката](reference_pdf_client_testing.md) — підміна `window.sb` у консолі замість запису в базу; байти + pdf.js, бо плагін PDF у Chrome не годиться
 - [Проба «тільки для залогіненого»](reference_guest_only_render_probe.md) — заглушка window.sb у пробній сторінці в dev/: перевіряє renderEmpty і екранування без акаунта й без запису в прод
+- [`--rotate` у check-quiz.py пише на диск](feedback_check_quiz_rotate_writes.md) — без `--files` переставляє квізи у ВСІХ 80 уроках; відкат `git checkout -- modules/` + чотири чекери

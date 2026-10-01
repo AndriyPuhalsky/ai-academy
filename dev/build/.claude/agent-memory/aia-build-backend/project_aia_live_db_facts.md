@@ -8,11 +8,14 @@ metadata:
 Тіла RPC/тригерів AIA у git не лежать взагалі — їх видно лише через MCP. Три факти,
 звірені 2026-08-24 (задача 001, Б0), кожен раніше був «невідомим» у планах:
 
-1. **`maybe_issue_certificate` бере ім'я з `public.profiles`:**
-   `coalesce(full_name, email, 'Студент')`. Не з `auth.users.raw_user_meta_data`.
-   Наслідок, який легко проґавити: коли `full_name` порожній, у сертифікат іде
-   **email**, а не «Студент». Вставка з `on conflict do nothing` → повторний виклик
-   не перевидає сертифікат і не оновлює ім'я.
+1. **`maybe_issue_certificate` бере ім'я з `public.profiles`**, не з
+   `auth.users.raw_user_meta_data`. Вставка з `on conflict do nothing` → повторний
+   виклик не перевидає сертифікат і не оновлює ім'я (тобто ім'я в PDF — знімок).
+   ⚠ **Виправлено 2026-09-03 міграцією 005-1, запис оновлено 2026-10-01:** було
+   `coalesce(full_name, email, 'Студент')` — тобто при порожньому `full_name` у
+   сертифікат ішов **email**, а `verify_certificate` віддавав його публічно за кодом.
+   Стало `coalesce(nullif(btrim(full_name, E' \t\r\n'), ''), 'Студент')` —
+   порожній рядок і самі пробіли теж не проходять. Звірено з живою базою 2026-10-01.
 2. **`handle_new_user` — `SECURITY DEFINER`** (`search_path = public`), тригер
    `on_auth_user_created AFTER INSERT ON auth.users`. Тому міграція 002, яка забирає
    в `anon`/`authenticated` `INSERT` на `profiles`, реєстрацію **не ламає**.
