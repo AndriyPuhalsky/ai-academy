@@ -8,7 +8,7 @@
    Реєстр префіксів (інших вводити не можна):
      btn · fld · card · badge · pill · prog · hdr · nav · ftr · dlg · sheet
      snav · mnav · note · quiz · code · term · tbl · diag · skel · toast · skip
-     avatar · tag
+     avatar · tag · win
 
    НАСКРІЗНІ ПРАВИЛА
    1. Одна висота контролів: sm 32 / md 40 / lg 48. Мінімальна ціль дотику
@@ -2648,4 +2648,1396 @@ html { scrollbar-width: thin; scrollbar-color: var(--c-line) transparent; }
     scrollbar-width: thin;
     scrollbar-color: var(--c-line-strong) transparent;
   }
+}
+
+
+/* ############################################################################
+   012 · КОМПОНЕНТ «ВІКНО ЗАСТОСУНКУ» (`win`) — НОВА СЕКЦІЯ
+   ----------------------------------------------------------------------------
+   Джерело: dev/design/012-jira/04-variants/_base/win.css (усі 14 секцій) +
+   tokens-jira.css §3 (L3-токени компонента). L3 стоять НА КОРЕНІ компонента,
+   як `.term { --term-* }` вище, а не в css/tokens.css: tokens.css тримає L1/L2.
+   ############################################################################ */
+
+/* ============================================================================
+   012 · L3-ТОКЕНИ КОМПОНЕНТА — `--win-*`
+   ----------------------------------------------------------------------------
+   Геометрія одного компонента. Читає ТІЛЬКИ L2. Жодного магічного числа:
+   кожне значення — або токен L2, або сума двох токенів, або `em`-відношення
+   з названою причиною.
+   ========================================================================== */
+.win {
+  /* --- поверхня. ДВА ТОКЕНИ, ЯКИМИ ВІДКОЧУЄТЬСЯ ЕСТЕТИЧНИЙ РИЗИК ---
+     Ризик: полотно вікна СВІТЛІШЕ за шапку — інверсія співвідношення `term`
+     (у термінала полотно --c-sunken під шапкою --c-raised). Відкат — поміняти
+     значення цих двох рядків місцями; тоді вікно стає двійником термінала.
+     Нічого більше правити не треба: решта файла читає тільки ці два імені. */
+  --win-chrome-bg:  var(--c-surface);   /* #1E1A17 · 1.07 до фону сторінки */
+  --win-canvas-bg:  var(--c-raised);    /* #26221D · 1.17 — НАЙСВІТЛІША поверхня системи */
+
+  /* --- геометрія --- */
+  --win-radius:     var(--r-inner);     /* 6px — як .term: вікно того ж роду */
+  --win-chrome-h:   var(--ctl-h-sm);    /* 32px — щільне місце, шкала контролів */
+  --win-rail-w:     var(--w-meta);      /* 168px — наявна L2-ширина,
+                                           «композиційна вісь системи».
+                                           ⚠ дорівнює --jira-meta-w лендінга
+                                           свідомо: рейка вікна і ліва колонка
+                                           сторінки — одна вісь */
+  --win-col-w:      calc(var(--s-32) + var(--s-8));   /* 160px = 128+32.
+                                           Єдине місце, де потрібна величина
+                                           поза шкалою — складається з двох
+                                           токенів, а не вводиться літералом */
+  --win-dt-w:       11ch;               /* ширина `dt` у --fs-label.
+                                           `ch` свідомо: колонка міряється
+                                           знаками підпису, не пікселями */
+  --win-pad:        var(--s-4);
+  --win-pad-tight:  var(--s-3);
+  --win-gap:        var(--s-3);
+  --win-gap-tight:  var(--s-2);
+
+}
+
+/* --- мітка ①–⑧ · ТОКЕНИ ПАРИ, А НЕ ВІКНА -----------------------------------
+   ⚠ Оголошено на `.win, .win__legend` разом, і це не косметика: `ol.win__legend`
+   — СИБЛІНГ figure у 62 з 62 випадків, тож значення, оголошене лише на `.win`,
+   до легенди не доходить. Заміряно: `getComputedStyle(li, '::marker').fontFamily`
+   повертав "Golos Text" замість фолбек-стека, і номер легенди малювався іншим
+   шрифтом, ніж мітка поруч із ним у вікні.
+
+   Коробка в `em` свідомо: мітка масштабується з текстом поруч, а не з коренем.
+   1.4em при --lh-ui 1.5 — це ЄДИНА причина, чому мітка не зсуває рядок: висота
+   коробки 1.4em < висоти рядка 1.5em, тож інлайн-блок уміщується в НАЯВНИЙ
+   line box і не розтягує його (К-14).
+
+   ⚠ Гліфи ①–⑧ ☑ ⚡ → ▲ не покриті ЖОДНИМ із 14 завантажених @font-face
+   (перевірено по unicode-range: U+2460–2467, U+2611, U+26A1 не входять ні в
+   latin, ні в cyrillic, ні в greek, ні в vietnamese). Усі 190 міток курсу
+   малюються СИСТЕМНИМ фолбеком, тож стек задається явно — інакше кожна
+   платформа підставляє свій шрифт із власними метриками. */
+.win,
+.win__legend {
+  --win-mark-w:     1.4em;
+  --win-mark-fs:    0.78em;   /* гліф усередині коробки 1.4em — із запасом */
+  --win-mark-font:  "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2",
+                    "Noto Sans Symbols", "DejaVu Sans", var(--f-sans);
+}
+
+/* ============================================================================
+   012 · КОМПОНЕНТ «ВІКНО ЗАСТОСУНКУ» — `win`
+   ----------------------------------------------------------------------------
+   Перенесено в `css/components.css` цілком (задача 012; реєстр префіксів шапки
+   файла отримав `win`). Підключається з уроків, довідників і лендінга —
+   тому тут немає НІ ОДНОГО правила, що знає слово «Jira», і жодного
+   сторінкового відступу назовні (правило 6 шапки components.css).
+
+   ЧОТИРИ РІШЕННЯ, ЯКІ ТРИМАЮТЬ УСЕ ІНШЕ
+   -------------------------------------
+   1. ПОВЕРХНЯ — ІНВЕРСІЯ `term`. У термінала полотно ТЕМНІШЕ за шапку
+      (--c-sunken під --c-raised): він читається як чорний екран. У вікна
+      полотно СВІТЛІШЕ за шапку (--c-raised під --c-surface): воно читається
+      як освітлена робоча поверхня в темній рамі. Та сама анатомія, зворотний
+      напрямок — поруч на одній сторінці вони родина, а не копії (Р3).
+      Це ЕСТЕТИЧНИЙ РИЗИК задачі, і він оборотний двома рядками:
+      --win-chrome-bg / --win-canvas-bg у блоці L3-токенів вище.
+      Обʼєктивна вигода, а не лише характер: увесь текст вікна (а це
+      найщільніше місце уроку — 1 974 класових вживання) сідає на НАЙСВІТЛІШУ
+      поверхню системи, тобто там, де контраст максимальний: --c-text 13.11
+      проти 9.53/6.49 у вторинних ролей.
+
+   2. СПЕЦИФІЧНІСТЬ КОЖНОГО СЕЛЕКТОРА ≥ (0,2,0), І ВОНА ЗАКОРІНЕНА В `.win`.
+      Причина виміряна: вікна лежать у <article class="ds-prose">, а правило
+      `.ds-prose li { margin: var(--s-2) 0 }` має (0,1,1) і бʼє будь-який
+      одинарний клас на 339 <li> компонента (win__rail-item 236 · win__col 33
+      · win__card 33 · win__tile 31 · win__step 7 · win__lane 3 · win__gadget 3).
+      Плюс `.ds-prose li::marker { color: var(--c-accent) }` намалював би
+      акцентні маркери в рейці застосунку. Це той самий дефект, що
+      `.prose-aia pre` (0,1,1) у 005/009 — лише на списках.
+      Наслідок: КОЖЕН список компонента дістає list-style/margin/padding ЯВНО.
+      Легенда — сиблінг `figure`, тому `.win` у ланцюжку не допоможе: там
+      специфічність піднімається тегом (`ol.win__legend > li` = 0,1,2).
+
+   3. ГОЛИЙ ТЕГ У КОМПОНЕНТІ НЕ ОГОЛОШУЄТЬСЯ НІКОЛИ. Preflight Tailwind
+      вставляє свій <style> у КІНЕЦЬ <head> незалежно від позиції <script> і
+      сплющує `h1…h6 { font-size: inherit; font-weight: inherit }`. У 62 вікнах
+      51 заголовок БЕЗ класу (38 <h4> + 13 <h5>), плюс голими стоять
+      <th> 89 · <td> 258 · <dt> 99 · <dd> 99. Тому всі правила на них
+      закорінені в класі: `.win .win__page > h4` = (0,2,1) бере над preflight
+      (0,0,1) незалежно від порядку підключення. sed-пас на 51 вузол НЕ
+      потрібен — у кожного з них є класовий предок.
+
+   4. ВІКНО НЕ ОБІЦЯЄ ІНТЕРАКТИВНОСТІ, ЯКОЇ НЕМА. Нуль `cursor: pointer`,
+      нуль `:hover`-станів на win__btn / win__tab / win__rail-item, нуль
+      tabindex — крім скролерів. Обіцяти натискання там, де його немає,
+      гірше, ніж не обіцяти (К-15).
+
+   СЕКЦІЇ
+     1. Коробка, шапка, полотно
+     2. Рейка застосунку (дві) і верхній рядок
+     3. Скролери: три на вікно + підказка про скрол (§41/§41.1 локально)
+     4. Таблиця
+     5. Дошка: колонки, доріжки, картки
+     6. Картка роботи: поля, опис, чеклист, підзадачі, коментарі
+     7. Форма: діалог, чіпи, ланцюжок flow
+     8. Плитки, числа, гаджети, портал
+     9. Метадані: ключ, виконавець, дедлайн, лічильник, статус, гліф типу
+    10. Мітка ①–⑧ і легенда — пара
+    11. Стан помилки, заглушки, рядки-службовці
+    12. Вузьке вікно (≤640): рейка лягає рядком
+    13. Друк
+   ========================================================================== */
+
+
+/* ============================================================================
+   1. КОРОБКА, ШАПКА, ПОЛОТНО
+   ========================================================================== */
+figure.win {
+  margin: var(--s-6) 0;
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--win-radius);
+  background: var(--win-canvas-bg);
+  overflow: hidden;      /* тримає скрол і радіус ВСЕРЕДИНІ вікна */
+  min-width: 0;          /* вкладеність доходить до 11 рівнів (j06 #w1):
+                            без цього предок розсуває сторінку */
+  isolation: isolate;    /* локальні перекриття без числового z-index */
+}
+figure.win:first-child { margin-top: 0; }
+figure.win:last-child  { margin-bottom: 0; }
+/* МІСЦЕ В ГРІДІ ПРОЗИ (К-17). `.ds-prose` дає ширший трек `wide` рівно
+   чотирьом класам: .ds-tbl__wrap, .ds-code, .ds-diag, .term — і `.win` у цей
+   список не входив, тому всі 62 вікна сиділи в 672 px замість 768.
+   Дописувати треба в ОБА рівні: у проді увесь зміст уроку лежить усередині
+   <section data-lesson="…"> (56 із 56 уроків), і правило лише з прямим
+   комбінатором мовчки не діяло б.
+   ⚠ `.win__legend` сюди НЕ дописується свідомо: вона лишається в колонці
+   прози (672), і саме ця різниця робить вікно ВСТАВКОЮ-ілюстрацією, а не
+   другою статтею. Легенда й підпис читаються тією самою міркою, що абзац. */
+.ds-prose > .win,
+.ds-prose > section > .win { grid-column: wide; }
+
+/* Вікно + його легенда — ПАРА. Ритм задається парою, а не внутрішнім
+   відступом, бо `ol.win__legend` — СИБЛІНГ figure у 62 з 62 випадків. */
+figure.win + .win__legend { margin-top: var(--s-3); }
+figure.win:has(+ .win__legend) { margin-bottom: 0; }
+
+/* --- шапка-вкладка (figcaption) --- */
+.win > .win__chrome {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;                       /* заголовок до 121 знака ПЕРЕНОСИТЬСЯ */
+  gap: var(--win-gap-tight) var(--win-gap);
+  min-height: var(--win-chrome-h);
+  padding: var(--win-gap-tight) var(--win-pad-tight);
+  background: var(--win-chrome-bg);
+  border-bottom: var(--bw) solid var(--c-line);
+  font-size: var(--fs-label);
+  line-height: var(--lh-label);
+  color: var(--c-text-3);                /* 8.31 на --c-surface */
+  min-width: 0;
+}
+/* Три крапки ОДНИМ вузлом і БЕЗ псевдоелементів: дві копії дає box-shadow.
+   Причина не в елегантності, а в К-7 — у компоненті не має бути `content:`
+   із видимим змістом, і найнадійніший спосіб цього не порушити — не мати
+   `content:` узагалі. Коробка лишається 8×8, тому місце під дві копії
+   віднімається margin-ом, а не шириною: інакше крапки лягли б на підпис. */
+.win > .win__chrome > .win__dots {
+  flex: none;
+  align-self: center;
+  width: var(--s-2);
+  height: var(--s-2);
+  margin-right: calc((var(--s-2) + var(--s-1)) * 2);
+  border-radius: var(--r-pill);
+  background: var(--c-line-strong);
+  box-shadow:
+    calc(var(--s-2) + var(--s-1)) 0 0 var(--c-line-strong),
+    calc((var(--s-2) + var(--s-1)) * 2) 0 0 var(--c-line-strong);
+}
+
+/* Датований підпис. ⚠ ПЕРЕНОСИТЬСЯ, НЕ ОБРІЗАЄТЬСЯ — на відміну від
+   .term__title, який має text-overflow: ellipsis. Причина: 11 заголовків
+   курсу містять ДВІ дати («…за документацією, 2026-09-18; рядок виглядів —
+   2026-09-30»), і обрізаний такий підпис перестає бути чесним. Найдовший —
+   121 знак (j06 #w1). Жодного `text-overflow` у компоненті (К-12). */
+.win > .win__chrome > .win__title {
+  flex: 1 1 18ch;
+  min-width: 0;
+  font-family: var(--f-sans);   /* ⚠ НЕ моно — головна видима відмінність
+                                   родича від двійника термінала (Р3) */
+  font-weight: var(--w-regular);
+  overflow-wrap: anywhere;
+}
+/* Умовна адреса. Моно — тут справді «код». 17 нерозривних токенів курсу
+   довші за 27 знаків (найдовший 49, j07 #w1), тому перенос усередині токена. */
+.win > .win__chrome > .win__addr {
+  flex: 0 1 auto;
+  min-width: 0;
+  margin-left: auto;
+  font-family: var(--f-mono);
+  font-size: var(--fs-eyebrow);
+  overflow-wrap: anywhere;
+}
+
+/* --- полотно ---
+   Грід `рейка | головна`. Рейки немає у 12 вікнах ПʼЯТИ станів (portal 3/3,
+   form 6/9, item 2/6, list 1/23) — тобто «без рейки» це варіант будь-якого
+   стану, а не властивість `portal`. Порожнього трека бути не повинно. */
+.win > .win__body {
+  display: grid;
+  grid-template-columns: var(--win-rail-w) minmax(0, 1fr);
+  align-items: start;
+  min-width: 0;
+}
+.win > .win__body:not(:has(> .win__rail)) { grid-template-columns: minmax(0, 1fr); }
+/* ⚠ `:has()` — Chrome 105+. У цьому проєкті він не вживався ні разу
+   (grep по css/ — 0), тому гілка відкоту ОБОВʼЯЗКОВА: `auto` стискає
+   порожній трек до нуля сам, а рейці ширину задає власне правило. */
+@supports not selector(:has(*)) {
+  .win > .win__body { grid-template-columns: auto minmax(0, 1fr); }
+  .win > .win__body > .win__rail { width: var(--win-rail-w); }
+}
+/* `win__main` відсутній у 6 вікнах (3 portal + 3 form) — тоді в полотні лежить
+   win__dialog або win__portal НАПРЯМУ. Тому відступи полотна не можуть жити
+   лише на win__main. */
+.win > .win__body > .win__main,
+.win > .win__body > .win__dialog,
+.win > .win__body > .win__portal { padding: var(--win-pad-tight); }
+
+
+/* ============================================================================
+   2. РЕЙКА ЗАСТОСУНКУ (ДВІ) І ВЕРХНІЙ РЯДОК
+   ----------------------------------------------------------------------------
+   Рейок рівно дві: ділова (Details · Access · Notifications › · Automation ·
+   Fields · Work types › · Apps ›) і розробки (та сама + Features · Custom
+   filters · Toolchain). Різниця мусить читатись сама — її дає кількість
+   пунктів і довжина, а не оформлення: тому `--settings` НЕ фарбується інакше.
+   ========================================================================== */
+.win .win__rail {
+  list-style: none;                      /* явно: preflight уже зняв, але
+                                            .ds-prose нічого не повертає, і
+                                            покладатись на чужий скид не можна */
+  margin: 0;
+  padding: var(--win-pad-tight) var(--win-gap-tight);
+  border-right: var(--bw) solid var(--c-line);
+  background: var(--win-chrome-bg);      /* рейка — продовження рами, не полотна */
+  font-size: var(--fs-label);
+  line-height: var(--lh-ui);
+  min-width: 0;
+}
+.win .win__rail-item {
+  margin: 0;                             /* бʼє `.ds-prose li { margin }` */
+  padding: var(--s-1) var(--win-gap-tight);
+  border-left: var(--bw-strong) solid transparent;   /* місце під позначку
+                                            «де я» зарезервоване з першого
+                                            кадру: активний пункт не зсуває
+                                            сусідів ні на піксель */
+  border-radius: 0 var(--win-radius) var(--win-radius) 0;
+  color: var(--c-text-3);
+  overflow-wrap: anywhere;
+}
+.win .win__rail-item::marker { content: none; }        /* на випадок list-style
+                                            від чужого правила */
+/* «Де я» — ЄДИНА роль акценту курсу у вікні (§7.1). Форма + колір: суцільний
+   кант ліворуч + тінт + вага. У сірому друку лишається кант і вага. */
+.win .win__rail-item--active {
+  border-left-color: var(--c-accent-edge);
+  background: var(--c-accent-quiet);
+  color: var(--c-text);
+  font-weight: var(--w-medium);
+}
+
+/* --- верхній рядок: крихта + вкладки + кнопки --- */
+.win .win__bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--win-gap-tight) var(--win-gap);
+  padding-bottom: var(--win-gap-tight);
+  margin-bottom: var(--win-gap-tight);
+  border-bottom: var(--bw) solid var(--c-line);
+  min-width: 0;
+}
+/* Крихта стоїть двома тегами: span ×39 (у рядку) і p ×4 (окремим рядком у
+   win__item). Стилізуємо ЗА КЛАСОМ, не за тегом — нічого не перейменовуючи. */
+.win .win__crumb {
+  margin: 0;
+  font-size: var(--fs-label);
+  color: var(--c-text-3);
+  overflow-wrap: anywhere;
+}
+.win p.win__crumb { flex-basis: 100%; }
+
+/* Ряд вкладок виглядів. До 10 дітей (j13 #w2, 60 знаків) — найдовший ряд
+   курсу. Діти БЕЗ класу: активна несе лише модифікатор `win__tab--active`. */
+.win .win__tabs {
+  display: flex;
+  gap: var(--win-gap);
+  min-width: 0;
+  font-size: var(--fs-label);
+  white-space: nowrap;                   /* назва вигляду — ідентифікатор,
+                                            не речення: переносити її всередині
+                                            ряду вкладок нечесно */
+}
+.win .win__tabs > span {
+  flex: none;
+  padding-bottom: var(--s-1);
+  border-bottom: var(--bw-strong) solid transparent;   /* місце під підкреслення
+                                            зарезервоване: активна вкладка не
+                                            зсуває ряд */
+  color: var(--c-text-3);
+}
+.win .win__tabs > .win__tab--active {
+  border-bottom-color: var(--c-accent-edge);
+  color: var(--c-text);
+  font-weight: var(--w-medium);
+}
+
+/* Кнопка-муляж. Не <button>: вікно не інтерактивне. Двома тегами —
+   span ×75 і p ×10 (коли кнопка стоїть сама собою рядком). */
+.win .win__btn {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: 0 var(--win-gap-tight);
+  min-height: var(--s-6);
+  border: var(--bw) solid var(--c-line-strong);
+  border-radius: var(--r-control);
+  font-size: var(--fs-label);
+  color: var(--c-text-2);
+  white-space: nowrap;
+}
+/* Головна дія (`+ Create`). Р6: фарбується `--c-info-*`, а НЕ акцентом курсу —
+   акцент зайнятий роллю «де я», і проза уроків чотири рази зве цю кнопку
+   синьою. Той самий `info` несе категорію `In Progress`, і це не збіг:
+   у Jira обидва сині. */
+.win .win__btn--primary {
+  border-color: var(--c-info-edge);
+  background: var(--c-info-quiet);
+  color: var(--c-info-text);             /* 6.96 на полотні */
+  font-weight: var(--w-medium);
+}
+/* Рядок кнопок. Вжитий і ПОЗА win__dialog (4 заявки cross-findings
+   закриваються цим правилом, без нового класу). */
+.win .win__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--win-gap-tight);
+  margin: var(--win-gap) 0 0;
+}
+.win .win__page > .win__actions:first-child { margin: 0 0 var(--win-gap); }
+
+/* «Сторінка» головної області */
+.win .win__page { min-width: 0; }
+/* ⚠ ЗАМІРЯНО, НЕ ВГАДАНО. Спершу сюди входили `.win__col > h4`,
+   `.win__item > h4`, `.win__dialog > h4`, `.win__lane > h4`, `.win__portal > h4` —
+   і група (0,2,1) мовчки бʼє власні класи цих заголовків (0,2,0): у першому ж
+   кадрі `To Do` намалювався основним текстом 600 замість тихого 400, тобто
+   категорія `todo` втратила половину своєї форми. Жодної помилки в консолі.
+   Правило: голий `h4` згадується ТІЛЬКИ там, де класу немає взагалі —
+   win__page, win__gadget, win__desc, win__sub, win__comments (38 із 87 <h4>).
+   Решта 49 мають класи й оформлюються ними. */
+.win .win__page > h4,
+.win .win__gadget > h4,
+.win .win__desc > h4,
+.win .win__sub > h4,
+.win .win__comments > h4 {
+  margin: 0 0 var(--win-gap-tight);
+  font-family: var(--f-sans);
+  font-size: var(--fs-ui);
+  line-height: var(--lh-ui);
+  font-weight: var(--w-semi);
+  color: var(--c-text);                  /* 13.11 на полотні */
+  overflow-wrap: anywhere;
+}
+.win .win__page > h4:not(:first-child) { margin-top: var(--win-pad); }
+.win .win__desc > h5,
+.win .win__sub > h5,
+.win .win__comments > h5,
+.win .win__page > h5 {
+  margin: 0 0 var(--win-gap-tight);
+  font-family: var(--f-sans);
+  font-size: var(--fs-label);
+  line-height: var(--lh-label);
+  font-weight: var(--w-semi);
+  letter-spacing: var(--tr-eyebrow);     /* БЕЗ верхнього регістру: український
+                                            капслок довший і читається гірше */
+  color: var(--c-text-2);
+}
+
+
+/* ============================================================================
+   3. СКРОЛЕРИ: ТРИ НА ВІКНО + ПІДКАЗКА ПРО СКРОЛ
+   ----------------------------------------------------------------------------
+   Геометричне обмеження задачі: вікно має МАКСИМУМ 768 px (трек `wide` гріда
+   прози) і 350 px на телефоні. У це треба вмістити 6 колонок дошки, 10 вкладок
+   і 6-колонкову таблицю. Кегль фіксований (§7.2: --fs-ui 14), тож єдиний
+   важіль — скролер усередині вікна, а не дрібний шрифт: у мок-вікнах живих
+   сайтів мінімальний кегль 3–10 px (Attio 3, Linear 10, Basedash 10), і
+   єдиний, хто тримає ≥12, — shadcn, бо в нього СПРАВЖНІЙ компонент, а не
+   малюнок компонента.
+
+   ⚠ РІШЕННЯ, ЯКЕ ЗНІМАЄ З БІЛДУ sed-ПАС НА 23 ТАБЛИЦІ.
+   Спека рекомендувала обгортати кожну широку `win__table` в `.ds-tbl__wrap`,
+   щоб §41/§41.1 працювали без правок. Натомість скролером стає сам
+   `win__main` — він є у 56 із 62 вікон, а в решті 6 широкого вмісту немає
+   (3 portal + 3 діалоги). Наслідок: 23 вузли розмітки чіпати не треба,
+   а підказка про скрол усе одно працює (нижче).
+
+   Три скролери, від зовнішнього до внутрішнього:
+     win__main  — таблиці, плитки, dl, сітка гаджетів
+     win__cols  — трек дошки (існує у ДВОХ контекстах: у win__main і в win__lane)
+     win__tabs  — ряд виглядів
+   Внутрішній природно перехоплює жест, тому вкладеність не плутає.
+   ========================================================================== */
+.win .win__main,
+.win .win__cols,
+.win .win__tabs {
+  overflow-x: auto;
+  overflow-y: hidden;                    /* `overflow-x: auto` робить обчислений
+                                            overflow-y теж auto — без цього
+                                            рядка Chrome може домалювати
+                                            вертикальну смугу там, де вмісту
+                                            по висоті рівно стільько ж */
+  overscroll-behavior-x: contain;        /* жест усередині вікна не «витікає»
+                                            у прокрутку сторінки */
+  min-width: 0;
+}
+/* Скролер — ЄДИНЕ фокусоване у вікні: стрілки прокручують саме сфокусований
+   елемент. Рішення перевірене на `ds-diag > pre` у 011. tabindex ставить
+   JS (ui.js), бо без прокрутки фокусований вузол у табі зайвий. */
+.win [tabindex="0"]:focus-visible {
+  outline: var(--bw-strong) solid var(--c-focus);
+  outline-offset: calc(var(--bw-strong) * -1);
+  border-radius: inherit;
+}
+
+/* --- §41 локально: гасіння краю ---
+   Маска §41 в components.css оголошена на ГОЛОМУ атрибуті `[data-scroll-fade]`
+   без списку елементів — тому вона запрацює на скролерах вікна САМА, щойно
+   атрибут зʼявиться. Ставить його js/ui.js зі свого списку FADE_SCROLLERS
+   (6 селекторів) — там потрібен ОДИН дописаний рядок, і це все:
+     FADE_SCROLLERS += ", .win__main, .win__cols, .win__tabs"
+   Тут нічого дублювати не треба; рядок нижче лише звужує смугу згасання для
+   вкладок, бо 40 px на ряді висотою 20 px зʼїдали б півтори назви. */
+.win .win__tabs[data-scroll-fade] { --fade-w: var(--s-6); }
+
+/* --- §41.1 локально: постійно видима смуга ---
+   А ось список §41.1 — поіменний (пʼять блоків тих самих шести селекторів),
+   і дописувати в нього нічого НЕ треба: правила для скролерів вікна живуть
+   тут, разом із компонентом. Так компонент самодостатній.
+   ⚠ ПЕРШИЙ РЯДОК ОБОВʼЯЗКОВИЙ: `html { scrollbar-color: … }` (§38.8)
+   успадковується, а Chrome ≥121 ігнорує ::-webkit-scrollbar на елементі, у
+   якого задані стандартні властивості смуги. Без `scrollbar-color: auto`
+   ::-webkit-* не діють узагалі (заміряно A/B у 011: 0 px проти 12 px). */
+@supports selector(::-webkit-scrollbar) {
+  .win .win__main,
+  .win .win__cols,
+  .win .win__tabs { scrollbar-color: auto; }
+
+  .win .win__main::-webkit-scrollbar,
+  .win .win__cols::-webkit-scrollbar,
+  .win .win__tabs::-webkit-scrollbar { width: var(--s-3); height: var(--s-3); }
+
+  .win .win__main::-webkit-scrollbar-track,
+  .win .win__cols::-webkit-scrollbar-track,
+  .win .win__tabs::-webkit-scrollbar-track { background: transparent; }
+
+  /* Товщина 12 px = площа наведення; видимий повзунок 4 px робиться
+     прозорим полем border + background-clip. Колір --c-line-strong — роль
+     «межа, що ідентифікує контрол», 3.06 на полотні (SC 1.4.11). */
+  .win .win__main::-webkit-scrollbar-thumb,
+  .win .win__cols::-webkit-scrollbar-thumb,
+  .win .win__tabs::-webkit-scrollbar-thumb {
+    background: var(--c-line-strong);
+    background-clip: padding-box;
+    border: var(--s-1) solid transparent;
+    border-radius: var(--r-pill);
+  }
+}
+@supports not selector(::-webkit-scrollbar) {
+  .win .win__main,
+  .win .win__cols,
+  .win .win__tabs {
+    scrollbar-width: thin;
+    scrollbar-color: var(--c-line-strong) transparent;
+  }
+}
+/* Якщо білд колись таки обгорне таблиці в .ds-tbl__wrap — вигляд знімається
+   одним правилом, і нічого не ламається. */
+.win .ds-tbl__wrap { border: 0; border-radius: 0; }
+
+
+/* ============================================================================
+   4. ТАБЛИЦЯ `win__table`
+   ----------------------------------------------------------------------------
+   2–6 колонок, thead у 23/23, `scope` у 0/23 → компонент ВИМАГАЄ
+   `scope="col"` на <th>; це sed-пас білду на 23 таблиці й критерій К-11.
+
+   ⚠ ПЕРША КОЛОНКА НІКОЛИ НЕ `nowrap`. Пряма спадщина інциденту 2026-09-09:
+   `.ds-tbl td:first-child { white-space: nowrap }` розпер першу колонку до
+   734 px при 37 px у другої, бо в ній було РЕЧЕННЯ, а не ідентифікатор.
+   У `win__table` перша колонка — речення у 18 із 23 таблиць, а найдовша
+   клітинка курсу має 80 знаків (j10 #w2, 2 колонки — там потрібен ПЕРЕНОС,
+   а не скрол). Моно й «ключовість» дає `win__key` УСЕРЕДИНІ клітинки, а не
+   правило на колонку.
+   ========================================================================== */
+.win .win__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-label);
+  line-height: var(--lh-ui);
+}
+.win .win__table th,
+.win .win__table td {
+  padding: var(--win-gap-tight) var(--win-gap);
+  text-align: left;
+  vertical-align: top;
+  border-bottom: var(--bw) solid var(--c-line);
+  white-space: normal;                   /* явно: механізм (а) — перенос */
+  overflow-wrap: anywhere;
+  /* ⚠ ПАДДІНГ ВХОДИТЬ У min-width, бо preflight Tailwind ставить
+     `* { box-sizing: border-box }`. З голим `min-width: 9ch` колонка
+     «Enabled» у j15 #w2 дістала 73 px, з яких 24 зʼїв паддінг, і слово
+     ENABLED розірвалось на «ENABLE / D» — заміряно, не вгадано. Тому
+     мінімум рахується ВІД ВМІСТУ: 9 знаків + обидва паддінги. Від 5 колонок
+     сума мінімумів переганяє полотно — і вмикається механізм (б), скролер. */
+  min-width: calc(9ch + var(--win-gap) * 2);
+}
+.win .win__table thead th {
+  background: var(--win-chrome-bg);      /* шапка таблиці — «рама», як і
+                                            шапка вікна: одна логіка на дві
+                                            шапки, нова сходинка не потрібна */
+  color: var(--c-text);
+  font-weight: var(--w-semi);
+  white-space: nowrap;                   /* заголовок колонки — ідентифікатор */
+  position: static;                      /* ⚠ НЕ sticky: переміряно в 010 на
+                                            182 таблицях сайту — sticky там
+                                            мертвий, бо скролпорт це сама
+                                            обгортка з overflow-x, заввишки з
+                                            таблицю. Не повторюємо мертвий код */
+}
+.win .win__table tbody tr:last-child td { border-bottom: 0; }
+.win .win__table td:first-child { color: var(--c-text); font-weight: var(--w-medium); }
+
+
+/* ============================================================================
+   5. ДОШКА: КОЛОНКИ, ДОРІЖКИ, КАРТКИ
+   ----------------------------------------------------------------------------
+   До 6 колонок без доріжок (j10 #w3) і 9 із доріжками (j06 #w1 = 3×3) —
+   не «3–4», як казав бриф. Вкладеність доходить до 11 рівнів, тому
+   `min-width: 0` стоїть на кожному контейнері.
+
+   КАТЕГОРІЇ СТАТУСІВ — ФОРМОЮ, НЕ ЛИШЕ КОЛЬОРОМ (§7.4).
+   `data-cat` має РІВНО три значення (progress 26 · todo 25 · done 15).
+   Проза уроків чотири рази цитує Atlassian («grey, blue, and green
+   respectively») і двічі ставить це в квіз — наш мапінг цитату не
+   суперечить і нових кольорів не вводить:
+     todo      --c-text-3 + ПУНКТИРНИЙ кант 1px, вага regular
+     progress  --c-info-*  + суцільний кант 1px,  вага medium
+     done      --c-ok-*    + суцільний кант 2px + заливка -quiet, вага medium
+   ⚠ Гліфа тут немає свідомо: К-7 забороняє `content:` з видимим змістом, а
+   гліфи ○ ◐ ✓ не покриті жодним завантаженим шрифтом і йшли б системним
+   фолбеком. Трьох форм канта (пунктир / тонкий / товстий+заливка) досить,
+   щоб категорії різнились у чорно-білому друку й при дальтонізмі.
+   Акцент курсу в категоріях НЕ вживається взагалі.
+   ========================================================================== */
+.win .win__cols {
+  list-style: none;
+  display: flex;
+  gap: var(--win-gap);
+  margin: 0;
+  padding: 0 0 var(--s-1);               /* місце під смугу прокрутки, щоб вона
+                                            не лягала на кант колонки */
+  align-items: start;
+  min-width: 0;
+}
+.win .win__col {
+  list-style: none;
+  margin: 0;                             /* бʼє `.ds-prose li { margin }` */
+  padding: 0;
+  flex: 0 0 var(--win-col-w);
+  min-width: 0;
+  border-top: var(--bw) dashed var(--c-line-strong);   /* базова форма = todo */
+  border-radius: 0;
+}
+.win .win__col[data-cat="progress"] { border-top: var(--bw) solid var(--c-info-edge); }
+.win .win__col[data-cat="done"]     { border-top: var(--bw-strong) solid var(--c-ok-edge); }
+
+.win .win__col-title {
+  margin: 0;
+  padding: var(--win-gap-tight) var(--win-gap-tight) var(--win-gap-tight) 0;
+  font-family: var(--f-sans);
+  font-size: var(--fs-label);
+  line-height: var(--lh-label);
+  font-weight: var(--w-regular);
+  color: var(--c-text-3);                /* 6.49 на полотні */
+  overflow-wrap: anywhere;
+}
+.win .win__col[data-cat="progress"] > .win__col-title { color: var(--c-info-text); font-weight: var(--w-medium); }
+.win .win__col[data-cat="done"]     > .win__col-title { color: var(--c-ok-text);   font-weight: var(--w-medium);
+                                                        background: var(--c-ok-quiet);
+                                                        padding-left: var(--win-gap-tight); }
+
+.win .win__cards {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--win-gap-tight);
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+/* Картка — поверхня на сходинку вище, зроблена ЗАВІСОЮ, а не новою сходинкою
+   драбини (прийом системи «альфа замість нових сходинок»). Перевірено:
+   --c-raised + --c-veil-hover ≈ #302C27 збігається з --p-n-400 (світлота
+   0.2956 проти 0.2884), тобто завіса дає легальну сходинку, не вигадану.
+   Межа — --c-line, а НЕ --c-line-strong: на картці line-strong дає 2.68, а
+   картка не є контролом, тож поріг 3:1 на неї не поширюється. */
+.win .win__card {
+  list-style: none;
+  margin: 0;
+  display: block;
+  padding: var(--win-gap-tight);
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--win-radius);
+  background: var(--c-veil-hover);
+  min-width: 0;
+}
+.win .win__card-title {
+  display: block;
+  font-size: var(--fs-label);
+  line-height: var(--lh-ui);
+  color: var(--c-text);                  /* 11.50 на картці */
+  overflow-wrap: anywhere;               /* назва до 48 знаків у колонці 160 px */
+}
+.win .win__card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-1) var(--win-gap-tight);
+  margin-top: var(--win-gap-tight);
+  font-size: var(--fs-eyebrow);
+}
+
+/* Доріжки Group by (j06 #w1 — єдине вікно: 1 win__lanes, 3 win__lane) */
+.win .win__lanes { list-style: none; margin: 0; padding: 0; min-width: 0; }
+.win .win__lane {
+  list-style: none;
+  margin: 0 0 var(--win-pad);
+  padding: 0;
+  border-left: var(--bw-strong) solid var(--c-line);
+  padding-left: var(--win-gap-tight);
+  min-width: 0;
+}
+.win .win__lane:last-child { margin-bottom: 0; }
+.win .win__lane-title {
+  margin: 0 0 var(--win-gap-tight);
+  font-family: var(--f-sans);
+  font-size: var(--fs-label);
+  font-weight: var(--w-medium);
+  color: var(--c-text-2);
+}
+
+
+/* ============================================================================
+   6. КАРТКА РОБОТИ: ПОЛЯ, ОПИС, ЧЕКЛИСТ, ПІДЗАДАЧІ, КОМЕНТАРІ
+   ----------------------------------------------------------------------------
+   `win__fields` живе у ТРЬОХ станах (item 6 · form 5 · settings 9) — тому це
+   не «права панель картки», а універсальний `dl`. До 12 пар (j11 #w3);
+   найдовше значення — 171 знак (j16 #w1).
+   ⚠ Ділова картка НЕ має поля `Parent` (j04 #w1, j05 #w2 — рішення рецензії
+   2026-09-30): компонент нічого не домальовує й нічого не парсить.
+   ========================================================================== */
+.win .win__item { min-width: 0; }
+.win .win__item-title {
+  margin: 0 0 var(--win-gap-tight);
+  font-family: var(--f-sans);
+  font-size: var(--fs-ui);
+  line-height: var(--lh-ui);
+  font-weight: var(--w-semi);
+  color: var(--c-text);
+  overflow-wrap: anywhere;
+}
+.win .win__fields {
+  display: grid;
+  grid-template-columns: minmax(0, var(--win-dt-w)) minmax(0, 1fr);
+  gap: var(--s-1) var(--win-gap);
+  margin: var(--win-gap) 0 0;
+  min-width: 0;
+}
+.win .win__fields > dt {
+  margin: 0;
+  font-size: var(--fs-eyebrow);
+  line-height: var(--lh-ui);
+  color: var(--c-text-3);
+  overflow-wrap: anywhere;
+}
+.win .win__fields > dd {
+  margin: 0;
+  font-size: var(--fs-label);
+  line-height: var(--lh-ui);
+  color: var(--c-text-2);                /* 9.53 на полотні */
+  overflow-wrap: anywhere;               /* dd на 171 знак переноситься,
+                                            dl лишається двоколонковим */
+}
+
+.win .win__desc,
+.win .win__sub,
+.win .win__comments {
+  margin-top: var(--win-pad);
+  padding-top: var(--win-gap-tight);
+  border-top: var(--bw) solid var(--c-line);
+  min-width: 0;
+}
+.win .win__desc > p,
+.win .win__sub > p,
+.win .win__comments > p {
+  margin: 0 0 var(--win-gap-tight);
+  font-size: var(--fs-label);
+  line-height: var(--lh-ui);
+  color: var(--c-text-2);
+  overflow-wrap: anywhere;
+}
+.win .win__desc > p:last-child,
+.win .win__sub > p:last-child,
+.win .win__comments > p:last-child { margin-bottom: 0; }
+
+/* Чеклист. `li[data-done]` — стан КОДУЄТЬСЯ ФОРМОЮ: порожня / залита
+   коробка, намальована рамкою, без жодного гліфа (шрифтова незалежність). */
+.win .win__checks { list-style: none; margin: 0; padding: 0; min-width: 0; }
+.win .win__checks > li {
+  list-style: none;
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--win-gap-tight);
+  font-size: var(--fs-label);
+  line-height: var(--lh-ui);
+  color: var(--c-text-2);
+  overflow-wrap: anywhere;
+}
+.win .win__checks > li::before {
+  content: "";
+  flex: none;
+  width: 0.72em;
+  height: 0.72em;
+  margin-top: 0.3em;                     /* вирівнювання коробки по базовій лінії */
+  border: var(--bw) solid var(--c-line-strong);
+  border-radius: calc(var(--r-inner) / 3);
+}
+.win .win__checks > li[data-done] { color: var(--c-text-3); }
+.win .win__checks > li[data-done]::before {
+  border-color: var(--c-ok-edge);
+  background: var(--c-ok-edge);
+}
+
+
+/* ============================================================================
+   7. ФОРМА: ДІАЛОГ, ЧІПИ, ЛАНЦЮЖОК FLOW
+   ----------------------------------------------------------------------------
+   Діалог — `role="presentation"` у 4 з 4: це МАЛЮНОК діалогу, а не діалог,
+   тому ні підложки, ні пастки фокуса, ні тіні --sh-dialog він не дістає.
+   Малюнок діалогу з тінню справжнього діалогу обіцяв би модальність.
+   ========================================================================== */
+.win .win__dialog {
+  border: var(--bw) solid var(--c-line-strong);
+  border-radius: var(--r-sheet);
+  background: var(--c-veil-hover);
+  padding: var(--win-pad);
+  min-width: 0;
+}
+.win .win__main > .win__dialog { margin: var(--win-gap-tight) 0; }
+.win .win__dialog-title {
+  margin: 0 0 var(--win-gap);
+  font-family: var(--f-sans);
+  font-size: var(--fs-ui);
+  line-height: var(--lh-ui);
+  font-weight: var(--w-semi);
+  color: var(--c-text);
+}
+.win .win__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--win-gap-tight);
+  margin: var(--win-gap-tight) 0 0;
+  min-width: 0;
+}
+.win .win__chip {
+  padding: 0 var(--win-gap-tight);
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-eyebrow);
+  line-height: var(--s-5);               /* ЯВНА висота рядка = висоті коробки:
+                                            інакше 29 чіпів розсувають рядок */
+  color: var(--c-text-2);
+  white-space: nowrap;
+}
+
+/* Конструктор flow — ВЕРТИКАЛЬНИЙ ланцюжок. `data-kind` має рівно чотири
+   значення (then 3 · when 2 · if 1 · branch 1). Крок до 101 знака зі smart
+   values (j15 #w1). Роль `win__step-kind` — ярлик ролі кроку; він несе ФОРМУ
+   (кант ліворуч), бо чотири кольори тут були б четвертим світлофором. */
+.win .win__chain {
+  list-style: none;
+  margin: var(--win-gap) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--win-gap-tight);
+  min-width: 0;
+}
+.win .win__step {
+  list-style: none;
+  margin: 0;
+  padding: var(--win-gap-tight);
+  padding-left: var(--win-gap);
+  border: var(--bw) solid var(--c-line);
+  border-left-width: var(--bw-strong);
+  border-radius: var(--win-radius);
+  background: var(--c-veil-hover);
+  font-size: var(--fs-label);
+  line-height: var(--lh-ui);
+  color: var(--c-text-2);
+  overflow-wrap: anywhere;
+}
+.win .win__step[data-kind="when"]   { border-left-color: var(--c-info-edge); }
+.win .win__step[data-kind="if"]     { border-left-style: dashed; }
+.win .win__step[data-kind="branch"] { border-left-style: double; border-left-width: var(--s-1); }
+.win .win__step[data-kind="then"]   { border-left-color: var(--c-ok-edge); }
+.win .win__step-kind {
+  display: inline-block;
+  min-width: 6ch;                        /* When / If / Then / Branch стають
+                                            колонкою: око читає ланцюжок як
+                                            таблицю, не як абзаци */
+  margin-right: var(--win-gap-tight);
+  font-family: var(--f-mono);
+  font-size: var(--fs-eyebrow);
+  color: var(--c-text-3);
+}
+
+
+/* ============================================================================
+   8. ПЛИТКИ, ЧИСЛА, ГАДЖЕТИ, ПОРТАЛ
+   ----------------------------------------------------------------------------
+   `win__tiles` живе у трьох станах (list 3 · form 2 · portal 3) — не
+   властивість порталу. До 7 плиток у вікні (j21 #w3), до 96 знаків у плитці
+   (j17 #w1).
+   ⚠ `minmax(<фікс>, 1fr)` у repeat(auto-fill, …) НЕ стискається нижче фікса
+   і дає горизонтальний скрол на 320 — тому обовʼязково
+   `minmax(min(<фікс>, 100%), 1fr)`.
+   ========================================================================== */
+.win .win__tiles,
+.win .win__stats,
+.win .win__gadgets {
+  list-style: none;
+  display: grid;
+  gap: var(--win-gap-tight);
+  margin: var(--win-gap) 0 0;
+  padding: 0;
+  min-width: 0;
+}
+.win .win__tiles   { grid-template-columns: repeat(auto-fill, minmax(min(var(--win-col-w), 100%), 1fr)); }
+.win .win__stats   { grid-template-columns: repeat(auto-fill, minmax(min(var(--s-24), 100%), 1fr)); }
+.win .win__gadgets { grid-template-columns: repeat(auto-fill, minmax(min(var(--w-meta), 100%), 1fr)); }
+
+.win .win__tile,
+.win .win__stats > li,
+.win .win__gadget {
+  list-style: none;
+  margin: 0;
+  padding: var(--win-gap-tight);
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--win-radius);
+  background: var(--c-veil-hover);
+  font-size: var(--fs-label);
+  line-height: var(--lh-ui);
+  color: var(--c-text-2);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* Плитки-числа. ⚠ Спершу тут стояв --f-mono «бо це цифри» — і це було
+   помилкою, видною оком: плитки Usage у j15 #w2 несуть не число, а речення
+   («Automation step usage · 17 steps · Estimate · Jira 17 · Other apps 0»),
+   і моноширинний набір робить із нього вивід консолі. Моно лишається рівно
+   там, де в Jira справді код. Числам досить tabular-nums — вони й були
+   справжньою потребою (ширина не гуляє). */
+.win .win__stats > li {
+  font-variant-numeric: tabular-nums;
+  color: var(--c-text);
+}
+.win .win__gadget { align-self: start; }
+.win .win__gadget > .win__table { font-size: var(--fs-eyebrow); }
+
+/* Портал замінює win__main цілком: ні рейки, ні верхнього рядка (0/3).
+   «За документацією» (В4) — три вікна перемалюються, якщо власник повернеться
+   до JSM; структурно це не змінює нічого, бо portal уже є станом компонента. */
+.win .win__portal { min-width: 0; }
+.win .win__portal-title {
+  margin: 0;
+  font-family: var(--f-display);         /* ЄДИНЕ місце, де вікно бере дисплейну
+                                            гарнітуру: портал — сторінка ДЛЯ
+                                            колеги, а не адмінський екран, і
+                                            заголовок у ньому справді заголовок */
+  font-size: var(--fs-h4);
+  line-height: var(--lh-h4);
+  font-weight: var(--w-regular);
+  color: var(--c-text);
+  overflow-wrap: anywhere;
+}
+.win .win__portal-intro {
+  margin: var(--win-gap-tight) 0 0;
+  font-size: var(--fs-label);
+  line-height: var(--lh-ui);
+  color: var(--c-text-2);
+  max-width: 54ch;
+  overflow-wrap: anywhere;
+}
+/* Поле пошуку-муляж */
+.win .win__search {
+  margin: var(--win-gap) 0 0;
+  padding: 0 var(--win-gap);
+  min-height: var(--ctl-h-sm);
+  display: flex;
+  align-items: center;
+  border: var(--bw) solid var(--c-line-strong);
+  border-radius: var(--r-control);
+  font-size: var(--fs-label);
+  color: var(--c-text-3);
+}
+/* Посилання-муляж: підкреслене, але БЕЗ cursor: pointer і без :hover —
+   натискання тут немає (К-15). */
+.win .win__link {
+  margin: var(--win-gap) 0 0;
+  font-size: var(--fs-label);
+  color: var(--c-accent);                /* 5.20 на полотні */
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+
+/* ============================================================================
+   9. МЕТАДАНІ: КЛЮЧ, ВИКОНАВЕЦЬ, ДЕДЛАЙН, ЛІЧИЛЬНИК, СТАТУС, ГЛІФ ТИПУ
+   ----------------------------------------------------------------------------
+   `--f-mono` вживається у вікні РІВНО там, де в Jira справді код: win__key
+   (84), win__query (7), win__addr (50), win__step зі smart values. Моно в
+   win__title (як у term__chrome) НЕ беремо — це головна видима відмінність
+   родича від двійника (Р3).
+   ========================================================================== */
+.win .win__key {
+  font-family: var(--f-mono);
+  font-size: var(--fs-eyebrow);
+  color: var(--c-text-2);
+  white-space: nowrap;                   /* ключ MARK-6 — ідентифікатор */
+}
+/* Ініціали виконавця. Коло фіксованого розміру: `--ctl-h-sm/2`-подібних
+   магічних чисел тут немає — коробка задається тією самою `em`-логікою, що
+   мітка, тож ініціали не зсувають рядок метаданих. */
+.win .win__who {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  min-width: 1.7em;
+  height: 1.7em;
+  padding: 0 0.3em;
+  border: var(--bw) solid var(--c-line-strong);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-eyebrow);
+  line-height: 1;
+  color: var(--c-text-2);
+  white-space: nowrap;
+}
+.win .win__due {
+  font-family: var(--f-mono);
+  font-size: var(--fs-eyebrow);
+  color: var(--c-text-3);                /* 6.49 на полотні — AA */
+  white-space: nowrap;
+}
+/* Лічильник у заголовку колонки. tabular-nums: без нього ширина гуляє
+   (виміряно в 009 — 35.22 px за 56 кадрів на анімованому лічильнику). */
+.win .win__count {
+  font-family: var(--f-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--c-text-3);
+}
+
+/* Статус роботи. Той самий мапінг категорій, що на колонці — формою плюс
+   кольором. Гліф ▾ стоїть у розмітці (не в CSS), тому коробка має
+   ЯВНУ line-height: інакше чужий фолбек-шрифт ▾ підняв би рядок. */
+.win .win__status {
+  margin: var(--win-gap-tight) 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: 0 var(--win-gap-tight);
+  border: var(--bw) dashed var(--c-line-strong);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-eyebrow);
+  line-height: var(--s-6);
+  font-weight: var(--w-regular);
+  color: var(--c-text-3);
+  white-space: nowrap;
+}
+.win .win__status[data-cat="progress"] {
+  border-style: solid;
+  border-color: var(--c-info-edge);
+  color: var(--c-info-text);
+  font-weight: var(--w-medium);
+}
+.win .win__status[data-cat="done"] {
+  border-style: solid;
+  border-width: var(--bw-strong);
+  border-color: var(--c-ok-edge);
+  background: var(--c-ok-quiet);
+  color: var(--c-ok-text);
+  font-weight: var(--w-medium);
+}
+
+/* Гліф типу роботи (☑ ×33) і той самий бокс для гліфа, що типом НЕ є
+   (⚡ «на переході є правило», 1 вживання, j10 #w2).
+   ⚠ `.win__glyph` — АЛІАС: стиль байт-у-байт той самий, тому окремий клас
+   нічого не додає, і білд може його не заводити (NOTES §7, відступ 2).
+   Обидва варіанти працюють. */
+.win .win__type,
+.win .win__glyph {
+  display: inline-block;
+  flex: none;
+  width: var(--win-mark-w);
+  text-align: center;
+  font-family: var(--win-mark-font);
+  font-size: var(--win-mark-fs);
+  line-height: 1;                        /* ЯВНО: гліф іде з системного
+                                            фолбеку з чужими метриками */
+  color: var(--c-text-3);
+  vertical-align: baseline;
+}
+
+
+/* ============================================================================
+   10. МІТКА ①–⑧ І ЛЕГЕНДА — ПАРА
+   ----------------------------------------------------------------------------
+   Виміряний факт, який знімає половину ризику: збіг кількості міток і пунктів
+   легенди — 62 із 62, розбіжностей нуль. Критерій 3 брифа вже виконується
+   розміткою; робота дизайну — не зламати його.
+
+   ⚠ ГОЛОВНА ПАСТКА, І ВОНА ПІДТВЕРДЖЕНА ДВІЧІ З ПРОТИЛЕЖНИХ БОКІВ.
+   Gwern задає мітці МАЛУ line-height (6 px при тексті 20), щоб не зсунути
+   рядок; Material 3 задає чипу легенди ВЕЛИКУ (32 px при коробці 32), щоб
+   центрувати номер. Висновок один: `line-height` мітки задається ЯВНО, не
+   успадковується. Інлайн-блок із фоном, відступом і ЧУЖИМ фолбек-шрифтом
+   (гліфи ①–⑧ не покриті жодним із 14 завантажених @font-face) інакше підніме
+   рядок і зламає К-14.
+
+   Формула, яка це тримає: висота коробки 1.4em < висоти рядка 1.5em
+   (--lh-ui), тож коробка вміщується в НАЯВНИЙ line box і не розтягує його.
+   ========================================================================== */
+.win .win__mark {
+  display: inline-block;
+  width: var(--win-mark-w);
+  height: var(--win-mark-w);
+  line-height: var(--win-mark-w);        /* = висоті коробки (прийом M3) */
+  margin-left: 0.15em;
+  border-radius: var(--r-pill);
+  /* ⚠ ЗАЛИВКА ТУТ — НЕПРОЗОРЕ ПОЛОТНО, І ЦЕ ПОРАХОВАНО, А НЕ ВИБРАНО.
+     §7.7 пропонувала `--c-accent` на `--c-accent-quiet`. Заміряно на всіх
+     190 мітках у живому браузері: тінт альфою 0.14 підмішується до того, що
+     ПІД ним, а мітка стоїть на пʼяти різних поверхнях — і контраст їде
+     разом із поверхнею:
+         на полотні вікна   4.20 ✗
+         на картці          3.71 ✗
+         на кнопці + Create 3.34 ✗
+     169 вузлів із 2 319 провалювали AA, і жоден скріншот цього не показує.
+     Непрозорий диск кольору полотна робить фон мітки НЕЗАЛЕЖНИМ від того,
+     на чому вона лежить: 5.20 скрізь, у всіх пʼяти контекстах.
+     Чому не суцільна акцентна заливка з темним гліфом (6.43): тоді мітка у
+     вікні стала б темною на рожевому, а номер легенди лишився б рожевим на
+     темному — ::marker не має фону взагалі, його не залити. Мітка й пункт
+     легенди мусять виглядати однаково (§7.7), тому виграє варіант, у якому
+     ОБИДВА — акцентний гліф на темному. */
+  background: var(--win-canvas-bg);
+  color: var(--c-accent);                /* 5.20 на будь-якій поверхні вікна */
+  font-family: var(--win-mark-font);
+  font-size: var(--win-mark-fs);
+  font-weight: var(--w-medium);
+  text-align: center;
+  vertical-align: text-bottom;           /* не `middle`: middle рахується від
+                                            x-height батька й на чужому
+                                            фолбеку підіймає рядок */
+  overflow: visible;                     /* жодного обрізання гліфа: метрики
+                                            фолбек-шрифту невідомі */
+}
+
+/* Легенда — СИБЛІНГ figure (62/62), тому `.win` у ланцюжку її не бачить:
+   специфічність піднімається тегом. `ol.win__legend > li` = (0,1,2) бере над
+   `.ds-prose li` (0,1,1) незалежно від порядку підключення файлів. */
+ol.win__legend {
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--c-prose);
+}
+/* Коробка легенди — ОКРЕМИМ правилом із двома селекторами, і це не стиль, а
+   наслідок заміру. Три властивості (`list-style`, `margin`, `padding-left`)
+   має ще й правило системи
+   `:is(.ds-prose, .ds-prose > section) > :is(ul, ol)` = (0,1,2), і воно бʼє
+   `ol.win__legend` (0,1,1) НЕЗАЛЕЖНО від порядку підключення: у `:is()`
+   специфічність дорівнює найспецифічнішому аргументу. Перший замір показав
+   `listStyleType: "decimal"` — легенда нумерувалась «1. 2. 3.» замість ①②③,
+   тобто мітка у вікні й пункт легенди ставали різними на вигляд (заборонено
+   §7.7). Разом із нумерацією програвали й відступи.
+   Другий селектор піднімає вагу до (0,2,1) у прозі; перший лишається для
+   контекстів без прози — лендінга й довідника-карти. */
+ol.win__legend,
+.ds-prose ol.win__legend {
+  list-style: win-mark;
+  margin: 0;
+  padding-left: var(--s-6);
+}
+ol.win__legend > li {
+  margin: 0 0 var(--s-1);
+  padding-left: var(--s-1);
+  overflow-wrap: anywhere;               /* пункт до 84 знаків (j16 #w1) */
+}
+ol.win__legend > li:last-child { margin-bottom: 0; }
+/* Нумерація легенди мусить бути ТИМИ САМИМИ гліфами, що мітки у вікні.
+   fallback: decimal закриває девʼятий пункт, якого сьогодні немає (макс. 8). */
+@counter-style win-mark {
+  system: fixed;
+  symbols: "①" "②" "③" "④" "⑤" "⑥" "⑦" "⑧";
+  suffix: " ";
+  fallback: decimal;
+}
+/* ⚠ ТРЕТІЙ ЗАМІРЯНИЙ ДЕФЕКТ. Токени мітки оголошені на `.win`, а легенда —
+   СИБЛІНГ figure, не дитина: `var(--win-mark-font)` до неї не доходив, і
+   ::marker малювався Golos Text (заміряно:
+   getComputedStyle(li,'::marker').fontFamily → "Golos Text"). Тому блок
+   токенів мітки оголошений вище на ПАРІ `.win, .win__legend`. */
+ol.win__legend > li::marker {
+  color: var(--c-accent);
+  font-family: var(--win-mark-font);
+}
+/* 128 <code> усередині легенд ЛИШАЮТЬСЯ під `.ds-prose code` — це бажано:
+   ключі й назви полів у моно з підкладкою. */
+
+
+/* ============================================================================
+   11. СТАН ПОМИЛКИ, ЗАГЛУШКИ, РЯДКИ-СЛУЖБОВЦІ
+   ----------------------------------------------------------------------------
+   `win__placeholder` вжитий у ТРЬОХ ролях (p 16 · dd 12 · span 7), і шість
+   уроків беруть його не за призначенням. Спека пропонувала завести під це два
+   класи (`win__sub-title`, `win__filters`). Я цього НЕ роблю — роль у 35 із 35
+   випадків визначається СТРУКТУРОЮ однозначно (переміряно по всіх 22 файлах):
+     dd  після </dt>            → справжня заглушка порожнього поля (12)
+     p   одразу після </h4>     → описовий підзаголовок секції (9)
+     p   в інших місцях         → рядок фільтрів / лічильника / повідомлення (7)
+     span                        → інлайнова тиха приписка (7)
+   Нові імена дали б ті самі три правила й додали білду два sed-паси.
+   Класи-аліаси нижче лишаються на випадок, якщо білд таки їх заведе —
+   тоді нічого не ламається (NOTES §7, відступ 1).
+   ========================================================================== */
+.win .win__placeholder {
+  color: var(--c-text-3);                /* 6.49 на полотні — AA */
+  font-size: var(--fs-label);
+  overflow-wrap: anywhere;
+}
+.win span.win__placeholder { font-size: var(--fs-eyebrow); }
+.win p.win__placeholder    { margin: var(--win-gap-tight) 0 0; }
+/* Описовий підзаголовок під заголовком секції — і аліас на майбутній клас */
+.win .win__page > h4 + p.win__placeholder,
+.win .win__gadget > h4 + p.win__placeholder,
+.win .win__dialog > h4 + p.win__placeholder,
+.win .win__sub-title {
+  margin: calc(var(--win-gap-tight) * -1) 0 var(--win-gap);
+  font-size: var(--fs-label);
+  color: var(--c-text-2);
+  max-width: 62ch;
+}
+.win .win__filters { margin: var(--win-gap-tight) 0 0; font-size: var(--fs-eyebrow); color: var(--c-text-3); }
+/* Заглушка порожнього поля в `dl` — тихіша за справжнє значення, і це
+   кодується НЕ лише кольором: курсив відрізняє «тут нічого немає» від
+   «тут значення» навіть у сірому. */
+.win .win__fields > dd.win__placeholder { font-style: italic; color: var(--c-text-3); }
+
+/* Рядок JQL / фільтра над списком. Це НАПИС НА ЕКРАНІ, а не копіювальний
+   блок: JQL зі «Копіювати» живе в `ds-term` (§13.10), і вікно його ролі не
+   дублює. Тому ні кнопки, ні полотна термінала тут немає. */
+.win .win__query {
+  margin: 0 0 var(--win-gap-tight);
+  padding: var(--win-gap-tight);
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--win-radius);
+  background: var(--win-chrome-bg);
+  font-family: var(--f-mono);
+  font-size: var(--fs-eyebrow);
+  line-height: var(--lh-code);
+  color: var(--c-text-2);
+  overflow-wrap: anywhere;
+}
+/* Стан помилки — єдиний у курсі (j07 #w2). Форма + колір: кант
+   --c-err-edge навколо рядка запиту й кант ліворуч на самому повідомленні.
+   Гліфа немає — із тієї ж причини, що в категорій. */
+.win .win__error {
+  margin: var(--win-gap-tight) 0 0;
+  padding: var(--win-gap-tight) var(--win-gap);
+  border-left: var(--bw-strong) solid var(--c-err-edge);
+  background: var(--c-err-quiet);
+  border-radius: 0 var(--win-radius) var(--win-radius) 0;
+  font-size: var(--fs-label);
+  line-height: var(--lh-ui);
+  color: var(--c-err-text);              /* 7.05 на полотні */
+  overflow-wrap: anywhere;
+}
+.win .win__query:has(+ .win__error) { border-color: var(--c-err-edge); }
+/* Без :has() рамка запиту лишається нейтральною, а стан помилки читається
+   з самого повідомлення — окрема гілка відкоту тут не потрібна. */
+
+/* <code> усередині вікна — 4 випадки (j06, j07, j19). Без цього рядка вони
+   дістали б ПРОЗОВУ заливку й padding усередині вікна. Дописуємо `.win` у
+   наявний скидальник `.ds-prose :is(pre, .term, .ds-code) code`; у легендах
+   <code> (128) прозове правило ЛИШАЄТЬСЯ. */
+.ds-prose .win code {
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  color: inherit;
+  font-size: var(--fs-eyebrow);
+  overflow-wrap: anywhere;
+}
+
+
+/* ============================================================================
+   12. ВУЗЬКЕ ВІКНО (≤640): РЕЙКА ЛЯГАЄ РЯДКОМ
+   ----------------------------------------------------------------------------
+   На 390 px полотно вікна = 350 px (контейнер `max-w-wide px-5`).
+   Спека давала два легальні шляхи: смужка 48 px із першими літерами АБО
+   рейка горизонтальним рядком. Беру другий, і причина не смакова:
+   смужка з першими літерами означає СХОВАТИ текст підписів («For you» →
+   «F»), а тоді Cmd+F знаходить рядок, якого на екрані немає — це прямий
+   конфлікт із К-7 («усе у вікні — текст: виділяється, копіюється,
+   знаходиться»). Тому `--win-rail-w-sm` зі спеки тут не існує.
+   Рейка ПЕРЕНОСИТЬСЯ (flex-wrap), а не прокручується: 10 пунктів лягають у
+   3–4 рядки, усі підписи лишаються видимими, і новий скролер не потрібен.
+
+   ⚠ Блок мобільних перевизначень стоїть ПІСЛЯ всіх базових оголошень
+   компонента. Медіа-запит НЕ додає специфічності — правило, що стоїть вище
+   за звичайне, мовчки програє йому (спіймано в 009 на `.ds-hdr__brand`).
+   ========================================================================== */
+@media (max-width: 640px) {
+  .win > .win__body { grid-template-columns: minmax(0, 1fr); }
+  @supports not selector(:has(*)) {
+    .win > .win__body { grid-template-columns: minmax(0, 1fr); }
+    .win > .win__body > .win__rail { width: auto; }
+  }
+  .win .win__rail {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-1) var(--win-gap-tight);
+    border-right: 0;
+    border-bottom: var(--bw) solid var(--c-line);
+    padding: var(--win-gap-tight);
+  }
+  .win .win__rail-item {
+    border-left: 0;
+    border-bottom: var(--bw-strong) solid transparent;
+    border-radius: var(--win-radius);
+    padding: 0 var(--win-gap-tight);
+  }
+  .win .win__rail-item--active { border-bottom-color: var(--c-accent-edge); }
+  /* Адреса ховається: 17 нерозривних токенів курсу (до 49 знаків) на 350 px
+     або розпирають вікно, або зʼїдають два рядки шапки. Текст лишається в
+     DOM — він `aria-hidden` і суто декоративний (50/50). */
+  .win > .win__chrome > .win__addr { display: none; }
+  /* `dl` стає одноколонковим: 11ch + значення на 350 px лишають значенню 150 px */
+  .win .win__fields { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .win .win__fields > dt { margin-top: var(--win-gap-tight); }
+  /* Колонки дошки вужчі, але не вужчі за читабельне; решта — скролером */
+  .win { --win-col-w: calc(var(--s-32) + var(--s-1)); }  /* 132px */
+}
+@media (max-width: 400px) {
+  .win .win__table th,
+  .win .win__table td { min-width: calc(8ch + var(--win-gap-tight) * 2);
+                        padding: var(--s-1) var(--win-gap-tight); }
+}
+
+
+/* ============================================================================
+   13. ДРУК
+   ----------------------------------------------------------------------------
+   Вікно — текст, тому друкується як текст. Поверхні на папері стають білими
+   (система дає `--c-paper-*` рівно у двох місцях: превʼю сертифіката і
+   @media print), а межі лишаються: саме вони несуть анатомію вікна.
+   Гліфи фолбеку лишаються — вони в контенті, а не в CSS.
+   ========================================================================== */
+@media print {
+  figure.win { break-inside: avoid; background: none; border-color: var(--c-paper-rule); }
+  .win > .win__chrome,
+  .win .win__rail,
+  .win .win__table thead th,
+  .win .win__query { background: none; border-color: var(--c-paper-rule); }
+  .win .win__main,
+  .win .win__cols,
+  .win .win__tabs { overflow: visible; }
+  .win .win__cols { flex-wrap: wrap; }
+}
+
+
+/* ============================================================================
+   14. ⚠ ВИПРАВЛЕННЯ ВАЛІДАТОРА (D-02) — ТЕКСТ ВІКНА, ЯКИЙ ВИПАДАВ ЗІ ШКАЛИ
+   ----------------------------------------------------------------------------
+   Заміряно власним Chrome по всіх 69 вікнах `gallery.html`: **12 текстових
+   вузлів малювались 17 px**, тобто навколишнім кеглем прози, тоді як уся
+   шкала компонента — 14 / 12 / 11. Жодної помилки в консолі, жодного
+   зламаного макета: сторінка «просто гірша, ніж мала б» — рівно той клас,
+   який спека назвала §3.5.
+
+   Дві адреси, обидві — розмітка БЕЗ класу всередині блока З класом:
+
+   1. `.win__desc / .win__sub / .win__comments` стилізували лише `> p`.
+      Підзадачі, звʼязки й коментарі лежать у голих `<ul><li>` — вони
+      лишались 17 px. Найгірше в j04 `#w1`: підпис «Subtasks» 12 px, а назва
+      підзадачі під ним — 17 px, тобто в розмірі заголовка.
+   2. `.win__actions > span` без `win__btn` — тиха текстова дія Jira
+      («Cancel», «Discard», «Create another»). Теж 17 px: у j05 `#w1`
+      «Create another» більше за головну кнопку «Create» поруч.
+      Ієрархія дій виходила перевернутою.
+
+   Специфічність ≥ (0,2,0) скрізь (вимога К-13); `:not(.win__btn)` піднімає
+   селектор дій до (0,3,0), щоб правило НЕ зачепило кнопку-муляж.
+   Жодного нового токена: тільки наявні `--fs-label` / `--lh-ui` / ролі тексту.
+   ========================================================================== */
+.win .win__desc > ul,
+.win .win__sub > ul,
+.win .win__comments > ul,
+.win .win__desc > ol,
+.win .win__sub > ol,
+.win .win__comments > ol {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--win-gap-tight);
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.win .win__desc > ul > li,
+.win .win__sub > ul > li,
+.win .win__comments > ul > li,
+.win .win__desc > ol > li,
+.win .win__sub > ol > li,
+.win .win__comments > ol > li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: var(--fs-label);
+  line-height: var(--lh-ui);
+  color: var(--c-text-2);
+  overflow-wrap: anywhere;
+}
+
+/* Тиха текстова дія діалогу. Виглядає як напис, а не як кнопка — саме так
+   вона виглядає і в Jira; головне, щоб вона не була БІЛЬШОЮ за головну. */
+.win .win__actions > span:not(.win__btn) {
+  align-self: center;
+  font-size: var(--fs-label);
+  line-height: var(--lh-ui);
+  color: var(--c-text-2);
+  overflow-wrap: anywhere;
 }
