@@ -248,11 +248,20 @@
     var COURSES = {
       academy:       { course: "academy",   brand: "AI Академія",  home: "index.html",       back: c.backAcademy },
       architect:     { course: "architect", brand: "AI Architect", home: "architect.html",   back: c.backArchitect },
-      "claude-code": { course: "terminal",  brand: "AI Термінал",  home: "claude-code.html", back: c.backTerminal || "До AI Терміналу" }
+      "claude-code": { course: "terminal",  brand: "AI Термінал",  home: "claude-code.html", back: c.backTerminal || "До AI Терміналу" },
+      // 012: четвертий курс. `back` із фолбеком — так само, як у claude-code:
+      // якщо в кеші опиниться roadmap.json без copy.backJira, кнопка «назад»
+      // мусить сказати щось осмислене, а не `undefined`.
+      jira:          { course: "jira",      brand: "Jira з нуля",  home: "jira.html",        back: c.backJira || "До Jira з нуля" }
     };
     var from = Q.get("from");
     if (!from && document.referrer) {
       if (/claude-code/i.test(document.referrer)) from = "claude-code";
+      // 012: `jira` стоїть ДРУГИМ, а не в кінці — той самий порядок, що в
+      // certificate.html. Колізій немає (жодна адреса Jira не містить
+      // «claude-code» чи «architect», і навпаки), але однаковий порядок —
+      // єдине, що тримає два файли синхронними.
+      else if (/jira/i.test(document.referrer)) from = "jira";
       else if (/architect/i.test(document.referrer)) from = "architect";
     }
     var cur = COURSES[from] || COURSES.academy;
