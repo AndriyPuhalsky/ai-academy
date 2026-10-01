@@ -39,7 +39,10 @@ SQL-міграції в Supabase, деплої/оновлення Edge Functions
     Vault порожній); код бота до деплою — `02-backend/deployed-before-013.ts` (version 10, `verify_jwt = false`,
     = `HEAD:tg/telegram_index.ts`). **Відкат бази** — закоментований блок у кінці `013-1` (`drop trigger` →
     `drop function` → `delete from vault.secrets`).
-  - **Ще не зроблено:** деплой Edge Function `telegram` з новим `tg/telegram_index.ts` (кнопка «🎓 Сертифікати»,
+  - **✅ Деплой Edge Function `telegram` — зробив власник того ж вечора** (новий `tg/telegram_index.ts`, Verify JWT
+    вимкнено): ззовні POST `{}` → 200, хибний `x-webhook-secret` → 403; власник перевірив у Telegram кнопку «🎓 Сертифікати»,
+    CSV і сповіщення про сертифікат — «все працює».
+  - **Було заплановано як «ще не зроблено»:** деплой Edge Function `telegram` з новим `tg/telegram_index.ts` (кнопка «🎓 Сертифікати»,
     `/certs`, гілка вебхука `certificates`) — робить власник у Dashboard, **Verify JWT вимкнено**. До деплою тригер
     шле POST у стару версію бота: вона відповідає `200 ok` і нічого не надсилає, тобто сертифікат, виданий у цьому
     вікні, сповіщення не дасть (видача від цього не ламається).
