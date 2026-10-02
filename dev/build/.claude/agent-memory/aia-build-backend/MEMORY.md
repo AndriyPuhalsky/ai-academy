@@ -1,8 +1,11 @@
 # Memory Index
 
 - [Escape-послідовності у Write](feedback_write_tool_escape_sequences.md) — `\uXXXX` стають літеральними байтами і роблять файл «бінарним»; перевіряти після кожного запису
-- [Факти живої бази AIA](project_aia_live_db_facts.md) — звідки сертифікат бере ім'я, `handle_new_user` = SECURITY DEFINER, тригерів на `certificates` немає
-- [Разові дозволи на зміну бази](project_aia_migration_apply_via_chrome.md) — дозвіл лише на названу дію; DELETE тільки із запобіжником; перевіряти довжину в Monaco ДО Run
+- [Факти живої бази AIA](project_aia_live_db_facts.md) — ім'я в сертифікаті, `handle_new_user`, тригери; з 013 — гранти `service_role`/`anon`, Vault і pg_net, дефект «усього 80»
+- [Разові дозволи на зміну бази](project_aia_migration_apply_via_chrome.md) — дозвіл лише на названу дію; слово власника через координатора класифікатора НЕ знімає → усі читання робити ДО першої спроби запису
+- [Перевірка Edge Function без Deno](reference_edge_function_testing_node.md) — deno не встановлений; справжній Deno.serve ганяється в Node 25 зі заглушками Deno/fetch/createClient
 - [Дрібні знахідки поза обсягом](feedback_report_out_of_scope_nits.md) — перелічувати поіменно у звіті: власник дає окреме коло, поки файл у роботі
 - [Перевірка PDF сертифіката](reference_pdf_client_testing.md) — підміна `window.sb` у консолі замість запису в базу; байти + pdf.js, бо плагін PDF у Chrome не годиться
 - [Проба «тільки для залогіненого»](reference_guest_only_render_probe.md) — заглушка window.sb у пробній сторінці в dev/: перевіряє renderEmpty і екранування без акаунта й без запису в прод
+- [Проба мережевої помилки](reference_network_error_probe.md) — підміна `window.fetch` у консолі діє на вже створений `sb` (resolveFetch пізнього звʼязування); ознака «немає інтернету» — `status === 0`, не назва класу
+- [`--rotate` у check-quiz.py пише на диск](feedback_check_quiz_rotate_writes.md) — без `--files` переставляє квізи у ВСІХ 80 уроках; відкат `git checkout -- modules/` + чотири чекери
