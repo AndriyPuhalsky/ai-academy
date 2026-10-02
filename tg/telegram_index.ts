@@ -5,20 +5,29 @@
 //
 //  Робить дві речі:
 //   1) Приймає оновлення від Telegram-бота: /start, /id, /menu, /stats, /export,
-//      /messages, кнопки постійної клавіатури («📊 Статистика», «⬇️ Експорт»,
-//      «✉️ Повідомлення») та натискання inline-кнопок (callback_query).
+//      /messages, /certs, кнопки постійної клавіатури («📊 Статистика»,
+//      «⬇️ Експорт», «✉️ Повідомлення», «🎓 Сертифікати») та натискання
+//      inline-кнопок (callback_query).
 //      «✉️ Повідомлення» показує останні звернення з форми «Написати нам»
 //      (таблиця contact_messages, наповнює окрема функція "contact" —
 //      див. tg/contact_index.ts + tg/contact_messages.sql).
-//   2) Приймає Database Webhook на вставку в profiles → шле адміну
-//      сповіщення «нова реєстрація».
+//      «🎓 Сертифікати» (013) віддає CSV: рядок на кожного зареєстрованого,
+//      колонка на кожен курс; у клітинці — сертифікат, прогрес або «—».
+//   2) Приймає Database Webhook на вставку:
+//        • profiles     → «нова реєстрація»;
+//        • certificates → «новий сертифікат» (013; тригер
+//          trg_notify_new_certificate, див. dev/build/013-tg-certificates/).
 //
 //  ВАЖЛИВО:
 //   • Деплоїти з вимкненим "Verify JWT" (Telegram не шле Supabase-токен).
 //   • Секрети (Edge Functions → Secrets):
 //       TELEGRAM_BOT_TOKEN     — токен від @BotFather
 //       ADMIN_CHAT_ID          — твій особистий chat_id (дізнатись: /id боту)
-//       WEBHOOK_SECRET         — будь-який випадковий рядок (для DB-вебхука)
+//       WEBHOOK_SECRET         — будь-який випадковий рядок (для DB-вебхука).
+//                                Те саме значення має лежати в базі: у тілі
+//                                notify_new_profile() (реєстрації) і в Supabase
+//                                Vault під іменем telegram_webhook_secret
+//                                (сертифікати, 013).
 //       TELEGRAM_SECRET_TOKEN  — будь-який випадковий рядок. Без нього ADMIN_CHAT_ID
 //                                у тілі запиту НІЧИМ не підтверджений: URL функції
 //                                вираховується з публічного project ref (config.json),
@@ -43,13 +52,42 @@ const TG_SECRET = Deno.env.get("TELEGRAM_SECRET_TOKEN") ?? "";
 const BTN_STATS = "📊 Статистика";
 const BTN_EXPORT = "⬇️ Експорт";
 const BTN_MESSAGES = "✉️ Повідомлення";
+const BTN_CERTS = "🎓 Сертифікати";
 
 // Постійна клавіатура під полем вводу — щоб не шукати слеш-команди.
 const ADMIN_MENU = {
-  keyboard: [[{ text: BTN_STATS }, { text: BTN_EXPORT }], [{ text: BTN_MESSAGES }]],
+  keyboard: [
+    [{ text: BTN_STATS }, { text: BTN_EXPORT }],
+    [{ text: BTN_MESSAGES }, { text: BTN_CERTS }],
+  ],
   resize_keyboard: true,
   is_persistent: true,
 };
+
+// Канонічний домен сайту. Потрібен для посилання на публічну перевірку
+// сертифіката: у PDF воно будується від location.href (js/certificate.js),
+// а боту брати звідкись адресу нема, тож вона тут літералом.
+// Форма БЕЗ «.html»: Cloudflare Workers віддає 307 з /verify.html на /verify
+// (перевірено на проді 2026-10-01), а канонічна адреса дає 200 без переходу.
+const SITE_URL = "https://ai-academia.com.ua";
+
+// Назви курсів «як на сайті» — у базі в першого курсу title «AI Essentials»,
+// такої назви на сайті немає. Ключ — courses.slug. П'ятий курс, якого тут
+// ще нема, з'явиться колонкою сам: фолбек — courses.title.
+const COURSE_NAMES: Record<string, string> = {
+  "ai-essentials": "AI Академія",
+  "ai-architect": "AI Architect",
+  "claude-code": "AI Термінал",
+  "jira": "Jira з нуля",
+};
+
+function courseLabel(c: { slug?: string; title?: string }): string {
+  return COURSE_NAMES[String(c?.slug ?? "")] ?? String(c?.title ?? c?.slug ?? "—");
+}
+
+function verifyUrl(code: string): string {
+  return SITE_URL + "/verify?code=" + encodeURIComponent(code);
+}
 
 // Inline-кнопка «Експорт» (з'являється під повідомленням статистики).
 const EXPORT_INLINE = { inline_keyboard: [[{ text: "⬇️ Експорт CSV", callback_data: "export" }]] };
@@ -105,6 +143,108 @@ function toCsv(rows: any[]): string {
       r.registered ? new Date(r.registered).toISOString().slice(0, 10) : "",
       r.completed, r.total, r.certificate ? "так" : "ні",
     ].map(csvCell).join(","));
+  }
+  return lines.join("\n");
+}
+
+// ---- Дати в київському часі (013) ----
+// Edge Functions живуть в UTC, а адмін читає звіт у Києві: о 00:30 за Києвом
+// UTC-дата ще «вчорашня», тож без timeZone і назва файла, і дата видачі
+// сертифіката були б зсунуті на добу.
+function kyivDate(iso: string | number | Date, style: "dots" | "iso"): string {
+  const d = iso instanceof Date ? iso : new Date(iso);
+  if (isNaN(d.getTime())) return typeof iso === "string" ? iso.slice(0, 10) : "";
+  try {
+    // uk-UA → «01.10.2026»; en-CA → «2026-10-01».
+    return new Intl.DateTimeFormat(style === "dots" ? "uk-UA" : "en-CA", {
+      timeZone: "Europe/Kyiv", day: "2-digit", month: "2-digit", year: "numeric",
+    }).format(d);
+  } catch {
+    return d.toISOString().slice(0, 10);
+  }
+}
+
+// ---- Читання таблиці сторінками (013) ----
+// PostgREST обрізає відповідь на межі «Max rows» (у Supabase типово 1000) і
+// робить це МОВЧКИ — звіт показав би неправильні числа без жодної помилки.
+// Тому читаємо сторінками до кінця, із запобіжником: якщо даних більше, ніж
+// очікуємо, краще сказати про це адміну, ніж надіслати неправду.
+const PAGE_SIZE = 1000;
+const MAX_PAGES = 100;
+
+async function selectAll(
+  sb: ReturnType<typeof admin>,
+  table: string,
+  columns: string,
+  eq?: [string, string],
+): Promise<any[]> {
+  const out: any[] = [];
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const from = page * PAGE_SIZE;
+    // Фільтр — ДО order/range: у supabase-js .eq() живе на filter-будівельнику,
+    // а .order()/.range() вертають transform-будівельник, у якого .eq() вже нема.
+    let q = sb.from(table).select(columns);
+    if (eq) q = q.eq(eq[0], eq[1]);
+    const { data, error } = await q
+      .order("id", { ascending: true })
+      .range(from, from + PAGE_SIZE - 1);
+    if (error) throw new Error(`${table}: ${error.message}`);
+    const rows = data ?? [];
+    out.push(...rows);
+    if (rows.length < PAGE_SIZE) return out;
+  }
+  throw new Error(`${table}: понад ${MAX_PAGES * PAGE_SIZE} рядків — звіт був би обрізаний, тому не надсилаю`);
+}
+
+// ---- Таблиця «учні × курси» (013) ----
+// Колонки — курси в порядку сайту (courses.sort_order), клітинка:
+//   є сертифікат → «✅ ДД.ММ.РРРР» · є прогрес → «пройдено/усього» · інакше «—».
+function certsCsv(d: {
+  courses: any[]; modules: any[]; profiles: any[]; certs: any[]; progress: any[];
+}): string {
+  const courses = [...d.courses].sort(
+    (a, b) => (Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0)) ||
+              String(a.slug ?? "").localeCompare(String(b.slug ?? "")),
+  );
+
+  const courseOfModule = new Map<string, string>();   // module_id → course_id
+  const totalOfCourse = new Map<string, number>();    // course_id → модулів у курсі
+  for (const m of d.modules) {
+    courseOfModule.set(m.id, m.course_id);
+    totalOfCourse.set(m.course_id, (totalOfCourse.get(m.course_id) ?? 0) + 1);
+  }
+
+  const doneOf = new Map<string, number>();           // «user|course» → завершено
+  for (const p of d.progress) {
+    if (p.status !== "completed") continue;
+    const cid = courseOfModule.get(p.module_id);
+    if (!cid) continue;                               // модуль зник — курс невідомий
+    const k = p.user_id + "|" + cid;
+    doneOf.set(k, (doneOf.get(k) ?? 0) + 1);
+  }
+
+  const certOf = new Map<string, string>();           // «user|course» → issued_at
+  for (const c of d.certs) certOf.set(c.user_id + "|" + c.course_id, c.issued_at);
+
+  // Найновіші реєстрації — зверху. Однаковий created_at розрулюємо за id,
+  // щоб порядок рядків не стрибав між двома викликами.
+  const when = (v: unknown) => { const t = Date.parse(String(v ?? "")); return isNaN(t) ? 0 : t; };
+  const people = [...d.profiles].sort(
+    (a, b) => (when(b.created_at) - when(a.created_at)) || String(a.id).localeCompare(String(b.id)),
+  );
+
+  const lines = [["Учень", ...courses.map(courseLabel)].map(csvCell).join(",")];
+  for (const p of people) {
+    const name = String(p.full_name ?? "").trim();
+    const row: string[] = [name || String(p.email ?? "").trim() || "—"];
+    for (const c of courses) {
+      const k = p.id + "|" + c.id;
+      const issued = certOf.get(k);
+      if (issued) { row.push("✅ " + kyivDate(issued, "dots")); continue; }
+      const done = doneOf.get(k) ?? 0;
+      row.push(done > 0 ? `${done}/${totalOfCourse.get(c.id) ?? 0}` : "—");
+    }
+    lines.push(row.map(csvCell).join(","));
   }
   return lines.join("\n");
 }
@@ -175,6 +315,62 @@ async function actionMessages(chatId: string | number) {
   await sendMessage(chatId, text.length > 4000 ? text.slice(0, 4000) + "…" : text);
 }
 
+// 013 · «🎓 Сертифікати» — CSV «учні × курси».
+// Читаємо напряму таблиці сервісним ключем (як actionMessages робить із
+// contact_messages): service_role обходить RLS, нової RPC заводити не треба,
+// а отже й нового публічного ендпоінта з іменами всіх учнів не з'являється.
+async function actionCerts(chatId: string | number) {
+  const sb = admin();
+  let csv: string;
+  try {
+    const [courses, modules, profiles, certs, progress] = await Promise.all([
+      selectAll(sb, "courses", "id, slug, title, sort_order"),
+      selectAll(sb, "modules", "id, course_id"),
+      selectAll(sb, "profiles", "id, full_name, email, created_at"),
+      selectAll(sb, "certificates", "user_id, course_id, issued_at"),
+      selectAll(sb, "progress", "user_id, module_id, status", ["status", "completed"]),
+    ]);
+    if (!profiles.length) { await sendMessage(chatId, "Зареєстрованих поки немає."); return; }
+    if (!courses.length) { await sendMessage(chatId, "У базі немає жодного курсу."); return; }
+    csv = certsCsv({ courses, modules, profiles, certs, progress });
+  } catch (e) {
+    // Помилку показуємо, а не глитаємо: порожній або неповний звіт виглядав би
+    // як «сертифікатів немає», і це гірше за видиму помилку.
+    await sendMessage(chatId, "Помилка: " + escapeHtml(e instanceof Error ? e.message : String(e)));
+    return;
+  }
+  await sendCsv(chatId, `certificates_${kyivDate(new Date(), "iso")}.csv`, csv);
+}
+
+// 013 · сповіщення про новий сертифікат (Database Webhook на INSERT у certificates).
+// Текст гендерно-нейтральний: статі учня база не знає.
+async function notifyNewCertificate(rec: any) {
+  let name = String(rec?.full_name ?? "").trim();   // знімок імені на момент видачі
+  let course = "";
+  try {
+    const sb = admin();
+    if (!name && rec?.user_id) {
+      const { data } = await sb.from("profiles").select("full_name").eq("id", rec.user_id).maybeSingle();
+      name = String(data?.full_name ?? "").trim();
+    }
+    if (rec?.course_id) {
+      const { data } = await sb.from("courses").select("slug, title").eq("id", rec.course_id).maybeSingle();
+      if (data) course = courseLabel(data);
+    }
+  } catch (e) {
+    // Не тихо (лог функції лишає причину) і не замість повідомлення: сповіщення
+    // про виданий сертифікат важливіше за назву курсу в ньому.
+    console.error("[013 certificate notify] не вдалося дочитати деталі:", e);
+  }
+  const code = String(rec?.public_code ?? "").trim();
+  const lines = [
+    `🎓 <b>Новий сертифікат</b>`,
+    `${escapeHtml(name || "Студент")} — курс «${escapeHtml(course || "невідомий")}»`,
+  ];
+  if (code) lines.push(escapeHtml(verifyUrl(code)));
+  await sendMessage(ADMIN, lines.join("\n"));
+}
+
 Deno.serve(async (req) => {
   let body: any;
   try { body = await req.json(); } catch { return new Response("ok"); }
@@ -192,6 +388,10 @@ Deno.serve(async (req) => {
         `Ім'я: ${escapeHtml(r.full_name || "—")}\n` +
         `Email: ${escapeHtml(r.email || "—")}`,
       );
+    } else if (body.table === "certificates" && body.type === "INSERT" && ADMIN) {
+      // maybe_issue_certificate вставляє з «on conflict do nothing», тож один
+      // сертифікат = один INSERT = одне сповіщення.
+      await notifyNewCertificate(body.record);
     }
     return new Response("ok");
   }
@@ -220,7 +420,7 @@ Deno.serve(async (req) => {
         await sendMessage(
           chatId,
           `Привіт, адміне! Користуйся кнопками нижче 👇\n` +
-          `Слеш-команди теж працюють: /stats, /export, /messages.`,
+          `Слеш-команди теж працюють: /stats, /export, /messages, /certs.`,
           ADMIN_MENU,
         );
       } else {
@@ -228,7 +428,7 @@ Deno.serve(async (req) => {
           chatId,
           `Привіт! Твій chat_id: <code>${chatId}</code>\n\n` +
           `Додай його у секрет <b>ADMIN_CHAT_ID</b>, щоб користуватись адмін-командами:\n` +
-          `/export — CSV усіх користувачів\n/stats — коротка статистика\n/messages — звернення з форми «Написати нам»`,
+          `/export — CSV усіх користувачів\n/stats — коротка статистика\n/messages — звернення з форми «Написати нам»\n/certs — CSV «учні × курси»: сертифікати й прогрес`,
         );
       }
     } else if (text === "/stats" || text === BTN_STATS) {
@@ -240,10 +440,13 @@ Deno.serve(async (req) => {
     } else if (text === "/messages" || text === BTN_MESSAGES) {
       if (!isAdmin(chatId)) { await sendMessage(chatId, "🔒 Лише для адміна."); return new Response("ok"); }
       await actionMessages(chatId);
+    } else if (text === "/certs" || text === BTN_CERTS) {
+      if (!isAdmin(chatId)) { await sendMessage(chatId, "🔒 Лише для адміна."); return new Response("ok"); }
+      await actionCerts(chatId);
     } else {
       await sendMessage(
         chatId,
-        "Не знаю такої команди. Скористайся кнопками нижче або /stats, /export, /messages.",
+        "Не знаю такої команди. Скористайся кнопками нижче або /stats, /export, /messages, /certs.",
         isAdmin(chatId) ? ADMIN_MENU : undefined,
       );
     }
