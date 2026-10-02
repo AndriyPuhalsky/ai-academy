@@ -20,5 +20,5 @@ metadata:
 **How to apply:** дефект у квізі → розділ звіту, не `Edit`. Перед завершенням прогнати
 `python3 dev/build/007-quiz-distractors/check-quiz.py --verify dev/build/007-quiz-distractors/baseline.json`
 (має дати `VERIFY: OK`) і `python3 dev/build/005-ai-terminal/01-authoring/check-lessons.py`.
-Звіт — фінальним повідомленням: харнес блокує підагентам створення `.md`.
+Звіт — файлом `review-<урок>.md` через `Write` (правило №6 `dev/build/CLAUDE.md`: блокуються лише імена, що починаються з `report` / `summary` / `findings` / `analysis`).
 Див. [[reference-lesson-verification]].

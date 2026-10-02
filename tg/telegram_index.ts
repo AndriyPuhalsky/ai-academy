@@ -3,7 +3,7 @@
 //  Розташування (CLI): supabase/functions/telegram/index.ts
 //  Або вставити цей код у вебредактор Edge Functions у Dashboard.
 //
-//  Робить дві речі:
+//  Робить три речі:
 //   1) Приймає оновлення від Telegram-бота: /start, /id, /menu, /stats, /export,
 //      /messages, /certs, кнопки постійної клавіатури («📊 Статистика»,
 //      «⬇️ Експорт», «✉️ Повідомлення», «🎓 Сертифікати») та натискання
@@ -17,6 +17,11 @@
 //        • profiles     → «нова реєстрація»;
 //        • certificates → «новий сертифікат» (013; тригер
 //          trg_notify_new_certificate, див. dev/build/013-tg-certificates/).
+//   3) 015 · на ту саму вставку в profiles надсилає САМІЙ ЛЮДИНІ лист
+//      «Вітаємо в AI Академії» через HTTP API Resend. Окремого тригера й нової
+//      міграції не треба: вебхук реєстрації вже несе email і full_name.
+//      Лист і повідомлення адміну йдуть через Promise.allSettled — збій одного
+//      не має забирати з собою друге.
 //
 //  ВАЖЛИВО:
 //   • Деплоїти з вимкненим "Verify JWT" (Telegram не шле Supabase-токен).
@@ -32,6 +37,9 @@
 //                                у тілі запиту НІЧИМ не підтверджений: URL функції
 //                                вираховується з публічного project ref (config.json),
 //                                тож будь-хто може надіслати підроблений апдейт напряму.
+//       RESEND_API_KEY         — 015 · ключ Resend із правом «Sending access».
+//                                Без нього лист «Вітаємо» просто не йде (рядок
+//                                у лог), а решта функції працює як раніше.
 //     SUPABASE_URL і SUPABASE_SERVICE_ROLE_KEY додаються автоматично.
 //
 //   • Після деплою прив'яжи цей самий секрет до вебхука в Telegram:
@@ -47,6 +55,11 @@ const WEBHOOK_SECRET = Deno.env.get("WEBHOOK_SECRET") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const TG_SECRET = Deno.env.get("TELEGRAM_SECRET_TOKEN") ?? "";
+// 015 · лист «Вітаємо». Відправник той самий, що й у листах Supabase Auth
+// (SMTP Resend), — один «від кого» в усій пошті краще проходить фільтри
+// й виглядає для людини як одне джерело.
+const RESEND_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
+const MAIL_FROM = "AI Академія <no-reply@ai-academia.com.ua>";
 
 // Підписи кнопок постійної клавіатури (мають точно збігатися при маршрутизації).
 const BTN_STATS = "📊 Статистика";
@@ -371,6 +384,109 @@ async function notifyNewCertificate(rec: any) {
   await sendMessage(ADMIN, lines.join("\n"));
 }
 
+// 015 · лист «Вітаємо» САМІЙ людині, що зареєструвалась (HTTP API Resend).
+// Тексти — dev/build/015-password-reset/01-plan.md §4.3. Три обмеження тексту
+// не випадкові:
+//   • курси поіменно не перелічуємо — перелік застаріє з наступним релізом,
+//     а бот деплоїться окремо від сайту;
+//   • про «Забули пароль?» не згадуємо — бот їде в прод раніше за код сайту,
+//     обіцяти кнопку, якої там ще немає, не можна;
+//   • рядок «Якщо акаунт створював не ти» обов'язковий: підтвердження пошти
+//     вимкнене (mailer_autoconfirm), тож адресу міг вписати хто завгодно.
+// У листі немає нічого таємного — ні пароля, ні посилання для входу, ні коду.
+async function sendWelcomeEmail(r: any): Promise<void> {
+  // Жодного винятку назовні: цю функцію кличуть поруч зі сповіщенням адміну,
+  // і впасти вона права не має. Але й мовчати не має — причина йде в лог.
+  if (!RESEND_KEY) {
+    console.warn("[015 welcome] RESEND_API_KEY не заданий — лист не надсилаю.");
+    return;
+  }
+  const email = String(r?.email ?? "").trim();
+  if (!email) {
+    // Адресу в лог не пишемо ніколи — ні тут, ні нижче: логи функції читає не лише власник.
+    console.warn("[015 welcome] у записі вебхука немає email — лист не надсилаю.");
+    return;
+  }
+
+  const name = String(r?.full_name ?? "").trim();
+  const helloText = name ? `Привіт, ${name}!` : "Привіт!";
+  const helloHtml = name ? `Привіт, ${escapeHtml(name)}!` : "Привіт!";
+
+  const html = `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#1A1A1A;max-width:560px">
+  <p style="font-size:20px;font-weight:600;margin:0 0 16px">${helloHtml}</p>
+  <p style="margin:0 0 16px">Акаунт в AI Академії створено. Тепер прогрес зберігається сам, а за пройдений курс ти отримаєш іменний сертифікат із публічним кодом перевірки.</p>
+  <p style="margin:0 0 8px"><strong>Як це працює:</strong></p>
+  <ul style="margin:0 0 16px;padding-left:20px">
+    <li style="margin:0 0 6px">Уроки проходяться по черзі — наступний відкривається після тесту до попереднього.</li>
+    <li style="margin:0 0 6px">Тест можна перескладати скільки завгодно разів.</li>
+    <li style="margin:0 0 6px">Ім'я для сертифіката змінюється в меню акаунта — доки сертифікат ще не виданий.</li>
+  </ul>
+  <p style="margin:0 0 24px">
+    <a href="${SITE_URL}"
+       style="display:inline-block;padding:12px 22px;background:#1A1A1A;color:#FFFFFF;text-decoration:none;border-radius:8px;font-weight:600">Перейти до навчання</a>
+  </p>
+  <p style="margin:0 0 16px">Усі курси безкоштовні, реклами немає. Щось не працює або є питання — напиши нам через форму «Написати нам» на сайті.</p>
+  <p style="margin:0 0 16px">Якщо акаунт створював не ти — просто видали цей лист і нічого не роби.</p>
+  <p style="margin:28px 0 0;color:#777777;font-size:14px">AI Академія — безкоштовні курси про штучний інтелект українською.<br>
+    <a href="${SITE_URL}" style="color:#777777">ai-academia.com.ua</a>
+  </p>
+</div>`;
+
+  const text = `${helloText}
+
+Акаунт в AI Академії створено. Тепер прогрес зберігається сам, а за пройдений курс
+ти отримаєш іменний сертифікат із публічним кодом перевірки.
+
+Як це працює:
+- Уроки проходяться по черзі — наступний відкривається після тесту до попереднього.
+- Тест можна перескладати скільки завгодно разів.
+- Ім'я для сертифіката змінюється в меню акаунта — доки сертифікат ще не виданий.
+
+Перейти до навчання: ${SITE_URL}
+
+Усі курси безкоштовні, реклами немає. Щось не працює або є питання — напиши нам
+через форму «Написати нам» на сайті.
+
+Якщо акаунт створював не ти — просто видали цей лист і нічого не роби.
+
+AI Академія — безкоштовні курси про штучний інтелект українською.
+ai-academia.com.ua`;
+
+  const headers: Record<string, string> = {
+    "Authorization": `Bearer ${RESEND_KEY}`,
+    "Content-Type": "application/json",
+  };
+  // Ключі ідемпотентності живуть у Resend 24 години: повторна доставка того
+  // самого вебхука не дасть людині другого листа. Якщо id у записі немає,
+  // заголовок просто не ставимо — адресу в нього класти не можна.
+  const id = String(r?.id ?? "").trim();
+  if (id) headers["Idempotency-Key"] = `welcome-${id}`;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        from: MAIL_FROM,
+        to: [email],
+        subject: "Вітаємо в AI Академії — акаунт створено",
+        html,
+        text,
+      }),
+    });
+    if (!res.ok) {
+      // Тіло відповіді Resend може містити адресу — вирізаємо перед логом.
+      const detail = (await res.text()).slice(0, 200).replace(/[^\s@]+@[^\s@]+/g, "…");
+      console.error(`[015 welcome] Resend відповів ${res.status}: ${detail}`);
+    }
+  } catch (e) {
+    console.error(
+      "[015 welcome] запит до Resend не вдався:",
+      (e instanceof Error ? e.message : String(e)).replace(/[^\s@]+@[^\s@]+/g, "…"),
+    );
+  }
+}
+
 Deno.serve(async (req) => {
   let body: any;
   try { body = await req.json(); } catch { return new Response("ok"); }
@@ -380,14 +496,33 @@ Deno.serve(async (req) => {
     if (WEBHOOK_SECRET && req.headers.get("x-webhook-secret") !== WEBHOOK_SECRET) {
       return new Response("forbidden", { status: 403 });
     }
-    if (body.table === "profiles" && body.type === "INSERT" && ADMIN) {
+    if (body.table === "profiles" && body.type === "INSERT") {
       const r = body.record;
-      await sendMessage(
-        ADMIN,
-        `🟢 <b>Нова реєстрація</b>\n` +
-        `Ім'я: ${escapeHtml(r.full_name || "—")}\n` +
-        `Email: ${escapeHtml(r.email || "—")}`,
-      );
+      // 015 · умова «&& ADMIN» ПЕРЕЇХАЛА з гілки всередину, до самого
+      // повідомлення: лист «Вітаємо» людині не має залежати від того, чи
+      // налаштований чат адміна. Якби умова лишилась на гілці, без
+      // ADMIN_CHAT_ID лист тихо не пішов би.
+      // Promise.allSettled, а не await поспіль: впалий Resend не повинен
+      // забирати з собою сповіщення адміну, і навпаки.
+      const results = await Promise.allSettled([
+        ADMIN
+          ? sendMessage(
+              ADMIN,
+              `🟢 <b>Нова реєстрація</b>\n` +
+              `Ім'я: ${escapeHtml(r.full_name || "—")}\n` +
+              `Email: ${escapeHtml(r.email || "—")}`,
+            )
+          : Promise.resolve(),
+        sendWelcomeEmail(r),
+      ]);
+      // allSettled ковтає відмови мовчки, а до 015 впалий sendMessage віддавав
+      // 500 і лишав слід у логах Supabase. Щоб не втратити цей слід — пишемо самі.
+      const names = ["telegram", "welcome-email"];
+      results.forEach((x, i) => {
+        if (x.status !== "rejected") return;
+        const m = x.reason instanceof Error ? x.reason.message : String(x.reason);
+        console.error(`[015 profiles] ${names[i]}: ${m.replace(/[^\s@]+@[^\s@]+/g, "…")}`);
+      });
     } else if (body.table === "certificates" && body.type === "INSERT" && ADMIN) {
       // maybe_issue_certificate вставляє з «on conflict do nothing», тож один
       // сертифікат = один INSERT = одне сповіщення.

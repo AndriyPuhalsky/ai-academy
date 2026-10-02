@@ -12,9 +12,17 @@
    • будує карту модулів window.AIA_MODULE_MAP { code: uuid };
    • підвантажує прогрес користувача у window.AIAProgress.hydrate();
    • веде вхід поштою і вхід через Google (OAuth), читає ознаку помилки з URL;
+   • веде ВІДНОВЛЕННЯ ПАРОЛЯ (015): просить лист, читає ознаку повернення з
+     листа, обмінює token_hash на сесію й відкриває діалог нового пароля;
    • читає й пише ім'я для сертифіката (public.profiles.full_name).
 
-   Публічний інтерфейс:
+   Контракт із шаром вигляду доповнено двома обробниками (015, 01-plan.md §3.1):
+     handlers.requestPasswordReset({ email }) → { ok } | { ok:false, message }
+     handlers.updatePassword(password)        → { ok } | { ok:false, message }
+   і одним викликом у зворотний бік: window.AIAAuthUI.openPasswordDialog({ onSave }).
+
+   Публічний інтерфейс (015 його НЕ розширює — зовнішніх споживачів у
+   відновлення немає):
      window.AIAAuth.open(note) · .signOut() · .user() · .name()
                    .editName(opener) · .confirmCertificateName({ opener })
    ============================================================ */
@@ -45,6 +53,11 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_EMAIL = 254;   // практична межа довжини email
 const MIN_NAME = 2;
 const MAX_NAME = 100;
+// 015 · межі пароля. Ті самі числа перевіряє форма в js/auth-ui.js — ця копія
+// потрібна тому, що updatePassword() кличуть не лише з форми, і покладатись на
+// чужу валідацію шар даних не має права.
+const MIN_PASS = 6;
+const MAX_PASS = 128;
 
 // Очищаємо ім'я: прибираємо керівні символи й кутові дужки, тримаємо в межах довжини.
 // УВАГА: діапазон керівних символів записаний ЕСКЕЙПАМИ (\u0000-\u001F), а не
@@ -69,6 +82,10 @@ function safeErrorText(e) {
   const name = (e && e.name) || "Error";
   const status = e && e.status != null ? " " + e.status : "";
   const msg = String((e && e.message) || "")
+    // 015 \u00b7 \u0430\u0434\u0440\u0435\u0441\u0430 \u043f\u043e\u0448\u0442\u0438 \u0442\u0435\u0436 \u043d\u0435 \u043c\u0430\u0454 \u043f\u043e\u0442\u0440\u0430\u043f\u043b\u044f\u0442\u0438 \u0432 \u043a\u043e\u043d\u0441\u043e\u043b\u044c: \u0443 \u0432\u0456\u0434\u043f\u043e\u0432\u0456\u0434\u044f\u0445 GoTrue
+    // \u043d\u0430 /recover \u0456 /user \u0432\u043e\u043d\u0430 \u0442\u0440\u0430\u043f\u043b\u044f\u0454\u0442\u044c\u0441\u044f \u0412 \u0422\u0415\u041a\u0421\u0422\u0406 \u043f\u043e\u0432\u0456\u0434\u043e\u043c\u043b\u0435\u043d\u043d\u044f, \u0430 \u043f\u0456\u0434
+    // \u043f\u0440\u0430\u0432\u0438\u043b\u043e \u00ab20+ \u0441\u0438\u043c\u0432\u043e\u043b\u0456\u0432 \u043f\u043e\u0441\u043f\u0456\u043b\u044c\u00bb \u043a\u043e\u0440\u043e\u0442\u043a\u0430 \u0430\u0434\u0440\u0435\u0441\u0430 \u043d\u0435 \u043f\u0456\u0434\u043f\u0430\u0434\u0430\u0454.
+    .replace(/[^\s@]+@[^\s@]+/g, "\u2026")
     .replace(/[A-Za-z0-9_-]{20,}/g, "\u2026")
     .slice(0, 120);
   return name + status + (msg ? ": " + msg : "");
@@ -97,8 +114,13 @@ async function boot() {
   // 1. ЧИТАЄМО URL ПЕРШИМ. supabase-js із detectSessionInUrl вичищає auth-параметри
   //    сам і асинхронно — прочитати пізніше означає не прочитати взагалі.
   let oauthPanel = readOAuthError();
+  // 015 · ознаку повернення з листа читаємо ТУТ, а не слухаємо подію
+  // PASSWORD_RECOVERY: supabase-js шле її з _initialize() через setTimeout(0),
+  // а підписка onAuthStateChange нижче стається аж після двох мережевих кроків —
+  // подію ми гарантовано пропустимо.
+  const recovery = readRecovery();
   const hadCode = hasAuthCode();
-  const hadAuthParams = oauthPanel !== null || hadCode;
+  const hadAuthParams = oauthPanel !== null || hadCode || recovery !== null;
   // Ознака «на Google людину відправили саме ми» — ставиться в signInWithGoogle
   // перед редіректом, читається тут рівно один раз (див. takeOAuthStarted).
   const cameFromGoogle = takeOAuthStarted();
@@ -124,6 +146,28 @@ async function boot() {
   // 3. Одразу після createClient, до refreshSession — віддаємо шару вигляду handlers.
   const u = ui();
   if (u) u.init({ handlers: handlers, certUrl: CERT_URL });
+  if (u) ensureLinkExpiredText(u);
+
+  // 3b. 015 · обмін token_hash з листа на сесію — ОБОВ'ЯЗКОВО до кроку 4.
+  //     Якщо обміняти після refreshSession(), ім'я в шапці й прогрес на сторінці
+  //     уроку завантажаться від гостя, і людина побачить порожню шапку з
+  //     відкритим діалогом пароля.
+  //     kind === "implicit" тут нічого не потребує: сесію з #access_token
+  //     підхопить сам supabase-js (detectSessionInUrl увімкнений типово).
+  if (recovery && recovery.kind === "token") {
+    try {
+      const { error } = await sb.auth.verifyOtp({
+        token_hash: recovery.tokenHash,
+        type: "recovery"
+      });
+      if (error) throw error;
+    } catch (e) {
+      // Не ковтаємо: прострочене чи вже використане посилання — звичайна
+      // ситуація, але причину має бути видно. Через safeErrorText, бо сирий
+      // AuthApiError несе тіло відповіді.
+      console.warn("[AIA auth] verifyOtp:", safeErrorText(e));
+    }
+  }
 
   // 4. Сесія. САМЕ ТУТ supabase-js обмінює ?code= на сесію (PKCE).
   //    011 · рядок 8: мапа модулів і сесія незалежні (мапу читає лише запис
@@ -169,7 +213,15 @@ async function boot() {
   renderSlot();
 
   // 6. Повернулись із помилкою — модалку відкриваємо самі.
-  if (oauthPanel && u) u.openAuthModal({ panel: oauthPanel });
+  if (oauthPanel && u) {
+    u.openAuthModal({ panel: oauthPanel });
+  } else if (recovery && u) {
+    // 015 · ознака відновлення була. Два результати, і третього немає:
+    //   сесія є   → людина підтвердила володіння поштою, просимо новий пароль;
+    //   сесії нема → посилання протерміноване/використане/підроблене.
+    if (window.AIA_USER) runPasswordDialog();
+    else u.openAuthModal({ panel: "link-expired" });
+  }
 }
 
 async function buildModuleMap() {
@@ -509,11 +561,128 @@ function readOAuthError() {
     if (!code) return;
     const d = (p.get("error_description") || "").toLowerCase();
     const probe = (code + " " + d).toLowerCase();
-    if (/access_denied|denied|cancel/.test(probe)) out = "cancelled";
+    // 015 · ЦЯ ГІЛКА МАЄ СТОЯТИ ПЕРШОЮ. GoTrue повертає прострочене посилання
+    // як error=access_denied&error_code=otp_expired, тобто наступна перевірка
+    // зловила б його раніше й показала «Вхід через Google скасовано» — хибну
+    // причину, після якої людина не знає, що робити.
+    if (/otp_expired|email link is invalid|email link has expired/.test(probe)) out = "link-expired";
+    else if (/access_denied|denied|cancel/.test(probe)) out = "cancelled";
     else if (/identity|already|exists|conflict/.test(probe)) out = "conflict";
     else out = "other";
   });
   return out;
+}
+
+/* ---------- Відновлення пароля (015) ---------- */
+
+// Ознака «людина прийшла з листа». Три стани, інших немає:
+//   { kind: "token", tokenHash } — лист із шаблону (посилання несе token_hash);
+//   { kind: "implicit" }         — запас на випадок, якщо шаблон колись
+//                                  повернуть до {{ .ConfirmationURL }};
+//   null                         — звичайне завантаження сторінки.
+// Дивимось і в search, і в hash: формат залежить від шаблону листа, а він
+// живе не в коді, а в Dashboard, тож покладатись на одне місце не можна.
+function readRecovery() {
+  try {
+    const parts = [location.search, location.hash];
+    for (let i = 0; i < parts.length; i++) {
+      const raw = parts[i] || "";
+      if (!raw) continue;
+      const p = new URLSearchParams(raw.replace(/^[#?]/, ""));
+      if ((p.get("type") || "").toLowerCase() !== "recovery") continue;
+      const tokenHash = p.get("token_hash");
+      if (tokenHash) return { kind: "token", tokenHash: tokenHash };
+      if (p.get("access_token")) return { kind: "implicit" };
+    }
+  } catch (e) {
+    console.warn("[AIA auth] readRecovery:", (e && e.message) || e);
+  }
+  return null;
+}
+
+// Тонка обгортка над діалогом нового пароля: нічого не вирішує сама, лише
+// зводить шар вигляду з обробником updatePassword.
+// Якщо auth-ui.js старіший і методу ще немає — кажемо це в консоль і виходимо.
+// Сторінка від цього не ламається: людина вже в сесії й може працювати далі.
+async function runPasswordDialog(opener) {
+  const u = ui();
+  if (!u || typeof u.openPasswordDialog !== "function") {
+    console.warn("[AIA auth] openPasswordDialog недоступний — онови js/auth-ui.js.");
+    return false;
+  }
+  try {
+    const res = await u.openPasswordDialog({
+      opener: opener,
+      onSave: function (password) { return updatePassword(password); }
+    });
+    return !!(res && res.action === "saved");
+  } catch (e) {
+    console.error("[AIA auth] openPasswordDialog:", safeErrorText(e));
+    return false;
+  }
+}
+
+// Запобіжник на час, поки шар вигляду ще не знає виду панелі "link-expired":
+// buildErrorPanel() падає на T.err.other, а це «Не вдалося увійти через Google» —
+// текст, який до відновлення пароля не має жодного стосунку.
+// Нічого не перезаписує: щойно js/auth-ui.js оголосить свій рядок, цей код
+// мовчки нічого не робить. Тексти — зона шару вигляду, це лише страховка.
+function ensureLinkExpiredText(u) {
+  try {
+    const err = u && u.texts && u.texts.err;
+    if (!err || err["link-expired"]) return;
+    err["link-expired"] = {
+      title: "Посилання вже не діє",
+      why: "Воно діє одну годину й лише один раз. Схоже, час минув або ти вже ним скористався.",
+      act: "Надіслати новий лист",
+      actId: "open-reset",
+      alt: "або увійди паролем нижче"
+    };
+  } catch (e) {
+    /* тексти недоступні — панель просто буде загальною, вхід від цього не ламається */
+  }
+}
+
+// Лист «Відновлення пароля». Повертає { ok: true } ОДНАКОВО — існує акаунт із
+// такою адресою чи ні (так поводиться й сам Supabase: resetPasswordForEmail
+// не розкриває наявність акаунта). Інакше форма стала б перевіркою
+// «чи зареєстрований цей email».
+async function requestPasswordReset(payload) {
+  if (!sb) return { ok: false, message: "Сервіс ще не готовий. Онови сторінку і спробуй ще раз." };
+  const email = normalizeEmail(payload && payload.email);
+  if (!EMAIL_RE.test(email)) return { ok: false, message: "Схоже, email введено некоректно." };
+
+  // Без search і без hash — рівно як у signInWithGoogle: інакше після
+  // повернення з листа старі параметри змішаються з token_hash і очищення
+  // URL стане неоднозначним.
+  const back = location.origin + location.pathname;
+  try {
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: back });
+    if (error) throw error;
+    return { ok: true };
+  } catch (e) {
+    console.warn("[AIA auth] resetPasswordForEmail:", safeErrorText(e));
+    return { ok: false, message: translateError(e && e.message, e) };
+  }
+}
+
+// Новий пароль для вже відкритої сесії. БЕЗ location.reload(): updateUser
+// породжує USER_UPDATED → onAuthStateChange вище сам перемалює шапку, а
+// перезавантаження закрило б діалог просто перед екраном успіху.
+async function updatePassword(password) {
+  if (!sb) return { ok: false, message: "Сервіс ще не готовий. Онови сторінку і спробуй ще раз." };
+  const value = String(password == null ? "" : password);
+  if (value.length < MIN_PASS) return { ok: false, message: "Пароль має містити щонайменше 6 символів." };
+  if (value.length > MAX_PASS) return { ok: false, message: "Пароль задовгий (максимум 128 символів)." };
+
+  try {
+    const { error } = await sb.auth.updateUser({ password: value });
+    if (error) throw error;
+    return { ok: true };
+  } catch (e) {
+    console.warn("[AIA auth] updatePassword:", safeErrorText(e));
+    return { ok: false, message: translateError(e && e.message, e) };
+  }
 }
 
 function hasAuthCode() {
@@ -530,9 +699,13 @@ function hasAuthCode() {
 // Прибираємо ЛИШЕ auth-параметри. Не location.pathname навпростець:
 // так на сторінці модуля виживають і ?utm_source=, і якір #lesson-3.
 function cleanUrl() {
+  // 015 · "token_hash" тут обов'язковий: без нього адреса після відновлення
+  // лишилась би з робочим (а після verifyOtp — уже використаним) токеном,
+  // який поїхав би далі в історію браузера, закладки й «поділитись».
   const AUTH_KEYS = ["code", "state", "error", "error_code", "error_description",
     "access_token", "refresh_token", "expires_in", "expires_at",
-    "token_type", "provider_token", "provider_refresh_token", "type"];
+    "token_type", "provider_token", "provider_refresh_token", "type",
+    "token_hash"];
   try {
     const url = new URL(location.href);
     let touched = false;
@@ -611,12 +784,53 @@ function translateError(msg, err) {
   if (status === 429 || /over_email_send_rate_limit|over_request_rate_limit|rate limit|too many requests/i.test(probe)) {
     return "Забагато спроб. Зачекай хвилину і спробуй ще раз.";
   }
+  // D-02 (QA коло 1, 015) · обрив мережі. Метро, Wi-Fi без інтернету, вимкнений
+  // модем — не рідкість, а англійське "Failed to fetch" під українським полем
+  // читається як поломка сайту. Розпізнаємо ДВОМА незалежними ознаками, бо
+  // текст у кожного браузера свій:
+  //   • сам об'єкт помилки: auth-js обгортає будь-яке відхилення fetch у
+  //     AuthRetryableFetchError зі status === 0 (виміряно на @supabase/auth-js
+  //     2.117.2 — саму версію віддає esm.sh на "@supabase/supabase-js@2" —
+  //     lib/fetch.js, _handleRequest → catch). Саме status === 0 тут несучий:
+  //     той самий клас прилітає й на HTTP 500/502/503/504/520-530, але там
+  //     інтернет у людини є, і текст про нього був би брехнею;
+  //   • текст: Chrome "Failed to fetch", Firefox "NetworkError when attempting
+  //     to fetch resource.", Safari рівно "Load failed", undici "fetch failed".
+  // err.status читаємо НАПРЯМУ, а не через status вище: там `err.status ||
+  // err.statusCode`, і для нуля це дає undefined (0 — хибне значення).
+  if ((err && err.name === "AuthRetryableFetchError" && err.status === 0) ||
+      /failed to fetch|networkerror when attempting to fetch|network request failed/i.test(probe) ||
+      /^\s*(load failed|fetch failed)\s*\.?\s*$/i.test(String(msg || ""))) {
+    return "Немає зв'язку. Перевір інтернет і спробуй ще раз.";
+  }
+  // 015 · відновлення пароля. Перевіряємо по code + message (а не лише по msg):
+  // у частини відповідей GoTrue текст порожній, а код є.
+  if (/same_password|should be different/i.test(probe)) {
+    return "Новий пароль має відрізнятися від старого.";
+  }
+  if (/Auth session missing|session_not_found/i.test(probe)) {
+    return "Посилання вже не діє — надішли лист ще раз.";
+  }
+  if (/otp_expired|Email link is invalid or has expired|Token has expired/i.test(probe)) {
+    return "Посилання вже не діє — надішли лист ще раз.";
+  }
+  if (/email_address_not_authorized|Email address .* not authorized/i.test(probe)) {
+    return "Не вдалося надіслати лист. Напиши нам — допоможемо.";
+  }
   if (!msg) return "Щось пішло не так. Спробуй ще раз.";
   if (/Invalid login credentials/i.test(msg)) return "Невірний email або пароль.";
   if (/already registered|already exists/i.test(msg)) return "Такий email уже зареєстровано — увійди.";
   if (/at least 6|password should be/i.test(msg)) return "Пароль має містити щонайменше 6 символів.";
   if (/Email not confirmed/i.test(msg)) return "Спершу підтверди email (перевір пошту).";
-  return msg;
+  // D-02 · тут стояло `return msg` — і будь-який невпізнаний текст Supabase
+  // їхав під поле англійською. Контракт функції: на вхід сире повідомлення
+  // провайдера, на вихід — ГОТОВИЙ український текст, тож неперекладене
+  // замінюємо загальним. Сирий текст не губимо: лишаємо в консолі через
+  // safeErrorText, тобто без адреси пошти й без токенів. Логуємо лише ТУТ,
+  // у єдиній гілці «не впізнали»: впізнані ситуації або вже залоговані на
+  // місці виклику, або штатні.
+  console.warn("[AIA auth] немає перекладу для помилки:", safeErrorText(err || { message: msg }));
+  return "Щось пішло не так. Спробуй ще раз.";
 }
 
 /* ---------- Контракт із шаром вигляду (розділ 5.3 плану) ---------- */
@@ -626,7 +840,12 @@ const handlers = {
   signInWithPassword: signInWithPassword,
   signUp: signUp,
   saveName: saveName,
-  signOut: signOut
+  signOut: signOut,
+  // 015 · 01-plan.md §3.1. Обидва повертають { ok: true } або
+  // { ok: false, message } з ГОТОВИМ українським текстом — шар вигляду
+  // показує message як є й нічого не перекладає.
+  requestPasswordReset: requestPasswordReset,
+  updatePassword: updatePassword
 };
 
 /* ---------- Публічний інтерфейс ---------- */
