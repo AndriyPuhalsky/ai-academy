@@ -15,6 +15,16 @@
    Стилі — css/components.css (дизайн-система 009). До етапу 9 задачі 010
    вони жили в окремому файлі старої мови, який тепер видалений.
 
+   015 · Тут же живуть обидві поверхні відновлення пароля — ДИЗАЙН-БРИФУ
+   НЕМА СВІДОМО (рішення власника 2026-10-02): усе складено з наявних
+   компонентів системи 009, «макет» — розділ 5 файла
+   dev/build/015-password-reset/01-plan.md.
+     · вигляд «Відновлення пароля» — та сама картка модалки входу
+       (data-view="reset" на #aiaAuthModal);
+     · діалог «Новий пароль» — окрема поверхня поверх стека,
+       openPasswordDialog({ onSave, opener }) → Promise<{ action }>.
+   ⚠ Видимість у цьому файлі перемикається ЛИШЕ через show() — див. §2.
+
    Публічний інтерфейс — унизу файла (window.AIAAuthUI).
    ============================================================ */
 
@@ -88,6 +98,19 @@
         why: "Минуло 8 секунд, а вікно входу так і не відкрилось.",
         act: "Спробувати ще раз",
         alt: "або увійди поштою нижче"
+      },
+
+      /* 015 · Повернення з листа відновлення, коли токен уже витрачений або
+         прострочений. Єдиний вид панелі з ВЛАСНИМ actId: кнопка відкриває
+         вигляд «Відновлення», а не повторює вхід через Google. Наявним
+         чотирьом видам actId не дописуємо — buildErrorPanel підставить
+         типове "retry-google". */
+      "link-expired": {
+        title: "Посилання вже не діє",
+        why: "Воно діє одну годину й лише один раз. Схоже, час минув або ти вже ним скористався.",
+        act: "Надіслати новий лист",
+        actId: "open-reset",
+        alt: "або увійди паролем нижче"
       }
     },
 
@@ -142,6 +165,39 @@
       wait: "Зачекай…",
       checkMail: "Готово! Якщо прийшов лист — підтверди пошту, тоді увійди.",
       generic: "Щось пішло не так. Спробуй ще раз."
+    },
+
+    /* 015 · Вигляд «Відновлення пароля». Тон той самий, що в усій модалці —
+       на «ти»; «Забули пароль?» лишається єдиною ввічливою формою свідомо
+       (рішення плану, відкрите питання 1): саме цим рядком її шукають очима.
+       okBody — найдовший рядок задачі, 117 знаків: на 390 px він дає
+       4–6 рядків у ds-note, і саме його треба міряти на перенос. */
+    reset: {
+      link: "Забули пароль?",
+      title: "Відновлення пароля",
+      lead: "Введи email, яким ти реєструвався — надішлемо посилання, щоб задати новий пароль.",
+      google: "Входив через Google? Тоді пароль не потрібен — повернись і натисни «Продовжити з Google».",
+      submit: "Надіслати посилання",
+      wait: "Надсилаємо…",
+      back: "← Назад до входу",
+      okTitle: "Перевір пошту",
+      okBody: "Якщо акаунт із цією адресою існує, лист уже в дорозі. Посилання діє одну годину. Не бачиш листа — глянь у теку «Спам»."
+    },
+
+    /* 015 · Діалог «Новий пароль». «Якщо акаунт існує» в reset.okBody і
+       відсутність будь-якої згадки про існування акаунта тут — не
+       ввічливість, а вимога: інакше форма стала б перевіркою «чи
+       зареєстрований цей email». */
+    pass: {
+      title: "Новий пароль",
+      desc: "Придумай новий пароль — від 6 символів. Він почне діяти одразу.",
+      label: "Новий пароль",
+      hint: "Мінімум 6 символів.",
+      save: "Зберегти пароль",
+      cancel: "Скасувати",
+      okTitle: "Пароль змінено",
+      okBody: "Ти вже в акаунті — більше нічого робити не треба. Наступного разу входь новим паролем.",
+      done: "Готово"
     }
   };
 
@@ -226,6 +282,26 @@
     return window.innerWidth < 640;
   }
 
+  /* ⚠ 015 · ПАСТКА, ЯКУ НЕ ВИДНО НІ В КОНСОЛІ, НІ В ЗБІРЦІ (01-plan.md §5.0).
+     Атрибут `hidden` програє ІНЛАЙНОВОМУ `display`, а в цій модалці інлайновий
+     display стоїть щонайменше на трьох вузлах: #aiaSocial (grid), рядок «або»
+     #aiaOrRow (grid) і #aiaForm (grid); у діалозі пароля — на #aiaPassActions
+     (flex). Поставити на такий вузол `hidden` — і він лишиться на екрані без
+     жодної помилки (ризик Р-2: кнопка Google у вигляді «Відновлення»).
+     На вузлах БЕЗ інлайнового display самого `hidden` достатньо: у
+     css/components.css:2015 живе `[hidden][hidden] { display: none }` (0,2,0),
+     тобто він перебиває і `.ds-btn { display: inline-flex }`, і `.ds-fld`.
+     Але щоб не тримати в голові два правила, ВСЯ видимість, яку перемикає
+     цей файл, іде через show(): вона ставить обидва прапорці, а display:none
+     заразом виносить вузол із зупинок табуляції (focusables() читає
+     checkVisibility, і display:none для нього — «не рендериться»).
+     display — яке значення віддати при показі ("" = віддати CSS/класу). */
+  function show(node, on, display) {
+    if (!node) return;
+    node.hidden = !on;
+    node.style.display = on ? (display || "") : "none";
+  }
+
   /* ==========================================================
      3. БІЛДЕРИ РОЗМІТКИ (порт макета, один рядок HTML кожен)
      ========================================================== */
@@ -253,9 +329,14 @@
     /* 010 · .aia-panel* → ds-note. Тон лишається «попередження», а не
        «помилка»: людина нічого не зламала — просто вхід не вдався, і поруч
        одразу є робочий шлях. Гліф ▲ у .ds-note__glyph, а не власна плитка. */
+    /* 015 · data-act БІЛЬШЕ НЕ ЗАШИТИЙ. Панель «Посилання вже не діє» має
+       вести у вигляд «Відновлення» (actId: "open-reset"), а не повторювати
+       вхід через Google. Типове значення лишається "retry-google" — саме
+       тому наявним чотирьом видам у T.err нічого дописувати не треба. */
     var act = e.act
       ? '<p style="display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-2)">' +
-          '<button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" data-act="retry-google">' + esc(e.act) + "</button>" +
+          '<button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" data-act="' +
+            esc(e.actId || "retry-google") + '">' + esc(e.act) + "</button>" +
           (e.alt ? '<span class="ds-small">' + esc(e.alt) + "</span>" : "") +
         "</p>"
       : "";
@@ -292,14 +373,16 @@
        components.css його не додали) — тому дві хайрлайн-лінії токеном
        --c-line і жодного нового імені. Деталі — у звіті. */
     var orRow =
-      '<div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:var(--s-3);margin:var(--s-4) 0">' +
+      '<div id="aiaOrRow" style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:var(--s-3);margin:var(--s-4) 0">' +
         '<span style="height:var(--bw);background:var(--c-line)"></span>' +
         '<span class="ds-eyebrow">' + esc(T.or) + "</span>" +
         '<span style="height:var(--bw);background:var(--c-line)"></span>' +
       "</div>";
 
     return (
-      '<div class="ds-dlg" id="aiaAuthModal" hidden data-open="false">' +
+      /* 015 · data-view на корені — не лише стан, а й єдиний селектор, яким
+         і код, і QA бачать, у якому вигляді модалка: "auth" | "reset". */
+      '<div class="ds-dlg" id="aiaAuthModal" hidden data-open="false" data-view="auth">' +
         '<div class="ds-dlg__scrim"></div>' +
         '<div class="ds-dlg__card" role="dialog" aria-modal="true" aria-labelledby="aiaModalTitle"' + describedBy + ' tabindex="-1">' +
 
@@ -339,6 +422,11 @@
               '<button type="button" class="ds-btn ds-btn--ghost ds-btn--sm ds-tabs__pill" id="aiaTabRegister" data-tab="register" aria-pressed="' + (tab === "register") + '" aria-controls="aiaForm">' + esc(T.tabRegister) + "</button>" +
             "</div>" +
 
+            /* 015 · лід вигляду «Відновлення». Стоїть на місці перемикача
+               вкладок (той у цьому вигляді схований), тому й відступ знизу
+               свій — зі шкали токенів, як у #aiaNameDesc. */
+            '<p class="ds-lead" id="aiaResetLead" style="margin-bottom:var(--s-4)" hidden>' + esc(T.reset.lead) + "</p>" +
+
             '<div id="aiaForm" style="display:grid;gap:var(--s-3)" aria-labelledby="aiaTab' + (tab === "register" ? "Register" : "Login") + '">' +
               /* M7 · розкриття поля імені: grid-template-rows 0fr→1fr.
                  visibility зі ступінчастим переходом — інакше приховане поле
@@ -357,16 +445,38 @@
                   '<p class="ds-fld__hint" id="aiaNameHint">' + esc(T.nameHint) + "</p>" +
                 "</div>" +
               "</div>" +
-              '<div class="ds-fld">' +
+              '<div class="ds-fld" id="aiaEmailFld">' +
                 '<label class="sr-only" for="aiaEmail">' + esc(T.emailPh) + "</label>" +
                 '<input id="aiaEmail" class="ds-fld__input" type="email" placeholder="' + esc(T.emailPh) + '" autocomplete="email" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="254" />' +
               "</div>" +
-              '<div class="ds-fld">' +
+              '<div class="ds-fld" id="aiaPassWrap">' +
                 '<label class="sr-only" for="aiaPass">' + esc(T.passLabel) + "</label>" +
                 '<input id="aiaPass" class="ds-fld__input" type="password" placeholder="' + esc(T.passPh) + '" autocomplete="' + (tab === "register" ? "new-password" : "current-password") + '" maxlength="128" />' +
               "</div>" +
+
+              /* 015 · «Забули пароль?» видно РІВНО в одному стані: вкладка
+                 «Вхід» у вигляді "auth". На «Реєстрації» початковий стан
+                 ставиться тут, у розмітці, а не в wireModal — інакше рядок
+                 блимнув би в першому кадрі (картка стає видимою в
+                 openDialog, тобто ДО підключення поведінки). */
+              '<p id="aiaForgotRow" style="margin:0' + (tab === "register" ? ";display:none" : "") + '"' +
+                 (tab === "register" ? " hidden" : "") + ">" +
+                '<button type="button" class="ds-btn ds-btn--quiet ds-btn--sm" id="aiaForgot">' + esc(T.reset.link) + "</button>" +
+              "</p>" +
+              '<p class="ds-small" id="aiaResetHint" hidden>' + esc(T.reset.google) + "</p>" +
+
               '<p class="ds-fld__error" id="aiaError" role="alert" hidden></p>' +
               '<button type="button" class="ds-btn ds-btn--primary" id="aiaSubmit">' + esc(tab === "register" ? T.submitRegister : T.submitLogin) + "</button>" +
+
+              /* 015 · хвіст вигляду «Відновлення». #aiaResetOk — ЖИВА область,
+                 яка існує порожньою весь час, поки вигляд на екрані: текст
+                 успіху приходить у вже озвучену область, інакше скрінрідер
+                 промовчить. У вигляді «Вхід» вона схована — див. setView. */
+              '<button type="button" class="ds-btn ds-btn--primary" id="aiaResetSubmit" hidden>' + esc(T.reset.submit) + "</button>" +
+              '<div id="aiaResetOk" role="status" aria-live="polite" hidden></div>' +
+              '<p id="aiaResetBackRow" style="margin:0" hidden>' +
+                '<button type="button" class="ds-btn ds-btn--quiet ds-btn--sm" id="aiaResetBack">' + esc(T.reset.back) + "</button>" +
+              "</p>" +
             "</div>" +
           "</div>" +
 
@@ -705,12 +815,96 @@
       Array.prototype.forEach.call(tabBtns, function (b) {
         b.setAttribute("aria-pressed", String(b.getAttribute("data-tab") === t));
       });
-      q("#aiaModalTitle").textContent = t === "register" ? T.titleRegister : T.titleLogin;
       q("#aiaSubmit").textContent = t === "register" ? T.submitRegister : T.submitLogin;
-      setNameWrap(t === "register");
       q("#aiaPass").setAttribute("autocomplete", t === "register" ? "new-password" : "current-password");
-      q("#aiaForm").setAttribute("aria-labelledby", t === "register" ? "aiaTabRegister" : "aiaTabLogin");
+      /* 015 · у вигляді «Відновлення» заголовок, підпис форми й поле імені
+         належать ЙОМУ, а не вкладці. Без цієї межі showPanel("conflict"),
+         який кличе setTab("login"), переписав би «Відновлення пароля» на
+         «Вхід» і розгорнув би поле імені посеред чужого вигляду. */
+      if (el.getAttribute("data-view") !== "reset") {
+        q("#aiaModalTitle").textContent = t === "register" ? T.titleRegister : T.titleLogin;
+        q("#aiaForm").setAttribute("aria-labelledby", t === "register" ? "aiaTabRegister" : "aiaTabLogin");
+        setNameWrap(t === "register");
+      }
+      syncForgot();
       hideInlineError();
+    }
+
+    /* 015 · «Забули пароль?» — єдиний рядок, видимість якого залежить ОДРАЗУ
+       від двох станів (вкладка + вигляд), тому вона зведена в одне місце й
+       кличеться з обох перемикачів. */
+    function syncForgot() {
+      show(q("#aiaForgotRow"),
+           el.getAttribute("data-view") !== "reset" &&
+           tabs.getAttribute("data-tab") === "login");
+    }
+
+    /* --- 015 · Вигляд «Відновлення пароля» (01-plan.md §5.2) --------------
+       Та сама картка, інший склад: соц-кнопка, «або», перемикач вкладок,
+       поле пароля й «Увійти» ховаються; зʼявляються лід, підказка про
+       Google, «Надіслати посилання» й «← Назад до входу».
+       Значення поля email переноситься САМЕ СОБОЮ — ми його не чіпаємо
+       (критерій 6: людина не передруковує адресу).
+       #aiaPanelSlot лишається як є: панель «Посилання вже не діє» має бути
+       видимою й у вигляді «Відновлення» — людина сама вирішує, надіслати
+       новий лист чи увійти паролем.
+       ⚠ #aiaSocial і #aiaOrRow мають ІНЛАЙНОВИЙ display:grid — на них
+       `hidden` не діє, і тільки show() з явним "grid" повертає їх назад
+       разом із власним gap. */
+    function setView(v, opts) {
+      var reset = v === "reset";
+      opts = opts || {};
+      el.setAttribute("data-view", reset ? "reset" : "auth");
+
+      show(q("#aiaSocial"), !reset, "grid");
+      show(q("#aiaOrRow"), !reset, "grid");
+      show(q("#aiaTabs"), !reset);
+      show(q("#aiaResetLead"), reset);
+      show(q("#aiaEmailFld"), true);          // після успіху поле треба вернути
+      show(q("#aiaPassWrap"), !reset);
+      show(q("#aiaResetHint"), reset);
+      show(q("#aiaSubmit"), !reset);
+      show(q("#aiaResetSubmit"), reset);
+      show(q("#aiaResetOk"), reset);
+      show(q("#aiaResetBackRow"), reset);
+      syncForgot();
+
+      /* Статус «Відкриваємо Google…» у вигляді відновлення сенсу не має.
+         Ховаємо САМИМ АТРИБУТОМ, не show(): інлайнового display у нього
+         немає, а startWaiting/stopWaiting керують ним через .hidden — якби
+         ми лишили тут display:none, кнопка Google потім показувала б
+         порожнечу замість статусу. Та сама пастка §5.0, але в інший бік. */
+      if (reset) q("#aiaGoogleStatus").hidden = true;
+
+      // Жива область входить у вигляд ПОРОЖНЬОЮ — завжди, не лише вперше.
+      var okSlot = q("#aiaResetOk");
+      if (okSlot) okSlot.innerHTML = "";
+
+      // Кнопка могла лишитись у стані «Надсилаємо…» з попереднього заходу.
+      var rs = q("#aiaResetSubmit");
+      if (rs) { rs.disabled = false; rs.textContent = T.reset.submit; }
+
+      var tab = tabs.getAttribute("data-tab");
+      setNameWrap(reset ? false : tab === "register");
+
+      q("#aiaModalTitle").textContent = reset
+        ? T.reset.title
+        : (tab === "register" ? T.titleRegister : T.titleLogin);
+      /* Форма у вигляді «Відновлення» підписується заголовком діалогу:
+         вкладок, на які вона посилалась, на екрані більше немає. */
+      q("#aiaForm").setAttribute("aria-labelledby", reset
+        ? "aiaModalTitle"
+        : (tab === "register" ? "aiaTabRegister" : "aiaTabLogin"));
+
+      hideInlineError();
+
+      /* Фокус у поле, а не на кнопку: людина однаково має ввести адресу.
+         opts.focus === false — для нормалізації стану без перехоплення
+         фокуса (наприклад, коли вигляд ставиться разом із відкриттям). */
+      if (reset && opts.focus !== false) {
+        var f = q("#aiaEmail");
+        if (f) f.focus();
+      }
     }
 
     /* M7 · розкриття поля імені. Клас .aia-collapse жив у старій мові;
@@ -741,6 +935,7 @@
       });
     });
     el.__setTab = setTab;
+    el.__setView = setView;
 
     function hideInlineError() {
       var e = q("#aiaError");
@@ -805,17 +1000,40 @@
     el.__startWaiting = startWaiting;
     el.__stopWaiting = stopWaiting;
 
-    // Кнопка «Спробувати ще раз» усередині панелі помилки
+    /* Кнопки дій усередині панелей. 015 · дві гілки замість однієї:
+       "retry-google" — наявні чотири види панелей OAuth,
+       "open-reset"   — панель «Посилання вже не діє». */
     el.addEventListener("click", function (e) {
-      var b = e.target.closest("[data-act='retry-google']");
-      if (b) startWaiting();
+      var b = e.target.closest ? e.target.closest("[data-act]") : null;
+      if (!b || b.disabled) return;
+      var a = b.getAttribute("data-act");
+      if (a === "retry-google") startWaiting();
+      else if (a === "open-reset") setView("reset");
+    });
+
+    // --- 015 · перехід у вигляд «Відновлення» і назад ---
+    q("#aiaForgot").addEventListener("click", function () { setView("reset"); });
+    q("#aiaResetSubmit").addEventListener("click", function () { submitReset(el); });
+    q("#aiaResetBack").addEventListener("click", function () {
+      /* Порядок важливий: syncForgot усередині setTab читає вже оновлений
+         data-view, інакше рядок «Забули пароль?» лишився б схованим. */
+      setView("auth");
+      setTab("login");
+      var f = q("#aiaForgot");
+      if (f) f.focus();
     });
 
     // --- Форма email ---
     q("#aiaSubmit").addEventListener("click", function () { submitForm(el); });
     ["#aiaName", "#aiaEmail", "#aiaPass"].forEach(function (sel) {
       q(sel).addEventListener("keydown", function (e) {
-        if (e.key === "Enter") { e.preventDefault(); submitForm(el); }
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        /* 015 · у вигляді «Відновлення» Enter у полі email надсилає лист, а
+           не намагається увійти з порожнім паролем (поле пароля там сховане
+           і його значення лишається від попереднього вигляду). */
+        if (el.getAttribute("data-view") === "reset") submitReset(el);
+        else submitForm(el);
       });
     });
   }
@@ -871,10 +1089,78 @@
     });
   }
 
+  /* ==========================================================
+     5a. 015 · Відправлення листа відновлення
+     ----------------------------------------------------------
+     Валідація — ТІ САМІ межі й ТІ САМІ тексти, що в submitForm: людина не
+     має бачити двох різних формулювань про той самий email.
+     Шар даних повертає { ok: true } ОДНАКОВО — існує акаунт із цією
+     адресою чи ні. Тому тут немає жодної гілки «такого акаунта немає»:
+     інакше форма стала б перевіркою «чи зареєстрований цей email».
+     ========================================================== */
+
+  function submitReset(el) {
+    var q = function (s) { return el.querySelector(s); };
+    var btn = q("#aiaResetSubmit");
+    if (!btn || btn.disabled) return;         // подвійний клік / подвійний Enter
+    el.__hideError();
+
+    var email = q("#aiaEmail").value.trim().slice(0, MAX_EMAIL);
+    if (!email) { el.__showError(T.form.emailEmpty); return; }
+    if (!EMAIL_RE.test(email)) { el.__showError(T.form.emailBad); return; }
+
+    var original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = T.reset.wait;
+    var done = function () { btn.disabled = false; btn.textContent = original; };
+
+    callHandler("requestPasswordReset", { email: email }).then(function (res) {
+      res = res || {};
+      done();
+      // message від шару даних — ГОТОВИЙ український текст, показуємо як є.
+      if (res.ok) { resetSent(el); return; }
+      el.__showError(res.message || T.form.generic);
+    }, function (e) {
+      console.error("[AIA auth-ui] requestPasswordReset:", e);
+      done();
+      el.__showError(T.form.generic);
+    });
+  }
+
+  /* Успіх відправлення (§5.3). Прибираємо все, чим можна відправити вдруге
+     одним кліком, і наповнюємо вже ЖИВУ область #aiaResetOk: вона увійшла у
+     вигляд порожньою, тому поява тексту озвучується. Якби ми показали її
+     разом із готовим вмістом, скрінрідер промовчав би. */
+  function resetSent(el) {
+    var q = function (s) { return el.querySelector(s); };
+    show(q("#aiaEmailFld"), false);
+    show(q("#aiaResetHint"), false);
+    show(q("#aiaResetSubmit"), false);
+    show(q("#aiaResetLead"), false);
+    el.__hideError();
+
+    var ok = q("#aiaResetOk");
+    if (ok) {
+      ok.innerHTML =
+        '<div class="ds-note ds-note--ok">' +
+          '<span class="ds-note__glyph" aria-hidden="true">✓</span>' +
+          '<p class="ds-note__title">' + esc(T.reset.okTitle) + "</p>" +
+          "<p>" + esc(T.reset.okBody) + "</p>" +
+        "</div>";
+    }
+    // Єдина дія, що лишилась на картці.
+    var back = q("#aiaResetBack");
+    if (back) back.focus();
+  }
+
   function showPanel(el, kind) {
     var slot = el.querySelector("#aiaPanelSlot");
     if (!slot) return;
     slot.innerHTML = buildErrorPanel(kind);
+    /* 015 · для "link-expired" НІЧОГО не перемикаємо свідомо: панель просто
+       малюється, а людина сама вирішує — надіслати новий лист (кнопка на
+       панелі) чи увійти паролем нижче. Вгадувати за неї ми не можемо:
+       адреси, на яку просили лист, шар вигляду не знає. */
     if (kind === "conflict") {
       // Пошту користувача з URL ми не знаємо й не вигадуємо:
       // просто перемикаємо на «Вхід» і ставимо фокус у пароль.
@@ -1043,6 +1329,192 @@
           showNameError(T.form.generic);
         });
       }
+    });
+  }
+
+  /* ==========================================================
+     6a. 015 · Діалог «Новий пароль»
+     ----------------------------------------------------------
+     Відкриває шар даних після повернення з листа: сесія вже є, лишилось
+     задати пароль. Діалог НІЧОГО не зберігає сам і нічого не знає про
+     Supabase — лише зводить єдине поле з переданим onSave і показує те,
+     що той повернув. Контракт — 01-plan.md §3.2 і §5.5:
+       openPasswordDialog({ onSave, opener }) → Promise<{ action }>,
+       action === "saved" | "cancelled".
+     dismissible: true — людина вже в акаунті, замикати її в діалозі нема
+     підстав (на відміну від дотику до імені перед видачею сертифіката).
+     ========================================================== */
+
+  function buildPasswordDialog() {
+    return (
+      '<div class="ds-dlg" id="aiaPassModal" hidden data-open="false">' +
+        '<div class="ds-dlg__scrim"></div>' +
+        '<div class="ds-dlg__card" role="dialog" aria-modal="true" ' +
+             'aria-labelledby="aiaPassTitle" aria-describedby="aiaPassDesc" tabindex="-1">' +
+
+          '<div class="ds-dlg__head">' +
+            '<h2 class="ds-h3" id="aiaPassTitle">' + esc(T.pass.title) + "</h2>" +
+            /* SVG_CLOSE з обовʼязковими width/height — без них .ds-btn--icon
+               розміру нащадкам не диктує і гліф розтягується на всю кнопку. */
+            '<button type="button" class="ds-btn ds-btn--quiet ds-btn--sm ds-btn--icon" ' +
+                    'id="aiaPassClose" aria-label="' + esc(T.close) + '">' + SVG_CLOSE + "</button>" +
+          "</div>" +
+
+          '<p class="ds-small" id="aiaPassDesc" style="margin-bottom:var(--s-4)">' + esc(T.pass.desc) + "</p>" +
+
+          '<div class="ds-fld" id="aiaPassFld">' +
+            '<label class="ds-fld__label" for="aiaPassNew">' + esc(T.pass.label) + "</label>" +
+            '<input id="aiaPassNew" class="ds-fld__input" type="password" ' +
+                   'autocomplete="new-password" maxlength="128" aria-describedby="aiaPassHint" />' +
+            '<p class="ds-fld__hint" id="aiaPassHint">' + esc(T.pass.hint) + "</p>" +
+          "</div>" +
+
+          /* ⚠ .ds-fld__error::before вже друкує «✕» — текст помилки НЕ
+             повинен починатися з гліфа, інакше виходить «✕ ✕ …». */
+          '<p class="ds-fld__error" id="aiaPassError" role="alert" style="margin-top:var(--s-2)" hidden></p>' +
+
+          // Жива область: існує порожньою, наповнюється лише в мить успіху.
+          '<div id="aiaPassStatus" role="status" aria-live="polite"></div>' +
+
+          '<div id="aiaPassActions" style="display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-2);margin-top:var(--s-5)">' +
+            '<button type="button" class="ds-btn ds-btn--primary" data-act="save-pass">' + esc(T.pass.save) + "</button>" +
+            '<button type="button" class="ds-btn ds-btn--quiet" data-act="cancel">' + esc(T.pass.cancel) + "</button>" +
+          "</div>" +
+
+        "</div>" +
+      "</div>"
+    );
+  }
+
+  function wirePasswordDialog(el, o, markSaved) {
+    var q = function (s) { return el.querySelector(s); };
+    var input = q("#aiaPassNew");
+
+    q("#aiaPassClose").addEventListener("click", function () { closeEl(el, "close"); });
+
+    function hideErr() {
+      var e = q("#aiaPassError");
+      if (e) { e.textContent = ""; e.hidden = true; }
+    }
+    function showErr(text) {
+      var e = q("#aiaPassError");
+      if (!e) return;
+      e.textContent = text || T.form.generic;
+      e.hidden = false;
+    }
+
+    function save(btn) {
+      if (btn.disabled) return;               // подвійний клік / подвійний Enter
+      var pass = input ? input.value : "";    // пароль НЕ обрізаємо
+      if (!pass) { showErr(T.form.passEmpty); if (input) input.focus(); return; }
+      if (pass.length < MIN_PASS) { showErr(T.form.passShort); if (input) input.focus(); return; }
+      if (pass.length > MAX_PASS) { showErr(T.form.passLong); if (input) input.focus(); return; }
+
+      if (typeof o.onSave !== "function") {
+        console.warn("[AIA auth-ui] openPasswordDialog без onSave — зберігати нічим");
+        return;
+      }
+
+      hideErr();
+      var buttons = el.querySelectorAll("#aiaPassActions [data-act]");
+      var label = btn.textContent;
+      Array.prototype.forEach.call(buttons, function (x) { x.disabled = true; });
+      btn.textContent = T.form.wait;
+      var release = function () {
+        Array.prototype.forEach.call(buttons, function (x) { x.disabled = false; });
+        btn.textContent = label;
+      };
+
+      // Зберігаємо, поки діалог ще відкритий: якщо впаде — лишаємось тут.
+      Promise.resolve(o.onSave(pass)).then(function (res) {
+        res = res || {};
+        if (res.ok) { markSaved(); passSaved(el); return; }
+        release();
+        showErr(res.message || T.form.generic);
+        if (input) input.focus();
+      }, function (err) {
+        console.error("[AIA auth-ui] onSave (пароль):", err);
+        release();
+        showErr(T.form.generic);
+        if (input) input.focus();
+      });
+    }
+
+    if (input) {
+      input.addEventListener("keydown", function (e) {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        var b = el.querySelector('[data-act="save-pass"]');
+        if (b) save(b);
+      });
+    }
+
+    el.addEventListener("click", function (e) {
+      var b = e.target.closest ? e.target.closest("[data-act]") : null;
+      if (!b || b.disabled) return;
+      var act = b.getAttribute("data-act");
+      if (act === "save-pass") { save(b); return; }
+      /* «Скасувати» й «Готово» обидва просто закривають: який це був
+         результат, уже знає прапорець saved в openPasswordDialog. */
+      if (act === "cancel" || act === "pass-done") closeEl(el, act);
+    });
+  }
+
+  /* Успіх (§5.5). Поля й кнопки збереження зникають — лишається рівно одна
+     дія «Готово». ⚠ #aiaPassActions має ІНЛАЙНОВИЙ display:flex, тому його
+     ховає тільки show(); самого `hidden` тут не досить. */
+  function passSaved(el) {
+    var q = function (s) { return el.querySelector(s); };
+    show(q("#aiaPassFld"), false);
+    show(q("#aiaPassActions"), false);
+    show(q("#aiaPassDesc"), false);
+    var e = q("#aiaPassError");
+    if (e) { e.textContent = ""; e.hidden = true; }
+
+    var slot = q("#aiaPassStatus");
+    if (!slot) return;
+    slot.innerHTML =
+      '<div class="ds-note ds-note--ok">' +
+        '<span class="ds-note__glyph" aria-hidden="true">✓</span>' +
+        '<p class="ds-note__title">' + esc(T.pass.okTitle) + "</p>" +
+        "<p>" + esc(T.pass.okBody) + "</p>" +
+      "</div>" +
+      '<p style="margin-top:var(--s-5)">' +
+        '<button type="button" class="ds-btn ds-btn--primary" data-act="pass-done">' + esc(T.pass.done) + "</button>" +
+      "</p>";
+    var d = slot.querySelector('[data-act="pass-done"]');
+    if (d) d.focus();
+  }
+
+  function openPasswordDialog(o) {
+    o = o || {};
+
+    return new Promise(function (resolve) {
+      var settled = false;
+      var saved = false;
+
+      var el = openDialog(buildPasswordDialog(), {
+        opener: o.opener,
+        dismissible: true,
+        /* ЄДИНА точка резолву. Сюди приходять і Escape / ✕ / «Скасувати» /
+           клік по підложці, і «Готово» після успіху — різниця лише в
+           прапорці saved, який ставить wirePasswordDialog. Той самий
+           прийом, що в openNameDialog: результат фіксується один раз. */
+        onClose: function () {
+          if (settled) return;
+          settled = true;
+          resolve({ action: saved ? "saved" : "cancelled" });
+        }
+      });
+
+      /* Виняток із правила «фокус на картку» (openDialog): у діалозі рівно
+         одне поле, і людина прийшла сюди саме друкувати — клавіатура на
+         мобілці тут доречна. Назву діалогу скрінрідер однаково прочитає:
+         картка має aria-labelledby. */
+      var input = el.querySelector("#aiaPassNew");
+      if (input) input.focus();
+
+      wirePasswordDialog(el, o, function () { saved = true; });
     });
   }
 
@@ -1242,7 +1714,11 @@
         cardOf(authEl).setAttribute("aria-describedby", "aiaModalNote");
       }
       if (o.panel) showPanel(authEl, o.panel);
-      cardOf(authEl).focus();
+      /* 015 · порядок усередині: спершу panel, потім view. Вигляд
+         «Відновлення» сам ставить фокус у поле email, тому картку
+         фокусуємо лише тоді, коли в нього не переходимо. */
+      if (o.view) authEl.__setView(o.view);
+      if (o.view !== "reset") cardOf(authEl).focus();
       return authEl;
     }
 
@@ -1253,6 +1729,7 @@
     authEl = el;
     wireModal(el);
     if (o.panel) showPanel(el, o.panel);
+    if (o.view) el.__setView(o.view);
     if (o.waiting) el.__startWaiting(true);
     return el;
   }
@@ -1311,6 +1788,10 @@
     showOAuthPanel: showOAuthPanel,
 
     openNameDialog: openNameDialog,
+
+    // 015 · діалог нового пароля. Кличе шар даних після повернення з листа:
+    // openPasswordDialog({ onSave, opener }) → Promise<{ action }>.
+    openPasswordDialog: openPasswordDialog,
 
     // Поза контрактом, але потрібне бекендеру для вибору режиму діалогу
     // (last vs soft) і для повідомлення про невдале збереження.
