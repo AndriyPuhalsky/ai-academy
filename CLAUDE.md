@@ -343,6 +343,11 @@ Supabase (auth/прогрес/сертифікати) + Telegram Edge Function (
 - **Зони запису розділені:** бекендер — `tg/` і `js/*` шар даних; фронтендер — HTML, `css/`,
   конфіги; QA — тільки свою папку звіту. Поза зоною для всіх: `wrangler.toml`,
   `.assetsignore`, `.gitignore`, `dev/design/`.
+- **Звіт кожного агента — файл `.md` через `Write`, і імʼя НЕ починається з `report` / `summary` /
+  `findings` / `analysis`** (правило №6 `dev/build/CLAUDE.md`, слово власника 2026-10-02). Причина
+  знайдена в коді Claude Code 2.1.287: `Write` підагента вшито відхиляє саме такі імена («Subagents
+  should return findings as text…»), до будь-яких дозволів — тому allow-правила ніколи не допомагали.
+  Імена: `backend-report.md`, `frontend-report.md`, `qa-report.md` (+ `-round2`); у брифі — повний шлях.
 - **Supabase: читання через MCP вільно** (з 2026-08-23 працює; бекендеру доданий ще й
   `mcp__claude-in-chrome` як запасний шлях до Dashboard — теж тільки дивитись),
   **зміни бази — ТІЛЬКИ файлами міграцій** у
