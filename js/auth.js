@@ -784,6 +784,25 @@ function translateError(msg, err) {
   if (status === 429 || /over_email_send_rate_limit|over_request_rate_limit|rate limit|too many requests/i.test(probe)) {
     return "Забагато спроб. Зачекай хвилину і спробуй ще раз.";
   }
+  // D-02 (QA коло 1, 015) · обрив мережі. Метро, Wi-Fi без інтернету, вимкнений
+  // модем — не рідкість, а англійське "Failed to fetch" під українським полем
+  // читається як поломка сайту. Розпізнаємо ДВОМА незалежними ознаками, бо
+  // текст у кожного браузера свій:
+  //   • сам об'єкт помилки: auth-js обгортає будь-яке відхилення fetch у
+  //     AuthRetryableFetchError зі status === 0 (виміряно на @supabase/auth-js
+  //     2.117.2 — саму версію віддає esm.sh на "@supabase/supabase-js@2" —
+  //     lib/fetch.js, _handleRequest → catch). Саме status === 0 тут несучий:
+  //     той самий клас прилітає й на HTTP 500/502/503/504/520-530, але там
+  //     інтернет у людини є, і текст про нього був би брехнею;
+  //   • текст: Chrome "Failed to fetch", Firefox "NetworkError when attempting
+  //     to fetch resource.", Safari рівно "Load failed", undici "fetch failed".
+  // err.status читаємо НАПРЯМУ, а не через status вище: там `err.status ||
+  // err.statusCode`, і для нуля це дає undefined (0 — хибне значення).
+  if ((err && err.name === "AuthRetryableFetchError" && err.status === 0) ||
+      /failed to fetch|networkerror when attempting to fetch|network request failed/i.test(probe) ||
+      /^\s*(load failed|fetch failed)\s*\.?\s*$/i.test(String(msg || ""))) {
+    return "Немає зв'язку. Перевір інтернет і спробуй ще раз.";
+  }
   // 015 · відновлення пароля. Перевіряємо по code + message (а не лише по msg):
   // у частини відповідей GoTrue текст порожній, а код є.
   if (/same_password|should be different/i.test(probe)) {
@@ -803,7 +822,15 @@ function translateError(msg, err) {
   if (/already registered|already exists/i.test(msg)) return "Такий email уже зареєстровано — увійди.";
   if (/at least 6|password should be/i.test(msg)) return "Пароль має містити щонайменше 6 символів.";
   if (/Email not confirmed/i.test(msg)) return "Спершу підтверди email (перевір пошту).";
-  return msg;
+  // D-02 · тут стояло `return msg` — і будь-який невпізнаний текст Supabase
+  // їхав під поле англійською. Контракт функції: на вхід сире повідомлення
+  // провайдера, на вихід — ГОТОВИЙ український текст, тож неперекладене
+  // замінюємо загальним. Сирий текст не губимо: лишаємо в консолі через
+  // safeErrorText, тобто без адреси пошти й без токенів. Логуємо лише ТУТ,
+  // у єдиній гілці «не впізнали»: впізнані ситуації або вже залоговані на
+  // місці виклику, або штатні.
+  console.warn("[AIA auth] немає перекладу для помилки:", safeErrorText(err || { message: msg }));
+  return "Щось пішло не так. Спробуй ще раз.";
 }
 
 /* ---------- Контракт із шаром вигляду (розділ 5.3 плану) ---------- */
