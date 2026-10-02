@@ -9,3 +9,7 @@
 - [Діаграми Mermaid (010, коло фіксів)](project_aia_diagrams_mermaid.md) — useMaxWidth:false + скрол + margin-inline:auto; `<br/>` мертвий через securityLevel:strict; iframe ≥1024 ламає рендер
 - [Пастки заміру в браузері](reference_browser_measure_traps.md) — вʼюпорт вкладки ≠ resize_window; урок гостя дає нульові ширини; атрибут після програмного скролу відстає
 - [Звіт і коміти](feedback_report_and_commits.md) — report .md ПИСАТИ файлом (вимога власника 2026-09-10) + дублювати текстом; `-m`/`-F` перед `--`; дві правки одного файла = два послідовні коміти
+- [Четвертий курс у коді (012 Jira)](project_aia_course_registry_jira_012.md) — ізоляція «лише додавати»: чотири нові js замість правок у спільних; AIA_PROGRESS не існує (є AIAProgress.completedSet); обгортка теми Mermaid лише ПЕРЕД mermaid-init
+- [Пробник контрасту й напівпрозорі фони](reference_contrast_probe_compositing.md) — компонувати від КОРЕНЯ вниз, інакше вузли з власною альфою дають хибні 1,0 і 1,75
+- [Таблиці: чому стискаються замість прокрутки](reference_tables_minwidth_autolayout.md) — дві половини причини, і жодна не працює сама; min-width на КОМІРЦІ ламає розподіл ширини, на table — ні
+- [Ширини контейнера довідника](reference_aia_container_widths.md) — 348/702/**630**/766/766: на 1024 найвужче в проєкті; безпечна min-width < 630 px
