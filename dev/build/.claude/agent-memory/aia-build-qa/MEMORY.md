@@ -1,6 +1,6 @@
 # Memory Index
 
-- [Ширини вʼюпорта: 768 вікном, 390 тільки iframe](method_viewport_widths.md) — ⚠ resize_window може мовчки не діяти (outerWidth=0); звіряти innerWidth
+- [Ширини вʼюпорта: 768 вікном, 390 тільки iframe](method_viewport_widths.md) — ⚠ resize_window може мовчки не діяти (outerWidth=0); border iframe краде 2 px; звіряти innerWidth
 - [Пробник контрасту й доступності](method_contrast_and_a11y_probe.md) — складати альфу й opacity предків, інакше хибні провали; ArrowRight, не Right
 - [Класи дефектів, що повторюються](project_recurring_defect_classes.md) — таблиці без обгортки, стан появи поза DOM, напівпрозора шапка, маска їсть повзунок, специфічність фікса; і що платформне
 - [Як міряти CLS у цьому оточенні](method_cls_measurement.md) — layout-shift API мовчить у фоновому вікні; міряти геометрію пробниками ⚠️ пункт про resize_window застарів
@@ -24,4 +24,4 @@
 - [Чи читається таблиця: дві метрики](method_table_readability.md) — допуск пів рядка (інлайновий code стоїть на 0,5 px вище); розрив дефект лише МІЖ буквоцифрами; базу міряти тим самим кодом
 - [PDF: QR, посилання, кольори](method_pdf_qr_check.md) — qlmanage + BarcodeDetector у Chrome + /Annots URI + рахунок пікселів; усе без інсталяцій, файли — поза репозиторієм
 - [Прохід курсу за входом](method_logged_in_course_pass.md) — browser_batch по 3–4 уроки, квіз із #quizData, координати перераховувати щоразу, «запит не пішов» — лише з позитивним контролем
-- [Відновлення пароля без листів](method_auth_email_flow_testing.md) — два URL замість листа, підміна handlers у iframe, блокування хоста для «немає мережі»; ⛔ 429 недосяжне: recover на неіснуючу адресу = 200
+- [Відновлення пароля без листів](method_auth_email_flow_testing.md) — два URL замість листа, підміна fetch (reject/503/400/**200 = стан «успіх»**) покриває всі гілки без відправок; responseStatus із performance; ⛔ 429 недосяжне
