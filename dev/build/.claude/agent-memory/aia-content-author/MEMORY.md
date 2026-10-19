@@ -1,0 +1,20 @@
+# Memory Index
+
+- [Читання доксів Atlassian](reference_atlassian_docs_fetch.md) — curl + розбір `<td>` для таблиць планів; `<main>` без `<nav>` для тіла статті; href-и дають живі слаги
+- [Авторинг курсу 012 «Jira з нуля»](project_jira_course_authoring.md) — не безумовні ні `facts-free-plan.md`, ні картка уроку в `program.md`; «входить у платні плани» ≠ «на Free немає»; вікно з чужого спейсу
+- [Пошук живих доксів Atlassian](reference_atlassian_docs_lookup.md) — слаги 404-ять; живий індекс слагів — grep по хабу розділу; докси то відстають від екрана, то випереджають його
+- [KB Atlassian: банер платформи](reference_atlassian_kb_platform_notice.md) — /jira/kb/ здебільшого Data-Center-only; перед цитатою шукати «applies to … cloud platform»
+- [Пастка сторінки jql-fields](reference_jql_fields_page_rename_bug.md) — project→space лише в доксах; Atlassian сама радить старе слово; statusCategory описаний у KB, не тут
+- [Перейменування, що тривають](reference_jira_renames_in_flight.md) — Summary→Title у беті: докси попереду екрана; в уроці називати обидва слова
+- [Докси проти доксів](reference_atlassian_docs_contradict.md) — переліки й межі розходяться між сторінками Atlassian; team-managed-сторінка головніша за адмінську
+- [Шаблони спейсів Jira](reference_jira_space_templates.md) — шаблон дає конфігурацію, а не картки; «Jira пам'ятає вибір шаблону»; у ділових спейсах Group by без епіка, своє поле Category; галерея за `More templates`, 26 плиток, власний тип — рівень задачі
+- [Вигляд Reports у Jira](reference_jira_reports_view.md) — це оглядова панель, а не список; звіти за `More reports`: 6 у спейсі розробки, інший перелік зі словом «issue» у діловому; лічильники відстають
+- [Smart values і гілки автоматизації](reference_jira_automation_smart_values.md) — гілки за JQL немає, duedate/dueDate і облік кроків суперечать самі собі; {{issue}} у гілці — вже інша робота
+- [Докси JSM для team-managed](reference_jsm_docs_team_managed.md) — окремі сторінки «…in-team-managed…»; агент = місце, клієнт ні; календар SLA 9–17 за замовчуванням; «Add agent» — це Rovo
+- [Інтеграції Jira в доксах](reference_jira_integrations_docs.md) — карта слагів (пошта, Slack/Teams, Google, Docs/Confluence, база знань JSM) + три пастки звірки цитат (`&#x27;`, `in- app`, типографські лапки)
+- [Читання Marketplace без браузера](reference_atlassian_marketplace_reading.md) — публічний REST дає бейджі й вендора; фасети лежать у HTML пошуку; developer.atlassian.com мовчки редіректить
+- [Плани й ліміти: де правда](reference_jira_plan_limits_sources.md) — консоль `Compare features` проти доксів (Rovo: докси Standard+, консоль Standard ✗); дві РІЗНІ добові межі листів; межа названа за застарілою дією `Send email`
+- [Довести, що джерело чогось НЕ каже](reference_docs_scope_articlebody.md) — обмеження за планом шукати в JSON-LD `articleBody`, а не grep по HTML; цитати зі `screens/*.md` звіряти після зняття `**` і переносів
+- [Порогові числа доксів](reference_docs_threshold_counting_base.md) — «more than three required fields» не рахує `Summary`; перед переказом числа з'ясувати базу лічби, інакше помилка на одиницю живе хвилями
+- [Назва сторінки — це `<title>`](reference_atlassian_page_titles.md) — 20 із 45 назв у курсі писались зі слагів і розійшлись (projects→spaces, «Rovo usage limits»→«How Rovo credits work»); KB чи докси визначає лише `/kb/` в адресі
+- [Числа налаштувань спейсу](reference_jira_config_limits.md) — 100/50 статусів, 200 переходів, 30 типів, 50 полів, 55 варіантів, 10 дошок, 5000 робіт: чотири різні сторінки, від плану НЕ залежать

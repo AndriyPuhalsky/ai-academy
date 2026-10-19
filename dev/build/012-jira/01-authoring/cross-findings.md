@@ -1,0 +1,950 @@
+# Знахідки авторів для сусідніх уроків (012)
+
+Коренева сесія дописує сюди пункт 8 зі звітів авторів (`reports/jNN.md`). Автор читає цей файл
+**до** написання свого уроку, щоб не шукати вдруге вже знайдене й не переказувати чужу тему.
+Формат запису: `- **jNN → jMM:** факт · джерело (URL/дата або screens/NN) · що з ним робити`.
+
+## Від кореневої сесії (2026-09-17, до старту авторів)
+
+- **усі → j03, j07, j10:** статуси спейсу народжуються мовою акаунта на момент створення
+  (sandbox: «К выполнению / В работе / Готово»); JQL `status = Done` тоді не знаходить нічого ·
+  `screens/03`, `15` · у вікнах показувати англійські To Do / In Progress / Done, у граблях —
+  цю пастку.
+- **усі → j14, j15, довідник 2:** у UI 2026 правила автоматизації називаються **flows**
+  (Create flow, Browse flows, вкладки Flows · Audit log · Templates · Usage); докси кажуть «rule» ·
+  `screens/13`, `14` · термін «flow (automation rule)».
+- **усі → j02, j22:** кнопки Ask AI, Improve Task, Add agent, See plans видно на Free як апсел ·
+  `screens/04`, `06`, `12`; `facts-free-plan.md` №14b · не описувати як функції.
+- **j06, j13:** у шаблоні Kanban немає Backlog/Calendar/Timeline за замовчуванням — додаються
+  через «+» («Add to navigation»: Archived work items · Backlog · Calendar · Capacity · Code ·
+  Deployments · Forms · Goals · List …) · `screens/08`.
+- **j21:** сторінка імпорту — «Import data into Jira», плитки Asana · monday · ClickUp · Trello ·
+  Azure DevOps · GitHub · GitLab · Smartsheet · YouTrack · Notion · Linear · Wrike · Airtable · Jira ·
+  CSV · `screens/19`.
+
+## Від авторів
+
+### Автор j01 (2026-09-17)
+- **усі → усі:** індексні `…/docs/` через WebFetch → 404; читати `…/resources/` або сторінку-листок; частина сторінок віддає лише зміст — брати дочірню.
+- **j01 → j03, j06, j09, j13:** `screens/03` знято в **software**-спейсі, а сюжетні `MY/MARK/REM/HR` — business: рядок виглядів і шлях в адресі різняться → потрібен знімок business-спейсу (наступна сесія).
+- **j01 → j03:** знімка лівої бічної панелі (список пунктів) немає — для j03 це тема уроку, знімок першочерговий.
+- **j01 → j18, j19:** портал за доксами: Portal name · Introduction text · Logo; плитки = request types (назви й описи бачить клієнт); групи — portal groups; кнопка **Requests** показує клієнтові його заявки; канали — portal · email · widget · chat; ⚠ напис поля пошуку порталу не підтверджений — зняти очима.
+- **j01 → j02:** «audit log is available with all paid Jira Cloud plans» — формулювання «на платних планах» обходиться без чисел.
+- **j01 → j04:** пари `work item (issue)` і `space (project)` **уже введені** в j01 (блок 2, `ds-note`) — j04 спирається, не вводить заново.
+- **j01 → j07, j10:** «статус», «робочий процес» (набір станів і дозволених переходів), «JQL» (власна мова запитів) названі й пояснені одним рядком з відсиланням до уроків 10 і 7.
+- **j01 → j12, j21:** цитата для не-ІТ: work item «can represent an activity, a document, an asset (creative or concrete), a purchase or even a person» (`what-are-jira-business-projects`).
+- **для кореневої сесії:** уроки посилаються на `../jira.html` (шапка, футер, «До програми») — файла ще немає до дизайну; до релізу «На головну» дає 404 — рядок у чеклист релізу.
+
+### Автор j02 (2026-09-17)
+- **усі → усі:** таблиці планів читати `curl`-ом і розбором `<td>` (галочка = `<path d="M9.707 11.293…">`, прочерк = `-`), не WebFetch — той вигадує рядки й плутає колонки.
+- **j02 → j18, j19, довідник 3:** живі значення колонки Free для JSM (curl): multi-channel ✓, custom reports ✓, SLA ✓, automation ✓, global automation — з лічильником; прочерк — work-level security, audit logs, sandboxes, multiple help centers, data pinning, uptime SLA; Assets і virtual agent — Premium+. **Розходиться з `facts-free-plan.md` №3 — звірити очима.**
+- **j02 → j16, j19:** фрази про Confluence як базу знань JSM на сторінці планів немає, JSM-слаги про KB → 404 — джерело шукати заново.
+- **j02 → j20:** що вважається активністю сайту («opening a dashboard, checking a report, viewing a work item, or going to the admin settings»); попередження про деактивацію йде на пошту того, хто створив сайт.
+- **j02 → j17:** на сторінці про Free — **поіменний список застосунків**, несумісних з Free (`Email This Issue`, `JEMH`, `Automated Release Notes`, `Deep Clone for Jira`, `Tempo Base plugin`…) і «з обмеженою функціональністю» (`Checklists for Jira`).
+- **j02 → j03, j09:** `Type` у Spaces показує `Team-managed software`; форми `Team-managed business` ніхто не бачив — ⚠ у вікнах.
+- **j02 → j07, j08:** рядка `Dashboards` у таблиці планів **немає** — не посилатись на неї (доступність дашбордів — `manage-shared-dashboards`, факт №10).
+- **j02 → j14, j15:** на Free кроки автоматизації рахуються **на підписку**, на платних — на користувача на місяць — різні моделі.
+- **j02 → j03:** «пробний період» у доксах — платний план на пробу з безкоштовного, а не Free з датою закінчення.
+- **механіка (закрито 2026-09-17):** ліміт легенди 400 символів у чекері — піднято до 8 000; легенда — підписи, не речення (контракт §4.1).
+
+### Автор j03 (2026-09-17)
+- **j03 → усі:** клавіші `c`, `/`, `.`, `?` і палітра `command`/`Ctrl` + `K` підтверджені живими доксами (`navigate-to-your-work`, `use-keyboard-shortcuts`, `what-is-the-command-palette`).
+- **j03 → j05, j12, j09:** шаблон для `MY` у доксах — «task management template» (**2 статуси**: To Do / Done), «project management template» — 3. **Рішення кореневої сесії — у програмі, розділ 3.** Назви шаблонів в уроках не називати.
+- **j03 → j09:** тип спейсу підписується двома рядками: «Software space» на плитці For you, «Team-managed software» у списку Spaces.
+- **j03 → j07, j10, j14:** пастка мови (мова акаунта → назви статусів → `status = Done` порожньо) розкрита в j03, блок 6, з діаграмою — далі лише «як в уроці 3».
+- **j03 → j20:** на платних планах адресу міняють не більше 3 разів (Atlassian Administration → Apps → App URLs → Update URL, organization admin).
+- **j03 → j20, j21:** **ключ спейсу змінюється** (Space settings → Details): ≥ 2 символи, великі літери й цифри, з літери; «up to 10 minutes for the updated key to appear on your board».
+- **j03 → j18:** українська є для Compass, Atlassian Home, Help Center / Customer Portal; немає для Jira, JSM, JPD, Confluence — портал українською імовірний, звірити очима.
+- **j03 → усі:** вхід через сторонній акаунт (Google, Apple, Microsoft, Slack) на `id.atlassian.com/login`; листи-запрошення шукати від `noreply@mailer.atlassian.com`, `noreply@mail.notifications.atlassian.com`.
+- **j03 → усі:** три слаги доксів дали 404 за день (`keyboard-shortcuts`, `get-started-with-jira`, індекс `jira-software-cloud/docs/`) — шукати через WebSearch з `allowed_domains: support.atlassian.com`.
+- **докси проти доксів:** `manage-your-jira-personal-settings` не згадує Theme і Jira homepage, хоча на екрані вони є — показано з вікна, датовано.
+- **для кореневої сесії (дознімати):** business-спейс (рядок виглядів, шлях в адресі, «Business space» на плитці), ліва бічна панель, галерея шаблонів у діалозі Create space, таблиця планів очима (рядок JSM Free).
+
+## Від кореневої сесії (2026-09-17, вечір — дозняті екрани 22–24)
+
+- **усі → j03, j05, j09, j12:** у UI 2026 шаблон особистих/командних задач називається **Task tracking** («Organize and
+  track team or personal tasks»); докси кажуть «task management template» · `screens/23` · рішення про статуси `MY`
+  (програма, розділ 3) звірити з фактичним шаблоном після створення спейсу; назви шаблонів — лише довідник 3.
+- **усі → j09, довідник 3:** категорія **Work management** — 30 business-шаблонів без бейджів Premium/Try (Project
+  management, Task tracking, Recruitment tracking, Budget planning, Event planning …); **Service management** — 16,
+  з них Premium: Advanced IT service management, IT Operations; **Custom templates — Enterprise** · `screens/23`.
+- **усі → j18, j19, довідник 3:** JSM Free очима і `curl`: multi-channel ✓, workflows + SLA ✓, custom reports ✓,
+  automation 1 250 steps per subscription, global and multi-space automation 100 executions per month; прочерк —
+  work-level security, audit logs, sandboxes, release tracks, multiple help centers, data pinning, uptime SLA; Assets і
+  virtual service agent — Premium+ · `screens/24`, `facts-free-plan.md` №3 → ✅ · числа — лише довідник 3.
+- **усі → j03, довідник 3:** бічна панель — 13 пунктів (For you · Recent · Starred · Apps · Plans · Spaces · Filters ·
+  Dashboards · Assets ↗ · Teams ↗ · Goals ↗ · Projects ↗ · Customize sidebar), крок 32 px, ширина 320 px; чотири нижні
+  ведуть **за межі Jira** (Atlassian Home), і **Projects ≠ spaces** — пастка для новачка · `screens/22`.
+
+## Від рецензентів (2026-09-17, вечір)
+
+### Рецензент j02
+- **j02 → j03, j05:** «To create a space: Hover over Spaces in the side navigation, then select Create space» ·
+  `jira-software-cloud/docs/create-a-new-project/`, 2026-09-17 · спейс створюють не кнопкою `+ Create` у верхній панелі
+  (підтверджено `screens/22`: кнопка **Create space** живе в секції Spaces бічної панелі).
+- **j02 → j09:** «Only Jira admins can create spaces with a shared configuration. This setting isn't available on the
+  Free plan.» · та сама сторінка · опора для «коли треба Standard»; **прямої цитати про company-managed на Free в доксах
+  немає** — знайти або переформулювати (j02 зараз стверджує «обидва типи на Free» з опорою лише на `facts` №12).
+- **j02 → j14, j15, довідник 3:** «Allowances refresh monthly»; «Automation step per month»: Free — 150 per subscription,
+  JSM Free — 1 250 per subscription; модель — «pooled at the organization level» ·
+  `cloud-automation/docs/how-is-my-usage-calculated/`, 2026-09-17 · писати «на підписку / на організацію», не «на сайт».
+- **j02 → j20:** «Space archiving is only available on Premium and Enterprise plans. If you archive a space and then
+  move to a Standard plan, you can still access the archive and restore archived spaces.» ·
+  `jira-cloud-administration/docs/archive-a-project/`, 2026-09-17 · поруч розділ «Trash for Jira Cloud spaces»
+  (Move to trash · Restore · Delete) — це і є заміна архівації на Free.
+- **j02 → j20, довідник 3:** «If you're a site admin, we'll send you emails to let you know if your site has been
+  inactive and is at risk of being deactivated…» · `what-is-the-free-jira-cloud-plan/` · адресат — **адміністратор
+  сайту**, не «той, хто створив»; твердження «глядач (Viewer) теж займає місце з десяти» джерела поки не має.
+- **j02 → j16:** Confluence Free сьогодні: «Seats for up to 10 users» · «2 GB of file storage» · «Unlimited spaces and
+  pages» · «Permissions aren't customizable and anonymous access isn't available…» · «Atlassian reserves the right to
+  deactivate Free Confluence Cloud sites due to inactivity.» · `confluence-cloud/docs/learn-about-confluence-cloud-plans/`;
+  там же «If you're on the Free plan, you can try the Standard plan for 14 days and the Premium plan for 30 days».
+- **j02 → усі (метод):** `curl` + розбір `<td>` відтворено незалежно — збіглось. Дві пастки таблиці Jira: рядок
+  **`Anonymous access` стоїть двічі**, а **`Dependency management` має порожні клітинки в усіх колонках** (значення
+  сховані в описі рядка) — «порожньо» там не означає «немає на жодному плані».
+- **для кореневої сесії / дизайну:** клас `win__topbar` (§4.3, заведений за заявкою автора j02) **не використовує жоден
+  із трьох уроків** — усі кладуть верхню панель у `win__bar`; рішення (завести в дизайні й переробити разом чи прибрати
+  з §4.3) — при перенесенні макета, sed-пасом.
+
+### Рецензент j01
+- **j01 → усі:** `…/docs/receive-requests-from-an-online-portal/` сьогодні **хаб** без тіла статті; цитати про портал — у
+  `…/docs/how-do-customers-send-requests-to-your-service-project/`. Порожній grep ≠ «факту немає».
+- **j01 → усі (метод):** `curl -sL` + зняття тегів на `support.atlassian.com` віддає тіло статті цілком і надійніше за
+  WebFetch для дослівних цитат (перевірено на 15 сторінках).
+- **j01 → j03, j09, j10:** набір статусів народжується з шаблону: project management — три кроки (To do · In Progress ·
+  Done), task management — два (To Do · Done) · `jira-work-management` докси, 2026-09-17 · в уроках назв шаблонів не
+  називати; у UI шаблон задач — **Task tracking** (`screens/23`).
+- **j01 → j03, j18:** таблиця мов доксів: Ukrainian ❌ Jira/JSM/JPD/Confluence, ✅ **Help center and Customer Portal** ·
+  `atlassian-account/docs/manage-your-language-preferences/` · знімає ⚠ з `facts` №17 на рівні доксів; наживо — після JSM.
+- **j01 → j04:** пари work item (issue) і space (project) вже введені в j01 разом зі «статус», «робочий процес», «JQL»
+  одним рядком кожне — розкривати, не вводити заново.
+- **j01 → j04, j09:** **ключ роботи не вічний**: адмін може змінити ключ спейсу (`EXAMPLE-1` → `DEMO-1`, старі
+  посилання працюють через аліас) · `jira-software-cloud/docs/edit-a-projects-details/` («Change a space's key») ·
+  повний нюанс — дім j04/j09; j01 тепер каже «не міняється при перейменуванні чи пересуванні картки».
+- **j01 → j06, j09, j13:** `screens/03` знято в software-спейсі; для business потрібен свій знімок (рядок виглядів і
+  адреса `…/jira/…/MARK/board`) — `21-business-space.md`, після створення спейсу.
+- **j01 → j18, j19:** склад порталу за живими доксами: портал створюється автоматично для кожного службового спейсу,
+  плитки = request types, канали = help center · email · chat, кнопка **Requests** «near their avatar» показує статуси
+  заявок; ⚠ пошук докси описують для **help center**, не для порталу спейсу — напис поля пошуку звірити очима після JSM.
+- **j01 → дизайн:** формат дати на картці дошки — у вікні `Sep 25`, у `screens/03` `Sep 24, 2026`; гліф типу Task
+  (у знімку лише «галочка») — вирішити разом зі станом `board`.
+- **закрито знімком 22:** склад і порядок пунктів бічної панелі у W1 j01 (`For you · Spaces · Filters · Dashboards`) —
+  підмножина реальної панелі в правильному порядку (`screens/22-sidebar.md`).
+
+### Рецензент j03
+- **j03 → усі (навігація):** докси `navigate-to-your-work` мають банер «This page is for the old navigation»; жива
+  сторінка — `what-is-the-new-navigation-in-jira` (GA хвилями з 2025-03). **Коренева сесія, `screens/22` (2026-09-17,
+  вечір): sandbox стоїть на НОВІЙ навігації** — у бічній панелі є Recent · Starred · Apps · Customize sidebar, а
+  **Search і + Create лишаються у верхній панелі**. Формулювання j03 («верхня панель однакова на кожній сторінці»,
+  рейка `For you · Spaces · Filters · Dashboards` як підмножина) — чинні; джерелом для панелі цитувати сторінку про
+  нову навігацію, не стару.
+- **j03 → j02, довідник 3:** `Site limit` = One / One / One / 150 (Free / Standard / Premium / Enterprise) · curl
+  `explore-jira-cloud-plans` · «один сайт» **не є ознакою Free**. Рішення кореневої сесії 2026-09-17: два входження
+  «один сайт» у j03 лишаються (структурний факт, стабільний; на ньому тримається аргумент «другий сайт не врятує») —
+  власник може скасувати.
+- **j03 → j07:** «Press `/` to open the quick search field. Press `/` then enter/return to start an advanced search»;
+  тултип «…advanced search with your text query» · брати ці формулювання, не «у порожньому полі».
+- **j03 → j05, j09, j12:** «two steps: To Do and Done» (task management) / «three steps: To do, In Progress, and Done»
+  (project management) · curl 2026-09-17 · підтверджує рішення програми про два статуси в `MY`; у UI шаблон —
+  **Task tracking** (`screens/23`).
+- **j03 → j10, j11, j20:** ключ спейсу «at least two characters long, start with an uppercase letter… only uppercase
+  letters or numbers» + «up to 10 minutes…».
+- **j03 → j20:** «you also create a site and organization for that app» · слово **«організація»** вперше зринає в j03 —
+  коренева сесія додала гloss на місці (2026-09-17); **дім поняття — j20** (Atlassian Administration).
+- **j03 → j05:** `manage-your-jira-personal-settings` перелічує лише Language / Your timezone / Watch your work items —
+  `Theme` і `Jira homepage` у доксах відсутні (підтверджено вдруге); розділ у доксах «Notification settings», на екрані
+  «Emails and notifications».
+- **j03 → j18, довідник 3:** Ukrainian ❌ Jira, JSM, JPD, Confluence, Team Calendars; ✅ Compass, Home, Help center and
+  Customer Portal (те саме знайшов рецензент j01).
+- **j03 → дизайн (реєстр §7.0):** `win__topbar` не вжитий у жодному уроці (усі — `win__bar`); для поля **Search поза
+  порталом класу немає** (j03 вживає `win__crumb`; кнопки `Templates` / `Search spaces` лежать у `win__tabs`);
+  `See plans` — `win__btn` (j02, j03). Звести до одного рішення **до** sed-пасу.
+- **j03 → редакторам наступних хвиль:** «легенда ≤ ~80 знаків» після підняття вікна чекера 400 → 8 000 механічно не
+  перевірялась (у j03 пункти були 94–157) — коренева сесія додала попередження `!` у `check-lessons.py` (2026-09-17).
+- **j03 → j07, j08:** «дашборд» і «фільтр» вживаються в j02 і j03 без пояснення (у цитаті про неактивність) — дім
+  понять j07/j08; при авторингу j07/j08 ввести явно, у j02/j03 не чіпати.
+- **j03 → власник (перевіряється лише живою реєстрацією):** чи питають платіжну картку на Free · які символи приймає
+  поле назви сайту (кирилиця?) · чи містить лист після реєстрації адресу сайту · клік по `Ask AI` на Free — що показує ·
+  A/B пастки мови (спейс з English → змінити мову акаунта → назви статусів).
+
+## Від авторів хвилі 2 — j04–j10 (ніч 2026-09-17 → 18; повні §8 — у `reports/jNN.md`)
+
+### Наскрізне, для всіх (зійшлося в кількох звітах незалежно)
+- **У JQL поле спейсу — `project`** (живий екран `screens/15`, 2026-09-17). Докси `jql-fields` уже зіпсовані автозаміною: «Syntax: `spaceJira`», `space = "ABC"`, `spacesLeadByUser()`; на `jql-operators` / `jql-keywords` / `find-specific-work-items` Atlassian сама вішає банер «some JQL entries using the new terms may not work yet… try using the old term instead». **Не «виправляти» `project` на `space`** в уроках, довідниках, flows; довідник 1 подає обидва імені. З `jql-fields` брати описи полів і оператори, не синтаксис (j04, j07).
+- **`Summary` → `Title`: докси попереду екрана** («This field was previously labelled Summary», банер open beta; sandbox показує `Summary`). Писати `Summary`, як на екрані, не «виправляти» (j04, j05).
+- **Докси business-спейсів — окремий продукт `support.atlassian.com/jira-core-cloud/docs/`** («Work with boards in business spaces»: Group by, `Hide done work items after`, `Configure columns`, `Save board defaults`) — точніше за software-докси (j05, j06).
+- **Банер «This page is for business/software spaces»** тепер стоїть на сторінках довідки — читаючи цитату, дивитись на банер, інакше software-поведінка приписується business-спейсу (j06).
+- **`support.atlassian.com/jira/kb/…` здебільшого Data-Center-only** — перед цитатою шукати «This article only applies to Atlassian apps on the **cloud** platform» (j08). Наслідок: у Cloud-доксах **немає назв полів панелей гаджетів узагалі**.
+- **Метод читання статті:** `curl -sL` → вирізати `<script>`, `<style>`, `<nav>` → взяти `<main>` → зняти теги; початок статті — «Cloud / Data Center», кінець — «Was this helpful?» (j09). **Індекс живих слагів:** `curl -sL <хаб>/ | grep -o 'href="/jira-software-cloud/docs/[a-z0-9-]*/"' | sort -u` → 645 адрес (j05). Редіректи — дивитись `%{url_effective}` (j10). Перед цитуванням переліку звіряти другу сторінку розділу: `available-workflow-rules` дає 7 правил, `add-or-remove-workflow-rules` — 5 (j10).
+- **Іконки без підпису** (око watchers, ⤢, `•••`) у вікнах не вигадувати — називати в підписі під вікном; картки програми такі мітки замовляють (j04, j05) — розбіжність програми з конвенцією §4.3.
+- **`win__topbar` — 0 вживань після десяти уроків** (усі сім авторів хвилі 2 підтвердили) — дизайну вирішувати долю класу.
+- **Картка завершення `#completeTitle`:** j07 лишив «Модуль позаду?» за §2 п. 10 контракту, решта дев'ять — «Урок позаду?» слідом за базовим `jira-01`. Ефекту немає (`js/module.js` перезаписує); одне слово вирішить білд (Б-14).
+
+### Автор j04 «Словник Jira»
+- **→ j05:** новий `Create` у доксах — `Title`, «up to 3 required fields appear as chips», `Create another`, док-режим при кліку поза діалогом, `Configure Fields`, `Always open in this view`; повна форма відкривається сама, якщо > 3 обовʼязкових полів; `Simple Create as Default` (Settings → System → General Configurations) — та сама настройка зі `screens/07`. Розмітка коментарів (`##`, `**`, `[]`), клавіші `M`/`W`, реакції, «Copy link». «Splitting work items isn't available in business spaces» (j05, j11).
+- **→ довідник 3 (числа, в уроці немає):** вкладення до 2 000 на роботу, > 150 показуються списком, розмір файлу за замовчуванням 1 GB; дошка показує до 5 000 робіт.
+- **→ j09:** team-managed «work types are the primary container for your work», company-managed «work types act as labels». **→ j09, j20:** «You can't edit space permissions or roles on the Free plan in Jira, and you can't configure work-level security on any Free plan».
+- **→ j10:** статуси спільні між типами робіт у спейсі; нові статуси — глобальний перехід («Any status») і **не привʼязані до колонки**; категорію вибирають при створенні.
+- **→ j11:** `Configure` внизу картки → розкладка полів типу; поля ховаються, поки порожні; у team-managed `Due date` додається кожному типу окремо; власні рівні ієрархії — Premium/Enterprise, «Changing your work type hierarchy will break existing parent and child relationships».
+- **→ j13:** `what-is-an-epic` — лише company-managed; `Epic Link` у старих фільтрах → `parent`. **→ j20, j21:** після зміни ключа спейсу оновити board filters, dashboard gadgets, global queries; попередні ключі зберігаються автоматично.
+- **Уточнення:** ключ роботи змінюється лише разом із ключем спейсу; `what-is-a-workflow-status` помиляється у власній лічбі («five steps» при шести назвах).
+- **⚠ не закрито:** «виконавець рівно один» без прямої цитати; «Labels are global» (докси) проти картки «свої в кожного спейсу» — А/Б у sandbox; «мітки з різним регістром — різні» — джерела немає, в урок не пішло.
+
+### Автор j05 «Створити й вести роботу»
+- **→ j04:** `Summary → Title` — пара «поточне (колишнє)». **→ j06, j13:** докси `jira-core-cloud` (див. наскрізне). **→ j10, j11:** `Automatic` у полі Assignee = `Default assignee` спейсу (Space settings → Details) або виконавець компонента.
+- **→ j14, j15:** тригер `Issue Moved` + `{{changelog.key.fromString}}` — приклад для довідника 2. **→ j16:** відправник `jira@<сайт>.atlassian.net`, поле `From` змінне.
+- **→ j20, довідник 3:** видалену роботу не повертає ніщо («Atlassian backups cannot be used to restore work items»); запит на кошик — `JRACLOUD-36415`. **Довідник 3 ⚠:** розмір вкладення — `1GB` на одній живій сторінці і `10MB` на іншій — звірити очима.
+- **Розбіжності:** `Add subtask` (екран) — `Child work item` (докси); `Watch your work items` — `Watch work items automatically`; групування листів «up to 10 minutes» (докси) проти `Every 3 minutes` (екран). Вкладка `Starred` показує **спейси**, не роботи — крок картки «познач зіркою» замінено на коментар.
+- **⚠ для sandbox:** зірка на роботі; `Assign to me` при заповненому виконавцеві; лист про власні зміни; старе посилання після `Move` (єдине джерело — KB «generated by AI»); `screens/21`. Просить глянути очима `ds-note--warn` у прозі (вперше в курсі).
+
+### Автор j06 «Вигляди»
+- **→ j07:** у List є **вкладка JQL** («open the JQL tab for the List view… `ORDER BY Rank`»); `Rank` подекуди як `cf[10019]`. **→ j08:** у Summary `Done` показує лише закрите за **останні два тижні** — законна різниця з гаджетом на фільтрі.
+- **→ j09:** відрізнити тип спейсу — `More actions (•••)` біля назви → «your space details will be shown» + банери сторінок. **→ j10:** `workflows-and-statuses-for-boards-in-business-projects` — означення статусів/категорій/переходів, глобальні переходи, «колонки впорядковує адмін».
+- **→ j11, j13:** перелік типів кастомних полів, які виводяться колонкою; у team-managed додавання поля колонкою привʼязує його до всіх типів роботи; беклог — «kanplan», клавіші `E`/`V`.
+- **→ довідник 3:** до **10 дошок** у спейсі · приховування Done **7/14/30/60 днів або «ніколи»** · до **500 полів** колонками · `Roadmaps` Free `Basic` / Premium `Advanced`; `Capacity planning` — Premium+; **`Dependency management` — порожній рядок в усіх колонках** таблиці планів (тезу програми «залежності/capacity — платні» в урок не взято) · роллап таймлайну вимикається сам у спейсах > 10 000 робіт · «рядок виглядів» = **space navigation**, «+» = **Add to navigation**, другий шлях `Space settings → Features` (лише адмін спейсу).
+- **Розбіжності доксів:** календар — «Start date and Due date» проти «without due dates»; `Group` — «group your board by» проти «add swimlanes»; «per user» проти «visible for everyone in the space». `REM-4` з картки не вжитий (REM зʼявляється лише після j09).
+
+### Автор j07 «Пошук і JQL»
+- **→ j08:** гаджет живиться **збереженим фільтром** → порожній гаджет у колеги = `Viewers: Private`; доступи `Private` / `Users`-`Group`-`Space`-`Roles` / `My organization`; з результатів: `Export` → `Create dashboard gadget`.
+- **→ j14, j15:** `currentUser()` у спільному фільтрі й підписці рахується **для отримувача** — та сама пастка у flows з листами. JQL розібраний повністю — посилатись, не переказувати.
+- **→ j10:** три категорії статусу не перейменовуються; `statusCategory` описаний лише в KB (`how-to-search-using-statuscategory-…`, Cloud Only), на `jql-fields` — ні. **→ j05, j11:** «labels cannot contain spaces, use hyphens or underscores»; мітку створюють лише на роботі; іншим зʼявляється із затримкою (15–20 хв); зникає з останньою роботою.
+- **→ j03, j05:** короткі команди швидкого пошуку (`my`, `r:me`, `overdue`) **вимкнені за замовчуванням**: Personal settings → **Jira labs** → `Quick search smart queries` — розділу немає в `screens/17`, дозняти.
+- **→ j20, j21:** `•••` → `Bulk Change all <n> work items`, пʼять операцій, галочка `Send mail for this update`; company-managed → team-managed «component and version information isn't retained».
+- **→ довідник 1:** зарезервовані слова JQL; bounded/unbounded; коли запит не переводиться назад у Basic; `WAS`/`CHANGED` з предикатами (6 полів); системні фільтри; cron підписок; ліміт листа підписки **200** результатів (довідник 3).
+- **Розбіжності:** дати в JQL — у лапках (`updated >= "-7d"`, докси наполягають); `Save filter` (екран) проти `Save as` (докси); пункт входу — `All work` (екран) проти трьох назв у доксах; **картка програми каже `MARK-4` due this week, а j01 поставив `MARK-4` у `Done`** — рядок картки неточний.
+- **⚠ для sandbox:** клік `Fix error` на Free (докси: AI-підказка — Rovo лише на платних); кирилична мітка `labels = "дозволи"`; `Export` на `All work`; сторінка `Filters` з кількома фільтрами; діалог `Save filter` і панель `Details`.
+
+### Автор j08 «Дашборди і гаджети»
+- **→ j07, j20, довідник 3:** **`Default access`** (`Settings → System → Default user preferences`) вирішує доступ **нових** фільтрів і дашбордів (`Public`/`Private`) — «новий фільтр приватний» не константа. **→ j20, довідник 3:** **«Free Jira sites can't be opened to the public»** (сильніше за програму «вимкнено за замовчуванням»); вимкнення `Public sharing` «does not restrict… already been shared».
+- **→ j20, довідник 3:** дашборд → `Move to trash`, відновлює лише Jira admin, **60 днів**. **→ j13, довідник 3:** повний список вбудованих гаджетів (Sprint Health, Sprint Burndown, Days Remaining, Road Map, Bubble Chart, Average Time in Status, Resolution Time, Time to First Response, Labels, Quick Links, Voted/Watched, Wallboard Spacer).
+- **→ j18, j19:** гаджет `Service Space Report` потребує JSM; `Filter Count` лише з підпискою JSM. **→ j16:** є сторінка «Share Jira dashboards in Confluence».
+- **Розбіжності:** «Any Jira user can create a dashboard» проти «logged in as an admin» (обидві живі); `Any logged-in user` (докси) — `My organization` (екран); гаджет у доксах `Assigned To Me Gadget`. Вікно W2 картки (налаштування гаджета) **замінене** на діалог `Create dashboard` — назв полів у Cloud-доксах немає.
+- **⚠ для sandbox:** дашборд із трьома гаджетами — майстер `Add gadget` і панель налаштувань Filter Results / Two Dimensional; діалог `Create dashboard`; список `Jira homepage` (поля в доксах немає — крок замінено на `Add to starred`); стан `Public sharing` на Free.
+
+### Автор j09 «Team-managed vs company-managed»
+- **→ j10, j11:** шлях у доксах 2026 — «Next to your space's name in the sidebar, select More actions (•••), then Space settings, then Work types». **→ j10:** статуси в team-managed створюються редактором workflow **і колонками на дошці**; «new statuses aren't assigned to a column, and are therefore not visible on the board».
+- **→ j07, довідник 1:** JQL поле **`spaceType`** (`business` / `software` / `service_desk`; `=`, `!=`, `IN`, `NOT IN`) і `Parent space`; `resolution` не існує в team-managed службових спейсах — `statusCategory`.
+- **→ j11, j21:** при перенесенні робіт **components і versions втрачаються незворотно**; глобальні кастомні поля зберігаються, але в team-managed виглядають порожніми. **→ j12:** третій шлях створення спейсу — `+` у бічній панелі; «Jira will remember your template choice» — пастка для «Зроби сам». **→ j20:** «Create with Rovo» коштує **10 Rovo credits** (довідник 3); «Space names are unique in Jira».
+- **Програма проти доксів (важливе):** «business-спейси — team-managed за природою» — **не так**: адмін створює спейс з будь-якого шаблону як company-managed (`create-a-new-project`, `create-a-business-project`, `migrate-…`). Дві частини `Type` майже незалежні. **Чи можна створити company-managed на Free — прямої цитати немає** («shared configuration… isn't available on the Free plan»); твердження програми в урок не поставлено. У таблиці планів рядків про типи спейсів немає взагалі.
+- **⚠ для sandbox:** майстер `Create space` на Free — чи є `Company-managed` і що буде; business-спейс (`Type`, рейка, адреса — `screens/21`); меню `•••`; сторінка `Access` (кнопка `Open access` проти доксового `Change space access`).
+
+### Автор j10 «Workflow»
+- **→ дизайн / білд (впливає на вигляд):** `js/mermaid-theme.js` задає `useMaxWidth: false` лише для `flowchart` і `sequence` (рядки 72–73); j10 — **перша `stateDiagram-v2` у проєкті** — стискатиметься замість прокрутки. Потрібен `state: { useMaxWidth: false }`. **Те саме зачепить j19.** Записано в чеклист релізу.
+- **→ j11:** `Resolution` у team-managed **не показується й не редагується** (`Unresolved` навіть у завершених, `screens/04`); ознака завершеності — `statusCategory = Done`. Правило `Copy the value of one field to another` має таблицю сумісності типів полів. **→ j14, j15:** `Resolution` виставляють **лише автоматизацією** — KB дає рецепт (тригер `Issue Transitioned` на Done + `Edit Issue`).
+- **→ j06, j13:** колонка ≠ статус, щойно колонці дано кілька статусів; у бізнес-спейсі колонки правляться на дошці (`Configure columns`, `Hidden statuses`); **WIP-ліміт для j13** — у тому ж діалозі («set a maximum number of work items. The column changes color…»). **→ j06:** ховання завершеного через `View settings` (за замовчуванням «never»).
+- **→ j07:** `status` шукається за назвою **або ID**, `WAS`/`WAS IN` — лише за назвою; `StatusCategory in ("To Do","In Progress")`, `statusCategoryChangedDate <= -7d`. **→ j19:** статуси/переходи/редактор мають близнюків у `jira-service-management-cloud/docs/`. **→ j20:** `Restrict who can move a work item` (assignee / reporter / людина / роль / група / дозвіл) — найдешевший замінник прав на Free.
+- **Розбіжності:** `Transition`/`Rule` (докси) проти `Add Transition`/`Add Rule` (екран 17.09); 7 проти 5 правил на двох сторінках (довідник 2 зводить); картка «окремий workflow на кожен тип» — насправді один workflow на **комбінацію** типів; шість статусів `HR` зібрані як «перейменувати три + додати три».
+- **⚠ для sandbox `KAN`:** режим **`Text`** редактора; панель деталей статусу; діалог **`Add Rule`**; діалог `Update workflow` з вибором типів.
+
+## Від рецензентів хвилі 2 — j04–j10 (2026-09-18, ранок; 7× «готово з зауваженнями», 72 правки; повні звіти — `reports/jNN-review.md`)
+
+### Наскрізне (зійшлося у кількох рецензентів)
+- **Цитати звіряти посимвольно і дивитись на банер сторінки до цитування.** У j06 в цитату було вставлене слово `Cloud`, якого в доксах немає; три цитати про дошку business-спейсу прийшли зі сторінок «for software spaces» / «for company-managed spaces». Business-відповідники є майже завжди: `organize-your-board`, `what-can-i-do-on-a-board`, `monitor-your-work-with-the-board`, `workflows-and-statuses-for-boards-in-business-projects`, `what-is-the-timeline-and-how-do-i-use-it`. Дешева перевірка — вигребти всі `«…»` з латиницею і прогнати `in` по збережених текстах.
+- **Пастка «kb = Data Center» має зворотний бік:** KB про мітки, Resolution, видалення робіт і текст помилки гаджета мають банер **«Platform Notice: Cloud Only»** і придатні для цитування; «Cloud and Data Center» з кроками для JIRA 6.x — слабке джерело. Дивитись на банер, а не на префікс `/jira/kb/`.
+- **Заголовок статті й слаг розходяться систематично** (`next-gen-permissions` → «Team-managed space permissions»); звіряти заголовок у `<main>`, не адресу. На одній сторінці бувають два формулювання того самого застереження — шукати по всій сторінці, перш ніж вважати цитату колеги неточною.
+- **Маркери стилю у квізах, яких `check-quiz.py` не бачить:** тире/двокрапка/крапка з комою **лише в правильному варіанті**, або всі дистрактори з однаковим початком («Тому що…»). Знайдено в j04 (2 питання), j06 (5 із 6!), j07 (3), j09 (1). Ловити окремим проходом, правити лише дистрактори. Записано в памʼять рецензента.
+- **Два слова «адміністратор»:** «everyone with access to Jira is an admin **for all Jira spaces**» (Free) — адмін **спейсів**, не глобальне право `Administer Jira`; j20 має розвести їх явно (j09). Правильна форма для Free — «на сайті, який **від початку** був безкоштовним» («If your site has always been on a Free plan…», j05).
+- **Шаблони спейсів:** шаблон обліку задач (`task management`) дає **два** статуси (`To Do`, `Done`), шаблон керування проєктом — **три** (`To do`, `In Progress`, `Done`) — `use-business-projects-for-task-management/`, `…-for-project-management/`, 2026-09-18. Будь-який «Зроби сам», що потім перейменовує три статуси, мусить вести до другого шаблону (j10 виправлено; перевірити j03, j09, j12).
+- **«Виконавець рівно один» (j04, j05)** — прямої цитати немає ніде (найближче: «Assigns a work item to **a user**» у `cloud-automation/docs/jira-automation-actions/`); на цьому стоять два питання квіза j04. Рішення наскрізне: або факт продукту в обох уроках, або знімати категоричність одночасно. Закриває один клік у sandbox.
+- **`REM` у вікнах до j09** (j07 W1, j08 W1) — за траєкторією `REM` зʼявляється після j09; це наскрізне допущення двох авторів, не помилка одного. **Рішення власника:** правило «вікна показують фірму цілком» або прибрати `REM` з обох.
+- **Довідники в уроках називати назвою, не номером** (конвенція j01–j08); у j09 рядок 119 лишився з «довіднику 3» (j10). **Слово «мітки» в прозі зайняте полем `Labels`** — для ①②③ писати «цифри»/«позначки» (j04). Терміни, що ловились без пояснення у хвилі 2: гліф, туторіал, API, чеклист, чіп, випадайки, рейка (клас `win__rail`!), полотно, мінімапа, прапорець.
+- **`win__topbar` — 0 вживань у 10 уроках** (усі сім рецензентів підтвердили). Дизайну: у стані `item` бракує класу для секції звʼязків, кнопки-іконки з лічильником (око watchers), `win__status` з `▾`, `win__menu` для `•••`, `win__subrail` для підрейки типів, скролер усередині `win__gadget`; порядок міток у W2 j05 ④→①②③ за карткою — якщо нумерувати за читанням, правити j04 і j05 разом.
+
+### Рецензент j04
+- **→ j07, довідник 1:** жива `jql-fields` дає «Type · Syntax `type` · Alias `workType` · Field Type `WORK_TYPE`», **`issuetype` там відсутній** (у знімках лише в URL `settings/issuetypes/`). Урок j04 каже «запити пишуться словами `project` та `issuetype`» — перевірити `issuetype = Task` живим запитом або замінити приклад.
+- **→ j01 (кореневій сесії):** `aria-label` двох легенд у `jira-01.html` — «Мітки на дошці…» / «Мітки на порталі…»; контракт §4.1 і 7 із 9 уроків уживають «Пояснення до вікна «…»».
+- Виправлено в j04 з джерелом: `Resolution` у team-managed не показується й не редагується («you don't have the option to manually set or view the Resolution field on those project types», KB Cloud Only 2025-09-26). Без джерела: «епік не закриває задачі всередині», «зняти мітку хрестиком». Порядок полів у W1 не такий, як у `screens/06` (`Team` немає, `Reporter` піднято) при заголовку «звірено».
+
+### Рецензент j05
+- **🔴 «Старе посилання після `Move` далі відкриває ту саму роботу»** — єдине джерело `migration/kb/migration-of-jiras-historical-keys-…` має позначку **«The content of this article has been generated by AI»** (2026-01-23); людське `edit-a-projects-details` — про зміну ключа **спейсу**, не про Move. На факті стоять проза блоку 7, вузол Mermaid і **правильна відповідь квіза №4**. Не підтвердиться наживо — правити три місця разом.
+- **→ j09, j11:** «Jira components are **only available in company-managed spaces**» (`what-are-jira-components/`, 2026-09-18). **→ j03, j16, довідник 3:** сторінка сповіщень — докси `Notification settings`, екран `Emails and notifications` (`screens/17`).
+- **→ j06, j12, j21:** аркуш Оксани з `j01` (дві свої справи, три чужі; «постачальника кави» там немає) ≠ картки `MY-1…MY-5` програми — посилаючись на «пʼять справ», звіряти сам `j01`. **→ усім:** `j04` уже просить створити `MY-1` і призначити собі — нові «Зроби сам» без дублювання.
+- Щільність: j05 — 4 847 слів, пʼять «граблів» проти «2–4» §3; кандидат на стиснення — «Форма, яку ніхто не хоче заповнювати». `ds-note--warn` у прозі: розмітка валідна за §20 (`float: left` + `clear: both`), очима на превʼю не дивились.
+
+### Рецензент j06
+- Пропущені теми картки (додати може лише автор): **`Search board`** (0 згадок; джерело `screens/03`) і **назва `View settings`** (поведінка описана, назва не названа; `screens/03` + «From your board, select View settings, then select Hide done work items after»).
+- **→ j10, j13:** `monitor-your-work-with-the-board` (business): `Configure columns` (rename, кілька статусів на колонку, `Unmapped statuses`), «The column order applies to every user of the board», збереження адміном **скидає** особисті налаштування колонок в інших.
+- **→ j08 / коренева:** «`Done` у Summary — лише за два тижні» (автор j06) розходиться зі `screens/05` («1 completed **in the last 7 days**») — імовірно різні елементи (плитки проти `Status overview`); звірити до довідника.
+- Лишились ⚠: «у business-спейсі беклогу й спринтів немає» — без прямої цитати; назва смуги без значення (`Unassigned` у вікні, програма казала `None`); числа `7/14/30/60` днів у блоці 1 — не ліміт плану, рішення власника, чи лишати.
+
+### Рецензент j07
+- **→ j03 (розбіжність між уроками):** j03 пише, що `status = Done` у спейсі з неанглійськими статусами «не знаходить нічого», а j07 показує зі знімка **помилку** «The value 'Done' does not exist for the field 'status'» + `Fix error`. Правий j07 — **j03 вирівняти**.
+- **→ довідник 1:** `Default access` керує доступом **нових** фільтрів (константи «новий фільтр приватний» немає); `WAS` = «currently have **or** previously had», лише для кількох полів; без лапок відносна дата читається як **мілісекунди від 1970**; зарезервовані слова; `statusCategory` описаний лише в KB (Cloud Only).
+- ⚠ **`Export` у W1** — єдине місце, де датоване «звірено» вікно розходиться зі знімком (`screens/15` кнопки не має; докси ведуть її через `••• → Export`). ⚠ **Кирилична мітка `labels = "дозволи"`** подана в уроці як робоча, читачеві не сказано «не перевірялось» — на відміну від звіту автора.
+- **Власнику:** блок 3 j07 — 1 954 слова, 11 підзаголовків, **42 % уроку** під одним пунктом бічної навігації; лікування — девʼятий блок «Фільтри» в контракті або перенесення «доступ + підписка + масова зміна» у блоки 4/6. Рішення не рецензента.
+
+### Рецензент j08
+- Без джерела (лишено): «на дашборді нічого не редагують» (категорично, у плашці); `Activity Stream` — докси «your recent activity», урок «хто що зробив»; «Filter Results читає лише збережений фільтр» — на цьому правильна відповідь квіза №1; майстер `Add gadget` описаний зі сторінки про **дашборд за замовчуванням** (адмінський екран).
+- **→ j07:** j07 стверджує константу «новий фільтр приватний» у трьох місцях, включно з `explain`; j08 формулює обережніше (`Default access`) — вирівнювання за кореневою сесією.
+- **→ білд (рядок 13a):** у прозовій таблиці j08 перша колонка містить `Two Dimensional Filter Statistics` — 33 знаки під `white-space: nowrap`; обгортка є, заміряти на 390 px.
+
+### Рецензент j09
+- Виправлено: ЧаПи про право створювати company-managed (замість інференсу «усі адміни» — доведене: вибір у майстрі є, спільної конфігурації на Free немає); HR пʼять → **шість** статусів у згоді з j10; обіцянка про урок 10 переписана під те, що j10 робить; ЧаПи «JSM має обидва типи» тепер із джерелом (`how-can-i-tell-if-im-in-a-classic-and-next-gen-project/`).
+- **→ j03:** легенда вікна `Spaces` у j03 і блоки 2/8 j09 називають третє слово `Type` «service management» — живим екраном не бачене (лише `Team-managed software`), у JQL `service_desk`. Правити **парою** j03 + j09 після знімка JSM-спейсу.
+- **→ j12:** «company-managed» і «спільна конфігурація» — **різні кроки** майстра: тип вибирається («Select either…»), спільна конфігурація — окремий чекбокс `Share settings with an existing space`; речення про Free стосується другого.
+- ⚠ «рівнів доступу три» — джерело каже «Team-managed **software** spaces have three, simple access levels»; для business часткова опора («on the Free plan for software and business spaces»).
+
+### Рецензент j10
+- **Ф-1 виправлено:** крок 1 «Зроби сам» вів до шаблону з двома статусами, а крок 3 перейменовував три; тепер — шаблон керування проєктом, «той самий, з якого в уроці 9 народилась «Друга точка»», назва шаблону не названа. Ф-2: сім переходів у `stateDiagram-v2`, не вісім. Ф-4: `Unresolved`, а не «порожнім».
+- **→ довідник «Автоматизація…»:** урок **обіцяє** там повний перелік правил переходу — звести 7 назв проти 5 (`Remind people to update empty fields` лише в другій). **→ довідник «JQL…»:** «a work item is resolved when statusCategory = Done» у доксах стоїть у розділі про **service** team-managed спейси — подавати з контекстом.
+- ⚠ нове: підрейка типів роботи в W1 (`Task · Subtask · Epic` як `win__tabs`) — у `screens/10`/`11` другої колонки немає, назви з шапки редактора `screens/12`, а вікно «звірено 2026-09-17». Дознімати `Space settings → Work types` у бізнес-спейсі.
+
+## Від авторів хвилі 3 — j11–j14 (2026-09-18, день; повні §8 — у `reports/jNN.md`)
+
+### Наскрізне
+- **`jira-core-cloud` більше не окреме дерево доксів, а аліас** (j11, перевірено 2026-09-18): `jira-core-cloud/resources/` → 307 на `jira-software-cloud/resources/`; частина сторінок під старим префіксом 404, хоча під `jira-software-cloud` живі. **Канонічний префікс для бізнес-сторінок — `jira-software-cloud/docs/`**, бізнес-сторінка впізнається банером «This page is for business spaces». У звітах хвилі 2 посилання `jira-core-cloud/…` працюють через редірект; в уроках і довідниках писати `jira-software-cloud`.
+- **Докси автоматизації вже всюди кажуть `flow` і `step`** (j14; 136 живих слагів у `cloud-automation/resources/`): `rule`/`component` лишились у слагах адрес і на сторінках, до яких хвиля перейменування не дійшла (`jira-automation-conditions`, `limitations-…`). Програмне «докси досі кажуть rule» більше не точне. До переліку «що змінилось» у довіднику: `component → step`.
+- **Шаблон керування проєктом дає рівно `Task` + subtask** («Work types: Task and subtask») — **епіка в бізнес-спейсі за замовчуванням немає**, його додають `+ Add work type` (j11). Будь-який «Зроби сам» з епіком у бізнес-спейсі мусить містити цей крок (j12, j13, j21).
+- **Самоперевірка цитат перед здачею** (j13, j14): витягнути всі `«…»` з латиницею і прогнати `in` по збережених текстах сторінок — ловить помилки, невидимі оком (велика літера на початку, вставлені слова). ⚠ Пастка прийому: зняття тегів лишає пробіл перед апострофом і комою там, де було посилання (`your space 's work`) — нормалізувати перед порівнянням.
+- **Маркери стилю у квізах** — усі чотири автори робили окремий прохід (тире/двокрапка/стрілка лише в правильному варіанті; однаковий початок дистракторів); знайдено й виправлено у j12 (П6), j13 (П6, `→`), j14 (2 питання). `check-quiz.py` цього не бачить.
+- **Числа, що зібрались для довідника «Карта інтерфейсу, глосарій і ліміти Free» (в уроках їх немає):** до 50 власних полів у team-managed спейсі · до 55 варіантів у `Dropdown`/`Checkbox` · до 30 типів роботи · 32 767 знаків у `Paragraph` · `Number` від −1 трлн до 1 трлн, округлення 0,001 (j11) · галерея: 17 категорій, 4 продукти, ~30 плиток (дата знімка) · кошик спейсів 60 днів · `Create with Rovo` 10 кредитів (j12) · `Send customized email`: Free 100 листів за 24 год · `Lookup work items` — перші 100 · гілки — 150 елементів · журнал автоматизації 90 днів · розклад зупиняється після 10 порожніх запусків (j14) · «Infinite board capacity» на діловій дошці проти «до 5 000 робіт на дошці» з хвилі 2 — звести (j13).
+- **`win__topbar` — 0 вживань у 14 уроках.** Дизайну (нове): `win__aside`/`win__page--side` для правої панелі в `settings` (j11); `win__link` у стані `item` для «Show more fields» (j11); `win__chip--active` у `form` (j11); контейнер діалогу з бічною колонкою + група пунктів колонки + бейдж на плитці, `win__tile` на два рядки (j12); `win__limit` для значення ліміту колонки, дві `win__page` в одному вікні, `win__col` без карток (j13); **`win__chain` вперше вжитий** — бракує рядка кнопок під ланцюжком і згорнутого кроку, `win__step-kind` несе `When`/`If`/`Then` (j14). Контракт §4.1 досі зве ①②③ «мітками» — дописати «цифри» одним рядком (j11). Норма «2–4 граблі» не узгоджена з широтою карток: блок 3 у j07 і j11 — третина уроку, це системне (j11).
+
+### Автор j11 «Поля, екрани, типи роботи»
+- **⚠ не в уроці:** тип поля `URL` у team-managed **не існує** (лише company-managed, `available-custom-fields-for-team-managed-projects`); `Select` з картки — у доксах `Dropdown` і `Checkbox`; **`Required` стоїть на сторінці типу роботи**, а не «в конфігурації поля» (нотатка «Для курсу» у `screens/11` хибна, докси кажуть двічі); «Summary спейсу показує Epic progress» — джерела немає, замінено; `+ Add work type` у бізнес-спейсі — сторінка лише про software (**дознімати**); кириличні назви полів у JQL (`"Посада" = "Бариста"`) живцем не виконувались — в уроці сказано прямо + запасний шлях `cf[ID]`.
+- **→ j13, j06:** у software-спейсах типи за замовчуванням — `Task` (Kanban) або `Story` (Scrum). **→ j06, j07:** поле в кількох типах одного спейсу має спільні назву й опис, `Dropdown`/`Checkbox` ділять варіанти, значення за замовчуванням у кожного типу своє.
+- **→ j07, довідник «JQL…»:** розділ «Custom field»: `Syntax: CustomFieldName`, `Alias: cf[CustomFieldID]`, пошук за значенням і за ID варіанта; текстовий пошук лише для Text; `~`, `WAS`/`CHANGED` для числових і дат **не** підтримуються.
+- **→ j20:** дослівно **«You can't restrict work items on the Free plan»** (`set-up-issue-types-in-team-managed-projects`). **→ j20, j21:** `configure-the-issue-type-hierarchy` — рівні 1/0/−1, перейменування рівня діє на всі company-managed спейси сайту, власні рівні — Premium/Enterprise.
+- **→ j05:** «Change a work type» — значок типу біля ключа → інший тип, при різних полях/процесі відкривається екран перенесення; порядок полів у Quick Create задає розкладка типу роботи — j05 і j11 описують одну настройку з двох боків, перехреститись посиланнями. **→ j16, j19:** для службових спейсів **окрема** сторінка типів полів (`jira-service-management-cloud/docs/available-custom-fields-for-team-managed-service-projects/`).
+- Розбіжності: `Hide when empty` (екран) проти «Hide fields below dotted line» (докси); `Create a field`/`Add field` (екран) проти «Create field»/«Add fields» (докси); `use-business-projects-for-project-management` перелічує `Resolution`/`Original Estimate` серед полів шаблону — суперечить j10, перелік не цитований.
+
+### Автор j12 «Практикум: шаблони під сферу»
+- **⚠ не в уроці:** «sample data» у ділових шаблонах — джерела немає взагалі (приклади з даними документовані лише для JSM і JPD; у custom templates «Work items from the source space» не переносяться); **`Group by Epic` для ділових дошок не існує** — закритий перелік `Priority · Category · Assignee · Agent`; поле ключа в майстрі — докси лише «ключ генерується» (**дознімати** екран після `Use template`); який набір типів принесе конкретний діловий шаблон — не стверджується.
+- **→ j13:** `Kanban` і `Scrum` — окремі плитки «Made for you», `Cross-team planning` — `Premium` (`screens/23`); «If you have the Sprints feature enabled, your board won't show any work items until you start a sprint» — готова грабля. **→ j11:** «You can add up to 30 work types» (число → довідник).
+- **→ j06, j21, довідник «JQL…»:** у **ділових** спейсах є **другий вид фільтра** — фільтр вигляду (`Filter → Save filter`): «Your saved filters are specific to the space you create them in», «you can only apply one at a time», редагується лише назва. Це не збережений JQL-фільтр j07.
+- **→ j04, j11, довідник:** ділові спейси мають вбудоване поле **`Category`** з власними значеннями (`More actions → Edit field` у колонці списку), «Only one category can be added to a work item» — плутається з категорією статусу; у j12 окрема плашка. **→ j21:** `Import data ↗` живе всередині діалогу шаблонів.
+- Розбіжності: `Create space` у бічній панелі (`create-a-new-project`, екран) проти «in the top navigation bar» (`create-a-business-project`); фінансова сторінка радить components, а вони лише company-managed; категорії статусу `To do / In progress` (докси ділових дошок) проти `To Do / In Progress` (екран); ключ не «задається один раз», а генерується й міняється в `Details`.
+
+### Автор j13 «Scrum і Kanban — і коли вони не потрібні»
+- **Сюжет:** для «Зроби сам» (чотири роботи в `In Progress`) додано **`WEB-4` «Підключити оплату карткою»** і **`WEB-5` «Сторінка доставки: оновити текст»** — дописано в `program.md` §3. **→ j22:** стан `WEB` після j13 — team-managed software, ліміт на `In Progress`, `WEB-1…WEB-5`, спринти **вимкнені**, беклогу в рядку виглядів немає.
+- **⚠ не закрито:** як Jira друкує число ліміту на дошці team-managed (докси лише «changes color»); чи є `Set column limit` на дошці **ділового** спейсу (у довідці про ділові дошки немає — **дознімати** в `MARK`); чи є `Sprints`/`Estimation` у `Features` бізнес-спейсу; перший шлях до ліміту веде в розділ **`Board`** налаштувань, якого в `screens/10` немає — **дознімати**.
+- **→ j06:** `work-with-boards-in-business-projects` — найповніша сторінка про ділову дошку: `Ranking`, «Infinite board capacity», `Save board defaults`, «Space admins can reorder columns… apply to every user», збереження адміном скидає особисті налаштування колонок. Три шляхи до колонок: два team-managed + `••• → Configure columns` на діловій дошці.
+- **→ j08, довідник:** `Agents dashboard` у `Reports` — апсел («available with any paid Jira plan. Rovo must be enabled»). **→ j11:** `Estimation` додає поля `Story point estimate`/`Original estimate` автоматично; `Original estimate` працює лише з `Time tracking`. **→ j07, довідник «JQL…»:** поле `Sprint`, `openSprints()`; приклад `space="NAME" and originalEstimate > 1m` з `enable-estimation` — **єдиний живий приклад, де докси вже пишуть `space`**.
+- Розбіжності: два шляхи до ліміту (`Space settings → Board → Columns and statuses → Edit column` проти `колонка → More actions → Set column limit`); кольори заголовка колонки описані лише на company-managed-сторінці (три цитати підписані); `what-is-a-sprint` «Sprints do not apply to Kanban spaces» проти `enable-sprints` (перемикач у будь-якому team-managed software) — категоричне не цитовано; звітів для team-managed **чотири** (+burnup), не три.
+
+### Автор j14 «Автоматизація: перші flows»
+- **⚠ не закрито:** `Add step` у розділі «from scratch» не названий (є лише в Rovo/Studio); `Add component` з картки в живих доксах немає; колонки `Trigger` у списку flows у доксах немає (підтверджені `Name · Owner · Enabled`); мінімальний інтервал `Scheduled` — числа немає; `Create with Rovo` на Free — ніхто не клікав; текст «Condition didn't pass» у журналі — немає. **Дознімати:** меню `Create flow`; конструктор із трьома кроками (`Add step` / `Turn on flow` / `Next`); вкладка `Templates`; **`Audit log` з хоча б одним запуском** (закриє два вікна j14 і вікно j15).
+- **→ j15, довідник «Автоматизація…»:** слаги `smart-values-in-jira-automation`, `jira-smart-values-issues`, `…-date-and-time`, `…-lists`, `jira-automation-branches`, `what-is-rule-branching`, `how-is-my-usage-calculated`, `debug-an-automation-rule` (`{{#debug}}`, `Log action`). **`Send email` — Deprecated**, жива дія `Send customized email`. Рахуються кроки зі статусами `SUCCESS`, `NO_ACTIONS_PERFORMED`, `SOME_ERRORS`, `ABORTED`, `NO_MATCH`; `THROTTLED` і системні — ні; «Advanced steps are only available for Cloud Premium and Enterprise plans». Підписи Audit log — `Successful` / `No action` / `Some errors` (+ `Loop`, `Throttled`), не «Success / No actions performed / Error» з картки.
+- **→ j19:** системні flows є лише в шаблонах JSM (`IT service management`, `Customer service management`, `IT service management (Essentials)`), додаються через `Space settings → Automation → More actions (…) → Add system flows`, змінити не можна — лише скопіювати (копія рахується).
+- **→ j11, j13:** чотири обмеження автоматизації в team-managed: **People**-поля не підтримуються, `Flagged` не виставляється, smart values батька не працюють у тригері створення, робота не переїжджає з беклогу на дошку без активного спринту.
+- **→ j20:** право створювати flows забирається глобально (`Settings → System → Global automation → … → Global configuration`, `Allow space administrators to manage space flows`); заборона повторюваних робіт не-адмінам; сторінка `Transfer Jira automation flows from one user to another` (листи про помилки йдуть власникові flow). **→ j05, j21:** `Set to recur` на роботі створює flow `Clone on a schedule` з міткою `Recurring`; копія не бере вкладення, веб-посилання й звʼязки. **→ j07:** у flow запит виконується з правами **flow actor**, `Validate query` — твоїми.
+- Розбіжності: `Issue fields condition` проти `Work item fields condition (Jira only)` на двох живих сторінках; картка «на JSM Free глобальна автоматизація лише в межах спейсу» — таблиця планів дає `Global and multi-space automation` зі значенням на JSM Free (не взято); картка й траєкторія вимагають у j14 третій flow `Scheduled` із JQL, а «Межі між сусідами» віддають розклад j15 — розвʼязано на користь картки (один простий запит, без `{{…}}`); `REM-6` у §3 віддана j15 з тим самим сценарієм — j14 використав `REM-2` → `REM-3`; два числа лишені свідомо цитатою («past 90 days», «10 consecutive executions») — поведінка продукту, не ліміт плану.
+
+## Від рецензентів хвилі 3 — j11–j14 (2026-09-18, день; 4× «готово з зауваженнями», 49 правок; повні звіти — `reports/jNN-review.md`)
+
+### Наскрізне
+- **Дані сюжету розходяться між уроками** (j12): дедлайни `REM-4` — `Sep 22` (j04) проти `Oct 10, 2026` (j12); `REM-6` — `Oct 10` (j04) проти `Oct 24, 2026` (j12); `REM-5` — `Sep 30` (j04) проти `Sep 15, 2026` (j08); виконавець `MARK-6` «Флаєри для другої точки» — **МЛ** у j01/j05/j06, **СБ** у W2 j12. Формат дати — `Sep 30` проти `Sep 24, 2026` (з j01, уже питання до дизайну). **Потрібне одне наскрізне рішення:** зафіксувати дати й виконавців у `program.md` §3 і звірити всі вікна — не правка одного файла.
+- **«Стан» проти «статус»:** j10 має 103 «статус», j12 — 62 «стан»; місток одним рядком у j12 поставлено, вирівнювання курсу — рішення власника/кореневої (j12).
+- **Дзеркальний маркер стилю у квізах:** «правильна = єдиний варіант **без** розділового знака» — у j11 4 питання з 6. Перевіряти обидва напрямки; `check-quiz.py` не бачить (j11). У j13 — усі дистрактори однієї форми «X, а Y» проти правильної «X, тому Y».
+- **Парні форми звертання** («бачив(ла)», «зробив(ла)») — j04/j05/j06/j12 і лендінг пишуть парними; j11 і j14 були в чоловічому роді (виправлено). Записано в памʼять рецензента (j11, j14).
+- **Спільний скретчпад рецензентів:** паралельні агенти ділять одну папку — сусід перезаписав `*.txt` між прогонами, і звірка цитат видала шість хибних «MISS». Робити звірку у власній підпапці (`scratchpad/jNNdocs/`) (j13).
+- **Докси автоматизації суперечать самі собі у трьох парах** (j14): `Issue fields condition` / `Work item fields condition (Jira only)`; поділ `Flow details` vs `Flow settings` проти шести полів під однією кнопкою; три написання результатів запуску (`Successful`/`No action`/`Some errors` — performance insights; `SUCCESS`/`NO_ACTIONS_PERFORMED`/`SOME_ERRORS` — облік; картка — «Success / No actions performed / Error»). Довідник має називати сторінку біля кожної назви. **Пастка методу:** у `jql-fields` фраза `Be sure to use quote-marks (")` після зняття тегів виглядає як `( " )` — не «виправляти» цитату за очищеним текстом.
+- **Поле `Team`** зʼявляється у вікнах j10 і j11 і **ніде в курсі не пояснене** — потрібен «дім» (j04 або довідник) (j11).
+- **Ключ спейсу генерує Jira** («Jira will generate a space key when you create the space»); будь-який «Зроби сам», що диктує ключ, має вести в `Space settings → Details` (j13 виправлено; j12 крок 2 уже так). Три входи до налаштувань колонок team-managed software: `Space settings → Board → Columns and statuses → Edit column`; кнопка **`Configure board`** біля найправішої колонки; `колонка → More actions → Set column limit` (j13).
+- **Обіцянки уроків довідникам** (закрити при написанні): j10 — повний перелік правил переходу workflow (7 проти 5); j14 — рецепт «заповнити `Resolution` у team-managed через flow»; j13 → j07/довідник «JQL…» — поле `Sprint` і `openSprints()` не мають дому в курсі (у j07 0 згадок про спринти) — **рішення власника:** абзац у j07 чи лише довідник.
+- **Дизайну (нове):** `win__placeholder` у W1 j14 несе рядок фільтрів списку — потрібен окремий клас; `win__actions` поза `win__dialog`; порядок цифр у DOM ③→①→② (W1 j12, W2 j05) — рішення про нумерацію за читанням. **Білд, рядок 13a:** дві `.ds-tbl` у j14 мають у першій колонці довгі `<code>` (`Manual trigger from work item`) під `nowrap` — заміряти на 390 px.
+
+### Рецензент j11
+- Виправлено з джерелом: епік живить «roadmaps and reports», підзадача — «swimlanes on the board, and progress tracking» (`set-up-issue-types-in-team-managed-projects`) — урок і `explain` П2 приписували доріжки епіку; **→ j13, j06:** звірити, кому приписані доріжки. Місток team-managed/company-managed до j09; «плитка» → «чіп» (j05 уводить чіпи; «плитка» зайнята порталом і галереєю); `Quick Create` = компактна форма.
+- Без джерела (не правлено): «поле дати розуміє «наступного тижня», поле числа вміє підсумовувати» (Ф-1); «`Edit fields` веде на ту саму сторінку» (Ф-2); «прав на рівні полів немає взагалі» (Ф-3, доведене лише «You can't restrict work items on the Free plan»); **`+ Add work type` у діловому спейсі — без виноски в тексті уроку** (Ф-4; тягне j12, j13, j21 — закриває одна дія в sandbox); W1 «у спейсі Найм · звірено» при знімку з `KAN`, W3 `Show more fields` проти доксового «Show X more fields» (розкриті підписами).
+- Пропущено з картки: `Story`/`Bug` як software-типи (один раз у цитаті / нуль). **→ j12, j21, довідник:** `Add field → Create new field` (`create-a-formula-field`); **→ j12, j13:** у software team-managed `paragraph` лише в `Description`, `short text` — лише в `Context`; **→ довідник:** `Formula`-поля мають сторінку, `Generate formula`/`Fix formula` — Rovo, апсел. «Work types: Task and subtask» — у доксах два осередки таблиці, двокрапка авторська.
+
+### Рецензент j12
+- Виправлено з джерелом: порядок категорій W1 за `screens/23` (Software development · Service management · Work management · Marketing · Human resources · Finance); «Select the plus icon + in the space sidebar» (`create-a-business-project`) — **→ j09** дослівна цитата третього входу; `Create with Rovo` — «Under Space templates, select Create with Rovo»; крок `+ Add work type` для батьківських робіт («Work types — Task and subtask») — **→ j13, j21** готове формулювання; вимоги до ключа — три дослівні фрагменти (маркований список, не крапки з комою); «кілька великих літер» замість «дві-три» (`MARK-8`); час читання 25 хв (5 126 слів, другий за обсягом).
+- Без джерела (лишено): «новий спейс приходить порожнім» — цитата зі сторінки про **власні шаблони Enterprise**, не про галерею; закриває клік у sandbox.
+- Пропущено з картки (лише автор): `Scrum` і `bug tracking` як шаблони не згадані (лише категорія `Software development`); «перейменувати статуси англійською» з теми «чистка шаблону» не прозвучало; `Sales pipeline` («продажі») — немає. Правильна відповідь П4 («відкрити кожну з десяти карток заново») ігнорує масову зміну з j07 — рішення не рецензента.
+- Дознімати: ліва колонка діалогу `Space templates` з підзаголовками `CATEGORIES`/`PRODUCTS`; діалог `Create status` на діловій дошці.
+
+### Рецензент j13
+- Виправлено з джерелом: ключ `WEB` ставиться через `Space settings → Details` (як j12), тип «обери», не «залиш»; застереження про **третій** вхід `Configure board`; посилання «пошук за спринтом (урок 7)» прибране; рядок виглядів W1 з `Docs` і `Development` (`screens/03`); «у ділових спейсах немає» → «досі не було» (джерела, що ділові не вміють `Backlog`, немає); `Ask AI` — з уроку 3, `See plans` — з уроку 2 (у j02 `Ask AI` немає). 43 цитати простежені; у `work-with-boards-in-business-projects` і `add-rename-or-delete-a-column-…-business-projects` слів `column limit` **немає жодного**.
+- На логіці, не на доксах (лишено): стан перемикача `Sprints` «вимкнено»; «velocity як оцінка людей ламає показник» — авторський висновок; походження методів — джерело є (рядок **Origin** у `kanban-vs-scrum`). Питання 6 квіза узагальнює «спейс, яким керує команда» на всі team-managed, а `Features` зі `Sprints` документована для software — `q` не редаговано, рішення автора/власника.
+- **→ j06:** вигляд `Backlog` має **три** списки — `Backlog`, `Sprint`, `Board` (`enable-the-backlog`), у W2 j13 показано два; W1 і W2 того самого спейсу показують різні рядки вкладок — після знімка вирівняти. Дознімати: стан `Sprints`/`Estimation` у новому спейсі з Kanban; число ліміту над колонкою; розділ `Board` у `Space settings`; `Set column limit` у меню колонки ділового спейсу; порядок секцій `Backlog` і `Start sprint`.
+
+### Рецензент j14
+- Виправлено: абзац, що розводить **`workflow` (урок 10)** і **`flow`** — урок їх ніде не розрізняв; «умова — фільтр» → «перевірка» («фільтр» зайняте з j07); «докси» → «довідка» (єдине вживання в курсі); шість цитат отримали переказ (`Scope can only be set at the Global level…`, три результати запуску, `Cron expression`, Rovo-кредити). 43 цитати посимвольно = 0 розбіжностей; `Flow details` — шість полів під однією кнопкою підтверджено дослівно (`create-and-edit-jira-automation-rules`), сусідня сторінка ділить інакше.
+- Без джерела (лишено): нутрощі шаблону `When all sub-tasks are done → move parent to done` (Ф-1); підписи `Status` журналу зі сторінки performance insights (Ф-2 — **правити разом із j15**, якщо sandbox дасть інше); `Add step` у сценарії «з нуля» не названий, але є в розділі про шаблон (ризик менший); видимість `Create with Rovo` на Free; «тригер завжди рівно один»; шаблон бачений у **глобальній** вкладці `Templates`, а «Зроби сам» веде до `Use a template` у спейсі; два числа цитатою («past 90 days», «10 consecutive executions») — **рішення власника**. Назва flow у W1 ≠ назва з «Зроби сам» — дрібниця.
+- **→ j15 (сюжет):** блок 8 j14 наводить «Меблі: доставка й монтаж — дедлайн 3 жовтня» = `REM-6`, яку за §3 створює j15 — приклад тексту, не крок. Дознімати: `Audit log` з хоча б одним запуском (найцінніше — закриває j14 і j15); меню `Create flow`; конструктор «з нуля»; вкладка `Templates` у спейсі + нутрощі шаблону; список flows із кількома рядками; клік `Global administration`.
+
+## Закриття хвостів до j14 кореневою сесією (2026-09-18, ~15:00; `program.md` «Уточнення» п. 14)
+- Дати сюжету: канон — `REM-4` Sep 22 · `REM-5` Sep 30 · `REM-6` Oct 10, 2026 (записано в §3); виправлено j08 (REM-5), j12 (REM-4, REM-6, `MARK-6` → МЛ), j14 (10 жовтня). Нові правила авторингу 2а («вікна показують фірму цілком»), 2б (дані сюжету — лише з §3), 2в (числа поведінки продукту з цитатою — дозволені).
+- **Summary:** плитки «за сім днів» і `Status overview` `Done` «за два тижні» — **обидва** в `what-is-the-summary-view` («completed, updated, and created in the last seven days» · «Only items that have been completed in the last two weeks will appear in Done»); j06 і j08 праві, суперечності немає.
+- `Sprint`/`openSprints()` — дім: довідник «JQL: поля, оператори, функції» (у j07 не додаємо). Блок 3 j07/j11 — лишається. Поле `Team` — дім у j11 (KB `team-field-is-not-visible-in-the-subtask-issue-view-screen`, Cloud Only). «Виконавець один» — опора в j04: тип поля `USER` (`jql-fields`).
+- Лишається лише після sandbox: `+ Add work type`/`Epic` у діловому спейсі (виноска в j11 є); підписи `Status` журналу (j14/j15); «service management» у `Type` (j03/j09); `Export` у W1 j07; старе посилання після `Move` (j05).
+
+## Від авторів хвилі 4 — j15–j18 (2026-09-18, ніч; повні §8 — у `reports/jNN.md`)
+
+### Наскрізне
+- **Картки фаз 4–5 відстали від продукту сильніше, ніж картки фаз 1–3** — картка задає теми, а не факти: гілки «за JQL» і слова `For each` у продукті немає, `Send email` — Deprecated (j15); «JSM Free без кастомних звітів, multi-channel обмежений, автоматизація лише в спейсі» суперечить таблиці планів, грабля «SLA рахує календарний час без календаря» без джерела (j18); «календар через due date і експорт» не підтвердився (j16); W2 «список встановлених із `Uninstall`» — кнопка живе всередині `View app details` (j17). Усі заміни пояснені у звітах §6 — **рецензентам: це рішення, не дефект** (зведено в `program.md` «Уточнення» п. 15).
+- **Метод добування доксів, який дав 0 розбіжностей у 234 цитатах хвилі:** хаб `…/<product>/resources/` віддає індекс живих слагів (136 для `cloud-automation`, **1 188** для `jira-service-management-cloud`); сторінка — `curl -sL` → `<main>` без `<nav>` → зняти теги; таблиці — розбір `<tr>/<td>`. **Нові пастки звірки цитат:** порівняння має бути **регістрочутливим** (у j15 15 із 52 цитат починались з малої, бо стояли всередині українського речення — прогін з `lower()` показав би «все добре»); тег розриває слово (`cloud app|s are` → хибний MISS, j18); `&#x27;` не декодується сама, зняття тегів дає `in- app` і `Jira , if` (j16); `developer.atlassian.com/platform/marketplace/…` **мовчки редіректить** — перевіряти `%{url_effective}` (j17).
+- **Закрито хвіст j02 про базу знань JSM** (незалежно j16 і j18): фрази «No purchase of Confluence is required» в доксах немає, є краща — «at a minimum, you'll need to have a Free plan of Confluence on the same site» (`jira-service-management-cloud/docs/add-confluence-to-set-up-knowledge-base/`); там само «You need to be a site admin or an organization admin…» і шлях app switcher → Administration → Apps → Discover new apps. Слів «купувати не треба» в курсі не вживати.
+- **Перейменування в польоті, нові:** `Pages → Docs` («We're currently updating the Pages experience and renaming it to “Docs”», адреса лишається `/pages`) (j16); сторінка сповіщень має **три** написи — `Notification settings` (докси), `Emails and notifications` (екран), `Spaces and work items` / «Space and work item notifications» (довідки Slack і Teams) (j16); `Cloud Fortified` → `Atlassian Enterprise Certified`: заявки закриті з 2026-09-01, «The CFA program will be retired on 31st December, 2026», бейдж на екрані ще є (j17). Усе — у розділ «Що змінилось» довідника «Карта інтерфейсу, глосарій і ліміти Free».
+- **⚠ Суперечність між сусідами, звести рецензентам j16 і j17:** j17 (ЧаПи) каже, що звʼязок Jira зі Slack і Teams «робиться саме застосунками з Marketplace»; докси j16 ведуть ставити `Jira Cloud for Slack` зі **Slack App Directory**, `Jira Cloud for Microsoft Teams` — з **Teams app store**, а з боку Jira інтеграцію вмикає адміністратор сайту (`use-jira-cloud-for-slack`, `integrate-jira-cloud-and-microsoft-teams`). Формулювання, яке не суперечить жодному джерелу: обидва застосунки — від Atlassian, ставляться з магазину чату, пʼять питань j17 до них застосовні так само.
+- **Сюжет §3, що змінилось у хвилі** (записано в `program.md` §3): `REM-6` — не «усі підзадачі Done → батько Done» (цей flow j14 зібрав на `REM-2`/`REM-3`), а піддослідна flow з гілкою на батька: створюється в «Зроби сам» j15, дедлайн Oct 10, 2026 (j15); автор заявок `FIN-1` і `FIN-2` — **Соломія Бойко (СБ)**, деталі форми `FIN-2` — «4 000 грн · млин «Золотий колос» · до Sep 25, 2026» (j18; назва постачальника вигадана автором — рішення власника, лишати чи ні); статуси `FIN` у §3 (`In Progress`, `Resolved`) у доксах службових спейсів не знайдені — до знімка JSM у вікнах лише документовані назви (j18 → j19).
+- **Числа, що зібрались для довідників (в уроках їх немає):** автоматизація — 65 кроків на flow, 50 підзадач на дію, 999 робіт у пошуку за розкладом, 150 елементів на гілку, `Loop detection` 10, одночасних flows на Free 5, `Lookup work items` — перші 100, модель кроків по планах, $0.50 за 1 000 кроків, дата 2026-12-03 (j15) · сповіщення — ліміт листів на добу (на двох сторінках, з приміткою «до 30 днів після апгрейду»), «customize notifications for up to 50 spaces», місця й сховище Confluence Free (j16) · Marketplace — 30 днів (дані після зняття), місяць (тріал), 30 днів (частота зміни цін), 60 днів (доступ вендора до логів), десять значень `Trust signals`, сім вкладок сторінки застосунку, лозенджі `UPDATE`/`PAID UPDATE`/`BLOCKED`/`DEV`/`STG`, поіменні списки несумісних (12) і обмежених (2) на Free застосунків на 2026-09-18 (j17) · JSM — до 300 черг на спейс на категорію роботи, лічильник `999+`, до 100 статусів на всі workflow спейсу і 50 в одному, календар SLA `09:00–17:00` за замовчуванням, JSM Free `1,250 steps per subscription` і `100 executions per month`, таблиця мов на вісім колонок продуктів (j18).
+- **Числа, лишені в уроках свідомо за правилом 2в** (поведінка продукту з дослівною цитатою, не ліміт плану): «only the first 100 work items will be used» (j15, граблі); 30 днів / місяць / 30 днів (j17). Рецензентам — перевірити цитату, не знімати.
+- **Дизайну (нове, `win__topbar` — 0 вживань у 18 уроках):** четверте значення `data-kind="branch"` у `win__chain` (j15); **третій стан заголовка вікна** «знімок + докси» — заявка вже від j14, j15, j17; контейнер «підзаголовок + вміст» у `win__page` (`div.win__sub` проти другого `<h4>`) (j15); бічний список усередині спейсу (`win__subrail` — просив іще j10; j18 узяв `win__rail` із застереженням); рядок кнопок відповіді в стані `item` (`win__actions` — третя заявка: j13, j14, j18); клас для описового рядка під `h4` (`win__placeholder` беруть не за призначенням уже три уроки) і для переліку документів (j16); **`win__badge`** для лозенджів `UPDATE` / `CLOUD FORTIFIED` / `BESTSELLER`, 2–3 рядки в `win__tile`, стан/рейка «адмінський екран» (Atlassian Administration) (j17); «матриця без позначок» для сповіщень — §4.2 з `✓` нездійсненна без вигадування (j16); матриця вікон програми для j16: `settings` ×1 + `list` ×2, не `settings` ×2. **Білд, рядок 13a (390 px):** `win__table` на 7 колонок (`High usage flows`, j15) і на 5 колонок (черги, j18) — без скролера; **перший багаторядковий `term` у курсі** (тіло листа, 3 рядки, j15) — «Копіювати» склеює через `\n` (`js/ui.js:429`). Норма «2–4 граблі» знову не сходиться з широтою карток (j15 — пʼять, j18 — блок 3 найбільший).
+
+### Автор j15 «Автоматизація глибше»
+- **⚠ не закрито (усе — sandbox):** підписи `Status` у журналі тримаються як у j14 (`Successful` / `No action` / `Some errors`) — **правити j14 і j15 разом**; підзаголовок `Log message` у розгорнутому рядку журналу; підпис кроку-гілки (`Related work items: Parent` зібраний із назви сторінки й переліку); `Add step` у сценарії «з нуля»; мінімальний інтервал `Scheduled`; рядок поясу `Europe/Kyiv` у `convertToTimeZone` (синтаксис документований, значення — ні). **Дознімати (за цінністю):** `Audit log` із запуском і розгорнутим рядком → конструктор flow із гілкою → вкладка `Usage` у спейсі → панель `{}` розумних значень → налаштування `Scheduled`.
+- **Не пішло з картки, бо немає дослівно в доксах:** `format("dd.MM.yyyy")` і `{{now.plusDays(3).format("yyyy-MM-dd")}}` → стоять документовані `format("dd/MM/yyyy")`, `jiraDate`, `{{now.plusDays(7)}}`; `{{duedate}}` усередині `{{#lookupIssues}}` — такої властивості в переліку немає. Розбіжність доксів: `{{issue.duedate}}` (сторінка властивостей; за неї грає `Field ID` у `screens/10`) проти `{{issue.dueDate.format(…)}}` (сторінка прикладів) — в уроці обидві. Облік: `how-is-my-usage-calculated` рахує крок навіть при `NO_ACTIONS_PERFORMED`/`NO_MATCH`, а `best-practices-…` досі пише «Only flows that perform a successful action will count» — узята сторінка обліку.
+- **→ j16:** `Send customized email` — вкладки `Settings` / `Content` / `Attachments`; у `From` — префікс службової адреси або власна адреса з `admin.atlassian.com`; вкладення — лише після збереження flow; **зміна формату вмісту (`Plain text` / `Rich text` / `HTML`) стирає текст**. **→ j19:** `Lookup objects` і гілка `AQL` — лише JSM (Assets); у листі є адресат `All customers involved`. **→ j20, j21:** `Re-fetch work item data` — бо «By default, the `{{issue}}` reference is not updated during flow execution».
+- **→ j07 і довідник «JQL…»:** `endOfWeek()` — «By default, this function considers Saturday to be the last day of the week», `endOfWeek("+1d")` зсуває на неділю; у j07 цієї функції немає. **→ довідник «Автоматизація…» (обіцянки уроку):** повний перелік smart values (урок називає вісім); рецепт `Resolution` через flow (борг ще з j14); `Issue Moved` + `{{changelog.key.fromString}}`; `Create variable` («will always return a string»); функції списків (`join`, `size`, `sum`, `first`/`last`, `distinct`, `get`) і дат (`diff().days`, `plusBusinessDays`, `startOfMonth`, `withLocale`, `toDate`).
+
+### Автор j16 «Пошта, чати, Confluence — оглядово»
+- **⚠ не закрито:** підписка Google Calendar на календар спейсу — у доксах є лише для календаря змін JSM (в уроці — чесна відсутність); чи працює «створити роботу з повідомлення» на Free (докси ставлять поруч із Rovo); **чи є `Docs` у меню `+` ділового спейсу** — на цьому стоїть крок 7 «Зроби сам» (один клік у sandbox); підписи рейки особистих налаштувань і стан галочок; W3 (Docs після підключення) — «за документацією». Власна адреса відправника — «This page applies to company-managed spaces only», у текст не пішло. **Дознімати:** сторінка сповіщень зі станом галочок → меню `+` у діловому спейсі → підключений Confluence (вкладка `Docs` + сторінка з макросом `/jira`) → меню календаря спейсу → живий лист від Jira.
+- **→ j05:** розділ «Filter emails in your inbox» (`manage-your-jira-personal-settings`): поле `From` змінне, «The sender's email will always be `jira@<yourinstance>.atlassian.net`» — закриває знахідку j05 живою цитатою. **→ j05, j07:** три родини листів, якими галочки **не** керують (про сайт, підписка на фільтр, акаунт Atlassian); лист підписки вимикається в самій підписці.
+- **→ j17:** `Jira Cloud for Slack` — зі Slack App Directory, `Jira Cloud for Microsoft Teams` — з Teams app store; з боку Jira вмикає адміністратор сайту, інакше «Connecting with this Jira Cloud instance was disabled by administrator». **→ j18, j19:** сторінка бази знань (див. «Наскрізне»); адміністраторів сайту Confluence автоматично робить платними користувачами — прибирати з доступу (число — довідник). **→ j20:** прийом пошти керується глобальним правом `Administer Jira` — ще один випадок «адміністратор сайту ≠ адміністратор спейсу».
+- Уточнення до знахідки j08: слаг «Share Jira dashboards in Confluence» живе під `jira-software-cloud`, під `confluence-cloud/…` → 404. Назва макроса підтверджена: «Display Jira work items in a list» (`confluence-cloud/docs/insert-the-jira-issues-macro/`).
+
+### Автор j17 «Marketplace обережно»
+- **Закрито рядок «Не вдалось перевірити» у `facts-free-plan.md`:** фільтр **`Free up to 10 users`** існує (`freeStarterTier`), поруч `Free for all teams`; єдине джерело про «$0 для 1–10» — допис на community.developer.atlassian.com від **2021-12-07**. ⚠ Значення `Pricing` узяті з `marketplace.atlassian.com`, усередині Jira фільтр ніхто не розкривав; `Use cases` на сайті Marketplace немає взагалі.
+- **⚠ не в уроці / без джерела:** як присуджуються `SPOTLIGHT` / `BESTSELLER` — опису немає ніде (в уроці: вітрина, рішення на них не спирати); «видалив застосунок — зникли його поля» — єдина стаття має банер **Data Center Only**, в уроці лише доведене («the app data is retained for a limited period (30 days) before being permanently deleted»); чи бачить не-адмін сторінку `Marketplace apps` — не стверджується; ціни не названі взагалі. **Дознімати:** екран згоди на доступ при `Get it now` (дійти й не підтверджувати) → `Connected apps` з будь-яким встановленим застосунком (зніме «за документацією» з W2) → розкритий `Pricing` усередині Jira → `Use cases` → меню `Add apps` на картці.
+- Розбіжності: `Manage apps` проти `Manage your apps` у сусідніх статтях (в уроці обидві); три описи, хто ставить застосунки (Jira admins / Organization+Site admin / «most apps… only by admins» + виняток OAuth 2.0 (3LO)) — в урок пішло найсуворіше, 3LO — у довідник.
+- **→ j20:** готові цитати про адміністратора сайту, `Request this app`, `Block user apps` у `Settings` сторінки `Connected apps`, `data security policy` — **на Free цих важелів немає**. **→ j18, j19:** у фасеті `Works with` окремого рядка JSM немає — застосунки JSM живуть під `Jira`. **→ усім (метод):** публічний REST Marketplace працює без ключа й браузера (`/rest/2/addons?text=…`, `/rest/2/addons/<key>`) — дає вендора й **статус бейджа на дату**; сторінка пошуку читається `curl`-ом, фасети лежать у HTML як `MarketplaceFilterOption`.
+- Цифри у W1 пронумеровані за порядком читання в DOM — ③ і ④ помінялись місцями відносно картки.
+
+### Автор j18 «Jira Service Management»
+- **⚠ не закрито (усе — після додавання JSM на sandbox):** напис у полі пошуку порталу (у вікні нейтральне `Search` + ⚠; **j01 обіцяв, що це звірить урок 18**); адреса пошти службового спейсу на Free (канал документований, `Multi-channel support ✓`, екрана немає — крок умовний); портал українською — лише таблиця мов; що стає з планом після додавання JSM (пробний платний → Free); скільки й яких черг приносить шаблон. **Дознімати:** портал очима клієнта → сторінка черг → картка заявки очима агента → `Channels` (адреса пошти) → `Space settings → Request management` (типи запитів, `SLAs` — для j19) → галерея `Create space` після додавання JSM → колонка `Type` у `Spaces` (закриє j03/j09).
+- **Грабля картки без джерела замінена доведеною:** новий календар SLA створюється з `09:00–17:00` — кавʼярні з ранковою зміною годинник рахує не ті години. Назви шаблонів JSM не названі (конвенція) — замість них цитата «you might have a Finance, HR, Facilities, IT, Marketing, Analytics, or Legal service space»; бейдж платного плану на двох ІТ-шаблонах — зі `screens/23`.
+- **→ j19:** шлях `Space settings → Request management → Request types` і там же `SLAs` (другий живий шлях — `Service space settings → Request types`; **тримати перший**); поля типу запиту — назва, portal description, portal instructions, іконка; **групи порталу робляться через `Raise a request` → аватар → `Portal groups` → `+ Add group`**, «you'll need more than one group for groups to appear in the portal»; тип `Email request` видалити не можна, типів має лишитись щонайменше два; SLA — `+New Metric`, імʼя після створення не змінюється, цілі `Work items (JQL) · Goal · Calendar`, формати `Due date centric` / `Time centric`; календар — значок у правому верхньому куті `SLAs` → `Add calendar`; **JQL черг — поле `"Request Type"`**; типові статуси служби за доксами — `Open · Reopened · Pending · Work in progress · Waiting for customer · Waiting for support · Escalated · Done · Canceled`.
+- **→ j19, j20:** ролі team-managed службового спейсу — `Agent · Viewer · Admin` + рівні `Open` / `Private`; «You can't edit space permissions or roles on the Free plan…». **→ j20:** два входи для додавання продукту; «Only members of the Site-Admin Group can add Paid Add-ons or Applications»; клієнти — «no app licenses consumed», внутрішні клієнти — «access your help centers for free…». **→ j16:** база знань — `Space settings → Channels & self service → Knowledge base`. **→ j22 і довідники:** панель `Agents` / кнопка `Add agent` на картці — це **Rovo-агенти**, не колеги-агенти JSM; готова плутанина термінів.
+- **Термін:** «службовий спейс (service space)» — як у j09; у j01 «службовий простір» — це словник j01 (там space ще зветься «робочий простір»), не розбіжність; «сервіс-спейс» у картках j18–j20 — мова картки, в уроках не вживати.
+
+## Від рецензентів хвилі 4 — j15–j18 (2026-09-19, ніч; повні звіти — `reports/jNN-review.md`)
+
+### Наскрізне
+- **Суперечність j16 / j17 про Slack і Teams — закрита з обох боків:** обидва застосунки зробила Atlassian; довідка веде ставити їх із крамниці самого чату («You can install it from the Slack App Directory» · «install the Jira Cloud app from the Microsoft Teams app store»); з боку Jira зʼєднання вмикає адміністратор сайту («Your Jira site administrator must enable the Slack integration… before anyone can connect»). Картка **«Jira Cloud for Slack (Official)», vendor Atlassian, на Marketplace є** (`/rest/2/addons/com.atlassian.jira.slack`, status `public`, перевірено кореневою сесією 2026-09-19), але **пошук REST за текстом її не повертає** (перші результати — сторонні конектори) — тому рецензент j17 її не побачив; Cloud-картки для Teams на Marketplace немає. **Пастка методу:** «REST-пошук не знайшов» ≠ «картки немає» — перевіряти за ключем застосунку.
+- **Звірка цитат — ще три пастки методу:** (1) два варіанти зняття тегів (`теги → нічого` і `теги → пробіл`) мусять лежати під **різними** ключами словника, інакше другий перезаписує перший і дає хибний MISS (j16); (2) усередині кроків списку зняття тегів лишає пробіл **перед** комою і крапкою («Select Apps . Select Manage apps.») — нормалізувати `\s+([,.'])` (j17); (3) список REST `/rest/2/addons?text=…` віддає `programs: {}` порожнім — статус бейджа лише в `/rest/2/addons/<key>` (j17). Підсумок хвилі: **224 цитати в чотирьох рецензіях — 0 розбіжностей** (52 + 52 + 73 + 47), вердикт 4× «готово з зауваженнями», 36 правок рецензентів + 12 правок кореневої сесії.
+- **Твердження «зі здорового глузду» без джерела — головний клас знахідок хвилі** (у вікнах і цитатах розбіжностей нуль): «лист усе одно надсилається, рядок буде `Successful`» (j15), «адміністратор не може примусово ввімкнути людині листи» — **суперечило довідці** (j16), «резервна копія сайту дані застосунку не рятує», «без значка = не проходив перевірок», «той самий набір застосунків з обох боків» (j17). Те саме в j18: «категорія `Service management` є лише тоді, коли продукт уже на сайті» (спростував знімок `screens/23`), «на картці заявки є кнопка `Add agent`» (у матеріалах вона лише на редакторі workflow, `screens/12`), «у довідці його скорочують до JSM» (у 38 сторінках слова `JSM` немає). Усе або виправлено з джерелом, або знято кореневою сесією. **Твердження про самі докси й екрани («у довідці це звуть…», «кнопка живе на…», «є лише тоді, коли…») — грепати й звіряти зі `screens/`.** **Авторам хвилі 5:** після кожного абзацу питати не лише «звідки читач це знає», а й «звідки це знаю я».
+- **Докси проти екрана — четверта пара в одному місці** (j16): шлях у довідці «Under **Personal Jira settings**, select **Notification settings**», а заголовки сторінок на екрані — `General` і `Emails and notifications`. У довідник «Карта інтерфейсу, глосарій і ліміти Free».
+- **Дизайну (підтверджено рецензентами, нове лише це):** `win__actions` поза `win__dialog` — уже **четверта** заявка; окремий клас для рядка фільтрів і лічильника (`win__placeholder` двічі в одному вікні j17); вторинна `win__btn` у `win__bar` (`Manage connection`, j16). **Білд, рядок 13a (390 px):** перша колонка `.ds-tbl` у j15 несе `{{issue.assignee.displayName}}` (29 знаків) і `Send customized email` під `white-space: nowrap`.
+
+### Рецензент j15
+- Виправлено з джерелом: **`endOfWeek()`** — «By default, this function considers Saturday to be the last day of the week» (`jira-software-cloud/docs/jql-functions/`): робота з дедлайном у неділю в понеділковий список не потрапить; «ввечері різниця вже дає вчорашню дату» → «**після півночі**» (Київ попереду UTC на дві-три години — стара фраза була хибна); порожнє місце в коментарі = помилка **або** порожнє поле («If a field or value doesn't exist…»). Слова: «рейка» → «перелік розділів» (єдине вживання в прозі на 18 уроків), «префікс» → «початкове `issue.`», **«довідник» (сторінка курсу) ≠ «довідка» (Atlassian)**.
+- Кореневою сесією: квіз П2 — «на одній із підзадач `REM-6`» (`REM-6` — батьківська); ЧаПи про порожній лист — без тверджень про `Successful`.
+- Без джерела (лишено під вікном «за документацією»): назви типів кроку `Branch` / `Action`; **перелік спорідненості документований у розділі умови `Related work items condition`, дослівного переліку для гілки немає**; сконструйований вивід `{{now}}` (форма з доксів, дата під сюжет). **→ довідник «Автоматизація…»:** ставити назву розділу біля переліку спорідненості; «Switching between content formats will delete any existing content from the Content field»; «the flow must be saved or enabled before you can add attachments». **→ j07 / довідник «JQL…»:** `due < endOfWeek("+1d")` — «last day as Sunday».
+- Дознімати (додано до списку автора): запуск flow з **порожнім** результатом `Lookup work items` — чи йде лист і що в колонці `Status`.
+
+### Рецензент j16
+- Виправлено з джерелом: квіз П1 `explain` стверджував, що адміністратор не може примусово ввімкнути листи, — довідка: «**Even if you clear all checkboxes, you may still receive other email notifications configured by your Jira admin**» (`manage-your-jira-personal-settings`); те саме застереження коренева сесія дописала в ознаку 3 блоку 5. **→ j05, j07:** застереження до будь-якої перевірки «листа бути не повинно».
+- Підпис W1 тепер чесно ділить: назви полів і подій — з екрана (`screens/17`), підписи лівої колонки — з довідки; крок 7 «Зроби сам» і ознака 4 — умовні («якщо `Docs` у меню `+` знайшовся»); «адміністратор робочого простору чату» → «самого чату» (урок розводить «спейс» Jira і «простір» Confluence); корінь «очевидн-» тепер 0 у курсі.
+- Без джерела (лишено): склад колонок макроса за замовчуванням («ключ, назва й статус» — `insert-the-jira-issues-macro` називає лише «Manage field columns» і «3 options to insert»); «`Text` інколи рятує на старих поштових програмах»; «у Confluence усе лишиться на місці» (П5 `explain`).
+
+### Рецензент j17
+- Виправлено: ЧаПи і вступна плашка про Slack / Teams / Confluence (див. «Наскрізне»; Confluence — не застосунок, а окремий продукт); **набір вкладок сторінки застосунку різний** — сім на `apps/1211843/checklists-for-jira-free`, шість на `apps/1215126/checklist-for-jira-free` → у довіднику «до семи»; «сходинка» = tier уведена там, де вперше вжита; слово `scope` — «на ці дозволи застосунок питає згоди», без «побачиш на екрані» (екрана ніхто не бачив); підпис W2 розводить перелік і сторінку одного застосунку; цифри W3 — за порядком читання.
+- Кореневою сесією знято три твердження без джерела (див. «Наскрізне») і додано, що картка Slack-застосунку на Marketplace є.
+- **Виправлення знахідки автора j17:** у фасетах пошуку Marketplace **`Jira Service Management` є окремим значенням** (`value: "jira-service-desk"`) — «окремого рядка JSM немає» **не підтвердилось**, у довідник не переносити. Тонким шаром: фільтри `Categories` і `Use cases` названі у W1, але не пояснені — значень усередині Jira ніхто не розкривав.
+- Підтверджено наживо: банер KB «Cloud Only» (`dateModified` 2025-09-26), запис changelog від 2 September 2026, редірект `cloud-fortified-apps-program` → `programs-and-features`, `Apps and integrations` ✓ на Free, обидва значення `Pricing`, десять `Trust signals`, `Time in Status` — `cloudFortified: approved`.
+
+### Рецензент j18
+- Виправлено з джерелом: категорія `Service management` і `Jira Service Management` у секції `PRODUCTS` видно в галереї **й без доданого JSM** (`screens/23` знятий саме так; докси: «Select **Service Management** under Space templates, or **Jira Service Management** under Apps»); **`Add agent` — на редакторі workflow (`screens/12`), а на картці агента — розділ `10. Agents`** («You can now collaborate directly on work items with Rovo agents or other AI agents», `about-the-issue-view-in-jira-service-management`); скорочення JSM вводить курс (j02), не довідка; «база знань» (поняття JSM) ≠ «довідкова стаття» Atlassian; чисел в уроці два дозволені (10 користувачів, 3 агенти).
+- Кореневою сесією: у крок 2 «Зроби сам» дописано дослівне «Select Team-managed» (`create-edit-and-delete-team-managed-service-projects`, звірено наживо 2026-09-19) — усі шляхи j19 розраховані на team-managed; **j01** — легенда порталу «тип запиту» замість «тип заявки» (канон глосарію); **j09** — знято обіцянку, що урок 18 покаже підпис типу `FIN` у списку спейсів.
+- Без джерела (лишено): цитата про пробний план після додавання продукту взята зі сторінки, де блок «Who can do this?» звужує до «Role: **Organization admin**; Atlassian Cloud: **Enterprise plan**…» — ⚠ в уроці стоїть, **після живого додавання JSM абзац переписати**; «бачить усі чужі заявки» (граблі 1) і «агентів три на всі служби разом» — мʼякі висновки з таблиці планів; **листа-підтвердження клієнтові при створенні заявки в доксах немає** (картка j18 і j19 на нього розраховують — у j18 замінено на «клієнт бачить заявку в `Requests`»).
+- **→ j19 (готове, перевірено рецензентом):** створення черги — «Next to **Queues** in your space, select More actions (…), then **Queue settings** → **Create new queue**», приклад JQL — `resolution = Unresolved AND "Request Type"="Get guest wi-fi access (MFSD)"` (`make-queues-for-your-team`); **статуси:** «you might have a “Open” **to-do** status… a “Waiting for customer” **in-progress** status and a “Waiting for support” in-progress status» (`manage-how-work-flows-in-your-team-managed-service-space`, банер team-managed) — опора для `stateDiagram-v2` і §3; у майстрі для частини шаблонів пропонується вибір типу спейсу («For some templates, you'll have the option of a team-managed or company-managed space type», `create-a-service-project`).
+- **→ j19, j20:** докси суперечать собі — «By default, **anyone** can create team-managed spaces» проти «**Only Jira admins** can create spaces» (обидві живі); на Free різниці немає, формулювання обрати один раз. **→ j16, j20:** «To use the knowledge base for free, you are required to remove site admins and other groups from Confluence to reduce the count of billable users to zero» (`add-confluence-to-set-up-knowledge-base`) — дім у j20. **→ j22, довідники:** розвести «агент служби» й «Rovo-агент»; `Agents` — розділ картки, `Add agent` — редактор workflow.
+
+## Від авторів хвилі 5 — j19–j22 (2026-09-19, ранок; повні §8 — у `reports/jNN.md`)
+
+### Наскрізне
+- **Назва фірми сюжету з 2026-09-19 — «Марципан»** (рішення власника; у записах вище й у `reports/*` до цієї дати — «Кориця», це історія). Відмінки й латиниця — `program.md` §3. Тим самим розбором власник підтвердив: авторка `FIN-1`/`FIN-2` — Соломія; «млин «Золотий колос»» лишається; термін «службовий спейс (service space)»; **статуси `FIN` — канон `Open → Work in progress → Waiting for customer → Done`** (вже не «робочий»); іспит j23 — після рецензії j19–j22.
+- **Хвиля без живого середовища:** розширення браузера не підключене, JSM і Confluence на sandbox не додані, конектора Atlassian немає → j19 — чотири вікна «за документацією»; j22 — єдиний реальний вивід `claude --version`, діалог із сервером розкладено на діаграму й прозу, екран OAuth-згоди **не намальований** (дослівних написів у доксах немає). Сценарій живого прогону — `reports/j22.md` §5.2.
+- **Рішення кореневої сесії для паралельних сусідів — дотримані всіма чотирма:** «хто створює спейс» — канон j09 + одна виноска ⚠ у j20 про суперечність JSM-доксів; «гігієна замість архівації» — дім j20, j21 відсилає; фільтр «без архіву» — `labels != архів OR labels IS EMPTY` (j21 дав опору з `jql-fields`: «labels not in ("x") or labels is EMPTY»). **Рецензентам j20 і j21 звести одну форму запису мітки в JQL** — у j20 значення без лапок, у прикладах доксів — з лапками.
+- **Картки Фази 5 відстали так само, як картки Фази 4** (заміни — `program.md` «Уточнення» п. 17): j19 — `resolution` у team-managed службових спейсах **не існує**, JSM-сторінки про preset/custom automation — **Legacy** (спейси до 2021-08-30), листа-підтвердження клієнтові немає; j20 — `Deactivate` лише для керованих акаунтів (на Free — `Remove user` / `Suspend access`), колонки `Products` у списку людей немає, «двофакторна» → two-step verification; j21 — ключ спейсу змінюється і його генерує Jira, «sample data» без опори, у `MY` два статуси; j22 — докси MCP переїхали в `atlassian-ai-gateway`, обидва endpoint-и живі, суперечності про кредити немає.
+- **Atlassian переписує сторінки на ходу:** KB про відновлення видалених робіт оновлена 2026-09-18 — цитата j05 зникла за добу (виправлено кореневою сесією 2026-09-19, коміт `f5478b7`: «Atlassian backups can't restore individual deleted work items», «prefer a Closed/Canceled/Archive status over deletion»); довідка адмінки перейменовує «product» → «app»; форуми спільноти 2026-09-19 у read-only до перезапуску 2026-09-22. Перед релізом — повторна посимвольна звірка цитат усіх 22 уроків.
+- **Метод (нове):** живість MCP-endpoint перевіряється без підключення — `curl -s -D - -o /dev/null <url>`: 401 + `www-authenticate: Bearer resource_metadata=…` = адреса жива, 404 = шляху немає (звірено кореневою сесією незалежно) · прийом «хаб `…/resources/` → індекс слагів» працює й для `atlassian-ai-gateway`, `user-management`, `organization-administration`, `atlassian-account` · сторінки `user-management` містять **дві версії тексту в одному HTML** («Centralized» / «Original») — дивитись, з якої половини взято шлях · цитат із U+2019 / U+2011 уникати (перший забороняє чекер, другий ламає шрифт) — обрізати з «…» · корпус звірки чистити від текстів інших уроків, щоб цитата не «підтвердилась» сусідом.
+- **Дизайну (реєстр заявок, хвиля 5):** третій стан заголовка вікна («знімок + докси») — заявки вже від шести уроків; клас підзаголовка секції всередині `win__page` (j14, j16, j17, j19, j20 вживають `win__placeholder` не за призначенням); `win__row` для списку заявок у стані `portal`; `win__chips` поза `form`; `win__count` у `win__rail-item`; рядок кнопок сторінки в `settings`; контейнер «сторінка-не-діалог» у `form` і клас інформаційної картки у вікні (j21); стан для чужого екрана (термінал, сторінка згоди — j22); `win__topbar` — 0 вживань у 22 з 22; норма «2–4 граблі» тісна для практикумів (j19 — 10 підзаголовків, j22 — 6). **Для 390 px:** `term` із довгим українським запитом одним рядком (до 210 знаків, j22); `win__table` на 4 колонки з довгим заголовком `Role - Jira - marcypan` (j20). **Білду:** j19 — друга `stateDiagram-v2` (`useMaxWidth` для `state`).
+
+### Автор j19 «Практикум: заявки до бухгалтерії»
+- 55 сторінок доксів, 53 цитати = 0 MISS; 4 вікна «за документацією»; в уроці **жодного числа плану**. Forms на Free — **не закрито** (рядка в таблиці планів немає, сторінки Forms плану не називають) → крок 2 на полях типу запиту.
+- **Докси проти доксів:** приклад черги на `resolution = Unresolved` проти «The resolution field doesn't exist in service team-managed spaces… Instead, you can use the statusCategory field» (`jql-fields`) — в уроці плашкою; `"Time to First Response"` проти `Time to first response`; календар «(9-5)» проти «(9am-5pm)»; `Channels and self service` проти `Channels & self service`; секції `Customer request form / Description fields / Content fields` проти вкладок `Request form / Work item view`.
+- Системні flows — рівно для трьох шаблонів JSM, фінансовий їх не має; «Notification templates can't be edited if you are on a Free plan…»; «They won't get notifications for their own activity».
+- **→ j20:** «Internal notifications are only sent to agents and admins, and never to customers»; «Admins and Agents won't receive notifications of their own changes when they act as a customer…». **→ j21:** чотири готові звіти службового спейсу (`Workload`, `Satisfaction`, `Requests deflected`, `Requests resolved`). **→ довідник JQL:** SLA — поле JQL («Used in service spaces only»), вісім функцій (`breached`, `everBreached`, `paused`, `completed`, `running`, `withinCalendarHours`, `elapsed`, `remaining`), `"Request Type"` — лише `= != IN NOT IN`. **→ довідник автоматизації:** тригер `SLA threshold breached`, дія `Add service space customer`. **→ довідник-карта:** числа (до 30 типів запитів, 50 власних полів, 55 варіантів, лічильник `999+`).
+- Сюжет: `FIN-5` уперше у вікні (`Open`, годинник `within 42m`); календар SLA зветься «Марципан: Пн–Сб»; деталі форми `FIN-2` у j19 не повторюються.
+
+### Автор j20 «Люди і доступ»
+- 64 цитати = 0 розбіжностей; W1/W2 — `screens/10`, `18`, W3 — «за документацією» (колонки з `export-users-from-a-site`). З W1 прибрано рядок знімка `This space has 1 role` (суперечив би трьом людям з двома ролями).
+- 🔴 **KB про видалені роботи переписана** (див. «Наскрізне») · `Deactivate` — лише керовані акаунти · група адмінів має два імені (`jira-admins-{site}` / `jira-administrators`) · `facts` №4: «1,000 work items» — з deprecated-шляху, основне — «up to 10,000 … asynchronous Export CSV» · `<td>`-розбір: `Space roles`, `Advanced permissions`, `Audit logs` — Free `-`, Standard ✓; `Space archiving` — Premium/Enterprise · закритий хвіст j09: `Open access` (екран) проти «Change space access» (довідка).
+- **→ j21:** **імпорт/експорт не входять у право `Administer Jira`** («Users with this permission cannot: … import and export data»); кошик спейсів — не архів. **→ j19:** «From your service space, select Customers… Add customers»; «portal-only customers aren't licensed users»; групи `jira-servicemanagement-users-…` / `…-customers-…`. **→ j16/j19:** дім бази знань — j20 (шлях `admin.atlassian.com → Apps → Confluence → ⋯ → Manage app access`). **→ довідник-карта:** 10 000/1 000 експорт, кошик 60 днів, відновлення з копії ≤ 30 днів, гості — Standard+, статуси `Active/Suspended/Deactivated`, дві версії керування людьми.
+- ⚠ `Backup manager` на Free — умовний крок; кирилична мітка в JQL — ⚠ і запасний `arkhiv`; шлях «Teams → Add people» не взятий (`screens/22`: `Teams ↗` веде за межі Jira).
+
+### Автор j21 «Наскрізний проєкт»
+- 49 цитат = 0 розбіжностей; 3 вікна зі знімків; чеклист — таблиця 20 × 3, кожен крок з опорою; W1 без колонки `Type` (хвіст j03/j09); **`MY-5` у `To Do`, колонок дві**.
+- **Докси проти доксів — хто імпортує:** «Most imports don't require org admin permissions…» проти «You need to be an organization, site, or Jira administrator to use the new import experience»; `facts` №6 уточнено (цитата «…to use the importer» живе на сторінці Trello). Два входи: `Create space` → `Import data` (новий спейс) і `Settings → System → External System Import` (єдиний шлях у наявний спейс).
+- Три фільтри огляду — реальні з j07; «без дедлайну» — четвертим у `term` (`due IS EMPTY AND statusCategory != Done ORDER BY created ASC`).
+- **Сезонні релізи задокументовані:** «Jira changes will now be available in seasonal release cycles»; вибір треку — Premium/Enterprise, сторінка `App updates` — на всіх планах (довіднику «Що змінилось»). **→ довідник-карта:** «Structure your hierarchy» за планами; «Recommended number of work items per file — 1500». **→ j09/j11:** дві цитати про `Move` (підзадачі окремо; статуси зіставляти за категоріями).
+- Сюжет: дедлайни `MY-1…MY-5` поставлені вперше (`Sep 21`, `Sep 21`, `Oct 5`, `Sep 18`, `Sep 16`; 21 вересня 2026 — понеділок), `Lead` спейсу `FIN` — Ігор Гнатюк — закріплено в §3.
+
+### Автор j22 «Jira + Claude Code через MCP»
+- 48 цитат = 0 розбіжностей; 1 вікно (`item`, `WEB-3`, due **Sep 25** як у j13) + 7 `term`; у `term` лише введення людини.
+- **`facts` №14 закрито:** `…/v2/mcp` → 401 + `www-authenticate`; `…/v1/mcp/authv2` → 401 + `invalid_token` — **живі обидві**, стара «не падає гучно». В уроці v2; v1 — у граблі: «The tools listed on this page are only available with Atlassian MCP v2», «On March 1, 2027 any existing utilization of v1 will automatically start to expose and utilize v2 tools». Маркетингова сторінка досі тримає v1 у кнопці.
+- **`facts` №14b закрито:** виклики в межах одного продукту (зокрема запис у Jira) кредитів Rovo не потребують; кредити — за крос-продуктові й пошукові.
+- Докси: `rovo/docs/…` → `atlassian-ai-gateway/docs/…`; канонічний хост доксів Claude Code — `code.claude.com`. ⚠ сім місць: написи екрана згоди, чиє імʼя в `Reporter`, запити українською, шлях до «connected apps», вартість сертифікацій (сторінка порожня), кілька акаунтів.
+- **→ j23:** безпечні теми — MCP як місток, доступ на Free з обмеженням частоти, що вирішує згода, читання перед записом, `Ask AI` ≠ MCP; **не питати** про покоління endpoint-а і числа. **→ довідник-карта:** виклики на годину за планами, кредити, **перевитрата з 2026-12-03 — та сама дата, що для кроків автоматизації (j15)**. **→ довідник JQL:** інструмент `searchJiraIssuesUsingJql`. **→ j20:** «a user can revoke their app grants at any time using their own connected apps screen»; `delete_jira` / `manage_jira` вмикає адміністратор організації.
+
+## Від рецензентів хвилі 5 — j19–j22 (2026-09-19, день; повні звіти — `reports/jNN-review.md`)
+
+### Наскрізне
+- **4 із 4 «готово з зауваженнями», 43 правки рецензентів + 12 правок кореневої сесії; 203 цитати звірені посимвольно й регістрочутливо — 0 розбіжностей** (j19 — 51 по 53 сторінках, j20 — 64 по 37, j21 — 49 по 19 + `screens/19`, j22 — 39 по 21 джерелу). Рецензент ≈ 288–319 тис. токенів, 16–20 хв. Чекер 0 ✗ на 22 уроках, маркерів 0.
+- **Головний клас знахідок хвилі — внутрішні суперечності уроку й перефрази, що кажуть більше за цитату поруч** (у цитатах і вікнах знову нуль): j19 — ознака перевірки обіцяла, що заявка «перетікає» з черги «Нові», хоча та відбирає за статусом; j21 — «п'ять груп» у прозі проти шести в діаграмі й таблиці + літери груп, яких урок не вводить; j20 — «ім'я лишиться» проти власного джерела абзацу («…will be replaced with "Former user" in products»); j19 — «включно зі старими заявками» при цитаті «including in the portal». **Правило рецензентам і авторам:** після збігу цитати читати 200–300 знаків **після** неї (обрізане уточнення — «(unless the user holds another billable role)», «you can manually export and import automation flows») і звіряти перефразу з цитатою слово в слово.
+- **Твердження про екран, якого ніхто не бачив** — другий клас: «розділ відкривається, але редагування впирається в план» (j19), `Grant access` у меню `•••` (j20), зв'язок вкладки `Access requests` із перемикачем (j20), «робота через MCP без позначки» і «в Jira не з'явиться нової кнопки» (j22). Усі переписані на цитату або подані з ⚠.
+- **Мітка в JQL — у лапках, зведено:** j07 `labels = "дозволи"`, j20 `labels != "архів" OR labels IS EMPTY` (і запасний `"arkhiv"`), j21 власного запиту з міткою не має (відсилає до j20). Форма доксів — `labels = "x"`, `labels not in ("x") or labels is EMPTY`.
+- **Перехресні посилання:** дім кнопок `Ask AI` / `Improve` / `Add agent` і слова Rovo — **урок 3**, `See plans` — урок 2 (у j02 слів `Rovo`/`Ask AI` — 0 входжень); посилання «урок N» перевіряти grep-ом у файлі уроку, а не за карткою.
+- **Сюжет, зведено в §3:** дедлайни `MY` — за вікном j21 (`MY-5` і `MY-1` Sep 21 · `MY-2` Oct 5 · `MY-3` Sep 18 · `MY-4` Sep 16; перший запис кореневої сесії був зі зсувом — зловив рецензент j21); `MY-2` — щомісячна справа: Sep 5 у j08 (прострочена), Oct 5 у j21 — обидві канон; календар SLA — одна форма «Марципан: Пн–Сб»; `Lead` спейсу `FIN` — Ігор Гнатюк.
+- **Лишилось відкритим у текстах (для наступної сесії):** **квіз j20** — три теми картки не покриті (що робить `Open access`; «на Free усі — адміністратори спейсів»; де two-step verification), натомість стоїть JQL-питання, чий дім — j07: переписати 1–2 питання (робота автора або кореневої сесії з обома квіз-скриптами) · j19 — поле «Вкладення» у формі запиту (у переліку типів полів службового спейсу `Attachment` немає; закривається знімком JSM) · j22 — «Confluence — сторінки», бейджі й платність сертифікації (сторінка сертифікацій рендериться клієнтом: `curl` дає 32 символи; закривається знімком у браузері), `Assignee` у W1 при запиті без виконавця · j20 — «місце займає будь-яка роль» і «місце: так» для `jira-admins-…` — лише непрямі опори; рейка W2: `Backup manager` довідка кладе в секцію IMPORT AND EXPORT, пункт у доксах пишеться `General Configuration`.
+- **Дизайну (додано рецензентами):** у стані `portal` немає рядка списку «ключ + назва + стан» (`win__tile` читається як плитка типу запиту); шоста заявка на «рядок пунктів контекстного меню» і «рядок кнопок сторінки» в `settings`; мітка на клітинці таблиці в `list`; для 390 px — `ds-tbl` груп j20 (довгі `<code>` у другій колонці), `win__table` W3 j20, `sequenceDiagram` j22 з чотирма учасниками й довгими українськими підписами, три `term` j22 з рядком до ~210 знаків.
+
+### Рецензент j19
+- 11 правок; усі написи чотирьох вікон з опорою; усі сім розділів рейки W2 мають опору; `within 8h 30m` знайдено (`set-up-sla-format-display`); Forms на Free — ⚠ автора чесний (у `what-are-forms` слів про плани — 0). Норма «2–4 граблі» дотримана (десять підзаголовків — це кроки «Зроби сам»).
+- Кореневою сесією: абзац про `Add internal note` поруч із `Reply to customer` (відсиланням до уроку 18; сторінка `talk-to-the-customer-…` лежить у групі company-managed — цитат із неї не брали); назва календаря зведена до «Марципан: Пн–Сб».
+- **→ sandbox (додано):** `Space settings → Automation` у **службовому** спейсі — чи стоїть `Create flow` (знімок `screens/13` — зі software-спейсу); сторінка налаштувань службового спейсу цілком — `get-to-know-the-project-settings-sidebar` описує **інший набір розділів** («плоска» мова: `Details · Features · People and access · Request types · Forms · SLAs · …`), ніж W2 («згорнута»: `Request management → Request types / SLAs`). **→ довідник JQL:** дослівні визначення SLA-функцій живуть на `write-jql-queries-for-slas`, не на `jql-fields`. **→ j21:** адреса порталу — «You can share the portal URL by selecting Channels from your service space and copying the portal URL». **→ j20:** «Viewers … can add internal notes, but they can't communicate with customers»; «When a service space is open, anyone who logs into your Jira site (not the customer portal) can view and add internal notes». Число на межі правила: у граблях 4 всередині цитати «standard plan with 10 agents free for one year» — лишено (назва акції, не ліміт Free).
+
+### Рецензент j20
+- 10 правок (дві фактичні з джерелом: `Former user`; дужка «(unless the user holds another billable role)»), дописано `Audit logs`, глосу «глобальне право», абзац про `Open access` як рівень доступу (рівні `Open/Limited/Private` — урок 9).
+- Кореневою сесією: ⚠ про зв'язок `Access requests` ↔ `Allow people to request space access` (слова «request» на сторінках доступу немає, три слаги → 404); `Grant access` прибрано з меню `•••` W3 («Select the user. Select Grant access» — на сторінці людини); про flows у копії — «you can manually export and import automation flows».
+- **→ j05, j21, довідник-карта:** після остаточного видалення акаунта ім'я замінюється на `Former user`. **→ j15, довідник автоматизації:** flows експортуються вручну. **→ довідник-карта:** пастка таблиць планів — у Jira-таблиці Free-клітинка **порожня**, у JSM-таблиці той самий сенс — прочерк `-`; `Settings → System → Default user preferences` — документована назва. **→ sandbox:** `Settings → System` (чи є `Backup manager`, справжня рейка), `Directory → Users` (колонки, склад `•••`, рядок клієнта порталу), `Access` бізнес-спейсу `MARK` + що рахує `This space has 1 role`, A/B перемикача запитів доступу, кирилична мітка в JQL, сторінка безпеки акаунта, `Customers → Add customers` у `FIN`.
+
+### Рецензент j21
+- 9 правок (шість — «п'ять груп проти шести»); усі 20 кроків чеклиста звірені з уроками-джерелами — суперечностей немає; вікна = `screens/02`, `03`, `19` — 0 розбіжностей; перша колонка `.ds-tbl` — лише числа.
+- «Хто імпортує» з j20 не суперечить: j21 про право `Administer Jira` нічого не стверджує — це розбіжність Atlassian із собою («…cannot … import and export data» проти «organization, site, or Jira administrator»). У доксах два написання пункту меню — «External system import» / «External System Import».
+- Прогалина для автора: ЧаПи радять пробний імпорт у тестовий спейс, але не кажуть, що робити з першим, зіпсованим заїздом (дублі). **→ j23:** безпечні теми — порядок кроків за ціною переробки, два шляхи імпорту, обов'язковий рядок заголовків, люди за поштою, зміна ключа, ритуал карткою з повторенням; **не питати** про числа й написи майстра імпорту.
+
+### Рецензент j22
+- 13 правок; вигаданого виводу в семи `term` немає; `claude --version` відтворено; команда підключення — дослівно з доксів Atlassian; обидва endpoint-и 401 (перевірено втретє); сім ⚠ автора на місці. «У ручному режимі питає дозволу» (докси Claude Code: «On Pro, Max, and Team plans, the built-in starting permission mode is auto mode»); станів з'єднання в доксах шість, не три.
+- Кореневою сесією: «робота через MCP без позначки» і «в Jira не з'явиться нової кнопки» — з ⚠ і цитатою «Create a new Jira work item»; у таблицю вмінь додано `editJiraIssue`. Фразу «The MCP server itself is not an AI model» на 15 сторінках `atlassian-ai-gateway` кореневою сесією **не знайдено** — не вживати без нового джерела.
+- **Опора для вибору сайту (підставити після знімка екрана згоди):** «With OAuth 2.1, access tokens are typically consented for a specific cloud ID (site)» (`configure-oauth-2-1`); «getAccessibleAtlassianResources … Required first call for any tool because every tool call needs a cloudId». **→ j18, j19:** розділ `Agents` документований на картці службового спейсу (`about-the-issue-view-in-jira-service-management`). **→ j23:** не питати про поведінку Free-сайту при крос-продуктовому виклику й про відсутність позначки «машинна». **→ перед релізом:** форуми спільноти в read-only до 2026-09-22 — перевірити назви розділів і цитати Learning/Champions; адреси спільноти в уроці немає — вирішити, чи давати; час читання «≈ 24 хв» при 4 404 словах — за сусідами ≈ 21 хв. **Метод:** 200 з мізерним текстом після зняття тегів = «малює браузер», а не «сторінки немає».
+
+## Закриття хвостів кореневою сесією (2026-09-20, ранок; паралельно з автором іспиту j23)
+
+- **Квіз j20 — під теми картки (`9db4953`):** П3 (передумова «Оксана зробила копію через Backup manager» стояла на ⚠ — наявність розділу на Free не підтверджена) → **двоетапна перевірка входу** (кожен вмикає собі сам; вимагати з боку організації — керовані акаунти й платна підписка); П6 (JQL `!=` + `IS EMPTY`: дім — урок 7, а тема «що замість архівації» вже має П5) → **що міняє `Open access`** (рівень доступу всього спейсу, не роль людини; не публічний доступ; в `explain` — межа плану «кожен є адміністратором усіх спейсів»). Тема «на Free усі — адміністратори спейсів» окремого питання не дістала свідомо: її вже питають j02 П1 і j09 П4. **→ j07 / j23:** пастка «`!=` губить роботи з порожнім полем» тепер не питається ніде в квізах уроків — кандидат у питання іспиту по j07 або в довідник JQL (таблиця помилок).
+- **j21 — дублі після невдалого імпорту (`cac652f`):** у ЧаПи дописано крок «прибери перший заїзд до перенесення»: окремий спейс — у кошик (урок 12), роботи в наявному спейсі — масовою зміною з уроку 7 після перегляду списку; застереження з уроку 5. Нових фактів продукту немає. Документований, але не взятий в урок шлях — оновлення за ключем (`Work Item Key`, сторінка старого майстра) — у `facts-free-plan.md`.
+- **j22 — два пропуски картки (`7c0de97`, `c7f1f1b`):** «Confluence — сторінки» → абзац із цитатою про `getConfluenceContent`; сертифікації → пункт `Credentials` переписано за живою сторінкою (сертифікати безкоштовні, сертифікації двох рівнів платні, суму не називаємо). Сторінку знято **власним headless Chrome по CDP** — публічні клієнтські сторінки більше не потребують розширення. «Бейджі» — слова на сторінці немає, тему знято.
+- 🔴 **j02 + j20 — «одинадцяту людину Jira додати не дасть» (`ce6d5bf`):** твердження без джерела з хвилі 1; жива довідка про рахунки каже протилежне — «Adding more users will automatically move you from a Free plan to a Standard plan trial» і «You can switch back to a Free plan at any time by reducing your user count». j02 — три місця; j20 — теза про місця поставлена на дві прямі цитати (закрито зауваження рецензента j20 про непрямі опори). **→ j23:** питання іспиту по j02 не може спиратись на «додати не дасть». **→ довідник-карта:** рядок «що буде на одинадцятій людині». **→ j13:** дистрактор квізу «більше десяти безкоштовний план Jira все одно не дозволяє» лишається дистрактором (хибний з іншої причини), не чіпали. **Урок методу:** це той самий клас, що й у хвилі 4, — «твердження зі здорового глузду»; воно пережило рецензію, бо рецензент j02 чесно записав «дослівної цитати не знайшов» у звіт, а рядок не дійшов до реєстру хвостів. Записи «цитати не знайшов» у звітах рецензентів — переглянути перед релізом окремим проходом (`grep -n 'цитати\|не знайшов' reports/*-review.md`).
+- **Час читання в шапках (`reading-time.py`):** на 22 уроках автори ставили від 137 до 218 слів/хв (медіана 188). Скрипт рахує слова в `<article>` без Mermaid і вміє `--apply`; **швидкість — рішення власника**, нічого не застосовано. При 190 сл/хв найбільші зсуви: j02 25 → 19, j03 25 → 18, j01 20 → 17, j17 22 → 25.
+- **Метод (нове):** текстові зліпки уроків для агентів, які читають увесь курс (1,8 МБ HTML → 1,2 МБ тексту з маркерами секцій, вікон, виносок і квізом із ✓); скрипт — у скретчпаді сесії, у репозиторій не кладеться.
+
+## Від автора іспиту j23 (2026-09-20; повний звіт — `reports/j23.md`)
+
+### Про сам іспит
+- 26 питань за розподілом програми, кожне з опорою в **чинному тексті уроку** (26 із 26 цитат знайдені `grep`-ом у HTML); 0 вікон, 0 Mermaid; вісім блоків прози за скелетом `claude-code-23.html` (форма, не зміст); три скрипти — 0 ✗ / 0 !, «найдовша» 0/26, «найкоротша» 0/26, індекси 7/7/6/6, маркерів 0. Автор ≈ 610 тис. токенів, 38 хв — читав курс за **текстовими зліпками** (1,8 МБ HTML → 1,2 МБ).
+- Перевірка на повтори — `difflib` проти всіх 132 питань уроків: одне питання переписано (перша редакція П20 мала ту саму правильну відповідь, що j05 П6).
+- Щоб довести «найдовша» до нуля, автор **скоротив текст правильної відповіді** в П3, П9, П12 (частково П5) — подовжувати дистрактор до 115+ знаків було б неприродно. Рецензентові j23 це дано окремим пунктом.
+- **Контракт для іспиту — дужка:** назви блоків 2–5 уроку («Як це виглядає на екрані», «Зроби сам») іспиту не пасують; `check-lessons.py` вимагає ≥ 9 секцій, але назв блоків іспиту не перевіряє. **→ контракт §3:** дописати рядок «скелет іспиту» (вісім блоків: навіщо · як влаштований · що перевіряється · курс у 22 рядках · перевір свій сайт · граблі іспиту · часті питання · після іспиту), щоб наступний курс не винаходив його заново. Крихта шапки «Урок NN» → «Іспит» — пʼяте місце зміни відносно бази (прийнято).
+
+### Розбіжності МІЖ уроками (автор перший прочитав курс цілком) — стан на кінець дня
+- ✅ **j01 → j18, обіцянка без виконання** («точне формулювання підказки… звіряється в уроці 18», а j18 показує нейтральне `Search` із ⚠) — j01 приведено до того, що j18 справді робить; те саме з «українська порталу… звіряється в уроці 18» (`63af22f`).
+- ✅ **j12 квіз П4** ігнорував масову зміну з уроку 7 (знахідка рецензента j12, яка не дійшла до реєстру хвостів) — правильну відповідь переписано («усі десять довелось допрацьовувати»), в `explain` — «You can only perform one transition bulk operation at a time» (`63af22f`).
+- ✅ **j05 квіз П5** категоричніший за застереження j16/j19 про налаштування сповіщень — в умову додано «сповіщень ніхто не налаштовував» (`63af22f`).
+- **→ довідник-карта (глосарій):** слово «кошик» у курсі має три сенси — кошик **спейсів** (j12, j09, j21), кошик **дашбордів** (j08) і **відсутність кошика для окремої роботи** (j04, j05); звести одним рядком глосарія.
+- **→ довідник JQL:** `Resolution` описаний двома твердженнями для двох типів спейсів (j04/j10: у team-managed поле є, але не заповнюється й не редагується; j19/j09: у **службових** team-managed поля немає взагалі) — обидва з джерелами, місточка в курсі немає; одна таблиця «company-managed / team-managed / службовий team-managed».
+- **→ довідник-карта, наживо:** j13 ЧаПи кажуть, що довідка **не описує** ліміт колонки для ділових спейсів; звіт автора j10 (хвиля 2) обіцяв, що він у діалозі `Configure columns`. У чинному j10 такого твердження немає — звірити на sandbox.
+- **Не дефект, рішення програми:** j01 каже «робочий простір» у власному словнику, далі курс — «спейс»; j05 вводить «чіп». **Sandbox:** j21 W1 — єдиний список спейсів курсу без колонки `Type` (хвіст j03/j09).
+- **→ довідникам (від автора іспиту):** JQL — `!=` + `IS EMPTY` і `statusCategory` у розкладі flow варті рядків «часта помилка» (обидві трапляються в курсі тричі); автоматизація — три стани flow, зокрема `Draft`, описані лише одним абзацом j14; карта, «Що змінилось» — пари `Summary`/`Title` і `Save filter` (екран) / `Save as` (довідка) як найнаочніші приклади розходження статті з екраном.
+- **→ білду:** довідники в j23 названі текстом без `href` (блок 8 і ЧаПи) — поставити посилання, коли файли зʼявляться; друга `.ds-tbl` іспиту (4 колонки) — на 390 px; три Mermaid-скрипти без діаграм; назви блоків у сайдбарі до 37 знаків — на 280 px; `#completeTitle` → «Модуль позаду?» на іспиті (Б-14); **гілка `isFinalClick()` живе лише на цій сторінці — після міграції `012-1` пройти живим акаунтом до сертифіката.**
+
+## Реєстр незакритих тверджень без джерела (2026-09-20; `open-claims.md`)
+
+- **Привід:** «одинадцяту людину Jira додати не дасть» (j02) — рецензент j02 ще у хвилі 1 записав «дослівної цитати я не знайшов… Не виправляв», рядок не потрапив ні сюди, ні в журнал і прожив пʼять хвиль. **«Повідомляю, не правлю» у звіті рецензента ≠ закриття.**
+- **113 записів** у розділах 2 усіх 22 звітів: 29 закрито раніше; відкрито 🔴 6 · 🟡 33 теми · ⚪ 45; ⛔ 1. Агент ≈ 316 тис. токенів, 22 хв; 39 цитат звірено наживо (0 MISS). **Найдорожчий клас — категоричне «лише / завжди / жодного» про продукт, на якому стоїть правильний варіант квізу** (шість питань у шести уроках); джерело часто лежить у **сусідньому** продукті доксів (`subscriptions-and-billing`, `organization-administration`), а не в тому, про який урок.
+- **Закрито кореневою сесією того ж дня (`1d7d077`; кожну цитату коренева сесія звірила сама в сирому HTML):** ⛔ j03 — число змін адреси сайту знято з таблиці й з `explain` П1 (довідка суперечить сама собі: «You can't update an app URL more than 3 times» проти «You can update the subdomain up to 15 times») · j05 — «старе посилання після `Move`» перейшло з KB-статті з позначкою «generated by AI» на людську сторінку `migrate-between-team-managed-and-company-managed-projects` («Any existing links to old work item keys will be automatically redirected») — **пункт дозйомки sandbox про старе посилання більше не потрібен** · j02 `explain` П3 — «рахують доступ, а не активність» · j03 — «картку не питають» → «When you set up a site, you start with a Free plan» + «…provide payment details when you upgrade» · j08 П1 — з правильної відповіді прибрано «уміє читати ЛИШЕ збережений фільтр» (довідка називає для гаджетів два джерела — «your space or a saved filter»; налаштувань `Filter Results` ніхто не бачив) · j22 П1 — перебудовано: правильна відповідь більше не стоїть на тезі, яку проза уроку подає під ⚠.
+- **Відкрито з 🔴 — потрібне слово власника або sandbox:** **«на Free доступні ОБИДВА типи спейсу»** (j02:231/248 · j03:367 · j09:310/927). Довідка про план каже лише про спільну конфігурацію («This setting isn't available on the Free plan»), нове речення на `create-a-new-project` — про ролі, не про план («Jira admins can create spaces from any template, including company-managed and team-managed spaces…»). Закривається одним поглядом у майстер `Create space` на Free-сайті; альтернатива — зняти тезу в трьох уроках і лишити доведене.
+- **Довідка змінилась під курсом — чотири місця (нові факти, робота автора; в уроки НЕ внесено):** (1) `rovo/docs/rovo-usage-limits/`: «To turn on Rovo, your organization admin must be on a verified business domain… We can't enable Rovo on sites where the organization is registered with a generic email domain such as gmail.com or outlook.com» — стосується всіх згадок Rovo (j03, j12, j14, j16, j22); **→ довідник-карта «чого на Free немає»**; (2) `what-is-a-saved-search`: «If you're in a team-managed space, you won't be able to see the list of filters (system and starred) in the sidebar. To see your starred filters in a team-managed space, you need to select Filters from the sidebar» — коренева сесія звірила з j07: урок веде через пункт `Filters` і `View all filters`, **суперечності немає**; фразу блоку 8 «у бічній панелі з'явилось три збережені питання» читати як «під пунктом `Filters`»; **→ довідник-карта**; (3) `create-a-new-project` переписана: «…Any user can create their own team-managed space unless a Jira admin changes this in global permissions» — закриває записану вище суперечність j18 → j19/j20 про те, хто створює спейс; речення про ключ подовжилось («…and you'll be set as the space owner by default») — цитата j06:726 тепер половина речення (не помилка, але при повторній звірці цитат дасть збіг лише як підрядок); (4) адреса сайту: 3 проти 15.
+- **🟡 і ⚪ не чіпались** — пройти розділ 4 реєстру перед релізом разом із повторною посимвольною звіркою цитат (чеклист релізу, рядок (д)). Чотири твердження не закриваються довідкою взагалі (немає сторінок ні «за», ні «проти»): j03 «Jira не надсилає адресу окремим листом», j04 «епік не закриє задачі всередині себе», j04 «мітку знімають хрестиком», j08 «на дашборді нічого не редагують» — sandbox.
+
+## Від рецензента іспиту j23 (2026-09-20; повний звіт — `reports/j23-review.md`)
+
+- **«Готово з зауваженнями», 22 правки** (рецензент ≈ 345 тис. токенів, 32 хв): усі 26 питань мають опору в чинному тексті уроку — рецензент шукав її сам, не за таблицею автора (26/26); розподіл по уроках = програмі; повторів із 132 питаннями уроків немає (`difflib`, максимум 0,58 — стилістика); каркас і механіка іспиту сходяться з кодом (`js/quiz.js`, `js/module.js`, `js/progress.js`), обіцянок серверної перевірки балу немає. Три скрипти до й після — 0 ✗, «найдовша» 0/26, «найкоротша» 0/26, індекси 7/7/6/6, маркерів 0.
+- **Три класи дефектів у дистракторах іспиту (правило на наступні іспити):** (1) **дистрактор стоїть на ⚠ курсу** — П9: «мітка з кириличними літерами в запиті не працює» було хибним варіантом, тоді як урок 20 сам тримає це під ⚠ («живою Jira не перевіряли»), а `explain` подавав ⚠ як факт; (2) **дистрактор, якого урок не заперечує** — П24: перелік «що не експортується» в уроці 20 цитований як неповний («зокрема»), тож «копія не зберігає коментарі» курсом не спростоване; замінено на варіант, який спростовує дослівна цитата того самого абзацу («…limit restores from backups to those that are 30 days old or less»); (3) **дзеркальний маркер словом, а не знаком** — П3: усі три дистрактори мали «…, бо …», правильна була єдиною гладкою; `check-quiz-markers.py` цього не бачить (міряє лише `— : ; → «`).
+- **Закрито кореневою сесією за його зауваженнями (`e2f78d0`):** П14 — «Тарас» → «Денис, спейс WEB»: дослівна цитата уроку 10 про нову колонку («By default, new statuses aren't assigned to a column…») звужена до спейсів розробки, а `REM` — ділова родина, про яку той самий урок у `#l7` каже іншим боком («Columns on the board are controlled by your space's workflow») · умова П24 більше не припускає, що копію сайту вже зроблено (`Backup manager` на Free в уроці 20 під ⚠) · знято «в уроках поріг 70 %» (двічі): жодна сторінка курсу такого порога читачеві не показує, число жило лише в програмі й чернетці міграції.
+- **j23 → j10 (sandbox):** виноска `#l5` подає правило «статус є, колонки немає» загально, а цитата в ній — про спейси розробки; `#l7` про ділові спейси відповідає на той самий симптом інакше. Одне речення про ділові спейси — після дозйомки дошки бізнес-спейсу.
+- **j23 → j20 (sandbox, найдешевший і найдорожчий пункт):** ⚠ «кириличну мітку в запиті ми живою Jira не перевіряли» тримає під сумнівом **канонічний приклад курсу** `labels != "архів" OR labels IS EMPTY` — на ньому стоять «Зроби сам» і перевірка уроку 20, квіз j21 П5 і П9 іспиту. Закривається одним запитом у sandbox.
+- **j23 → j20:** перелік «що не експортується» цитований як неповний («зокрема») — будь-яке твердження про вміст копії, крім двох названих рядків, курсом не закрите (→ довідник-карта: повний перелік із датою).
+- ✅ **j23 → j09/j03/j07:** уроки 3 і 7 показують **помилку** «The value 'Done' does not exist», урок 9 описує **тихе неповне число** — обидва правдиві (помилка — коли статусу з такою назвою на сайті немає взагалі), місточка не було; коренева сесія дописала пів абзацу в уроці 9.
+- **Закрито, не переоткривати:** обіцянку j11 «оглядово буде в уроці 20» урок 20 **виконує** (на відміну від j01 → j18).
+- **→ `aia-quiz-editor` (окрема маленька задача перед релізом, обидва чекери цього не бачать):** мʼякий лексичний перекіс у квізах — «бо» у 29 % дистракторів проти 8 % правильних, «тому» у 31 % правильних проти 13 % дистракторів; в іспиті «тому» стоїть лише в правильному варіанті в П9, П10, П15, П21, П25. Кандидат у розширення `check-quiz-markers.py`: лексичні маркери «бо», «тому», «лише», «завжди» — так само в обидва боки.
+- **Дрібне:** ознака «опис із чекбоксами» живе в «Зроби сам» уроку 5, а не в його «Як перевірити»; звіт автора j23 §6 п. 7 каже «"чіп" не вживаю», але слово є в П6 і в блоці 4 (не дефект: «чіп» уведений в уроці 5).
+
+## Сесія хвостів кореневої сесії (2026-09-24) — sandbox наживо
+
+Власник залогінився в sandbox; знімки — `00-research/screens/26-sandbox-2026-09-24.md`, реєстр —
+`open-claims.md` «Стан на 2026-09-24». Уроки: `ca3576b`, `00cc867`, `f170c00`.
+
+- 🔴 **Теза, яку не впіймав жоден агент шести хвиль: «AI-кнопки на Free — лише апсел».** Стояла в
+  j03 (дім), j05, j07, j10, j13, j18, j22 (з квізом, у якому це була передумова питання) і j23. Наживо на
+  Free-сайті з організацією на Gmail `Ask AI` і `Fix error` працюють, `Improve Task` і `Add agent` відкривають
+  справжні діалоги. Корінь — висновок із цитати «Rovo credits are included in all **paid** …»: з «кредити лише
+  на платних» зроблено «усе з позначкою Rovo — лише на платних», а довідка там само має категорію «Free».
+  **Правило для авторів і рецензентів:** цитата про те, що X входить у платні плани, не доводить, що на Free
+  X немає; «на Free не працює» — лише зі знімком або прямим «not available on Free».
+- **Назви на екрані й у доксах розходяться системно** (автоматизація): `Success` / `Successful`,
+  `No actions performed` / `No action`, `Create from template` / `Use a template`, `Save and enable` /
+  `Turn on flow`. Вікно «за документацією» з такими назвами виглядає переконливо й хибить. → довідник
+  автоматизації: пара «у довідці / на екрані»; у вікнах — назви з екрана, коли він є.
+- **Сьогоднішнє доповнення кореневої сесії теж довелось відкотити:** «на Gmail-сайтах Rovo не вмикають
+  зовсім» (з живої цитати про verified business domain) за годину спростував той самий sandbox. Нову
+  цитату-заборону перевіряти наживо, якщо середовище є, до внесення в п'ять уроків, а не після.
+- **Три тези, пом'якшені 2026-09-20 «через брак джерела», наживо виявились правдою** (Filter Results — лише
+  збережений фільтр; хрестик біля мітки; `Backup manager` на Free). Пом'якшення було правильним кроком
+  (джерела не було), але `⚠`/хедж без запису в список sandbox не повернувся б ніколи.
+- **Кирилична мітка:** пастка уроку 7 наживо — голе `labels != "архів"` повернуло 0 із 3 робіт.
+
+## Довідники, хвиля 1 — автоматизація (2026-09-27; повні звіти — `reports/ref-automation.md` §8, `ref-automation-review.md` §7)
+
+- **Пари «екран / довідка» перевіряти в обидва боки; розділ сторінки ≠ сторінка.** Автор написав «`Save and enable` на
+  екрані, а в довідці `Turn on flow`» — рецензент знайшов на одній сторінці `create-and-edit-jira-automation-rules` усі три
+  підписи (`Turn on flow` — з нуля, `Turn it on` — з шаблону, `Save and enable` — з Rovo). Виправлено.
+- **`docs-text.py` (текст `<main>`) губить частину статей Atlassian** і дає хибний MISS на живій цитаті — корпус звірки
+  будувати з сирого HTML. Сторінка `smart-values-in-jira-automation` — окреме джерело, якого немає в переліках слагів.
+- **Запис хвилі 3 «докси автоматизації вже всюди кажуть flow/step» на 2026-09-27 неточний** — `jira-automation-branches`
+  і `jira-automation-conditions` досі пишуть «issue»/«project»; в адресах сторінок `rule` лишився майже всюди.
+- **→ j14:** урок каже про тригер «завжди рівно один» — джерела немає (реєстр §10, рішення власника). Назва умови flow 1 —
+  `Work item fields condition` (екран; у довідці `Issue fields condition`) — довідник вирівняно з уроком.
+- **→ j15 (новий факт, потрібен автор):** «To validate your input, go to More actions (), then select **Check for errors**.
+  Once your field is validated, select Save and enable» (`what-are-smart-values`, `smart-values-in-jira-automation`,
+  2026-09-27) — відповідь на симптом «замість значення порожнє місце»; у j14/j15 0 входжень. Також: `{{lookupIssues}}` має
+  13 документованих частин (урок називає шість); дія `Delay` пояснює довгий `Total time`.
+- **→ j19:** `SLA threshold breached` дозволяє обрати і SLA, і час **до** межі · `Add service space customer` — «up to 15
+  seconds», довідка радить `Delay` перед нею.
+- **→ j20:** дві галочки в `Global configuration` (`Allow space administrators to manage space flows`, `Allow non-admins to
+  create recurring flows`) · перенесення flows — глобальний адмін, приходять вимкненими, однойменні — `Copy of [flowname]`.
+- **→ ref-jql:** JQL у flow виконується правами `Actor` · `Validate query` безсила зі smart values · три місця JQL у flow
+  (`Scheduled` — дії для кожної роботи; умова `JQL`; `Lookup work items` — перші 100) · «субота — останній день тижня» —
+  цитата в j15 · повне речення про `resolution` у службових team-managed (`jql-fields`) · `{{now}}` — UTC+00:00.
+- **→ ref-map (числа, в автоматизації їх немає):** кроки на місяць по планах і продуктах (Jira Free 150 per subscription;
+  Standard 400/user; Premium 750/user; Enterprise 1000/user; Confluence 50/100/250/500; JSM 1250/3000/6500/9500; JPD
+  100/300/500/750; Teamwork 200/2500/5000/7500), пул на рівні організації, $0.50 за 1 000 кроків з 2026-12-03, сповіщення
+  80 % і 100 % · `Send email` «100 emails in a 24-hour period… only applies to the Free plan» · одночасні flows Free 5 /
+  Standard 10 / Premium 20 / Enterprise 30 (+ «only the highest limit will count») · Rovo Agent у flows 500 requests/min
+  (soft) · Confluence AI 1 000 uses / 12 h · `Steps per flow group` 65 (сенс лише на Premium/Enterprise) · шлях витрат:
+  Atlassian Administration → `Insights` → `Platform usage` · глосарій: «агент» у трьох сенсах (агент JSM, Rovo-агент,
+  `Automation for Jira` як actor) · advanced steps — лише Premium/Enterprise. Усе — `automation-service-limits`,
+  `how-is-my-usage-calculated`, 2026-09-27; перед картою перезвірити.
+- **→ білду/дизайну:** `.ds-tbl--wrap` на 14 із 31 таблиці (перша сторінка курсу з масовим wrap); **дві таблиці без wrap мають
+  у першій колонці ідентифікатори 53 і 39 знаків** — конструкція дефекту 2026-09-09, заміряти на 390 px разом зі «зведеним
+  переліком правил переходу» (перша колонка до 105 знаків); тришаровий `term` (тіло листа) — пастка «Копіювати» через `\n`,
+  як у j15; `jira.html`, `jira.html#refs`, `#map` → 404 до лендінга; чотири згадки карти назвою → посилання, коли зʼявиться
+  `jira-ref-map.html`.
+- **Контракт (пропозиція автора):** §10 «Скелет довідника» (як §3 «Скелет іспиту») і скрипт `check-refs.py` (парсер, `id`,
+  якорі, класи, альфа, звороти, регулярки чисел) — механіку двічі перевіряли вручну.
+
+## Довідники, хвиля 1 — JQL (2026-09-27; повні звіти — `reports/ref-jql.md` §5–§7, `ref-jql-review.md` §7)
+
+- **⛔ Метод: `re.sub(r'<[^>]+>', '', html)` на сторінках Atlassian зʼїдає переліки операторів** — у тексті живуть літерні
+  `<`/`>` («`>` , `>=` , `<` , `<=`», `due < now()`), регулярка бере від першого `<` до наступного `>` і дає хибний MISS
+  (`updated <= "-4w 2d"`, `"Time to First Response" < remaining("2h")`, `~` для `workItemKey` — усі в доксах є). Правильно:
+  `re.sub(r'</?[a-zA-Z!][^<>]*?>', '', html)`, `html.unescape` ПІСЛЯ зняття тегів. Той самий клас, що `docs-text.py`/`<main>`.
+- **Твердження про самі докси знову найдорожчі:** «у довідці подекуди вже `Title`» — на пʼяти сторінках JQL `Title` як імені
+  поля немає (13–14 збігів — службова розмітка); справжній дім — «Create a work item and a subtask»: «This field was previously
+  labelled Summary. JQL queries, API calls, and automations that reference summary still work as before» (2026-09-27) ·
+  банер «We're updating terminology…» стоїть на **пʼятьох** сторінках JQL (`fields`, `operators`, `keywords`, `functions`,
+  `optimization-recommendations`) + `search-and-find-your-issues` · регістр назви годинника SLA різниться **всередині
+  `jql-fields`** (Syntax — з малих, приклади — з великих), JSM — лише з малих · `elapsed()` на `jql-functions` — 0 збігів.
+- **`startOfWeek()` — замовчування тепер умовне:** «By default, this function considers Sunday to be the first day of the
+  week when ISO8601 for the Date Picker is disabled in Look and feel settings». Урок 7 категоричного твердження не має.
+- **Старі імена живі в прикладах самої довідки** (`issueKey`, `duedate`) при нових `workItemKey`, `due`/`dueDate` на сторінці
+  полів; `jql-keywords` переписана під `space` цілком; `Syntax: spaceJira` на `jql-fields` — живий і сьогодні.
+- **→ j07 (закрито кореневою сесією 2026-09-27):** цитата про `endOfWeek()` була обрізана перед «By default,» — вирівняно з
+  живими доксами й уроком 15. **→ j07 (рішення власника):** «вичерпних таблиць» у вступі — реєстр §10.
+- **→ j19:** графа Syntax поля SLA має третє імʼя `<your custom SLA name>` — пара «своя ціль SLA → своє поле в JQL» у курсі
+  не сказана · `remaining()`: «Positive values… Negative values…» і «To exclude breached items… use >= remaining("0h")».
+- **→ j11:** пошук власного поля за номером варіанта документований — запасний шлях для кириличних значень.
+- **→ j23:** не питати про `spaceType`, `parentSpace`, `type`/`issuetype`, `textfields`, `statusCategoryChangedDate` і поля
+  службового спейсу — у довіднику вони під ⚠.
+- **→ ref-map:** пара `Summary` (екран) / `Title` (стаття) / `summary` (JQL) з цитатою вище · три «категорії» для глосарія
+  (категорія етапу / категорія спейсу / поле `Category` ділового спейсу) · числа: 200 у листі підписки, експорт, 60 днів
+  кошика, 5 000 на дошці.
+- **Sandbox (лише запити в `All work`, без запису):** `type = Task` + `type IN standardWorkTypes()` · `spaceType = "business"` +
+  `parentSpace = "REM"` · `key` / `workItemKey` / `issueKey = KAN-1` · `textfields` · `statusCategoryChangedDate` · 
+  `linkedWorkItems()` / `watchedWorkItems()` · кирилична назва власного поля · як у запиті зветься `Category` ділового спейсу
+  · `priority > Medium` · після JSM: `"Request Type"`, обидва годинники SLA (**точний регістр на екрані**), `approval`/`approvals`.
+- **2026-09-28 — прогнано через MCP (`searchJiraIssuesUsingJql`, лише читання; повна таблиця — `open-claims.md` §10.1):**
+  🔴 **три нові імена з доксів жива Jira НЕ приймає:** `space` («Field 'space' does not exist…»), `parentSpace` (працює
+  `parentProject`) і `linkedWorkItems()` («Unable to find JQL function» з будь-яким аргументом; працює `linkedIssues()`) —
+  правило банера «try using the old term instead» підтвердилось буквально, а довідник мав у таблицях дві неробочі назви.
+  Прийняті: `spaceType` (+`projectType`), `type`/`issuetype`/`workType`, `standardWorkTypes()`, `subtaskWorkTypes()`,
+  `key`/`workItemKey`/`issueKey`, `watchedWorkItems()`, `votedWorkItems()`, `workItemHistory()` (і всі старі `…Issues()`),
+  `workItemLink` (+`["blocks"]`), `textfields`, `statusCategoryChangedDate` з лапками й без, `hierarchyLevel`.
+  Лишились: `priority` (на KAN пріоритети порожні — потрібен запис), JSM, власне поле, `Category` ділового.
+  **Метод на майбутнє:** будь-яке нове ім'я з доксів перевіряти запитом до того, як воно піде в таблицю; негативний контроль
+  (`fooBarField`) обовʼязковий — інакше «0 результатів» не відрізнити від «запит проковтнули».
+  **→ j23:** обмеження «не питати про `spaceType`, `type`/`issuetype`, `textfields`, `statusCategoryChangedDate`» знято
+  (звірені); `parentSpace` — у курсі не вживати взагалі.
+- **→ білду:** `href` на обидва довідники поставлено в j23 блок 8 (кореневою сесією); карта — назвою до появи файлу; у j07, j10,
+  j14, j15 довідники названі текстом (рішення «називати назвою») — посилання поставити на білді разом із картою · нові
+  `<url>` у `sitemap.xml` (`/jira-ref-jql`, `/jira-ref-automation`) — на релізі · заміряти на 390/1280 чотириколонкові
+  таблиці JQL («Щоденні поля», «17 операторів», «Часті помилки», «Що змінилось») · живий клік «Копіювати» (26 блоків).
+- **Контракт (обидва автори незалежно):** §10 «Скелет довідника» + `check-refs.py` + одна конвенція підпису джерела під
+  таблицею (автор JQL узяв `p.ds-small`, 29 разів).
+
+## Хвиля 7 — «уроки під живу Jira» (2026-09-29; звіти `reports/w7-*.md`)
+
+Рішення власника: правки пишуть автор + рецензент; верхній рівень — **назва з екрана** (`Workstream` / `Campaign`, `Epic`
+лише у `WEB`). Канон — `program.md` п. 20. Пʼять авторів паралельно: ① майстер (j03, j09, j12) · ② workflow (j10) ·
+③ ієрархія (j04, j11, j06, j05) · ④ автоматизація (j14, j15, ref-automation) · ⑤ хвости (j21, j22, j23, ref-jql).
+Автори закомічені: ④ `b1d6030` · ① `098f23a` · ⑤ `570ace1` · ② `864910c` · ③ `c8349e2`. Рецензенти хвилі 7 — **ще не
+запускались** (апрув власника є, старт наступної сесії; `wave7-common-review.md`).
+
+### Наскрізне
+- **Слова `Workstream` у довідці Atlassian немає взагалі** (④, WebSearch по `support.atlassian.com`) — пара «довідка каже
+  Epic — екран каже Workstream/Campaign» стоїть лише на знімку 28.09; дату в текстах лишати обовʼязково.
+- **Але довідка сама обмежує «Epic» спейсами розробки** (③): «By default, this work type will be called epic in software
+  spaces» (`jira-software-cloud/docs/manage-epics-in-team-managed-projects/`, 29.09) і «By default, the work type called Epic
+  is associated with the hierarchy level for larger pieces of work (level 1)» (`jira-cloud-administration/docs/configure-the-
+  issue-type-hierarchy/`) — опора для пояснення в j04 і в довіднику-карті. Усі заголовки `set-up-issue-types-in-team-managed-
+  projects` мають слово software — перелік типів звідти не описує діловий спейс.
+- **У майстрі є і `Campaign management`, і `Content management`** (③ → j12, j21): опис «кампанії, пости, контент-план» вів би
+  учня до другого, а типи в них різні — називати заготовку дослівним описом зі `screens/27` §1.
+- **Дані сюжету:** у вікні `List` j04 `REM-3` має `Oct 8, 2026`, у §3 і `screens/27` §9 — без дедлайну (③; поза п. 20, для
+  фінальної звірки сюжету).
+- 🔴 **Рейка `Space settings` ділового спейсу ≠ рейка `KAN`** (①, ②): у діловому немає `Features` і `Custom filters`, є
+  `Approvals` (`screens/27` §5). **j06 тричі веде читача в `Features`** (`jira-06.html` ~588, ~680, ~844, підсумок ~1002);
+  вікна `settings` у j11, j15, j20 показують `Features` / `Custom filters` для ділових спейсів (джерело — `screens/10`, це
+  `KAN`). j09 W2 і j10 W1 уже переведені на ділову рейку. **Після дозйомки повної рейки `REM` — один наскрізний фікс.**
+- **Меню `•••` — у шапці спейсу** (екран 28.09), а довідка пише «in the side navigation» — розбіжність у самих доксах;
+  тексти (j09, j10, j12, j14, j15, ref-automation) називають шапку, не заперечуючи бічну панель.
+- **Правило workflow:** на екрані `Assign a work item`, поле `Transition`; дві з трьох живих сторінок доксів пишуть
+  `Assign a work item to someone` і `For transition` (④, `curl` 2026-09-29) — тексти за екраном.
+- **`Add work type` на екрані ділового спейсу — без плюса** (`screens/27` §5); `+ Add work type` — форма з доксів (⑤ → j11).
+- **Автоключ із кирилиці безглуздий** (`ZRIY`, `TART`, `DCAI`, `OZIO`) — ключ вводиться латиницею на формі (① → довідник-карта).
+- **Ключ звільняється вже в кошику** (`screens/27` §7) — ① → j21.
+- **Рівнів доступу три** (`Private / Limited / Open`) у діловому шаблоні — підтверджено `screens/26` §1 (Task tracking); у
+  Project management випайку не розкривали.
+- **JQL:** `type = Subtask` не бачить `Sub-task`; `type = Epic` у діловому спейсі мовчки дає 0; `type = Story` у `WEB` — 0 без
+  помилки; `type = Bug` → `WEB-2` (`screens/27` §11).
+
+### Для рецензентів хвилі 7
+- **j23** — `explain` П14 тепер спирається на `jira-10.html` ~902–907 (у діловому спейсі нові статуси стають колонками самі);
+  опори питань іспиту в чужих файлах: П3→j03 · П4,П5→j04 · П6,П7→j05 · П8→j06 · П12→j09 · П13,П14→j10 · П15→j11 · П16→j12 ·
+  П18→j14 · П19→j15 (⑤). Питання про `Any` у нового статусу чи про статуси підзадач в іспиті немає (звірено кореневою сесією).
+- **j14 П1** — правильна тепер «кампанії та підзадачі» (④); **j10 П2, П5** переписані (②); **j04 П6, j11 П2** переписані (③;
+  передумова j11 П2 була фактично хибною). Правило «правильна не стоїть на ⚠» скрипт не бачить — для кожної правильної знайти
+  абзац-опору (③).
+- **j21 ↔ j12** — цитата «Task and subtask» в обох як датована розбіжність довідки й екрана — звести формулювання.
+
+### Дизайну
+- У стані `item` немає елемента «тип роботи» (на екрані — іконка без підпису), тож тип називається лише в прозі (③, j04/j05).
+- `win__tabs` з 5+ вкладками на 390 px (j12 W3, j10 W3) · дві рейки `settings` (ділова / розробки) · змішане вікно
+  «за документацією + одне поле наживо» (j22 W1) — третього стану заголовка контракт §4.3 не має · `js/mermaid-theme.js`
+  без `state: { useMaxWidth: false }` (повторно).
+
+### Інструментам
+- `reading-time.py` не бачить сторінку іспиту (інший рядок шапки) · для довідників немає чекера — скрипт автора ⑤ готовий
+  стати `check-refs.py` (рішення власника №4 «контракт §10 + `check-refs.py`» чекає).
+
+### Рецензенти хвилі 7 (2026-09-29; звіти `reports/w7-*-review.md`) і дозйомка `screens/28`
+- **Вердикти:** ① j03 готово, j09 і j12 з зауваженнями · ② j10 з зауваженнями · ③ j05 готово, j04/j06/j11 з зауваженнями ·
+  ④ j14, j15, ref-automation з зауваженнями · ⑤ j21, j23, ref-jql готово, j22 з зауваженнями. Разом ≈ 55 правок формулювань,
+  1 фактична з джерелом (j06: `Capacity` — у трьох із чотирьох ділових спейсів). Три скрипти після всіх: 0 ✗ на 23, маркерів 0,
+  «найдовша» 7/158; `check-refs.py` 0 ✗ на 2.
+- **Клас дефектів хвилі:** **узагальнення з одного знімка** («у ділових — Workstream або Campaign» при тому, що Recruitment
+  tracking дав `Role`/`Candidate`; «жодного `Backlog`» при згорнутому `More 1`) і **вікно з чужого спейсу** (дата в заголовку
+  каже *коли*, а не *де*) — обидва записані в памʼять рецензента.
+- **Жива Jira 29.09 (`screens/28` §7), що міняє тексти:** порожній слот батька на картці ділового спейсу — **`Add epic`**,
+  заповнений — `Workstream` · `Add work type` не дає вибрати рівень (`Bug`/`Story` + форма без рівня) · `Details` картки
+  ділового спейсу без `Parent`, з `Category`/`Team`/`Budget` · `More actions` є **і в шапці, і в бічній панелі** · `Access` у
+  Project management — три рівні · в `HR` `Any → New` і `Any → Hired` є · агентний пошук MCP на Free → 403.
+- **Термінологія:** «поверх» — канон j04 (рецензент ④ звів j14/j15/ref-automation); **«етап» тепер двозначне** — статус і
+  `Workstream` (рецензент ③) — питання власнику; «велика справа», не «велика робота»; «діловий спейс», не «бізнес-спейс».
+- Повна черга правок і дозйомки — `open-claims.md` §11.1.
+
+## Хвиля 8 — «черга §11.1» (2026-09-30; звіти `reports/w8-*.md`; рецензенти ще не запускались)
+
+Рішення власника 2026-09-30: правки пишуть автор + рецензент · `Workstream` українською — **«напрям робіт»**, «етап» — лише
+статус і колонка. Канон — `program.md` п. 21. Три автори паралельно: ① `hierarchy` (j04, j05, j06, j11) · ② `wizard` (j01,
+j03, j09, j12, j13, j16, j21) · ③ `automation` (j10, j14, j15, обидва довідники). Коміти: ③ `f398463` (308 тис. токенів /
+25 хв) · ② `8b12055` (307 тис. / 27 хв) · ① `d0fadcf` (353 тис. / 33 хв). Квізи не змінювались у жодній групі.
+
+### Наскрізне
+- **Клас дефектів хвилі — «вікно з чужого спейсу» виявився ширшим, ніж думали:** вікна `WEB` в j13 і j16 малювались рядом
+  вкладок старого спейсу `KAN` (②); підпис дошки `HR` у j10 перелічував `Capacity`, якого там немає (③ знайшов у власній
+  зоні); W1 j11 — рейка `KAN` у спейсі `HR` (①). Правило: хвіст рядка виглядів звіряти **за своїм спейсом** (`screens/29` §2).
+- **Конструкція «входить у платні плани → на Free немає» дала дефект ще тричі** — j14 (Rovo в автоматизації), j12 (кнопка
+  майстра), j16 (AI у чатах); усі зняті. Живий факт — `screens/29` §1.
+- **«Ознака, яку заперечує власне вікно уроку»** (② у j09: «`Work types` — найшвидша ознака team-managed» проти W3) — списки
+  «Як перевірити, що вийшло» читати проти вікон того ж уроку.
+- **Завдання перелічує місця, а зсув знання ширший:** автор ① закрив сім ⚠ при чотирьох названих — перша дія автора й
+  рецензента такої хвилі: `grep -n '⚠'` по своїх файлах.
+- **Нова проза приносить заборонене «просто»** (три файли з чотирьох у ①) — `check-lessons.py` ганяти після кожної порції.
+- **Два різні `•••` на дошці:** біля назви спейсу і меню самої дошки (③).
+- **Формули, узгоджені між групами:** `Add work type` (j11 ↔ j12 ↔ j21), три крапки біля спейсу (повна при першій згадці,
+  коротка далі), сторінка шаблону через `See details` (j06 ↔ j09 ↔ j12).
+
+### Дозйомка після авторів (`screens/29` §7–§14) — у тексти НЕ внесено
+🔴 Коренева сесія зібрала flows уроку 15 наживо й перевірила гілки в тимчасовому спейсі. Пʼятнадцять рядків — таблиця
+`open-claims.md` §11.2. Найдорожчі: **j15 описує автоматизацію, якої на екрані вже немає** — розклад вибирається кнопками,
+а не Cron; є `Run scheduled flow now`; `Flow details` — у меню `•••`; `Subject` і обовʼязкове `Email name` — у вкладці
+`Settings`; **прапорець `Prevent duplicates` мовчки зʼїдає другий коментар** при статусі `Success`. Гілки `Epic (parent)` і
+`Stories` Jira сама позначає як такі, що зникнуть. **Узагальнення автора ① про `Add work type` хибне для `MY`** — діалог там
+пропонує `Epic`. j13: `Backlog` — це вигляд із панелі `+`, а не перемикач у `Features`.
+Урок методу: **урок «за документацією», який жодного разу не пройшли руками, старіє швидше за будь-який інший** — j15 і j13
+варто пройти наживо повністю, а не звіряти цитати.
+
+### Дизайну
+- Нових класів і станів хвиля 8 не додала. Нові живі кадри для макетів: конструктор flow (панелі `Add a trigger` / `Add a
+  step` / `Turn this flow on`, вузли й мітка `BRANCH` — `screens/29` §7), розгорнутий рядок `Audit log` (§9), панель `Views`
+  з кнопкою `Add to navigation`, беклог зі спринтом `WEB Sprint 1` (§12), календар з панеллю `Unscheduled work` (§12), діалог
+  `Add work type` (§11).
+- Стан `item`: і далі немає способу показати тип роботи й крихту з порожнім слотом батька (`Add epic`) — описано прозою (①).
+- Вікно «структура з дати А, один напис із дати Б» — таких уже вісім (чотири в ①, чотири в ②); формат підпису контракт §4
+  не фіксує.
+
+### Інструментам
+- `check-lessons.py` бере один `--pattern` за виклик (брейс-глоб не працює).
+- `reading-time.py`: після хвилі 8 j06 і j11 стоять на межі порога 3 хв — рецензент, що додасть текст, мусить зробити `--apply`.
+
+
+## Хвиля 9 — «назад на Free» (2026-09-30, третя сесія; звіти `reports/w9-*.md`; рецензенти ще не запускались)
+
+Причина хвилі — `open-claims.md` §12: навчальний сайт до 30 вересня був на пробному Premium. Пʼять авторів паралельно, усі
+25 сторінок, файли не перетинаються; ≈ 2,0 млн токенів разом, 23–37 хв кожен. Коренева сесія тим часом перезняла Free
+(`screens/32`), і **більшість змістовних правок авторів прийшла саме звідти, а не зі списку завдань**.
+
+### Усім авторам і рецензентам
+- **Знімок, що росте під час хвилі, працює** — але лише з явним правилом «перечитай перед фінальним прогоном». Четверо з
+  пʼяти авторів перечитали `screens/32` двічі й внесли з нього факти, яких у завданні не було (картка без `Parent`, `Send
+  email` зникла з переліку дій, `Run scheduled flow now` у вимкненого flow, вікно за кнопкою `Upgrade`). Ціна: розділи,
+  зняті **після** авторів (§15–§16), лягли на рецензентів.
+- **Канон застарів за годину.** Формула п. 22 «чи дасть `Create with Rovo` результат — курс не перевіряв» стала хибною,
+  щойно запит надіслали (двічі помилка). Правило: «не перевіряли» в каноні — це черга на перевірку, а не формулювання для
+  уроку; якщо перевірити можна за хвилину, перевіряти **до** хвилі.
+- **Обидва боки однієї пастки.** «Входить у платні → на Free немає» (висновок із довідки) коштував хвиль 6 і 8;
+  «бачили на нашому сайті → є на Free» коштував хвиль 8–9. Третій бік знайдено сьогодні: **KB-стаття 2025 року проти
+  живого екрана** — «Archiving issues is only available for Premium and Enterprise customers» курс переказував як
+  «архівації немає», а окрема робота на Free архівується (гуртом — ні, спейс — ні).
+- **Одиниця обліку — теж факт.** Курс писав «кроки на місяць»; чинна модель рахує **запуски flows** (100), кроки — модель
+  майбутня. Два числа в одній консолі (100 і 150) виявились двома одиницями, а не суперечністю.
+- **Правило F14 (пʼять випадків) витримало**, але має дві дірки, названі трьома авторами: вікно, структурно підтверджене на
+  Free, з даними, знятими раніше (рішення авторів — складена дата «звірено 2026-09-17; ліва колонка — 2026-09-30» або
+  правило 3); і підпис із двома джерелами.
+- **Нумерація вікон:** у завданнях і в `screens/31` §7 вікна звуться за порядком у тексті (W1, W2, W3), у файлах — за `id`
+  (`w1`, `w2`, `w3`), і це не завжди збігається (j07: «W3» завдання — це `id="w2"`). Далі — лише `id`.
+- **Один дефект — у кількох групах.** F6 (доступ) віддано групі ②, а той самий дефект жив у j03, j05, j12; автори
+  виправили за правилом «той самий дефект поруч», але це треба писати в завданні прямо: «тема віддана групі N, слід у
+  своїх файлах прибираєш сам».
+
+### Дизайну
+- Структура вікон, стани й класи не змінились; змінився вміст — перелік у брифі, «Оновлення входу 2026-09-30, вечір».
+- Нова таблиця довідника автоматизації `#limits-free` — 3 колонки з довгим третім стовпчиком (`ds-tbl--wrap`): заміряти на
+  390 px.
+- j02 виріс до 25 хв читання (новий розділ про план сайту й нове вікно за кнопкою `Upgrade`).
+
+### Інструментам
+- `check-refs.py` посеред хвилі показав битий якір у файлі сусіда (`#limits-free`) — проміжний стан; фінальний прогін —
+  лише після всіх авторів.
+- Кліки за `ref` по кнопках, що оживають на наведенні, спрацьовують з другого разу; вікно браузера звузилось посеред
+  роботи — координати «попливли» (`screens/32` §16, кінець).
+
+## Рецензія хвиль 8 / 8б / 9 (2026-09-30, четверта сесія; звіти `reports/w9-*-review.md`; коміти `7eac9a4` ① · `0e35605` ② · `e101ef3` ③ · `e84761d` ④ · `7b51680` ⑤)
+
+Пʼять рецензентів паралельно, групи ті самі, що в авторів хвилі 9; ≈ 2,2 млн токенів разом, 18–28 хв кожен. Вердикти:
+j01, j08, j09 — «готово»; решта 22 сторінки — «готово з зауваженнями»; жодну авторові не повернуто. Квізи: змінено один
+дистрактор (j13 П5) — інакше жодна правильна, дистрактор чи `explain` не стояли на скасованому. Скрипти на кінець: 0 ✗ на
+23, маркерів 0, «найдовша» 7/158, `check-refs` 0 ✗ на 2. Паралельно коренева сесія дознімала Free — `screens/33`
+(рецензенти його не бачили; внесення — окремою хвилею).
+
+### Усім авторам і рецензентам
+- **Зміна одиниці обліку лишає внутрішні суперечності.** j14 став казати «Jira рахує запуски flows», а підсумок того ж
+  уроку, три місця j15, рядок j02 і іспит j23 далі говорили про кроки. Коли канон міняє одиницю, grep іде по **всіх**
+  словах, що її виражають («крок», «кроків», «step»), а не по одному реченню.
+- **Хибна теза трималась на власному джерелі уроку.** j07: «пошук отримує не порожній список, а червону рамку» — а в
+  `screens/15` під тією самою помилкою стояв список «3 of 3». На Free: з `=` список порожній, з `!=` — рамка **разом із
+  повним списком**. Перечитуй знімок, на який посилається абзац, а не лише заголовок вікна.
+- **Атрибуція цитати — теж факт.** «Archiving issues is only available for Premium and Enterprise customers» курс
+  подавав як «документацію»; у продуктових доксах (`archive-an-issue`, `what-is-the-free-jira-cloud-plan`) такого
+  обмеження **немає** — це стаття бази знань. Екран Free і продуктова довідка збігаються; розходиться лише KB (j02, j05
+  виправлено; j20 атрибутував правильно).
+- **Вікно, що суперечить іншому вікну того ж уроку.** j11 `#w3` малював `Priority` перед `Due date`, а W1 того ж уроку —
+  навпаки (живий — W1). Два вікна однієї картки звіряти між собою.
+- **Висяче перехресне посилання після хвилі.** j13 відсилав «докладніше про `Capacity` — урок 6», а після хвилі 9 у j06
+  слова `Capacity` немає. Коли хвиля прибирає тему з дому, grep по «урок N» у сусідах.
+- **Категоричне «рівно / єдина / жодного» знову коштувало правок:** «меню колонки мало рівно три пункти» (у середньої
+  колонки чотири — `Move column left` теж), «єдина пропозиція завести службу», «Rovo на Free рівно у двох місцях» (є ще
+  блок «Rovo AI» в `Add an action`).
+- **«Зроби сам», нездійсненний на Free:** j16 просив додати `Docs` через `+` → `Views`, а в діловому спейсі панель дає лише
+  `Board · List · Timeline` (і `Docs` уже в ряду). Кожен крок «Зроби сам» проганяти подумки проти рейки й панелей Free.
+- **Знайдено джерела двох «добових меж листів»** (🔴 з §12.2): сповіщення — «Jira can send a maximum of 100 emails per day
+  on the Free plan…» (`what-is-the-free-jira-cloud-plan`); дія `Send email` в автоматизації — «100 emails in a 24-hour
+  period. This limit only applies to the Free plan for Jira Cloud and Trial licenses» (`automation-service-limits`). Два
+  механізми, два джерела — у тексти ще не внесено.
+- **Пастка звірки доксів:** у таблиці `explore-jira-cloud-plans` рядки `Space archiving` і `Space roles` є, але `Space`
+  загорнуте в окремий тег — голий `grep` по тексту дає хибний нуль.
+
+### Дизайну
+- Перемальовані вікна (структура та сама, класів нових немає): j04 W1 і j05 W2 — ділові картки **без `Parent`**,
+  `Reporter` останнім, мітки j04 перенумеровані (①–⑧, батько — у крихті); j07 `id="w3"` — тепер `Filter details` з
+  екрана Free, а не «за документацією».
+- `screens/33`: вигляд `Reports` — оглядова панель із плитками й віджетами (не список звітів); адмінка Atlassian у
+  sandbox показана **українською** (мова акаунта) — вікно W3 уроку 20 англійською за довідкою.
+
+### Інструментам
+- Файл знімків, що зʼявився посеред рецензії (`screens/33`), рецензенти помітили й **свідомо не вносили** — він сам каже
+  «вносить коренева сесія або наступна хвиля». Це правильно: рецензент не додає фактів, а в знімку їх десятки.
+- `WebSearch` упіймав місячний ліміт витрат у рецензента ① — довелось шукати прямим `curl` по кандидатах.
+
+## Хвиля 10 — «внести `screens/33`» (2026-09-30, пʼята сесія; звіти `reports/w10-*.md` і `w10-*-review.md`)
+
+Пʼять авторів паралельно (≈ 290–430 тис. токенів, 18–34 хв кожен) → рецензенти **по групах одразу після коміту автора**
+(конвеєр замість «вся хвиля, потім усі рецензенти»; ③ з іспитом — останнім, після всіх авторів) → правки кореневої сесії за
+§7 рецензентів. Вердикти: j01, j04, j08, j09, j15, j18, j19, j22, j23 — «готово», решта — «готово з зауваженнями»;
+повернень авторам немає. Квізи: три зміни в `explain`, дві в стемах, жодної правильної відповіді. Скрипти: 0 ✗ на 23,
+маркерів 0, `check-refs` 0 ✗ на двох довідниках. Паралельно — третій довідник і редактор квізів (лексичні маркери).
+
+### Усім авторам і рецензентам
+- **Правка хвилі може стояти на неповному читанні доксів.** j13: автор прибрав «вимагає спринтів» як «висновок з опису»,
+  спираючись на рядок рецензента попередньої хвилі; а `enable-reports` каже це прямо («It requires the Sprints feature to
+  be enabled.») — абзацом нижче за «For example, Burnup and Velocity…». **«Такого рядка в довідці немає» перевіряти по
+  сирому HTML до кінця розділу; «For example» — приклад, не перелік; рядок «без джерела» з чужого звіту джерелом не є.**
+- **Стаття може суперечити сама собі.** Категоричне речення KB-статті про архів стоїть у синій **виносці над** текстом, а
+  перше речення тексту каже протилежне. `articleBody` з JSON-LD виносок не містить — звіряти й сирий HTML (`ComponentCallout`).
+  Мітка `learningResourceType: "Knowledge base article"` — на **всіх** сторінках support; KB визначає адреса `/kb/`.
+- **Довести, що джерело чогось НЕ каже,** — через `articleBody`, а не grep по HTML (меню сторінки дає хибні «Premium»).
+- **Сторінка планів `explore-jira-cloud-plans` містить таблиці кількох продуктів** (Jira, JPD…) і дві копії таблиці; зняття
+  тегів склеює колонки. Рядок шукати під шапкою потрібного продукту.
+- **Поріг без бази лічби.** «More than three required fields» не каже, чи рахується `Summary` (живий дослід: ні) і чи
+  рахуються поля по типу чи по спейсу (не розрізнили) — урок помилявся на одиницю в шести місцях. Порогові числа доксів
+  перевіряти: **від чого рахується і в межах чого**.
+- **Арифметика з власних чисел.** Довідник писав «щохвилинний flow зʼїсть місячний запас за півтори доби» при власних 100
+  запусках на місяць (≈ 100 хвилин) — помилка в 24 рази, на ній стояло застереження. Будь-яке «за N часу» — перерахувати.
+- **Крок «Зроби сам» проти власного блоку уроку.** j06 радив додати `Calendar` з панелі, де блок 2 того ж уроку перелічив
+  `Board · List · Timeline`; j10 вів у галерею повз панель `Templates`. Кожен крок проганяти по тексту свого ж уроку.
+- **Перемалювавши вікно, grep по старих назвах у всьому файлі** — j10 тримав вигадані переходи `HR` у вікні, Mermaid і
+  реченні перед ним; після правки — 0.
+- **Одна тема — одне слово:** «коротка» / «компактна форма» (j11) — зведено; «код» / «ключ спейсу», «рівень» / «поверх» —
+  наскрізно, окремим проходом.
+
+### Дизайну
+- j10 `#w2` — `win__table` на дві колонки з довгими складеними рядками в другій: **перший випадок переносу всередині
+  клітинки**, а не скролера; `p.win__actions` угорі `win__page`. Заміряти на 390 px.
+- Блискавка «на переході є правило» (j10) поставлена як `win__type` з `aria-label` — **класу для гліфа, що не є типом
+  роботи, немає** (кандидат `win__glyph`); `aria-label` на неінтерактивному `<span>` (усі `win__type` курсу) частина
+  скрінрідерів ігнорує.
+- j20 W3 — адмінка Atlassian **українською** (мова акаунта): рейка `Каталог`, плитки `win__stats`, таблиця `Користувач · Стан
+  · Останній перегляд · Дії`. j08 W3 — діалог `Create dashboard`; j17 W1 — картки `Marketplace apps` зі стрічкою в куті;
+  j11 `#w3` — 12 рядків `dl.win__fields`; довідник автоматизації — таблиця `#limits-email` на три колонки `ds-tbl--wrap`.
+
+### Інструментам
+- `check-quiz-markers.py --lexical` (`02d4cf0`): слова «бо / тому / лише / завжди» в обидва боки + зведення часток. Базовий
+  замір — 22 маркери в 14 файлах; «бо» 7 % правильних / 17 % дистракторів, «лише» 6 % / 18 %.
+- Рецензент, запущений до кінця всієї хвилі, працює, якщо в промпті є абзац «сусіди ще правляться — звір їх наприкінці»;
+  усі чотири такі рецензенти знайшли суперечності з сусідами саме на фінальному перечитуванні.
+- Знахідку одного агента, що стосується файлів іншого **працюючого** агента, доставляти `SendMessage` одразу — у хвилі 10
+  так пішло шість уточнень, класифікатор не блокував жодного.
+
+### Довідник-карта і лексичний прохід квізів (2026-09-30 → 10-01; `reports/ref-map.md`, `quiz-lex-*.md`)
+- **Назва сторінки довідки — це її живий `<title>`, а не слаг.** Автор карти звірив 45 сторінок: у 20 назва в курсі була
+  відновлена зі слагу й не збігалась («…in team-managed projects» при `<title>` «…spaces» тощо). Правило для всіх текстів:
+  назву сторінки в «Джерелах» брати з `<title>` / `<h1>`.
+- **Паралельний автор довідника, що стартував до кінця хвилі уроків, спрацював** за правилом «перечитай `ref-promises.md`
+  перед фіналом»: 46/46 обіцянок, вісім формулювань зсунулись, жодна обіцянка не зникла.
+- **Два чекери квізів впливають один на одного:** прибрати маркер слова, подовживши єдиний коротший за правильну
+  дистрактор, — і правильна стає найкоротшою. `check-quiz.py` — після кожної правки, не після файла.
+- Лексичний прохід: 22 маркери в 14 файлах → 0 (лише дистрактори, `--verify` чистий на 158 питаннях). Сумарний перекіс
+  «бо» (17 % дистракторів проти 7 % правильних) лишився — маркером в окремому питанні він не є; рівняти його — окреме
+  рішення, з ризиком зробити хибне правдивим.
+- **Дизайну / білду:** карта — 30 секцій, 36 таблиць (31 з `.ds-tbl--wrap`, дві на пʼять колонок — заміряти на 390 px),
+  `#refToc` на 30 пунктів у шести групах (найдовший зміст на сайті); `href` на карту з 46 місць уроків і `<url>`
+  `/jira-ref-map` у `sitemap.xml` — робота білду.
+- **Цитата бази знань живе добу.** Статтю про архів переписали 30 вересня (виноску прибрано, обмеження перенесено в
+  перше речення) — між двома рецензентами одного дня. Формулювання «виноска над статтею» устигло потрапити в канон і три
+  уроки й застаріти. Правило: біля цитати KB — дата прочитання; перед релізом — повторна звірка всіх цитат.
+- **Знімач по `<main>` дав третій хибний MISS** («до 50 спейсів»): тіло статті брати з `articleBody` JSON-LD або з
+  сирого HTML, а висновок «числа на сторінці немає» — лише після двох методів.

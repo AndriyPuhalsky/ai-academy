@@ -1,0 +1,56 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><title>Лабораторія · стан спокою</title>
+<style>
+:root{--motion:1}
+@media (prefers-reduced-motion: reduce){:root{--motion:0}}
+body{background:#161311;color:#F0EEE6;font:15px/1.5 system-ui,sans-serif;margin:0;padding:24px}
+h1{font-size:19px;margin:0 0 6px}p.l{color:#B5B3AD;margin:0 0 20px;max-width:72ch}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.cell{background:#1E1A17;border:1px solid #3A342E;border-radius:10px;padding:14px;min-height:150px}
+.cell h2{font:600 12px/1.3 ui-monospace,monospace;color:#9A9184;letter-spacing:.06em;text-transform:uppercase;margin:0 0 10px}
+.card{background:#26221D;border:1px solid #494844;border-radius:7px;padding:9px 11px;margin:0 0 8px}
+
+/* A: ховає сам CSS (патерн, що двічі ламав проєкт) */
+#A .card{opacity:0;transform:translateY(14px);transition:opacity calc(var(--motion)*420ms) ease-out,transform calc(var(--motion)*420ms) ease-out}
+#A.in .card{opacity:1;transform:none}
+
+/* B: ховає JS атрибутом ПІСЛЯ підключення спостерігача; стан спокою видимий */
+#B[data-hide] .card{opacity:0;transform:translateY(14px)}
+#B .card{transition:opacity calc(var(--motion)*420ms) ease-out,transform calc(var(--motion)*420ms) ease-out}
+
+/* C: стан спокою = ФІНАЛЬНИЙ кадр; JS відводить назад і грає вперед */
+#C .card{transition:transform calc(var(--motion)*520ms) cubic-bezier(.33,0,.1,1),opacity calc(var(--motion)*300ms) ease-out}
+#C[data-rewound] .card{opacity:0;transform:translateY(16px)}
+</style></head><body>
+<h1>Три способи автора — один і той самий ефект появи</h1>
+<p class="l">Відмінність видно лише тоді, коли JS не виконався, або коли вузол створено після асинхронного рендеру. Лічильник унизу читає реально видимий текст.</p>
+<div class="row">
+  <div class="cell" id="A"><h2>A · ховає CSS</h2><div class="card">Замовити борошно</div><div class="card">Перевірити касу</div></div>
+  <div class="cell" id="B" data-hide><h2>B · ховає JS</h2><div class="card">Замовити борошно</div><div class="card">Перевірити касу</div></div>
+  <div class="cell" id="C"><h2>C · спокій = фінал</h2><div class="card">Замовити борошно</div><div class="card">Перевірити касу</div></div>
+</div>
+<div id="probe" style="font:12px/1.6 ui-monospace,monospace;color:#9A9184"></div>
+<script>
+// Імітуємо «реальний» сценарій: спостерігач приєднується після async-кроку.
+(async () => {
+  await new Promise(r => setTimeout(r, 300));           // async render / fetch config
+  document.getElementById('B').removeAttribute('data-hide');  // B: знімаємо приховування
+  const C = document.getElementById('C');
+  C.setAttribute('data-rewound', '');                   // C: відводимо назад
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  C.removeAttribute('data-rewound');                    // і граємо вперед
+  document.getElementById('A').classList.add('in');     // A: додаємо клас появи
+})();
+window.__visible = () => {
+  const out = {};
+  for (const id of ['A', 'B', 'C']) {
+    let ch = 0;
+    for (const c of document.querySelectorAll('#' + id + ' .card')) {
+      const cs = getComputedStyle(c);
+      if (+cs.opacity > 0.5) ch += (c.textContent || '').trim().length;
+    }
+    out[id] = ch;
+  }
+  out.motion = getComputedStyle(document.documentElement).getPropertyValue('--motion').trim();
+  return out;
+};
+</script></body></html>

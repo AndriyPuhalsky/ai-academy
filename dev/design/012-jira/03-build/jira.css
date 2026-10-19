@@ -1,0 +1,693 @@
+/* ============================================================================
+   012 · ЛЕНДІНГ «JIRA З НУЛЯ» — css/jira.css · префікс `jira-`
+   ----------------------------------------------------------------------------
+   Підключається ТІЛЬКИ з jira.html. Порядок у <head>:
+   tokens.css → components.css → tokens-jira.css → win.css → jira.css → Tailwind.
+
+   ЩО ТУТ Є І ЧОГО ТУТ СВІДОМО НЕМАЄ
+   ---------------------------------
+   Немає: шапки, футера, кнопок, бейджів, рядка списку, «паперу», донатів,
+   секції, обгортки — усе це наявні компоненти 009 (`ds-hdr`, `ds-ftr`,
+   `ds-btn`, `ds-badge`, `ds-row`, `ds-paper`, `ds-donate`, `ds-sect`,
+   `ds-wrap`, `ds-meta`), і §4.2 прямо забороняє їх перемальовувати.
+   Є рівно те, чого в системі немає: hero з живою дошкою, маршрут карти
+   програми, дві колонки «для кого / для кого ні», перелік результатів,
+   полиця довідників і блок автора.
+
+   КОМПОЗИЦІЙНИЙ ПРИНЦИП — НЕ ВИГАДАНИЙ, А ПРОЧИТАНИЙ ІЗ ПРЕДМЕТА
+   --------------------------------------------------------------
+   Jira влаштована як КОЛОНКИ: робота йде зліва направо через стани. Сторінка
+   про Jira влаштована так само, як застосунок, якого вона вчить: ліва
+   моноколонка (`ds-meta__rail`, --w-meta = 168px) — це «заголовок колонки»
+   сторінки, права — вміст. І та сама ширина 168px є рейкою всередині вікна
+   (`--win-rail-w`). Тобто вісь сторінки й вісь застосунку — одна вісь.
+   Це не декор: читач, який уже побачив рейку у вікні, упізнає її в сторінці.
+
+   Маршрут (вертикальна лінія) існує РІВНО В ОДНОМУ місці — у карті програми,
+   бо тільки там вміст справді є послідовністю. Лінія через усю сторінку була
+   б декором; лінія в карті — це сам шлях із 22 уроків.
+   ========================================================================== */
+
+
+/* ============================================================================
+   1. ТОКЕНИ СТОРІНКИ · L3, ПРЕФІКС ПЕРШИЙ
+   ----------------------------------------------------------------------------
+   ⚠ Колізію `--rail-w` (184 з роадмапа проти 132 з Термінала в ОДНОМУ
+   глобальному :root, через що 66 сторінок діставали мертве значення) тут
+   повторити неможливо структурно: префікс стоїть першим.
+   ========================================================================== */
+:root {
+  /* --- типографіка сторінки ---
+     Не дорівнює системній --fs-h1 (36→64) свідомо: заголовок ділить перший
+     екран із дошкою і живе в колонці ~34rem, тому стеля нижча. */
+  /* ⚠ Стеля 44px ПОРАХОВАНА, не вибрана. На 1280 контейнер --w-content дає
+     1104px вмісту; дошка забирає 520 і проміжок 48, отже текстовій колонці
+     лишається 536. Найдовший рядок заголовка — «Jira — не для айтішників.»,
+     25 знаків; Prata на цьому кеглі дає ≈0.47em на знак, тобто 25×0.47×44 =
+     516px < 536. При 52px (перша спроба) виходило 611px, рядок переносився,
+     заголовок ставав трирядковим і виштовхував другий CTA за межі 653px —
+     тобто ламав К-19. Це число тримає бюджет першого екрана, а не смак. */
+  --jira-fs-h1:    clamp(2rem, 1.4rem + 1.9vw, 2.75rem);   /* 32 → 44 */
+  --jira-lh-h1:    1.1;
+  --jira-ch-lead:  46ch;
+
+  /* --- hero --- */
+  --jira-hero-win: 520px;       /* ширина колонки предмета на ≥1024 */
+  --jira-card-h:   0px;         /* висоту картки вимірює JS один раз (§11.2) */
+
+  /* --- маршрут карти --- */
+  --jira-tick:     var(--s-4);  /* довжина насічки від лінії до рядка */
+  --jira-dot:      var(--s-2);
+
+  /* --- резерв висоти до приходу конфіга (CLS = 0) ---
+     ⚠ Урок 010 D-06: резерв на ОБГОРТЦІ лишає діру, бо фактична висота
+     гуляє на 95px між ширинами. Тому резерв стоїть на ДЕТЕРМІНОВАНІЙ
+     частині — самій дошці, у якої кількість колонок і карток фіксована
+     розміткою, а не даними. */
+  --jira-map-reserve: 720px;
+}
+@media (max-width: 1024px) { :root { --jira-hero-win: 100%; } }
+
+/* --- ТЕМП ЦИКЛУ HERO · три пресети, які власник обирає ОЧИМА ---------------
+   Агент №2 чесно сказав: відчуття темпу не виміряв ні він, ні жоден із 18
+   переглянутих сайтів — лабораторія міряла механіку (найдовший кадр 18 мс),
+   не відчуття. Тому пресетів три, і перемикач стоїть на самій сторінці.
+
+   `--jira-pace` множиться на `--dur-u` РАЗОМ із `--motion` і `--motion-scale`,
+   тому гаситься тим самим механізмом: при `--motion: 0` цикл стає нулем сам,
+   без жодного рядка в медіа-запиті (К-25). Реєстрація через @property
+   обовʼязкова — інакше getComputedStyle віддасть невирахуваний рядок,
+   parseFloat дасть NaN, JS тихо візьме fallback, і рух лишиться живим при
+   `reduce`, а на скріншоті цього не видно. */
+@property --jira-pace  { syntax: "<number>"; inherits: true; initial-value: 1; }
+@property --jira-cycle { syntax: "<time>";   inherits: true; initial-value: 0s; }
+@property --jira-fly-x1 { syntax: "<length>"; inherits: true; initial-value: 0px; }
+@property --jira-fly-y1 { syntax: "<length>"; inherits: true; initial-value: 0px; }
+@property --jira-fly-x2 { syntax: "<length>"; inherits: true; initial-value: 0px; }
+@property --jira-fly-y2 { syntax: "<length>"; inherits: true; initial-value: 0px; }
+@property --jira-cur-x  { syntax: "<length>"; inherits: true; initial-value: 0px; }
+@property --jira-cur-y  { syntax: "<length>"; inherits: true; initial-value: 0px; }
+
+:root {
+  /* L1-число циклу: 5200 одиниць. Порахований, не вибраний:
+     картка доходить до `Done` на 54 % циклу, тож при найповільнішому
+     поєднанні (темп «повільний» 1.35 × пресет bold 1.15 = 1.5525×)
+     це 0.54 × 5200 × 1.5525 = 4 360 мс — із запасом під ліміт 6 с (К-18).
+     При «середньому» темпі й `standard` — 2 810 мс. */
+  --p-jira-cycle: 5200;
+  --p-jira-pace-slow:  1.35;
+  --p-jira-pace-mid:   1;
+  --p-jira-pace-brisk: 0.75;
+
+  --jira-pace: var(--p-jira-pace-mid);
+  --jira-cycle: calc(var(--p-jira-cycle) * var(--jira-pace) * var(--dur-u));
+}
+[data-jira-tempo="slow"]  { --jira-pace: var(--p-jira-pace-slow); }
+[data-jira-tempo="mid"]   { --jira-pace: var(--p-jira-pace-mid); }
+[data-jira-tempo="brisk"] { --jira-pace: var(--p-jira-pace-brisk); }
+
+
+/* ============================================================================
+   2. HERO
+   ----------------------------------------------------------------------------
+   Бюджет 1280 × 653 (банер оголошення вимкнений): заголовок, лід, два CTA і
+   дошка з ВИДИМОЮ карткою — усе вище 653 px (К-19). На ≥1024 текст і дошка
+   стоять поруч: інакше дошка або з'їдає перший екран, або не влазить зовсім.
+   ========================================================================== */
+.jira-hero { padding-block: var(--s-12) var(--s-10); }
+.jira-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-8);
+  align-items: start;
+}
+/* ⚠ ≤1024 ПРЕДМЕТ ІДЕ ОДРАЗУ ПІД ЗАГОЛОВОК, а не в кінець hero.
+   Заміряно на 390: при порядку «заголовок → лід → CTA → дошка» верхній край
+   дошки опинявся на 692 px, тобто за межами першого екрана (650) — і головне
+   враження («ага, це ж просто картки на дошці») на телефоні зникало зовсім.
+   Текст про курс нікуди не дінеться й нижче; дошка мусить бути одразу. */
+@media (max-width: 1024px) {
+  .jira-hero__head   { order: 1; }
+  .jira-hero__object { order: 2; }
+  .jira-hero__body   { order: 3; }
+}
+@media (min-width: 1024px) {
+  .jira-hero__grid {
+    grid-template-columns: minmax(24rem, 1fr) var(--jira-hero-win);
+    column-gap: var(--s-12);
+    row-gap: 0;
+    align-items: center;
+  }
+  .jira-hero__head   { grid-column: 1; grid-row: 1; }
+  .jira-hero__body   { grid-column: 1; grid-row: 2; }
+  .jira-hero__object { grid-column: 2; grid-row: 1 / 3; }
+}
+
+.jira-hero__title {
+  margin: 0;
+  font-family: var(--f-display);
+  font-size: var(--jira-fs-h1);
+  line-height: var(--jira-lh-h1);
+  letter-spacing: var(--tr-display);
+  font-weight: var(--w-regular);
+  color: var(--c-text);
+  text-wrap: balance;
+}
+/* Порядкова поява двох рядків. ⭐ Початкова прозорість НЕ НУЛЬ (0.49 і 0.71 —
+   числа, зняті з Linear): рядок читабельний навіть якщо скрипт не доїхав,
+   і це водночас страхує від блокера «opacity: 0 назавжди», який у проєкті
+   вже був двічі (003 D-01, 005 Б-01). Елемент на рядок — теж звідти. */
+.jira-hero__line { display: block; }
+.jira-hero__line--1 { animation: jira-line-1 calc(518 * var(--dur-u)) var(--e-out) both; }
+.jira-hero__line--2 { animation: jira-line-2 calc(518 * var(--dur-u)) var(--e-out) both;
+                      animation-delay: calc(140 * var(--dur-u)); }
+@keyframes jira-line-1 { from { opacity: .49; transform: translateY(var(--move-card)); } to { opacity: 1; transform: none; } }
+@keyframes jira-line-2 { from { opacity: .71; transform: translateY(var(--move-card)); } to { opacity: 1; transform: none; } }
+
+.jira-hero__lead { margin: var(--s-6) 0 0; max-width: var(--jira-ch-lead); }
+.jira-hero__cta  { display: flex; flex-wrap: wrap; gap: var(--s-3); margin: var(--s-8) 0 0; }
+.jira-hero__explain {
+  margin: var(--s-6) 0 0;
+  max-width: var(--jira-ch-lead);
+  padding-left: var(--s-4);
+  border-left: var(--bw) solid var(--c-line);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--c-text-3);
+}
+
+/* --- предмет: дошка --- */
+.jira-hero__object { position: relative; min-width: 0; }
+.jira-hero__win { margin: 0; }
+/* Hero-дошка — ТОЙ САМИЙ компонент `win[data-state="board"]`, а не окрема
+   сутність: відрізняється лише сторінковою обгорткою й тим, що в ній
+   дозволено рух. Колонки тут вужчі за курсові, бо їх завжди рівно три. */
+.jira-hero__win .win__cols { overflow: visible; }   /* курсор не має обрізатись
+                                                       скролером: на hero
+                                                       колонки завжди влазять */
+.jira-hero__win .win__col { flex: 1 1 0; min-width: 0; }
+/* Рейка hero вужча за курсову: hero-дошка — ВЛАСНА стилізована робоча
+   область, вільна у спрощенні (Р8), і в ній рейка грає роль «це застосунок»,
+   а не роль навігації. ⚠ 96px (перша спроба) розривали найдовше `Dashboards`
+   на два рядки — заміряно оком; 128 тримають усі чотири підписи в один рядок,
+   і вони лишаються текстом, який можна виділити. */
+.jira-hero__win { --win-rail-w: var(--s-32); }
+.jira-hero__win .win__cards { min-height: var(--jira-card-h); }
+
+
+/* --- СЛІД РОБОТИ ---
+   Єдина річ на сторінці, якої немає ні в системі, ні в предметі. Це тонка
+   лінія над колонками, яку картка «прокладає» за собою, проходячи дошку.
+   Навіщо вона справді потрібна, а не для краси: без неї СТАН СПОКОЮ hero
+   (він же кадр для `prefers-reduced-motion`, він же кадр без JS) — це просто
+   дошка з карткою в `Done`, тобто картинка без історії. Зі слідом той самий
+   кадр читається як СХЕМА МАРШРУТУ: видно, звідки взялась кожна справа.
+   Тобто деградований стан теж спроєктований, а не покинутий.
+   Технічно це 1px правило, яке відкривається `clip-path` — без layout. */
+.jira-trail {
+  /* ⚠ Двічі переміряно оком. Спершу слід був 1px у --c-accent-edge (3.09) і
+     стояв упритул до колонок — і просто губився: одразу під ним ідуть власні
+     канти трьох колонок, тож око читало «ще одна лінія нізвідки», а не
+     маршрут. Тепер 2px в --c-accent (5.20) із повітрям унизу: лінія явно
+     НАД дошкою, а не частина її рамки. */
+  margin: var(--win-gap-tight) 0 var(--win-gap);
+  height: var(--bw-strong);
+  background: var(--c-accent);
+  clip-path: inset(0 0 0 0);          /* стан спокою = СЛІД ПРОКЛАДЕНИЙ */
+}
+
+/* --- КУРСОР ---
+   Намальований `clip-path`-ом, а не гліфом і не SVG: Р2 лишає в макеті
+   тільки текст і токени, а гліф ➤ однаково пішов би системним фолбеком
+   із чужими метриками (гліфи стрілок не покриті жодним із 14 завантажених
+   @font-face). Форма — проста стрілка, без «руки» й без тіні-обманки. */
+.jira-cursor {
+  position: absolute;
+  left: 0; top: 0;
+  width: var(--s-4);
+  height: calc(var(--s-5) + var(--s-1));
+  background: var(--c-text);
+  clip-path: polygon(0 0, 0 86%, 26% 66%, 48% 100%, 68% 90%, 46% 56%, 86% 54%);
+  filter: drop-shadow(0 var(--bw) var(--s-1) var(--c-bg));
+  opacity: 0;                          /* спокій: курсора немає — він частина
+                                          РУХУ, а не вмісту. Жодного вмісту
+                                          під opacity: 0 тут немає */
+  pointer-events: none;
+  transform-origin: 0 0;
+  z-index: var(--z-raised);
+}
+@media (max-width: 640px) { .jira-cursor, .jira-trail { display: none; } }
+
+/* --- ПЛИТА ПІД ПРЕДМЕТОМ ---
+   Один-єдиний `--c-desk` на сторінку (реєстр L2 прямо це обмежує). Прецедент
+   «стіл» 005: полотно, що відрізняється від сторінки, без плити читається як
+   діра. Тут плита тепла й ледь помітна — вона лише каже «це предмет». */
+.jira-hero__desk {
+  padding: var(--s-4);
+  border-radius: var(--r-card);
+  background: var(--c-desk);
+  box-shadow: var(--sh-desk);
+}
+.jira-hero__foot {
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: var(--s-3);
+  margin: var(--s-3) 0 0;
+  font-size: var(--fs-small);
+  color: var(--c-text-3);
+}
+
+/* --- ЛІЧИЛЬНИК, ЩО ПЕРЕКИДАЄТЬСЯ ---
+   Два числа в ОДНІЙ комірці гріда: жодної вставки в DOM під час сесії
+   (К-24 — MutationObserver має дати нуль childList-записів), жодного стрибка
+   ширини (tabular-nums + коробка по максимуму з двох). Справжнє число —
+   те, що в стані спокою; перехідне — aria-hidden, щоб скрінрідер не читав
+   дошку двічі. */
+.jira-flip { display: inline-grid; }
+.jira-flip > b { grid-area: 1 / 1; font-weight: inherit; }
+.jira-flip > b:last-child { opacity: 0; }
+
+/* --- СЛОТ, У ЯКИЙ ЛЯГАЄ КАРТКА ---
+   Потрібен не для краси, а структурно: картка їде `transform`-ом, тобто її
+   місце в розкладці лишається в колонці `Done`, і без зарезервованого слота
+   вона прилітала б ПОВЕРХ справжньої картки сусідньої колонки. Слот — ще й
+   половина змісту: у стані спокою видно, через які етапи справа пройшла.
+   `aria-hidden`, порожній, висоту задає JS від справжньої картки. */
+.jira-ghost {
+  list-style: none;
+  margin: 0;
+  height: var(--jira-card-h);
+  min-height: var(--s-10);
+  /* ⚠ ДВІ СПРОБИ, ОБИДВІ ЗНЯТІ ОКОМ. Повна пунктирна КОРОБКА одразу завела
+     дошку в антиреференс №3 («сірий wireframe»): два з пʼяти слотів стояли
+     порожніми рамками. Верхній пунктирний хайрлайн виявився не кращим — він
+     збігався з власним пунктирним кантом колонки `To Do` і читався як друга
+     лінія нізвідки. Слот лишився ЧИСТИМ простором: він потрібен розкладці,
+     а не оку, і «тут є місце» колонка каже порожнечею не гірше за рамку. */
+}
+
+/* --- ПРИЗНАЧЕНИЙ АВТОМАТИЗАЦІЄЮ --- */
+.jira-flow { color: var(--c-accent); }
+
+
+/* ============================================================================
+   3. ХОРЕОГРАФІЯ HERO — ЦИКЛ НА CSS, БЕЗ GSAP
+   ----------------------------------------------------------------------------
+   ⚠ ЧОМУ НЕ GSAP, ХОЧА ВІН ДОЗВОЛЕНИЙ. Сім тактів, три елементи в один такт,
+   пауза, зупинка поза екраном і три темпи — це рівно той випадок, коли
+   словника з десяти ефектів не вистачає, і §11 дозволяє GSAP «із причиною».
+   Причина проти нього сильніша:
+     1. Синхронність тактів тут тримається КОНСТРУКЦІЄЮ: усі @keyframes
+        мають одну `animation-duration` (--jira-cycle) і нульову затримку,
+        тож розійтись вони не можуть у принципі. Таймлайн на rAF може.
+     2. Гасіння при `reduce` стає безкоштовним: тривалість — це
+        calc(... * var(--dur-u)), і при --motion: 0 цикл просто не йде.
+        GSAP довелось би окремо вчити читати --loop-state (дефект D-11 у 010,
+        де під пресетом `calm` CSS-цикли спинялись, а таймлайн GSAP ні).
+     3. Нерендерена вкладка не дає rAF — таймлайн GSAP у ній завмирає на
+        випадковому кадрі (виміряно в 010: opacity 0.3458). CSS-анімація
+        прив'язана до часу документа й після повернення вкладки показує
+        правильний кадр.
+     4. Мінус три файли з CDN на лендінгу.
+   JS лишається рівно на те, чого CSS не вміє: ВИМІРЯТИ зсуви (один раз),
+   увімкнути цикл, дати паузу й зупинити його поза екраном.
+
+   СТАН СПОКОЮ = ФІНАЛЬНИЙ КАДР (блокер 003 D-01 / 005 Б-01, лабораторія
+   агента №2 — спосіб C, 31 видимий знак із 31 без JS). Нічого не ховається
+   самим лише CSS; анімації додає клас `.is-playing`, який ставить JS ПІСЛЯ
+   вимірювання. Без JS, при `reduce` і при помилці скрипта людина бачить
+   повну дошку: картка в `Done`, слід прокладений, автоматизація спрацювала.
+   ========================================================================== */
+
+/* Карта тактів (частки циклу). Числа — з лабораторії агента №2:
+   переїзд 620 мс, натиск 120 мс, утримання 420 мс, пауза 520 мс.
+     0–8    спокій на старті (картка в To Do)
+     8–12   курсор приходить
+    12–15   натиск
+    15–27   переїзд у In Progress        (624 мс при --jira-cycle 5200)
+    27–31   відпускання, лічильник In Progress → 2
+    31–39   утримання: встигнути прочитати назву
+    39–42   натиск
+    42–54   переїзд у Done
+    54–58   відпускання, Done → 1, To Do → 1, слід добігає кінця
+    58–70   пауза
+    70–82   удар автоматизації: сусідня картка сама отримує виконавця
+    82–90   фінальний кадр тримається
+    90–96   згасання
+    96–97   ПЕРЕНЕСЕННЯ під opacity: 0 (скидання «fade», а не «reverse»:
+            зміст важливіший за механіку — робота не скасовує себе)
+    97–100  поява на старті */
+
+.jira-hero.is-playing .jira-fly {
+  animation: jira-fly var(--jira-cycle) linear infinite both;
+  animation-play-state: var(--loop-state);   /* П4: той самий токен, що в CSS
+                                                системи; пресет `calm` спиняє
+                                                цикл, і кадр 0% легальний */
+}
+@keyframes jira-fly {
+  0%, 15%   { opacity: 1; transform: translate(var(--jira-fly-x1), var(--jira-fly-y1)) scale(1); }
+  13%, 15%  { transform: translate(var(--jira-fly-x1), var(--jira-fly-y1)) scale(1.02); }
+  27%, 39%  { transform: translate(var(--jira-fly-x2), var(--jira-fly-y2)) scale(1.02); }
+  31%, 39%  { transform: translate(var(--jira-fly-x2), var(--jira-fly-y2)) scale(1); }
+  42%       { transform: translate(var(--jira-fly-x2), var(--jira-fly-y2)) scale(1.02); }
+  54%, 90%  { opacity: 1; transform: translate(0, 0) scale(1); }
+  96%       { opacity: 0; transform: translate(0, 0) scale(1); }
+  97%       { opacity: 0; transform: translate(var(--jira-fly-x1), var(--jira-fly-y1)) scale(1); }
+  100%      { opacity: 1; transform: translate(var(--jira-fly-x1), var(--jira-fly-y1)) scale(1); }
+}
+/* Підняття картки — завісою натискання, а не новою сходинкою драбини. */
+.jira-hero.is-playing .jira-fly { background: var(--c-veil-hover); }
+.jira-hero.is-playing .jira-fly { animation-timing-function: var(--e-out); }
+
+.jira-hero.is-playing .jira-cursor {
+  animation: jira-cursor var(--jira-cycle) var(--e-out) infinite both;
+  animation-play-state: var(--loop-state);
+}
+@keyframes jira-cursor {
+  0%        { opacity: 0; transform: translate(calc(var(--jira-cur-x) + var(--jira-fly-x1)), calc(var(--jira-cur-y) + var(--jira-fly-y1) + var(--s-8))) scale(1); }
+  12%       { opacity: 1; transform: translate(calc(var(--jira-cur-x) + var(--jira-fly-x1)), calc(var(--jira-cur-y) + var(--jira-fly-y1))) scale(1); }
+  15%, 27%  { opacity: 1; transform: translate(calc(var(--jira-cur-x) + var(--jira-fly-x1)), calc(var(--jira-cur-y) + var(--jira-fly-y1))) scale(.86); }
+  27.1%     { transform: translate(calc(var(--jira-cur-x) + var(--jira-fly-x2)), calc(var(--jira-cur-y) + var(--jira-fly-y2))) scale(.86); }
+  31%, 42%  { transform: translate(calc(var(--jira-cur-x) + var(--jira-fly-x2)), calc(var(--jira-cur-y) + var(--jira-fly-y2))) scale(1); }
+  54%       { transform: translate(var(--jira-cur-x), var(--jira-cur-y)) scale(.86); }
+  58%       { opacity: 1; transform: translate(var(--jira-cur-x), var(--jira-cur-y)) scale(1); }
+  70%, 100% { opacity: 0; transform: translate(var(--jira-cur-x), calc(var(--jira-cur-y) + var(--s-8))) scale(1); }
+}
+/* ⚠ Курсор тягне картку, тому його переїзд мусить збігатися з її переїздом
+   кадр у кадр. Саме через це обидві анімації мають ОДНУ тривалість і одні
+   відсотки — у таймлайні на JS це була б домовленість, тут це конструкція. */
+
+.jira-hero.is-playing .jira-trail {
+  animation: jira-trail var(--jira-cycle) var(--e-out) infinite both;
+  animation-play-state: var(--loop-state);
+}
+@keyframes jira-trail {
+  0%, 15%   { clip-path: inset(0 100% 0 0); }
+  27%, 42%  { clip-path: inset(0 50% 0 0); }
+  54%, 90%  { clip-path: inset(0 0 0 0); }
+  96%, 97%  { clip-path: inset(0 0 0 0); opacity: 0; }
+  100%      { clip-path: inset(0 100% 0 0); opacity: 1; }
+}
+
+/* Лічильники. Справжнє число ховається рівно на той час, коли воно НЕ
+   правда, і повертається, щойно стає правдою. */
+.jira-hero.is-playing .jira-flip > b:first-child,
+.jira-hero.is-playing .jira-flip > b:last-child {
+  animation-duration: var(--jira-cycle);
+  animation-timing-function: steps(1, end);
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  animation-play-state: var(--loop-state);
+}
+.jira-hero.is-playing [data-flip="todo"]  > b:first-child { animation-name: jira-flip-off-early; }
+.jira-hero.is-playing [data-flip="todo"]  > b:last-child  { animation-name: jira-flip-on-early; }
+.jira-hero.is-playing [data-flip="prog"]  > b:first-child { animation-name: jira-flip-off-mid; }
+.jira-hero.is-playing [data-flip="prog"]  > b:last-child  { animation-name: jira-flip-on-mid; }
+.jira-hero.is-playing [data-flip="done"]  > b:first-child { animation-name: jira-flip-off-early; }
+.jira-hero.is-playing [data-flip="done"]  > b:last-child  { animation-name: jira-flip-on-early; }
+/* «рано» = поки картка ще не дійшла до Done (0–54 %) */
+@keyframes jira-flip-off-early { 0%, 53.9% { opacity: 0; } 54%, 100% { opacity: 1; } }
+@keyframes jira-flip-on-early  { 0%, 53.9% { opacity: 1; } 54%, 100% { opacity: 0; } }
+/* «середина» = поки картка стоїть у In Progress (27–54 %) */
+@keyframes jira-flip-off-mid   { 0%, 26.9% { opacity: 1; } 27%, 53.9% { opacity: 0; } 54%, 100% { opacity: 1; } }
+@keyframes jira-flip-on-mid    { 0%, 26.9% { opacity: 0; } 27%, 53.9% { opacity: 1; } 54%, 100% { opacity: 0; } }
+
+/* Удар автоматизації: сусідня картка сама отримує виконавця. Це єдиний такт,
+   де нічого не рухається — лише зʼявляється. Так і має бути: Jira зробила
+   роботу без жодного жесту людини, і курсора в кадрі немає. */
+.jira-hero.is-playing .jira-auto,
+.jira-hero.is-playing .jira-flow {
+  animation: jira-strike var(--jira-cycle) var(--e-out) infinite both;
+  animation-play-state: var(--loop-state);
+}
+@keyframes jira-strike {
+  0%, 70%   { opacity: 0; }
+  76%, 96%  { opacity: 1; }
+  100%      { opacity: 0; }
+}
+/* ⚠ Чому тут НЕМАЄ другого безкінечного циклу (пульсу на мітці flow):
+   бюджет лендінга — не більше двох циклів, і обидва вже витрачені:
+   сам цикл дошки + нічого. Пульс на мітці був у спеці як L1; він знятий,
+   бо повторюваний цикл уже дає тому місцю ритм, а друге дихання поруч
+   читалось би як несправність. */
+
+
+/* ============================================================================
+   4. СТАН СПОКОЮ · reduce · без JS
+   ----------------------------------------------------------------------------
+   ⚠ УТОЧНЕННЯ ПРАВИЛА ПРОЄКТУ, ЯКЕ ПРИЙШЛО З ЛАБОРАТОРІЇ АГЕНТА №2.
+   §11.2 п.2 каже «приховування накладає JS атрибутом ПІСЛЯ того, як
+   спостерігач приєднаний» — і цього НЕ досить: якщо атрибут стоїть у
+   поданому HTML (а так його природно й пишуть), спосіб деградує точно так
+   само, як «ховає CSS» — 0 видимих знаків із 31 без JS.
+   Правильне формулювання: АТРИБУТА (чи класу) ПРИХОВУВАННЯ НЕМАЄ У ВИХІДНОМУ
+   HTML УЗАГАЛІ — його ставить JS. Тут цим «атрибутом» є клас `.is-playing`
+   на секції: поки його немає, жодна з анімацій вище не існує, і всі елементи
+   стоять у фінальному кадрі.
+   Два винятки — курсор і `.jira-auto`: вони мають opacity 0 у спокої, і це
+   законно, бо під ними НЕМАЄ ВМІСТУ. Курсор порожній і aria-hidden; ініціали
+   `.jira-auto` дублюють те, що вже сказано в легенді під дошкою. */
+/* У розмітці НЕМАЄ нічого схованого: `.jira-auto`, `.jira-assign` і `⚡`
+   стоять видимими. Прозорими їх робить ЛИШЕ анімація, тобто лише тоді, коли
+   JS уже виміряв дошку й додав `.is-playing`. */
+.jira-hero.is-playing .jira-assign {
+  animation: jira-assign var(--jira-cycle) var(--e-out) infinite both;
+  animation-play-state: var(--loop-state);
+}
+@keyframes jira-assign {
+  0%, 26.9% { opacity: 0; }
+  31%, 96%  { opacity: 1; }
+  100%      { opacity: 0; }
+}
+
+
+/* ============================================================================
+   5. «ДЛЯ КОГО ЦЕ — І ДЛЯ КОГО НІ»
+   ----------------------------------------------------------------------------
+   Чесна межа — головний зміст блока: лише безкоштовний план, лише Cloud,
+   до 10 людей. Тому колонка «ні» приглушується ФОРМОЮ (пунктирний кант), а
+   НЕ тихішим кольором: на тихішому кольорі спіткнувся `faint` у попередній
+   системі (51 входження, усі провалювали AA). Текст в обох колонках
+   однаково читабельний — різниця в канті, а не в контрасті.
+   ========================================================================== */
+/* Заголовок розділу. Роль `--fs-h2` узята зі системи, а не з довільного
+   вибору: у реєстрі L2 чотири рівні кегля, і другий — саме «заголовок
+   розділу». `--fs-h3` (20px), який тут стояв у першій редакції, — рівень
+   ПІДзаголовка, і через нього розділи лендінга читались як підпункти. */
+.jira-h2 {
+  margin: 0;
+  font-family: var(--f-display); font-weight: var(--w-regular);
+  font-size: var(--fs-h2); line-height: var(--lh-h2);
+  letter-spacing: var(--tr-display); color: var(--c-text);
+}
+
+/* `ds-lead` має `margin: 0` (компонент нічого не знає про сусідів — правило 6
+   шапки components.css), тому відступ між заголовком розділу й лідом задає
+   СТОРІНКА. Без цього рядка лід злипався із заголовком у пʼятьох розділах. */
+.jira-h2 + .ds-lead { margin-top: var(--s-4); }
+
+.jira-split { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-8); margin-top: var(--s-8); }
+@media (min-width: 768px) { .jira-split { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-10); } }
+.jira-split__head { margin: 0 0 var(--s-4); font-family: var(--f-display); font-size: var(--fs-h3); line-height: var(--lh-h3); font-weight: var(--w-regular); color: var(--c-text); }
+.jira-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-4); }
+.jira-list > li {
+  padding-left: var(--s-4);
+  border-left: var(--bw-strong) solid var(--c-ok-edge);
+  font-size: var(--fs-ui);
+  line-height: var(--lh-body);
+  color: var(--c-prose);
+}
+.jira-list--not > li { border-left-style: dashed; border-left-color: var(--c-line-strong); }
+
+/* ============================================================================
+   6. «ЩО ТИ ВМІТИМЕШ НАПРИКІНЦІ»
+   Результати, не теми. Без карток: шість однакових коробок із одним радіусом
+   і однією тінню — це і є «SaaS-кіт», якого бриф просить уникати. Тут —
+   перелік із хайрлайнами, де веде дія, а підказка стоїть нижче й тихіше.
+   ========================================================================== */
+.jira-out { list-style: none; margin: var(--s-8) 0 0; padding: 0; display: grid; gap: 0; }
+@media (min-width: 1024px) { .jira-out { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--s-10); } }
+.jira-out > li { padding: var(--s-5) 0; border-top: var(--bw) solid var(--c-line); }
+.jira-out__text { display: block; font-size: var(--fs-h4); line-height: var(--lh-h4); color: var(--c-text); }
+.jira-out__hint { display: block; margin-top: var(--s-2); font-size: var(--fs-ui); line-height: var(--lh-body); color: var(--c-text-2); }
+
+/* ============================================================================
+   7. КАРТА ПРОГРАМИ — ШЛЯХ, А НЕ СІТКА
+   ----------------------------------------------------------------------------
+   23 пункти: 22 уроки + іспит окремим вузлом, 5 фаз (4·4·5·4·5 — звірено з
+   конфігом). Принцип із 003 варіанта A («час тече вниз») узятий як ПРИНЦИП,
+   не як копія: там лінія була змійкою, тут — прямий маршрут із насічками.
+   ⚠ Малювати треба в НАЙГІРШОМУ стані: сьогодні всі 23 модулі мають
+   `status: "draft"`, тобто карта цілком складається з «Скоро». Exercism
+   показує, що шлях із 16 закритими вузлами з 19 не виглядає пусткою —
+   якщо стан кодується формою, а не відсутністю.
+   ========================================================================== */
+.jira-map { margin-top: var(--s-8); min-height: var(--jira-map-reserve); }
+.jira-phase { margin-top: var(--s-10); }
+.jira-phase:first-child { margin-top: 0; }
+.jira-phase__head { display: flex; align-items: baseline; gap: var(--s-4); }
+.jira-phase__n {
+  font-family: var(--f-display);
+  font-size: var(--fs-h2);
+  line-height: 1;
+  color: var(--c-accent);
+  font-variant-numeric: tabular-nums;
+  min-width: 2ch;
+}
+.jira-phase__t { margin: 0; font-family: var(--f-display); font-size: var(--fs-h3); line-height: var(--lh-h3); font-weight: var(--w-regular); color: var(--c-text); }
+.jira-phase__s { margin: var(--s-1) 0 0 calc(2ch + var(--s-4)); font-size: var(--fs-small); color: var(--c-text-3); }
+
+/* МАРШРУТ. Лінія належить СПИСКУ, а не сторінці, тому вона розривається між
+   фазами сама — без жодного додаткового елемента. */
+.jira-phase__lessons {
+  list-style: none;
+  margin: var(--s-5) 0 0 calc(2ch / 2 + var(--s-2));
+  padding: 0 0 0 var(--s-6);
+  border-left: var(--bw) solid var(--c-line);
+}
+.jira-phase__lessons > li { position: relative; }
+/* Насічка — не декор: її ФОРМА кодує стан уроку, і це видно в сірому друку. */
+.jira-phase__lessons > li::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--s-6) * -1);
+  top: calc(var(--s-6) + var(--s-1));
+  width: var(--jira-tick);
+  border-top: var(--bw) dashed var(--c-line-strong);   /* базовий стан — `soon` */
+}
+.jira-phase__lessons > li[data-state="ready"]::before { border-top-style: solid; }
+.jira-phase__lessons > li[data-state="done"]::before  { border-top-style: solid; border-top-color: var(--c-ok-edge); border-top-width: var(--bw-strong); }
+.jira-phase__lessons > li[data-state="start"]::before { border-top-style: solid; border-top-color: var(--c-accent); border-top-width: var(--bw-strong); width: calc(var(--jira-tick) * 1.5); }
+/* У карті рядок не має власного верхнього хайрлайна: роздільником працює
+   сам маршрут, а два роздільники поруч — це вже сітка, а не шлях. */
+/* ⚠ Ширина рядка карти обмежена --w-prose не для краси: `ds-row` — грід
+   `auto 1fr auto`, тож бейдж притискається до правого краю колонки. У тілі
+   розділу 930px і назві уроку в 20 знаків між ними лишалось понад 500px
+   порожнечі, і рядок читався як таблиця з загубленим стовпцем. */
+.jira-map .ds-row { border-top: 0; padding-left: 0; max-width: var(--w-prose); }
+.jira-map .ds-plain > li:last-child > .ds-row { box-shadow: none; }
+
+/* Іспит — ВІЗУАЛЬНО ІНШИЙ за картку уроку (рішення 005) і стоїть ПОЗА
+   маршрутом: лінія до нього не доходить, бо він не є ще одним кроком. */
+.jira-exam {
+  display: block;
+  margin-top: var(--s-10);
+  padding: var(--s-6) 0 0;
+  border-top: var(--bw-strong) solid var(--c-accent-edge);
+  color: inherit;
+  text-decoration: none;
+}
+.jira-exam__t { font-family: var(--f-display); font-size: var(--fs-h3); line-height: var(--lh-h3); color: var(--c-text); display: block; }
+.jira-exam__d { display: block; margin-top: var(--s-3); max-width: var(--w-narrow); font-size: var(--fs-ui); line-height: var(--lh-body); color: var(--c-text-2); }
+.jira-exam__m { display: block; margin-top: var(--s-3); font-family: var(--f-mono); font-size: var(--fs-label); color: var(--c-text-3); }
+
+/* ============================================================================
+   8. ПОЛИЦЯ ДОВІДНИКІВ
+   Не крок шляху, а окремий вхід — тому вони ПОЗА картою (К-21) і стоять на
+   видимій полиці: горизонтальна лінія, на якій стоять три предмети.
+   ========================================================================== */
+.jira-shelf { margin-top: var(--s-8); }
+.jira-shelf__line { height: var(--bw); background: var(--c-line); }
+.jira-shelf__items { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-6); }
+@media (min-width: 768px) { .jira-shelf__items { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-8); } }
+.jira-shelf__items > li { padding-top: var(--s-5); }
+.jira-shelf a { display: block; color: inherit; text-decoration: none; }
+.jira-shelf__t { display: block; font-family: var(--f-display); font-size: var(--fs-h4); line-height: var(--lh-h4); color: var(--c-text); }
+.jira-shelf__s { display: block; margin-top: var(--s-2); font-size: var(--fs-small); line-height: var(--lh-small); color: var(--c-text-2); }
+@media (hover: hover) { .jira-shelf a:hover .jira-shelf__t { color: var(--c-accent); } }
+.jira-shelf a:focus-visible { outline: var(--bw-strong) solid var(--c-focus); outline-offset: var(--s-2); border-radius: var(--r-inner); }
+
+/* ============================================================================
+   9. БЛОК АВТОРА
+   Фото немає й не планується, тому вагу дає ТИПОГРАФІКА, а не рамка з
+   портретом: дисплейна гарнітура на титулі й акцентне поле замість картки.
+   ⚠ Секція мусить зникати цілком, коли `author.text` і `link.href` порожні
+   (сьогоднішній стан) — і сторінка при цьому лишається цілою (К-20). Ритм
+   тримають `ds-sect` із власним `padding-block`, а не відступи сусідів,
+   тому прибирання секції нічого не злипає.
+   ========================================================================== */
+.jira-author { padding-left: var(--s-6); border-left: var(--bw-strong) solid var(--c-accent-edge); }
+.jira-author__t { margin: var(--s-2) 0 0; font-family: var(--f-display); font-size: var(--fs-h2); line-height: var(--lh-h2); font-weight: var(--w-regular); color: var(--c-text); }
+.jira-author__x { margin: var(--s-4) 0 0; max-width: var(--w-narrow); }
+
+/* ============================================================================
+   9b. ДОНАТИ — ЗА ЗРАЗКОМ «AI ТЕРМІНАЛА» (рішення власника 2026-10-01)
+   ----------------------------------------------------------------------------
+   Власник указав саме на цей блок: «зроби як в АІ терміналі». Відтворено
+   рівно ту конструкцію, що в `cc-donate` (css/claude-code.css §11), з
+   трьома змінами тільки в іменах — префікс сторінки тут `jira-`:
+
+     · три РІВНІ картки: 1 колонка → 2 від 640 → 3 від 768;
+     · підпис одним рядком «мітка · примітка», кеглем інтерфейсу й вторинним
+       кольором — НЕ дисплейним заголовком. Примітка переїхала в підпис ще в
+       010: окремим рядком вона лишалась би неоформленим абзацом кеглем тіла;
+     · значення — моноширинним, з переносом усередині токена (IBAN і
+       TRC-20-адреса — нерозривні рядки на 34 і 42 знаки);
+     · посилання банки — КНОПКА «Відкрити ↗» (рішення власника з 006), решта —
+       просто текст, який виділяється.
+
+   ⚠ Кнопки «Копіювати» тут НЕМАЄ свідомо, і це не недогляд: у зразку її
+   немає, а значення й так виділяється мишею й читається скрінрідером.
+   `.ds-btn--copy` лишається в системі для інших місць.
+   ========================================================================== */
+.jira-donate { display: grid; gap: var(--s-4); margin: var(--s-8) 0 0; padding: 0; list-style: none; }
+@media (min-width: 640px) { .jira-donate { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 768px) { .jira-donate { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.jira-donate__card {
+  display: grid; gap: var(--s-3); align-content: start;
+  padding: var(--s-5);
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-control);
+  background: var(--c-surface);
+  min-width: 0;
+}
+[data-lit] .jira-donate__card { border-top-color: var(--c-line-lit); }
+.jira-donate__label { display: block; font-size: var(--fs-ui); color: var(--c-text-2); }
+.jira-donate__value {
+  display: block;
+  font-family: var(--f-mono); font-size: var(--fs-code);
+  color: var(--c-text);
+  overflow-wrap: anywhere; word-break: break-word;
+}
+.jira-donate__btn { justify-self: start; }
+
+
+/* ============================================================================
+   10. СЕРТИФІКАТ, ФУТЕР
+   Компоненти наявні (`ds-paper`, `ds-donate`, `ds-ftr`) — тут лише розкладка
+   й медальйон, якого в системі немає.
+   ========================================================================== */
+.jira-cert { display: grid; gap: var(--s-8); align-items: center; }
+@media (min-width: 1024px) { .jira-cert { grid-template-columns: minmax(0, 1fr) var(--w-card); gap: var(--s-12); } }
+/* Медальйон: монограма AIJ білим на --c-accent-edge = 5.12 (К-2, умова 4в) —
+   те саме, що друкується на PDF. Капс — рішення власника Р7. */
+.jira-medal { display: flex; align-items: center; gap: var(--s-3); margin-bottom: var(--s-4); }
+.jira-medal__mono {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: var(--ctl-h-md); height: var(--ctl-h-md);
+  border-radius: var(--r-pill);
+  background: var(--c-accent-edge);
+  color: var(--c-paper-bg);
+  font-family: var(--f-mono); font-size: var(--fs-label); font-weight: var(--w-semi);
+  letter-spacing: var(--tr-eyebrow);
+}
+.jira-medal__caps { font-family: var(--f-mono); font-size: var(--fs-label); letter-spacing: var(--tr-eyebrow); color: var(--c-text-3); }
+
+/* Дисклеймер — окремим рядком під стовпцями футера. --c-text-3 = 7.59 на
+   фоні (AA), і це єдине місце сторінки, де текст свідомо тихіший. */
+.jira-disclaimer { margin: var(--s-6) 0 0; max-width: var(--w-prose); font-size: var(--fs-small); line-height: var(--lh-small); color: var(--c-text-3); }
+
+/* ============================================================================
+   11. ПАНЕЛЬ МАКЕТА — У ПРОД НЕ ЙДЕ
+   Перемикач темпу циклу: власник обирає очима, бо відчуття темпу ніхто
+   не виміряв. Білд цей блок і відповідну розмітку видаляє.
+   ========================================================================== */
+.jira-lab {
+  position: sticky; bottom: 0; z-index: var(--z-toast);
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-4);
+  padding: var(--s-3) var(--s-5);
+  border-top: var(--bw) dashed var(--c-accent-edge);
+  background: var(--c-surface);
+  font-size: var(--fs-small); color: var(--c-text-3);
+}
+.jira-lab__g { display: flex; gap: var(--s-2); }
+.jira-lab b { color: var(--c-accent); font-family: var(--f-mono); font-weight: var(--w-medium); }

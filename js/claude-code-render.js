@@ -545,16 +545,14 @@
     setText("#certCourse", c.paper.course);
     setText("#certCode", c.paper.code);
 
-    /* донати. Реквізит із type: "link" (банка monobank) стає кнопкою
-       «Відкрити ↗» — дослівно тим самим компонентом, що на index.html
-       (js/config.js, donationCard → гілка type === "link"): URL, який
-       не клікається, — це робота для користувача, а сирий URL текстом
-       ще й розпирає картку.
-       Фолбек по regex лишається для конфігів без `type`: до 006 у
-       claude-code.config.json його не було в жодного методу, і мовчазна
-       втрата посилання при відкаті конфіга була б гіршою за зайвий рядок.
-       `note` малюємо третім рядком, бо в кореневому config.json воно є
-       й на двох живих курсах показується. */
+    /* донати. 012 · слово власника 2026-10-01: блок «Підтримка» однаковий на всіх
+       чотирьох лендінгах — картки рівно як на index.html (js/config.js,
+       donationCard): значення в .ds-code (прокручується вбік) і кнопка
+       «Копіювати» з data-copy (клік ловить initCopyButtons() у js/ui.js; для
+       IBAN — лише номер із copyValue). Банка — та сама кнопка «Відкрити ↗».
+       Колір дає data-course на <html>. ⚠ Дзеркало donationCard у js/config.js
+       і js/jira-render.js — правити разом. Фолбек по regex для методів без
+       `type` лишається (до 006 у claude-code.config.json його не було). */
     var d = cfg.donations;
     var donateSec = $("#donate");
     if (donateSec && !d.enabled) {
@@ -565,25 +563,19 @@
       setText("#donateLead", d.lead);
       var dHost = $("#donateGrid");
       if (dHost) {
-        dHost.innerHTML = d.methods.map(function (m) {
+        dHost.innerHTML = d.methods.filter(function (m) { return m.enabled !== false; }).map(function (m) {
           var isLink = (m.type === "link") || (!m.type && /^https?:\/\//.test(m.value));
-          /* 010 · .cc-donate__btn у новому css/claude-code.css лишає рівно
-             `justify-self: start` — вигляд кнопки дає .cc-btn (він і був
-             задуманий як єдина кнопка сторінки). Без цих двох класів
-             посилання банки виглядало б звичайним текстом, а рішення
-             власника 006 («кнопка банки Відкрити ↗») вимагає саме кнопки. */
+          var head =
+            '<div class="ds-fld__row"><h3 class="ds-h4">' + esc(m.label) + "</h3>" +
+            (m.note ? '<span class="ds-small">' + esc(m.note) + "</span>" : "") + "</div>";
+          var copyValue = m.copyValue != null ? m.copyValue : m.value;
           var body = isLink
-            ? '<a class="cc-btn cc-btn--quiet cc-donate__btn" href="' + esc(m.value) +
+            ? '<a class="ds-btn ds-btn--secondary" href="' + esc(m.value) +
               '" target="_blank" rel="noopener noreferrer">Відкрити ↗</a>'
-            : '<span class="cc-donate__value">' + esc(m.value) + "</span>";
-          /* 010 · `note` переїхав У ПІДПИС, окремого рядка більше немає:
-             .cc-donate__note у новому css/claude-code.css не існує (він
-             лишився б неоформленим абзацом кеглем тіла тексту). Текст
-             збережений дослівно, змінилась лише його позиція. */
-          return '<li class="cc-donate__card" data-reveal><span class="cc-donate__label">' +
-            esc(m.label) + (m.note ? " · " + esc(m.note) : "") + "</span>" +
-            body +
-            "</li>";
+            : '<div class="ds-code"><pre class="ds-code__pre">' + esc(m.value) + "</pre></div>" +
+              '<button type="button" class="ds-btn ds-btn--secondary ds-btn--sm ds-btn--copy" ' +
+              'data-copy="' + esc(copyValue) + '">Копіювати</button>';
+          return '<div class="ds-card ds-donate" data-reveal>' + head + body + "</div>";
         }).join("");
       }
     }

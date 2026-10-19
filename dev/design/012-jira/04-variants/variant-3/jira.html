@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../../../../../jira.config.json" data-course="jira" data-density="landing" data-lit data-jira-tempo="mid">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jira з нуля — курс про Jira Cloud українською</title>
+  <meta name="description"
+    content="Безкоштовний курс про Jira Cloud на безкоштовному плані: від «Jira — це щось для програмістів» до власного сайту, порталу заявок і автоматизації для команди до десяти людей." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../../../../../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обовʼязковий: токени → компоненти → дельта задачі → сторінкове →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його preflight
+       має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../../../../../css/tokens.css" />
+  <link rel="stylesheet" href="../../../../../css/components.css" />
+  <link rel="stylesheet" href="../_base/tokens-jira.css" />
+  <link rel="stylesheet" href="../_base/win.css" />
+  <link rel="stylesheet" href="../_base/jira.css" />
+  <!-- ШАР ВАРІАНТА. Єдина відмінність між variant-1/2/3: цей файл.
+       Розмітка трьох варіантів побайтово однакова (md5 у verdict.md). -->
+  <link rel="stylesheet" href="variant.css" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../../../../../js/tw-theme.js"></script>
+  <script defer src="../_base/ui-delta.js"></script>
+</head>
+
+<body id="top">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.
+        Сам курс і ця сторінка читаються й без нього.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА — наявний компонент ds-hdr, не перемальовується (§4.2) -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <a class="ds-hdr__brand" href="#top">
+        <span class="ds-hdr__mark" data-jira="site.shortName" aria-hidden="true">AIJ</span>
+        <span data-jira="site.name">Jira з нуля</span>
+      </a>
+
+      <nav class="ds-nav" aria-label="Головна навігація">
+        <span id="jiraNav" class="contents"></span>
+        <div class="ds-nav__group">
+          <button id="coursesBtn" type="button" class="ds-nav__link ds-nav__trigger"
+                  aria-expanded="false" aria-haspopup="true" aria-controls="coursesMenu">Курси</button>
+          <div id="coursesMenu" class="ds-nav__menu" role="menu" aria-labelledby="coursesBtn">
+            <a class="ds-nav__link" role="menuitem" href="../../../../../index.html">Базовий</a>
+            <a class="ds-nav__link" role="menuitem" href="../../../../../architect.html">AI Architect</a>
+            <a class="ds-nav__link" role="menuitem" href="../../../../../claude-code.html">Claude Code CLI</a>
+            <a class="ds-nav__link" role="menuitem" href="#top" aria-current="page">Jira з нуля</a>
+          </div>
+        </div>
+      </nav>
+
+      <span class="ds-hdr__spacer"></span>
+      <!-- Слот авторизації: місце зарезервоване з ПЕРШОГО кадру (CLS = 0 за
+           конструкцією, §C2 components.css). У макеті він лишається порожнім. -->
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+
+      <button id="menuBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="mobileMenu">
+        <span class="sr-only">Меню</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div id="mobileMenu" class="ds-nav__drawer" data-open="false">
+    <span id="jiraNavMobile" class="contents"></span>
+    <p class="ds-eyebrow">Курси</p>
+    <a class="ds-nav__link" href="../../../../../index.html">Базовий</a>
+    <a class="ds-nav__link" href="../../../../../architect.html">AI Architect</a>
+    <a class="ds-nav__link" href="../../../../../claude-code.html">Claude Code CLI</a>
+    <a class="ds-nav__link" href="#top" aria-current="page">Jira з нуля</a>
+  </div>
+
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>.
+      Відкрий сайт через локальний сервер, наприклад:
+      <code class="ds-code--inline">python3 -m http.server 8000</code></p>
+    </div>
+  </div>
+
+  <!-- data-page-in — РІВНО ОДИН на сторінку (правило 011 «один вхід на
+       сторінку»). Сесія дошки не є другим входом. -->
+  <main id="main" data-page-in>
+
+    <!-- ====================================================================
+         HERO
+         Текст тут стоїть у розмітці, а не лише в конфізі, і це свідомо: цей
+         екран мусить читатись, навіть якщо конфіг не доїхав. Прийом не новий —
+         так само зроблено `data-site="name"` у 23 уроках курсу. Рендерер
+         перезаписує ці вузли з jira.config.json.
+         ==================================================================== -->
+    <section class="ds-wrap jira-hero" id="jiraHero" aria-labelledby="heroTitle">
+      <div class="jira-hero__grid">
+
+        <div class="jira-hero__head">
+          <h1 class="jira-hero__title" id="heroTitle">
+            <span class="jira-hero__line jira-hero__line--1" data-jira="hero.title.0">Jira — не для айтішників.</span>
+            <span class="jira-hero__line jira-hero__line--2" data-jira="hero.title.1">Вона для порядку.</span>
+          </h1>
+        </div>
+
+        <div class="jira-hero__body">
+          <p class="ds-lead jira-hero__lead" data-jira="hero.lead">Jira Cloud на безкоштовному плані — це дошка з
+            картками, яка не губить справи: хто робить, до коли, на якому етапі. Починаємо з того, чи вистачить
+            безкоштовного плану твоїй команді, і доходимо до порталу заявок і автоматизації.</p>
+
+          <p class="jira-hero__cta">
+            <a class="ds-btn ds-btn--primary ds-btn--lg" id="ctaStart"
+               href="../../../../../modules/jira-01.html" data-jira="hero.cta.label"
+               data-jira-href="hero.cta.href">Почати з першого уроку</a>
+            <!-- ⚠ Другий CTA свідомо НЕ `--lg`: заміряно, що на 1280 обидві
+                 великі кнопки дають 536px при колонці 536px і переносяться в
+                 другий рядок, а це +60px і вихід hero за бюджет 653 (К-19).
+                 Менший кегль тут ще й чесніший: дії нерівнозначні. -->
+            <a class="ds-btn ds-btn--ghost" href="#map"
+               data-jira="hero.ctaSecondary.label">Спершу подивитись програму</a>
+          </p>
+
+          <p class="jira-hero__explain" data-jira="hero.explain">Це схема, а не скріншот. Картка проходить шлях від
+            «To Do» до «Done», а наприкінці автоматизація сама призначає виконавця сусідній картці. Так виглядає
+            робота в Jira — без жодного слова про програмування.</p>
+        </div>
+
+        <div class="jira-hero__object">
+          <div class="jira-hero__desk">
+
+            <figure class="win jira-hero__win" data-state="board" id="heroWin">
+              <figcaption class="win__chrome">
+                <span class="win__dots" aria-hidden="true"></span>
+                <span class="win__title" id="heroChrome" data-jira="hero.chrome">Jira Cloud · дошка спейсу «Мої справи» · звірено 2026-09-17</span>
+              </figcaption>
+
+              <div class="win__body" role="group" aria-labelledby="heroChrome">
+                <ul class="win__rail" aria-label="Бічна панель Jira">
+                  <li class="win__rail-item">For you</li>
+                  <li class="win__rail-item win__rail-item--active">Spaces</li>
+                  <li class="win__rail-item">Filters</li>
+                  <li class="win__rail-item">Dashboards</li>
+                </ul>
+
+                <div class="win__main">
+                  <div class="win__bar">
+                    <span class="win__crumb">Spaces / Мої справи</span>
+                    <span class="win__btn win__btn--primary">+ Create</span>
+                  </div>
+
+                  <!-- СЛІД РОБОТИ: у спокої прокладений повністю -->
+                  <p class="jira-trail" aria-hidden="true"></p>
+
+                  <ul class="win__cols">
+                    <li class="win__col" data-cat="todo">
+                      <h4 class="win__col-title">To Do
+                        <span class="win__count jira-flip" data-flip="todo"><b>1</b><b aria-hidden="true">2</b></span>
+                      </h4>
+                      <ul class="win__cards">
+                        <li class="jira-ghost" data-slot="1" aria-hidden="true"></li>
+                        <li class="win__card">
+                          <span class="win__card-title">Електрика: погодити кошторис</span>
+                          <span class="win__card-meta"><span class="win__type" aria-hidden="true">☑</span>
+                            <span class="win__key">REM-2</span> <span class="win__due">Oct 3</span>
+                            <span class="win__who" title="Тарас Мороз">ТМ</span></span>
+                        </li>
+                      </ul>
+                    </li>
+
+                    <li class="win__col" data-cat="progress">
+                      <h4 class="win__col-title">In Progress
+                        <span class="win__count jira-flip" data-flip="prog"><b>1</b><b aria-hidden="true">2</b></span>
+                      </h4>
+                      <ul class="win__cards">
+                        <li class="win__card">
+                          <span class="win__card-title">Пост про новий круасан</span>
+                          <span class="win__card-meta"><span class="win__type" aria-hidden="true">☑</span>
+                            <span class="win__key">MARK-1</span> <span class="win__due">Sep 26</span>
+                            <span class="win__who jira-auto" title="Марта Лисенко">МЛ</span></span>
+                        </li>
+                        <li class="jira-ghost" data-slot="2" aria-hidden="true"></li>
+                      </ul>
+                    </li>
+
+                    <li class="win__col" data-cat="done">
+                      <h4 class="win__col-title">Done
+                        <span class="win__count jira-flip" data-flip="done"><b>1</b><b aria-hidden="true">0</b></span>
+                      </h4>
+                      <ul class="win__cards">
+                        <li class="win__card jira-fly" data-fly>
+                          <span class="win__card-title">Замовити борошно на тиждень</span>
+                          <span class="win__card-meta"><span class="win__type" aria-hidden="true">☑</span>
+                            <span class="win__key">MY-1</span> <span class="win__due">Sep 24</span>
+                            <span class="win__who jira-assign" title="Оксана Кравець">ОК</span></span>
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
+
+                  <p class="win__placeholder"><b class="jira-flow" aria-hidden="true">⚡</b>
+                    flow: work item created → assign to Марта</p>
+                </div>
+              </div>
+            </figure>
+
+            <!-- Курсор — частина РУХУ, не вмісту: порожній, aria-hidden,
+                 намальований clip-path-ом, а не гліфом і не SVG. -->
+            <i class="jira-cursor" aria-hidden="true"></i>
+          </div>
+
+          <p class="jira-hero__foot">
+            <span data-jira="hero.hint">текст у вікні можна виділити й скопіювати</span>
+            <!-- WCAG 2.2.2: цикл довший за 5 с мусить мати видимий спосіб його
+                 спинити. Кнопка замінює #heroReplay зі спеки. -->
+            <button type="button" id="heroPause" class="ds-btn ds-btn--quiet ds-btn--sm"
+                    aria-pressed="false" data-label-pause="спинити показ" data-label-play="показати ще раз">
+              <span data-pause-label>спинити показ</span>
+            </button>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ДЛЯ КОГО ЦЕ — І ДЛЯ КОГО НІ -->
+    <section class="ds-sect ds-wrap" aria-labelledby="audTitle">
+      <div class="ds-meta">
+        <div class="ds-meta__rail"><p class="ds-eyebrow">чесна межа</p></div>
+        <div class="ds-meta__body" data-reveal>
+          <h2 class="jira-h2" id="audTitle" data-jira="audience.title">Для кого це — і для кого ні</h2>
+          <p class="ds-lead" data-jira="audience.lead"></p>
+          <div class="jira-split">
+            <div>
+              <h3 class="jira-split__head" data-jira="audience.forTitle"></h3>
+              <ul class="jira-list" id="audFor"></ul>
+            </div>
+            <div>
+              <h3 class="jira-split__head" data-jira="audience.notTitle"></h3>
+              <ul class="jira-list jira-list--not" id="audNot"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЩО ТИ ВМІТИМЕШ НАПРИКІНЦІ -->
+    <section class="ds-sect ds-wrap" aria-labelledby="outTitle">
+      <div class="ds-meta">
+        <div class="ds-meta__rail"><p class="ds-eyebrow">результати</p></div>
+        <div class="ds-meta__body">
+          <h2 class="jira-h2" id="outTitle" data-jira="outcomes.title" data-reveal></h2>
+          <p class="ds-lead" data-jira="outcomes.lead"></p>
+          <ul class="jira-out" id="outList" data-reveal-root></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- КАРТА ПРОГРАМИ -->
+    <section class="ds-sect ds-wrap" id="map" aria-labelledby="mapTitle">
+      <div class="ds-meta">
+        <div class="ds-meta__rail"><p class="ds-eyebrow">шлях</p></div>
+        <div class="ds-meta__body">
+          <h2 class="jira-h2" id="mapTitle" data-jira="map.title" data-reveal></h2>
+          <p class="ds-lead" data-jira="map.lead"></p>
+          <div class="jira-map" id="jiraMap" data-reveal-root></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ПОЛИЦЯ ДОВІДНИКІВ -->
+    <section class="ds-sect ds-wrap" id="refs" aria-labelledby="refTitle">
+      <div class="ds-meta">
+        <div class="ds-meta__rail"><p class="ds-eyebrow">не треба проходити</p></div>
+        <div class="ds-meta__body" data-reveal>
+          <h2 class="jira-h2" id="refTitle" data-jira="references.title"></h2>
+          <p class="ds-lead" data-jira="references.lead"></p>
+          <div class="jira-shelf">
+            <div class="jira-shelf__line" aria-hidden="true"></div>
+            <ul class="jira-shelf__items" id="refList"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- БЛОК АВТОРА — сьогодні вимкнений: text і href порожні, рендерер
+         прибирає всю секцію, і сторінка лишається цілою (К-20). -->
+    <section class="ds-sect ds-wrap" id="author" aria-labelledby="authorTitle">
+      <div class="ds-meta">
+        <div class="ds-meta__rail"><p class="ds-eyebrow" data-jira="author.eyebrow">Хто веде</p></div>
+        <div class="ds-meta__body">
+          <div class="jira-author" data-reveal>
+            <h2 class="jira-author__t" id="authorTitle" data-jira="author.title"></h2>
+            <p class="jira-author__x" id="authorText"></p>
+            <p><a class="ds-btn ds-btn--quiet" id="authorLink" href="#"></a></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- СЕРТИФІКАТ -->
+    <section class="ds-sect ds-wrap" aria-labelledby="certTitle">
+      <div class="ds-meta">
+        <div class="ds-meta__rail"><p class="ds-eyebrow">доказ</p></div>
+        <div class="ds-meta__body">
+          <div class="jira-cert" data-reveal>
+            <div>
+              <p class="jira-medal">
+                <span class="jira-medal__mono" aria-hidden="true">AIJ</span>
+                <span class="jira-medal__caps">AI АКАДЕМІЯ · JIRA</span>
+              </p>
+              <h2 class="jira-h2" id="certTitle" data-jira="certificate.title"></h2>
+              <p class="ds-lead" data-jira="certificate.lead"></p>
+              <p class="ds-small" data-jira="certificate.note"></p>
+            </div>
+            <div class="ds-paper ds-paper--sheet" aria-hidden="true">
+              <p class="ds-paper__eyebrow" data-jira="certificate.paper.kind"></p>
+              <p class="ds-paper__name" data-jira="certificate.paper.name"></p>
+              <div class="ds-paper__rule"></div>
+              <p class="ds-paper__course" data-jira="certificate.paper.course"></p>
+              <p class="ds-paper__quiet ds-paper__code" data-jira="certificate.paper.code"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ДОНАТИ — конструкція «AI Термінала» (рішення власника 2026-10-01):
+         заголовок без мітки в лівому полі, лід, три рівні картки. -->
+    <section class="ds-sect ds-wrap" id="donate" aria-labelledby="donTitle">
+      <div class="ds-meta">
+        <div class="ds-meta__rail"></div>
+        <div class="ds-meta__body" data-reveal>
+          <h2 class="jira-h2" id="donTitle" data-jira="donations.title">Курс безкоштовний і залишиться таким</h2>
+          <p class="ds-lead" data-jira="donations.lead"></p>
+          <ul class="jira-donate" id="donateList"></ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ФУТЕР — наявний компонент; нове тут лише місце дисклеймера -->
+  <footer class="ds-ftr">
+    <div class="ds-wrap">
+      <div class="ds-ftr__grid">
+        <div>
+          <p class="ds-eyebrow" data-jira="footer.project">Проєкт</p>
+          <ul class="ds-ftr__list ds-plain" id="ftrLinks"></ul>
+        </div>
+        <div>
+          <p class="ds-eyebrow" data-jira="footer.sources">Першоджерела</p>
+          <ul class="ds-ftr__list ds-plain" id="ftrSources"></ul>
+        </div>
+        <div>
+          <p class="ds-eyebrow" data-jira="site.refsLabel">Довідники</p>
+          <ul class="ds-ftr__list ds-plain">
+            <li><a href="../../../../../jira-ref-jql.html" data-jira="site.refJql">JQL</a></li>
+            <li><a href="../../../../../jira-ref-automation.html" data-jira="site.refAutomation">Автоматизація</a></li>
+            <li><a href="../../../../../jira-ref-map.html" data-jira="site.refMap">Карта інтерфейсу</a></li>
+          </ul>
+        </div>
+      </div>
+      <!-- Дисклеймер — окремим рядком ПІД стовпцями: це юридичний текст, він
+           не є пунктом меню й не має читатись як посилання. -->
+      <p class="jira-disclaimer" data-jira="site.disclaimer">Незалежний освітній матеріал. Не створений, не
+        спонсорований і не схвалений Atlassian. Jira, Atlassian, Confluence — торгові марки Atlassian Pty Ltd.</p>
+      <div class="ds-ftr__bar">
+        <span data-jira="footer.made">Зроблено спільнотою</span>
+        <a href="#top" data-jira="footer.top">Нагору</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ====================================================================
+       ПАНЕЛЬ МАКЕТА — У ПРОД НЕ ЙДЕ.
+       Відчуття темпу не виміряв ні агент №2, ні жоден із 18 переглянутих
+       сайтів: лабораторія міряла механіку (найдовший кадр 18 мс), не
+       відчуття. Тому три темпи стоять поруч, і власник обирає очима.
+       ==================================================================== -->
+  <div class="jira-lab" role="group" aria-label="Панель макета">
+    <b>макет</b>
+    <span class="jira-lab__g">темп циклу:
+      <button type="button" class="ds-btn ds-btn--sm" data-tempo="slow">повільний</button>
+      <button type="button" class="ds-btn ds-btn--sm" data-tempo="mid" aria-pressed="true">середній</button>
+      <button type="button" class="ds-btn ds-btn--sm" data-tempo="brisk">жвавий</button>
+    </span>
+    <span class="jira-lab__g">
+      <button type="button" class="ds-btn ds-btn--sm" data-toggle="rm">prefers-reduced-motion</button>
+      <button type="button" class="ds-btn ds-btn--sm" data-toggle="flip">відкотити ризик поверхні</button>
+      <button type="button" class="ds-btn ds-btn--sm" data-toggle="nojs">показати стан без JS</button>
+    </span>
+    <span id="labRead"></span>
+  </div>
+
+  <script>
+  /* ПІДМОСТКИ МАКЕТА. Кеш <link> не слухається Cache-Control: no-store —
+     перевірено CSSOM-ом, тому href переписується на кожному завантаженні. */
+  Array.prototype.forEach.call(document.querySelectorAll('link[rel=stylesheet]'), function (l) {
+    var h = l.getAttribute("href");
+    if (h.indexOf("fonts.") < 0) l.setAttribute("href", h.split("?")[0] + "?v=" + Date.now());
+  });
+  </script>
+
+  <script src="../../../../../js/motion.js"></script>
+  <script src="../../../../../js/ui.js"></script>
+  <script src="../_base/jira-render.js"></script>
+  <script src="../_base/jira-motion.js"></script>
+
+  <script>
+  /* ПІДМОСТКИ МАКЕТА (у прод не йдуть): перемикачі панелі. */
+  (function () {
+    var root = document.documentElement;
+    document.querySelectorAll("[data-tempo]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        root.setAttribute("data-jira-tempo", b.getAttribute("data-tempo"));
+        document.querySelectorAll("[data-tempo]").forEach(function (o) {
+          o.setAttribute("aria-pressed", o === b ? "true" : "false");
+        });
+      });
+    });
+    document.querySelectorAll("[data-toggle]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var k = b.getAttribute("data-toggle"), on;
+        if (k === "rm")   { on = root.classList.toggle("rm"); }
+        if (k === "flip") { on = root.classList.toggle("win-flip"); }
+        if (k === "nojs") { on = document.getElementById("jiraHero").classList.toggle("is-playing"); on = !on; }
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+    });
+  })();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="uk" data-config="../jira.config.json" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Урок 20 · Люди і доступ — Jira з нуля</title>
+  <meta name="description"
+    content="Як впустити колег у Jira й не втратити місця з десяти: організація, сайт і продукти, три різні адміністратори, групи, сторінка Access спейсу, приватність, двоетапна перевірка, експорт і резервна копія, що робити замість архівації та як прибрати людину." />
+  <!-- Єдиний легальний хекс у HTML: дорівнює --p-n-100 у css/tokens.css.
+       <meta> не читає var(), тому число тут дублюється свідомо. -->
+  <meta name="theme-color" content="#161311" />
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Порядок обов'язковий: токени → компоненти → сторінковий файл →
+       Tailwind → тема. Tailwind іде ПІСЛЯ наших <link> навмисно: його
+       preflight має стояти в каскаді пізніше, ніж наші правила на голий тег. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../js/tw-theme.js"></script>
+  <!-- Прев'ю посилання: картинка — перший екран лендінга курсу (2026-10-01) -->
+  <meta property="og:image" content="https://ai-academia.com.ua/assets/og/og-jira.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Головна сторінка курсу «Jira з нуля»" />
+  <meta name="twitter:card" content="summary_large_image" />
+</head>
+
+<body data-module="j20">
+
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+  <div id="ariaLive" class="sr-only" aria-live="polite"></div>
+
+  <noscript>
+    <div class="ds-wrap ds-band">
+      <div class="ds-note ds-note--warn" role="alert">
+        <span class="ds-note__glyph" aria-hidden="true">▲</span>
+        <p class="ds-note__body">Для роботи платформи потрібен JavaScript — увімкни його в налаштуваннях браузера.</p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- ШАПКА -->
+  <header class="ds-hdr">
+    <div class="ds-hdr__inner">
+      <!-- Бургер ЗМІСТУ уроку. aria-controls="moduleSidebar" — не косметика:
+           саме за цим селектором components.css піднімає поріг ховання з 640
+           до 1024, бо шторка змісту живе до 1024 (§6.4). -->
+      <button id="sidebarBtn" type="button" class="ds-btn ds-btn--icon ds-btn--sm ds-hdr__burger"
+              aria-expanded="false" aria-controls="moduleSidebar">
+        <span class="sr-only">Зміст курсу</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="ds-hdr__brand" href="../jira.html">
+        <span class="ds-hdr__mark" data-site="shortName" aria-hidden="true">AIJ</span>
+        <span data-site="name">Jira з нуля</span>
+      </a>
+      <span class="ds-hdr__crumb" aria-hidden="true">/</span>
+      <span class="ds-hdr__crumb">Урок 20</span>
+      <span class="ds-hdr__spacer"></span>
+      <div id="aiaAuth" class="ds-hdr__slot"></div>
+      <span id="navProgress" hidden class="ds-pill ds-pill--unknown"></span>
+      <a class="ds-nav__link" href="../jira.html#map">До програми</a>
+    </div>
+  </header>
+
+  <!-- Банер помилки завантаження конфіга (js/config.js знімає hidden).
+       ⚠ hidden стоїть на обгортці .ds-wrap (вона не задає display), а не на
+       самій .ds-note: інакше порожня смуга .ds-band тримала б 32 px завжди. -->
+  <div id="configError" hidden class="ds-wrap ds-band">
+    <div class="ds-note ds-note--err" role="alert">
+      <span class="ds-note__glyph" aria-hidden="true">✕</span>
+      <p class="ds-note__body">⚠ Не вдалося завантажити <code class="ds-code--inline">jira.config.json</code>. Відкрий сайт через локальний сервер,
+      наприклад: <code class="ds-code--inline">python3 -m http.server 8000</code> — і зайди на <code class="ds-code--inline">localhost:8000</code>.</p>
+    </div>
+  </div>
+
+  <!-- Затемнення під мобільною шторкою сайдбара -->
+  <div id="sidebarOverlay" class="ds-snav__scrim" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-wide px-5 sm:px-8 lg:grid lg:grid-cols-[280px,1fr] lg:gap-12">
+
+    <!-- САЙДБАР: програма курсу + блоки уроку (рендериться js/module.js) -->
+    <aside id="moduleSidebar" class="ds-snav ds-snav--drawer" aria-label="Зміст курсу">
+      <div id="sidebarNav" class="lg:pt-10">
+        <p class="ds-snav__count">Завантаження програми…</p>
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10 lg:py-12" data-page-in>
+      <article class="ds-prose">
+
+        <!-- Вступ уроку -->
+        <p class="ds-eyebrow">Фаза 5 · Service desk і адміністрування</p>
+        <h1 class="ds-h1">Люди і доступ</h1>
+        <p class="ds-small ds-num">Початковий · 8 блоків · ≈ 29 хв читання</p>
+        <p class="ds-lead">
+          Дев'ятнадцять уроків ти будував(ла) систему для себе: спейси, картки, фільтри,
+          автоматизацію, портал заявок. Цей урок про момент, коли в цю систему заходять інші
+          люди. Кожен із них — це три питання одразу: куди його пустити, скільки це коштує
+          з десяти місць і чого на безкоштовному плані пообіцяти йому не можна.
+        </p>
+        <p>
+          Тут ми вперше виходимо за межі самої Jira — в окреме вікно керування організацією,
+          де живуть люди, продукти й рахунок за них. І тут же закриваємо дві теми, які легко відкласти
+          «на потім», а потім буває пізно: як забрати свої дані у файл і що робити зі
+          старими справами, якщо заархівувати їх гуртом не можна.
+        </p>
+
+        <div class="ds-note">
+          <span class="ds-note__title">Що в цьому уроці є, а чого немає</span>
+          <p>
+            <strong>Немає:</strong> ролей усередині спейсу детально — це урок 9
+            «Team-managed vs company-managed»; агентів і клієнтів служби — урок 18
+            «Jira Service Management»; листів і сповіщень — урок 16; переліку того, що дає
+            й чого не дає безкоштовний план загалом, — урок 2 «Безкоштовний план чесно».
+          </p>
+          <p>
+            <strong>Є:</strong> чотири поверхи, на яких живе людина (організація → сайт →
+            продукт → спейс); три різні слова «адміністратор» і хто з них що може; звідки
+            беруться місця й хто їх займає; групи; сторінка <code>Access</code> спейсу;
+            приватність — пошта, коментарі, публічний доступ; двоетапна перевірка входу;
+            експорт у файл і резервна копія сайту; що робити замість архівації; як прибрати
+            людину й що станеться з її роботами.
+          </p>
+        </div>
+
+        <hr />
+
+        <!-- БЛОК 1 -->
+        <section id="l1" data-lesson="1. Навіщо це">
+          <h2><span class="ds-prose__no">1</span>Навіщо це</h2>
+
+          <p>
+            У «Марципані» настав тиждень, коли Jira перестала бути особистим інструментом
+            Оксани. Марта веде маркетинг і має працювати в спейсі <code>MARK</code> щодня.
+            Богдан-пекар хоче бачити, як іде ремонт другої точки, і подавати заявки в
+            бухгалтерію. З понеділка виходить новий колега, якого в системі ще немає взагалі.
+            А Ігор уже приймає заявки в службовому спейсі <code>FIN</code>.
+          </p>
+
+          <p>
+            Чотири людини — чотири різні відповіді на те саме питання «куди його пустити».
+            І три речі, які треба знати до того, як натиснути першу кнопку.
+          </p>
+
+          <h3>Перше: людина живе не в одному списку, а в чотирьох</h3>
+
+          <p>
+            Поки ти працюєш сам(а), Jira виглядає як один сайт. Насправді поверхів більше,
+            і людину в них записують окремо на кожному:
+          </p>
+
+          <ul>
+            <li><strong>Організація</strong> — верхній контейнер. Довідка Atlassian описує
+              його так: «Atlassian organizations bring together your company's users and
+              apps» — організація зводить разом людей твоєї фірми й продукти. Її створили
+              разом із твоїм акаунтом ще в уроці 3, і керують нею в окремому вікні —
+              <strong>Atlassian Administration</strong> за адресою
+              <code>admin.atlassian.com</code>.</li>
+            <li><strong>Сайт</strong> — <code>marcypan.atlassian.net</code>, той самий, назву
+              якого ти обирав(ла) при реєстрації.</li>
+            <li><strong>Продукт</strong> — Jira, Jira Service Management, Confluence. Кожен
+              із них дає доступ окремо, і <em>саме тут рахуються місця</em>.</li>
+            <li><strong>Спейс</strong> — <code>MARK</code>, <code>FIN</code>, <code>REM</code>.
+              Тут людині дають роль на сторінці <code>Access</code>.</li>
+          </ul>
+
+          <p>
+            Звідси береться найчастіша плутанина новачка: «я додав(ла) колегу в спейс, а він
+            каже, що не бачить» — або навпаки, «я прибрав(ла) його зі спейсу, а він далі має
+            доступ до сайту». Це різні поверхи, і дії на них різні.
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__body">
+              Слово «організація» в Atlassian має два значення, і вони не пов'язані. Перше —
+              контейнер фірми, про який ідеться в цьому уроці. Друге живе в Jira Service
+              Management: там «організація» — це група клієнтів порталу. Довідка попереджає
+              про це прямо: «Note that customer organizations are different from Atlassian
+              organizations».
+            </p>
+          </div>
+
+          <h3>Друге: на безкоштовному плані доступ не розмежовується</h3>
+
+          <p>
+            Це вже звучало в уроках 2 і 9, але саме тут воно стає практичним. Сторінка про
+            безкоштовний план формулює так: «Space permissions, roles, and work-level
+            security aren't customizable in Jira Free» — дозволи спейсу, ролі й захист
+            окремих робіт на безкоштовному плані не налаштовуються. І далі, ще прямолінійніше:
+            «If your site has always been on a Free plan, everyone with access to Jira is an
+            admin for all Jira spaces» — якщо сайт від початку безкоштовний, кожен, хто має
+            доступ до Jira, є адміністратором усіх спейсів.
+          </p>
+
+          <p>
+            Практичний наслідок: усе, що ти зараз робитимеш із доступом, — це <em>кого
+            впустити на сайт</em>, а не <em>хто що там зможе</em>. Тонке розмежування
+            починається з платного плану, і ми назвемо, з якого саме.
+          </p>
+
+          <h3>Третє: сайт і дані треба вміти не втратити</h3>
+
+          <p>
+            Три речі, про які згадують запізно. Єдиний акаунт власниці — це єдиний ключ від
+            усього, і захищає його лише пароль. Видалена робота не повертається ніколи —
+            про це було в уроці 5. Сайт, яким не користуються, можуть вимкнути — про це було
+            в уроці 2. Усі три лікуються тим, що ми зробимо в цьому уроці: двоетапною
+            перевіркою входу, власною копією даних і другим адміністратором.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 2 -->
+        <section id="l2" data-lesson="2. Як це виглядає на екрані">
+          <h2><span class="ds-prose__no">2</span>Як це виглядає на екрані</h2>
+
+          <p>
+            Три з цих поверхів мають власний екран. Почнемо з найближчого — сторінки, де ти
+            роздаєш доступ до одного спейсу.
+          </p>
+
+          <h3>Доступ до спейсу: сторінка Access</h3>
+
+<figure class="win" data-state="settings" id="w1">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w1t">Jira Cloud · Space settings → Access у діловому спейсі · звірено 2026-09-30</span>
+    <span class="win__addr" aria-hidden="true">…/jira/…/MARK/settings/access</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w1t">
+    <ul class="win__rail win__rail--settings" aria-label="Space settings">
+      <li class="win__rail-item">Details</li>
+      <li class="win__rail-item win__rail-item--active">Access</li>
+      <li class="win__rail-item">Notifications</li>
+      <li class="win__rail-item">Automation</li>
+      <li class="win__rail-item">Fields</li>
+      <li class="win__rail-item">Work types</li>
+      <li class="win__rail-item">Apps</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__page">
+        <h4>Access</h4>
+        <p class="win__btn">Add people <b class="win__mark" aria-hidden="true">①</b></p>
+        <p class="win__btn">Open access <b class="win__mark" aria-hidden="true">②</b></p>
+        <p class="win__placeholder">This space has 1 role</p>
+        <p class="win__placeholder">Unlock more control — Access to this space is currently Open. To customize user access, such as roles and permissions, upgrade your plan to Standard. <b class="win__mark" aria-hidden="true">③</b></p>
+        <span class="win__tabs"><span class="win__tab--active">Current users</span><span>Access requests (0)</span></span>
+        <table class="win__table">
+          <thead>
+            <tr><th scope="col">Name</th><th scope="col">Email</th><th scope="col">Role <b class="win__mark" aria-hidden="true">④</b></th><th scope="col">Action</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Оксана Коваль</td><td>(приховано)</td><td>Administrator</td><td>Remove</td></tr>
+            <tr><td>Марта Лисенко</td><td>(приховано)</td><td>Administrator</td><td>Remove</td></tr>
+            <tr><td>Соломія Бойко</td><td>(приховано)</td><td>Administrator</td><td>Remove</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «сторінка Access спейсу Маркетинг»">
+<li>Додати людину, яка вже є на сайті</li>
+<li>Рівень доступу спейсу для всього сайту</li>
+<li>Банер плану: доступ і ролі налаштовуються зі Standard</li>
+<li>Роль людини в цьому спейсі; на цьому плані вона не міняється</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Уся сторінка — зі знімка ділового спейсу навчального сайту від 30 вересня
+            2026 року, на безкоштовному плані: рейка ліворуч (у діловому спейсі немає
+            розділів <code>Features</code>, <code>Custom filters</code> і
+            <code>Toolchain</code>, які є у спейсі для розробки), обидві кнопки, банер,
+            рядок про ролі, вкладки й назви колонок (сторінка <code>Access</code> спейсу
+            «Маркетинг» того самого дня виглядала так само). Адреса пошти в знімку була
+            прихована, тому в таблиці стоїть позначка замість неї; три рядки — приклад
+            «Марципану», у знімку рядок був один, з роллю <code>Administrator</code>. У довідці кнопка
+            зміни рівня доступу названа інакше, ніж на екрані: «Under Space access, select
+            Change space access».
+          </p>
+
+          <p>
+            Що це за сторінка, довідка каже одним реченням: «In team-managed spaces, any
+            permission or access you want to give people in your space is controlled on the
+            Access page» — увесь доступ до спейсу роздається тут. Шлях теж названий дослівно:
+            «To view the Access page, select Space settings in the sidebar, then select
+            Access». До тих самих налаштувань веде і меню <code>•••</code> біля назви спейсу.
+          </p>
+
+          <p>
+            Головне речення цієї сторінки — не про ролі, а про межу: <strong>«You can only
+            add people who have joined your Atlassian site. If you can't find someone by
+            their name or email address, ask your Jira administrator to invite them to your
+            Atlassian site»</strong>. Тобто <code>Add people</code> не запрошує людину в
+            фірму — вона лише бере того, хто <em>вже</em> на сайті, і дає йому роль.
+            Запрошення живе поверхом вище.
+          </p>
+
+          <p>
+            Ролі в колонці <code>Role</code> — <code>Administrator</code>,
+            <code>Member</code>, <code>Viewer</code> — розібрані в уроці 9. І там само
+            сказано, чому на цьому плані вони декоративні; довідка повторює це на самій
+            сторінці доступу: «You can't edit space permissions or roles on the Free plan
+            for software and business spaces, and you can't configure work-level security
+            on any Free plan (including Jira Service Management)».
+          </p>
+
+          <p>
+            На екрані це видно без довідки. 30 вересня 2026 року над таблицею стояв банер
+            <strong>«Unlock more control — Access to this space is currently Open. To
+            customize user access, such as roles and permissions, upgrade your plan to
+            Standard»</strong> і рядок «This space has 1 role». Роль у рядку людини
+            відкривалась списком із чотирьох пунктів — <code>Administrator</code>,
+            <code>Guest - Collaborator</code>, <code>Member</code>, <code>Viewer</code>, —
+            і жоден пункт не був активним. Тобто роздати різні ролі різним людям на цьому
+            плані не вийде: усі, кого ти додаси, будуть адміністраторами спейсу.
+          </p>
+
+          <p>
+            Друга кнопка, <code>Open access</code>, — це рівень доступу всього спейсу,
+            тобто яку роль отримує в ньому будь-хто, хто ввійшов на сайт. На безкоштовному
+            плані він теж один: <code>Open</code>, як і написано в банері. Те саме говорить
+            майстер створення спейсу (урок 9): «Anyone with access to … can access and
+            administer this space. Upgrade your plan to customize space permissions» —
+            новий спейс бачить і адмініструє кожен, хто має доступ до сайту.
+          </p>
+
+          <h3>Приватність сайту: один екран, три перемикачі</h3>
+
+          <p>
+            Наступний екран — поверхом вище: налаштування самої Jira на цьому сайті. Це
+            той екран, куди заходять раз на рік, і саме на ньому лежать три речі, які
+            вирішують, що видно стороннім і що видно колегам.
+          </p>
+
+<figure class="win" data-state="settings" id="w2">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w2t">Jira Cloud · System settings → General configuration · звірено 2026-09-30</span>
+    <span class="win__addr" aria-hidden="true">…/jira/settings/system/general-configuration</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w2t">
+    <ul class="win__rail win__rail--settings" aria-label="System settings">
+      <li class="win__rail-item win__rail-item--active">General configuration</li>
+      <li class="win__rail-item">Default user preferences</li>
+      <li class="win__rail-item">Backup manager</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__page">
+        <h4>Options</h4>
+        <dl class="win__fields">
+          <dt>Allow users to share dashboards and filters with the public <b class="win__mark" aria-hidden="true">①</b></dt><dd>off</dd>
+          <dt>User email visibility <b class="win__mark" aria-hidden="true">②</b></dt><dd>Logged in users only</dd>
+          <dt>Comment visibility <b class="win__mark" aria-hidden="true">③</b></dt><dd>Space roles only</dd>
+          <dt>Allow unassigned work items</dt><dd>on</dd>
+          <dt>Allow people to request space access</dt><dd>on</dd>
+          <dt>Allow reactions on comments</dt><dd>on</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «загальні налаштування сайту»">
+<li>Публічний доступ до фільтрів і дашбордів</li>
+<li>Кому видно адреси пошти в профілях</li>
+<li>З чого складається список видимості коментаря</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Назви перемикачів і їхні значення — зі знімка навчального сайту (17 вересня
+            2026); 30 вересня 2026 року, уже на безкоштовному плані, сторінку звірили ще
+            раз: значення ті самі, додався лише перемикач <code>Allow reactions on
+            comments</code>. Опис кожного з них — із довідки. Два застереження до цього
+            вікна. Значення
+            видимості пошти в знімку записане скорочено, повна назва варіанта — з довідки
+            («LOGGED IN USERS ONLY»). Перелік ліворуч скорочений до трьох пунктів: на живому
+            екрані між ними стоять інші, згруповані в секції, а
+            <code>Backup manager</code> лежить в окремій секції <code>Import and export</code>.
+          </p>
+
+          <p>
+            <strong>Публічний доступ.</strong> Довідка описує перемикач так: «Controls
+            whether public sharing is an option for filters and dashboards. Public sharing
+            means giving access to users who are not logged in to your Jira Cloud site» —
+            тобто доступ для тих, хто в твій сайт не заходив узагалі. Для безкоштовного
+            плану питання закрите одним рядком: «Free Jira sites can't be opened to the
+            public». Окремо варто знати, що вимикач працює лише вперед: «Turning Public
+            sharing off prevents new and not-yet-shared dashboards and filters from being
+            shared. It does not restrict any filters or dashboards that have already been
+            shared».
+          </p>
+
+          <p>
+            <strong>Видимість пошти.</strong> «Controls how users' email addresses are
+            displayed in the user profile page» — чи видно адресу пошти людини в її профілі.
+            Варіантів чотири: видно всім, приховано від усіх, показано замаскованою
+            (<code>user at example dot com</code>) і видно лише тим, хто увійшов. На екрані
+            вище стоїть останній.
+          </p>
+
+          <p>
+            <strong>Видимість коментаря.</strong> Це той список, який Jira покаже людині,
+            коли вона захоче зробити коментар видимим не всім: «Determines what will be
+            contained in the list that is presented to users when specifying comment
+            visibility and worklog visibility». Варіантів два — групи разом із ролями спейсу
+            або лише ролі. Але пам'ятай попереднє: на безкоштовному плані ролі нічого не
+            обмежують, тому обмежений коментар тут — радше ввічливість, ніж захист.
+          </p>
+
+          <p>
+            Останній рядок вікна — <code>Allow people to request space access</code> —
+            стоїть на тому самому екрані, що й вкладка <code>Access requests</code>, де
+            збираються запити «пусти мене». ⚠ Як саме вони пов'язані, довідка не каже:
+            сторінки про запити доступу до спейсу ми в ній не знайшли, тож чи зникає
+            вкладка, коли перемикач вимкнено, — не перевірено.
+          </p>
+
+          <h3>Люди сайту: окрема адмінка</h3>
+
+          <p>
+            Третій екран живе за межами Jira. У ньому заводять людей, роздають продукти й
+            забирають доступ. Зайти туди можна за адресою <code>admin.atlassian.com</code>.
+          </p>
+
+<figure class="win" data-state="list" id="w3">
+  <figcaption class="win__chrome">
+    <span class="win__dots" aria-hidden="true"></span>
+    <span class="win__title" id="w3t">Atlassian Administration · Каталог → Користувачі · звірено 2026-09-30</span>
+  </figcaption>
+  <div class="win__body" role="group" aria-labelledby="w3t">
+    <ul class="win__rail" aria-label="Розділи Atlassian Administration">
+      <li class="win__rail-item">Огляд</li>
+      <li class="win__rail-item win__rail-item--active">Каталог</li>
+      <li class="win__rail-item">Додатки</li>
+      <li class="win__rail-item">Безпека</li>
+      <li class="win__rail-item">Виставлення рахунків</li>
+    </ul>
+    <div class="win__main">
+      <div class="win__bar">
+        <span class="win__crumb">Каталог / Користувачі</span>
+        <span class="win__btn win__btn--primary">Запросити користувачів <b class="win__mark" aria-hidden="true">①</b></span>
+        <span class="win__btn">Схвалити запити 0</span>
+        <span class="win__btn">•••</span>
+      </div>
+      <div class="win__page">
+        <h4>Користувачі</h4>
+        <ul class="win__stats">
+          <li>Усього користувачів 3 <b class="win__mark" aria-hidden="true">②</b></li>
+          <li>Активні користувачі 3</li>
+          <li>Керовані облікові записи 0</li>
+          <li>Адміністратори організації 1</li>
+        </ul>
+        <table class="win__table">
+          <thead>
+            <tr><th scope="col">Користувач</th><th scope="col">Стан</th><th scope="col">Останній перегляд</th><th scope="col">Дії</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Оксана Коваль · (адресу приховано) · Адміністратор організації</td><td>Активний</td><td>30 вер. 2026 р.</td><td>••• <b class="win__mark" aria-hidden="true">③</b></td></tr>
+            <tr><td>Марта Лисенко · (адресу приховано)</td><td>Активний</td><td>29 вер. 2026 р.</td><td>•••</td></tr>
+            <tr><td>Тарас Мельник · (адресу приховано)</td><td>Активний</td><td>26 вер. 2026 р.</td><td>•••</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</figure>
+<ol class="win__legend" aria-label="Пояснення до вікна «список людей організації»">
+<li>Запросити людину в організацію</li>
+<li>Скільки людей уже в організації</li>
+<li>Дії над рядком людини</li>
+</ol>
+
+          <p class="ds-diag__caption" data-align="start">
+            Написи — з екрана навчального сайту курсу 30 вересня 2026 року, на
+            безкоштовному плані. Вони українською не випадково: <strong>адмінка Atlassian
+            говорить мовою твого акаунта</strong>, тоді як сама Jira лишається
+            англійською. У нас у профілі стоїть українська — тому <code>Каталог</code> і
+            <code>Користувачі</code>; якщо ти в уроці 3 поставив(ла) мову акаунта
+            English, ті самі розділи називатимуться <code>Directory</code> і
+            <code>Users</code>, як їх і називає довідка. Рейку розділів скорочено;
+            людей, дати й числа над списком узято з історії курсу — на навчальному сайті в
+            списку одна людина. ⚠ Меню <code>•••</code> ми розкрили тільки у власному
+            рядку, і там були лише <code>Додати до групи</code> й довідка про керовані
+            облікові записи; як воно виглядає для іншої людини, ми не бачили.
+          </p>
+
+          <p>
+            Окремої колонки з роллю в продукті тут немає — те, що таблиця показує під
+            іменем, це роль в організації. Де роль у продукті видно напевно: у фільтрах
+            над списком (<code>Роль</code> і <code>Додатки</code>) і в самій панелі
+            запрошення. Того ж дня в тій панелі кожен продукт сайту стояв окремим
+            рядком, а колонки звались <code>Додаток</code> · <code>Тариф</code> ·
+            <code>Ролі</code> — і напроти Jira було написано <code>Free</code> та роль
+            <code>Користувач</code>. Тобто запрошення й вибір ролі — одна дія, і саме
+            вона займає місце з десяти.
+          </p>
+
+          <p>
+            Ще одна річ, про яку варто знати заздалегідь: адмінка буває у двох виглядах, і
+            від цього залежить шлях. Довідка перевіряє це одним питанням — де в тебе лежить
+            сторінка <code>Users</code>: «In Atlassian Administration, Users is located in
+            Directory» або «In Atlassian Administration, Users is located in the {site} you
+            select within Apps». Перший випадок — новіший, він і показаний у вікні; у другому
+            спершу вибираєш сайт у розділі <code>Apps</code>, а вже там знаходиш людей.
+            Якщо адмінка в тебе українською, ті самі два шляхи звучать
+            <code>Каталог</code> → <code>Користувачі</code> і <code>Додатки</code> → свій
+            сайт → <code>Користувачі</code>.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 3 -->
+        <section id="l3" data-lesson="3. Як це працює">
+          <h2><span class="ds-prose__no">3</span>Як це працює</h2>
+
+          <p>
+            Головне питання цього уроку — «хто займає місце з десяти». Відповідь дає одна
+            схема: місця рахуються не по сайту й не по спейсах, а <strong>по продуктах</strong>.
+          </p>
+
+          <div class="ds-diag">
+            <pre class="mermaid">
+flowchart TB
+  O["Організація: Atlassian Administration"] --> S["Сайт marcypan.atlassian.net"]
+  S --> J["Продукт: Jira"]
+  S --> M["Продукт: Jira Service Management"]
+  S --> C["Продукт: Confluence"]
+  J --> JU["Користувач Jira: одне з десяти місць"]
+  M --> MA["Агент служби: місце агента"]
+  M --> MC["Клієнт порталу: місця не займає"]
+  C --> CU["Користувач Confluence: своє окреме місце"]
+            </pre>
+            <p class="ds-diag__caption">Один сайт, три продукти — і чотири різні відповіді на питання «чи це коштує місце».</p>
+          </div>
+
+          <h3>Місце — це роль у продукті</h3>
+
+          <p>
+            Доступ до продукту дається роллю, і робиться це в адмінці: «To give users app
+            access, you must assign them a role in Atlassian Administration». Поки людині не
+            видали роль у Jira, вона в Jira не зайде — хоч скільки разів її додавай у спейс.
+            Довідка про доступ до спейсу каже те саме з іншого боку: «Only your site admin can
+            grant individuals app access to Jira».
+          </p>
+
+          <p>
+            Безкоштовний план Jira дає <strong>до десяти</strong> таких місць — «Up to 10
+            users» у таблиці планів. Те саме число показує й сама Jira: 30 вересня
+            2026 року кнопка <code>Upgrade</code> у шапці безкоштовного сайту відкривала
+            вікно з рядком «You've invited 1 out of 10 users» і поясненням, що буде далі —
+            «If you add more than 10 users, you'll be automatically upgraded». Важливо, що
+            місце займає <strong>будь-яка</strong> роль у Jira — і адміністраторська, і
+            звичайна. У довідці про вивантаження списку людей ці значення перелічені
+            дослівно: <code>None</code>, <code>Guest</code>, <code>User</code>,
+            <code>Admin</code>; в українській адмінці роль звичайного користувача
+            підписана <code>Користувач</code>. Якщо впустити Богдана в Jira, щоб він раз на
+            тиждень дивився, як іде ремонт, — це повноцінне місце з десяти.
+          </p>
+
+          <p>
+            Рахують тут доступ, а не те, чи людина ним користується. Довідка про рахунки
+            каже це двома реченнями: «Atlassian app pricing is based on the number of users
+            who can access the app» і «Additional users are automatically counted towards
+            billing even if they don't accept your invite or log in» — запрошений колега
+            займає місце ще до того, як уперше зайшов. А що стається, коли людей стає
+            більше десяти, розібрано в уроці 2: сайт сам переходить на пробний період
+            платного плану.
+          </p>
+
+          <p>
+            У Jira Service Management рахунок інший, і це та сама історія, з якої починався
+            урок 18: місця там за агентами (на безкоштовному плані їх <strong>три</strong>),
+            а клієнти порталу не рахуються взагалі. Довідка каже про них двома реченнями.
+            Перше: «Jira Service Management portal-only customers aren't licensed users» —
+            клієнти порталу не є ліцензованими користувачами. Друге: «There is no limit on
+            the number of customers you can add to your service space» — обмеження на
+            кількість клієнтів немає.
+          </p>
+
+          <p>
+            Confluence — окремий продукт зі своїм лімітом місць (число — у довіднику <a href="../jira-ref-map.html">«Карта
+            інтерфейсу, глосарій і ліміти Free»</a>). Тому людина може бути користувачем Jira і
+            не бути користувачем Confluence, або навпаки.
+          </p>
+
+          <h3>Групи: де насправді зберігається «хто має доступ»</h3>
+
+          <p>
+            Коли адміністратор дає людині роль, Jira не записує це в невидимий журнал — вона
+            кладе людину в <strong>групу</strong>. Група — це названий список людей;
+            доступ до продукту тримається саме на ній. Довідка зве такі групи типовими
+            (default groups) і перелічує поіменно; у назві кожної в кінці стоїть назва
+            твого сайту, тому нижче вона скорочена до трьох крапок:
+          </p>
+
+          <div class="ds-tbl__wrap" tabindex="0" role="region" aria-label="Таблиця: типові групи сайту">
+            <table class="ds-tbl">
+              <thead>
+                <tr><th>Кого додають</th><th>Група й що вона дає</th><th>Місце</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Користувач Jira</td>
+                  <td><code>jira-users-…</code> · «Grants access to the Jira under &lt;site-name&gt;» — доступ до Jira цього сайту</td>
+                  <td>так, одне з десяти</td>
+                </tr>
+                <tr>
+                  <td>Адміністратор Jira</td>
+                  <td><code>jira-admins-…</code> · глобальне право «Jira Administrators» — налаштування Jira</td>
+                  <td>так</td>
+                </tr>
+                <tr>
+                  <td>Агент служби</td>
+                  <td><code>jira-servicemanagement-users-…</code> · «Members of this group count towards the Jira Service Management license»</td>
+                  <td>так, місце агента</td>
+                </tr>
+                <tr>
+                  <td>Клієнт порталу</td>
+                  <td><code>jira-servicemanagement-customers-…</code> · «Members of this group can visit your help center, submit help requests, and view articles under &lt;site name&gt;»</td>
+                  <td>ні: «Members of this group won't count towards your bill…»</td>
+                </tr>
+                <tr>
+                  <td>Користувач Confluence</td>
+                  <td><code>confluence-users-…</code> · створювати й читати сторінки Confluence</td>
+                  <td>так, місце Confluence</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            Звідси практичне правило маленької фірми: <strong>дивись не на ім'я людини, а на
+            те, у яких вона групах</strong>. Саме група, а не добрі наміри, вирішує, чи
+            з'їдено місце.
+          </p>
+
+          <h3>Три різні «адміністратори» — і четвертий</h3>
+
+          <p>
+            Слово «адміністратор» у Jira означає чотири різні речі, і плутанина між ними
+            коштує годин. Довідка про ролі адміністраторів сама починає з того, що перелічує
+            сусідів: вона описує лише ролі, видані в Atlassian Administration, і відсилає
+            окремо до адміністраторів спейсів.
+          </p>
+
+          <ul>
+            <li><strong>Адміністратор організації.</strong> «An organization admin is the
+              highest level of admin» — найвищий рівень: люди, групи, продукти й безпека.
+              Ним стає той, хто створив організацію.</li>
+            <li><strong>Адміністратор сайту.</strong> «Site admins are responsible for
+              managing a site in an organization» — відповідає за один сайт, зокрема за
+              додавання нових продуктів на нього.</li>
+            <li><strong>Адміністратор Jira</strong> — це не роль в адмінці, а глобальне
+              право всередині Jira під назвою <code>Administer Jira</code>. «Глобальне»
+              означає, що воно діє на весь сайт, а не на один спейс. Довідка
+              попереджає: «Throughout this documentation, we'll refer to any user with this
+              permission as a Jira admin». Він створює спейси й налаштовує типи роботи, поля
+              та процеси — але, за тією самою сторінкою, <em>не</em> може «manage existing
+              users or add new ones», «import and export data» і «edit system email
+              settings».</li>
+            <li><strong>Адміністратор спейсу</strong> — роль <code>Administrator</code> з
+              першого вікна цього уроку. Його влада закінчується межею спейсу.</li>
+          </ul>
+
+          <p>
+            На сайті, який від початку безкоштовний, усі ці слова сходяться на одній людині —
+            тій, хто реєструвався(лась). Але кнопки лишаються в різних місцях: людей заводять
+            в адмінці організації, спейси налаштовують у Jira, доступ до спейсу — на його
+            сторінці <code>Access</code>.
+          </p>
+
+          <h3>Окремий випадок: Confluence заради бази знань</h3>
+
+          <p>
+            Якщо після уроку 18 ти хочеш дати службі базу знань, тобі потрібен Confluence на
+            тому самому сайті: «at a minimum, you'll need to have a Free plan of Confluence on
+            the same site». І тут є пастка з місцями, про яку довідка каже відверто: «When you
+            add Confluence to your cloud site, site admins are automatically added as billable
+            users» — адміністраторів сайту Confluence одразу записує в платні користувачі.
+            Далі там само сказано, що з цим робити: «To use the knowledge base for free, you
+            are required to remove site admins and other groups from Confluence to reduce the
+            count of billable users to zero». Тобто групи, яким Confluence не потрібен, з
+            нього прибирають руками — в адмінці організації, у налаштуваннях доступу до
+            продукту.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 4 -->
+        <section id="l4" data-lesson="4. Зроби сам">
+          <h2><span class="ds-prose__no">4</span>Зроби сам</h2>
+
+          <p>
+            Після уроку 19 у тебе є повний службовий спейс <code>FIN</code>, спейси
+            <code>MY</code>, <code>MARK</code>, <code>REM</code>, <code>HR</code>,
+            <code>WEB</code>, фільтри й дашборд. Зараз ти впустиш у це людей і забезпечиш
+            себе від трьох втрат: акаунта, даних і сайту.
+          </p>
+
+          <ol>
+            <li><strong>Подивись, скільки місць зайнято.</strong> Відкрий
+              <code>admin.atlassian.com</code>, вибери свою організацію, далі —
+              <code>Directory</code> → <code>Users</code> (якщо адмінка українською, це
+              <code>Каталог</code> → <code>Користувачі</code>). Якщо такого розділу там
+              немає, у тебе другий вигляд адмінки: вибери <code>Apps</code>
+              (<code>Додатки</code>), потім свій сайт і вже в ньому <code>Users</code>.
+              Скільки людей уже в організації, пишуть плитки над списком — перша з них
+              30 вересня 2026 року звалась <code>Усього користувачів</code>. А скільки
+              зайнято саме місць Jira, найкоротше каже кнопка <code>Upgrade</code> у шапці
+              самої Jira: того ж дня вона відкривала вікно з рядком «You've invited 1 out
+              of 10 users».</li>
+            <li><strong>Запроси нового колегу як користувача Jira.</strong> На тій самій
+              сторінці натисни <code>Invite users</code> / <code>Запросити
+              користувачів</code>, введи адресу пошти й познач роль для того продукту,
+              який йому потрібен. Кроки в довідці названі саме так:
+              «Enter the email addresses for the users you want to invite» і «Select roles
+              for the apps that they need access to». На екрані того дня продукти сайту
+              стояли таблицею <code>Додаток</code> · <code>Тариф</code> ·
+              <code>Ролі</code>, і напроти Jira можна було вибрати роль
+              <code>Користувач</code>. Людина отримає лист із запрошенням.</li>
+            <li><strong>Дай йому доступ до спейсу <code>MARK</code>.</strong> У Jira:
+              <code>Space settings</code> → <code>Access</code> → <code>Add people</code> →
+              введи ім'я або пошту в поле <code>Names or emails</code> → <code>Add</code>.
+              Якщо людина не знаходиться — вона ще не на сайті: повернись до кроку 2.
+              Роздати різні ролі на цьому плані не вийде: у тому самому діалозі
+              30 вересня 2026 року поле <code>Role</code> показувало
+              <code>Administrator</code> і було неактивним — таку саму роль колега дістане
+              й у таблиці (чому — у блоці 2).</li>
+            <li><strong>Запроси другого колегу як клієнта служби.</strong> У службовому
+              спейсі <code>FIN</code> відкрий <code>Customers</code>, натисни
+              <code>Add customers</code> і введи його пошту. Місця з десяти це не займає —
+              саме так у «Марципані» потрапляє в бухгалтерію Богдан.</li>
+            <li><strong>Увімкни двоетапну перевірку входу.</strong> Це захист акаунта:
+              пароль плюс ще один крок. Зайди на <code>id.atlassian.com/manage-profile/security</code>
+              і вибери <code>Manage two-step verification</code>. Найзручніший спосіб —
+              застосунок-генератор кодів на телефоні (<code>Enable authenticator app</code>).
+              Довідка наполягає на одному: «Be sure to copy, print, or record your emergency
+              recovery key and keep it in a secure place» — збережи ключ відновлення, без
+              нього загублений телефон означає загублений акаунт.</li>
+            <li><strong>Зроби резервну копію сайту.</strong> У Jira: <code>Settings</code> →
+              <code>System</code>, далі, за довідкою, «In the IMPORT AND EXPORT section,
+              select Backup manager», потім «Under Backup for cloud, select Create backup
+              for cloud» і, коли копія готова, «After the backup is complete, select Download
+              backup file». На безкоштовному плані розділ є: на навчальному сайті курсу
+              30 вересня 2026 року <code>Backup manager</code> стояв саме в секції
+              <code>Import and export</code>, з кнопкою <code>Create backup for cloud</code>.
+              Та сама сторінка попереджає: «We automatically delete backup files after 14
+              days» — тож завантаж файл собі одразу, щойно копія готова.</li>
+            <li><strong>Забери свою роботу у файл.</strong> Відкрий збережений фільтр
+              «Прострочені» з уроку 7, натисни <code>•••</code>, вибери <code>Export</code> і
+              далі пункт про Excel CSV (на навчальному сайті 24 вересня 2026 року він звався
+              <code>Excel CSV - visible fields</code>, довідка пише інакше — див. урок 7). CSV — це звичайна таблиця
+              у файлі: її відкриє Excel або Google Таблиці.</li>
+            <li><strong>Зроби гігієну замість архівації.</strong> Познач завершені роботи
+              міткою <code>архів</code> (масову зміну ти вмієш з уроку 7) і збережи фільтр,
+              який їх не показує:</li>
+          </ol>
+
+          <figure class="term term--cmd" id="p1">
+            <figcaption class="term__chrome">
+              <span class="term__dots" aria-hidden="true"></span>
+              <span class="term__title" id="p1t">фільтр «маркетинг без архіву»</span>
+              <button type="button" class="term__copy ds-btn ds-btn--sm ds-btn--quiet"
+                data-ok="Скопійовано" data-fail="Не вдалося">Копіювати</button>
+            </figcaption>
+            <pre class="term__body" tabindex="0" role="group" aria-labelledby="p1t"><span class="term__line"><span class="term__in">project = MARK AND (labels != "архів" OR labels IS EMPTY)</span></span></pre>
+          </figure>
+
+          <p class="ds-diag__caption" data-align="start">
+            Друга половина умови обов'язкова. Довідка про оператори JQL попереджає, що «не
+            дорівнює» пропускає порожні поля: оператор <code>!=</code> «will not match a
+            field that has no value». Без <code>OR labels IS EMPTY</code> ти втратиш усі
+            роботи, у яких міток немає взагалі. Значення мітки береться в лапки — так само,
+            як у запиті <code>labels = "дозволи"</code> з уроку 7. Кирилицю Jira приймає і в
+            мітці, і в запиті: на навчальному сайті курсу 24 вересня 2026 року мітку
+            «архів» поставили на одну з трьох робіт, і цей запит повернув дві інші, а голе
+            <code>labels != "архів"</code> без другої половини не повернуло жодної.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 5 -->
+        <section id="l5" data-lesson="5. Як перевірити, що вийшло">
+          <h2><span class="ds-prose__no">5</span>Як перевірити, що вийшло</h2>
+
+          <p>
+            Шість ознак, кожну видно очима. Якщо хоч одна не сходиться — знайди її крок вище.
+          </p>
+
+          <ol>
+            <li><strong>Колега бачить спейс.</strong> Він заходить на сайт і бачить
+              <code>MARK</code> у списку <code>Spaces</code>, може відкрити дошку й створити
+              роботу. Якщо він бачить Jira, але не бачить спейсу — не зроблений крок 3;
+              якщо не може увійти взагалі — не зроблений крок 2.</li>
+            <li><strong>У таблиці на сторінці <code>Access</code> спейсу <code>MARK</code>
+              два рядки</strong> — ти і він. У колонці <code>Role</code> в обох стоїть
+              <code>Administrator</code>: іншої ролі на цьому плані там і не буде.</li>
+            <li><strong>Клієнт бачить лише портал.</strong> Другий колега відкриває
+              посилання на портал, подає заявку й бачить її в <code>Requests</code>, але
+              дошок і спейсів у Jira не бачить. ⚠ Як саме виглядає його рядок у списку людей
+              організації, ми не перевіряли: документовано лише те, що клієнт порталу не є
+              ліцензованим користувачем.</li>
+            <li><strong>Вхід питає другий крок.</strong> Вийди з акаунта й зайди знову: після
+              пароля Atlassian попросить код. Ключ відновлення лежить у тебе поза телефоном —
+              у паперовому записнику або в менеджері паролів.</li>
+            <li><strong>Файл резервної копії лежить на твоєму комп'ютері</strong> (якщо крок
+              6 удався) — або, як мінімум, файл CSV із кроку 7: він відкривається таблицею, і
+              в першому рядку стоять назви тих полів, які були на екрані фільтра.</li>
+            <li><strong>Фільтр «без архіву» поводиться правильно.</strong> Робота з міткою
+              <code>архів</code> у ньому не показується, а робота взагалі без міток —
+              показується. Якщо зникли обидві — у запиті загубилась друга половина умови.</li>
+          </ol>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 6 -->
+        <section id="l6" data-lesson="6. Типові граблі">
+          <h2><span class="ds-prose__no">6</span>Типові граблі</h2>
+
+          <h3>Плутати «додати в спейс» і «запросити на сайт»</h3>
+
+          <p>
+            Дві дії на різних поверхах, і кожна працює лише в один бік. <code>Add people</code>
+            на сторінці <code>Access</code> бере тільки тих, хто вже є на сайті. А зворотна
+            дія так само однобока: «Removing someone from a space doesn't remove them from
+            Jira entirely. Jira admins and site admins can do that through your site's user
+            management settings» — прибравши людину зі спейсу, ти не прибрав(ла) її з сайту,
+            і місце з десяти лишається зайнятим. Прибрати з сайту можна лише в адмінці
+            організації.
+          </p>
+
+          <h3>Обіцяти колезі роль, яка нічого не обмежує</h3>
+
+          <p>
+            «Постав йому <code>Viewer</code>, щоб нічого не видалив» — на безкоштовному
+            плані це не працює, і навіть поставити ту роль не вийде: 30 вересня 2026 року
+            список ролей на сторінці <code>Access</code> відкривався, але жоден пункт у
+            ньому не вибирався. Три різні сторінки довідки кажуть те саме різними словами:
+            ролі й дозволи спейсу тут не редагуються; «You can't restrict work items on the
+            Free plan»; на сайті, що завжди був безкоштовним, кожен є адміністратором усіх
+            спейсів. У таблиці планів рядки <code>Space roles</code>, <code>Advanced
+            permissions</code> і <code>Audit logs</code> (журнал змін сайту — про нього
+            йшлося в уроці 2) порожні для безкоштовного стовпця й позначені галочкою
+            починаючи зі Standard — саме туди дивляться, коли розмежування потрібне
+            по-справжньому.
+          </p>
+
+          <p>
+            Що є натомість, поки платити зарано: домовленість, окремий службовий спейс із
+            порталом (клієнт бачить лише свої заявки — урок 18) і правило переходу
+            <code>Restrict who can move a work item</code> з уроку 10, яке дозволяє пустити
+            через конкретний крок процесу лише виконавця, автора або названу людину.
+          </p>
+
+          <h3>Запросити клієнта користувачем — і з'їсти місце</h3>
+
+          <p>
+            Найдорожча помилка маленької команди, бо помітна вона стає на десятій людині.
+            Той, хто лише подає заявки, має бути клієнтом служби, а не користувачем Jira:
+            клієнти місць не займають, а про групу клієнтів довідка каже повністю так:
+            «Members of this group won't count towards your bill (unless the user holds
+            another billable role)» — не займають, доки в тієї самої людини немає іншої,
+            платної ролі. Зворотна помилка теж існує: колега, доданий клієнтом, не зможе
+            працювати із заявками — для цього потрібне місце агента (урок 18).
+          </p>
+
+          <h3>Вважати резервну копію страховкою від усього</h3>
+
+          <p>
+            Копія сайту — корисна річ, але вона не те, чим здається. По-перше, у неї
+            потрапляє не все: у переліку «що не експортується» стоять, зокрема,
+            «Automation flows» і «Third-party apps and app data» — твої flows з уроків 14–15
+            і дані сторонніх застосунків. Для flows довідка лишає окремий вихід — «you can
+            manually export and import automation flows»: їх переносять руками, окремо від
+            копії. По-друге, окрему випадково видалену роботу вона не
+            повертає: «Atlassian backups can't restore individual deleted work items», і
+            єдиний шлях — мати власний експорт, зроблений <em>до</em> видалення. По-третє, у
+            самої копії є строк: «Starting Jan 22, 2026, Backup Manager will limit restores
+            from backups to those that are 30 days old or less».
+          </p>
+
+          <p>
+            І окремо про архівацію. Тут <strong>стаття бази знань суперечить сама собі, а
+            заразом екрану й продуктовій довідці</strong> — а коли так, віри більше екрану.
+            Архівувати <strong>спейс</strong> на безкоштовному плані не можна: «Space
+            archiving is only available on Premium and Enterprise plans», і пункт
+            <code>Archive space</code> у меню <code>•••</code> біля назви спейсу
+            30 вересня 2026 року стояв із позначкою <code>Premium</code> — це вказівка на
+            план, а не робоча кнопка. Архівувати <strong>окрему роботу</strong> —
+            <em>можна</em>, і курс це перевірив того ж дня на безкоштовному сайті: у меню
+            <code>•••</code> картки є пункт <code>Archive</code>, він показує попередження
+            «This work item and any subtasks will be archived. You won't be able to edit
+            them, and they will no longer appear in this space», після підтвердження робота
+            зникає зі спейсу, а на її сторінці лишається банер із кнопкою
+            <code>Restore</code>; заархівоване збирається у вигляді <code>Archived work
+            items</code>. Продуктові сторінки довідки про архів роботи плану не називають
+            узагалі — тобто екран і довідка тут сходяться. Розходиться з ними одна стаття
+            бази знань, і то в межах одного абзацу: «Archiving work items is available on
+            Premium and Enterprise plans. On Jira Cloud you can archive individual work items
+            natively, but bulk archiving is not currently available in the UI» (стаття
+            оновлена 30 вересня 2026 року, прочитано 1 жовтня). Друга половина цього абзацу
+            видна й на екрані: коли 30 вересня 2026 року в
+            пошуку робіт (урок 7) позначили рядок, унизу відкрилась панель масових дій із
+            <code>Edit fields</code>, <code>Change status</code>, <code>Watch options</code>
+            і <code>Delete</code> — пункту <code>Archive</code> серед них не було.
+            Практичний висновок: для сотні завершених робіт це не
+            рішення — по одній їх ховати довго, а гуртом Jira цього не робить. Кошик для
+            спейсів є
+            («Spaces along with their work items, components, attachments, and versions will
+            be available in trash for 60 days, after which they will be permanently
+            deleted»), але це не архів: це дорога до видалення, а не спосіб прибрати старе
+            з очей.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 7 -->
+        <section id="l7" data-lesson="7. Часті питання">
+          <h2><span class="ds-prose__no">7</span>Часті питання</h2>
+
+          <h3>Як зробити, щоб зарплати бачив лише бухгалтер?</h3>
+
+          <p>
+            На безкоштовному плані — ніяк, і це чесна відповідь, а не хитрість налаштування.
+            Окрема сторінка довідки перелічує, чого на ньому не можна: призначати ролі
+            спейсу, налаштовувати захист окремих робіт і обмежувати дозволи схемами. Далі є
+            два шляхи. Дешевий: тримати такі дані поза Jira, а в Jira приймати заявки порталом,
+            де клієнт бачить лише своє. Безкоштовний Confluence поруч тут не допоможе —
+            про нього сказано те саме: «Permissions aren't customizable and anonymous access
+            isn't available. Everyone who can log in to your Confluence Free instance can
+            view, add, and edit spaces and content». Прямий шлях: план Standard, у якому
+            з'являються ролі спейсу й розширені дозволи (урок 2 про те, коли час платити).
+          </p>
+
+          <h3>Хто взагалі може створювати спейси?</h3>
+
+          <p>
+            Канон, на якому стоїть курс, — з уроку 9: «Any user can create their own
+            team-managed space unless a Jira admin changes this in global permissions», а
+            спейси зі спільною конфігурацією створює лише адміністратор Jira, і на
+            безкоштовному плані ця можливість вимкнена. Серед глобальних прав є окреме
+            <code>Create team-managed spaces</code> — ним цю можливість і забирають.
+          </p>
+
+          <div class="ds-note ds-note--warn">
+            <span class="ds-note__glyph" aria-hidden="true">▲</span>
+            <p class="ds-note__body">
+              ⚠ Довідка суперечить сама собі, і це варто знати, щоб не шукати помилку в себе.
+              Сторінка про службові спейси, керовані командою, каже: «By default, anyone can
+              create team-managed spaces». Сусідня сторінка про створення службового спейсу
+              каже протилежне: «Only Jira admins can create spaces». Обидві були живі
+              19 і 24 вересня 2026 року. На безкоштовному плані різниці немає — там усі
+              адміністратори; на платному перевіряй глобальні права свого сайту, а не текст
+              довідки.
+            </p>
+          </div>
+
+          <h3>Що станеться з роботами людини, яка звільнилась?</h3>
+
+          <p>
+            Роботи, коментарі й сторінки лишаються. Навіть у найжорсткішому випадку —
+            повного видалення акаунта — довідка перелічує серед того, що <em>не</em>
+            видаляється: «Content the user has created in Atlassian account services, such as
+            pages, issues, and comments». А от підпис у полях виконавця й автора в цьому
+            випадку зміниться: «the account will be permanently deleted and the account
+            name will be replaced with "Former user" in products» — замість імені стане
+            напис <code>Former user</code>. Але це крайній випадок; дві дії, якими ти
+            справді користуватимешся, — нижче.
+          </p>
+
+          <p>
+            Дві речі варто перевірити окремо. Перша — її flows з уроків 14–15: у довідці є
+            сторінка про передавання flows іншій людині, і шлях там такий —
+            <code>Settings</code> → <code>System</code> → <code>Automation flows</code>,
+            далі <code>More actions (…)</code> і <code>Transfer User</code>. Заміна
+            торкається всіх згадок людини у flows: «This includes Flow actor, Flow owner,
+            and any time the user is chosen in a user picker». Друга — її фільтри й
+            дашборди, якщо вони були приватні (уроки 7 і 8).
+          </p>
+
+          <h3>Прибрати, зупинити чи деактивувати — у чому різниця?</h3>
+
+          <p>
+            Дій три, і на безкоштовному плані доступні дві. <code>Remove user</code> —
+            прибрати людину з організації; щоб повернути, доведеться запрошувати заново й
+            видавати ролі знову. <code>Suspend access</code> — тимчасово зупинити доступ, із
+            поверненням ролей і груп, коли доступ відновиш. Третя, <code>Deactivate</code>,
+            стосується лише керованих акаунтів — тих, чий поштовий домен (частина адреси
+            після знака <code>@</code>) підтверджений твоєю організацією. Довідка формулює
+            це так: «You can only delete or deactivate managed accounts. If your organization
+            doesn't manage the account you no longer need, you can suspend the user's access
+            instead». У маленькій фірмі, де в колег пошта на будь-яких сервісах, твої
+            інструменти — саме перші два.
+          </p>
+
+          <h3>Чи можна змусити всю команду ввімкнути двоетапну перевірку?</h3>
+
+          <p>
+            Увімкнути її кожен може собі сам — і це те, про що варто попросити колег особисто.
+            А от <em>вимагати</em> її з боку організації — окрема платна історія: у таблиці
+            можливостей керованих акаунтів рядок «Enforce two-step verification» потребує і
+            підтвердженого домену, і окремої підписки Atlassian Guard Standard. На
+            безкоштовному плані це домовленість, а не налаштування.
+          </p>
+
+          <h3>Ми не заходили місяць — сайт вимкнуть?</h3>
+
+          <p>
+            Правило й перелік того, що вважається активністю, розібрані в уроці 2. Тут додай
+            до цього дві речі. Перша: лист-попередження йде адміністраторам сайту — якщо
+            єдина така людина не читає ту скриньку, попередження ніхто не побачить. Друга —
+            пряма порада довідки: «We recommend organizations have more than one organization
+            admin in case one account is lost or compromised». Другий адміністратор у фірмі
+            з восьми людей коштує нуль і рятує від ситуації «власниця загубила телефон».
+          </p>
+
+          <h3>Як пустити зовнішнього підрядника в один спейс?</h3>
+
+          <p>
+            У Jira є для цього окремий вид доступу — гість, — але він платний: «Guest access
+            is only available in Standard, Premium, and Enterprise plans». У списку ролей
+            спейсу цей вид доступу видно — 30 вересня 2026 року він стояв там під назвою
+            <code>Guest - Collaborator</code>, — але жоден пункт того списку на
+            безкоштовному плані не вибирався. Отже, вибір із двох: або підрядник стає звичайним користувачем Jira (місце з
+            десяти, доступ до всього, бо ролі тут не обмежують), або спілкування з ним іде
+            через портал служби, де він бачить лише свої заявки.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- БЛОК 8 -->
+        <section id="l8" data-lesson="8. Підсумок і наступний крок">
+          <h2><span class="ds-prose__no">8</span>Підсумок і наступний крок</h2>
+
+          <p>
+            Після цього уроку в твоєму сайті є колеги з правильним видом доступу, увімкнена
+            двоетапна перевірка, перша копія даних у файлі й фільтр, який ховає старе. І,
+            що важливіше, є розуміння межі: що на цьому плані налаштовується, а що —
+            домовленість між людьми.
+          </p>
+
+          <div class="ds-note ds-note--accent">
+            <span class="ds-note__title">Підсумок уроку</span>
+            <ul>
+              <li>Людина живе на чотирьох поверхах: організація → сайт → продукт → спейс.
+                Запрошення на сайт і доступ до спейсу — різні дії в різних місцях.</li>
+              <li>Місце рахується за продуктом, а не за сайтом: роль у Jira — це одне з
+                десяти місць, агент служби — місце агента, клієнт порталу — не місце.</li>
+              <li>Технічно доступ тримається на групах: <code>jira-users-…</code>,
+                <code>jira-servicemanagement-customers-…</code> і подібних. Дивись, у яких
+                групах людина, а не на те, ким ти її вважаєш.</li>
+              <li>«Адміністратор» — чотири різні речі: організації, сайту, Jira (право
+                <code>Administer Jira</code>) і спейсу. На безкоштовному сайті вони
+                збігаються в одній людині, але кнопки лежать у різних місцях.</li>
+              <li>Ролі спейсу на цьому плані нічого не обмежують: кожен, хто має доступ до
+                Jira, є адміністратором усіх спейсів. Розмежування починається зі Standard.</li>
+              <li>Приватність сайту тримається на трьох перемикачах: публічний доступ (на
+                безкоштовному плані його немає), видимість пошти й видимість коментарів.</li>
+              <li>Архіву на сотню робіт немає: спейс архівують лише на Premium, окрему
+                роботу — можна, але по одній. Працює гігієна: статус <code>Done</code>,
+                мітка <code>архів</code> і фільтр з <code>OR labels IS EMPTY</code>.</li>
+              <li>Копія сайту не містить flows (їх переносять окремо, руками) і не повертає окрему видалену роботу. Власний
+                експорт у CSV, зроблений заздалегідь, — єдина страховка, яка справді працює.</li>
+              <li>Прибрати людину можна двома способами: <code>Remove user</code> і
+                <code>Suspend access</code>; її роботи й коментарі лишаються в системі.</li>
+            </ul>
+          </div>
+
+          <h3>Наступний крок</h3>
+          <p>
+            Далі — <strong>урок 21 «Наскрізний проєкт»</strong>: чеклист на двадцять кроків,
+            яким фірму розгортають з нуля — від назви сайту до щотижневого огляду, з
+            перенесенням наявних справ із таблиці. Там усе, що ти вчив(ла) окремими уроками,
+            стає однією послідовністю дій; і там же знадобиться те, що ти зробив(ла) сьогодні:
+            люди, копія даних і правило «Done плюс мітка» замість архіву.
+          </p>
+          <p>
+            До наступного уроку одна дія на п'ять хвилин: признач другого адміністратора
+            організації. Це той крок, який ніколи не здається терміновим — рівно до дня,
+            коли стає єдиним потрібним.
+          </p>
+        </section>
+
+        <hr />
+
+        <!-- КВІЗ -->
+        <section id="quiz" data-lesson="Квіз: перевір себе">
+          <h2>Квіз: перевір себе</h2>
+          <p>
+            Шість питань без оцінок і дедлайнів. Вони перевіряють розуміння, а не пам'ять на
+            назви: до кожної відповіді одразу з'являється пояснення, чому решта варіантів хибні.
+          </p>
+          <div data-quiz="quizData"></div>
+        </section>
+
+      </article>
+
+      <!-- Дані квіза (читає js/quiz.js) -->
+      <script type="application/json" id="quizData">
+      {
+        "questions": [
+          {
+            "q": "Оксана відкрила Space settings → Access у спейсі MARK, натиснула Add people і вводить ім'я нової колеги, яка виходить на роботу в понеділок. Jira не знаходить таку людину. Чому?",
+            "options": [
+              "Кнопка Add people шукає лише серед адміністраторів сайту, а нова колега поки що звичайний користувач",
+              "Колеги ще немає на сайті, а ця кнопка бере тільки тих людей, яких уже запросили в організацію",
+              "У безкоштовному плані пошук людей у спейсі вимкнений, і додавати колег можна винятково групами",
+              "Пошук працює лише за адресою пошти, а за іменем і прізвищем людину в цьому полі не знайти"
+            ],
+            "answer": 1,
+            "explain": "Довідка каже про це прямо: додати можна лише тих, хто вже приєднався до сайту, а якщо людини немає — треба попросити адміністратора запросити її. Запрошення живе поверхом вище, в адмінці організації. Серед адміністраторів кнопка не шукає — вона бере будь-кого з людей сайту; безкоштовний план її не вимикає, а поле приймає і ім'я, і адресу пошти."
+          },
+          {
+            "q": "Богдан-пекар лише подає заявки в бухгалтерію через портал. Оксана міркує, чи не додати його ще й користувачем Jira — «щоб бачив дошку ремонту». Що це змінить для фірми?",
+            "options": [
+              "Нічого не змінить: клієнти порталу й користувачі Jira рахуються в одному спільному ліміті людей сайту",
+              "Це зробить його агентом служби, бо доступ до Jira автоматично дає право працювати із заявками бухгалтерії",
+              "Він займе одне з десяти місць Jira, хоча клієнтом того самого порталу він жодного місця не займав",
+              "Він втратить доступ до порталу: одна людина не може бути одночасно клієнтом і користувачем Jira"
+            ],
+            "answer": 2,
+            "explain": "Місця рахуються за продуктом. Будь-яка роль у Jira — і Admin, і User — займає одне з десяти місць безкоштовного плану, а клієнти порталу, за довідкою, не є ліцензованими користувачами й на рахунок не впливають. Агентом доступ до Jira людину не робить: це окреме місце в Jira Service Management. Доступ до порталу при цьому нікуди не зникає."
+          },
+          {
+            "q": "Оксана ввімкнула собі двоетапну перевірку входу й хоче, щоб так само були захищені акаунти всіх колег у «Марципані». Як цього досягти на безкоштовному плані?",
+            "options": [
+              "Попросити кожного колегу ввімкнути її у власному акаунті, бо вимагати її з боку організації тут не можна",
+              "Увімкнути її в налаштуваннях сайту на екрані General configuration, і вона стане обов'язковою для кожного",
+              "Відкрити сторінку Access у кожному спейсі й позначити там людей, яким потрібна двоетапна перевірка",
+              "Нічого не робити, бо перевірка власниці сайту сама поширюється на всіх, кого вона запросила до організації"
+            ],
+            "answer": 0,
+            "explain": "Двоетапна перевірка входу — це захист акаунта Atlassian, а не налаштування Jira: кожен вмикає її собі сам на сторінці безпеки свого акаунта, тому колег варто попросити особисто. Вимагати її від усіх організація може лише для керованих акаунтів, а це потребує підтвердженого домену й окремої платної підписки. Екран General configuration керує приватністю сайту, сторінка Access роздає ролі в спейсі, а перевірка, увімкнена в одному акаунті, захищає лише його."
+          },
+          {
+            "q": "Ігор звільняється. Оксана хоче прибрати його доступ, але зберегти листування й заявки, які він вів, і мати змогу швидко повернути все, якщо він повернеться на пів ставки взимку. Що їй вибрати?",
+            "options": [
+              "Видалити його акаунт: це єдиний спосіб звільнити місце, а вся його робота лишиться в системі назавжди",
+              "Прибрати його зі спейсу FIN: доступ до сайту після цього зникає сам протягом доби",
+              "Зупинити доступ (Suspend access): місце звільниться, а ролі й групи повернуться разом із доступом",
+              "Нічого не робити до зими: людина без входу в систему місця з десяти все одно не займає"
+            ],
+            "answer": 2,
+            "explain": "Зупинка доступу описана в довідці саме як тимчасова дія з поверненням ролей і груп. Видалення акаунта тут зайве й доступне лише для керованих акаунтів із підтвердженим доменом. Прибирання зі спейсу доступу до сайту не знімає взагалі — про це довідка каже окремо. А місце займає сам факт ролі в продукті, а не те, чи людина заходить."
+          },
+          {
+            "q": "У «Марципані» накопичилось сто завершених робіт, і Оксана хоче прибрати їх з очей одним рухом. Кнопки, яка ховає їх усі гуртом, вона не знаходить. Що робити на безкоштовному плані?",
+            "options": [
+              "Перенести завершені роботи в кошик: там вони лежатимуть, не заважаючи, і будь-коли відновляться назад",
+              "Створити спейс «Архів» і перенести туди всі старі роботи — ключі й посилання при перенесенні зберігаються",
+              "Видалити завершені роботи: вся потрібна історія все одно лишається в резервній копії сайту",
+              "Довести роботи до Done, додати їм мітку архів і зберегти фільтр, який роботи з цією міткою не показує"
+            ],
+            "answer": 3,
+            "explain": "Архівація цілого спейсу — можливість планів Premium і Enterprise. Окрему роботу заархівувати можна й на безкоштовному плані (у меню трьох крапок на картці), але гуртом Jira цього не робить, тому для сотні робіт цей шлях не годиться. Кошик існує для спейсів і веде до остаточного видалення, а не ховає роботи. Видалення незворотне: копія сайту окремої роботи не повертає. Лишається гігієна фільтром — і саме її радить курс."
+          },
+          {
+            "q": "Марта відкрила Space settings → Access у спейсі MARK і бачить поруч дві кнопки: Add people і Open access. Вона вирішила, що друга «відкриває доступ людині, яку щойно додали». Що насправді означає Open access?",
+            "options": [
+              "Що спейс відкритий людям з інтернету, які не мають акаунта й ніколи не входили на сайт",
+              "Рівень доступу всього спейсу: яку роль у ньому отримує кожен, хто ввійшов на сайт",
+              "Роль однієї вибраної людини, тому кнопку довелося б натискати окремо для кожного колеги",
+              "Кількість зайнятих місць: кожен, хто відкриє спейс, займе одне з десяти"
+            ],
+            "answer": 1,
+            "explain": "Open access — це рівень доступу всього спейсу: від нього залежить, яку роль отримує в спейсі будь-хто, хто ввійшов на сайт. Людину додає сусідня кнопка Add people, і бере вона лише тих, хто на сайті вже є. Сторонні з інтернету тут ні до чого: безкоштовний сайт Jira відкрити для публіки не можна. Місця рахуються за доступом до продукту, а не за відкритими спейсами. І межа цього плану: рівень тут один — Open, поруч стоїть банер із пропозицією плану Standard, а ролі нічого не обмежують, бо кожен, хто має доступ до Jira, є адміністратором усіх спейсів."
+          }
+        ]
+      }
+      </script>
+
+      <div class="mt-12 grid gap-6 max-w-prose">
+        <!-- Позначка завершення (js/module.js + js/progress.js) -->
+        <div
+          class="ds-card sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p id="completeTitle" class="ds-h4">Урок позаду?</p>
+            <p class="ds-small">
+              Познач його завершеним — позначка збережеться в цьому браузері
+              й з'явиться на головній сторінці.
+            </p>
+          </div>
+          <button id="completeBtn" type="button"
+            class="ds-btn ds-btn--primary">
+            Позначити завершеним
+          </button>
+        </div>
+
+        <!-- Попередній / наступний модуль (рендерить js/module.js) -->
+        <nav id="moduleNav" aria-label="Навігація між модулями" class="ds-mnav" data-reveal-root></nav>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="ds-ftr ds-ftr--short">
+    <div class="ds-ftr__bar">
+      <span class="ds-small" data-site="disclaimer"></span>
+      <span><a href="../jira.html">На головну ↑</a></span>
+    </div>
+  </footer>
+
+  <!-- Порядок: прогрес → UI → конфіг → сторінка модуля → квіз → Mermaid -->
+  <script src="../js/motion.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/ui.js"></script>
+  <!-- 012 · скролери вікна з клавіатури (лише сторінки Jira) -->
+  <script src="../js/jira-win.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/module.js"></script>
+  <!-- 012 · словник курсу: «Модуль» → «Урок» (лише сторінки Jira) -->
+  <script src="../js/jira-lesson.js"></script>
+  <script src="../js/quiz.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="../js/mermaid-theme.js"></script>
+  <!-- 012 · state-діаграми: useMaxWidth: false. МІЖ темою і init -->
+  <script src="../js/jira-mermaid.js"></script>
+  <script src="../js/mermaid-init.js"></script>
+  <script src="../js/auth-ui.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+</body>
+
+</html>

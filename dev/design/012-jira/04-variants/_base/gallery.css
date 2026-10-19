@@ -1,0 +1,142 @@
+/* ============================================================================
+   012 · ОФОРМЛЕННЯ СТОРІНОК-МАКЕТІВ — У ПРОД НЕ ЙДЕ
+   ----------------------------------------------------------------------------
+   Префікс `gal` — свідомо НЕ в реєстрі §7.0: це ліси, а не компонент. Усе,
+   що тут є, обслуговує галерею, сторінку тестів і перемикачі режимів. Білд
+   цей файл не копіює.
+
+   Два перемикачі, які варто знати:
+     html.win-flip  — ВІДКАТ естетичного ризику: полотно вікна знову темніше
+                      за шапку (двійник термінала). Рівно два рядки — рівно ті
+                      самі два токени, що в tokens-jira.css §3.
+     body.gal-tracks — показує межі треків гріда прози (text 672 / wide 768),
+                      щоб було видно, що вікно сидить у `wide`, а легенда — у
+                      `text`.
+   ========================================================================== */
+
+/* ВІДКАТ ЕСТЕТИЧНОГО РИЗИКУ — ДВА РЯДКИ */
+html.win-flip .win {
+  --win-chrome-bg: var(--c-raised);
+  --win-canvas-bg: var(--c-surface);
+}
+
+body {
+  margin: 0;
+  background: var(--c-bg);
+  color: var(--c-prose);
+  font-family: var(--f-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+.gal__hdr {
+  max-width: var(--w-content);
+  margin: 0 auto;
+  padding: var(--s-10) var(--s-5) var(--s-6);
+  border-bottom: var(--bw) solid var(--c-line);
+}
+.gal__kicker {
+  margin: 0;
+  font-family: var(--f-mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: var(--tr-eyebrow);
+  color: var(--c-text-3);
+}
+.gal__h1 {
+  margin: var(--s-2) 0 0;
+  font-family: var(--f-display);
+  font-size: var(--fs-h2);
+  line-height: var(--lh-h2);
+  letter-spacing: var(--tr-display);
+  font-weight: var(--w-regular);
+  color: var(--c-text);
+}
+.gal__lead { margin: var(--s-4) 0 0; max-width: 72ch; font-size: var(--fs-ui); line-height: var(--lh-body); }
+.gal__lead b, .gal__note b { color: var(--c-text); font-weight: var(--w-semi); }
+.gal__lead code, .gal__note code, .gal__addr code, .gal__ctl code {
+  font-family: var(--f-mono); font-size: var(--fs-small); color: var(--c-text-2);
+}
+
+.gal__nav { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-5); }
+.gal__nav a {
+  padding: var(--s-1) var(--s-3);
+  border: var(--bw) solid var(--c-line-strong);
+  border-radius: var(--r-pill);
+  font-family: var(--f-mono);
+  font-size: var(--fs-small);
+  color: var(--c-text-2);
+  text-decoration: none;
+}
+.gal__nav a:focus-visible { outline: var(--bw-strong) solid var(--c-focus); outline-offset: var(--bw); }
+
+.gal__ctl { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-6); margin-top: var(--s-5); }
+.gal__ctl label {
+  display: flex; align-items: center; gap: var(--s-2);
+  min-height: var(--hit-min);
+  font-size: var(--fs-small); color: var(--c-text-2);
+}
+.gal__ctl input { accent-color: var(--c-accent); width: var(--s-4); height: var(--s-4); }
+
+.gal__main { max-width: var(--w-content); margin: 0 auto; padding: 0 var(--s-5) var(--s-24); }
+.gal__state { padding-top: var(--s-12); scroll-margin-top: var(--s-4); }
+.gal__h2 {
+  margin: 0;
+  font-family: var(--f-mono);
+  font-size: var(--fs-h3);
+  line-height: var(--lh-h3);
+  color: var(--c-accent);
+}
+.gal__n {
+  font-family: var(--f-sans); font-size: var(--fs-label);
+  color: var(--c-text-3); font-variant-numeric: tabular-nums;
+}
+.gal__note { margin: var(--s-2) 0 0; max-width: 78ch; font-size: var(--fs-small); color: var(--c-text-3); }
+
+.gal__frame { padding-top: var(--s-10); scroll-margin-top: var(--s-4); }
+.gal__addr {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-2) var(--s-4);
+  margin: 0 0 var(--s-3); padding-bottom: var(--s-2);
+  border-bottom: var(--bw) dashed var(--c-line);
+}
+.gal__hard {
+  padding: 0 var(--s-2);
+  border: var(--bw) solid var(--c-accent-edge);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-eyebrow);
+  font-weight: var(--w-medium);
+  color: var(--c-accent);
+}
+
+/* Галерея показує вікна в справжньому гріді прози: контейнер уроку на 1280
+   має 888 px головної області, і макет повторює це число, щоб виміряні
+   672/768 збігались із живою сторінкою. */
+.gal__frame > .ds-prose { max-width: 888px; }
+body.gal-tracks .ds-prose > section {
+  background:
+    linear-gradient(to right, transparent 0 48px, var(--c-accent-quiet) 48px calc(48px + 672px), transparent calc(48px + 672px));
+  outline: var(--bw) dashed var(--c-accent-edge);
+}
+
+/* ---- сторінка тестів ---- */
+.gal__t { width: 100%; border-collapse: collapse; font-size: var(--fs-small); margin-top: var(--s-4); }
+.gal__t th, .gal__t td { padding: var(--s-2) var(--s-3); text-align: left; vertical-align: top; border-bottom: var(--bw) solid var(--c-line); }
+.gal__t thead th { background: var(--c-surface); color: var(--c-text); font-weight: var(--w-semi); }
+.gal__t td:first-child { font-family: var(--f-mono); color: var(--c-text); white-space: nowrap; }
+.gal__pass { color: var(--c-ok-text); font-weight: var(--w-semi); }
+.gal__fail { color: var(--c-err-text); font-weight: var(--w-semi); }
+.gal__skip { color: var(--c-warn-text); font-weight: var(--w-semi); }
+.gal__btn {
+  min-height: var(--ctl-h-md); padding: 0 var(--s-5);
+  border: var(--bw) solid var(--c-accent-edge); border-radius: var(--r-control);
+  background: var(--c-accent-quiet); color: var(--c-accent);
+  font-family: var(--f-sans); font-size: var(--fs-ui); font-weight: var(--w-medium);
+}
+.gal__btn:focus-visible { outline: var(--bw-strong) solid var(--c-focus); outline-offset: var(--bw); }
+.gal__frames { position: fixed; left: -9999px; top: 0; }
+.gal__pre {
+  margin: var(--s-4) 0 0; padding: var(--s-4);
+  border: var(--bw) solid var(--c-line); border-radius: var(--r-inner);
+  background: var(--c-sunken); color: var(--c-text-2);
+  font-family: var(--f-mono); font-size: var(--fs-code); line-height: var(--lh-code);
+  white-space: pre-wrap; overflow-x: auto;
+}

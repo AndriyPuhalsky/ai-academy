@@ -5,7 +5,7 @@
     <script type="application/json" id="quizData">{ "questions": [ {q, options[], answer, explain} ] }</script>
 
 Режими:
-    python3 check-quiz.py                         таблиця по курсах (усі 57 файлів)
+    python3 check-quiz.py                         таблиця по курсах (усі 80 файлів)
     python3 check-quiz.py --files modules/a.html  лише вказані файли (для агентів)
     python3 check-quiz.py --per-file              рядок на кожен файл
     python3 check-quiz.py --baseline baseline.json   зберегти знімок правильних/explain/q
@@ -16,6 +16,8 @@
                                                   `answer` розподілявся рівномірно (детерміновано;
                                                   питання зі згадкою позиції в explain — пропуск)
     python3 check-quiz.py --skip modules/claude-code-23.html   не чіпати файл(и) у --rotate
+                                                  (за замовчуванням пропускаються ОБА іспити:
+                                                   claude-code-23.html і jira-23.html)
 
 Читає тільки блок #quizData, нічого іншого в HTML не торкається.
 """
@@ -32,8 +34,14 @@ COURSES = [
     ("module-", "AI Академія"),
     ("architect-", "AI Architect"),
     ("claude-code-", "AI Термінал"),
+    # 012: четвертий курс. Префікс `jira-` ні з ким не перетинається
+    # (course_of матчить через startswith), назва — site.name з jira.config.json.
+    ("jira-", "Jira з нуля"),
 ]
-EXAM = "claude-code-23.html"
+# Іспити виключені з --rotate: у їхніх explain є посилання на позиції варіантів,
+# і перестановка зробила б пояснення хибними. 012 додала другий іспит; список,
+# а не рядок, саме тому.
+EXAMS = ["claude-code-23.html", "jira-23.html"]
 
 BLOCK_RE = re.compile(
     r'(<script type="application/json" id="quizData">)(\s*)(\{.*?\})(\s*)(</script>)',
@@ -231,7 +239,7 @@ def main():
     ap.add_argument("--baseline", metavar="JSON")
     ap.add_argument("--verify", metavar="JSON")
     ap.add_argument("--rotate", action="store_true")
-    ap.add_argument("--skip", nargs="*", default=[EXAM])
+    ap.add_argument("--skip", nargs="*", default=list(EXAMS))
     args = ap.parse_args()
 
     files = [pathlib.Path(f) if pathlib.Path(f).is_absolute() else (ROOT / f) for f in args.files] if args.files else all_files()

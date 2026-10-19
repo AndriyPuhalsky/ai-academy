@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="uk" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>012 · анатомія компонента «вікно»</title>
+  <meta name="theme-color" content="#161311" />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../../../css/tokens.css" />
+  <link rel="stylesheet" href="../../../../../css/components.css" />
+  <link rel="stylesheet" href="tokens-jira.css" />
+  <link rel="stylesheet" href="win.css" />
+  <link rel="stylesheet" href="gallery.css" />
+  <style>
+    .sg { display: grid; gap: var(--s-4); }
+    @media (min-width: 900px) { .sg--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .sg__swatch { display: flex; align-items: center; gap: var(--s-4); padding: var(--s-4);
+                  border: var(--bw) solid var(--c-line); border-radius: var(--r-inner); }
+    .sg__chip { width: var(--s-16); height: var(--s-10); border-radius: var(--r-inner); flex: none;
+                border: var(--bw) solid var(--c-line); }
+    .sg__k { display: block; font-family: var(--f-mono); font-size: var(--fs-small); color: var(--c-text); }
+    .sg__v { font-family: var(--f-mono); font-size: var(--fs-eyebrow); color: var(--c-text-3); }
+    .sg__gray { filter: grayscale(1); }
+  </style>
+  <script defer src="ui-delta.js"></script>
+</head>
+
+<body>
+  <header class="gal__hdr">
+    <p class="gal__kicker">012 · styleguide</p>
+    <h1 class="gal__h1">Анатомія компонента «вікно»</h1>
+    <p class="gal__lead">
+      Галерея показує, як компонент тримає <b>реальні</b> 62 кадри курсу.
+      Тут — із чого він зроблений: драбина поверхонь із заміряним контрастом,
+      три категорії статусів у сірому, мітка з легендою, дві рейки поруч і
+      перемикач, яким естетичний ризик відкочується двома токенами.
+    </p>
+    <div class="gal__ctl">
+      <label><input type="checkbox" id="galFlip" /> <span><b>відкотити естетичний ризик</b>: полотно темніше за шапку (двійник термінала)</span></label>
+      <label><input type="checkbox" id="galGray" /> <span>чорно-біло — чи читаються стани без кольору</span></label>
+      <label><input type="checkbox" id="galLit" checked /> <span><code>data-lit</code> — «світло згори»</span></label>
+      <label><input type="checkbox" id="galMark" /> <span>замінити гліфи міток пробілом (A/B до К-14)</span></label>
+    </div>
+  </header>
+
+  <main class="gal__main" id="main">
+
+    <!-- ============================================================ -->
+    <section class="gal__state" aria-labelledby="s1">
+      <h2 class="gal__h2" id="s1">1 · Поверхні: інверсія <code>term</code></h2>
+      <p class="gal__note">
+        У термінала полотно <b>темніше</b> за шапку — він читається як чорний екран.
+        У вікна полотно <b>світліше</b> за шапку — воно читається як освітлена робоча
+        поверхня в темній рамі. Та сама анатомія, зворотний напрямок: поруч на одній
+        сторінці вони родина, а не копії. Це естетичний ризик задачі, і він
+        оборотний <b>двома токенами</b> (перемикач угорі).
+        Вигода не лише характерна: увесь текст вікна сідає на найсвітлішу поверхню
+        системи, тобто там, де його найбільше, контраст максимальний.
+      </p>
+      <div class="sg sg--2" id="ladder"></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="gal__state" aria-labelledby="s2">
+      <h2 class="gal__h2" id="s2">2 · Три категорії статусів — формою, не лише кольором</h2>
+      <p class="gal__note">
+        <code>data-cat</code> має рівно три значення (<code>progress</code> 26 ·
+        <code>todo</code> 25 · <code>done</code> 15). Проза уроків чотири рази цитує
+        Atlassian («grey, blue, and green respectively») і двічі ставить це в квіз —
+        наш мапінг цитату не суперечить і нових кольорів не вводить.
+        <b>Гліфа немає свідомо:</b> К-7 забороняє <code>content:</code> з видимим змістом,
+        а ○ ◐ ✓ не покриті жодним завантаженим шрифтом і йшли б системним фолбеком.
+        Трьох форм канта вистачає — увімкни «чорно-біло» вгорі й перевір.
+      </p>
+      <div class="ds-prose"><section>
+        <figure class="win" data-state="board" id="sgCat">
+          <figcaption class="win__chrome">
+            <span class="win__dots" aria-hidden="true"></span>
+            <span class="win__title" id="sgCatT">Три категорії поруч · пунктир / тонкий кант / товстий кант із заливкою</span>
+          </figcaption>
+          <div class="win__body" role="group" aria-labelledby="sgCatT">
+            <div class="win__main">
+              <ul class="win__cols">
+                <li class="win__col" data-cat="todo">
+                  <h4 class="win__col-title">To Do <span class="win__count">2</span> <b class="win__mark" aria-hidden="true">①</b></h4>
+                  <ul class="win__cards"><li class="win__card">
+                    <span class="win__card-title">Замовити борошно на тиждень</span>
+                    <span class="win__card-meta"><span class="win__type" aria-hidden="true">☑</span>
+                      <span class="win__key">MY-1</span> <span class="win__due">Sep 24</span></span>
+                  </li></ul>
+                </li>
+                <li class="win__col" data-cat="progress">
+                  <h4 class="win__col-title">In Progress <span class="win__count">1</span> <b class="win__mark" aria-hidden="true">②</b></h4>
+                  <ul class="win__cards"><li class="win__card">
+                    <span class="win__card-title">Пост про новий круасан</span>
+                    <span class="win__card-meta"><span class="win__type" aria-hidden="true">☑</span>
+                      <span class="win__key">MARK-1</span> <span class="win__who" title="Марта Лисенко">МЛ</span></span>
+                  </li></ul>
+                </li>
+                <li class="win__col" data-cat="done">
+                  <h4 class="win__col-title">Done <span class="win__count">1</span> <b class="win__mark" aria-hidden="true">③</b></h4>
+                  <ul class="win__cards"><li class="win__card">
+                    <span class="win__card-title">Розсилка «Осіннє меню»</span>
+                    <span class="win__card-meta"><span class="win__type" aria-hidden="true">☑</span>
+                      <span class="win__key">MARK-4</span> <span class="win__who" title="Марта Лисенко">МЛ</span></span>
+                  </li></ul>
+                </li>
+              </ul>
+              <p class="win__status" data-cat="todo">Open ▾</p>
+              <p class="win__status" data-cat="progress">Work in progress ▾</p>
+              <p class="win__status" data-cat="done">Done</p>
+            </div>
+          </div>
+        </figure>
+        <ol class="win__legend" aria-label="Пояснення до кадру з категоріями">
+          <li><code>todo</code> — пунктирний кант, тихий підпис, звичайне накреслення</li>
+          <li><code>progress</code> — суцільний кант 1px, <code>--c-info-*</code>, середнє накреслення</li>
+          <li><code>done</code> — суцільний кант 2px із заливкою <code>-quiet</code>, <code>--c-ok-*</code></li>
+        </ol>
+      </section></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="gal__state" aria-labelledby="s3">
+      <h2 class="gal__h2" id="s3">3 · Мітка й легенда — пара</h2>
+      <p class="gal__note">
+        Гліфи ①–⑧ <b>не покриті жодним із 14 завантажених <code>@font-face</code></b>
+        (перевірено по <code>unicode-range</code>): усі 190 міток курсу малюються
+        системним фолбеком, з чужими метриками. Тому <code>line-height</code> мітки
+        задана <b>явно</b>, коробка фіксована (1.4em при висоті рядка 1.5em — саме це
+        й тримає К-14), а шрифтовий стек виписаний повністю.
+        Заливка — <b>непрозорий диск кольору полотна</b>: тінт <code>--c-accent-quiet</code>
+        зі спеки давав 4.20 / 3.71 / 3.34 на трьох поверхнях (169 провалів AA з 2 319
+        вузлів), диск дає 5.20 скрізь.
+        Нумерація легенди — той самий гліф через <code>@counter-style win-mark</code>.
+      </p>
+      <div class="ds-prose"><section>
+        <figure class="win" data-state="list" id="sgMark">
+          <figcaption class="win__chrome">
+            <span class="win__dots" aria-hidden="true"></span>
+            <span class="win__title" id="sgMarkT">Мітка на пʼятьох різних поверхнях вікна <b class="win__mark" aria-hidden="true">①</b></span>
+          </figcaption>
+          <div class="win__body" role="group" aria-labelledby="sgMarkT">
+            <ul class="win__rail" aria-label="Бічна панель">
+              <li class="win__rail-item">For you <b class="win__mark" aria-hidden="true">②</b></li>
+              <li class="win__rail-item win__rail-item--active">Spaces <b class="win__mark" aria-hidden="true">③</b></li>
+            </ul>
+            <div class="win__main">
+              <div class="win__bar">
+                <span class="win__crumb">Spaces / Маркетинг</span>
+                <span class="win__tabs"><span class="win__tab--active">Board <b class="win__mark" aria-hidden="true">④</b></span><span>List</span></span>
+                <span class="win__btn win__btn--primary">+ Create <b class="win__mark" aria-hidden="true">⑤</b></span>
+              </div>
+              <div class="win__page">
+                <h4>Мітка в тексті <b class="win__mark" aria-hidden="true">⑥</b></h4>
+                <p class="win__placeholder">Рядок, у якому мітка стоїть посередині речення <b class="win__mark" aria-hidden="true">⑦</b> і не зсуває базову лінію.</p>
+                <table class="win__table">
+                  <thead><tr><th scope="col">Work</th><th scope="col">Status</th></tr></thead>
+                  <tbody><tr>
+                    <td>Відповісти на відгуки за тиждень <b class="win__mark" aria-hidden="true">⑧</b></td>
+                    <td><span class="win__status" data-cat="progress">Work in progress</span></td>
+                  </tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </figure>
+        <ol class="win__legend" aria-label="Пояснення до кадру з мітками">
+          <li>У заголовку вікна — на шапці (<code>--c-surface</code>)</li>
+          <li>У пункті рейки — на рейці</li>
+          <li>В активному пункті рейки — на акцентному тінті</li>
+          <li>На активній вкладці — ряд вкладок не зсувається</li>
+          <li>На кнопці <code>+ Create</code> — найдрібніший носій, та ще й на <code>--c-info-quiet</code></li>
+          <li>У заголовку сторінки</li>
+          <li>Посеред речення — найважчий випадок для базової лінії</li>
+          <li>У клітинці таблиці</li>
+        </ol>
+      </section></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="gal__state" aria-labelledby="s4">
+      <h2 class="gal__h2" id="s4">4 · Дві рейки: ділова і розробки</h2>
+      <p class="gal__note">
+        Різниця мусить читатись сама — і її дає <b>кількість і довжина пунктів</b>,
+        а не оформлення: <code>--settings</code> не фарбується інакше.
+        ⚠ <code>Approvals</code> на безкоштовному плані немає — рейка ділового спейсу
+        закінчується на <code>Apps ›</code>.
+      </p>
+      <div class="ds-prose"><section>
+        <figure class="win" data-state="settings" id="sgRail">
+          <figcaption class="win__chrome">
+            <span class="win__dots" aria-hidden="true"></span>
+            <span class="win__title" id="sgRailT">Рейка ділового спейсу — 7 пунктів</span>
+          </figcaption>
+          <div class="win__body" role="group" aria-labelledby="sgRailT">
+            <ul class="win__rail win__rail--settings" aria-label="Розділи налаштувань ділового спейсу">
+              <li class="win__rail-item win__rail-item--active">Details</li>
+              <li class="win__rail-item">Access</li>
+              <li class="win__rail-item">Notifications ›</li>
+              <li class="win__rail-item">Automation</li>
+              <li class="win__rail-item">Fields</li>
+              <li class="win__rail-item">Work types ›</li>
+              <li class="win__rail-item">Apps ›</li>
+            </ul>
+            <div class="win__main"><div class="win__page"><h4>Details</h4>
+              <dl class="win__fields"><dt>Name</dt><dd>Маркетинг</dd><dt>Key</dt><dd><span class="win__key">MARK</span></dd></dl>
+            </div></div>
+          </div>
+        </figure>
+        <figure class="win" data-state="settings" id="sgRail2">
+          <figcaption class="win__chrome">
+            <span class="win__dots" aria-hidden="true"></span>
+            <span class="win__title" id="sgRail2T">Рейка спейсу розробки — 10 пунктів, найдовший підпис 29 знаків</span>
+          </figcaption>
+          <div class="win__body" role="group" aria-labelledby="sgRail2T">
+            <ul class="win__rail win__rail--settings" aria-label="Розділи налаштувань спейсу розробки">
+              <li class="win__rail-item win__rail-item--active">Details</li>
+              <li class="win__rail-item">Access</li>
+              <li class="win__rail-item">Notifications ›</li>
+              <li class="win__rail-item">Automation</li>
+              <li class="win__rail-item">Fields</li>
+              <li class="win__rail-item">Work types ›</li>
+              <li class="win__rail-item">Apps ›</li>
+              <li class="win__rail-item">Features</li>
+              <li class="win__rail-item">Custom templates Enterprise</li>
+              <li class="win__rail-item">Toolchain</li>
+            </ul>
+            <div class="win__main"><div class="win__page"><h4>Features</h4>
+              <p class="win__placeholder">Вмикає спринти й оцінки — не вигляди.</p>
+            </div></div>
+          </div>
+        </figure>
+      </section></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="gal__state" aria-labelledby="s5">
+      <h2 class="gal__h2" id="s5">5 · Скролер усередині вікна</h2>
+      <p class="gal__note">
+        Кегль у вікні фіксований (<code>--fs-ui</code> 14), тому єдиний важіль для
+        6 колонок у 768 px — <b>скролер усередині вікна</b>, а не дрібний шрифт.
+        Для порівняння: у мок-вікнах живих сайтів мінімальний кегль 3–10 px, і єдиний,
+        хто тримає ≥ 12, — shadcn, бо в нього справжній компонент, а не малюнок компонента.
+        Скролерів три (<code>win__main</code>, <code>win__cols</code>, <code>win__tabs</code>),
+        у кожного гасіння краю (§41) і постійна смуга (§41.1), кожен фокусований.
+        Потягни колонки вбік — побачиш, як край гасне.
+      </p>
+      <div class="ds-prose"><section>
+        <figure class="win" data-state="board" id="sgScroll">
+          <figcaption class="win__chrome">
+            <span class="win__dots" aria-hidden="true"></span>
+            <span class="win__title" id="sgScrollT">Шість колонок у вікні 768 px — найвужча колонка курсу</span>
+          </figcaption>
+          <div class="win__body" role="group" aria-labelledby="sgScrollT">
+            <ul class="win__rail" aria-label="Бічна панель"><li class="win__rail-item win__rail-item--active">Spaces</li></ul>
+            <div class="win__main">
+              <ul class="win__cols">
+                <li class="win__col" data-cat="todo"><h4 class="win__col-title">Заявка <span class="win__count">2</span></h4>
+                  <ul class="win__cards"><li class="win__card"><span class="win__card-title">Знайти кондитера</span><span class="win__card-meta"><span class="win__key">HR-1</span></span></li></ul></li>
+                <li class="win__col" data-cat="progress"><h4 class="win__col-title">Скринінг <span class="win__count">1</span></h4>
+                  <ul class="win__cards"><li class="win__card"><span class="win__card-title">Резюме на пекаря</span><span class="win__card-meta"><span class="win__key">HR-2</span></span></li></ul></li>
+                <li class="win__col" data-cat="progress"><h4 class="win__col-title">Співбесіда <span class="win__count">1</span></h4>
+                  <ul class="win__cards"><li class="win__card"><span class="win__card-title">Друга зміна: інтервʼю</span><span class="win__card-meta"><span class="win__key">HR-3</span></span></li></ul></li>
+                <li class="win__col" data-cat="progress"><h4 class="win__col-title">Пропозиція <span class="win__count">0</span></h4><ul class="win__cards"></ul></li>
+                <li class="win__col" data-cat="done"><h4 class="win__col-title">Прийнято <span class="win__count">1</span></h4>
+                  <ul class="win__cards"><li class="win__card"><span class="win__card-title">Стажер на вихідні</span><span class="win__card-meta"><span class="win__key">HR-4</span></span></li></ul></li>
+                <li class="win__col" data-cat="done"><h4 class="win__col-title">Відмова <span class="win__count">0</span></h4><ul class="win__cards"></ul></li>
+              </ul>
+            </div>
+          </div>
+        </figure>
+      </section></div>
+    </section>
+  </main>
+
+  <script>
+  (function () {
+    Array.prototype.forEach.call(document.querySelectorAll('link[rel=stylesheet]'), function (l) {
+      var h = l.getAttribute("href");
+      if (h.indexOf("fonts.") < 0) l.setAttribute("href", h.split("?")[0] + "?v=" + Date.now());
+    });
+    var root = document.documentElement;
+    function bind(id, fn) { var e = document.getElementById(id); if (e) e.addEventListener("change", function () { fn(e.checked); }); }
+    bind("galFlip", function (v) { root.classList.toggle("win-flip", v); });
+    bind("galLit", function (v) { v ? root.setAttribute("data-lit", "") : root.removeAttribute("data-lit"); });
+    bind("galGray", function (v) { document.getElementById("main").classList.toggle("sg__gray", v); });
+    bind("galMark", function (v) {
+      document.querySelectorAll(".win__mark").forEach(function (m) {
+        if (v) { m.dataset.g = m.textContent; m.textContent = " "; }
+        else if (m.dataset.g) { m.textContent = m.dataset.g; }
+      });
+    });
+
+    /* Драбина поверхонь із ЗАМІРЯНИМ контрастом, а не з переказаним. */
+    var L = [
+      ["--c-bg", "фон сторінки"],
+      ["--c-surface", "шапка вікна · рейка · шапка таблиці"],
+      ["--c-raised", "ПОЛОТНО вікна — найсвітліша поверхня системи"],
+      ["--c-veil-hover", "картка / плитка / чіп — завіса над полотном"],
+      ["--c-line", "декоративний хайрлайн"],
+      ["--c-line-strong", "межа, що ідентифікує контрол"],
+      ["--c-accent", "акцент курсу · «де я» і мітки"],
+      ["--c-accent-edge", "акцентна межа · монограма сертифіката"]
+    ];
+    function lin(c) { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+    function lum(s) { var p = /rgba?\(([^)]+)\)/.exec(s)[1].split(",").map(parseFloat);
+                      return 0.2126 * lin(p[0]) + 0.7152 * lin(p[1]) + 0.0722 * lin(p[2]); }
+    function cr(a, b) { var x = lum(a), y = lum(b); if (x < y) { var t = x; x = y; y = t; } return (x + .05) / (y + .05); }
+    /* ⚠ ЧОМУ ЦЕ ВІДКЛАДЕНО. Кеш-бастер вище ПЕРЕПИСУЄ href кожного <link> —
+       тобто змушує браузер завантажити аркуші наново. Доки вони не прийшли,
+       жодного custom property не існує, і `getComputedStyle` чесно віддає
+       rgb(0,0,0) для всіх восьми токенів. Перший прогін саме це й дав:
+       драбина з вісьмома чорними чіпами й контрастом 1.00. */
+    function buildLadder() {
+    var probe = document.createElement("div");
+    probe.style.cssText = "position:absolute;left:-9999px";
+    document.body.appendChild(probe);
+    function resolve(tok) { probe.style.color = "var(" + tok + ")"; return getComputedStyle(probe).color; }
+    var RAISED = resolve("--c-raised");
+    var host = document.getElementById("ladder");
+    L.forEach(function (p) {
+      var v = resolve(p[0]);
+      var d = document.createElement("div");
+      d.className = "sg__swatch";
+      var ch = document.createElement("i");
+      ch.className = "sg__chip";
+      /* Завіси напівпрозорі — показуємо їх НАД полотном, інакше чіп бреше */
+      ch.style.background = "var(--c-raised)";
+      ch.style.backgroundImage = "linear-gradient(" + v + "," + v + ")";
+      var txt = document.createElement("span");
+      var k = document.createElement("b"); k.className = "sg__k"; k.textContent = p[0];
+      var val = document.createElement("span"); val.className = "sg__v";
+      /* Завіса — напівпрозорий шар, а не колір тексту: рахувати її контраст
+         до полотна безглуздо (вийшло б 13.11 — число ні про що). */
+      var alpha = /rgba\([^)]*,\s*0?\.\d+\)/.test(v);
+      val.textContent = p[1] + " · " + v +
+        (alpha ? " · шар над поверхнею, контраст не рахується"
+               : " · контраст до полотна " + cr(v, RAISED).toFixed(2));
+      txt.appendChild(k); txt.appendChild(val);
+      d.appendChild(ch); d.appendChild(txt); host.appendChild(d);
+    });
+    probe.remove();
+    }
+    if (document.readyState === "complete") setTimeout(buildLadder, 60);
+    else window.addEventListener("load", function () { setTimeout(buildLadder, 60); });
+  })();
+  </script>
+</body>
+
+</html>

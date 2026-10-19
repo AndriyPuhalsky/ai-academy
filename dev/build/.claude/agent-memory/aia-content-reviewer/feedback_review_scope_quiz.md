@@ -21,3 +21,7 @@ metadata:
 матеріал для наступного кола 007.
 
 Див. також [[screens-line-count-offset]].
+
+**Не поширювати на 012 «Jira з нуля»:** там `quizData` правити **можна** (дистрактори й `explain`),
+`baseline.json` на цей курс не заведений, а перевірки інші — `dev/build/012-jira/01-authoring/check-lessons.py
+--pattern 'modules/jira-NN.html'` і `check-quiz.py --files <файл>`. Див. [[jira-docs-verification]].

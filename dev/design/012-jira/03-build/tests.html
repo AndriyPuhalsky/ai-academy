@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="uk" data-course="jira" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>012 · вбудовані тести макета</title>
+  <meta name="theme-color" content="#161311" />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../../css/tokens.css" />
+  <link rel="stylesheet" href="../../../../css/components.css" />
+  <link rel="stylesheet" href="tokens-jira.css" />
+  <link rel="stylesheet" href="win.css" />
+  <link rel="stylesheet" href="gallery.css" />
+</head>
+
+<body>
+  <header class="gal__hdr">
+    <p class="gal__kicker">012 · вимірювання</p>
+    <h1 class="gal__h1">Тести, які можна зробити лише в браузері</h1>
+    <p class="gal__lead">
+      Те, що читається в коді, міряє <code>tools/check.py</code> (46 тестів).
+      Тут — рівно те, для чого потрібен рендер: реальний контраст композитних
+      поверхонь, горизонтальний скрол на шести ширинах, зсув рядка від мітки,
+      фактична тривалість руху під <code>reduce</code> і A/B із правилами прози.
+      <b>Міряти треба у ВИДИМОМУ вікні.</b> Нерендерена вкладка не доставляє ні
+      <code>rAF</code>, ні <code>IntersectionObserver</code> — і тоді вимкнений
+      прилад виглядає як зламаний код.
+    </p>
+    <p class="gal__ctl"><button type="button" id="run" class="gal__btn">Запустити всі тести</button></p>
+    <p id="env" class="gal__note"></p>
+  </header>
+
+  <main class="gal__main">
+    <table class="gal__t" id="out">
+      <thead><tr><th scope="col">тест</th><th scope="col">стан</th><th scope="col">замір</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <pre class="gal__pre" id="log" hidden></pre>
+  </main>
+
+  <div class="gal__frames" id="frames" aria-hidden="true"></div>
+
+  <script>
+  /* ============================================================================
+     ПОМІЧНИКИ
+     ========================================================================== */
+  var tbody = document.querySelector("#out tbody");
+  function row(name, state, detail) {
+    var tr = document.createElement("tr");
+    var c = state === true ? "gal__pass" : state === false ? "gal__fail" : "gal__skip";
+    var txt = state === true ? "PASS" : state === false ? "FAIL" : "ІНФО";
+    tr.innerHTML = "<td></td><td><b class='" + c + "'></b></td><td></td>";
+    tr.children[0].textContent = name;
+    tr.children[1].firstChild.textContent = txt;
+    tr.children[2].textContent = detail || "";
+    tbody.appendChild(tr);
+    return state;
+  }
+
+  function parseColor(s) {
+    var m = /rgba?\(([^)]+)\)/.exec(s);
+    if (!m) return null;
+    var p = m[1].split(",").map(parseFloat);
+    return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
+  }
+  function over(fg, bg) {           /* композит alpha: fg поверх bg */
+    var a = fg.a + bg.a * (1 - fg.a);
+    return {
+      r: (fg.r * fg.a + bg.r * bg.a * (1 - fg.a)) / a,
+      g: (fg.g * fg.a + bg.g * bg.a * (1 - fg.a)) / a,
+      b: (fg.b * fg.a + bg.b * bg.a * (1 - fg.a)) / a, a: a
+    };
+  }
+  function lin(c) { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+  function L(c) { return 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b); }
+  function cr(a, b) { var x = L(a), y = L(b); if (x < y) { var t = x; x = y; y = t; } return (x + 0.05) / (y + 0.05); }
+
+  /* ⚠ Ефективний фон рахується КОМПОЗИТОМ, а не «першим непрозорим предком».
+     Картка вікна навмисно зроблена завісою (--c-veil-hover, альфа 0.05) над
+     полотном — прийом системи «альфа замість нових сходинок». Наївний обхід
+     узяв би або прозору завісу, або полотно під нею, і обидва відповіді були
+     б хибні на 1–2 одиниці контрасту. */
+  function effBg(el, win) {
+    var acc = { r: 0, g: 0, b: 0, a: 0 }, n = el;
+    while (n && n.nodeType === 1) {
+      var bg = parseColor(win.getComputedStyle(n).backgroundColor);
+      if (bg && bg.a > 0) acc = acc.a === 0 ? bg : over(acc, bg);
+      if (acc.a >= 0.999) break;
+      n = n.parentElement;
+    }
+    if (acc.a < 0.999) acc = over(acc, { r: 22, g: 19, b: 17, a: 1 });   /* --c-bg */
+    return acc;
+  }
+
+  function textNodes(root) {
+    var out = [], w = root.ownerDocument.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (n) {
+        if (!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        var p = n.parentElement;
+        if (!p || p.closest("[hidden]")) return NodeFilter.FILTER_REJECT;
+        var cs = p.ownerDocument.defaultView.getComputedStyle(p);
+        if (cs.display === "none" || cs.visibility === "hidden" || +cs.opacity === 0) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    while (w.nextNode()) out.push(w.currentNode);
+    return out;
+  }
+
+  function frame(src, width) {
+    return new Promise(function (res) {
+      var f = document.createElement("iframe");
+      f.width = width; f.height = 900;
+      f.style.cssText = "width:" + width + "px;height:900px;border:0";
+      f.src = src + (src.indexOf("?") < 0 ? "?" : "&") + "t=" + Date.now();
+      f.onload = function () { setTimeout(function () { res(f); }, 700); };
+      document.getElementById("frames").appendChild(f);
+    });
+  }
+
+  /* ============================================================================
+     ТЕСТИ
+     ========================================================================== */
+  var PAGES = {
+    gallery: "gallery.html",
+    lesson1: "lesson-01.html",
+    lesson3: "lesson-03.html",
+    landing: "jira.html"
+  };
+  var WIDTHS = [350, 390, 672, 768, 888, 1280];
+
+  async function testContrast() {
+    var f = await frame(PAGES.gallery, 1280);
+    var d = f.contentDocument, w = f.contentWindow;
+    var wins = d.querySelectorAll(".win, .win__legend");
+    var nodes = 0, fails = [], min = 99, minWhere = "";
+    wins.forEach(function (win) {
+      textNodes(win).forEach(function (n) {
+        var p = n.parentElement, cs = w.getComputedStyle(p);
+        var fg = parseColor(cs.color), bg = effBg(p, w);
+        if (!fg) return;
+        if (fg.a < 1) fg = over(fg, bg);
+        var v = cr(fg, bg);
+        nodes++;
+        if (v < min) { min = v; minWhere = (p.className || p.tagName) + " «" + n.nodeValue.trim().slice(0, 22) + "»"; }
+        if (v < 4.5) fails.push((p.className || p.tagName) + " " + v.toFixed(2) + " «" + n.nodeValue.trim().slice(0, 28) + "»");
+      });
+    });
+    row("К-10 контраст УСІХ текстових вузлів 62 вікон ≥ 4.5 (AA)", fails.length === 0,
+        "вузлів " + nodes + " · провалів " + fails.length + " · мінімум " + min.toFixed(2) + " (" + minWhere + ")");
+    if (fails.length) { var lg = document.getElementById("log"); lg.hidden = false; lg.textContent = fails.slice(0, 40).join("\n"); }
+
+    /* ::marker легенди TreeWalker не бачить — перевіряємо окремо */
+    var li = d.querySelector(".win__legend li");
+    if (li) {
+      var mk = w.getComputedStyle(li, "::marker");
+      var v = cr(parseColor(mk.color), effBg(li, w));
+      row("К-10 контраст ::marker легенди ≥ 4.5", v >= 4.5, v.toFixed(2) + " · " + mk.fontFamily.split(",")[0]);
+    }
+    f.remove();
+  }
+
+  async function testScroll() {
+    var bad = [], all = 0;
+    for (var key in PAGES) {
+      for (var i = 0; i < WIDTHS.length; i++) {
+        var f = await frame(PAGES[key], WIDTHS[i]);
+        var se = f.contentDocument.scrollingElement;
+        all++;
+        var over = se.scrollWidth - se.clientWidth;
+        if (over > 1) bad.push(key + "@" + WIDTHS[i] + " +" + over + "px");
+        f.remove();
+      }
+    }
+    row("К-9 нуль горизонтального скролу <body>", bad.length === 0,
+        all + " сторінко-ширин (4 × 6) · проблемних " + bad.length + (bad.length ? ": " + bad.join(", ") : ""));
+  }
+
+  async function testMark() {
+    /* A/B: гліф ①–⑧ приходить із СИСТЕМНОГО фолбеку (жоден із 14 завантажених
+       @font-face його не покриває), тож метрики невідомі. Міряємо наслідок:
+       заміна гліфа на пробіл не має змінити ні висоту рядка, ні ширину. */
+    var res = [];
+    for (var i = 0; i < 3; i++) {
+      var wdt = [350, 672, 768][i];
+      var f = await frame(PAGES.gallery, wdt);
+      var d = f.contentDocument;
+      var hosts = [].slice.call(d.querySelectorAll(".win__card-title, .win__col-title, .win__rail-item"))
+                    .filter(function (e) { return e.querySelector(".win__mark"); }).slice(0, 40);
+      var before = hosts.map(function (e) { var r = e.getBoundingClientRect(); return [r.width, r.height]; });
+      hosts.forEach(function (e) {
+        e.querySelectorAll(".win__mark").forEach(function (m) { m.dataset.g = m.textContent; m.textContent = " "; });
+      });
+      void d.body.offsetWidth;
+      var after = hosts.map(function (e) { var r = e.getBoundingClientRect(); return [r.width, r.height]; });
+      var diff = before.filter(function (b, k) { return Math.abs(b[1] - after[k][1]) > 0.5; }).length;
+      res.push(wdt + ": " + hosts.length + " носіїв, зсувів висоти " + diff);
+      if (diff) res.push("!");
+      f.remove();
+    }
+    row("К-14 мітка ①–⑧ не зсуває рядок (A/B заміна гліфа)", res.indexOf("!") < 0, res.join(" · "));
+  }
+
+  async function testProseAB() {
+    /* К-13 остаточно: вимикаємо правила прози — вигляд компонента НЕ міняється. */
+    var f = await frame(PAGES.lesson3, 1280);
+    var d = f.contentDocument, w = f.contentWindow;
+    var probes = [].slice.call(d.querySelectorAll(".win__rail-item, .win__col, .win__card, .win__tile, .win__legend > li")).slice(0, 60);
+    function snap() {
+      return probes.map(function (e) {
+        var c = w.getComputedStyle(e);
+        return [c.marginTop, c.marginBottom, c.listStyleType, c.paddingLeft].join("|");
+      }).join(";");
+    }
+    var a = snap();
+    var killed = 0;
+    [].forEach.call(d.styleSheets, function (sh) {
+      try {
+        for (var i = sh.cssRules.length - 1; i >= 0; i--) {
+          var r = sh.cssRules[i];
+          if (r.selectorText && /^\.ds-prose li|^:is\(\.ds-prose/.test(r.selectorText) && !/\.win/.test(r.selectorText)) {
+            sh.deleteRule(i); killed++;
+          }
+        }
+      } catch (e) { }
+    });
+    void d.body.offsetWidth;
+    var b = snap();
+    row("К-13 правила прози не впливають на компонент (A/B)", a === b,
+        "знято правил прози: " + killed + " · звірено властивостей у " + probes.length + " вузлах");
+    f.remove();
+  }
+
+  async function testMotion() {
+    /* ⚠ Міряємо МАКСИМАЛЬНУ ВИКОРИСТАНУ тривалість, а не наявність медіа-запиту.
+       Саме тут ховається пастка: якщо складений токен не зареєстровано через
+       @property, getComputedStyle віддає сирий рядок, parseFloat дає NaN, JS
+       мовчки бере fallback — і рух лишається живим при reduce. */
+    var f = await frame(PAGES.landing, 1280);
+    var d = f.contentDocument, w = f.contentWindow;
+
+    function maxDur() {
+      var mx = 0, where = "";
+      var all = d.querySelectorAll("*");
+      for (var i = 0; i < all.length; i++) {
+        var c = w.getComputedStyle(all[i]);
+        [c.transitionDuration, c.animationDuration, c.transitionDelay, c.animationDelay].forEach(function (s) {
+          (s || "").split(",").forEach(function (p) {
+            var v = parseFloat(p) * (p.indexOf("ms") > 0 ? 1 : 1000);
+            if (v > mx) { mx = v; where = all[i].className || all[i].tagName; }
+          });
+        });
+      }
+      return [mx, where];
+    }
+    var on = maxDur();
+    d.documentElement.classList.add("rm");
+    void d.body.offsetWidth;
+    var off = maxDur();
+    row("К-18 при reduce максимальна ВИКОРИСТАНА тривалість < 5 мс", off[0] < 5,
+        "звичайно " + on[0].toFixed(0) + " мс (" + on[1] + ") → при reduce " + off[0].toFixed(3) + " мс");
+
+    /* Тест механізму (К-25): новий складений токен гасне БЕЗ правки медіа-запиту */
+    var probe = d.createElement("div");
+    probe.style.cssText = "--win-zzz: calc(999 * var(--dur-u)); transition-duration: var(--win-zzz)";
+    d.body.appendChild(probe);
+    var zOff = parseFloat(w.getComputedStyle(probe).transitionDuration) * 1000;
+    d.documentElement.classList.remove("rm");
+    void d.body.offsetWidth;
+    var zOn = parseFloat(w.getComputedStyle(probe).transitionDuration) * 1000;
+    row("К-25 новий токен --win-zzz гасне без правки медіа-запиту", zOff < 1 && zOn > 900,
+        "рух " + zOn.toFixed(0) + " мс → reduce " + zOff.toFixed(3) + " мс");
+    probe.remove();
+
+    /* Hero: стан спокою мусить бути ФІНАЛЬНИМ кадром.
+       ⚠ Чекаємо тик: `AIA.motion.onPreset` висить на MutationObserver, і
+       перший прогін цього тесту дав хибний FAIL саме тому, що замір стояв
+       у тому ж синхронному блоці, що й перемикання класу. Прилад випереджав
+       подію. */
+    d.documentElement.classList.add("rm");
+    await new Promise(function (r) { setTimeout(r, 150); });
+    var hero = d.getElementById("jiraHero");
+    var card = d.querySelector("[data-fly]");
+    var playing = hero.classList.contains("is-playing");
+    var tr = w.getComputedStyle(card).transform;
+    var op = +w.getComputedStyle(card).opacity;
+    row("К-18 при reduce видно ФІНАЛЬНИЙ кадр (картка в Done, нерухома)",
+        op === 1 && (tr === "none" || /matrix\(1, 0, 0, 1, 0, 0\)/.test(tr)),
+        "is-playing=" + playing + " · opacity=" + op + " · transform=" + tr);
+    d.documentElement.classList.remove("rm");
+
+    /* Бюджет 6 с рахується з ФАКТИЧНОГО обчисленого циклу, не з наміру */
+    d.documentElement.setAttribute("data-jira-tempo", "slow");
+    d.documentElement.setAttribute("data-motion", "bold");
+    void d.body.offsetWidth;
+    var cyc = parseFloat(w.getComputedStyle(hero).getPropertyValue("--jira-cycle")) * 1000;
+    row("К-18 перша картка в Done ≤ 6 с при найповільнішому поєднанні", cyc * 0.54 <= 6000,
+        "цикл " + (cyc / 1000).toFixed(2) + " с · Done на 54 % = " + (cyc * 0.54 / 1000).toFixed(2) + " с");
+    d.documentElement.setAttribute("data-jira-tempo", "mid");
+    d.documentElement.removeAttribute("data-motion");
+    f.remove();
+  }
+
+  async function testText() {
+    var f = await frame(PAGES.gallery, 1280);
+    var d = f.contentDocument;
+    var imgs = d.querySelectorAll(".win img, .win svg, .win canvas, .win picture, .win video");
+    row("К-7 у вікнах нуль <img>/<svg>/<canvas>", imgs.length === 0, "знайдено " + imgs.length);
+
+    /* Справжнє виділення: Range по вікну має дати той самий текст */
+    var win = d.querySelector(".win");
+    var r = d.createRange(); r.selectNodeContents(win);
+    var sel = r.toString().replace(/\s+/g, " ").trim();
+    var txt = win.textContent.replace(/\s+/g, " ").trim();
+    row("К-7 текст вікна виділяється й копіюється (Range)", sel === txt && sel.length > 80,
+        "виділено " + sel.length + " знаків, textContent " + txt.length);
+
+    /* Скролери: їх має бути видно і вони мають бути фокусовані */
+    var sc = d.querySelectorAll("[data-scroll-fade]");
+    var noTab = [].filter.call(sc, function (e) { return e.getAttribute("tabindex") !== "0"; });
+    row("12.1 скролер вікна фокусований і має підказку про скрол", sc.length > 0 && noTab.length === 0,
+        "скролерів із гасінням краю: " + sc.length + " · без tabindex: " + noTab.length);
+    f.remove();
+  }
+
+  async function testHeroBudget() {
+    /* К-19: заголовок, лід, два CTA і вікно з видимою карткою — усе вище 653 */
+    var f = await frame(PAGES.landing, 1280);
+    var d = f.contentDocument;
+    var h1 = d.getElementById("heroTitle"), cta = d.querySelector(".jira-hero__cta");
+    var card = d.querySelector(".win__col[data-cat='todo'] .win__card") || d.querySelector("[data-fly]");
+    var b = function (e) { return e.getBoundingClientRect().bottom + f.contentWindow.scrollY; };
+    var worst = Math.max(b(h1), b(cta), b(card));
+    var n = d.querySelectorAll(".jira-hero__cta a").length;
+    row("К-19 hero вкладається в 1280 × 653", worst <= 653 && n === 2,
+        "нижній край найглибшого з h1/CTA/картки = " + Math.round(worst) + " px · CTA " + n);
+    f.remove();
+  }
+
+  async function testAuthorOff() {
+    var f = await frame(PAGES.landing, 1280);
+    var d = f.contentDocument;
+    var sec = d.getElementById("author");
+    var secs = d.querySelectorAll("main > section");
+    var gaps = [], prev = null;
+    secs.forEach(function (s) {
+      var r = s.getBoundingClientRect();
+      if (prev !== null) gaps.push(Math.round(r.top - prev));
+      prev = r.bottom;
+    });
+    var uniq = {}; gaps.forEach(function (g) { uniq[g] = 1; });
+    row("К-20 лендінг цілий без блока автора", sec === null,
+        "секцій " + secs.length + " · розриви між ними " + JSON.stringify(gaps) +
+        " (однакові = ритм не зламався)");
+    f.remove();
+  }
+
+  async function testMap() {
+    var f = await frame(PAGES.landing + "?demo=1", 1280);
+    var d = f.contentDocument;
+    var rows = d.querySelectorAll(".jira-phase__lessons > li");
+    var st = {};
+    rows.forEach(function (r) { var s = r.getAttribute("data-state"); st[s] = (st[s] || 0) + 1; });
+    var exam = d.querySelector(".jira-exam");
+    row("К-21 карта: 22 уроки + іспит окремим вузлом, усі три стани рядка",
+        rows.length === 22 && !!exam && !!st.done && !!st.start && !!st.soon,
+        "рядків " + rows.length + " · стани " + JSON.stringify(st) + " · іспит " + (exam ? "є" : "немає"));
+    f.remove();
+  }
+
+  async function testColdStart() {
+    /* ⚠ Головний урок лабораторії агента №2, який уточнює правило проєкту:
+       недостатньо «JS знімає атрибут приховування» — атрибута приховування
+       НЕ МАЄ БУТИ У ВИХІДНОМУ HTML УЗАГАЛІ. Різниця між «JS знімає» і «JS
+       ставить» — 0 проти 31 видимого знака без JS.
+       Тут цим перемикачем є клас `.is-playing`: поки його немає, жодна
+       анімація не існує і все стоїть у фінальному кадрі. */
+    var src = await (await fetch("jira.html?t=" + Date.now())).text();
+    var head = src.slice(0, src.indexOf("<script src=\"jira-motion"));
+    row("К-24 `.is-playing` відсутній у вихідному HTML (ставить тільки JS)",
+        head.indexOf("is-playing") < 0,
+        "у поданому HTML класу немає; його додає jira-motion.js ПІСЛЯ вимірювання");
+
+    /* І той самий кадр — без JS узагалі */
+    var f = document.createElement("iframe");
+    f.style.cssText = "width:1280px;height:900px;border:0";
+    f.setAttribute("sandbox", "allow-same-origin");       /* скрипти вимкнені */
+    document.getElementById("frames").appendChild(f);
+    await new Promise(function (r) { f.onload = function () { setTimeout(r, 600); }; f.src = "jira.html?nojs=" + Date.now(); });
+    var d = f.contentDocument;
+    var vis = textNodes(d.getElementById("heroWin") || d.body).length;
+    var card = d.querySelector("[data-fly]");
+    var ok = card && +f.contentWindow.getComputedStyle(card).opacity === 1;
+    row("Стан спокою БЕЗ JS = фінальний кадр (лабораторія, спосіб C)", !!ok && vis > 20,
+        "видимих текстових вузлів у дошці: " + vis + " · картка opacity=" +
+        (card ? f.contentWindow.getComputedStyle(card).opacity : "—"));
+    f.remove();
+  }
+
+  /* ============================================================================
+     ЗАПУСК
+     ========================================================================== */
+  document.getElementById("run").addEventListener("click", async function () {
+    tbody.innerHTML = "";
+    this.disabled = true;
+    document.getElementById("env").textContent =
+      "середовище: visibilityState=" + document.visibilityState +
+      " · hasFocus=" + document.hasFocus() +
+      " · вʼюпорт " + innerWidth + "×" + innerHeight +
+      " · prefers-reduced-motion=" + matchMedia("(prefers-reduced-motion: reduce)").matches;
+    try {
+      await testContrast();
+      await testText();
+      await testMark();
+      await testProseAB();
+      await testScroll();
+      await testMotion();
+      await testHeroBudget();
+      await testAuthorOff();
+      await testMap();
+      await testColdStart();
+    } catch (e) {
+      row("ПОМИЛКА ПРОГОНУ", false, String(e && e.message || e));
+    }
+    var all = tbody.querySelectorAll("tr").length;
+    var bad = tbody.querySelectorAll(".gal__fail").length;
+    row("—— ПІДСУМОК ——", bad === 0, all + " тестів · " + (all - bad) + " PASS · " + bad + " FAIL");
+    this.disabled = false;
+  });
+  </script>
+</body>
+
+</html>

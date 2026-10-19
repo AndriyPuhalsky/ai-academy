@@ -1,0 +1,51 @@
+# `screens/` — текстові знімки sandbox для авторів і дизайну
+
+Аналог `005-ai-terminal/00-research/screens/*.txt`, але для GUI: не вивід команд, а **структура
+екрана словами** — рейка, заголовки, кнопки, поля, дослівні підписи EN. Автор уроку бере звідси
+назви елементів для вікон і легенд; дизайн — вміст для станів компонента «вікно».
+
+**Знято 2026-09-17** кореневою сесією в Chrome власника (лише читання, нічого не створювалось); **22–24 дозняті того ж дня ввечері** (галерея шаблонів переглядалась без вибору шаблону).
+Стан sandbox на цей день: один спейс `KAN` «Моя команда» (team-managed software, шаблон Kanban),
+три роботи `KAN-1` Task 1 · `KAN-2` Task 2 · `KAN-3` Subtask 2.1 (створив власник), один користувач.
+**JSM і Confluence на сайті ще немає** — екрани портала, черг, SLA, бази знань зняти не було з чого;
+доповнити після того, як власник додасть продукти (admin.atlassian.com → Products → Add product).
+
+| # | Файл | Що це | Для уроків |
+|---|---|---|---|
+| 01 | `01-home-for-you.md` | домашня «For you» | j03 |
+| 02 | `02-spaces-list.md` | список спейсів | j03, j09 |
+| 03 | `03-board.md` | дошка (Kanban) | j05, j06, j13 |
+| 04 | `04-list.md` | вигляд List | j06 |
+| 05 | `05-summary.md` | вигляд Summary | j06, j08 |
+| 06 | `06-work-item.md` | картка роботи | j04, j05 |
+| 07 | `07-create-dialog.md` | діалог Create (компактний) | j05 |
+| 08 | `08-add-view-menu.md` | меню «+» — які вигляди можна додати | j06, j13 |
+| 09 | `09-docs-pages-upsell.md` | вкладка Docs без Confluence | j16 |
+| 10 | `10-space-settings.md` | налаштування спейсу: рейка, Details, Access, Features, Fields | j09, j11, j20 |
+| 11 | `11-work-types-task.md` | тип роботи Task і його поля | j11 |
+| 12 | `12-workflow-editor.md` | редактор workflow (team-managed) | j10 |
+| 13 | `13-automation-space.md` | автоматизація спейсу — **Flows** | j14 |
+| 14 | `14-automation-global.md` | глобальна автоматизація: шаблони, банер білінгу, Usage | j15, довідник 2 і 3 |
+| 15 | `15-search-jql.md` | пошук «All work», перемикач Basic/JQL, помилка JQL | j07 |
+| 16 | `16-filters-dashboards.md` | сторінки Filters і Dashboards | j07, j08 |
+| 17 | `17-personal-settings.md` | особисті: General (мова, тема) і Notifications | j03, j05 |
+| 18 | `18-system-settings.md` | System settings → General configuration | j20 |
+| 19 | `19-import.md` | Import data into Jira (нова версія) | j21 |
+| 20 | `20-marketplace.md` | Marketplace apps | j17 |
+| 21 | `21-business-space.md` | **ще не знято** — business-спейс (рядок виглядів, шлях, плитка «Business space»); потрібен створений business-спейс (власник або разовий дозвіл) | j03, j06, j09, j13 |
+| 22 | `22-sidebar.md` | ліва бічна панель повністю: 13 пунктів, геометрія 32 px, чотири лінки за межі Jira (знято 2026-09-17, вечір) | j03, j07, j08, j09, j17, довідник 3 |
+| 23 | `23-create-space-templates.md` | галерея «Space templates»: 17 категорій, 4 продукти, 6 карток «Made for you», 30 шаблонів Work management, 16 Service management (вечір) | j05, j09, j12, j13, j18, j19, j21, довідник 3 |
+| 24 | `24-plans-table-jsm.md` | таблиця планів на support.atlassian.com — колонка JSM Free очима + `curl` (закрито ⚠ №3 у `facts-free-plan.md`) | j18, j19, довідник 3 |
+| 26 | `26-sandbox-2026-09-24.md` | дозйомка дня: майстер `Create space` (обидва типи, `Administrators only`, три рівні доступу), `System settings` (рейка, мови, `Backup manager`), `All work` (`•••` → `Export` ›, кирилична мітка в JQL, `Fix error`, `Ask AI`), `Improve Task`, автоматизація (меню `Create flow`, легенда статусів журналу, `Add a step`, `Save and enable`), `Access`, майстер CSV, дашборд (31 гаджет, `Filter Results`, кошик 60 днів), `Add agent` у workflow | j02–j04, j07–j10, j14, j15, j20, j22, довідники |
+| 27 | `27-sandbox-2026-09-28.md` | наповнення sandbox «Марципаном»: майстер `Create space` (30 шаблонів Work management, сторінка опису Kanban, автоключі з кирилиці, прев'ю ≠ дошка), статуси й **типи робіт** кожного шаблону (Workstream / Campaign / Role — не Epic), меню спейсу, `Space settings`, редактор workflow (`Add status`, `Create transition`, `Add rule`), `HR` за j10 дослівно, кошик звільняє ключ, JQL `priority >`, 24 картки | j03, j04, j06, j09–j11, j22, довідник JQL, програма §3 |
+
+**Чого НЕ вдалося зняти й чому:** `/jira/templates` → 404 (шаблони живуть у діалозі Create space);
+`/jira/settings/apps/discover` → 404 (Marketplace тепер на `/jira/marketplace/discover`);
+`…/boards/1/backlog` → 404 (у шаблоні Kanban вигляду Backlog немає, його додають через «+»);
+сторінка людей `/jira/people/search` — домен поза дозволами розширення; JSM, портал, Confluence — продуктів немає.
+
+**Термінологія на екранах 2026-09-17:** *work item* (не issue) скрізь у UI, але в URL і в id полів — `issues`,
+`browse/KAN-2`, `customfield_…`; *space* (не project) у UI, `projects` в URL; **правила автоматизації
+називаються «flows»** («Create flow», «Browse flows», вкладки Flows · Audit log · Templates · Usage).
+Банер у System settings: «As we roll out 'work' as the new term for items tracked in Jira, you may
+still see 'issue' in some areas».

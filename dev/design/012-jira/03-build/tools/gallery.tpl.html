@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="uk" data-course="jira" data-density="lesson" data-lit>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>012 · галерея: усі вікна курсу «Jira з нуля»</title>
+  <meta name="theme-color" content="#161311" />
+  <script>document.documentElement.classList.add("js");</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- ЖИВІ файли сайту — щоб зіткнення специфічностей було справжнім, а не
+       намальованим (прийом _base/site-inherited.css із 005). Правити їх
+       заборонено; макет лише читає. -->
+  <link rel="stylesheet" href="../../../../css/tokens.css" />
+  <link rel="stylesheet" href="../../../../css/components.css" />
+  <!-- ДЕЛЬТА ЗАДАЧІ 012 -->
+  <link rel="stylesheet" href="tokens-jira.css" />
+  <link rel="stylesheet" href="win.css" />
+  <link rel="stylesheet" href="gallery.css" />
+
+  <!-- Tailwind ПІСЛЯ наших <link>, як у проді: його preflight мусить стояти в
+       каскаді пізніше, щоб перевірка «правило на голий тег не діє» була чесною. -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../../../../js/tw-theme.js"></script>
+</head>
+
+<body>
+  <a class="ds-skip" href="#main">Перейти до вмісту</a>
+
+  <header class="gal__hdr">
+    <p class="gal__kicker">012 · макет компонента</p>
+    <h1 class="gal__h1">Усі вікна курсу на одній сторінці</h1>
+    <p class="gal__lead">
+      <b>{{TOTAL}} вікон</b>, вирізаних дослівно з живих <code>modules/jira-01…23.html</code>
+      разом із легендами й підписами-джерелами. Контент не змінений ні на байт
+      (К-29) — сторінку збирає <code>tools/build-gallery.py</code>, який уроки
+      тільки читає. За станами: {{COUNTS}}.
+    </p>
+    <nav class="gal__nav" aria-label="Стани компонента">
+      <a href="#st-list">list</a><a href="#st-settings">settings</a><a href="#st-form">form</a>
+      <a href="#st-board">board</a><a href="#st-item">item</a><a href="#st-portal">portal</a>
+      <a href="#st-synth">синтетичні</a>
+    </nav>
+    <div class="gal__ctl">
+      <label><input type="checkbox" id="galRm" /> <span>prefers-reduced-motion (класом <code>html.rm</code>)</span></label>
+      <label><input type="checkbox" id="galLit" checked /> <span><code>data-lit</code> — «світло згори»</span></label>
+      <label><input type="checkbox" id="galFlip" /> <span><b>відкотити естетичний ризик</b>: полотно темніше за шапку</span></label>
+      <label><input type="checkbox" id="galProse" /> <span>показати межі треків гріда прози</span></label>
+    </div>
+  </header>
+
+  <main id="main" class="gal__main">
+    <!--FRAMES-->
+
+    <section class="gal__state" id="st-synth" aria-labelledby="st-synth-t">
+      <h2 class="gal__h2" id="st-synth-t">Синтетичні кадри <span class="gal__n">7</span></h2>
+      <p class="gal__note">
+        Кадри, яких у курсі немає, але компонент зобовʼязаний їх тримати:
+        <b>вікно без міток</b> (у курсі 0 із 62 — потрібне для
+        <code>jira-ref-map.html</code>, <code>inventory.md</code> Б),
+        вікно з найдовшими заміряними рядками курсу й вікно з однією міткою на
+        дрібному елементі. Текст тут — реальні рядки сюжету «Марципан» і реальні
+        написи Jira, а не <code>Lorem</code>.
+      </p>
+      <!--SYNTH-->
+    </section>
+  </main>
+
+  <script>
+  /* ПІДМОСТКИ МАКЕТА. У прод не йдуть: перемикачі режимів і підказка про
+     скрол. Підказку в проді ставить js/ui.js зі свого списку FADE_SCROLLERS —
+     тут вона відтворена локально, щоб гасіння краю (§41) і смугу (§41.1)
+     можна було ПОБАЧИТИ, а не повірити на слово. */
+  (function () {
+    var root = document.documentElement;
+
+    /* ⚠ ПАСТКА ЗАМІРУ, ЯКА КОШТУВАЛА ОДНОГО КОЛА ТУТ-таки.
+       `Cache-Control: no-store` на КОЖНУ відповідь локального сервера НЕ
+       рятує від кешу <link>: сторінка приходила свіжою, а CSS брався з
+       памʼяті браузера, і три вже виправлені дефекти «продовжували падати».
+       Доведено CSSOM-ом: у застосованому аркуші селектора `.ds-prose
+       ol.win__legend` просто не було, хоча fetch того ж файла його вже
+       повертав. Єдине, що лікує, — переписати href після завантаження. */
+    Array.prototype.forEach.call(document.querySelectorAll('link[rel=stylesheet]'), function (l) {
+      var h = l.getAttribute("href");
+      if (h.indexOf("fonts.") < 0) l.setAttribute("href", h.split("?")[0] + "?v=" + Date.now());
+    });
+
+    function bind(id, fn) { var el = document.getElementById(id); if (el) el.addEventListener("change", function () { fn(el.checked); }); }
+    bind("galRm",   function (v) { root.classList.toggle("rm", v); });
+    bind("galLit",  function (v) { v ? root.setAttribute("data-lit", "") : root.removeAttribute("data-lit"); });
+    bind("galFlip", function (v) { root.classList.toggle("win-flip", v); });
+    bind("galProse", function (v) { document.body.classList.toggle("gal-tracks", v); });
+
+    var SEL = ".win__main, .win__cols, .win__tabs, .ds-tbl__wrap";
+    function state(el) {
+      if (!el.clientWidth) return null;
+      var max = el.scrollWidth - el.clientWidth;
+      if (max <= 1) return "";
+      var x = el.scrollLeft, l = x > 1, r = x < max - 1;
+      return l && r ? "both" : l ? "left" : r ? "right" : "";
+    }
+    function sync(el) {
+      var s = state(el);
+      if (s === null) return;
+      if (s) { el.setAttribute("data-scroll-fade", s); el.setAttribute("tabindex", "0"); el.setAttribute("role", "group"); }
+      else { el.removeAttribute("data-scroll-fade"); el.removeAttribute("tabindex"); el.removeAttribute("role"); }
+    }
+    function all() {
+      Array.prototype.forEach.call(document.querySelectorAll(SEL), function (el) {
+        if (!el.hasAttribute("data-fade-bound")) {
+          el.setAttribute("data-fade-bound", "");
+          el.addEventListener("scroll", function () { sync(el); }, { passive: true });
+          if ("ResizeObserver" in window) new ResizeObserver(function () { sync(el); }).observe(el);
+        }
+        sync(el);
+      });
+    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", all); else all();
+    window.addEventListener("resize", all);
+    document.fonts && document.fonts.ready.then(all);
+    window.GAL = { sync: all, SEL: SEL };
+  })();
+  </script>
+</body>
+
+</html>

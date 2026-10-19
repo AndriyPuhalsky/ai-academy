@@ -25,6 +25,12 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="js/tw-theme.js"></script>
+  <!-- Прев'ю посилання: картинка — перший екран лендінга курсу (2026-10-01) -->
+  <meta property="og:image" content="https://ai-academia.com.ua/assets/og/og-academy.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Головна сторінка AI Академії" />
+  <meta name="twitter:card" content="summary_large_image" />
 </head>
 <body>
 
@@ -61,7 +67,12 @@
       architect:     { course: "architect", mono: "AIA", name: "AI Architect",
                        home: "architect.html",   program: "architect.html#syllabus" },
       "claude-code": { course: "terminal",  mono: "AIT", name: "AI Термінал",
-                       home: "claude-code.html", program: "claude-code.html#map" }
+                       home: "claude-code.html", program: "claude-code.html#map" },
+      // 012: ключ мусить бути РІВНО `jira` — jira.config.json веде сюди
+      // посиланням certificate.html?from=jira. `course` — значення слота
+      // data-course (css/tokens.css, секція 7), у Jira воно теж `jira`.
+      jira:          { course: "jira",      mono: "AIJ", name: "Jira з нуля",
+                       home: "jira.html",        program: "jira.html#map" }
     };
     var key = "";
     try { key = new URLSearchParams(location.search).get("from") || ""; } catch (e) {}
@@ -70,6 +81,11 @@
       // /modules/claude-code-05 не мав би шансу — у ньому немає «architect»,
       // але порядок лишається однаковим із roadmap-render.js.
       if (/claude-code/i.test(document.referrer)) key = "claude-code";
+      // 012: `jira` стоїть ДРУГИМ, а не в кінці — щоб порядок гілок тут і в
+      // js/roadmap-render.js лишався побайтово однаковим. Колізій немає (жодна
+      // адреса Jira не містить «claude-code» чи «architect», і навпаки), але
+      // однаковий порядок — єдине, що тримає два файли синхронними.
+      else if (/jira/i.test(document.referrer)) key = "jira";
       else if (/architect/i.test(document.referrer)) key = "architect";
     }
     // Повернення з Google: redirectTo в js/auth.js стриже ?search, referrer —

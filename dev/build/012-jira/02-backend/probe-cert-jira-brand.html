@@ -1,0 +1,107 @@
+<!doctype html>
+<!-- 012 · проба бекендера: рядок BRANDS["jira"] у js/certificate.js.
+
+     Навіщо: `brandOf()`, `certCard()` і `buildCertNode()` викликаються лише для
+     ЗАЛОГІНЕНОГО користувача, у якого в `certificates` є рядок. Реєструвати
+     акаунт і писати в продову базу заборонено (а в `certificates` немає навіть
+     політики DELETE — слід прибирав би власник вручну, як у 005-4), тому
+     Supabase тут ЗАГЛУШКА: from().select().order() віддає вигадані рядки без
+     жодного запиту в мережу. Міграція 012-1 для цієї проби не потрібна.
+
+     Що перевіряє:
+       1. brandOf() для всіх ЧОТИРЬОХ слагів + невідомого (фолбек = Академія);
+       2. certCard() — назва курсу, посилання «До програми курсу →»;
+       3. buildCertNode() — що аркуш PDF справді малюється в МАГЕНТІ
+          (#C57CB4 / #9A578A), а не в шафрані Академії;
+       4. що жоден наявний курс не змінився (три рядки поруч, у тій же пробі).
+
+     Усі значення в полях — ВИГАДАНІ (код `PROBE0000JIR`, ім'я «Тест Пробний»):
+     репозиторій публічний, реальних даних учнів тут бути не може.
+
+     Сторінка лежить у `dev/` → не роздається з сайту (`.assetsignore`), у прод
+     не поїде. Прецедент і метод — dev/build/011-open-tails/02-backend/probe-cert-accent.html. -->
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <title>Проба BRANDS["jira"]</title>
+</head>
+<body>
+  <div id="certBody"></div>
+  <pre id="out" style="white-space:pre-wrap;font:12px/1.5 monospace"></pre>
+  <script>
+    // Вигадані рядки. `courses` — саме так їх віддає select у load():
+    // .select("public_code, full_name, issued_at, course_id, courses(title, slug)")
+    var ROWS = [
+      { public_code: "PROBE0000JIR", full_name: "Тест Пробний", issued_at: "2026-10-01T10:00:00Z",
+        course_id: "00000000-0000-0000-0000-000000000004",
+        courses: { title: "Jira з нуля", slug: "jira" } }
+    ];
+    window.AIA_USER = { id: "probe-user" };
+    window.sb = {
+      from: function () {
+        return { select: function () {
+          return {
+            order: function () { return Promise.resolve({ data: ROWS, error: null }); },
+            eq: function () { return { order: function () { return Promise.resolve({ data: [], error: null }); } }; }
+          };
+        } };
+      }
+    };
+  </script>
+  <script src="/js/certificate.js"></script>
+  <script>
+    function hexesOf(node) {
+      var m = (node.outerHTML || "").toUpperCase().match(/#[0-9A-F]{6}/g) || [];
+      var seen = {}, out = [];
+      m.forEach(function (h) { if (!seen[h]) { seen[h] = 1; out.push(h); } });
+      return out;
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+      document.dispatchEvent(new Event("aia:auth"));
+      setTimeout(function () {
+        var L = [];
+        var B = window.AIACert;
+        L.push("window.AIACert експортований: " + !!B);
+
+        L.push("\n--- 1. brandOf() по слагах ---");
+        ["jira", "claude-code", "ai-architect", "ai-essentials", "немає-такого"].forEach(function (slug) {
+          var b = B.brandOf({ courses: { slug: slug } });
+          L.push("  " + slug.padEnd(14) + " -> brand=" + b.brand + " | caps=" + b.brandCaps +
+                 " | mono=" + b.mono + " | accent=" + b.accent + "/" + b.accentDeep +
+                 " | home=" + b.home + " | program=" + b.program);
+        });
+
+        L.push("\n--- 2. certCard() справжнім шляхом (renderCerts) ---");
+        var card = document.querySelector("#certBody .ds-card");
+        L.push("  картка намальована: " + !!card);
+        if (card) {
+          L.push("  назва курсу: " + (card.querySelector(".ds-h3") || {}).textContent);
+          var prog = card.querySelector('a[class*="quiet"]');
+          L.push("  «До програми курсу» href: " + (prog ? prog.getAttribute("href") : "НЕМАЄ"));
+          L.push("  зайвих атрибутів у посиланні: " +
+            (prog ? Array.prototype.map.call(prog.attributes, function (x) { return x.name; }).join(",") : "—"));
+        }
+
+        L.push("\n--- 3. buildCertNode(): кольори аркуша PDF ---");
+        ["jira", "claude-code"].forEach(function (slug) {
+          var cert = { public_code: "PROBE0000JIR", full_name: "Тест Пробний",
+                       issued_at: "2026-10-01T10:00:00Z",
+                       courses: { title: slug === "jira" ? "Jira з нуля" : "AI Термінал", slug: slug } };
+          var node = B.buildCertNode(cert, "");
+          var hx = hexesOf(node);
+          var txt = (node.innerText || node.textContent || "").replace(/\s+/g, " ").trim();
+          L.push("  " + slug + ": хекси у розмітці аркуша = " + hx.join(" "));
+          L.push("      капс медальйона у тексті: " +
+            (/AI АКАДЕМІЯ · JIRA/.test(txt) ? "AI АКАДЕМІЯ · JIRA" :
+             /AI ТЕРМІНАЛ/.test(txt) ? "AI ТЕРМІНАЛ" : "?") +
+            " | монограма: " + (/AIJ/.test(txt) ? "AIJ" : /AIT/.test(txt) ? "AIT" : "?"));
+          L.push("      назва курсу на аркуші: " + (txt.match(/«[^»]+»/) || ["?"])[0]);
+        });
+
+        document.getElementById("out").textContent = L.join("\n");
+        window.__probeDone = true;
+      }, 120);
+    });
+  </script>
+</body>
+</html>

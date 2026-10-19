@@ -14,3 +14,7 @@
 - [Пастки дизайн-системи AIA](reference_aia_design_system_traps.md) — `.prose-aia pre` (0,1,1), ButtonFace, мертвий `li::marker`
 - [Обмеження Figma Starter](reference_figma_starter_limits.md) — один режим змінних, три сторінки, денна квота MCP закінчується на ~14 викликів
 - [Пастки розмітки уроків](reference_aia_lesson_markup_traps.md) — усе в `<section>`, preflight б'є (0,0,1), мертві `::marker` і sticky `thead`, `hidden` програє `.grid`
+- [Задача 012 · макет Jira](project_aia_012_jira_build.md) — акцент H 336°, компонент `win` 64 класи, інверсія `term`; три sed-паси знято з білду
+- [Пастки каскаду 012](reference_aia_cascade_traps_012.md) — `:is()` важить (0,1,2) і бʼє компонент; токени не доходять до сиблінга; альфа-тінт під міткою = 169 провалів AA
+- [Цикл hero на чистому CSS](reference_css_only_hero_loop.md) — сім синхронних доріжок без GSAP; спокій = фінальний кадр; `offsetLeft` замість `getBoundingClientRect`
+- [Межа «зроби як в X»](feedback_owner_scope_narrowing.md) — власник називає ОДИН блок; ширшу інтерпретацію виносити в звіт, а не робити
